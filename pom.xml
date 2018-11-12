@@ -23,7 +23,7 @@
     <java.version>1.8</java.version>
   </properties>
 
-  <build>
+  <build> 
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
