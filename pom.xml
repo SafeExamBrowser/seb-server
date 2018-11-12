@@ -9,7 +9,7 @@
   <name>seb-server</name>
   <description>web-service for SEB maintenance and monitoring active SEB sessions</description>
 
-  <parent>
+  <parent> 
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.0.5.RELEASE</version>
@@ -23,7 +23,7 @@
     <java.version>1.8</java.version>
   </properties>
 
-  <build>
+  <build> 
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
