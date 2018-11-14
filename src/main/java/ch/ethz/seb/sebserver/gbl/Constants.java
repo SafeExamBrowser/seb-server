@@ -15,12 +15,12 @@ import org.joda.time.format.DateTimeFormatter;
 public final class Constants {
 
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
-    public static DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
+    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss")
             .withZoneUTC();
 
     /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
-    public static DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
+    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss.S")
             .withZoneUTC();
 
