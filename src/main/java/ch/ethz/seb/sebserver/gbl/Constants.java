@@ -8,25 +8,19 @@
 
 package ch.ethz.seb.sebserver.gbl;
 
-import java.util.Calendar;
-import java.util.TimeZone;
-
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
-public interface Constants {
-
-    /** Calendar using the UTC time-zone */
-    Calendar UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+public final class Constants {
 
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
-    DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
+    public static DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss")
             .withZoneUTC();
 
     /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
-    DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
+    public static DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss.S")
             .withZoneUTC();
 

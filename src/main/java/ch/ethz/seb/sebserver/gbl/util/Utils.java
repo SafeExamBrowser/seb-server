@@ -22,7 +22,7 @@ public final class Utils {
      * @param collection the Collection to extract the single and only element
      * @return The single element
      * @throws IllegalArgumentException if the collection is null, or empty or has more then one element */
-    public static final <T> Result<T> getSingle(final Collection<T> collection) {
+    public static <T> Result<T> getSingle(final Collection<T> collection) {
         if (collection == null || collection.isEmpty() || collection.size() > 1) {
             return Result.ofError(
                     new IllegalArgumentException(
@@ -38,7 +38,7 @@ public final class Utils {
      * @param values elements of the new immutable Collection
      * @return an immutable Collection of specified type with given elements */
     @SafeVarargs
-    public static final <T> Collection<T> immutableCollectionOf(final T... values) {
+    public static <T> Collection<T> immutableCollectionOf(final T... values) {
         if (values == null || values.length <= 0) {
             return Collections.emptyList();
         }
@@ -50,7 +50,7 @@ public final class Utils {
      * @param values elements of the new immutable Set
      * @return an immutable Set of specified type with given elements */
     @SafeVarargs
-    public static final <T> Set<T> immutableSetOf(final T... items) {
+    public static <T> Set<T> immutableSetOf(final T... items) {
         if (items == null || items.length <= 0) {
             return Collections.emptySet();
         }

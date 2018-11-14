@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -42,7 +44,7 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
         ps.setTimestamp(
                 i,
                 new Timestamp(parameter.getMillis()),
-                Constants.UTC);
+                Calendar.getInstance(TimeZone.getTimeZone("UTC")));
     }
 
     @Override

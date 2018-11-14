@@ -134,7 +134,7 @@ public final class Result<T> {
      *
      * @param value resulting value
      * @return Result instance contains a resulting value and no error */
-    public static final <T> Result<T> of(final T value) {
+    public static <T> Result<T> of(final T value) {
         assert value != null : "value has null reference";
         return new Result<>(value);
     }
@@ -143,7 +143,7 @@ public final class Result<T> {
      *
      * @param error the error that is wrapped within the created Result
      * @return Result of specified error */
-    public static final <T> Result<T> ofError(final Throwable error) {
+    public static <T> Result<T> ofError(final Throwable error) {
         assert error != null : "error has null reference";
         return new Result<>(error);
     }

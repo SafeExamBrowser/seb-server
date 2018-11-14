@@ -9,48 +9,19 @@
 package ch.ethz.seb.sebserver.webservice.batis;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 
-import org.apache.ibatis.type.JdbcType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.webservice.batis.JodaTimeTypeResolver;
 
 public class JodaTimeTypeResolverTest {
-
-    @Test
-    public void testSetNonNullParameter() throws SQLException {
-        final DateTime pointInTime = new DateTime(0, DateTimeZone.UTC);
-        final PreparedStatement statement = Mockito.mock(PreparedStatement.class);
-        final JodaTimeTypeResolver jodaTimeTypeResolver = new JodaTimeTypeResolver();
-        final Timestamp timestamp = new Timestamp(pointInTime.getMillis());
-
-        jodaTimeTypeResolver.setNonNullParameter(statement, 0, pointInTime, JdbcType.TIMESTAMP);
-
-        Mockito.verify(statement, times(1)).setTimestamp(0, timestamp, Constants.UTC);
-        verify(statement, never()).setTimestamp(anyInt(), any(Timestamp.class));
-
-        jodaTimeTypeResolver.setNonNullParameter(statement, 0, pointInTime, JdbcType.DATE);
-
-        Mockito.verify(statement, times(2)).setTimestamp(0, timestamp, Constants.UTC);
-        verify(statement, never()).setTimestamp(anyInt(), any(Timestamp.class));
-
-        jodaTimeTypeResolver.setNonNullParameter(statement, 0, pointInTime, JdbcType.DATETIMEOFFSET);
-
-        Mockito.verify(statement, times(3)).setTimestamp(0, timestamp, Constants.UTC);
-        verify(statement, never()).setTimestamp(anyInt(), any(Timestamp.class));
-    }
 
     @Test
     public void testGetNullableResultExceptions() throws SQLException {
