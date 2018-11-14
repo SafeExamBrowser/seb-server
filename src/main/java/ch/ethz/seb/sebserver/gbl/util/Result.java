@@ -61,6 +61,10 @@ public final class Result<T> {
         return this.error;
     }
 
+    public boolean hasError() {
+        return this.error != null;
+    }
+
     /** Use this to get the resulting value or (if null) to get a given other value
      *
      * @param other the other value to get if the computed value is null
@@ -69,10 +73,19 @@ public final class Result<T> {
         return this.value != null ? this.value : other;
     }
 
+    /** Use this to get the resulting value or (if null) to get a given other value
+     *
+     * @param supplier supplier to get the value from if the computed value is null
+     * @return return either the computed value if existing or a given other value */
     public T orElse(final Supplier<T> supplier) {
         return this.value != null ? this.value : supplier.get();
     }
 
+    /** Use this to map a given Result of type T to another Result of type U
+     * within a given mapping function.
+     *
+     * @param mapf the mapping function
+     * @return mapped Result of type U */
     public <U> Result<U> map(final Function<? super T, ? extends U> mapf) {
         if (this.error == null) {
             return Result.of(mapf.apply(this.value));
@@ -81,6 +94,11 @@ public final class Result<T> {
         }
     }
 
+    /** Use this to map a given Result of type T to another Result of type U
+     * within a given mapping function.
+     *
+     * @param mapf the mapping function
+     * @return mapped Result of type U */
     public <U> Result<U> flatMap(final Function<? super T, Result<U>> mapf) {
         if (this.error == null) {
             return mapf.apply(this.value);
@@ -89,16 +107,14 @@ public final class Result<T> {
         }
     }
 
+    /** Use this to get the resulting value. In an error case, a given error handling
+     * function is used that receives the error and returns a resulting value instead
+     * (or throw some error instead)
+     *
+     * @param errorHandler the error handling function
+     * @return */
     public T onError(final Function<Throwable, T> errorHandler) {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
-    }
-
-    public static final <T> Result<T> of(final T value) {
-        return new Result<>(value);
-    }
-
-    public static final <T> Result<T> ofError(final Throwable error) {
-        return new Result<>(error);
     }
 
     /** Use this to get the resulting value of existing or throw an Runtime exception with
@@ -113,4 +129,23 @@ public final class Result<T> {
 
         return this.value;
     }
+
+    /** Use this to create a Result of a given resulting value.
+     *
+     * @param value resulting value
+     * @return Result instance contains a resulting value and no error */
+    public static final <T> Result<T> of(final T value) {
+        assert value != null : "value has null reference";
+        return new Result<>(value);
+    }
+
+    /** Use this to create a Result with error
+     *
+     * @param error the error that is wrapped within the created Result
+     * @return Result of specified error */
+    public static final <T> Result<T> ofError(final Throwable error) {
+        assert error != null : "error has null reference";
+        return new Result<>(error);
+    }
+
 }

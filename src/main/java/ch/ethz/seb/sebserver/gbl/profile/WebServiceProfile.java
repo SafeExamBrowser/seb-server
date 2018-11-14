@@ -15,6 +15,10 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Profile;
 
+/** Profile annotation for SEB-Server web-service components.
+ *
+ * Use this as profile annotation on components that are only needed in the web-service environment
+ * but for all vertical profiles like dev, prod and test */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Profile({ "dev-ws", "prod-ws", "test" })

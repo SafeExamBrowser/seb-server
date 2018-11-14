@@ -15,12 +15,12 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Profile;
 
-/** Profile annotation for SEB-Server gui components.
+/** Profile annotation for SEB-Server prod-gui components.
  *
- * Use this as profile annotation on components that are only needed in the web-gui environment
- * but for all vertical profiles like dev, prod and test */
+ * Use this as profile annotation on components that are only needed in the gui-service environment
+ * and only for production and/or testing */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Profile({ "dev-gui", "prod-gui", "test" })
-public @interface GuiProfile {
+@Profile({ "prod-gui", "test" })
+public @interface ProdGuiProfile {
 }
