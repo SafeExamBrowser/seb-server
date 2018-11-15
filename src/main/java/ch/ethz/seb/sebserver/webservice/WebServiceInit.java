@@ -24,11 +24,9 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
-        System.out.println("****************** WebServiceInit");
-
         log.info("Initialize SEB-Server Web-Service Component");
 
-        // TODO create an initial global admin account that expires after a defined time-frame (only if not already exists)
+        // TODO whatever has to be initialized for the web-service component right after startup comes here
 
     }
 

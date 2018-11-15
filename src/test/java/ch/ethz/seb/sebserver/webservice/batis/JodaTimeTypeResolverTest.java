@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
 
 public class JodaTimeTypeResolverTest {
 
