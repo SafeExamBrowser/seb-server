@@ -9,7 +9,7 @@
   <name>seb-server</name>
   <description>web-service for SEB maintenance and monitoring active SEB sessions</description>
 
-  <parent> 
+  <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.1.0.RELEASE</version>
@@ -50,14 +50,14 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
     <!-- Data Base -->
     <dependency>
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
     </dependency>
-    
+
     <!-- MyBatis -->
     <dependency>
       <groupId>org.mybatis</groupId>
@@ -74,8 +74,8 @@
       <artifactId>mybatis-spring</artifactId>
       <version>1.3.2</version>
     </dependency>
-    
-    
+
+
     <!-- Spring / Spring Boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -117,7 +117,7 @@
       <artifactId>spring-security-jwt</artifactId>
       <version>1.0.9.RELEASE</version>
     </dependency>
-    
+
     <!-- Misc -->
     <dependency>
       <groupId>joda-time</groupId>
@@ -131,7 +131,7 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
-    
+
     <!-- Testing and Code generation -->
     <dependency>
       <groupId>junit</groupId>
@@ -149,17 +149,23 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <profiles>
     <profile>
       <id>let_reporting</id>
-      
-      <properties>
-        <java.version>1.8</java.version>
-      </properties>
-  
       <build>
         <plugins>
+        
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <release>1.8</release>
+              <source>1.8</source>
+              <target>1.8</target>
+            </configuration>
+          </plugin>
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>
