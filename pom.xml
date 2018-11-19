@@ -21,9 +21,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
-  
-  <!-- NOTE: There currently are two profiles, a default one to build on Java 11 (from eclipse and command-line)
-             and one to build still on Java 8 to support the Jenkins build on CI-Server that still no Java 11 installed -->
+
+  <!-- NOTE: There currently are two profiles, a default one to build on 
+    Java 11 (from eclipse and command-line) and one to build still on Java 8 
+    to support the Jenkins build on CI-Server that still no Java 11 installed -->
   <profiles>
     <profile>
       <id>Java 11</id>
@@ -48,11 +49,11 @@
         <dependency>
           <groupId>org.glassfish.jaxb</groupId>
           <artifactId>jaxb-runtime</artifactId>
-          <version>2.4.0-b180830.0438</version><!--$NO-MVN-MAN-VER$--> <!-- TODO move to stable version when available -->
+          <version>2.4.0-b180830.0438</version><!--$NO-MVN-MAN-VER$ --> <!-- TODO move to stable version when available -->
         </dependency>
       </dependencies>
     </profile>
-  
+
     <profile>
       <id>let_reporting</id>
       <properties>
@@ -60,7 +61,7 @@
       </properties>
       <build>
         <plugins>
-        
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -79,6 +80,10 @@
               <failOnViolation>false</failOnViolation>
               <targetJdk>${java.version}</targetJdk>
               <linkXRef>false</linkXRef>
+              <excludes>
+                <exclude>ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*</exclude>
+                <exclude>ch.ethz.seb.sebserver.webservice.datalayer.batis.model.*</exclude>
+              </excludes>
             </configuration>
             <executions>
               <execution>
@@ -98,6 +103,7 @@
               <failOnError>false</failOnError>
               <threshold>Low</threshold>
               <xmlOutput>true</xmlOutput>
+              <excludeFilterFile></excludeFilterFile>
             </configuration>
             <executions>
               <execution>
