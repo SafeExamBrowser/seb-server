@@ -80,15 +80,10 @@
               <failOnViolation>false</failOnViolation>
               <targetJdk>${java.version}</targetJdk>
               <linkXRef>false</linkXRef>
-              <excludeRoots>.*/batis.mapper/*.*</excludeRoots>
-              <excludeRoots>.*/batis.model/*.*</excludeRoots>
-<!--               <excludes> -->
-<!--                 <exclude>.*/batis.mapper/*.*</exclude> -->
-<!--                 <exclude>.*/batis.model/*.*</exclude> -->
-<!--               </excludes> -->
-<!--               <rulesets> -->
-<!--                 <ruleset>pmd-excludes.xml</ruleset> -->
-<!--               </rulesets> -->
+              <excludes>
+                <exclude>**/batis/mapper/*.java</exclude>
+                <exclude>**/batis/model/*.java</exclude>
+              </excludes>
             </configuration>
             <executions>
               <execution>
