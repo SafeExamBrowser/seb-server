@@ -6,7 +6,6 @@
 
 <!-- Exclude generated classes -->
     <Match>
-        <Package name="ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper"/>
-        <Package name="ch.ethz.seb.sebserver.webservice.datalayer.batis.model"/>
+        <Package name="~ch\.ethz\.seb\.sebserver.\webservice\.datalayer.\batis\.mapper\..*"/>
     </Match>
 </FindBugsFilter>
