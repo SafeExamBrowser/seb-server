@@ -10,10 +10,6 @@ package ch.ethz.seb.sebserver;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -25,20 +21,12 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @Configuration
 @WebServiceProfile
 @GuiProfile
-@EnableWebSecurity
-@Order(0)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     /** Spring bean name of user password encoder */
     public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
     /** Spring bean name of client (application) password encoder */
     public static final String CLIENT_PASSWORD_ENCODER_BEAN_NAME = "clientPasswordEncoder";
-
-    @Override
-    protected void configure(final HttpSecurity http) throws Exception {
-        System.out.println("**************** Overall WebConfig: ");
-
-    }
 
     /** Password encoder used for user passwords (stronger protection) */
     @Bean(USER_PASSWORD_ENCODER_BEAN_NAME)

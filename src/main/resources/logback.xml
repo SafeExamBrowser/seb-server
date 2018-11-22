@@ -13,6 +13,7 @@
     <Logger name="org.springframework.messaging" level="INFO" additivity="true" />
     
     <Logger name="org.springframework.web" level="DEBUG" additivity="true" />
+    <Logger name="org.springframework.security.oauth2" level="DEBUG" additivity="true" />
 
     <root level="INFO" additivity="true">
         <appender-ref ref="STDOUT" />

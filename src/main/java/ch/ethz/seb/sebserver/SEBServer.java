@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @SpringBootApplication(exclude = {
+        // OAuth2ResourceServerAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class,
         DataSourceAutoConfiguration.class
 })
