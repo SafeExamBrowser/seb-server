@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 /** Abstract Spring ResourceServerConfiguration to configure different resource services
  * for different API's. */
@@ -34,6 +35,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
             final TokenStore tokenStore,
             final WebClientDetailsService webServiceClientDetails,
             final AuthenticationManager authenticationManager,
+            final AuthenticationEntryPoint authenticationEntryPoint,
             final String resourceId,
             final String apiEndpoint,
             final boolean supportRefreshToken,
@@ -44,6 +46,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
                 tokenStore,
                 webServiceClientDetails,
                 authenticationManager,
+                authenticationEntryPoint,
                 resourceId,
                 apiEndpoint,
                 supportRefreshToken);
@@ -62,6 +65,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
         private final TokenStore tokenStore;
         private final WebClientDetailsService webServiceClientDetails;
         private final AuthenticationManager authenticationManager;
+        private final AuthenticationEntryPoint authenticationEntryPoint;
         private final String resourceId;
         private final String apiEndpoint;
         private final boolean supportRefreshToken;
@@ -70,6 +74,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
                 final TokenStore tokenStore,
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
+                final AuthenticationEntryPoint authenticationEntryPoint,
                 final String resourceId,
                 final String apiEndpoint,
                 final boolean supportRefreshToken) {
@@ -78,6 +83,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
             this.tokenStore = tokenStore;
             this.webServiceClientDetails = webServiceClientDetails;
             this.authenticationManager = authenticationManager;
+            this.authenticationEntryPoint = authenticationEntryPoint;
             this.resourceId = resourceId;
             this.apiEndpoint = apiEndpoint;
             this.supportRefreshToken = supportRefreshToken;
@@ -104,6 +110,9 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
                     .authorizeRequests()
                     .anyRequest()
                     .authenticated()
+                    .and()
+                    .exceptionHandling()
+                    .authenticationEntryPoint(this.authenticationEntryPoint)
                     .and()
                     .formLogin().disable()
                     .httpBasic().disable()
