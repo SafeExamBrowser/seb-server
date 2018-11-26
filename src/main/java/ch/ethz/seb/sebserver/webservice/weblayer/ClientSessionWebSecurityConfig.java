@@ -214,11 +214,8 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
                 final HttpServletResponse response,
                 final AuthenticationException authenticationException) throws IOException, ServletException {
 
-            response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            log.warn("Unauthorized Request: {}", request, authenticationException);
-            log.info("Redirect to login after unauthorized request");
-
+            log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
+                    request.getRequestURI());
             // TODO define login redirect
             response.sendRedirect("/gui/");
         }

@@ -6,24 +6,23 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.weblayer;
+package ch.ethz.seb.sebserver.webservice.integration.api;
 
 import java.security.Principal;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-
 @RestController
-@RequestMapping("${sebserver.webservice.api.exam.endpoint}")
-@WebServiceProfile
-public class ExamAPITestController {
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}")
+@Profile("test")
+public class AdminAPITestController {
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     public String helloFromWebService(final Principal principal) {
-        return "Hello From Exam-Web-Service";
+        return "Hello From Admin-Web-Service";
     }
 
 }

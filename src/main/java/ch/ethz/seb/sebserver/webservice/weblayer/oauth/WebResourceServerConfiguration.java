@@ -107,7 +107,7 @@ public abstract class WebResourceServerConfiguration extends ResourceServerConfi
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and()
-                    .antMatcher(this.apiEndpoint)
+                    .antMatcher(this.apiEndpoint + "/**")
                     .authorizeRequests()
                     .anyRequest()
                     .authenticated()

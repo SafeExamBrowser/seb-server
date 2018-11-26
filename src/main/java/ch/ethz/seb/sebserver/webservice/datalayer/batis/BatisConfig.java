@@ -19,12 +19,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Configuration
 @MapperScan(basePackages = "ch.ethz.seb.sebserver.webservice.batis")
-@Profile("dev-ws")
+@WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class BatisConfig {
 
