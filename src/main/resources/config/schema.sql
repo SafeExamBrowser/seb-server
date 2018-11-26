@@ -20,11 +20,11 @@ CREATE TABLE IF NOT EXISTS `institution` (
 
 
 -- -----------------------------------------------------
--- Table `seb_lms_setup`
+-- Table `lms_setup`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `seb_lms_setup` ;
+DROP TABLE IF EXISTS `lms_setup` ;
 
-CREATE TABLE IF NOT EXISTS `seb_lms_setup` (
+CREATE TABLE IF NOT EXISTS `lms_setup` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   CONSTRAINT `lms_setup_key`
     FOREIGN KEY (`lms_setup_id`)
-    REFERENCES `seb_lms_setup` (`id`)
+    REFERENCES `lms_setup` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

@@ -17,17 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("${sebserver.webservice.api.exam.endpoint}")
 @WebServiceProfile
-public class WsTestController {
-
-    public WsTestController() {
-        System.out.println("************** TestController webservice");
-    }
+public class ExamAPITestController {
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     public String helloFromWebService(final Principal principal) {
-        return "Hello From Admin-Web-Service";
+        return "Hello From Exam-Web-Service";
     }
 
 }

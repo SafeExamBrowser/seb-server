@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,17 +28,17 @@ import org.springframework.security.oauth2.provider.token.UserAuthenticationConv
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminResourceServerConfig;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.SebClientResourceServerConfig;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebServiceClientDetails;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebResourceServerConfiguration;
 
+/** This is the main web-security Spring configuration for SEB-Server webservice API */
 @WebServiceProfile
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    /** Spring bean name of user password encoder */
+    /** Spring bean name of single AuthenticationManager bean */
     public static final String AUTHENTICATION_MANAGER = "AUTHENTICATION_MANAGER";
 
     @Autowired
@@ -48,7 +49,12 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
     @Autowired
     private TokenStore tokenStore;
     @Autowired
-    private WebServiceClientDetails webServiceClientDetails;
+    private WebClientDetailsService webServiceClientDetails;
+
+    @Value("${sebserver.webservice.api.admin.endpoint}")
+    private String adminAPIEndpoint;
+    @Value("${sebserver.webservice.api.exam.endpoint}")
+    private String examAPIEndpoint;
 
     @Bean
     public AccessTokenConverter accessTokenConverter() {
@@ -80,17 +86,63 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
     }
 
     @Bean
-    protected ResourceServerConfiguration sebServerAdminAPIResources() {
-        return new AdminResourceServerConfig(accessTokenConverter());
+    protected ResourceServerConfiguration sebServerAdminAPIResources() throws Exception {
+        return new AdminAPIResourceServerConfiguration(
+                this.tokenStore,
+                this.webServiceClientDetails,
+                authenticationManagerBean(),
+                this.adminAPIEndpoint);
     }
 
     @Bean
-    protected ResourceServerConfiguration sebServerSebClientAPIResources() throws Exception {
-        return new SebClientResourceServerConfig(
-                accessTokenConverter(),
+    protected ResourceServerConfiguration sebServerExamAPIResources() throws Exception {
+        return new ExamAPIClientResourceServerConfiguration(
                 this.tokenStore,
                 this.webServiceClientDetails,
-                authenticationManagerBean());
+                authenticationManagerBean(),
+                this.examAPIEndpoint);
+    }
+
+    // NOTE: We need two different class types here to support Spring configuration for different
+    //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
+    private static final class AdminAPIResourceServerConfiguration extends WebResourceServerConfiguration {
+
+        public AdminAPIResourceServerConfiguration(
+                final TokenStore tokenStore,
+                final WebClientDetailsService webServiceClientDetails,
+                final AuthenticationManager authenticationManager,
+                final String apiEndpoint) {
+
+            super(
+                    tokenStore,
+                    webServiceClientDetails,
+                    authenticationManager,
+                    ADMIN_API_RESOURCE_ID,
+                    apiEndpoint,
+                    true,
+                    1);
+        }
+    }
+
+    // NOTE: We need two different class types here to support Spring configuration for different
+    //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
+    private static final class ExamAPIClientResourceServerConfiguration extends WebResourceServerConfiguration {
+
+        public ExamAPIClientResourceServerConfiguration(
+                final TokenStore tokenStore,
+                final WebClientDetailsService webServiceClientDetails,
+                final AuthenticationManager authenticationManager,
+                final String apiEndpoint) {
+
+            super(
+                    tokenStore,
+                    webServiceClientDetails,
+                    authenticationManager,
+                    EXAM_API_RESOURCE_ID,
+                    apiEndpoint,
+                    true,
+                    2);
+        }
     }
 
 }

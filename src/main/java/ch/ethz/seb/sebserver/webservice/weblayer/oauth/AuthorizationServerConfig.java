@@ -32,6 +32,12 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.ClientSessionWebSecurityConfig;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 
+/** This is the main Spring configuration of OAuth2 Authorization Server.
+ *
+ * Currently supporting two client types for the two different API's on
+ * SEB Server webservice;
+ * - Administration API for administrative purpose using password grant type with refresh token
+ * - Exam API for SEB-Client connections on running exams using client_credential grant type */
 @WebServiceProfile
 @Configuration
 @EnableAuthorizationServer
@@ -45,7 +51,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private WebServiceUserDetails webServiceUserDetails;
     @Autowired
-    private WebServiceClientDetails webServiceClientDetails;
+    private WebClientDetailsService webServiceClientDetails;
     @Autowired
     @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
