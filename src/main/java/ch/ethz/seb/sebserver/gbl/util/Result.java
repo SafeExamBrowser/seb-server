@@ -113,16 +113,16 @@ public final class Result<T> {
      *
      * @param errorHandler the error handling function
      * @return */
-    public T onError(final Function<Throwable, T> errorHandler) {
+    public T getOrHandleError(final Function<Throwable, T> errorHandler) {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
     }
 
-    /** Use this to get the resulting value of existing or throw an Runtime exception with
+    /** Use this to get the resulting value if existing or throw an Runtime exception with
      * given message otherwise.
      *
      * @param message the message for the RuntimeException in error case
      * @return the resulting value */
-    public T onErrorThrow(final String message) {
+    public T getOrThrowRuntime(final String message) {
         if (this.error != null) {
             throw new RuntimeException(message, this.error);
         }

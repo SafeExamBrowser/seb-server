@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface InstitutionRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<InstitutionRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -54,7 +54,7 @@ public interface InstitutionRecordMapper {
     })
     InstitutionRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -63,22 +63,22 @@ public interface InstitutionRecordMapper {
     })
     List<InstitutionRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(institutionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, institutionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, institutionRecord)
                 .where(id, isEqualTo(id_))
@@ -86,7 +86,7 @@ public interface InstitutionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.201+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default int insert(InstitutionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(institutionRecord)
@@ -96,7 +96,7 @@ public interface InstitutionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default int insertSelective(InstitutionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(institutionRecord)
@@ -106,19 +106,19 @@ public interface InstitutionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<InstitutionRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, name, authtype)
                 .from(institutionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.351+01:00", comments="Source Table: institution")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<InstitutionRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, name, authtype)
                 .from(institutionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.352+01:00", comments="Source Table: institution")
     default InstitutionRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, name, authtype)
                 .from(institutionRecord)
@@ -127,21 +127,21 @@ public interface InstitutionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.352+01:00", comments="Source Table: institution")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(InstitutionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, institutionRecord)
                 .set(name).equalTo(record::getName)
                 .set(authtype).equalTo(record::getAuthtype);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.352+01:00", comments="Source Table: institution")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(InstitutionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, institutionRecord)
                 .set(name).equalToWhenPresent(record::getName)
                 .set(authtype).equalToWhenPresent(record::getAuthtype);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.352+01:00", comments="Source Table: institution")
     default int updateByPrimaryKey(InstitutionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, institutionRecord)
                 .set(name).equalTo(record::getName)
@@ -151,7 +151,7 @@ public interface InstitutionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-26T12:04:08.202+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-11-27T11:27:06.352+01:00", comments="Source Table: institution")
     default int updateByPrimaryKeySelective(InstitutionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, institutionRecord)
                 .set(name).equalToWhenPresent(record::getName)

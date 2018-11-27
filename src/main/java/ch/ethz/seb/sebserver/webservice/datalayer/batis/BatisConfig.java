@@ -24,7 +24,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Configuration
-@MapperScan(basePackages = "ch.ethz.seb.sebserver.webservice.batis")
+@MapperScan(basePackages = "ch.ethz.seb.sebserver.webservice.datalayer.batis")
 @WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class BatisConfig {

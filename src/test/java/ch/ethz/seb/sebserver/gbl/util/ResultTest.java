@@ -87,12 +87,12 @@ public class ResultTest {
         final Result<String> resultOf = Result.of("ONE");
         final Result<String> resultOfError = Result.ofError(new RuntimeException("Some Error"));
 
-        assertEquals("ONE", resultOf.onError(t -> t.getMessage()));
-        assertEquals("Some Error", resultOfError.onError(t -> t.getMessage()));
+        assertEquals("ONE", resultOf.getOrHandleError(t -> t.getMessage()));
+        assertEquals("Some Error", resultOfError.getOrHandleError(t -> t.getMessage()));
 
-        assertEquals("ONE", resultOf.onErrorThrow("Should not be thrown"));
+        assertEquals("ONE", resultOf.getOrThrowRuntime("Should not be thrown"));
         try {
-            resultOfError.onErrorThrow("Should be thrown");
+            resultOfError.getOrThrowRuntime("Should be thrown");
             fail("Excpetion expected here");
         } catch (final Throwable t) {
             assertEquals("Should be thrown", t.getMessage());
