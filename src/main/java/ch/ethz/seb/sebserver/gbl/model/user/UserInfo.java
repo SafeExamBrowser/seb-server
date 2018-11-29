@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -36,7 +37,9 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
-public final class UserInfo {
+public final class UserInfo implements Serializable {
+
+    private static final long serialVersionUID = 2526446136264377808L;
 
     /** The user's UUID */
     @JsonProperty(USER.ATTR_UUID)

@@ -95,7 +95,7 @@ public class AdministrationAPIIntegrationTest {
     @Test
     public void getHello_givenToken_thenOK() {
         try {
-            final String accessToken = obtainAccessToken("user", "test");
+            final String accessToken = obtainAccessToken("admin", "admin");
             final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
                     .header("Authorization", "Bearer " + accessToken))
                     .andExpect(status().isOk())

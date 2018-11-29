@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
+import java.util.Collections;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +75,10 @@ public class WebClientDetailsService implements ClientDetailsService {
             final BaseClientDetails baseClientDetails = new BaseClientDetails(
                     clientId,
                     WebResourceServerConfiguration.EXAM_API_RESOURCE_ID,
-                    "exam-api-read,exam-api-write",
+                    null,
                     "client_credentials,refresh_token",
                     "");
+            baseClientDetails.setScope(Collections.emptySet());
             baseClientDetails.setClientSecret(this.clientPasswordEncoder.encode("test"));
             return baseClientDetails;
         }

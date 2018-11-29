@@ -8,9 +8,8 @@
  
     <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
+    <Logger name="org.springframework.boot" level="INFO" additivity="true" />
     <Logger name="org.springframework.security" level="DEBUG" additivity="true" />
-    <Logger name="org.springframework.web.socket.messaging" level="INFO" additivity="true" />
-    <Logger name="org.springframework.messaging" level="INFO" additivity="true" />
     
     <Logger name="org.springframework.web" level="DEBUG" additivity="true" />
     <Logger name="org.springframework.security.oauth2" level="DEBUG" additivity="true" />

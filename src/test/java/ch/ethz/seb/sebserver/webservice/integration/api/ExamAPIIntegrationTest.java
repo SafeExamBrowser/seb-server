@@ -9,11 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.integration.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.UnsupportedEncodingException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -62,10 +65,15 @@ public class ExamAPIIntegrationTest {
                 .addFilter(this.springSecurityFilterChain).build();
     }
 
-    protected String obtainAccessToken(final String clientId, final String clientSecret) throws Exception {
+    protected String obtainAccessToken(
+            final String clientId,
+            final String clientSecret,
+            final String scope) throws Exception {
+
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "client_credentials");
         params.add("client_id", clientId);
+        params.add("scope", scope);
 
         final ResultActions result = this.mockMvc.perform(post("/oauth/token")
                 .params(params)
@@ -87,18 +95,30 @@ public class ExamAPIIntegrationTest {
     }
 
     @Test
-    public void getHello_givenToken_thenOK() {
-        try {
-            final String accessToken = obtainAccessToken("test", "test");
-            final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
-                    .header("Authorization", "Bearer " + accessToken))
-                    .andExpect(status().isOk())
-                    .andReturn().getResponse().getContentAsString();
+    public void get_same_token_for_same_scope() throws Exception {
+        final String accessToken1 = obtainAccessToken("test", "test", "testScope");
+        final String accessToken2 = obtainAccessToken("test", "test", "testScope");
 
-            assertEquals("Hello From Exam-Web-Service", contentAsString);
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
+        assertEquals(accessToken1, accessToken2);
+    }
+
+    @Test
+    public void get_different_tokens_for_different_scopes() throws Exception {
+        final String accessToken1 = obtainAccessToken("test", "test", "testScope1");
+        final String accessToken2 = obtainAccessToken("test", "test", "testScope2");
+
+        assertNotEquals(accessToken1, accessToken2);
+    }
+
+    @Test
+    public void getHello_givenToken_thenOK() throws UnsupportedEncodingException, Exception {
+        final String accessToken = obtainAccessToken("test", "test", "testScope");
+        final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertEquals("Hello From Exam-Web-Service", contentAsString);
     }
 
 }
