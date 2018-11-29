@@ -20,7 +20,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -67,16 +66,6 @@ public final class UserInfo implements Serializable {
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
 
-    /** When the user was created */
-    @NotNull
-    @JsonProperty(USER.ATTR_CREATION_DATE)
-    public final DateTime creationDate;
-
-    /** The foreign key to the user that created this user */
-    @NotNull
-    @JsonProperty(USER.ATTR_CREATED_BY_ID)
-    public final Long createdById;
-
     /** Indicates whether this user is still active or not */
     @NotNull
     @JsonProperty(USER.ATTR_ACTIVE)
@@ -104,8 +93,6 @@ public final class UserInfo implements Serializable {
             @JsonProperty(USER.ATTR_NAME) final String name,
             @JsonProperty(USER.ATTR_USER_NAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
-            @JsonProperty(USER.ATTR_CREATION_DATE) final DateTime creationDate,
-            @JsonProperty(USER.ATTR_CREATED_BY_ID) final Long createdById,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
@@ -116,8 +103,6 @@ public final class UserInfo implements Serializable {
         this.name = name;
         this.username = username;
         this.email = email;
-        this.creationDate = creationDate;
-        this.createdById = createdById;
         this.active = BooleanUtils.isTrue(active);
         this.locale = locale;
         this.timeZone = timeZone;
@@ -144,14 +129,6 @@ public final class UserInfo implements Serializable {
 
     public String getEmail() {
         return this.email;
-    }
-
-    public DateTime getCreationDate() {
-        return this.creationDate;
-    }
-
-    public Long getCreatedById() {
-        return this.createdById;
     }
 
     public Boolean getActive() {
@@ -204,10 +181,9 @@ public final class UserInfo implements Serializable {
     public String toString() {
         return "UserInfo [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
                 + ", username="
-                + this.username + ", email=" + this.email + ", creationDate=" + this.creationDate + ", createdById="
-                + this.createdById
-                + ", active=" + this.active + ", locale=" + this.locale + ", timeZone=" + this.timeZone + ", roles="
-                + this.roles + "]";
+                + this.username + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
+                + ", timeZone=" + this.timeZone
+                + ", roles=" + this.roles + "]";
     }
 
     /** Use this to create a copy of a given UserInfo instance.
@@ -221,8 +197,6 @@ public final class UserInfo implements Serializable {
                 userInfo.getName(),
                 userInfo.getUsername(),
                 userInfo.getEmail(),
-                userInfo.getCreationDate(),
-                userInfo.getCreatedById(),
                 userInfo.getActive(),
                 userInfo.getLocale(),
                 userInfo.getTimeZone(),
@@ -252,8 +226,6 @@ public final class UserInfo implements Serializable {
                 record.getName(),
                 record.getUserName(),
                 record.getEmail(),
-                record.getCreationDate(),
-                record.getCreatedById(),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 Locale.forLanguageTag(record.getLocale()),
                 DateTimeZone.forID(record.getTimezone()),

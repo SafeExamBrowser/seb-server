@@ -1,5 +1,3 @@
-
-
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
@@ -290,25 +288,18 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_name` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `creation_date` DATETIME NOT NULL,
-  `created_by_id` BIGINT UNSIGNED NOT NULL,
   `active` INT(1) NOT NULL,
   `locale` VARCHAR(45) NOT NULL,
   `timeZone` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `institutionRef_idx` (`institution_id` ASC),
-  INDEX `createdByRef_idx` (`created_by_id` ASC),
   CONSTRAINT `institutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `createdByRef`
-    FOREIGN KEY (`created_by_id`)
-    REFERENCES `user` (`id`)
-    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
+
 
 -- -----------------------------------------------------
 -- Table `user_role`
@@ -376,3 +367,19 @@ CREATE TABLE IF NOT EXISTS `threshold` (
     ON UPDATE NO ACTION)
 ;
 
+
+-- -----------------------------------------------------
+-- Table `user_log`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `user_log` ;
+
+CREATE TABLE IF NOT EXISTS `user_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_uuid` VARCHAR(255) NOT NULL,
+  `timestamp` BIGINT NOT NULL,
+  `action_type` VARCHAR(45) NOT NULL,
+  `entity_type` VARCHAR(45) NOT NULL,
+  `entity_id` VARCHAR(255) NOT NULL,
+  `message` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`))
+;

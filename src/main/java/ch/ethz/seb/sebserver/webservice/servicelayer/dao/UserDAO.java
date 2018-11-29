@@ -27,28 +27,28 @@ public interface UserDAO {
      * @param id the data base identifier of the user
      * @return UserInfo data from user with the specified database identifier
      * @throws ResourceNotFoundException */
-    UserInfo byId(Long id);
+    Result<UserInfo> byId(Long id);
 
     /** Use this to get UserInfo by users UUID
      *
      * @param uuid The UUID of the user to get UserInfo from
      * @return UserInfo data from user with the specified UUID
      * @throws ResourceNotFoundException */
-    UserInfo byUuid(String uuid);
+    Result<UserInfo> byUuid(String uuid);
 
     /** Use this to get UserInfo by users username
      *
      * @param username The username of the user to get UserInfo from
      * @return UserInfo data from user with the specified username
      * @throws ResourceNotFoundException */
-    UserInfo byUserName(String username);
+    Result<UserInfo> byUsername(String username);
 
     /** Use this to get the SEBServerUser principal for a given username.
      *
      * @param username The username of the user to get SEBServerUser from
      * @return SEBServerUser for specified username
      * @throws ResourceNotFoundException */
-    SEBServerUser sebServerUserByUserName(String username);
+    Result<SEBServerUser> sebServerUserByUsername(String username);
 
     /** Use this to get a Collection of UserInfo for all active users.
      *
@@ -82,5 +82,9 @@ public interface UserDAO {
      * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
      *         exception */
     Result<UserInfo> save(SEBServerUser principal, UserMod userMod);
+
+    Result<UserInfo> deleteById(SEBServerUser principal, Long id);
+
+    Result<UserInfo> deleteByUsername(SEBServerUser principal, String username);
 
 }

@@ -66,7 +66,7 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public UserInfo byId(final Long id) {
+    public Result<UserInfo> byId(final Long id) {
         return toDomainModel(
                 String.valueOf(id),
                 this.userRecordMapper.selectByPrimaryKey(id));
@@ -74,27 +74,25 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public UserInfo byUuid(final String uuid) {
-        return toDomainModel(
-                uuid,
-                recordByUUID(uuid));
+    public Result<UserInfo> byUuid(final String uuid) {
+        return recordByUUID(uuid)
+                .flatMap(rec -> toDomainModel(uuid, rec));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserInfo byUserName(final String username) {
-        return toDomainModel(
-                username,
-                recordByUsername(username));
+    public Result<UserInfo> byUsername(final String username) {
+        return recordByUUID(username)
+                .flatMap(rec -> toDomainModel(username, rec));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public SEBServerUser sebServerUserByUserName(final String username) {
-        final UserRecord recordByUsername = recordByUsername(username);
-        return SEBServerUser.fromRecord(
-                recordByUsername,
-                getRoles(recordByUsername));
+    public Result<SEBServerUser> sebServerUserByUsername(final String username) {
+        return recordByUsername(username)
+                .map(rec -> SEBServerUser.fromRecord(
+                        rec,
+                        getRoles(rec)));
     }
 
     @Override
@@ -161,46 +159,57 @@ public class UserDaoImpl implements UserDAO {
         }
     }
 
+    @Override
+    @Transactional
+    public Result<UserInfo> deleteById(final SEBServerUser principal, final Long id) {
+        // TODO clarify within discussion about inactivate, archive and delete user related data
+        return Result.ofError(new RuntimeException("TODO"));
+    }
+
+    @Override
+    @Transactional
+    public Result<UserInfo> deleteByUsername(final SEBServerUser principal, final String username) {
+        return recordByUsername(username)
+                .flatMap(record -> deleteById(principal, record.getId()));
+
+    }
+
     private Result<UserInfo> updateUser(final UserMod userMod) {
         final UserInfo userInfo = userMod.getUserInfo();
-        final UserRecord record = recordByUUID(userInfo.uuid);
-        if (record.getInstitutionId().longValue() != userInfo.institutionId.longValue()) {
-            return Result.ofError(new IllegalArgumentException("The users institution cannot be changed"));
-        }
+        return recordByUUID(userInfo.uuid)
+                .flatMap(record -> {
+                    if (record.getInstitutionId().longValue() != userInfo.institutionId.longValue()) {
+                        return Result.ofError(new IllegalArgumentException("The users institution cannot be changed"));
+                    }
 
-        final boolean changePWD = userMod.passwordChangeRequest();
-        if (changePWD && !userMod.newPasswordMatch()) {
-            return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
-        }
+                    final boolean changePWD = userMod.passwordChangeRequest();
+                    if (changePWD && !userMod.newPasswordMatch()) {
+                        return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
+                    }
 
-        final UserRecord newRecord = new UserRecord(
-                record.getId(),
-                null,
-                null,
-                userInfo.name,
-                userInfo.username,
-                (changePWD) ? userMod.getNewPassword() : null,
-                userInfo.email,
-                null,
-                null,
-                BooleanUtils.toIntegerObject(userInfo.active),
-                userInfo.locale.toLanguageTag(),
-                userInfo.timeZone.getID());
+                    final UserRecord newRecord = new UserRecord(
+                            record.getId(),
+                            null,
+                            null,
+                            userInfo.name,
+                            userInfo.username,
+                            (changePWD) ? userMod.getNewPassword() : null,
+                            userInfo.email,
+                            BooleanUtils.toIntegerObject(userInfo.active),
+                            userInfo.locale.toLanguageTag(),
+                            userInfo.timeZone.getID());
 
-        this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
-        updateRolesForUser(record.getId(), userInfo.roles);
+                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    updateRolesForUser(record.getId(), userInfo.roles);
 
-        return Result.of(byId(record.getId()));
+                    return byId(record.getId());
+                });
     }
 
     private Result<UserInfo> createNewUser(final SEBServerUser principal, final UserMod userMod) {
         final UserInfo userInfo = userMod.getUserInfo();
         if (userInfo.institutionId == null) {
             return Result.ofError(new IllegalArgumentException("The users institution cannot be null"));
-        }
-
-        if (userInfo.createdById == null) {
-            return Result.ofError(new IllegalArgumentException("The creation user id cannot be null"));
         }
 
         if (userMod.newPasswordMatch()) {
@@ -215,8 +224,6 @@ public class UserDaoImpl implements UserDAO {
                 userInfo.username,
                 userMod.getNewPassword(),
                 userInfo.email,
-                (userInfo.creationDate),
-                principal.getId(),
                 BooleanUtils.toIntegerObject(userInfo.active),
                 userInfo.locale.toLanguageTag(),
                 userInfo.timeZone.getID());
@@ -224,7 +231,7 @@ public class UserDaoImpl implements UserDAO {
         this.userRecordMapper.insert(newRecord);
         final Long newUserId = newRecord.getId();
         insertRolesForUser(newUserId, userInfo.roles);
-        return Result.of(byId(newUserId));
+        return byId(newUserId);
     }
 
     private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
@@ -243,38 +250,32 @@ public class UserDaoImpl implements UserDAO {
                 .forEach(roleRecord -> this.roleRecordMapper.insert(roleRecord));
     }
 
-    private UserRecord recordByUsername(final String username) {
+    private Result<UserRecord> recordByUsername(final String username) {
         return Utils.getSingle(
                 this.userRecordMapper
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.userName, isEqualTo(username))
                         .build()
-                        .execute())
-                .getOrHandleError(t -> {
-                    throw new ResourceNotFoundException("User", username);
-                });
+                        .execute());
     }
 
-    private UserRecord recordByUUID(final String uuid) {
+    private Result<UserRecord> recordByUUID(final String uuid) {
         return Utils.getSingle(
                 this.userRecordMapper
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.uuid, isEqualTo(uuid))
                         .build()
-                        .execute())
-                .getOrHandleError(t -> {
-                    throw new ResourceNotFoundException("User", uuid);
-                });
+                        .execute());
     }
 
-    private UserInfo toDomainModel(final String nameId, final UserRecord record) {
+    private Result<UserInfo> toDomainModel(final String nameId, final UserRecord record) {
         if (record == null) {
-            throw new ResourceNotFoundException(
+            Result.ofError(new ResourceNotFoundException(
                     Domain.USER.ENITIY_NAME,
-                    String.valueOf(nameId));
+                    String.valueOf(nameId)));
         }
 
-        return UserInfo.fromRecord(record, getRoles(record));
+        return Result.of(UserInfo.fromRecord(record, getRoles(record)));
     }
 
     private List<RoleRecord> getRoles(final UserRecord record) {

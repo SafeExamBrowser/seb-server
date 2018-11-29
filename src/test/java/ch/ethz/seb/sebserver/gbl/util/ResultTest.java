@@ -75,11 +75,11 @@ public class ResultTest {
         final Result<String> resultOf = Result.of("ONE");
         final Result<String> resultOfError = Result.ofError(new RuntimeException("Some Error"));
 
-        assertEquals("ONE", resultOf.orElse("TWO"));
-        assertEquals("TWO", resultOfError.orElse("TWO"));
+        assertEquals("ONE", resultOf.getOrElse("TWO"));
+        assertEquals("TWO", resultOfError.getOrElse("TWO"));
 
-        assertEquals("ONE", resultOf.orElse(() -> "TWO"));
-        assertEquals("TWO", resultOfError.orElse(() -> "TWO"));
+        assertEquals("ONE", resultOf.getOrElse(() -> "TWO"));
+        assertEquals("TWO", resultOfError.getOrElse(() -> "TWO"));
     }
 
     @Test

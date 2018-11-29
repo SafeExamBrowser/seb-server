@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -69,7 +70,7 @@ public final class Result<T> {
      *
      * @param other the other value to get if the computed value is null
      * @return return either the computed value if existing or a given other value */
-    public T orElse(final T other) {
+    public T getOrElse(final T other) {
         return this.value != null ? this.value : other;
     }
 
@@ -77,8 +78,25 @@ public final class Result<T> {
      *
      * @param supplier supplier to get the value from if the computed value is null
      * @return return either the computed value if existing or a given other value */
-    public T orElse(final Supplier<T> supplier) {
+    public T getOrElse(final Supplier<T> supplier) {
         return this.value != null ? this.value : supplier.get();
+    }
+
+    /** If a value is present, performs the given action with the value,
+     * otherwise performs the given empty-based action.
+     *
+     * @param action the action to be performed, if a value is present
+     * @param emptyAction the empty-based action to be performed, if no value is
+     *            present
+     * @throws NullPointerException if a value is present and the given action
+     *             is {@code null}, or no value is present and the given empty-based
+     *             action is {@code null}. */
+    public void ifOrElse(final Consumer<? super T> action, final Runnable emptyAction) {
+        if (this.value != null) {
+            action.accept(this.value);
+        } else {
+            emptyAction.run();
+        }
     }
 
     /** Use this to map a given Result of type T to another Result of type U
@@ -96,6 +114,12 @@ public final class Result<T> {
 
     /** Use this to map a given Result of type T to another Result of type U
      * within a given mapping function.
+     *
+     * <p>
+     * This method is similar to {@link #map(Function)}, but the mapping
+     * function is one whose result is already an {@code Result}, and if
+     * invoked, {@code flatMap} does not wrap it within an additional
+     * {@code Result}.
      *
      * @param mapf the mapping function
      * @return mapped Result of type U */
