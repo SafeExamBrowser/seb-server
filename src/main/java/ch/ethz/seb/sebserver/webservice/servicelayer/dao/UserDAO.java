@@ -15,7 +15,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data

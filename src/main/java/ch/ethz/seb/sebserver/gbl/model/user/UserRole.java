@@ -8,10 +8,18 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
+
 /** Defines the possible user roles of SEB Server users. */
-public enum UserRole {
+public enum UserRole implements Entity {
     SEB_SERVER_ADMIN,
     INSTITUTIONAL_ADMIN,
     EXAM_ADMIN,
-    EXAM_SUPPORTER
+    EXAM_SUPPORTER;
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.USER_ROLE;
+    }
 }

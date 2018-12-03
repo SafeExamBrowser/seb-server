@@ -6,10 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.datalayer;
+package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.CredentialsContainer;
@@ -18,10 +19,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 
-/** SEBServerUser defines an internal user based authentication principal */
+/** SEBServerUser defines web-service internal user-account based authentication principal */
 public final class SEBServerUser implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = 5726250141482925769L;
@@ -30,6 +32,7 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
     private final UserInfo userInfo;
     private String password;
     private final Collection<GrantedAuthority> authorities;
+    private final EnumSet<UserRole> userRoles;
 
     SEBServerUser(final Long id, final UserInfo userInfo, final String password) {
         this.id = id;
@@ -40,6 +43,11 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
                         .stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList()));
+
+        this.userRoles = EnumSet.copyOf(userInfo.roles
+                .stream()
+                .map(UserRole::valueOf)
+                .collect(Collectors.toSet()));
     }
 
     @Override
@@ -83,6 +91,18 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
 
     public UserInfo getUserInfo() {
         return this.userInfo;
+    }
+
+    public EnumSet<UserRole> getUserRoles() {
+        return this.userRoles;
+    }
+
+    public Long institutionId() {
+        return this.userInfo.institutionId;
+    }
+
+    public String uuid() {
+        return this.userInfo.uuid;
     }
 
     @Override

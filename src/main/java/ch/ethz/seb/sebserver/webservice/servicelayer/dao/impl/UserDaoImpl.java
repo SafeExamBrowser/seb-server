@@ -37,13 +37,13 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.webservice.datalayer.APIMessage.ErrorMessage;
-import ch.ethz.seb.sebserver.webservice.datalayer.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
@@ -281,7 +281,7 @@ public class UserDaoImpl implements UserDAO {
     private Result<UserInfo> toDomainModel(final String nameId, final UserRecord record) {
         if (record == null) {
             Result.ofError(new ResourceNotFoundException(
-                    Domain.USER.ENITIY_NAME,
+                    Domain.USER.TYPE_NAME,
                     String.valueOf(nameId)));
         }
 

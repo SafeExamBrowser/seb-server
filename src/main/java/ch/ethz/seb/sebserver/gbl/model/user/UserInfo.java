@@ -27,6 +27,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 
@@ -36,7 +38,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
-public final class UserInfo implements Serializable {
+public final class UserInfo implements Entity, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 
@@ -109,6 +111,11 @@ public final class UserInfo implements Serializable {
         this.roles = (roles != null)
                 ? Collections.unmodifiableSet(roles)
                 : Collections.emptySet();
+    }
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.USER;
     }
 
     public String getUuid() {
