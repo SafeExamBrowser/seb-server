@@ -25,35 +25,32 @@ public interface UserDAO {
     /** Use this to get UserInfo by database identifier
      *
      * @param id the data base identifier of the user
-     * @return UserInfo data from user with the specified database identifier
-     * @throws ResourceNotFoundException */
+     * @return a Result of UserInfo data from user with the specified database identifier. Or an exception result on
+     *         error case */
     Result<UserInfo> byId(Long id);
 
     /** Use this to get UserInfo by users UUID
      *
      * @param uuid The UUID of the user to get UserInfo from
-     * @return UserInfo data from user with the specified UUID
-     * @throws ResourceNotFoundException */
+     * @return a Result of UserInfo data from user with the specified UUID. Or an exception result on error case */
     Result<UserInfo> byUuid(String uuid);
 
     /** Use this to get UserInfo by users username
      *
      * @param username The username of the user to get UserInfo from
-     * @return UserInfo data from user with the specified username
-     * @throws ResourceNotFoundException */
+     * @return a Result of UserInfo data from user with the specified username. Or an exception result on error case */
     Result<UserInfo> byUsername(String username);
 
     /** Use this to get the SEBServerUser principal for a given username.
      *
      * @param username The username of the user to get SEBServerUser from
-     * @return SEBServerUser for specified username
-     * @throws ResourceNotFoundException */
+     * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
     Result<SEBServerUser> sebServerUserByUsername(String username);
 
     /** Use this to get a Collection of UserInfo for all active users.
      *
-     * @return Collection of UserInfo for all active users */
-    Collection<UserInfo> allActive();
+     * @return a Result of Collection of UserInfo for all active users. Or an exception result on error case */
+    Result<Collection<UserInfo>> allActive();
 
     /** Use this to get a Collection of UserInfo that matches a given predicate.
      *
@@ -61,16 +58,17 @@ public interface UserDAO {
      * tests then matching predicate. So predicate filtering is not really fast
      * If you need a fast filtering user all with UserFilter
      *
-     * @return Collection of UserInfo that matches a given predicate */
-    Collection<UserInfo> all(Predicate<UserInfo> predicate);
+     * @return a Result of Collection of UserInfo that matches a given predicate. Or an exception result on error
+     *         case */
+    Result<Collection<UserInfo>> all(Predicate<UserInfo> predicate);
 
     /** Use this to a Collection of filtered UserInfo. The filter criteria
      * from given UserFilter instance will be translated to SQL query and
      * the filtering happens on data-base level
      *
      * @param filter The UserFilter instance containing all filter criteria
-     * @return Collection of filtered UserInfo */
-    Collection<UserInfo> all(UserFilter filter);
+     * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
+    Result<Collection<UserInfo>> all(UserFilter filter);
 
     /** Use this to save/modify user data.
      * If the UUID from given UserMod is null or not exists already, a new user is created.
@@ -80,11 +78,9 @@ public interface UserDAO {
      * @param userMod UserMod instance containing new user record data
      * @param principal the user principal that requests the save/modification
      * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
-     *         exception */
+     *         exception on error case */
     Result<UserInfo> save(SEBServerUser principal, UserMod userMod);
 
-    Result<UserInfo> deleteById(SEBServerUser principal, Long id);
-
-    Result<UserInfo> deleteByUsername(SEBServerUser principal, String username);
+    Result<UserInfo> delete(SEBServerUser principal, Long id);
 
 }

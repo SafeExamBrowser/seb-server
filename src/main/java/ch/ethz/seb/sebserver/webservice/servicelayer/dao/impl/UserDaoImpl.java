@@ -97,41 +97,59 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserInfo> allActive() {
-        final List<UserRecord> records = this.userRecordMapper
-                .selectByExample()
-                .where(UserRecordDynamicSqlSupport.active, isNotEqualTo(0))
-                .build()
-                .execute();
-        if (records == null) {
-            return Collections.emptyList();
-        }
+    public Result<Collection<UserInfo>> allActive() {
+        try {
 
-        return records.stream()
-                .map(record -> UserInfo.fromRecord(record, getRoles(record)))
-                .collect(Collectors.toList());
+            final List<UserRecord> records = this.userRecordMapper
+                    .selectByExample()
+                    .where(UserRecordDynamicSqlSupport.active, isNotEqualTo(0))
+                    .build()
+                    .execute();
+
+            if (records == null) {
+                return Result.of(Collections.emptyList());
+            }
+
+            return Result.of(records.stream()
+                    .map(record -> UserInfo.fromRecord(record, getRoles(record)))
+                    .collect(Collectors.toList()));
+
+        } catch (final Exception e) {
+            final String errorMessage = "Unexpected error while trying to get all active users: ";
+            log.error(errorMessage, e);
+            return Result.ofRuntimeError(errorMessage);
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserInfo> all(final Predicate<UserInfo> predicate) {
-        final List<UserRecord> records = this.userRecordMapper
-                .selectByExample()
-                .build()
-                .execute();
-        if (records == null) {
-            return Collections.emptyList();
-        }
+    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate) {
+        try {
 
-        return records.stream()
-                .map(record -> UserInfo.fromRecord(record, getRoles(record)))
-                .filter(predicate)
-                .collect(Collectors.toList());
+            final List<UserRecord> records = this.userRecordMapper
+                    .selectByExample()
+                    .build()
+                    .execute();
+
+            if (records == null) {
+                return Result.of(Collections.emptyList());
+            }
+
+            return Result.of(records.stream()
+                    .map(record -> UserInfo.fromRecord(record, getRoles(record)))
+                    .filter(predicate)
+                    .collect(Collectors.toList()));
+
+        } catch (final Exception e) {
+            final String errorMessage = "Unexpected error while trying to get all users: ";
+            log.error(errorMessage, e);
+            return Result.ofRuntimeError(errorMessage);
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserInfo> all(final UserFilter filter) {
+    public Result<Collection<UserInfo>> all(final UserFilter filter) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -161,17 +179,9 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> deleteById(final SEBServerUser principal, final Long id) {
+    public Result<UserInfo> delete(final SEBServerUser principal, final Long id) {
         // TODO clarify within discussion about inactivate, archive and delete user related data
         return Result.ofError(new RuntimeException("TODO"));
-    }
-
-    @Override
-    @Transactional
-    public Result<UserInfo> deleteByUsername(final SEBServerUser principal, final String username) {
-        return recordByUsername(username)
-                .flatMap(record -> deleteById(principal, record.getId()));
-
     }
 
     private Result<UserInfo> updateUser(final UserMod userMod) {
@@ -195,9 +205,9 @@ public class UserDaoImpl implements UserDAO {
                             userInfo.username,
                             (changePWD) ? userMod.getNewPassword() : null,
                             userInfo.email,
-                            BooleanUtils.toIntegerObject(userInfo.active),
                             userInfo.locale.toLanguageTag(),
-                            userInfo.timeZone.getID());
+                            userInfo.timeZone.getID(),
+                            BooleanUtils.toIntegerObject(userInfo.active));
 
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
                     updateRolesForUser(record.getId(), userInfo.roles);
@@ -224,9 +234,9 @@ public class UserDaoImpl implements UserDAO {
                 userInfo.username,
                 userMod.getNewPassword(),
                 userInfo.email,
-                BooleanUtils.toIntegerObject(userInfo.active),
                 userInfo.locale.toLanguageTag(),
-                userInfo.timeZone.getID());
+                userInfo.timeZone.getID(),
+                BooleanUtils.toIntegerObject(userInfo.active));
 
         this.userRecordMapper.insert(newRecord);
         final Long newUserId = newRecord.getId();

@@ -172,4 +172,12 @@ public final class Result<T> {
         return new Result<>(error);
     }
 
+    /** Use this to create a Result with error
+     *
+     * @param error the error that is wrapped within the created Result
+     * @return Result of specified error */
+    public static <T> Result<T> ofRuntimeError(final String message) {
+        return ofError(new RuntimeException(message));
+    }
+
 }
