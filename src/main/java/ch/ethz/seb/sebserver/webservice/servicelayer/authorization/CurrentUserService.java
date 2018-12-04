@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
+/** A service to get the authenticated user from current request */
 @Lazy
 @Service
 @WebServiceProfile

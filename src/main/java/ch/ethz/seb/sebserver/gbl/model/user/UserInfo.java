@@ -61,7 +61,7 @@ public final class UserInfo implements Entity, Serializable {
     @NotNull
     @Size(min = 3, max = 255, message = "userInfo:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USER_NAME)
-    public final String username;
+    public final String userName;
 
     /** E-mail address of the user */
     @Email(message = "userInfo:email:email:_:_:${validatedValue}")
@@ -93,7 +93,7 @@ public final class UserInfo implements Entity, Serializable {
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
-            @JsonProperty(USER.ATTR_USER_NAME) final String username,
+            @JsonProperty(USER.ATTR_USER_NAME) final String userName,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
@@ -103,7 +103,7 @@ public final class UserInfo implements Entity, Serializable {
         this.uuid = uuid;
         this.institutionId = institutionId;
         this.name = name;
-        this.username = username;
+        this.userName = userName;
         this.email = email;
         this.active = BooleanUtils.isTrue(active);
         this.locale = locale;
@@ -130,8 +130,8 @@ public final class UserInfo implements Entity, Serializable {
         return this.name;
     }
 
-    public String getUsername() {
-        return this.username;
+    public String getUserName() {
+        return this.userName;
     }
 
     public String getEmail() {
@@ -187,8 +187,8 @@ public final class UserInfo implements Entity, Serializable {
     @Override
     public String toString() {
         return "UserInfo [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", username="
-                + this.username + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
+                + ", userName="
+                + this.userName + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
                 + ", timeZone=" + this.timeZone
                 + ", roles=" + this.roles + "]";
     }
@@ -202,7 +202,7 @@ public final class UserInfo implements Entity, Serializable {
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
                 userInfo.getName(),
-                userInfo.getUsername(),
+                userInfo.getUserName(),
                 userInfo.getEmail(),
                 userInfo.getActive(),
                 userInfo.getLocale(),

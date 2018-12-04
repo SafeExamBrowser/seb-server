@@ -25,12 +25,19 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.RoleTypeGrant.RoleTypeKey;
 
+/** A service to check authorization grants for a given user for entity-types and -instances
+ *
+ * If there is one or more GrantEntity objects within an authenticated user-request, this service
+ * can be used check the authenticated user access grant within the object. Check if a given user
+ * has write, modify or even read-only rights on an entity instance or on an entity type. */
 @Lazy
 @Service
 @WebServiceProfile
 public class AuthorizationGrantService {
 
+    /** Map of role based grants for specified entity types. */
     private final Map<RoleTypeGrant.RoleTypeKey, RoleTypeGrant> grants = new HashMap<>();
+    /** Map of collected AuthorizationGrantRule exceptions */
     private final Map<EntityType, AuthorizationGrantRule> exceptionalRules =
             new EnumMap<>(EntityType.class);
 
@@ -48,6 +55,7 @@ public class AuthorizationGrantService {
         }
     }
 
+    /** Initialize the (hard-coded) grants */
     @PostConstruct
     public void init() {
         // grants for institution
@@ -100,6 +108,16 @@ public class AuthorizationGrantService {
         // TODO other entities
     }
 
+    /** Checks if a given user has a specified grant for a given entity-type
+     *
+     * NOTE: within this method only base-privileges for a given entity-type are checked
+     * there is no institutional or ownership grant check because this information lays on an entity-instance
+     * rather then the entity-type.
+     *
+     * @param entityType the entity type
+     * @param grantType the grant type to check
+     * @param principal an authorization Principal instance to extract the user from
+     * @return true if a given user has a specified grant for a given entity-type. False otherwise */
     public boolean hasTypeGrant(final EntityType entityType, final GrantType grantType, final Principal principal) {
         final SEBServerUser user = this.currentUserService.extractFromPrincipal(principal);
         for (final UserRole role : user.getUserRoles()) {
@@ -112,10 +130,22 @@ public class AuthorizationGrantService {
         return false;
     }
 
-    public boolean hasGrant(final GrantEntity entity, final GrantType type, final Principal principal) {
-        return hasGrant(entity, type, this.currentUserService.extractFromPrincipal(principal));
+    /** Checks if a given user has specified grant for a given entity-instance
+     *
+     * @param entity the entity-instance
+     * @param grantType the grant type to check
+     * @param principal an authorization Principal instance to extract the user from
+     * @return true if a given user has a specified grant for a given entity-instance. False otherwise */
+    public boolean hasGrant(final GrantEntity entity, final GrantType grantType, final Principal principal) {
+        return hasGrant(entity, grantType, this.currentUserService.extractFromPrincipal(principal));
     }
 
+    /** Checks if a given user has specified grant for a given entity-instance
+     *
+     * @param entity the entity-instance
+     * @param grantType the grant type to check
+     * @param user a SEBServerUser instance to check grant for
+     * @return true if a given user has a specified grant for a given entity-instance. False otherwise */
     public boolean hasGrant(final GrantEntity entity, final GrantType grantType, final SEBServerUser user) {
         final AuthorizationGrantRule authorizationGrantRule = getGrantRule(entity.entityType());
         if (authorizationGrantRule == null) {
@@ -125,14 +155,26 @@ public class AuthorizationGrantService {
         return authorizationGrantRule.hasGrant(entity, user, grantType);
     }
 
+    /** Closure to get a grant check predicate to filter a several entity-instances within the same grant
+     *
+     * @param entityType the EntityType for the grant check filter
+     * @param grantType the GrantType for the grant check filter
+     * @param principal an authorization Principal instance to extract the user from
+     * @return A filter predicate working on the given attributes to check user grants */
     public <T extends GrantEntity> Predicate<T> getGrantFilter(
             final EntityType entityType,
-            final GrantType type,
+            final GrantType grantType,
             final Principal principal) {
 
-        return getGrantFilter(entityType, type, this.currentUserService.extractFromPrincipal(principal));
+        return getGrantFilter(entityType, grantType, this.currentUserService.extractFromPrincipal(principal));
     }
 
+    /** Closure to get a grant check predicate to filter a several entity-instances within the same grant
+     *
+     * @param entityType the EntityType for the grant check filter
+     * @param grantType the GrantType for the grant check filter
+     * @param user a SEBServerUser instance to check grant for
+     * @return A filter predicate working on the given attributes to check user grants */
     public <T extends GrantEntity> Predicate<T> getGrantFilter(
             final EntityType entityType,
             final GrantType grantType,
@@ -153,6 +195,52 @@ public class AuthorizationGrantService {
         return new GrantRuleBuilder(entityType);
     }
 
+    /** This is the default (or base) implementation of a AuthorizationGrantRule.
+     *
+     * The rule is: go over all user-roles of the given user and for each user-role check
+     * if there is base-privilege on the given entity-type for the given grant type.
+     * if true return true
+     * if false; check if there is a given institutional-privilege on the given
+     * entity-instance for the given grant type.
+     * if true return true
+     * if false; check if there is a given ownership-privilege on the given
+     * entity-instance for the given grant type.
+     * if true return true
+     * if false return false */
+    private final class BaseTypeGrantRule implements AuthorizationGrantRule {
+
+        private final EntityType type;
+        private final Map<UserRole, RoleTypeGrant> grants;
+
+        public BaseTypeGrantRule(final EntityType type) {
+            this.type = type;
+            this.grants = new EnumMap<>(UserRole.class);
+            for (final UserRole role : UserRole.values()) {
+                this.grants.put(role,
+                        AuthorizationGrantService.this.grants.get(new RoleTypeKey(type, role)));
+            }
+        }
+
+        @Override
+        public EntityType entityType() {
+            return this.type;
+        }
+
+        @Override
+        public boolean hasGrant(final GrantEntity entity, final SEBServerUser user, final GrantType grantType) {
+            for (final UserRole role : user.getUserRoles()) {
+                final RoleTypeGrant roleTypeGrant = this.grants.get(role);
+                if (roleTypeGrant != null && roleTypeGrant.hasPrivilege(user, entity, grantType)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /** Implements a GrantRuleBuilder for internal use and to make the code more readable.
+     * See init (PostConstruct) */
     private final class GrantRuleBuilder {
         private final EntityType entityType;
         private UserRole userRole;
@@ -200,40 +288,6 @@ public class AuthorizationGrantService {
                     this.userRole);
 
             AuthorizationGrantService.this.grants.put(roleTypeGrant.roleTypeKey, roleTypeGrant);
-        }
-    }
-
-    private final class BaseTypeGrantRule implements AuthorizationGrantRule {
-
-        private final EntityType type;
-        private final Map<UserRole, RoleTypeGrant> grants;
-
-        public BaseTypeGrantRule(final EntityType type) {
-            this.type = type;
-            this.grants = new EnumMap<>(UserRole.class);
-            for (final UserRole role : UserRole.values()) {
-                this.grants.put(role,
-                        AuthorizationGrantService.this.grants.get(new RoleTypeKey(type, role)));
-            }
-        }
-
-        @Override
-        public EntityType entityType() {
-            return this.type;
-        }
-
-        @Override
-        public boolean hasGrant(final GrantEntity entity, final SEBServerUser user, final GrantType grantType) {
-            for (final UserRole role : user.getUserRoles()) {
-                final RoleTypeGrant roleTypeGrant = this.grants.get(role);
-                if (roleTypeGrant != null) {
-                    if (roleTypeGrant.hasPrivilege(user, entity, grantType)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 

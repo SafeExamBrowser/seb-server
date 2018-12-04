@@ -8,49 +8,70 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.joda.time.DateTime;
+import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 
-/** TODO what filter criteria do we need? */
 public final class UserFilter {
 
-    public final Set<Long> institutionIds;
-    public final String name;
-    public final String username;
-    public final String email;
-    public final DateTime creationDateFrom;
-    public final DateTime creationDateTo;
-    public final Set<Long> createdById;
+    @JsonProperty(USER.ATTR_ACTIVE)
     public final Boolean active;
-    public final Set<String> locales;
-    public final Set<String> timeZones;
-    public final Set<String> roles;
+    @JsonProperty(USER.ATTR_INSTITUTION_ID)
+    public final Long institutionId;
+    @JsonProperty(USER.ATTR_NAME)
+    public final String name;
+    @JsonProperty(USER.ATTR_USER_NAME)
+    public final String userName;
+    @JsonProperty(USER.ATTR_EMAIL)
+    public final String email;
+    @JsonProperty(USER.ATTR_LOCALE)
+    public final String locale;
 
     public UserFilter(
-            final Set<Long> institutionIds,
-            final String name,
-            final String username,
-            final String email,
-            final DateTime creationDateFrom,
-            final DateTime creationDateTo,
-            final Set<Long> createdById,
-            final Boolean active,
-            final Set<String> locales,
-            final Set<String> timeZones,
-            final Set<String> roles) {
+            @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(USER.ATTR_NAME) final String name,
+            @JsonProperty(USER.ATTR_USER_NAME) final String userName,
+            @JsonProperty(USER.ATTR_EMAIL) final String email,
+            @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(USER.ATTR_LOCALE) final String locale) {
 
-        this.institutionIds = institutionIds;
+        this.institutionId = institutionId;
         this.name = name;
-        this.username = username;
+        this.userName = userName;
         this.email = email;
-        this.creationDateFrom = creationDateFrom;
-        this.creationDateTo = creationDateTo;
-        this.createdById = createdById;
         this.active = active;
-        this.locales = locales;
-        this.timeZones = timeZones;
-        this.roles = roles;
+        this.locale = locale;
+    }
+
+    public Long getInstitutionId() {
+        return this.institutionId;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getUserName() {
+        return this.userName;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public Boolean getActive() {
+        return this.active;
+    }
+
+    public String getLocale() {
+        return this.locale;
+    }
+
+    @Override
+    public String toString() {
+        return "UserFilter [institutionId=" + this.institutionId + ", name=" + this.name + ", userName=" + this.userName
+                + ", email="
+                + this.email + ", active=" + this.active + ", locale=" + this.locale + "]";
     }
 
 }

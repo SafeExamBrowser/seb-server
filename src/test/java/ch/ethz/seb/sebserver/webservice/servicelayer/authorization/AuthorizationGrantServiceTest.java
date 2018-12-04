@@ -32,6 +32,7 @@ public class AuthorizationGrantServiceTest {
     private Principal principal;
 
     @Test
+    @SuppressWarnings("unused")
     public void testInit() {
         try {
             final AuthorizationGrantService service = getTestServiceWithUserWithRoles();

@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isNotEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -106,13 +105,7 @@ public class UserDaoImpl implements UserDAO {
                     .build()
                     .execute();
 
-            if (records == null) {
-                return Result.of(Collections.emptyList());
-            }
-
-            return Result.of(records.stream()
-                    .map(record -> UserInfo.fromRecord(record, getRoles(record)))
-                    .collect(Collectors.toList()));
+            return fromRecords(records);
 
         } catch (final Exception e) {
             final String errorMessage = "Unexpected error while trying to get all active users: ";
@@ -150,8 +143,25 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> all(final UserFilter filter) {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+
+            final List<UserRecord> records = this.userRecordMapper.selectByExample().where(
+                    UserRecordDynamicSqlSupport.active,
+                    isNotEqualTo(BooleanUtils.toInteger(filter.active)))
+                    .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
+                    .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.name))
+                    .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.userName))
+                    .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
+                    .build()
+                    .execute();
+
+            return fromRecords(records);
+
+        } catch (final Exception e) {
+            final String errorMessage = "Unexpected error while trying to get fitered users: ";
+            log.error(errorMessage + " filter: {}", filter, e);
+            return Result.ofRuntimeError(errorMessage);
+        }
     }
 
     @Override
@@ -184,6 +194,16 @@ public class UserDaoImpl implements UserDAO {
         return Result.ofError(new RuntimeException("TODO"));
     }
 
+    private Result<Collection<UserInfo>> fromRecords(final List<UserRecord> records) {
+        if (records == null) {
+            return Result.of(Collections.emptyList());
+        }
+
+        return Result.of(records.stream()
+                .map(record -> UserInfo.fromRecord(record, getRoles(record)))
+                .collect(Collectors.toList()));
+    }
+
     private Result<UserInfo> updateUser(final UserMod userMod) {
         final UserInfo userInfo = userMod.getUserInfo();
         return recordByUUID(userInfo.uuid)
@@ -202,7 +222,7 @@ public class UserDaoImpl implements UserDAO {
                             null,
                             null,
                             userInfo.name,
-                            userInfo.username,
+                            userInfo.userName,
                             (changePWD) ? userMod.getNewPassword() : null,
                             userInfo.email,
                             userInfo.locale.toLanguageTag(),
@@ -231,7 +251,7 @@ public class UserDaoImpl implements UserDAO {
                 userInfo.institutionId,
                 UUID.randomUUID().toString(),
                 userInfo.name,
-                userInfo.username,
+                userInfo.userName,
                 userMod.getNewPassword(),
                 userInfo.email,
                 userInfo.locale.toLanguageTag(),
