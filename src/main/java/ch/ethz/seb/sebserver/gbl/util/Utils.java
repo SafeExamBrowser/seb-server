@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class Utils {
@@ -55,6 +56,12 @@ public final class Utils {
             return Collections.emptySet();
         }
         return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(items)));
+    }
+
+    public static <T> List<T> asImmutableList(final T[] array) {
+        return (array != null)
+                ? Collections.unmodifiableList(Arrays.asList(array))
+                : Collections.emptyList();
     }
 
 }

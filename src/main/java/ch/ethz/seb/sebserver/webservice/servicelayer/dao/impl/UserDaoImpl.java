@@ -300,7 +300,7 @@ public class UserDaoImpl implements UserDAO {
 
     private Result<UserInfo> toDomainModel(final String nameId, final UserRecord record) {
         if (record == null) {
-            Result.ofError(new ResourceNotFoundException(
+            return Result.ofError(new ResourceNotFoundException(
                     Domain.USER.TYPE_NAME,
                     String.valueOf(nameId)));
         }

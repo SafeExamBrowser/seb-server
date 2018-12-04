@@ -8,10 +8,18 @@
 
 package ch.ethz.seb.sebserver.webservice.datalayer;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.FieldError;
 
-public class APIMessage {
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
+public class APIMessage implements Serializable {
+
+    private static final long serialVersionUID = -6858683658311637361L;
 
     public enum ErrorMessage {
         UNEXPECTED("1000", "Unexpected intenral server-side error"),
@@ -37,7 +45,11 @@ public class APIMessage {
         }
 
         public APIMessage of(final String detail, final String... attributes) {
-            return new APIMessage(this.messageCode, this.systemMessage, detail, attributes);
+            return new APIMessage(
+                    this.messageCode,
+                    this.systemMessage,
+                    detail,
+                    Utils.asImmutableList(attributes));
         }
 
         public APIMessage of(final Throwable error) {
@@ -48,18 +60,20 @@ public class APIMessage {
     public final String messageCode;
     public final String systemMessage;
     public final String details;
-    public final String[] attributes;
+    public final List<String> attributes;
 
     public APIMessage(
             final String messageCode,
             final String systemMessage,
             final String details,
-            final String[] attributes) {
+            final List<String> attributes) {
 
         this.messageCode = messageCode;
         this.systemMessage = systemMessage;
         this.details = details;
-        this.attributes = attributes;
+        this.attributes = (attributes != null)
+                ? Collections.unmodifiableList(attributes)
+                : Collections.emptyList();
     }
 
     public APIMessage(final String messageCode, final String systemMessage, final String details) {
@@ -82,7 +96,7 @@ public class APIMessage {
         return this.details;
     }
 
-    public String[] getAttributes() {
+    public List<String> getAttributes() {
         return this.attributes;
     }
 
@@ -110,7 +124,6 @@ public class APIMessage {
         public APIMessage getAPIMessage() {
             return this.apiMessage;
         }
-
     }
 
 }

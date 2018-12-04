@@ -188,7 +188,9 @@ public class AuthorizationGrantService {
     }
 
     private AuthorizationGrantRule getGrantRule(final EntityType type) {
-        return this.exceptionalRules.computeIfAbsent(type, entityType -> new BaseTypeGrantRule(entityType));
+        return this.exceptionalRules.computeIfAbsent(
+                type,
+                entityType -> new BaseTypeGrantRule(entityType, this));
     }
 
     private GrantRuleBuilder addGrant(final EntityType entityType) {
@@ -207,17 +209,17 @@ public class AuthorizationGrantService {
      * entity-instance for the given grant type.
      * if true return true
      * if false return false */
-    private final class BaseTypeGrantRule implements AuthorizationGrantRule {
+    private static class BaseTypeGrantRule implements AuthorizationGrantRule {
 
         private final EntityType type;
         private final Map<UserRole, RoleTypeGrant> grants;
 
-        public BaseTypeGrantRule(final EntityType type) {
+        public BaseTypeGrantRule(final EntityType type, final AuthorizationGrantService service) {
             this.type = type;
             this.grants = new EnumMap<>(UserRole.class);
             for (final UserRole role : UserRole.values()) {
                 this.grants.put(role,
-                        AuthorizationGrantService.this.grants.get(new RoleTypeKey(type, role)));
+                        service.grants.get(new RoleTypeKey(type, role)));
             }
         }
 
