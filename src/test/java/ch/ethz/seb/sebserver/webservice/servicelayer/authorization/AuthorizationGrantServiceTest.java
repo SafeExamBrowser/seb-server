@@ -8,7 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.security.Principal;
 import java.util.Arrays;
@@ -32,25 +33,12 @@ public class AuthorizationGrantServiceTest {
     private Principal principal;
 
     @Test
-    @SuppressWarnings("unused")
-    public void testInit() {
-        try {
-            final AuthorizationGrantService service = getTestServiceWithUserWithRoles();
-            fail("Error expected here, user with no roles makes no sense");
-        } catch (final Exception e) {
-
-        }
-
-        final AuthorizationGrantService service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
-    }
-
-    @Test
     public void testInstitutionGrantsForSEB_SERVER_ADMIN() {
-        final AuthorizationGrantService service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
+        final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
 
-        assertTrue(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
-        assertTrue(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
-        assertTrue(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
+        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
+        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
+        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
 
         final GrantEntity institution = entityOf(EntityType.INSTITUTION, 2L, "");
 
@@ -61,11 +49,11 @@ public class AuthorizationGrantServiceTest {
 
     @Test
     public void testInstitutionGrantsForINSTITUTIONAL_ADMIN() {
-        final AuthorizationGrantService service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
+        final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
 
-        assertFalse(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
-        assertFalse(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
-        assertFalse(service.hasTypeGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
+        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
+        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
+        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
 
         final GrantEntity ownInstitution = entityOf(EntityType.INSTITUTION, 1L, "");
 
@@ -98,24 +86,24 @@ public class AuthorizationGrantServiceTest {
             }
 
             @Override
-            public Long institutionId() {
+            public Long getInstitutionId() {
                 return instId;
             }
 
             @Override
-            public String ownerUUID() {
+            public String getOwnerUUID() {
                 return owner;
             }
 
         };
     }
 
-    private AuthorizationGrantService getTestServiceWithUserWithRoles(final UserRole... roles) {
+    private AuthorizationGrantServiceImpl getTestServiceWithUserWithRoles(final UserRole... roles) {
         final SEBServerUser user = getUser(roles);
-        final CurrentUserService currentUserServiceMock = Mockito.mock(CurrentUserService.class);
+        final UserServiceImpl currentUserServiceMock = Mockito.mock(UserServiceImpl.class);
         Mockito.when(currentUserServiceMock.extractFromPrincipal(this.principal)).thenReturn(user);
 
-        final AuthorizationGrantService authorizationGrantService = new AuthorizationGrantService(
+        final AuthorizationGrantServiceImpl authorizationGrantService = new AuthorizationGrantServiceImpl(
                 Collections.emptyList(),
                 currentUserServiceMock);
         authorizationGrantService.init();

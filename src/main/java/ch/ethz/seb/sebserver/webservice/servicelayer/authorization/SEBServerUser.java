@@ -17,11 +17,10 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.CollectionUtils;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 
 /** SEBServerUser defines web-service internal user-account based authentication principal */
 public final class SEBServerUser implements UserDetails, CredentialsContainer {
@@ -34,7 +33,7 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
     private final Collection<GrantedAuthority> authorities;
     private final EnumSet<UserRole> userRoles;
 
-    SEBServerUser(final Long id, final UserInfo userInfo, final String password) {
+    public SEBServerUser(final Long id, final UserInfo userInfo, final String password) {
         this.id = id;
         this.userInfo = userInfo;
         this.password = password;
@@ -44,10 +43,14 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList()));
 
-        this.userRoles = EnumSet.copyOf(userInfo.roles
-                .stream()
-                .map(UserRole::valueOf)
-                .collect(Collectors.toSet()));
+        if (CollectionUtils.isEmpty(userInfo.roles)) {
+            this.userRoles = EnumSet.noneOf(UserRole.class);
+        } else {
+            this.userRoles = EnumSet.copyOf(userInfo.roles
+                    .stream()
+                    .map(UserRole::valueOf)
+                    .collect(Collectors.toSet()));
+        }
     }
 
     @Override
@@ -157,21 +160,6 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
      * @return return copied SEBServerUser instance */
     public static final SEBServerUser of(final SEBServerUser user) {
         return new SEBServerUser(user.id, UserInfo.of(user.userInfo), user.password);
-    }
-
-    /** Creates a SEBServerUser model object from given UserRecord and given collection of RoleRecord.
-     *
-     * @param record The UserRecord instance to create a SEBServerUser instance from
-     * @param roles Collection of RoleRecords. This can be empty or even null
-     * @return SEBServerUser instance from given UserRecord and RoleRecords data */
-    public static final SEBServerUser fromRecord(
-            final UserRecord record,
-            final Collection<RoleRecord> roles) {
-
-        return new SEBServerUser(
-                record.getId(),
-                UserInfo.fromRecord(record, roles),
-                record.getPassword());
     }
 
 }

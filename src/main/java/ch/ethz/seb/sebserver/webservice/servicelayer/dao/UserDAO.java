@@ -20,7 +20,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
-public interface UserDAO {
+public interface UserDAO extends EntityDAO<UserInfo> {
 
     /** Use this to get UserInfo by database identifier
      *
@@ -58,6 +58,7 @@ public interface UserDAO {
      * tests then matching predicate. So predicate filtering is not really fast
      * If you need a fast filtering user all with UserFilter
      *
+     * @param predicate Predicate expecting instance of type UserInfo
      * @return a Result of Collection of UserInfo that matches a given predicate. Or an exception result on error
      *         case */
     Result<Collection<UserInfo>> all(Predicate<UserInfo> predicate);

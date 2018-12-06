@@ -79,6 +79,8 @@ public final class RoleTypeGrant {
      * If the institutionalPrivilege is of type GrantType.MODIFY, the GrantType.READ_ONLY are implicitly included
      * and so on.
      *
+     * If the given GrantEntity instance has no institution id (null) this returns false
+     *
      * @param grantType the GrantType to check on institutionalPrivilege
      * @param user SEBServerUser instance to check institutional grant
      * @param entity entity-instance to check institutional grant
@@ -88,8 +90,12 @@ public final class RoleTypeGrant {
             final GrantEntity entity,
             final GrantType grantType) {
 
+        if (entity.getInstitutionId() == null) {
+            return false;
+        }
+
         return this.institutionalPrivilege.hasImplicit(grantType) &&
-                user.institutionId().longValue() == entity.institutionId().longValue();
+                user.institutionId().longValue() == entity.getInstitutionId().longValue();
     }
 
     /** Checks the ownership privilege on given grantType by using the hasImplicit
@@ -100,6 +106,8 @@ public final class RoleTypeGrant {
      * If the ownershipPrivilege is of type GrantType.MODIFY, the GrantType.READ_ONLY are implicitly included
      * and so on.
      *
+     * If the given GrantEntity instance has no owner UUID (null) this returns false
+     *
      * @param grantType the GrantType to check on ownershipPrivilege
      * @param user SEBServerUser instance to check ownership grant
      * @param entity entity-instance to check ownership grant
@@ -109,8 +117,12 @@ public final class RoleTypeGrant {
             final GrantEntity entity,
             final GrantType grantType) {
 
+        if (entity.getOwnerUUID() == null) {
+            return false;
+        }
+
         return this.ownershipPrivilege.hasImplicit(grantType) &&
-                user.uuid().equals(entity.ownerUUID());
+                user.uuid().equals(entity.getOwnerUUID());
     }
 
     @Override

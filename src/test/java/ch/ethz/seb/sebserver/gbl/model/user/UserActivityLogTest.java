@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+package ch.ethz.seb.sebserver.gbl.model.user;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+
+import org.junit.Test;
+
+import ch.ethz.seb.sebserver.gbl.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActionType;
+
+public class UserActivityLogTest {
+
+    private final JSONMapper jsonMapper = new JSONMapper();
+
+    @Test
+    public void testFromToJson() throws IOException {
+        final UserActivityLog testModel = new UserActivityLog(
+                "testUser",
+                123l,
+                ActionType.CREATE,
+                EntityType.EXAM,
+                "321",
+                "noComment");
+
+        final String jsonValue = this.jsonMapper.writeValueAsString(testModel);
+
+        assertEquals(
+                "{\"userId\":\"testUser\","
+                        + "\"timestamp\":123,"
+                        + "\"actionType\":\"CREATE\","
+                        + "\"entityType\":\"EXAM\","
+                        + "\"entityId\":\"321\","
+                        + "\"message\":\"noComment\"}",
+                jsonValue);
+
+        final UserActivityLog deserialized = this.jsonMapper.readValue(jsonValue, UserActivityLog.class);
+        assertNotNull(deserialized);
+        assertEquals(testModel.userId, deserialized.userId);
+        assertEquals(testModel.timestamp, deserialized.timestamp);
+        assertEquals(testModel.actionType, deserialized.actionType);
+        assertEquals(testModel.entityType, deserialized.entityType);
+        assertEquals(testModel.entityId, deserialized.entityId);
+        assertEquals(testModel.message, deserialized.message);
+    }
+
+}

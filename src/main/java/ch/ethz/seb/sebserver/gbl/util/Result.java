@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.util;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /** A result of a computation that can either be the resulting value of the computation
  * or an error if an exception/error has been thrown during the computation.
@@ -131,6 +132,14 @@ public final class Result<T> {
         }
     }
 
+    public Stream<T> stream() {
+        if (this.error != null) {
+            return Stream.empty();
+        } else {
+            return Stream.of(this.value);
+        }
+    }
+
     /** Use this to get the resulting value. In an error case, a given error handling
      * function is used that receives the error and returns a resulting value instead
      * (or throw some error instead)
@@ -149,6 +158,18 @@ public final class Result<T> {
     public T getOrThrowRuntime(final String message) {
         if (this.error != null) {
             throw new RuntimeException(message, this.error);
+        }
+
+        return this.value;
+    }
+
+    public T getOrThrow() {
+        if (this.error != null) {
+            if (this.error instanceof RuntimeException) {
+                throw (RuntimeException) this.error;
+            } else {
+                throw new RuntimeException("RuntimeExceptionWrapper cause: ", this.error);
+            }
         }
 
         return this.value;

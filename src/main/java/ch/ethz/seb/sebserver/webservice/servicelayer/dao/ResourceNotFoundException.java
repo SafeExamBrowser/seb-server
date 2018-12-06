@@ -11,17 +11,26 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
+
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public final class ResourceNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = 8319235723086949618L;
 
-    public ResourceNotFoundException(final String resourceName, final String resourceId) {
-        this(resourceName, resourceId, null);
+    public final EntityType entityType;
+    public final String entityId;
+
+    public ResourceNotFoundException(final EntityType entityType, final String entityId) {
+        super("Resource " + entityType + " with ID: " + entityId + " not found");
+        this.entityType = entityType;
+        this.entityId = entityId;
     }
 
-    public ResourceNotFoundException(final String resourceName, final String resourceId, final Throwable cause) {
-        super("Resource " + resourceName + " with ID: " + resourceId + " not found", cause);
+    public ResourceNotFoundException(final EntityType entityType, final String entityId, final Throwable cause) {
+        super("Resource " + entityType + " with ID: " + entityId + " not found", cause);
+        this.entityType = entityType;
+        this.entityId = entityId;
     }
 
 }

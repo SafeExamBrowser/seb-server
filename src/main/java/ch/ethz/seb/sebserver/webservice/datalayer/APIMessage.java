@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -22,17 +24,25 @@ public class APIMessage implements Serializable {
     private static final long serialVersionUID = -6858683658311637361L;
 
     public enum ErrorMessage {
-        UNEXPECTED("1000", "Unexpected intenral server-side error"),
-        FIELD_VALIDATION("1500", "Field validation error"),
-        PASSWORD_MISSMATCH("2000", "new password do not match retyped password")
+        UNAUTHORIZED("1000", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"),
+        FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
+        UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
+        FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
+        PASSWORD_MISSMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match retyped password")
 
         ;
 
         public final String messageCode;
+        public final HttpStatus httpStatus;
         public final String systemMessage;
 
-        private ErrorMessage(final String messageCode, final String systemMessage) {
+        private ErrorMessage(
+                final String messageCode,
+                final HttpStatus httpStatus,
+                final String systemMessage) {
+
             this.messageCode = messageCode;
+            this.httpStatus = httpStatus;
             this.systemMessage = systemMessage;
         }
 
@@ -54,6 +64,14 @@ public class APIMessage implements Serializable {
 
         public APIMessage of(final Throwable error) {
             return new APIMessage(this.messageCode, this.systemMessage, error.getMessage());
+        }
+
+        public ResponseEntity<APIMessage> createErrorResponse() {
+            return new ResponseEntity<>(of(), this.httpStatus);
+        }
+
+        public ResponseEntity<Object> createErrorResponse(final String details, final String... attributes) {
+            return new ResponseEntity<>(of(details, attributes), this.httpStatus);
         }
     }
 

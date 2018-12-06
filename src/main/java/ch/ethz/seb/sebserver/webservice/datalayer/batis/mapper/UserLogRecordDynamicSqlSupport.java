@@ -6,31 +6,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class UserLogRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.229+01:00", comments="Source Table: user_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.897+01:00", comments="Source Table: user_log")
     public static final UserLogRecord userLogRecord = new UserLogRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.229+01:00", comments="Source field: user_log.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.897+01:00", comments="Source field: user_log.id")
     public static final SqlColumn<Long> id = userLogRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.user_uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.897+01:00", comments="Source field: user_log.user_uuid")
     public static final SqlColumn<String> userUuid = userLogRecord.userUuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.timestamp")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.898+01:00", comments="Source field: user_log.timestamp")
     public static final SqlColumn<Long> timestamp = userLogRecord.timestamp;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.898+01:00", comments="Source field: user_log.action_type")
     public static final SqlColumn<String> actionType = userLogRecord.actionType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.entity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.898+01:00", comments="Source field: user_log.entity_type")
     public static final SqlColumn<String> entityType = userLogRecord.entityType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.entity_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.898+01:00", comments="Source field: user_log.entity_id")
     public static final SqlColumn<String> entityId = userLogRecord.entityId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.230+01:00", comments="Source field: user_log.message")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.898+01:00", comments="Source field: user_log.message")
     public static final SqlColumn<String> message = userLogRecord.message;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.229+01:00", comments="Source Table: user_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.897+01:00", comments="Source Table: user_log")
     public static final class UserLogRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

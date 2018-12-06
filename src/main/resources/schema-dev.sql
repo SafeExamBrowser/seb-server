@@ -1,9 +1,6 @@
 -- -----------------------------------------------------
--- Schema SEBServer
+-- Schema SEBServerDemo
 -- -----------------------------------------------------
-DROP DATABASE IF EXISTS SEBServer;
-CREATE DATABASE IF NOT EXISTS SEBServer;
-use SEBServer;
 
 -- -----------------------------------------------------
 -- Table `institution`
@@ -14,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `institution` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `authType` VARCHAR(45) NOT NULL,
+  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ;
@@ -35,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `lms_rest_api_token` VARCHAR(4000) NULL,
   `seb_clientname` VARCHAR(255) NOT NULL,
   `seb_clientsecret` VARCHAR(255) NOT NULL,
+  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `setupInstitutionRef`
@@ -52,16 +51,24 @@ DROP TABLE IF EXISTS `exam` ;
 
 CREATE TABLE IF NOT EXISTS `exam` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `lms_setup_id` BIGINT UNSIGNED NOT NULL,
   `external_uuid` VARCHAR(255) NOT NULL,
   `owner` VARCHAR(255) NOT NULL,
   `supporter` VARCHAR(4000) NULL COMMENT 'comma separated list of user_uuid',
   `type` VARCHAR(45) NOT NULL,
+  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
-  CONSTRAINT `lms_setup_key`
+  INDEX `institution_key_idx` (`institution_id` ASC),
+  CONSTRAINT `examLmsSetupRef`
     FOREIGN KEY (`lms_setup_id`)
     REFERENCES `lms_setup` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `examInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -148,6 +155,7 @@ CREATE TABLE IF NOT EXISTS `configuration_node` (
   `description` VARCHAR(4000) NULL,
   `type` VARCHAR(45) NULL,
   `template` VARCHAR(255) NULL,
+  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `configurationInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `configurationInstitutionRef`
@@ -295,9 +303,9 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_name` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `active` INT(1) NOT NULL,
   `locale` VARCHAR(45) NOT NULL,
   `timeZone` VARCHAR(45) NOT NULL,
+  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `institutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `institutionRef`
@@ -390,5 +398,3 @@ CREATE TABLE IF NOT EXISTS `user_log` (
   `message` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
 ;
-
-

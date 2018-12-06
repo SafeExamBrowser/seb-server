@@ -21,15 +21,15 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
-/** A service to get the authenticated user from current request */
 @Lazy
 @Service
 @WebServiceProfile
-public class CurrentUserService {
+public class UserServiceImpl implements UserService {
 
-    private static final Logger log = LoggerFactory.getLogger(CurrentUserService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public interface ExtractUserFromAuthenticationStrategy {
         SEBServerUser extract(Principal principal);
@@ -37,16 +37,11 @@ public class CurrentUserService {
 
     private final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies;
 
-    public CurrentUserService(final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies) {
+    public UserServiceImpl(final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies) {
         this.extractStrategies = extractStrategies;
     }
 
-    /** Use this to get the current User within a request-response thread cycle.
-     *
-     * @return the SEBServerUser instance of the current request
-     * @throws IllegalStateException if no Authentication was found
-     * @throws IllegalArgumentException if fromPrincipal is not able to extract the User of the Authentication
-     *             instance */
+    @Override
     public SEBServerUser getCurrentUser() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
@@ -56,17 +51,7 @@ public class CurrentUserService {
         return extractFromPrincipal(authentication);
     }
 
-    /** Extracts the internal SEBServerUser from a given Principal.
-     *
-     * This is attended to apply some known strategies to extract the internal user from Principal. If there is no
-     * internal user found on the given Principal, a IllegalArgumentException is thrown.
-     *
-     * If there is certainly a internal user within the given Principal but no strategy that finds it, this method can
-     * be extended with the needed strategy.
-     *
-     * @param principal
-     * @return internal User instance if it was found within the Principal and the existing strategies
-     * @throws IllegalArgumentException if no internal User can be found */
+    @Override
     public SEBServerUser extractFromPrincipal(final Principal principal) {
         for (final ExtractUserFromAuthenticationStrategy extractStrategie : this.extractStrategies) {
             try {
@@ -80,6 +65,16 @@ public class CurrentUserService {
         }
 
         throw new IllegalArgumentException("Unable to extract internal user from Principal: " + principal);
+    }
+
+    @Override
+    public SEBServerUser getAnonymousUser() {
+        return ANONYMOUS_USER;
+    }
+
+    @Override
+    public SEBServerUser getSuperUser() {
+        return SUPER_USER;
     }
 
     // 1. OAuth2Authentication strategy
@@ -103,5 +98,15 @@ public class CurrentUserService {
             return null;
         }
     }
+
+    private static final SEBServerUser SUPER_USER = new SEBServerUser(
+            -1L,
+            new UserInfo("SEB_SERVER_SUPER_USER", -1L, "superUser", "superUser", null, false, null, null, null),
+            null);
+
+    private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
+            -1L,
+            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", null, false, null, null, null),
+            null);
 
 }

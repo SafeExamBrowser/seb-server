@@ -6,22 +6,22 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class InstitutionRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.182+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.855+01:00", comments="Source Table: institution")
     public static final InstitutionRecord institutionRecord = new InstitutionRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.183+01:00", comments="Source field: institution.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.856+01:00", comments="Source field: institution.id")
     public static final SqlColumn<Long> id = institutionRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.183+01:00", comments="Source field: institution.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.856+01:00", comments="Source field: institution.name")
     public static final SqlColumn<String> name = institutionRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.183+01:00", comments="Source field: institution.authtype")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.856+01:00", comments="Source field: institution.authtype")
     public static final SqlColumn<String> authtype = institutionRecord.authtype;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.183+01:00", comments="Source field: institution.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.856+01:00", comments="Source field: institution.active")
     public static final SqlColumn<Integer> active = institutionRecord.active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-03T12:08:57.183+01:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.856+01:00", comments="Source Table: institution")
     public static final class InstitutionRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

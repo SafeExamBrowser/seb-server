@@ -1,4 +1,8 @@
 -- -----------------------------------------------------
+-- Schema SEBServerDemo
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `institution` ;
@@ -47,6 +51,7 @@ DROP TABLE IF EXISTS `exam` ;
 
 CREATE TABLE IF NOT EXISTS `exam` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `lms_setup_id` BIGINT UNSIGNED NOT NULL,
   `external_uuid` VARCHAR(255) NOT NULL,
   `owner` VARCHAR(255) NOT NULL,
@@ -55,9 +60,15 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
-  CONSTRAINT `lms_setup_key`
+  INDEX `institution_key_idx` (`institution_id` ASC),
+  CONSTRAINT `examLmsSetupRef`
     FOREIGN KEY (`lms_setup_id`)
     REFERENCES `lms_setup` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `examInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -387,4 +398,3 @@ CREATE TABLE IF NOT EXISTS `user_log` (
   `message` VARCHAR(255) NULL,
   PRIMARY KEY (`id`))
 ;
-

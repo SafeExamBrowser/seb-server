@@ -8,15 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.integration.api;
 
-import static org.junit.Assert.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -42,14 +40,14 @@ import ch.ethz.seb.sebserver.gbl.JSONMapper;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public class AdministrationAPIIntegrationTest {
+public abstract class AdministrationAPIIntegrationTest {
 
     @Value("${sebserver.webservice.api.admin.clientId}")
-    private String clientId;
+    protected String clientId;
     @Value("${sebserver.webservice.api.admin.clientSecret}")
-    private String clientSecret;
+    protected String clientSecret;
     @Value("${sebserver.webservice.api.admin.endpoint}")
-    private String endpoint;
+    protected String endpoint;
 
     @Autowired
     protected WebApplicationContext wac;
@@ -61,6 +59,7 @@ public class AdministrationAPIIntegrationTest {
     protected MockMvc mockMvc;
 
     @Before
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
@@ -86,25 +85,16 @@ public class AdministrationAPIIntegrationTest {
         return jsonParser.parseMap(resultString).get("access_token").toString();
     }
 
-    @Test
-    public void getHello_givenNoToken_thenRedirect() throws Exception {
-        this.mockMvc.perform(get(this.endpoint + "/hello"))
-                .andExpect(status().is3xxRedirection());
+    protected String getSebAdminAccess() throws Exception {
+        return obtainAccessToken("admin", "admin");
     }
 
-    @Test
-    public void getHello_givenToken_thenOK() {
-        try {
-            final String accessToken = obtainAccessToken("admin", "admin");
-            final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
-                    .header("Authorization", "Bearer " + accessToken))
-                    .andExpect(status().isOk())
-                    .andReturn().getResponse().getContentAsString();
+    protected String getAdminInstitution1Access() throws Exception {
+        return obtainAccessToken("inst1Admin", "admin");
+    }
 
-            assertEquals("Hello From Admin-Web-Service", contentAsString);
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
+    protected String getAdminInstitution2Access() throws Exception {
+        return obtainAccessToken("inst2Admin", "admin");
     }
 
 }

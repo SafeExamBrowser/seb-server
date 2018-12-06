@@ -9,13 +9,12 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -23,14 +22,13 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 /** The user info domain model contains primary user information
  *
@@ -38,7 +36,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
-public final class UserInfo implements Entity, Serializable {
+public final class UserInfo implements GrantEntity, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 
@@ -85,6 +83,7 @@ public final class UserInfo implements Entity, Serializable {
 
     /** The users roles in a unmodifiable set. Is never null */
     @NotNull
+    @NotEmpty(message = "userInfo:roles:notEmpty:_:_:_")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
@@ -114,6 +113,7 @@ public final class UserInfo implements Entity, Serializable {
     }
 
     @Override
+    @JsonIgnore
     public EntityType entityType() {
         return EntityType.USER;
     }
@@ -122,8 +122,15 @@ public final class UserInfo implements Entity, Serializable {
         return this.uuid;
     }
 
+    @Override
     public Long getInstitutionId() {
         return this.institutionId;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getOwnerUUID() {
+        return null;
     }
 
     public String getName() {
@@ -208,35 +215,6 @@ public final class UserInfo implements Entity, Serializable {
                 userInfo.getLocale(),
                 userInfo.getTimeZone(),
                 userInfo.roles);
-    }
-
-    /** Creates a UserInfo model object from given UserRecord and given collection of RoleRecord.
-     *
-     * @param record The UserRecord instance to create a UserInfo instance from
-     * @param roles Collection of RoleRecords. This can be empty or even null
-     * @return UserInfo instance from given UserRecord and RoleRecords data */
-    public static final UserInfo fromRecord(
-            final UserRecord record,
-            final Collection<RoleRecord> roles) {
-
-        Set<String> userRoles = Collections.emptySet();
-        if (roles != null) {
-            userRoles = roles
-                    .stream()
-                    .map(r -> r.getRoleName())
-                    .collect(Collectors.toSet());
-        }
-
-        return new UserInfo(
-                record.getUuid(),
-                record.getInstitutionId(),
-                record.getName(),
-                record.getUserName(),
-                record.getEmail(),
-                BooleanUtils.toBooleanObject(record.getActive()),
-                Locale.forLanguageTag(record.getLocale()),
-                DateTimeZone.forID(record.getTimezone()),
-                userRoles);
     }
 
 }

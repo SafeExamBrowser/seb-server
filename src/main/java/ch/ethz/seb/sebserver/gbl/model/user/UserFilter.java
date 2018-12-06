@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
@@ -72,6 +74,14 @@ public final class UserFilter {
         return "UserFilter [institutionId=" + this.institutionId + ", name=" + this.name + ", userName=" + this.userName
                 + ", email="
                 + this.email + ", active=" + this.active + ", locale=" + this.locale + "]";
+    }
+
+    public static UserFilter ofActive() {
+        return new UserFilter(null, null, null, null, true, null);
+    }
+
+    public static UserFilter ofInstitution(@NotNull final Long institutionId) {
+        return new UserFilter(institutionId, null, null, null, true, null);
     }
 
 }
