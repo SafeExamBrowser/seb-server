@@ -137,8 +137,9 @@ public class UserDaoImpl implements UserDAO {
                     UserRecordDynamicSqlSupport.active,
                     isEqualTo(BooleanUtils.toInteger(filter.active)))
                     .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
-                    .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.name))
-                    .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.userName))
+                    .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.getNameLike()))
+                    .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.getUserNameLike()))
+                    .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(filter.getEmailLike()))
                     .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
                     .build()
                     .execute();

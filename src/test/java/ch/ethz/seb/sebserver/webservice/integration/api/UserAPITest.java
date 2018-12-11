@@ -14,11 +14,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.junit.Test;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 
 public class UserAPITest extends AdministrationAPIIntegrationTest {
@@ -63,7 +66,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     }
 
     @Test
-    public void getUserInfo() throws Exception {
+    public void getUserInfoWithUUID() throws Exception {
         final String sebAdminAccessToken = getSebAdminAccess();
         String contentAsString = this.mockMvc.perform(get(this.endpoint + "/useraccount/2")
                 .header("Authorization", "Bearer " + sebAdminAccessToken))
@@ -136,12 +139,55 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         // TODO more tests
     }
 
+    @Test
+    public void getAllUserInfoWithSearchInactive() throws Exception {
+        final UserFilter filter = UserFilter.ofInactive();
+        final String filterJson = this.jsonMapper.writeValueAsString(filter);
+
+        final String token = getSebAdminAccess();
+        final List<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(filterJson))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.size() == 1);
+        assertNotNull(getUserInfo("deactivatedUser", userInfos));
+    }
+
+    @Test
+    public void getAllUserInfoWithSearchUsernameLike() throws Exception {
+        final UserFilter filter = new UserFilter(null, null, "exam", null, null, null);
+        final String filterJson = this.jsonMapper.writeValueAsString(filter);
+
+        final String token = getSebAdminAccess();
+        final List<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(filterJson))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.size() == 2);
+        assertNotNull(getUserInfo("examAdmin1", userInfos));
+        assertNotNull(getUserInfo("examSupporter", userInfos));
+    }
+
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {
         return infos
                 .stream()
                 .filter(ui -> ui.userName.equals(name))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(NoSuchElementException::new);
     }
 
 }

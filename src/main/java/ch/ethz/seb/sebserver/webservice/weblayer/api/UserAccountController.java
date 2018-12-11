@@ -48,6 +48,7 @@ public class UserAccountController {
 
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserInfo> getAll(
+            //@RequestParam(required = false) final UserFilter filter,
             @RequestBody(required = false) final UserFilter filter,
             final Principal principal) {
 
