@@ -23,11 +23,17 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActionType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
+@WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}/useraccount")
 public class UserAccountController {
@@ -35,15 +41,18 @@ public class UserAccountController {
     private final UserDAO userDao;
     private final AuthorizationGrantService authorizationGrantService;
     private final UserService userService;
+    private final UserActivityLogDAO userActivityLogDAO;
 
     public UserAccountController(
             final UserDAO userDao,
             final AuthorizationGrantService authorizationGrantService,
-            final UserService userService) {
+            final UserService userService,
+            final UserActivityLogDAO userActivityLogDAO) {
 
         this.userDao = userDao;
         this.authorizationGrantService = authorizationGrantService;
         this.userService = userService;
+        this.userActivityLogDAO = userActivityLogDAO;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -71,8 +80,9 @@ public class UserAccountController {
             if (filter == null) {
 
                 return this.userDao
-                        .all(grantFilter)
+                        .all(userInfo -> userInfo.active && grantFilter.test(userInfo))
                         .getOrThrow();
+
             } else {
 
                 return this.userDao
@@ -104,12 +114,45 @@ public class UserAccountController {
 
     }
 
-//    @RequestMapping(value = "/", method = RequestMethod.POST)
-//    public UserInfo save(
-//            @PathVariable final Long institutionId,
-//            @RequestBody final UserFilter filter,
-//            final Principal principal) {
-//
-//    }
+    @RequestMapping(value = "/create", method = RequestMethod.PUT)
+    public UserInfo createUser(
+            @RequestBody final UserMod userData,
+            final Principal principal) {
+
+        return _saveUser(userData, principal, GrantType.WRITE);
+    }
+
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    public UserInfo saveUser(
+            @RequestBody final UserMod userData,
+            final Principal principal) {
+
+        return _saveUser(userData, principal, GrantType.MODIFY);
+    }
+
+    private UserInfo _saveUser(
+            final UserMod userData,
+            final Principal principal,
+            final GrantType grantType) {
+
+        this.authorizationGrantService.checkGrantForType(
+                EntityType.USER,
+                grantType,
+                principal)
+                .getOrThrow();
+
+        final SEBServerUser admin = this.userService.extractFromPrincipal(principal);
+        final ActionType actionType = (userData.getUserInfo().uuid == null)
+                ? ActionType.CREATE
+                : ActionType.MODIFY;
+
+        return this.userDao
+                .save(admin, userData)
+                .flatMap(userInfo -> this.userActivityLogDAO.logUserActivity(
+                        admin,
+                        actionType,
+                        userInfo))
+                .getOrThrow();
+    }
 
 }

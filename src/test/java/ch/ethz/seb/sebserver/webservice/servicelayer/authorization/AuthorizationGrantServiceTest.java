@@ -95,6 +95,11 @@ public class AuthorizationGrantServiceTest {
                 return owner;
             }
 
+            @Override
+            public String getId() {
+                return "1";
+            }
+
         };
     }
 

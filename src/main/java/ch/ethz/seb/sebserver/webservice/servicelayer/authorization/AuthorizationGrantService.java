@@ -21,16 +21,27 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * has write, modify or even read-only rights on an entity instance or on an entity type. */
 public interface AuthorizationGrantService {
 
-    /** Check a specified GrantType for a given GrantEntity for given user-principal and
-     * returns a with a Result of the granted entity instance or with a Result of a
-     * NoGrantException.
+    /** Check a specified GrantType for a given GrantEntity and for a given user-principal.
+     * Use this to check a grant for a given entity instance by passing also the user-principal to check for.
      *
      * @param entity The GrantEntity to check specified GrantType for
      * @param grantType The GrantType
      * @param principal the user principal
-     * @return a with a Result of the granted entity instance or with a Result of a NoGrantException */
+     * @return a with a Result of the granted entity instance or with a Result of a PermissionDeniedException */
     <E extends GrantEntity> Result<E> checkGrantForEntity(
             final E entity,
+            final GrantType grantType,
+            final Principal principal);
+
+    /** Check a specified GrantType for a given entity type and for a given user-principal.
+     * Use this to check a base-grant for a given entity type by passing also the user-principal to check for.
+     *
+     * @param entityType The EntityType to check specified GrantType for
+     * @param grantType The GrantType
+     * @param principal the user principal
+     * @return a with a Result of the granted entity-type or with a Result of a PermissionDeniedException */
+    Result<EntityType> checkGrantForType(
+            final EntityType entityType,
             final GrantType grantType,
             final Principal principal);
 

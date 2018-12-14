@@ -10,8 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.BooleanUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -47,7 +45,7 @@ public final class UserFilter {
         this.name = name;
         this.userName = userName;
         this.email = email;
-        this.active = BooleanUtils.isFalse(active);
+        this.active = (active != null) ? active : true;
         this.locale = locale;
     }
 

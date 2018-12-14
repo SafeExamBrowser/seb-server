@@ -10,12 +10,17 @@ package ch.ethz.seb.sebserver.webservice.integration.api;
 
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
@@ -23,6 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
 public class UserAPITest extends AdministrationAPIIntegrationTest {
 
@@ -180,6 +187,35 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertTrue(userInfos.size() == 2);
         assertNotNull(getUserInfo("examAdmin1", userInfos));
         assertNotNull(getUserInfo("examSupporter", userInfos));
+    }
+
+    @Test
+    public void createUserTest() throws Exception {
+        final UserInfo userInfo = new UserInfo(
+                null, 1L, "NewTestUser", "NewTestUser",
+                "", true, Locale.CANADA, DateTimeZone.UTC,
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
+        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
+
+        final String token = getSebAdminAccess();
+        final UserInfo createdUser = this.jsonMapper.readValue(
+                this.mockMvc.perform(put(this.endpoint + "/useraccount/create")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(newUserJson))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(createdUser);
+        assertEquals("NewTestUser", createdUser.name);
+
+        // TODO get newly created user and check equality
+
+        // TODO get user activity log for newly created user
+
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

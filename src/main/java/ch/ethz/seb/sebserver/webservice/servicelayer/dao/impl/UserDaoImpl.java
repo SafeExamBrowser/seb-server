@@ -234,7 +234,7 @@ public class UserDaoImpl implements UserDAO {
             return Result.ofError(new IllegalArgumentException("The users institution cannot be null"));
         }
 
-        if (userMod.newPasswordMatch()) {
+        if (!userMod.newPasswordMatch()) {
             return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
         }
 

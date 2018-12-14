@@ -118,6 +118,12 @@ public final class UserInfo implements GrantEntity, Serializable {
         return EntityType.USER;
     }
 
+    @JsonIgnore
+    @Override
+    public String getId() {
+        return this.uuid;
+    }
+
     public String getUuid() {
         return this.uuid;
     }

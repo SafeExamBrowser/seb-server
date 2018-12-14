@@ -17,6 +17,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.Acti
 
 public class UserActivityLog implements Entity {
 
+    @JsonIgnore
+    public final Long id;
     @JsonProperty("userId")
     public final String userId;
     @JsonProperty("timestamp")
@@ -31,13 +33,15 @@ public class UserActivityLog implements Entity {
     public final String message;
 
     public UserActivityLog(
-            @JsonProperty("userId") final String userId,
-            @JsonProperty("timestamp") final Long timestamp,
-            @JsonProperty("actionType") final ActionType actionType,
-            @JsonProperty("entityType") final EntityType entityType,
-            @JsonProperty("entityId") final String entityId,
-            @JsonProperty("message") final String message) {
+            final Long id,
+            final String userId,
+            final Long timestamp,
+            final ActionType actionType,
+            final EntityType entityType,
+            final String entityId,
+            final String message) {
 
+        this.id = id;
         this.userId = userId;
         this.timestamp = timestamp;
         this.actionType = actionType;
@@ -50,6 +54,12 @@ public class UserActivityLog implements Entity {
     @JsonIgnore
     public EntityType entityType() {
         return EntityType.USER_LOG;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getId() {
+        return String.valueOf(this.id);
     }
 
     public String getUserId() {
@@ -78,9 +88,10 @@ public class UserActivityLog implements Entity {
 
     @Override
     public String toString() {
-        return "UserActivityLog [userId=" + this.userId + ", timestamp=" + this.timestamp + ", actionType="
-                + this.actionType
-                + ", entityType=" + this.entityType + ", entityId=" + this.entityId + ", message=" + this.message + "]";
+        return "UserActivityLog [id=" + this.id + ", userId=" + this.userId + ", timestamp=" + this.timestamp
+                + ", actionType="
+                + this.actionType + ", entityType=" + this.entityType + ", entityId=" + this.entityId + ", message="
+                + this.message + "]";
     }
 
 }

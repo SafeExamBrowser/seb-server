@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserLogRecord;
@@ -32,14 +32,12 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
      *
      * @param user for specified SEBServerUser instance
      * @param actionType the action type
-     * @param entityType the entity type
-     * @param entityId the entity id (primary key or UUID)
+     * @param entity the Entity
      * @param message an optional message */
-    void logUserActivity(
+    <E extends Entity> Result<E> logUserActivity(
             SEBServerUser user,
             ActionType actionType,
-            EntityType entityType,
-            String entityId,
+            E entity,
             String message);
 
     /** Creates a user activity log entry.
@@ -48,13 +46,12 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
      * @param actionType the action type
      * @param entityType the entity type
      * @param entityId the entity id (primary key or UUID) */
-    default void logUserActivity(
+    default <E extends Entity> Result<E> logUserActivity(
             final SEBServerUser user,
             final ActionType actionType,
-            final EntityType entityType,
-            final String entityId) {
+            final E entity) {
 
-        logUserActivity(user, actionType, entityType, entityId);
+        return logUserActivity(user, actionType, entity, null);
     }
 
     Result<Collection<UserActivityLog>> allForUser(

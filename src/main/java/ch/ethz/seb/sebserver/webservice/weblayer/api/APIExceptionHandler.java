@@ -82,4 +82,14 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .createErrorResponse(ex.getMessage());
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleUnexpected(
+            final Exception ex,
+            final WebRequest request) {
+
+        log.error("Unexpected internal error catched at the API endpoint: ", ex);
+        return APIMessage.ErrorMessage.UNEXPECTED
+                .createErrorResponse(ex.getMessage());
+    }
+
 }

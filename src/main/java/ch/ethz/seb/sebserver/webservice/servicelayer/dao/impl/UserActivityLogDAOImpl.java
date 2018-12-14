@@ -17,9 +17,13 @@ import java.util.stream.Collectors;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -30,6 +34,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
+@Lazy
+@Component
 public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserActivityLogDAOImpl.class);
@@ -52,11 +58,10 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public void logUserActivity(
+    public <E extends Entity> Result<E> logUserActivity(
             final SEBServerUser user,
             final ActionType actionType,
-            final EntityType entityType,
-            final String entityId,
+            final E entity,
             final String message) {
 
         try {
@@ -66,18 +71,26 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     user.getUserInfo().uuid,
                     System.currentTimeMillis(),
                     actionType.name(),
-                    entityType.name(),
-                    entityId,
+                    entity.entityType().name(),
+                    entity.getId(),
                     message));
 
+            return Result.of(entity);
+
         } catch (final Throwable t) {
+
             log.error(
                     "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
                     user.getUserInfo().uuid,
                     actionType,
-                    entityType,
-                    entityId,
+                    entity.entityType().name(),
+                    entity.getId(),
                     t);
+            TransactionInterceptor
+                    .currentTransactionStatus()
+                    .setRollbackOnly();
+            return Result.ofError(t);
+
         }
     }
 
@@ -214,6 +227,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
         try {
 
             return Result.of(new UserActivityLog(
+                    record.getId(),
                     record.getUserUuid(),
                     record.getTimestamp(),
                     ActionType.valueOf(record.getActionType()),

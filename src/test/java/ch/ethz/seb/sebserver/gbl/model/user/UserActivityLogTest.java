@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
@@ -26,6 +25,7 @@ public class UserActivityLogTest {
     @Test
     public void testFromToJson() throws IOException {
         final UserActivityLog testModel = new UserActivityLog(
+                1L,
                 "testUser",
                 123l,
                 ActionType.CREATE,
@@ -43,15 +43,6 @@ public class UserActivityLogTest {
                         + "\"entityId\":\"321\","
                         + "\"message\":\"noComment\"}",
                 jsonValue);
-
-        final UserActivityLog deserialized = this.jsonMapper.readValue(jsonValue, UserActivityLog.class);
-        assertNotNull(deserialized);
-        assertEquals(testModel.userId, deserialized.userId);
-        assertEquals(testModel.timestamp, deserialized.timestamp);
-        assertEquals(testModel.actionType, deserialized.actionType);
-        assertEquals(testModel.entityType, deserialized.entityType);
-        assertEquals(testModel.entityId, deserialized.entityId);
-        assertEquals(testModel.message, deserialized.message);
     }
 
 }

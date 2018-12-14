@@ -22,4 +22,9 @@ public enum UserRole implements Entity {
     public EntityType entityType() {
         return EntityType.USER_ROLE;
     }
+
+    @Override
+    public String getId() {
+        return name();
+    }
 }

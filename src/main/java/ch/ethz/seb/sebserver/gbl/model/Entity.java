@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
-public interface Entity {
+public interface Entity extends ModelIdAware {
 
     EntityType entityType();
 

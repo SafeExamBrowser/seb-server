@@ -118,6 +118,19 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     }
 
     @Override
+    public Result<EntityType> checkGrantForType(
+            final EntityType entityType,
+            final GrantType grantType,
+            final Principal principal) {
+
+        if (hasBaseGrant(entityType, grantType, principal)) {
+            return Result.of(entityType);
+        } else {
+            return Result.ofError(new PermissionDeniedException(entityType, grantType, principal.getName()));
+        }
+    }
+
+    @Override
     public boolean hasBaseGrant(
             final EntityType entityType,
             final GrantType grantType,
