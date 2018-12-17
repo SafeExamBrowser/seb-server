@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActionType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public class UserActivityLogTest {
 
@@ -28,7 +28,7 @@ public class UserActivityLogTest {
                 1L,
                 "testUser",
                 123l,
-                ActionType.CREATE,
+                ActivityType.CREATE,
                 EntityType.EXAM,
                 "321",
                 "noComment");
@@ -36,9 +36,10 @@ public class UserActivityLogTest {
         final String jsonValue = this.jsonMapper.writeValueAsString(testModel);
 
         assertEquals(
-                "{\"userId\":\"testUser\","
+                "{\"id\":\"1\","
+                        + "\"userUuid\":\"testUser\","
                         + "\"timestamp\":123,"
-                        + "\"actionType\":\"CREATE\","
+                        + "\"activityType\":\"CREATE\","
                         + "\"entityType\":\"EXAM\","
                         + "\"entityId\":\"321\","
                         + "\"message\":\"noComment\"}",

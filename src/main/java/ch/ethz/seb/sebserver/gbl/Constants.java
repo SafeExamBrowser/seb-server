@@ -14,6 +14,9 @@ import org.joda.time.format.DateTimeFormatter;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final Character LIST_SEPARATOR_CHAR = ',';
+    public static final String LIST_SEPARATOR = ",";
+
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
     public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss")

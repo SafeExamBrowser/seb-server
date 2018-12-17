@@ -14,12 +14,12 @@ import java.util.function.Predicate;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserLogRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
 public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog> {
 
-    enum ActionType {
+    enum ActivityType {
         CREATE,
         MODIFY,
         DEACTIVATE,
@@ -36,7 +36,7 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
      * @param message an optional message */
     <E extends Entity> Result<E> logUserActivity(
             SEBServerUser user,
-            ActionType actionType,
+            ActivityType actionType,
             E entity,
             String message);
 
@@ -48,25 +48,16 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
      * @param entityId the entity id (primary key or UUID) */
     default <E extends Entity> Result<E> logUserActivity(
             final SEBServerUser user,
-            final ActionType actionType,
+            final ActivityType actionType,
             final E entity) {
 
         return logUserActivity(user, actionType, entity, null);
     }
 
-    Result<Collection<UserActivityLog>> allForUser(
-            final String userId,
-            Predicate<UserLogRecord> predicate);
-
-    Result<Collection<UserActivityLog>> allBetween(
-            Long from,
-            Long to,
-            Predicate<UserLogRecord> predicate);
-
-    Result<Collection<UserActivityLog>> allForBetween(
+    Result<Collection<UserActivityLog>> all(
             String userId,
             Long from,
             Long to,
-            Predicate<UserLogRecord> predicate);
+            Predicate<UserActivityLogRecord> predicate);
 
 }

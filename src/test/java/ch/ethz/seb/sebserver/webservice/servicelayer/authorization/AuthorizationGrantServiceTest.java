@@ -33,39 +33,39 @@ public class AuthorizationGrantServiceTest {
     private Principal principal;
 
     @Test
-    public void testInstitutionGrantsForSEB_SERVER_ADMIN() {
+    public void testInstitutionGrantForSEB_SERVER_ADMIN() {
         final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
 
-        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
-        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
-        assertTrue(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
+        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.READ_ONLY, this.principal));
+        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.MODIFY, this.principal));
+        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.WRITE, this.principal));
 
         final GrantEntity institution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertTrue(service.hasGrant(institution, GrantType.READ_ONLY, this.principal));
-        assertTrue(service.hasGrant(institution, GrantType.MODIFY, this.principal));
-        assertTrue(service.hasGrant(institution, GrantType.WRITE, this.principal));
+        assertTrue(service.hasGrant(institution, PrivilegeType.READ_ONLY, this.principal));
+        assertTrue(service.hasGrant(institution, PrivilegeType.MODIFY, this.principal));
+        assertTrue(service.hasGrant(institution, PrivilegeType.WRITE, this.principal));
     }
 
     @Test
     public void testInstitutionGrantsForINSTITUTIONAL_ADMIN() {
         final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
 
-        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.READ_ONLY, this.principal));
-        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.MODIFY, this.principal));
-        assertFalse(service.hasBaseGrant(EntityType.INSTITUTION, GrantType.WRITE, this.principal));
+        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.READ_ONLY, this.principal));
+        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.MODIFY, this.principal));
+        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.WRITE, this.principal));
 
         final GrantEntity ownInstitution = entityOf(EntityType.INSTITUTION, 1L, "");
 
-        assertTrue(service.hasGrant(ownInstitution, GrantType.READ_ONLY, this.principal));
-        assertTrue(service.hasGrant(ownInstitution, GrantType.MODIFY, this.principal));
-        assertFalse(service.hasGrant(ownInstitution, GrantType.WRITE, this.principal));
+        assertTrue(service.hasGrant(ownInstitution, PrivilegeType.READ_ONLY, this.principal));
+        assertTrue(service.hasGrant(ownInstitution, PrivilegeType.MODIFY, this.principal));
+        assertFalse(service.hasGrant(ownInstitution, PrivilegeType.WRITE, this.principal));
 
         final GrantEntity otherInstitution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertFalse(service.hasGrant(otherInstitution, GrantType.READ_ONLY, this.principal));
-        assertFalse(service.hasGrant(otherInstitution, GrantType.MODIFY, this.principal));
-        assertFalse(service.hasGrant(otherInstitution, GrantType.WRITE, this.principal));
+        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.READ_ONLY, this.principal));
+        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.MODIFY, this.principal));
+        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.WRITE, this.principal));
     }
 
     private SEBServerUser getUser(final UserRole... roles) {

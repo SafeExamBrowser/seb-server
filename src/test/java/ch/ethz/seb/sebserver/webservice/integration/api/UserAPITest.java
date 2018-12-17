@@ -23,26 +23,30 @@ import java.util.NoSuchElementException;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.webservice.weblayer.api.RestAPI;
 
+@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void getMyUserInfo() throws Exception {
         String sebAdminAccessToken = getSebAdminAccess();
-        String contentAsString = this.mockMvc.perform(get(this.endpoint + "/useraccount/me")
+        String contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
                 .header("Authorization", "Bearer " + sebAdminAccessToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         assertEquals(
-                "{\"uuid\":\"1\","
+                "{\"uuid\":\"user1\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"SEBAdmin\","
                         + "\"userName\":\"admin\","
@@ -54,13 +58,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 contentAsString);
 
         sebAdminAccessToken = getAdminInstitution1Access();
-        contentAsString = this.mockMvc.perform(get(this.endpoint + "/useraccount/me")
+        contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
                 .header("Authorization", "Bearer " + sebAdminAccessToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         assertEquals(
-                "{\"uuid\":\"2\","
+                "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
                         + "\"userName\":\"inst1Admin\","
@@ -75,13 +79,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     @Test
     public void getUserInfoWithUUID() throws Exception {
         final String sebAdminAccessToken = getSebAdminAccess();
-        String contentAsString = this.mockMvc.perform(get(this.endpoint + "/useraccount/2")
+        String contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user2")
                 .header("Authorization", "Bearer " + sebAdminAccessToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         assertEquals(
-                "{\"uuid\":\"2\","
+                "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
                         + "\"userName\":\"inst1Admin\","
@@ -93,7 +97,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 contentAsString);
 
         final String adminInstitution2AccessToken = getAdminInstitution2Access();
-        contentAsString = this.mockMvc.perform(get(this.endpoint + "/useraccount/1")
+        contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user1")
                 .header("Authorization", "Bearer " + adminInstitution2AccessToken))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
@@ -101,7 +105,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertEquals(
                 "{\"messageCode\":\"1001\","
                         + "\"systemMessage\":\"FORBIDDEN\","
-                        + "\"details\":\"No grant: READ_ONLY on type: USER entity institution: 1 entity owner: null for user: inst2Admin\","
+                        + "\"details\":\"No grant: READ_ONLY on type: USER entity institution: 1 entity owner: null for user: user3\","
                         + "\"attributes\":[]}",
                 contentAsString);
     }
@@ -110,7 +114,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     public void getAllUserInfoNoFilter() throws Exception {
         String token = getSebAdminAccess();
         List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -129,7 +133,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         token = getAdminInstitution1Access();
         userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -153,7 +157,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(filterJson))
@@ -174,7 +178,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + "/useraccount")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(filterJson))
@@ -200,7 +204,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         final String token = getSebAdminAccess();
         final UserInfo createdUser = this.jsonMapper.readValue(
-                this.mockMvc.perform(put(this.endpoint + "/useraccount/create")
+                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/create")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(newUserJson))
@@ -212,10 +216,35 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(createdUser);
         assertEquals("NewTestUser", createdUser.name);
 
-        // TODO get newly created user and check equality
+        // get newly created user and check equality
+        final UserInfo createdUserGet = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + createdUser.uuid)
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
 
-        // TODO get user activity log for newly created user
+        assertNotNull(createdUserGet);
+        assertEquals(createdUser, createdUserGet);
 
+        // check user activity log for newly created user
+        final List<UserActivityLog> logs = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "/user1?activityTypes=CREATE")
+                                .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<UserActivityLog>>() {
+                });
+
+        assertNotNull(logs);
+        assertTrue(1 == logs.size());
+        final UserActivityLog userActivityLog = logs.get(0);
+        assertEquals("user1", userActivityLog.userUUID);
+        assertEquals("USER", userActivityLog.entityType.name());
+        assertEquals("CREATE", userActivityLog.activityType.name());
+        assertEquals(createdUserGet.uuid, userActivityLog.entityId);
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

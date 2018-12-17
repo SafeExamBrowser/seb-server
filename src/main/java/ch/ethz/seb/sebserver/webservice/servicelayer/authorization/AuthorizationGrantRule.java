@@ -30,6 +30,6 @@ public interface AuthorizationGrantRule {
      * @param user the SEBServerUser instance to check the grant rule on
      * @param grantType the GrantType to check
      * @return true if a given user has a given grant-type on a given entity, false otherwise */
-    boolean hasGrant(GrantEntity entity, SEBServerUser user, GrantType grantType);
+    boolean hasGrant(GrantEntity entity, SEBServerUser user, PrivilegeType grantType);
 
 }

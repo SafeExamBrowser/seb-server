@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.RoleTypeGrant.RoleTypeKey;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Privilege.RoleTypeKey;
 
 @Lazy
 @Service
@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.RoleTypeGrant
 public class AuthorizationGrantServiceImpl implements AuthorizationGrantService {
 
     /** Map of role based grants for specified entity types. */
-    private final Map<RoleTypeGrant.RoleTypeKey, RoleTypeGrant> grants = new HashMap<>();
+    private final Map<Privilege.RoleTypeKey, Privilege> grants = new HashMap<>();
     /** Map of collected AuthorizationGrantRule exceptions */
     private final Map<EntityType, AuthorizationGrantRule> exceptionalRules =
             new EnumMap<>(EntityType.class);
@@ -55,90 +55,106 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     @PostConstruct
     public void init() {
         // grants for institution
-        addGrant(EntityType.INSTITUTION)
+        addPrivilege(EntityType.INSTITUTION)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(GrantType.WRITE)
+                .withBasePrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(GrantType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_ADMIN)
-                .withInstitutionalPrivilege(GrantType.READ_ONLY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(GrantType.READ_ONLY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
         // grants for lms setup
-        addGrant(EntityType.LMS_SETUP)
+        addPrivilege(EntityType.LMS_SETUP)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(GrantType.WRITE)
+                .withBasePrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(GrantType.WRITE)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
-                .withInstitutionalPrivilege(GrantType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(GrantType.READ_ONLY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
         // grants for user account
-        addGrant(EntityType.USER)
+        addPrivilege(EntityType.USER)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(GrantType.WRITE)
+                .withBasePrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(GrantType.WRITE)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .create();
 
-        // grants for exam
-        addGrant(EntityType.EXAM)
+        // grants for user activity logs
+        addPrivilege(EntityType.USER_ACTIVITY_LOG)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(GrantType.READ_ONLY)
+                .withBasePrivilege(PrivilegeType.READ_ONLY)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(GrantType.READ_ONLY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
+                .create();
+
+        // grants for exam
+        addPrivilege(EntityType.EXAM)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ_ONLY)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .andForRole(UserRole.EXAM_ADMIN)
-                .withInstitutionalPrivilege(GrantType.READ_ONLY)
-                .withOwnerPrivilege(GrantType.WRITE)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
+                .withOwnerPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withOwnerPrivilege(GrantType.MODIFY)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
         // TODO other entities
     }
 
     @Override
-    public <E extends GrantEntity> Result<E> checkGrantForEntity(
-            final E entity,
-            final GrantType grantType,
-            final Principal principal) {
+    public void checkHasAnyPrivilege(final EntityType entityType, final PrivilegeType grantType) {
+        final SEBServerUser currentUser = this.userService.getCurrentUser();
+        if (hasBasePrivilege(entityType, grantType, currentUser) ||
+                hasInstitutionalPrivilege(entityType, grantType, currentUser)) {
+            return;
+        }
 
-        if (hasGrant(entity, grantType, principal)) {
+        throw new PermissionDeniedException(entityType, grantType, currentUser.getUserInfo().uuid);
+    }
+
+    @Override
+    public <E extends GrantEntity> Result<E> checkGrantOnEntity(final E entity, final PrivilegeType grantType) {
+
+        final SEBServerUser currentUser = this.userService.getCurrentUser();
+        if (hasGrant(entity, grantType, currentUser)) {
             return Result.of(entity);
         } else {
-            return Result.ofError(new PermissionDeniedException(entity, grantType, principal.getName()));
+            return Result.ofError(new PermissionDeniedException(entity, grantType, currentUser.getUserInfo().uuid));
         }
     }
 
     @Override
-    public Result<EntityType> checkGrantForType(
-            final EntityType entityType,
-            final GrantType grantType,
-            final Principal principal) {
-
-        if (hasBaseGrant(entityType, grantType, principal)) {
-            return Result.of(entityType);
-        } else {
-            return Result.ofError(new PermissionDeniedException(entityType, grantType, principal.getName()));
-        }
+    public boolean hasBasePrivilege(final EntityType entityType, final PrivilegeType grantType) {
+        return hasBasePrivilege(entityType, grantType, this.userService.getCurrentUser());
     }
 
     @Override
-    public boolean hasBaseGrant(
+    public boolean hasBasePrivilege(
             final EntityType entityType,
-            final GrantType grantType,
+            final PrivilegeType grantType,
             final Principal principal) {
 
-        final SEBServerUser user = this.userService.extractFromPrincipal(principal);
+        return hasBasePrivilege(entityType, grantType, this.userService.extractFromPrincipal(principal));
+    }
+
+    private boolean hasBasePrivilege(
+            final EntityType entityType,
+            final PrivilegeType grantType,
+            final SEBServerUser user) {
+
         for (final UserRole role : user.getUserRoles()) {
-            final RoleTypeGrant roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
+            final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
             if (roleTypeGrant != null && roleTypeGrant.hasBasePrivilege(grantType)) {
                 return true;
             }
@@ -148,12 +164,46 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     }
 
     @Override
-    public boolean hasGrant(final GrantEntity entity, final GrantType grantType, final Principal principal) {
+    public boolean hasInstitutionalPrivilege(final EntityType entityType, final PrivilegeType grantType) {
+        return hasInstitutionalPrivilege(entityType, grantType, this.userService.getCurrentUser());
+    }
+
+    @Override
+    public boolean hasInstitutionalPrivilege(
+            final EntityType entityType,
+            final PrivilegeType grantType,
+            final Principal principal) {
+
+        return hasInstitutionalPrivilege(entityType, grantType, this.userService.extractFromPrincipal(principal));
+    }
+
+    private boolean hasInstitutionalPrivilege(
+            final EntityType entityType,
+            final PrivilegeType grantType,
+            final SEBServerUser user) {
+
+        for (final UserRole role : user.getUserRoles()) {
+            final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
+            if (roleTypeGrant != null && roleTypeGrant.hasInstitutionalPrivilege(grantType)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean hasGrant(final GrantEntity entity, final PrivilegeType grantType) {
+        return hasGrant(entity, grantType, this.userService.getCurrentUser());
+    }
+
+    @Override
+    public boolean hasGrant(final GrantEntity entity, final PrivilegeType grantType, final Principal principal) {
         return hasGrant(entity, grantType, this.userService.extractFromPrincipal(principal));
     }
 
     @Override
-    public boolean hasGrant(final GrantEntity entity, final GrantType grantType, final SEBServerUser user) {
+    public boolean hasGrant(final GrantEntity entity, final PrivilegeType grantType, final SEBServerUser user) {
         final AuthorizationGrantRule authorizationGrantRule = getGrantRule(entity.entityType());
         if (authorizationGrantRule == null) {
             return false;
@@ -165,16 +215,23 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     @Override
     public <T extends GrantEntity> Predicate<T> getGrantFilter(
             final EntityType entityType,
-            final GrantType grantType,
-            final Principal principal) {
+            final PrivilegeType grantType) {
 
-        return getGrantFilter(entityType, grantType, this.userService.extractFromPrincipal(principal));
+        return getGrantFilter(entityType, grantType, this.userService.getCurrentUser());
     }
 
     @Override
     public <T extends GrantEntity> Predicate<T> getGrantFilter(
             final EntityType entityType,
-            final GrantType grantType,
+            final PrivilegeType grantType,
+            final Principal principal) {
+
+        return getGrantFilter(entityType, grantType, this.userService.extractFromPrincipal(principal));
+    }
+
+    private <T extends GrantEntity> Predicate<T> getGrantFilter(
+            final EntityType entityType,
+            final PrivilegeType grantType,
             final SEBServerUser user) {
 
         final AuthorizationGrantRule authorizationGrantRule = getGrantRule(entityType);
@@ -190,8 +247,8 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
                 entityType -> new BaseTypeGrantRule(entityType, this));
     }
 
-    private GrantRuleBuilder addGrant(final EntityType entityType) {
-        return new GrantRuleBuilder(entityType);
+    private PrivilegeBuilder addPrivilege(final EntityType entityType) {
+        return new PrivilegeBuilder(entityType);
     }
 
     /** This is the default (or base) implementation of a AuthorizationGrantRule.
@@ -209,7 +266,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     private static class BaseTypeGrantRule implements AuthorizationGrantRule {
 
         private final EntityType type;
-        private final Map<UserRole, RoleTypeGrant> grants;
+        private final Map<UserRole, Privilege> grants;
 
         public BaseTypeGrantRule(final EntityType type, final AuthorizationGrantServiceImpl service) {
             this.type = type;
@@ -226,67 +283,105 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
         }
 
         @Override
-        public boolean hasGrant(final GrantEntity entity, final SEBServerUser user, final GrantType grantType) {
+        public boolean hasGrant(final GrantEntity entity, final SEBServerUser user, final PrivilegeType grantType) {
             for (final UserRole role : user.getUserRoles()) {
-                final RoleTypeGrant roleTypeGrant = this.grants.get(role);
-                if (roleTypeGrant != null && roleTypeGrant.hasPrivilege(user, entity, grantType)) {
+                final Privilege roleTypeGrant = this.grants.get(role);
+                if (roleTypeGrant != null && hasGrant(roleTypeGrant, user, entity, grantType)) {
                     return true;
                 }
             }
 
             return false;
         }
+
+        public boolean hasGrant(
+                final Privilege roleTypeGrant,
+                final SEBServerUser user,
+                final GrantEntity entity,
+                final PrivilegeType grantType) {
+
+            return roleTypeGrant.hasBasePrivilege(grantType) ||
+                    hasInstitutionalGrant(roleTypeGrant, user, entity, grantType) ||
+                    hasOwnershipGrant(roleTypeGrant, user, entity, grantType);
+        }
+
+        private boolean hasInstitutionalGrant(
+                final Privilege roleTypeGrant,
+                final SEBServerUser user,
+                final GrantEntity entity,
+                final PrivilegeType grantType) {
+
+            if (entity.getInstitutionId() == null) {
+                return false;
+            }
+
+            return roleTypeGrant.hasInstitutionalPrivilege(grantType) &&
+                    user.institutionId().longValue() == entity.getInstitutionId().longValue();
+        }
+
+        private boolean hasOwnershipGrant(
+                final Privilege roleTypeGrant,
+                final SEBServerUser user,
+                final GrantEntity entity,
+                final PrivilegeType grantType) {
+
+            if (entity.getOwnerUUID() == null) {
+                return false;
+            }
+
+            return roleTypeGrant.hasOwnershipPrivilege(grantType) &&
+                    user.uuid().equals(entity.getOwnerUUID());
+        }
     }
 
     /** Implements a GrantRuleBuilder for internal use and to make the code more readable.
      * See init (PostConstruct) */
-    private final class GrantRuleBuilder {
+    private final class PrivilegeBuilder {
         private final EntityType entityType;
         private UserRole userRole;
-        private GrantType basePrivilege = GrantType.NONE;
-        private GrantType institutionalPrivilege = GrantType.NONE;
-        private GrantType ownerPrivilege = GrantType.NONE;
+        private PrivilegeType basePrivilege = PrivilegeType.NONE;
+        private PrivilegeType institutionalPrivilege = PrivilegeType.NONE;
+        private PrivilegeType ownerPrivilege = PrivilegeType.NONE;
 
-        public GrantRuleBuilder(final EntityType entityType) {
+        public PrivilegeBuilder(final EntityType entityType) {
             super();
             this.entityType = entityType;
         }
 
-        public GrantRuleBuilder forRole(final UserRole userRole) {
+        public PrivilegeBuilder forRole(final UserRole userRole) {
             this.userRole = userRole;
             return this;
         }
 
-        public GrantRuleBuilder withBasePrivilege(final GrantType basePrivilege) {
+        public PrivilegeBuilder withBasePrivilege(final PrivilegeType basePrivilege) {
             this.basePrivilege = basePrivilege;
             return this;
         }
 
-        public GrantRuleBuilder withInstitutionalPrivilege(final GrantType institutionalPrivilege) {
+        public PrivilegeBuilder withInstitutionalPrivilege(final PrivilegeType institutionalPrivilege) {
             this.institutionalPrivilege = institutionalPrivilege;
             return this;
         }
 
-        public GrantRuleBuilder withOwnerPrivilege(final GrantType ownerPrivilege) {
+        public PrivilegeBuilder withOwnerPrivilege(final PrivilegeType ownerPrivilege) {
             this.ownerPrivilege = ownerPrivilege;
             return this;
         }
 
-        public GrantRuleBuilder andForRole(final UserRole userRole) {
+        public PrivilegeBuilder andForRole(final UserRole userRole) {
             create();
-            return new GrantRuleBuilder(this.entityType)
+            return new PrivilegeBuilder(this.entityType)
                     .forRole(userRole);
         }
 
         public void create() {
-            final RoleTypeGrant roleTypeGrant = new RoleTypeGrant(
+            final RoleTypeKey roleTypeKey = new RoleTypeKey(this.entityType, this.userRole);
+            final Privilege roleTypeGrant = new Privilege(
                     this.basePrivilege,
                     this.institutionalPrivilege,
-                    this.ownerPrivilege,
-                    this.entityType,
-                    this.userRole);
+                    this.ownerPrivilege);
 
-            AuthorizationGrantServiceImpl.this.grants.put(roleTypeGrant.roleTypeKey, roleTypeGrant);
+            AuthorizationGrantServiceImpl.this.grants.put(roleTypeKey, roleTypeGrant);
         }
     }
 

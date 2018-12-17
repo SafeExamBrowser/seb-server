@@ -384,15 +384,15 @@ CREATE TABLE IF NOT EXISTS `threshold` (
 
 
 -- -----------------------------------------------------
--- Table `user_log`
+-- Table `user_activity_log`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `user_log` ;
+DROP TABLE IF EXISTS `user_activity_log` ;
 
-CREATE TABLE IF NOT EXISTS `user_log` (
+CREATE TABLE IF NOT EXISTS `user_activity_log` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_uuid` VARCHAR(255) NOT NULL,
   `timestamp` BIGINT NOT NULL,
-  `action_type` VARCHAR(45) NOT NULL,
+  `activity_type` VARCHAR(45) NOT NULL,
   `entity_type` VARCHAR(45) NOT NULL,
   `entity_id` VARCHAR(255) NOT NULL,
   `message` VARCHAR(255) NULL,

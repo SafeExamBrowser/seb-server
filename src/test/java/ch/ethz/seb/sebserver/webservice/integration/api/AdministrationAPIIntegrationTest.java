@@ -22,7 +22,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -59,7 +58,6 @@ public abstract class AdministrationAPIIntegrationTest {
     protected MockMvc mockMvc;
 
     @Before
-    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
@@ -95,6 +93,10 @@ public abstract class AdministrationAPIIntegrationTest {
 
     protected String getAdminInstitution2Access() throws Exception {
         return obtainAccessToken("inst2Admin", "admin");
+    }
+
+    protected String getExamAdmin1() throws Exception {
+        return obtainAccessToken("examAdmin1", "admin");
     }
 
 }

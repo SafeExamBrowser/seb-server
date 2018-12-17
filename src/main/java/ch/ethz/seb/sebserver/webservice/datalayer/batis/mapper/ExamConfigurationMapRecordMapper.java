@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ExamConfigurationMapRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.809+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.809+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.809+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ExamConfigurationMapRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.809+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -55,7 +55,7 @@ public interface ExamConfigurationMapRecordMapper {
     })
     ExamConfigurationMapRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.809+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -65,22 +65,22 @@ public interface ExamConfigurationMapRecordMapper {
     })
     List<ExamConfigurationMapRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(examConfigurationMapRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, examConfigurationMapRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, examConfigurationMapRecord)
                 .where(id, isEqualTo(id_))
@@ -88,7 +88,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.802+01:00", comments="Source Table: exam_configuration_map")
     default int insert(ExamConfigurationMapRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(examConfigurationMapRecord)
@@ -99,7 +99,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default int insertSelective(ExamConfigurationMapRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(examConfigurationMapRecord)
@@ -110,19 +110,19 @@ public interface ExamConfigurationMapRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamConfigurationMapRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, examId, configurationNodeId, userNames)
                 .from(examConfigurationMapRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.810+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamConfigurationMapRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, configurationNodeId, userNames)
                 .from(examConfigurationMapRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.812+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default ExamConfigurationMapRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, examId, configurationNodeId, userNames)
                 .from(examConfigurationMapRecord)
@@ -131,7 +131,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.812+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ExamConfigurationMapRecord record) {
         return UpdateDSL.updateWithMapper(this::update, examConfigurationMapRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -139,7 +139,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .set(userNames).equalTo(record::getUserNames);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.813+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ExamConfigurationMapRecord record) {
         return UpdateDSL.updateWithMapper(this::update, examConfigurationMapRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
@@ -147,7 +147,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .set(userNames).equalToWhenPresent(record::getUserNames);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.813+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default int updateByPrimaryKey(ExamConfigurationMapRecord record) {
         return UpdateDSL.updateWithMapper(this::update, examConfigurationMapRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -158,7 +158,7 @@ public interface ExamConfigurationMapRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-06T10:32:55.813+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2018-12-17T11:52:41.803+01:00", comments="Source Table: exam_configuration_map")
     default int updateByPrimaryKeySelective(ExamConfigurationMapRecord record) {
         return UpdateDSL.updateWithMapper(this::update, examConfigurationMapRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)

@@ -26,16 +26,16 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActionType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}/useraccount")
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_USER_ACCOUNT)
 public class UserAccountController {
 
     private final UserDAO userDao;
@@ -58,26 +58,31 @@ public class UserAccountController {
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserInfo> getAll(
             //@RequestParam(required = false) final UserFilter filter,
-            @RequestBody(required = false) final UserFilter filter,
+            @RequestBody(required = false) final UserFilter userFilter,
             final Principal principal) {
 
-        if (this.authorizationGrantService.hasBaseGrant(
+        // fist check if current user has any privileges for this action
+        this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.USER,
-                GrantType.READ_ONLY,
+                PrivilegeType.READ_ONLY);
+
+        if (this.authorizationGrantService.hasBasePrivilege(
+                EntityType.USER,
+                PrivilegeType.READ_ONLY,
                 principal)) {
 
-            return (filter != null)
-                    ? this.userDao.all(filter).getOrThrow()
+            return (userFilter != null)
+                    ? this.userDao.all(userFilter).getOrThrow()
                     : this.userDao.allActive().getOrThrow();
 
         } else {
 
             final Predicate<UserInfo> grantFilter = this.authorizationGrantService.getGrantFilter(
                     EntityType.USER,
-                    GrantType.READ_ONLY,
+                    PrivilegeType.READ_ONLY,
                     principal);
 
-            if (filter == null) {
+            if (userFilter == null) {
 
                 return this.userDao
                         .all(userInfo -> userInfo.active && grantFilter.test(userInfo))
@@ -86,7 +91,7 @@ public class UserAccountController {
             } else {
 
                 return this.userDao
-                        .all(filter)
+                        .all(userFilter)
                         .getOrThrow()
                         .stream()
                         .filter(grantFilter)
@@ -106,10 +111,9 @@ public class UserAccountController {
     public UserInfo accountInfo(@PathVariable final String userUUID, final Principal principal) {
         return this.userDao
                 .byUuid(userUUID)
-                .flatMap(userInfo -> this.authorizationGrantService.checkGrantForEntity(
+                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
                         userInfo,
-                        GrantType.READ_ONLY,
-                        principal))
+                        PrivilegeType.READ_ONLY))
                 .getOrThrow();
 
     }
@@ -119,7 +123,7 @@ public class UserAccountController {
             @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(userData, principal, GrantType.WRITE);
+        return _saveUser(userData, principal, PrivilegeType.WRITE);
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
@@ -127,24 +131,23 @@ public class UserAccountController {
             @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(userData, principal, GrantType.MODIFY);
+        return _saveUser(userData, principal, PrivilegeType.MODIFY);
     }
 
     private UserInfo _saveUser(
             final UserMod userData,
             final Principal principal,
-            final GrantType grantType) {
+            final PrivilegeType grantType) {
 
-        this.authorizationGrantService.checkGrantForType(
+        // fist check if current user has any privileges for this action
+        this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.USER,
-                grantType,
-                principal)
-                .getOrThrow();
+                grantType);
 
         final SEBServerUser admin = this.userService.extractFromPrincipal(principal);
-        final ActionType actionType = (userData.getUserInfo().uuid == null)
-                ? ActionType.CREATE
-                : ActionType.MODIFY;
+        final ActivityType actionType = (userData.getUserInfo().uuid == null)
+                ? ActivityType.CREATE
+                : ActivityType.MODIFY;
 
         return this.userDao
                 .save(admin, userData)

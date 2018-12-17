@@ -16,12 +16,12 @@ public class PermissionDeniedException extends RuntimeException {
 
     public final EntityType entityType;
     public final GrantEntity entity;
-    public final GrantType grantType;
+    public final PrivilegeType grantType;
     public final String userId;
 
     public PermissionDeniedException(
             final EntityType entityType,
-            final GrantType grantType,
+            final PrivilegeType grantType,
             final String userId) {
 
         super("No grant: " + grantType + " on type: " + entityType + " for user: " + userId);
@@ -33,7 +33,7 @@ public class PermissionDeniedException extends RuntimeException {
 
     public PermissionDeniedException(
             final GrantEntity entity,
-            final GrantType grantType,
+            final PrivilegeType grantType,
             final String userId) {
 
         super("No grant: " + grantType +

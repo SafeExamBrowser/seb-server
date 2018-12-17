@@ -8,43 +8,47 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ACTIVITY_LOG;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActionType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public class UserActivityLog implements Entity {
 
-    @JsonIgnore
+    @JsonProperty(Domain.ATTR_ID)
     public final Long id;
-    @JsonProperty("userId")
-    public final String userId;
-    @JsonProperty("timestamp")
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID)
+    public final String userUUID;
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_TIMESTAMP)
     public final Long timestamp;
-    @JsonProperty("actionType")
-    public final ActionType actionType;
-    @JsonProperty("entityType")
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE)
+    public final ActivityType activityType;
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE)
     public final EntityType entityType;
-    @JsonProperty("entityId")
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_ID)
     public final String entityId;
-    @JsonProperty("message")
+    @JsonProperty(USER_ACTIVITY_LOG.ATTR_MESSAGE)
     public final String message;
 
+    @JsonCreator
     public UserActivityLog(
-            final Long id,
-            final String userId,
-            final Long timestamp,
-            final ActionType actionType,
-            final EntityType entityType,
-            final String entityId,
-            final String message) {
+            @JsonProperty(Domain.ATTR_ID) final Long id,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID) final String userUUID,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_TIMESTAMP) final Long timestamp,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE) final ActivityType activityType,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE) final EntityType entityType,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_ID) final String entityId,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_MESSAGE) final String message) {
 
         this.id = id;
-        this.userId = userId;
+        this.userUUID = userUUID;
         this.timestamp = timestamp;
-        this.actionType = actionType;
+        this.activityType = activityType;
         this.entityType = entityType;
         this.entityId = entityId;
         this.message = message;
@@ -53,25 +57,24 @@ public class UserActivityLog implements Entity {
     @Override
     @JsonIgnore
     public EntityType entityType() {
-        return EntityType.USER_LOG;
+        return EntityType.USER_ACTIVITY_LOG;
     }
 
-    @JsonIgnore
     @Override
     public String getId() {
-        return String.valueOf(this.id);
+        return (this.id != null) ? String.valueOf(this.id) : null;
     }
 
-    public String getUserId() {
-        return this.userId;
+    public String getUserUUID() {
+        return this.userUUID;
     }
 
     public Long getTimestamp() {
         return this.timestamp;
     }
 
-    public ActionType getActionType() {
-        return this.actionType;
+    public ActivityType getActivityType() {
+        return this.activityType;
     }
 
     public EntityType getEntityType() {
@@ -88,9 +91,9 @@ public class UserActivityLog implements Entity {
 
     @Override
     public String toString() {
-        return "UserActivityLog [id=" + this.id + ", userId=" + this.userId + ", timestamp=" + this.timestamp
-                + ", actionType="
-                + this.actionType + ", entityType=" + this.entityType + ", entityId=" + this.entityId + ", message="
+        return "UserActivityLog [id=" + this.id + ", userUUID=" + this.userUUID + ", timestamp=" + this.timestamp
+                + ", activityType="
+                + this.activityType + ", entityType=" + this.entityType + ", entityId=" + this.entityId + ", message="
                 + this.message + "]";
     }
 
