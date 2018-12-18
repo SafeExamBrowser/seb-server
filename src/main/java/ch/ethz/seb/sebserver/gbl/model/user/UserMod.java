@@ -26,7 +26,7 @@ public final class UserMod implements GrantEntity {
     @JsonProperty(ATTR_NAME_USER_INFO)
     private final UserInfo userInfo;
 
-    @Size(min = 8, max = 255, message = "userInfo:password:size:{min}:{max}:${validatedValue}")
+    @Size(min = 8, max = 255, message = "user:password:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 

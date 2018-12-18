@@ -54,7 +54,7 @@ public class RevokeTokenEndpoint {
     }
 
     @EventListener(RevokeTokenEvent.class)
-    private void revokeAccessToken(final RevokeTokenEvent event) {
+    void revokeAccessToken(final RevokeTokenEvent event) {
         final String clientId = this.adminAPIClientDetails.getClientId();
         final Collection<OAuth2AccessToken> tokens = this.tokenStore
                 .findTokensByClientIdAndUserName(clientId, event.userName);

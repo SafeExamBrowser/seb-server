@@ -28,6 +28,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -207,7 +208,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 null, 1L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
-        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
 
         final String token = getSebAdminAccess();
@@ -347,7 +348,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 null, 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
-        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
 
         final String token = getAdminInstitution1Access();
@@ -372,7 +373,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 null, 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
-        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
 
         final String token = getExamAdmin1();
@@ -439,6 +440,61 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 .header("Authorization", "Bearer " + examAdminToken2))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void modifyUserPasswordInvalidPasswords() throws Exception {
+        final String sebAdminToken = getSebAdminAccess();
+        final UserInfo examAdmin1 = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        // must be longer then 8 chars
+        UserMod modifiedUser = new UserMod(
+                UserInfo.of(examAdmin1),
+                "new",
+                "new");
+        String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+
+        List<APIMessage> messages = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                        .header("Authorization", "Bearer " + sebAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(modifiedUserJson))
+                        .andExpect(status().isBadRequest())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<APIMessage>>() {
+                });
+
+        assertNotNull(messages);
+        assertTrue(1 == messages.size());
+        assertEquals("1200", messages.get(0).messageCode);
+        assertEquals("[user, password, size, 8, 255, new]", String.valueOf(messages.get(0).getAttributes()));
+
+        // wrong password retype
+        modifiedUser = new UserMod(
+                UserInfo.of(examAdmin1),
+                "12345678",
+                "87654321");
+        modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+
+        messages = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                        .header("Authorization", "Bearer " + sebAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(modifiedUserJson))
+                        .andExpect(status().isBadRequest())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<APIMessage>>() {
+                });
+
+        assertNotNull(messages);
+        assertTrue(1 == messages.size());
+        assertEquals("1300", messages.get(0).messageCode);
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import ch.ethz.seb.sebserver.webservice.datalayer.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -90,6 +92,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("Unexpected internal error catched at the API endpoint: ", ex);
         return APIMessage.ErrorMessage.UNEXPECTED
                 .createErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(APIMessageException.class)
+    public ResponseEntity<Object> handleAPIMessageException(
+            final APIMessageException ex,
+            final WebRequest request) {
+
+        return new ResponseEntity<>(
+                Arrays.asList(ex.getAPIMessage()),
+                HttpStatus.BAD_REQUEST);
     }
 
 }

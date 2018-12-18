@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
@@ -126,33 +127,24 @@ public class UserAccountController {
 
     @RequestMapping(value = "/create", method = RequestMethod.PUT)
     public UserInfo createUser(
-            @RequestBody final UserMod userData,
+            @Valid @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(
-                userData,
-                this.userService.extractFromPrincipal(principal),
-                PrivilegeType.WRITE)
-                        .getOrThrow();
+        return _saveUser(userData, PrivilegeType.WRITE)
+                .getOrThrow();
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     public UserInfo saveUser(
-            @RequestBody final UserMod userData,
+            @Valid @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(
-                userData,
-                this.userService.extractFromPrincipal(principal),
-                PrivilegeType.MODIFY)
-                        .getOrThrow();
+        return _saveUser(userData, PrivilegeType.MODIFY)
+                .getOrThrow();
 
     }
 
-    private Result<UserInfo> _saveUser(
-            final UserMod userData,
-            final SEBServerUser admin,
-            final PrivilegeType privilegeType) {
+    private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
 
         final ActivityType actionType = (userData.getUserInfo().uuid == null)
                 ? ActivityType.CREATE
@@ -160,12 +152,14 @@ public class UserAccountController {
 
         return this.authorizationGrantService
                 .checkGrantOnEntity(userData, privilegeType)
-                .flatMap(data -> this.userDao.save(admin, data))
+                .flatMap(this.userDao::save)
                 .flatMap(userInfo -> this.userActivityLogDAO.logUserActivity(actionType, userInfo))
                 .flatMap(userInfo -> {
                     // handle password change; revoke access tokens if password has changed
-                    this.applicationEventPublisher.publishEvent(
-                            new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.userName));
+                    if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
+                        this.applicationEventPublisher.publishEvent(
+                                new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.userName));
+                    }
                     return Result.of(userInfo);
                 });
     }

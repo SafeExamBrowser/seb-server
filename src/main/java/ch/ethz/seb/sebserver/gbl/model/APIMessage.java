@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.datalayer;
+package ch.ethz.seb.sebserver.gbl.model;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -16,6 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -75,16 +78,21 @@ public class APIMessage implements Serializable {
         }
     }
 
+    @JsonProperty("messageCode")
     public final String messageCode;
+    @JsonProperty("systemMessage")
     public final String systemMessage;
+    @JsonProperty("details")
     public final String details;
+    @JsonProperty("attributes")
     public final List<String> attributes;
 
+    @JsonCreator
     public APIMessage(
-            final String messageCode,
-            final String systemMessage,
-            final String details,
-            final List<String> attributes) {
+            @JsonProperty("messageCode") final String messageCode,
+            @JsonProperty("systemMessage") final String systemMessage,
+            @JsonProperty("details") final String details,
+            @JsonProperty("attributes") final List<String> attributes) {
 
         this.messageCode = messageCode;
         this.systemMessage = systemMessage;
@@ -137,6 +145,11 @@ public class APIMessage implements Serializable {
         public APIMessageException(final ErrorMessage errorMessage) {
             super();
             this.apiMessage = errorMessage.of();
+        }
+
+        public APIMessageException(final ErrorMessage errorMessage, final String detail, final String... attributes) {
+            super();
+            this.apiMessage = errorMessage.of(detail, attributes);
         }
 
         public APIMessage getAPIMessage() {

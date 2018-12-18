@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -77,11 +78,16 @@ public interface UserDAO extends EntityDAO<UserInfo> {
      * not null on UserMod instance are updated within the existing user record.
      *
      * @param userMod UserMod instance containing new user record data
-     * @param principal the user principal that requests the save/modification
      * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
      *         exception on error case */
-    Result<UserInfo> save(SEBServerUser principal, UserMod userMod);
+    Result<UserInfo> save(UserMod userMod);
 
-    Result<UserInfo> delete(SEBServerUser principal, Long id);
+    /** Use this to delete a user and all its relationships by id
+     *
+     * @param id the identifier if the user to delete
+     * @param archive indicates whether the user and all its relations should be archived (inactive and anonymous) or
+     *            hard deleted
+     * @return Result of a collection of all entities that has been deleted (or archived) */
+    Result<Collection<Entity>> delete(Long id, boolean archive);
 
 }

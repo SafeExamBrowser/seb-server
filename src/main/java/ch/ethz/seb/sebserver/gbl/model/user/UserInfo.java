@@ -51,18 +51,18 @@ public final class UserInfo implements GrantEntity, Serializable {
 
     /** Full name of the user */
     @NotNull
-    @Size(min = 3, max = 255, message = "userInfo:name:size:{min}:{max}:${validatedValue}")
+    @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** The internal user name */
     @NotNull
-    @Size(min = 3, max = 255, message = "userInfo:username:size:{min}:{max}:${validatedValue}")
+    @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USER_NAME)
     public final String userName;
 
     /** E-mail address of the user */
-    @Email(message = "userInfo:email:email:_:_:${validatedValue}")
+    @Email(message = "user:email:email:_:_:${validatedValue}")
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
 
@@ -83,7 +83,7 @@ public final class UserInfo implements GrantEntity, Serializable {
 
     /** The users roles in a unmodifiable set. Is never null */
     @NotNull
-    @NotEmpty(message = "userInfo:roles:notEmpty:_:_:_")
+    @NotEmpty(message = "user:roles:notEmpty:_:_:_")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 

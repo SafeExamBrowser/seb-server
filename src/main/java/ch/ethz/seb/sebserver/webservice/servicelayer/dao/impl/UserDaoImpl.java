@@ -34,14 +34,15 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.webservice.datalayer.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -160,7 +161,7 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> save(final SEBServerUser principal, final UserMod userMod) {
+    public Result<UserInfo> save(final UserMod userMod) {
         if (userMod == null) {
             return Result.ofError(new NullPointerException("userMod has null-reference"));
         }
@@ -168,11 +169,9 @@ public class UserDaoImpl implements UserDAO {
         try {
 
             final UserInfo userInfo = userMod.getUserInfo();
-            if (userInfo.uuid != null) {
-                return updateUser(userMod);
-            } else {
-                return createNewUser(principal, userMod);
-            }
+            return (userInfo.uuid != null)
+                    ? updateUser(userMod)
+                    : createNewUser(userMod);
 
         } catch (final Throwable t) {
             log.error("Unexpected error while saving User data: ", t);
@@ -183,8 +182,10 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> delete(final SEBServerUser principal, final Long id) {
+    public Result<Collection<Entity>> delete(final Long id, final boolean force) {
+
         // TODO clarify within discussion about inactivate, archive and delete user related data
+
         return Result.ofError(new RuntimeException("TODO"));
     }
 
@@ -234,7 +235,7 @@ public class UserDaoImpl implements UserDAO {
                 });
     }
 
-    private Result<UserInfo> createNewUser(final SEBServerUser principal, final UserMod userMod) {
+    private Result<UserInfo> createNewUser(final UserMod userMod) {
         final UserInfo userInfo = userMod.getUserInfo();
 
         if (!userMod.newPasswordMatch()) {
