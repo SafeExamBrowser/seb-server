@@ -9,8 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.integration.api;
 
 import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
@@ -19,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -105,7 +106,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertEquals(
                 "{\"messageCode\":\"1001\","
                         + "\"systemMessage\":\"FORBIDDEN\","
-                        + "\"details\":\"No grant: READ_ONLY on type: USER entity institution: 1 entity owner: null for user: user3\","
+                        + "\"details\":\"No grant: READ_ONLY on type: USER entity institution: 1 entity owner: user1 for user: user3\","
                         + "\"attributes\":[]}",
                 contentAsString);
     }
@@ -146,8 +147,6 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(getUserInfo("admin", userInfos));
         assertNotNull(getUserInfo("inst1Admin", userInfos));
         assertNotNull(getUserInfo("examSupporter", userInfos));
-
-        // TODO more tests
     }
 
     @Test
@@ -191,6 +190,15 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertTrue(userInfos.size() == 2);
         assertNotNull(getUserInfo("examAdmin1", userInfos));
         assertNotNull(getUserInfo("examSupporter", userInfos));
+    }
+
+    @Test
+    public void testOwnerGet() throws Exception {
+        final String examAdminToken1 = getExamAdmin1();
+        this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                .header("Authorization", "Bearer " + examAdminToken1))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
     }
 
     @Test
@@ -245,6 +253,192 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertEquals("USER", userActivityLog.entityType.name());
         assertEquals("CREATE", userActivityLog.activityType.name());
         assertEquals(createdUserGet.uuid, userActivityLog.entityId);
+    }
+
+    @Test
+    public void modifyUserTest() throws Exception {
+        final String token = getSebAdminAccess();
+        final UserInfo user = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user7")
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(user);
+        assertEquals("User", user.name);
+        assertEquals("user1", user.userName);
+        assertEquals("user@nomail.nomail", user.email);
+        assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
+
+        // change userName, email and roles
+        final UserMod modifiedUser = new UserMod(new UserInfo(
+                user.getUuid(),
+                user.getInstitutionId(),
+                user.getName(),
+                "newUser1",
+                "newUser@nomail.nomail",
+                user.getActive(),
+                user.getLocale(),
+                user.getTimeZone(),
+                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet())),
+                null, null);
+        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+
+        UserInfo modifiedUserResult = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(modifiedUserJson))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(modifiedUserResult);
+        assertEquals("User", modifiedUserResult.name);
+        assertEquals("newUser1", modifiedUserResult.userName);
+        assertEquals("newUser@nomail.nomail", modifiedUserResult.email);
+        assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
+
+        // double check by getting the user by uuis
+        modifiedUserResult = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUserResult.uuid)
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(modifiedUserResult);
+        assertEquals("User", modifiedUserResult.name);
+        assertEquals("newUser1", modifiedUserResult.userName);
+        assertEquals("newUser@nomail.nomail", modifiedUserResult.email);
+        assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
+    }
+
+    @Test
+    public void testOwnerModifyPossible() throws Exception {
+        final String examAdminToken1 = getExamAdmin1();
+        final UserInfo examAdmin = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                        .header("Authorization", "Bearer " + examAdminToken1))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        final UserMod modifiedUser = new UserMod(examAdmin, null, null);
+        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                .header("Authorization", "Bearer " + examAdminToken1)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(modifiedUserJson))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+    }
+
+    @Test
+    public void institutionalAdminTryToCreateOrModifyUserForOtherInstituionNotPossible() throws Exception {
+        final UserInfo userInfo = new UserInfo(
+                null, 2L, "NewTestUser", "NewTestUser",
+                "", true, Locale.CANADA, DateTimeZone.UTC,
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
+        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
+
+        final String token = getAdminInstitution1Access();
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/create")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newUserJson))
+                .andExpect(status().isForbidden())
+                .andReturn().getResponse().getContentAsString();
+
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newUserJson))
+                .andExpect(status().isForbidden())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void unauthorizedAdminTryToCreateUserNotPossible() throws Exception {
+        final UserInfo userInfo = new UserInfo(
+                null, 2L, "NewTestUser", "NewTestUser",
+                "", true, Locale.CANADA, DateTimeZone.UTC,
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
+        final UserMod newUser = new UserMod(userInfo, "123", "123");
+        final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
+
+        final String token = getExamAdmin1();
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/create")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newUserJson))
+                .andExpect(status().isForbidden())
+                .andReturn().getResponse().getContentAsString();
+
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newUserJson))
+                .andExpect(status().isForbidden())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void modifyUserPassword() throws Exception {
+        final String examAdminToken1 = getExamAdmin1();
+        assertNotNull(examAdminToken1);
+
+        // a SEB Server Admin now changes the password of ExamAdmin1
+        final String sebAdminToken = getSebAdminAccess();
+        final UserInfo examAdmin1 = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        final UserMod modifiedUser = new UserMod(
+                UserInfo.of(examAdmin1),
+                "newPassword",
+                "newPassword");
+        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+                .header("Authorization", "Bearer " + sebAdminToken)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(modifiedUserJson))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // now it should not be possible to get a access token for ExamAdmin1 with the standard password
+        try {
+            getExamAdmin1();
+            fail("AssertionError expected here");
+        } catch (final AssertionError e) {
+            assertEquals("Status expected:<200> but was:<400>", e.getMessage());
+        }
+
+        // it should also not be possible to use an old token again after password change
+        this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                .header("Authorization", "Bearer " + examAdminToken1))
+                .andExpect(status().isUnauthorized())
+                .andReturn().getResponse().getContentAsString();
+
+        // but it should be possible to get a new access token and request again
+        final String examAdminToken2 = obtainAccessToken("examAdmin1", "newPassword");
+        this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                .header("Authorization", "Bearer " + examAdminToken2))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

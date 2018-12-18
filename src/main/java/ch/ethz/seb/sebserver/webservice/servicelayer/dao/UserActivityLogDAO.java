@@ -28,6 +28,19 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
         DELETE
     }
 
+    /** Creates a user activity log entry for the current user.
+     *
+     * @param actionType the action type
+     * @param entity the Entity
+     * @param message an optional message */
+    <E extends Entity> Result<E> logUserActivity(ActivityType actionType, E entity, String message);
+
+    /** Creates a user activity log entry for the current user.
+     *
+     * @param actionType the action type
+     * @param entity the Entity */
+    <E extends Entity> Result<E> logUserActivity(ActivityType actionType, E entity);
+
     /** Creates a user activity log entry.
      *
      * @param user for specified SEBServerUser instance

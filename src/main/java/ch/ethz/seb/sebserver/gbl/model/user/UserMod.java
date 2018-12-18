@@ -8,24 +8,64 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import javax.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public final class UserMod {
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+public final class UserMod implements GrantEntity {
+
+    public static final String ATTR_NAME_USER_INFO = "userInfo";
+    public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
+    public static final String ATTR_NAME_RETYPED_NEW_PASSWORD = "retypedNewPassword";
+
+    @JsonProperty(ATTR_NAME_USER_INFO)
     private final UserInfo userInfo;
+
+    @Size(min = 8, max = 255, message = "userInfo:password:size:{min}:{max}:${validatedValue}")
+    @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
+
+    @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD)
     private final String retypedNewPassword;
 
     @JsonCreator
     public UserMod(
-            @JsonProperty("userInfo") final UserInfo userInfo,
-            @JsonProperty("newPassword") final String newPassword,
-            @JsonProperty("retypedNewPassword") final String retypedNewPassword) {
+            @JsonProperty(ATTR_NAME_USER_INFO) final UserInfo userInfo,
+            @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
+            @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword) {
 
         this.userInfo = userInfo;
         this.newPassword = newPassword;
         this.retypedNewPassword = retypedNewPassword;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getId() {
+        return this.userInfo.getId();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType entityType() {
+        return this.userInfo.entityType();
+    }
+
+    @Override
+    @JsonIgnore
+    public Long getInstitutionId() {
+        return this.userInfo.getInstitutionId();
+    }
+
+    @Override
+    @JsonIgnore
+    public String getOwnerUUID() {
+        return this.userInfo.getOwnerUUID();
     }
 
     public UserInfo getUserInfo() {
@@ -81,5 +121,4 @@ public final class UserMod {
     public String toString() {
         return "UserMod [userInfo=" + this.userInfo + "]";
     }
-
 }

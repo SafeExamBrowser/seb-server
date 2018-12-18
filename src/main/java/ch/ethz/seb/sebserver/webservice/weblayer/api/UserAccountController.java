@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
@@ -32,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 
 @WebServiceProfile
 @RestController
@@ -42,17 +45,20 @@ public class UserAccountController {
     private final AuthorizationGrantService authorizationGrantService;
     private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserAccountController(
             final UserDAO userDao,
             final AuthorizationGrantService authorizationGrantService,
             final UserService userService,
-            final UserActivityLogDAO userActivityLogDAO) {
+            final UserActivityLogDAO userActivityLogDAO,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.userDao = userDao;
         this.authorizationGrantService = authorizationGrantService;
         this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -123,7 +129,11 @@ public class UserAccountController {
             @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(userData, principal, PrivilegeType.WRITE);
+        return _saveUser(
+                userData,
+                this.userService.extractFromPrincipal(principal),
+                PrivilegeType.WRITE)
+                        .getOrThrow();
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
@@ -131,31 +141,33 @@ public class UserAccountController {
             @RequestBody final UserMod userData,
             final Principal principal) {
 
-        return _saveUser(userData, principal, PrivilegeType.MODIFY);
+        return _saveUser(
+                userData,
+                this.userService.extractFromPrincipal(principal),
+                PrivilegeType.MODIFY)
+                        .getOrThrow();
+
     }
 
-    private UserInfo _saveUser(
+    private Result<UserInfo> _saveUser(
             final UserMod userData,
-            final Principal principal,
-            final PrivilegeType grantType) {
+            final SEBServerUser admin,
+            final PrivilegeType privilegeType) {
 
-        // fist check if current user has any privileges for this action
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.USER,
-                grantType);
-
-        final SEBServerUser admin = this.userService.extractFromPrincipal(principal);
         final ActivityType actionType = (userData.getUserInfo().uuid == null)
                 ? ActivityType.CREATE
                 : ActivityType.MODIFY;
 
-        return this.userDao
-                .save(admin, userData)
-                .flatMap(userInfo -> this.userActivityLogDAO.logUserActivity(
-                        admin,
-                        actionType,
-                        userInfo))
-                .getOrThrow();
+        return this.authorizationGrantService
+                .checkGrantOnEntity(userData, privilegeType)
+                .flatMap(data -> this.userDao.save(admin, data))
+                .flatMap(userInfo -> this.userActivityLogDAO.logUserActivity(actionType, userInfo))
+                .flatMap(userInfo -> {
+                    // handle password change; revoke access tokens if password has changed
+                    this.applicationEventPublisher.publishEvent(
+                            new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.userName));
+                    return Result.of(userInfo);
+                });
     }
 
 }

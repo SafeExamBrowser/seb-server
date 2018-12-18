@@ -63,6 +63,20 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
+    public <E extends Entity> Result<E> logUserActivity(
+            final ActivityType actionType,
+            final E entity,
+            final String message) {
+
+        return logUserActivity(this.userService.getCurrentUser(), actionType, entity, message);
+    }
+
+    @Override
+    public <E extends Entity> Result<E> logUserActivity(final ActivityType actionType, final E entity) {
+        return logUserActivity(this.userService.getCurrentUser(), actionType, entity, null);
+    }
+
+    @Override
     @Transactional
     public <E extends Entity> Result<E> logUserActivity(
             final SEBServerUser user,
@@ -72,7 +86,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         try {
 
-            this.userLogRecordMapper.insert(new UserActivityLogRecord(
+            this.userLogRecordMapper.insertSelective(new UserActivityLogRecord(
                     null,
                     user.getUserInfo().uuid,
                     System.currentTimeMillis(),

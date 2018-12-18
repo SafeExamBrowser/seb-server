@@ -136,7 +136,7 @@ public final class UserInfo implements GrantEntity, Serializable {
     @JsonIgnore
     @Override
     public String getOwnerUUID() {
-        return null;
+        return this.uuid;
     }
 
     public String getName() {

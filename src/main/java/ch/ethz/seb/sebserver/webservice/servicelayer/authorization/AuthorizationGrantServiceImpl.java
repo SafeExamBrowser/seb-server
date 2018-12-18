@@ -85,7 +85,9 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
         // grants for user activity logs

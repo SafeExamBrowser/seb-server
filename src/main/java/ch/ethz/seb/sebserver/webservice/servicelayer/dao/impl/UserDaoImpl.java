@@ -25,12 +25,15 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
+import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -57,13 +60,16 @@ public class UserDaoImpl implements UserDAO {
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
+    private final PasswordEncoder userPasswordEncoder;
 
     public UserDaoImpl(
             final UserRecordMapper userRecordMapper,
-            final RoleRecordMapper roleRecordMapper) {
+            final RoleRecordMapper roleRecordMapper,
+            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
         this.userRecordMapper = userRecordMapper;
         this.roleRecordMapper = roleRecordMapper;
+        this.userPasswordEncoder = userPasswordEncoder;
     }
 
     @Override
@@ -215,7 +221,7 @@ public class UserDaoImpl implements UserDAO {
                             null,
                             userInfo.name,
                             userInfo.userName,
-                            (changePWD) ? userMod.getNewPassword() : null,
+                            (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
                             userInfo.email,
                             userInfo.locale.toLanguageTag(),
                             userInfo.timeZone.getID(),
@@ -230,9 +236,6 @@ public class UserDaoImpl implements UserDAO {
 
     private Result<UserInfo> createNewUser(final SEBServerUser principal, final UserMod userMod) {
         final UserInfo userInfo = userMod.getUserInfo();
-        if (userInfo.institutionId == null) {
-            return Result.ofError(new IllegalArgumentException("The users institution cannot be null"));
-        }
 
         if (!userMod.newPasswordMatch()) {
             return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
@@ -244,7 +247,7 @@ public class UserDaoImpl implements UserDAO {
                 UUID.randomUUID().toString(),
                 userInfo.name,
                 userInfo.userName,
-                userMod.getNewPassword(),
+                this.userPasswordEncoder.encode(userMod.getNewPassword()),
                 userInfo.email,
                 userInfo.locale.toLanguageTag(),
                 userInfo.timeZone.getID(),
@@ -345,5 +348,4 @@ public class UserDaoImpl implements UserDAO {
                         userInfo,
                         record.getPassword()));
     }
-
 }

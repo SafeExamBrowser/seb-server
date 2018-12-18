@@ -65,7 +65,7 @@ public class UserActivityLog implements Entity {
         return (this.id != null) ? String.valueOf(this.id) : null;
     }
 
-    public String getUserUUID() {
+    public String getUserUuid() {
         return this.userUUID;
     }
 
