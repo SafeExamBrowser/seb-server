@@ -116,8 +116,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> getAllForUser(final String userId) {
-        return all(userId, null, null, model -> true);
+    public Result<Collection<UserActivityLog>> getAllForUser(final String userUuid) {
+        return all(userUuid, null, null, model -> true);
     }
 
     @Override
@@ -182,11 +182,11 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Integer> deleteUserReferences(final String userId) {
+    public Result<Integer> overwriteUserReferences(final String userUuid, final boolean deactivate) {
         try {
 
             final List<UserActivityLogRecord> records = this.userLogRecordMapper.selectByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualTo(userId))
+                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualTo(userUuid))
                     .build()
                     .execute();
 
@@ -196,19 +196,19 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
             records
                     .stream()
-                    .forEach(this::overrrideUser);
+                    .forEach(this::overwriteUser);
 
             return Result.of(records.size());
 
         } catch (final Throwable t) {
             log.error(
                     "Unexpected error while trying to delete all user references form activity logs for user with id: {}",
-                    userId);
+                    userUuid);
             return Result.ofError(t);
         }
     }
 
-    private void overrrideUser(final UserActivityLogRecord record) {
+    private void overwriteUser(final UserActivityLogRecord record) {
         final UserActivityLogRecord selective = new UserActivityLogRecord(
                 record.getId(),
                 this.userService.getAnonymousUser().getUsername(),
@@ -218,16 +218,16 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
-    public Result<Integer> deleteUserEnities(final String userId) {
+    public Result<Integer> deleteUserEnities(final String userUuid) {
         try {
 
             return Result.of(this.userLogRecordMapper.deleteByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualToWhenPresent(userId))
+                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualToWhenPresent(userUuid))
                     .build()
                     .execute());
 
         } catch (final Throwable t) {
-            log.error("Unexpected error while trying to delete all activity logs for user with id: {}", userId);
+            log.error("Unexpected error while trying to delete all activity logs for user with id: {}", userUuid);
             return Result.ofError(t);
         }
     }

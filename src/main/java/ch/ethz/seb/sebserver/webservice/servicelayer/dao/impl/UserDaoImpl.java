@@ -34,10 +34,10 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -110,7 +110,7 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> allActive() {
-        return all(UserFilter.ofActive());
+        return all(new UserFilter(null, null, null, null, true, null));
     }
 
     @Override
@@ -168,8 +168,7 @@ public class UserDaoImpl implements UserDAO {
 
         try {
 
-            final UserInfo userInfo = userMod.getUserInfo();
-            return (userInfo.uuid != null)
+            return (userMod.uuid != null)
                     ? updateUser(userMod)
                     : createNewUser(userMod);
 
@@ -189,6 +188,63 @@ public class UserDaoImpl implements UserDAO {
         return Result.ofError(new RuntimeException("TODO"));
     }
 
+    @Override
+    @Transactional
+    public Result<UserInfo> setActive(final String entityId, final boolean active) {
+        try {
+
+            this.userRecordMapper.updateByExampleSelective(
+                    new UserRecord(
+                            null, null, null, null, null, null, null, null, null,
+                            BooleanUtils.toIntegerObject(active)))
+                    .where(UserRecordDynamicSqlSupport.uuid, isEqualTo(entityId))
+                    .build()
+                    .execute();
+
+            return byUuid(entityId);
+
+        } catch (final Exception e) {
+            log.error("unexpected error: ", e);
+            return Result.ofError(e);
+        }
+    }
+
+    @Override
+    public void notifyActivation(final Entity source) {
+        // If an Institution has been deactivated, all its user accounts gets also be deactivated
+        if (source.entityType() == EntityType.INSTITUTION) {
+            setAllActiveForInstitution(Long.parseLong(source.getId()), true);
+        }
+    }
+
+    @Override
+    public void notifyDeactivation(final Entity source) {
+        // If an Institution has been deactivated, all its user accounts gets also be deactivated
+        if (source.entityType() == EntityType.INSTITUTION) {
+            setAllActiveForInstitution(Long.parseLong(source.getId()), false);
+        }
+    }
+
+    private void setAllActiveForInstitution(final Long institutionId, final boolean active) {
+        try {
+
+            final UserRecord record = new UserRecord(
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toIntegerObject(active));
+
+            this.userRecordMapper.updateByExampleSelective(record)
+                    .where(UserRecordDynamicSqlSupport.institutionId, isEqualTo(institutionId))
+                    .build()
+                    .execute();
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to set all active: {} for institution: {}",
+                    active,
+                    institutionId,
+                    e);
+        }
+    }
+
     private Result<Collection<UserInfo>> fromRecords(
             final List<UserRecord> records,
             final Predicate<UserInfo> predicate) {
@@ -204,13 +260,8 @@ public class UserDaoImpl implements UserDAO {
     }
 
     private Result<UserInfo> updateUser(final UserMod userMod) {
-        final UserInfo userInfo = userMod.getUserInfo();
-        return recordByUUID(userInfo.uuid)
+        return recordByUUID(userMod.uuid)
                 .flatMap(record -> {
-                    if (record.getInstitutionId().longValue() != userInfo.institutionId.longValue()) {
-                        return Result.ofError(new IllegalArgumentException("The users institution cannot be changed"));
-                    }
-
                     final boolean changePWD = userMod.passwordChangeRequest();
                     if (changePWD && !userMod.newPasswordMatch()) {
                         return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
@@ -220,23 +271,22 @@ public class UserDaoImpl implements UserDAO {
                             record.getId(),
                             null,
                             null,
-                            userInfo.name,
-                            userInfo.userName,
+                            userMod.name,
+                            userMod.userName,
                             (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
-                            userInfo.email,
-                            userInfo.locale.toLanguageTag(),
-                            userInfo.timeZone.getID(),
-                            BooleanUtils.toIntegerObject(userInfo.active));
+                            userMod.email,
+                            userMod.locale.toLanguageTag(),
+                            userMod.timeZone.getID(),
+                            null);
 
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    updateRolesForUser(record.getId(), userInfo.roles);
+                    updateRolesForUser(record.getId(), userMod.roles);
 
                     return byId(record.getId());
                 });
     }
 
     private Result<UserInfo> createNewUser(final UserMod userMod) {
-        final UserInfo userInfo = userMod.getUserInfo();
 
         if (!userMod.newPasswordMatch()) {
             return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
@@ -244,19 +294,19 @@ public class UserDaoImpl implements UserDAO {
 
         final UserRecord newRecord = new UserRecord(
                 null,
-                userInfo.institutionId,
+                userMod.institutionId,
                 UUID.randomUUID().toString(),
-                userInfo.name,
-                userInfo.userName,
+                userMod.name,
+                userMod.userName,
                 this.userPasswordEncoder.encode(userMod.getNewPassword()),
-                userInfo.email,
-                userInfo.locale.toLanguageTag(),
-                userInfo.timeZone.getID(),
-                BooleanUtils.toIntegerObject(userInfo.active));
+                userMod.email,
+                userMod.locale.toLanguageTag(),
+                userMod.timeZone.getID(),
+                BooleanUtils.toInteger(false));
 
         this.userRecordMapper.insert(newRecord);
         final Long newUserId = newRecord.getId();
-        insertRolesForUser(newUserId, userInfo.roles);
+        insertRolesForUser(newUserId, userMod.roles);
         return byId(newUserId);
     }
 
@@ -349,4 +399,5 @@ public class UserDaoImpl implements UserDAO {
                         userInfo,
                         record.getPassword()));
     }
+
 }

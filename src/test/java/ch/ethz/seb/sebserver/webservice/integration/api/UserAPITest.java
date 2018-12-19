@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
-import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -152,15 +151,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void getAllUserInfoWithSearchInactive() throws Exception {
-        final UserFilter filter = UserFilter.ofInactive();
-        final String filterJson = this.jsonMapper.writeValueAsString(filter);
-
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(filterJson))
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false")
+                        .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<UserInfo>>() {
@@ -173,15 +167,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void getAllUserInfoWithSearchUsernameLike() throws Exception {
-        final UserFilter filter = new UserFilter(null, null, "exam", null, null, null);
-        final String filterJson = this.jsonMapper.writeValueAsString(filter);
-
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(filterJson))
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?userName=exam")
+                        .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<UserInfo>>() {
@@ -236,6 +225,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         assertNotNull(createdUserGet);
         assertEquals(createdUser, createdUserGet);
+        assertFalse(createdUserGet.isActive());
 
         // check user activity log for newly created user
         final List<UserActivityLog> logs = this.jsonMapper.readValue(
@@ -495,6 +485,50 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(messages);
         assertTrue(1 == messages.size());
         assertEquals("1300", messages.get(0).messageCode);
+    }
+
+    @Test
+    public void deactivateUserAccount() throws Exception {
+        // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
+        final String examAdminToken = getExamAdmin1();
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/deactivate")
+                .header("Authorization", "Bearer " + examAdminToken))
+                .andExpect(status().isForbidden());
+
+        // With SEB Administrator it should work
+        final String sebAdminToken = getSebAdminAccess();
+        final UserInfo deactivatedUser = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/deactivate")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(deactivatedUser);
+        assertFalse(deactivatedUser.isActive());
+    }
+
+    @Test
+    public void activateUserAccount() throws Exception {
+        // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
+        final String examAdminToken = getExamAdmin1();
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
+                .header("Authorization", "Bearer " + examAdminToken))
+                .andExpect(status().isForbidden());
+
+        // With SEB Administrator it should work
+        final String sebAdminToken = getSebAdminAccess();
+        final UserInfo deactivatedUser = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<UserInfo>() {
+                });
+
+        assertNotNull(deactivatedUser);
+        assertTrue(deactivatedUser.isActive());
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

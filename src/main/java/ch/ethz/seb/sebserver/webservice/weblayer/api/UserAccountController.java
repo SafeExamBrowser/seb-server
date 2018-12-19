@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.security.Principal;
 import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -16,11 +15,11 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -29,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.activation.EntityActivationEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -64,19 +64,30 @@ public class UserAccountController {
 
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserInfo> getAll(
-            //@RequestParam(required = false) final UserFilter filter,
-            @RequestBody(required = false) final UserFilter userFilter,
-            final Principal principal) {
+            @RequestParam(required = false) final Long institutionId,
+            @RequestParam(required = false) final Boolean active,
+            @RequestParam(required = false) final String name,
+            @RequestParam(required = false) final String userName,
+            @RequestParam(required = false) final String email,
+            @RequestParam(required = false) final String locale) {
 
         // fist check if current user has any privileges for this action
         this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.USER,
                 PrivilegeType.READ_ONLY);
 
+        final UserFilter userFilter = ((institutionId != null) ||
+                (active != null) ||
+                (name != null) ||
+                (userName != null) ||
+                (email != null) ||
+                (locale != null))
+                        ? new UserFilter(institutionId, name, userName, email, active, locale)
+                        : null;
+
         if (this.authorizationGrantService.hasBasePrivilege(
                 EntityType.USER,
-                PrivilegeType.READ_ONLY,
-                principal)) {
+                PrivilegeType.READ_ONLY)) {
 
             return (userFilter != null)
                     ? this.userDao.all(userFilter).getOrThrow()
@@ -86,8 +97,7 @@ public class UserAccountController {
 
             final Predicate<UserInfo> grantFilter = this.authorizationGrantService.getGrantFilter(
                     EntityType.USER,
-                    PrivilegeType.READ_ONLY,
-                    principal);
+                    PrivilegeType.READ_ONLY);
 
             if (userFilter == null) {
 
@@ -108,14 +118,14 @@ public class UserAccountController {
     }
 
     @RequestMapping(value = "/me", method = RequestMethod.GET)
-    public UserInfo loggedInUser(final Authentication auth) {
+    public UserInfo loggedInUser() {
         return this.userService
                 .getCurrentUser()
                 .getUserInfo();
     }
 
     @RequestMapping(value = "/{userUUID}", method = RequestMethod.GET)
-    public UserInfo accountInfo(@PathVariable final String userUUID, final Principal principal) {
+    public UserInfo accountInfo(@PathVariable final String userUUID) {
         return this.userDao
                 .byUuid(userUUID)
                 .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
@@ -126,27 +136,42 @@ public class UserAccountController {
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.PUT)
-    public UserInfo createUser(
-            @Valid @RequestBody final UserMod userData,
-            final Principal principal) {
-
+    public UserInfo createUser(@Valid @RequestBody final UserMod userData) {
         return _saveUser(userData, PrivilegeType.WRITE)
                 .getOrThrow();
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
-    public UserInfo saveUser(
-            @Valid @RequestBody final UserMod userData,
-            final Principal principal) {
-
+    public UserInfo saveUser(@Valid @RequestBody final UserMod userData) {
         return _saveUser(userData, PrivilegeType.MODIFY)
                 .getOrThrow();
 
     }
 
+    @RequestMapping(value = "/{userUUID}/activate", method = RequestMethod.POST)
+    public UserInfo activateUser(@PathVariable final String userUUID) {
+        return setActivity(userUUID, true);
+    }
+
+    @RequestMapping(value = "/{userUUID}/deactivate", method = RequestMethod.POST)
+    public UserInfo deactivateUser(@PathVariable final String userUUID) {
+        return setActivity(userUUID, false);
+    }
+
+    private UserInfo setActivity(final String userUUID, final boolean activity) {
+        return this.userDao.byUuid(userUUID)
+                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(userInfo, PrivilegeType.WRITE))
+                .flatMap(userInfo -> this.userDao.setActive(userInfo.uuid, activity))
+                .map(userInfo -> {
+                    this.applicationEventPublisher.publishEvent(new EntityActivationEvent(userInfo, activity));
+                    return userInfo;
+                })
+                .getOrThrow();
+    }
+
     private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
 
-        final ActivityType actionType = (userData.getUserInfo().uuid == null)
+        final ActivityType actionType = (userData.uuid == null)
                 ? ActivityType.CREATE
                 : ActivityType.MODIFY;
 

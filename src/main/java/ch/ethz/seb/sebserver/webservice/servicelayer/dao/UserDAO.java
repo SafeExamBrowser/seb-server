@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
-public interface UserDAO extends EntityDAO<UserInfo> {
+public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserInfo> {
 
     /** Use this to get UserInfo by database identifier
      *
@@ -47,11 +47,6 @@ public interface UserDAO extends EntityDAO<UserInfo> {
      * @param username The username of the user to get SEBServerUser from
      * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
     Result<SEBServerUser> sebServerUserByUsername(String username);
-
-    /** Use this to get a Collection of UserInfo for all active users.
-     *
-     * @return a Result of Collection of UserInfo for all active users. Or an exception result on error case */
-    Result<Collection<UserInfo>> allActive();
 
     /** Use this to get a Collection of UserInfo that matches a given predicate.
      *

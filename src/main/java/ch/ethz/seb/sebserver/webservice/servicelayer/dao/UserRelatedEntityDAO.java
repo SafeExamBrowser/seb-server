@@ -13,12 +13,34 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Interface for a DAo handling an Entity with relations to an user (account)
+ *
+ *
+ * @param <T> the concrete type of the Entity */
 public interface UserRelatedEntityDAO<T extends Entity> extends EntityDAO<T> {
 
-    Result<Collection<T>> getAllForUser(String userId);
+    /** Get all Entity instances that has a relation to the user-account
+     * of a given user identity (UUID)
+     *
+     * @param userUuid the users identity
+     * @return A Result of all Entity instances that has a relation to the user-account
+     *         of a given user identity (UUID) or a Result with error if happen */
+    Result<Collection<T>> getAllForUser(String userUuid);
 
-    Result<Integer> deleteUserReferences(final String userId);
+    /** Overwrite all user-references for entities that belongs to the user with the given identity
+     * to refer to an internal anonymous user-account
+     *
+     * @param userUuid the users identity
+     * @param deactivate indicates if the effected entities should also be deactivated if possible
+     * @return A Result with the number of overwrite Entity instances or with an error if happen */
+    Result<Integer> overwriteUserReferences(final String userUuid, boolean deactivate);
 
-    Result<Integer> deleteUserEnities(final String userId);
+    /** Delete all user-references for entities that belongs to the user with the given identity
+     *
+     * NOTE: This processes a hard-delete. All effected data will be lost.
+     *
+     * @param userUuid the users identity
+     * @return A Result with the number of deleted Entity instances or with an error if happen */
+    Result<Integer> deleteUserEnities(final String userUuid);
 
 }
