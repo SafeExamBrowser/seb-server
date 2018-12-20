@@ -96,7 +96,7 @@ public class AuthorizationGrantServiceTest {
             }
 
             @Override
-            public String getId() {
+            public String getModelId() {
                 return "1";
             }
 

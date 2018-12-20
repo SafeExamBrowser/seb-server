@@ -36,8 +36,7 @@ public class UserActivityLogTest {
         final String jsonValue = this.jsonMapper.writeValueAsString(testModel);
 
         assertEquals(
-                "{\"id\":\"1\","
-                        + "\"userUuid\":\"testUser\","
+                "{\"userUuid\":\"testUser\","
                         + "\"timestamp\":123,"
                         + "\"activityType\":\"CREATE\","
                         + "\"entityType\":\"EXAM\","

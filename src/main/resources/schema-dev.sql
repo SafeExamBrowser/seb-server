@@ -10,7 +10,8 @@ DROP TABLE IF EXISTS `institution` ;
 CREATE TABLE IF NOT EXISTS `institution` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
-  `authType` VARCHAR(45) NOT NULL,
+  `url_suffix` VARCHAR(45) NULL,
+  `logo_image` MEDIUMTEXT NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))

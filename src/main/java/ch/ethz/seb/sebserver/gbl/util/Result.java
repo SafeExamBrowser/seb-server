@@ -132,14 +132,6 @@ public final class Result<T> {
         }
     }
 
-    public Stream<T> stream() {
-        if (this.error != null) {
-            return Stream.empty();
-        } else {
-            return Stream.of(this.value);
-        }
-    }
-
     /** Use this to get the resulting value. In an error case, a given error handling
      * function is used that receives the error and returns a resulting value instead
      * (or throw some error instead)
@@ -148,6 +140,13 @@ public final class Result<T> {
      * @return */
     public T getOrHandleError(final Function<Throwable, T> errorHandler) {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
+    }
+
+    public Result<T> onErrorDo(final Consumer<Throwable> block) {
+        if (this.error != null) {
+            block.accept(this.error);
+        }
+        return this;
     }
 
     /** Use this to get the resulting value if existing or throw an Runtime exception with
@@ -201,4 +200,19 @@ public final class Result<T> {
         return ofError(new RuntimeException(message));
     }
 
+    public static <T> Result<T> tryCatch(final Supplier<T> supplier) {
+        try {
+            return Result.of(supplier.get());
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
+    public static <T> Stream<T> skipWithError(final Result<T> result) {
+        if (result.error != null) {
+            return Stream.empty();
+        } else {
+            return Stream.of(result.value);
+        }
+    }
 }

@@ -6,10 +6,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model;
+package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-public interface ModelIdAware {
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 
-    String getModelId();
+public class DeletionReport {
+
+    // TODO
+
+    public DeletionReport add(final Entity entity) {
+        // TODO
+        return this;
+    }
 
 }

@@ -16,8 +16,8 @@ public final class EntityActivationEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = -6712364320755441148L;
 
-    public final boolean activated;
-    public final Entity entity;
+    public final transient boolean activated;
+    public final transient Entity entity;
 
     public EntityActivationEvent(final Entity source, final boolean activated) {
         super(source);

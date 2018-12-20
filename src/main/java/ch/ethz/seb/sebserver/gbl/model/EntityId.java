@@ -16,12 +16,12 @@ public class EntityId implements ModelIdAware {
     public final String id;
 
     @JsonCreator
-    public EntityId(@JsonProperty(value = "id", required = true) final String id) {
+    public EntityId(@JsonProperty(value = Domain.ATTR_ID, required = true) final String id) {
         this.id = id;
     }
 
     @Override
-    public String getId() {
+    public String getModelId() {
         return this.id;
     }
 

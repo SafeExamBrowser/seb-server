@@ -20,7 +20,7 @@ public class EntityIdAndName implements ModelIdAware, ModelNameAware {
 
     @JsonCreator
     public EntityIdAndName(
-            @JsonProperty(value = "id", required = true) final String id,
+            @JsonProperty(value = Domain.ATTR_ID, required = true) final String id,
             @JsonProperty(value = "name", required = true) final String name) {
 
         this.id = id;
@@ -33,7 +33,7 @@ public class EntityIdAndName implements ModelIdAware, ModelNameAware {
     }
 
     @Override
-    public String getId() {
+    public String getModelId() {
         return this.id;
     }
 

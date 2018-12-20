@@ -8,37 +8,14 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Test;
 
 public class UtilsTest {
-
-    @Test
-    public void testGetSingle() {
-        final Collection<String> singleCollection = Utils.immutableCollectionOf("ONE");
-        final Collection<String> collection = Utils.immutableCollectionOf("ONE", "TWO");
-
-        final Result<String> r1 = Utils.getSingle(null);
-        final Result<String> r2 = Utils.getSingle(Collections.emptyList());
-        final Result<String> r3 = Utils.getSingle(singleCollection);
-        final Result<String> r4 = Utils.getSingle(collection);
-
-        assertTrue(r1.hasError());
-        assertTrue(r2.hasError());
-        assertFalse(r3.hasError());
-        assertTrue(r4.hasError());
-
-        assertEquals("ONE", r3.get());
-        assertEquals("Collection has no or more then one element. Expected is exaclty one. Size: null",
-                r1.getError().getMessage());
-        assertEquals("Collection has no or more then one element. Expected is exaclty one. Size: 2",
-                r4.getError().getMessage());
-    }
 
     @Test
     public void testImmutableCollectionOf() {

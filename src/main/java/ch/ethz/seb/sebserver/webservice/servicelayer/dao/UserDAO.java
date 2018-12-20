@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
-import java.util.function.Predicate;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -22,13 +20,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
 public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserInfo> {
-
-    /** Use this to get UserInfo by database identifier
-     *
-     * @param id the data base identifier of the user
-     * @return a Result of UserInfo data from user with the specified database identifier. Or an exception result on
-     *         error case */
-    Result<UserInfo> byId(Long id);
 
     /** Use this to get UserInfo by users UUID
      *
@@ -48,17 +39,6 @@ public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserI
      * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
     Result<SEBServerUser> sebServerUserByUsername(String username);
 
-    /** Use this to get a Collection of UserInfo that matches a given predicate.
-     *
-     * NOTE: This first gets all UserRecord from database, for each creates new UserInfo
-     * tests then matching predicate. So predicate filtering is not really fast
-     * If you need a fast filtering user all with UserFilter
-     *
-     * @param predicate Predicate expecting instance of type UserInfo
-     * @return a Result of Collection of UserInfo that matches a given predicate. Or an exception result on error
-     *         case */
-    Result<Collection<UserInfo>> all(Predicate<UserInfo> predicate);
-
     /** Use this to a Collection of filtered UserInfo. The filter criteria
      * from given UserFilter instance will be translated to SQL query and
      * the filtering happens on data-base level
@@ -76,13 +56,5 @@ public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserI
      * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
      *         exception on error case */
     Result<UserInfo> save(UserMod userMod);
-
-    /** Use this to delete a user and all its relationships by id
-     *
-     * @param id the identifier if the user to delete
-     * @param archive indicates whether the user and all its relations should be archived (inactive and anonymous) or
-     *            hard deleted
-     * @return Result of a collection of all entities that has been deleted (or archived) */
-    Result<Collection<Entity>> delete(Long id, boolean archive);
 
 }

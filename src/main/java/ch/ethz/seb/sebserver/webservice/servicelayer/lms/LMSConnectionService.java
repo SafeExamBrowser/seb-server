@@ -6,10 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-public interface ModelIdAware {
+public interface LMSConnectionService {
 
-    String getModelId();
+    LMSConnectionTemplate createConnectionTemplate(Long lmsSetupId);
 
 }

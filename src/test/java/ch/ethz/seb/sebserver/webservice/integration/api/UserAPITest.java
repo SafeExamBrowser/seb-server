@@ -246,6 +246,65 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertEquals(createdUserGet.uuid, userActivityLog.entityId);
     }
 
+// NOTE: this tests transaction rollback is working but for now only if a runtime exception is thrown on
+//       UserDaoImpl.updateUser after the main record (UserRecord) is stored but the new roles are not
+//       updated so far.
+// TODO: make this test running separately in an test with UserDaoImpl mockup
+
+//    @Test
+//    public void modifyUserTestTransaction() throws Exception {
+//        final String token = getSebAdminAccess();
+//        final UserInfo user = this.jsonMapper.readValue(
+//                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user7")
+//                        .header("Authorization", "Bearer " + token))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<UserInfo>() {
+//                });
+//
+//        assertNotNull(user);
+//        assertEquals("User", user.name);
+//        assertEquals("user1", user.userName);
+//        assertEquals("user@nomail.nomail", user.email);
+//        assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
+//
+//        // change userName, email and roles
+//        final UserMod modifyUser = new UserMod(new UserInfo(
+//                user.getUuid(),
+//                user.getInstitutionId(),
+//                user.getName(),
+//                "newUser1",
+//                "newUser@nomail.nomail",
+//                user.getActive(),
+//                user.getLocale(),
+//                user.getTimeZone(),
+//                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet())),
+//                null, null);
+//        final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
+//
+//        final String contentAsString = this.mockMvc
+//                .perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
+//                        .header("Authorization", "Bearer " + token)
+//                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+//                        .content(modifyUserJson))
+//                .andReturn().getResponse().getContentAsString();
+//
+//        // double check by getting the user by UUID
+//        final UserInfo unmodifiedUserResult = this.jsonMapper.readValue(
+//                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + user.uuid)
+//                        .header("Authorization", "Bearer " + token))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<UserInfo>() {
+//                });
+//
+//        assertNotNull(unmodifiedUserResult);
+//        assertEquals("User", unmodifiedUserResult.name);
+//        assertEquals("user1", unmodifiedUserResult.userName);
+//        assertEquals("user@nomail.nomail", unmodifiedUserResult.email);
+//        assertEquals("[EXAM_SUPPORTER]", String.valueOf(unmodifiedUserResult.roles));
+//    }
+
     @Test
     public void modifyUserTest() throws Exception {
         final String token = getSebAdminAccess();
@@ -264,7 +323,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
 
         // change userName, email and roles
-        final UserMod modifiedUser = new UserMod(new UserInfo(
+        final UserMod modifyUser = new UserMod(new UserInfo(
                 user.getUuid(),
                 user.getInstitutionId(),
                 user.getName(),
@@ -275,25 +334,26 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 user.getTimeZone(),
                 Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet())),
                 null, null);
-        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+        final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
 
         UserInfo modifiedUserResult = this.jsonMapper.readValue(
                 this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(modifiedUserJson))
+                        .content(modifyUserJson))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<UserInfo>() {
                 });
 
         assertNotNull(modifiedUserResult);
+        assertEquals(user.uuid, modifiedUserResult.uuid);
         assertEquals("User", modifiedUserResult.name);
         assertEquals("newUser1", modifiedUserResult.userName);
         assertEquals("newUser@nomail.nomail", modifiedUserResult.email);
         assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
 
-        // double check by getting the user by uuis
+        // double check by getting the user by UUID
         modifiedUserResult = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUserResult.uuid)
                         .header("Authorization", "Bearer " + token))
@@ -519,7 +579,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         // With SEB Administrator it should work
         final String sebAdminToken = getSebAdminAccess();
-        final UserInfo deactivatedUser = this.jsonMapper.readValue(
+        final UserInfo activatedUser = this.jsonMapper.readValue(
                 this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -527,8 +587,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 new TypeReference<UserInfo>() {
                 });
 
-        assertNotNull(deactivatedUser);
-        assertTrue(deactivatedUser.isActive());
+        assertNotNull(activatedUser);
+        assertTrue(activatedUser.isActive());
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

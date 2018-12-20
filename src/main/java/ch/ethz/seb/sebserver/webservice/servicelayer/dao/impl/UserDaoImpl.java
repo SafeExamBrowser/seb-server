@@ -23,6 +23,8 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,8 +32,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
-import org.springframework.util.CollectionUtils;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
@@ -42,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -50,7 +49,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DeletionReport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
@@ -81,29 +81,28 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<UserInfo> byId(final Long id) {
-        return toDomainModel(
-                String.valueOf(id),
-                this.userRecordMapper.selectByPrimaryKey(id));
+        return Result.tryCatch(() -> this.userRecordMapper.selectByPrimaryKey(id))
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<UserInfo> byUuid(final String uuid) {
         return recordByUUID(uuid)
-                .flatMap(rec -> toDomainModel(uuid, rec));
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<UserInfo> byUsername(final String username) {
-        return recordByUUID(username)
-                .flatMap(rec -> toDomainModel(username, rec));
+        return recordByUsername(username)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<SEBServerUser> sebServerUserByUsername(final String username) {
-        return recordByUsername(username, true)
+        return recordByUsername(username)
                 .flatMap(rec -> sebServerUserFromRecord(rec));
     }
 
@@ -115,48 +114,42 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate) {
-        try {
+    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate, final boolean onlyActive) {
+        return Result.tryCatch(() -> {
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>> example =
+                    this.userRecordMapper.selectByExample();
 
-            final List<UserRecord> records = this.userRecordMapper
-                    .selectByExample()
-                    .build()
-                    .execute();
+            final List<UserRecord> records = (onlyActive)
+                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+                            .build()
+                            .execute()
+                    : example.build().execute();
 
-            if (records == null) {
-                return Result.of(Collections.emptyList());
-            }
-
-            return fromRecords(records, predicate);
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to get all users: ", e);
-            return Result.ofError(e);
-        }
+            return records.stream()
+                    .map(this::toDomainModel)
+                    .flatMap(Result::skipWithError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> all(final UserFilter filter) {
-        try {
-
-            final List<UserRecord> records = this.userRecordMapper.selectByExample().where(
-                    UserRecordDynamicSqlSupport.active,
-                    isEqualTo(BooleanUtils.toInteger(filter.active)))
-                    .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
-                    .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.getNameLike()))
-                    .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.getUserNameLike()))
-                    .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(filter.getEmailLike()))
-                    .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
-                    .build()
-                    .execute();
-
-            return fromRecords(records, record -> true);
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to get fitered users, filter: {}", filter, e);
-            return Result.ofError(e);
-        }
+        return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
+                UserRecordDynamicSqlSupport.active,
+                isEqualTo(BooleanUtils.toInteger(filter.active)))
+                .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
+                .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.getNameLike()))
+                .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.getUserNameLike()))
+                .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(filter.getEmailLike()))
+                .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(Result::skipWithError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -166,24 +159,20 @@ public class UserDaoImpl implements UserDAO {
             return Result.ofError(new NullPointerException("userMod has null-reference"));
         }
 
-        try {
-
-            return (userMod.uuid != null)
-                    ? updateUser(userMod)
-                    : createNewUser(userMod);
-
-        } catch (final Throwable t) {
-            log.error("Unexpected error while saving User data: ", t);
-            TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
-            return Result.ofError(t);
-        }
+        return (userMod.uuid != null)
+                ? updateUser(userMod)
+                        .flatMap(this::toDomainModel)
+                        .onErrorDo(TransactionHandler::rollback)
+                : createNewUser(userMod)
+                        .flatMap(this::toDomainModel)
+                        .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional
-    public Result<Collection<Entity>> delete(final Long id, final boolean force) {
+    public Result<DeletionReport> delete(final Long id, final boolean force) {
 
-        // TODO clarify within discussion about inactivate, archive and delete user related data
+        // TODO clarify within discussion about deactivate, archive and delete user related data
 
         return Result.ofError(new RuntimeException("TODO"));
     }
@@ -191,9 +180,9 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional
     public Result<UserInfo> setActive(final String entityId, final boolean active) {
-        try {
+        return Result.tryCatch(() -> {
 
-            this.userRecordMapper.updateByExampleSelective(
+            return this.userRecordMapper.updateByExampleSelective(
                     new UserRecord(
                             null, null, null, null, null, null, null, null, null,
                             BooleanUtils.toIntegerObject(active)))
@@ -201,19 +190,14 @@ public class UserDaoImpl implements UserDAO {
                     .build()
                     .execute();
 
-            return byUuid(entityId);
-
-        } catch (final Exception e) {
-            log.error("unexpected error: ", e);
-            return Result.ofError(e);
-        }
+        }).flatMap(count -> byUuid(entityId));
     }
 
     @Override
     public void notifyActivation(final Entity source) {
         // If an Institution has been deactivated, all its user accounts gets also be deactivated
         if (source.entityType() == EntityType.INSTITUTION) {
-            setAllActiveForInstitution(Long.parseLong(source.getId()), true);
+            setAllActiveForInstitution(Long.parseLong(source.getModelId()), true);
         }
     }
 
@@ -221,7 +205,7 @@ public class UserDaoImpl implements UserDAO {
     public void notifyDeactivation(final Entity source) {
         // If an Institution has been deactivated, all its user accounts gets also be deactivated
         if (source.entityType() == EntityType.INSTITUTION) {
-            setAllActiveForInstitution(Long.parseLong(source.getId()), false);
+            setAllActiveForInstitution(Long.parseLong(source.getModelId()), false);
         }
     }
 
@@ -245,26 +229,12 @@ public class UserDaoImpl implements UserDAO {
         }
     }
 
-    private Result<Collection<UserInfo>> fromRecords(
-            final List<UserRecord> records,
-            final Predicate<UserInfo> predicate) {
-
-        if (CollectionUtils.isEmpty(records)) {
-            return Result.of(Collections.emptyList());
-        }
-
-        return Result.of(records.stream()
-                .flatMap(record -> fromRecord(record).stream())
-                .filter(predicate)
-                .collect(Collectors.toList()));
-    }
-
-    private Result<UserInfo> updateUser(final UserMod userMod) {
+    private Result<UserRecord> updateUser(final UserMod userMod) {
         return recordByUUID(userMod.uuid)
-                .flatMap(record -> {
+                .flatMap(record -> Result.tryCatch(() -> {
                     final boolean changePWD = userMod.passwordChangeRequest();
                     if (changePWD && !userMod.newPasswordMatch()) {
-                        return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
+                        throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
                     }
 
                     final UserRecord newRecord = new UserRecord(
@@ -281,33 +251,35 @@ public class UserDaoImpl implements UserDAO {
 
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
                     updateRolesForUser(record.getId(), userMod.roles);
-
-                    return byId(record.getId());
-                });
+                    return this.userRecordMapper.selectByPrimaryKey(record.getId());
+                }));
     }
 
-    private Result<UserInfo> createNewUser(final UserMod userMod) {
+    private Result<UserRecord> createNewUser(final UserMod userMod) {
+        return Result.tryCatch(() -> {
 
-        if (!userMod.newPasswordMatch()) {
-            return Result.ofError(new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH));
-        }
+            if (!userMod.newPasswordMatch()) {
+                throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
+            }
 
-        final UserRecord newRecord = new UserRecord(
-                null,
-                userMod.institutionId,
-                UUID.randomUUID().toString(),
-                userMod.name,
-                userMod.userName,
-                this.userPasswordEncoder.encode(userMod.getNewPassword()),
-                userMod.email,
-                userMod.locale.toLanguageTag(),
-                userMod.timeZone.getID(),
-                BooleanUtils.toInteger(false));
+            final UserRecord newRecord = new UserRecord(
+                    null,
+                    userMod.institutionId,
+                    UUID.randomUUID().toString(),
+                    userMod.name,
+                    userMod.userName,
+                    this.userPasswordEncoder.encode(userMod.getNewPassword()),
+                    userMod.email,
+                    userMod.locale.toLanguageTag(),
+                    userMod.timeZone.getID(),
+                    BooleanUtils.toInteger(false));
 
-        this.userRecordMapper.insert(newRecord);
-        final Long newUserId = newRecord.getId();
-        insertRolesForUser(newUserId, userMod.roles);
-        return byId(newUserId);
+            this.userRecordMapper.insert(newRecord);
+            final Long newUserId = newRecord.getId();
+            insertRolesForUser(newUserId, userMod.roles);
+            return newRecord;
+
+        });
     }
 
     private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
@@ -326,33 +298,26 @@ public class UserDaoImpl implements UserDAO {
                 .forEach(roleRecord -> this.roleRecordMapper.insert(roleRecord));
     }
 
-    private Result<UserRecord> recordByUsername(final String username, final Boolean active) {
-        return Utils.getSingle(
+    private Result<UserRecord> recordByUsername(final String username) {
+        return getSingleResource(
+                username,
                 this.userRecordMapper
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.userName, isEqualTo(username))
-                        .and(UserRecordDynamicSqlSupport.active, isEqualToWhenPresent(BooleanUtils.toInteger(active)))
+                        .and(UserRecordDynamicSqlSupport.active,
+                                isEqualToWhenPresent(BooleanUtils.toInteger(true)))
                         .build()
                         .execute());
     }
 
     private Result<UserRecord> recordByUUID(final String uuid) {
-        return Utils.getSingle(
+        return getSingleResource(
+                uuid,
                 this.userRecordMapper
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.uuid, isEqualTo(uuid))
                         .build()
                         .execute());
-    }
-
-    private Result<UserInfo> toDomainModel(final String nameId, final UserRecord record) {
-        if (record == null) {
-            return Result.ofError(new ResourceNotFoundException(
-                    EntityType.USER,
-                    String.valueOf(nameId)));
-        }
-
-        return fromRecord(record);
     }
 
     private List<RoleRecord> getRoles(final UserRecord record) {
@@ -363,9 +328,9 @@ public class UserDaoImpl implements UserDAO {
         return roles;
     }
 
-    private Result<UserInfo> fromRecord(final UserRecord record) {
+    private Result<UserInfo> toDomainModel(final UserRecord record) {
 
-        try {
+        return Result.tryCatch(() -> {
 
             final List<RoleRecord> roles = getRoles(record);
             Set<String> userRoles = Collections.emptySet();
@@ -376,7 +341,7 @@ public class UserDaoImpl implements UserDAO {
                         .collect(Collectors.toSet());
             }
 
-            return Result.of(new UserInfo(
+            return new UserInfo(
                     record.getUuid(),
                     record.getInstitutionId(),
                     record.getName(),
@@ -385,15 +350,12 @@ public class UserDaoImpl implements UserDAO {
                     BooleanUtils.toBooleanObject(record.getActive()),
                     Locale.forLanguageTag(record.getLocale()),
                     DateTimeZone.forID(record.getTimezone()),
-                    userRoles));
-
-        } catch (final Exception e) {
-            return Result.ofError(e);
-        }
+                    userRoles);
+        });
     }
 
     private Result<SEBServerUser> sebServerUserFromRecord(final UserRecord record) {
-        return fromRecord(record)
+        return toDomainModel(record)
                 .map(userInfo -> new SEBServerUser(
                         record.getId(),
                         userInfo,

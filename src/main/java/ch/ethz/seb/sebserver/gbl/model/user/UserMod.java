@@ -123,7 +123,7 @@ public final class UserMod implements GrantEntity {
 
     @Override
     @JsonIgnore
-    public String getId() {
+    public String getModelId() {
         return this.uuid;
     }
 

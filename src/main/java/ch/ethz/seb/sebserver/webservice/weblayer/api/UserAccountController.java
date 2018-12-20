@@ -76,12 +76,8 @@ public class UserAccountController {
                 EntityType.USER,
                 PrivilegeType.READ_ONLY);
 
-        final UserFilter userFilter = ((institutionId != null) ||
-                (active != null) ||
-                (name != null) ||
-                (userName != null) ||
-                (email != null) ||
-                (locale != null))
+        final UserFilter userFilter = (institutionId != null || active != null || name != null ||
+                userName != null || email != null || locale != null)
                         ? new UserFilter(institutionId, name, userName, email, active, locale)
                         : null;
 

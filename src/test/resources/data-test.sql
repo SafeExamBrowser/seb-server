@@ -1,6 +1,6 @@
 INSERT INTO institution VALUES
-    (1, 'Institution1', 'INTERNAL', 1),
-    (2, 'Institution2', 'INTERNAL', 1)
+    (1, 'Institution1', 'inst1', null, 1),
+    (2, 'Institution2', 'inst2', null, 1)
     ;
 
 INSERT INTO user VALUES 

@@ -105,7 +105,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
 
     @JsonIgnore
     @Override
-    public String getId() {
+    public String getModelId() {
         return this.uuid;
     }
 

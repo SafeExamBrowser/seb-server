@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ACTIVITY_LOG;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -20,7 +19,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.Acti
 
 public class UserActivityLog implements Entity {
 
-    @JsonProperty(Domain.ATTR_ID)
+    @JsonIgnore
     public final Long id;
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID)
     public final String userUUID;
@@ -37,13 +36,30 @@ public class UserActivityLog implements Entity {
 
     @JsonCreator
     public UserActivityLog(
-            @JsonProperty(Domain.ATTR_ID) final Long id,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID) final String userUUID,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_TIMESTAMP) final Long timestamp,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE) final ActivityType activityType,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE) final EntityType entityType,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_ID) final String entityId,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_MESSAGE) final String message) {
+
+        this.id = null;
+        this.userUUID = userUUID;
+        this.timestamp = timestamp;
+        this.activityType = activityType;
+        this.entityType = entityType;
+        this.entityId = entityId;
+        this.message = message;
+    }
+
+    public UserActivityLog(
+            final Long id,
+            final String userUUID,
+            final Long timestamp,
+            final ActivityType activityType,
+            final EntityType entityType,
+            final String entityId,
+            final String message) {
 
         this.id = id;
         this.userUUID = userUUID;
@@ -61,8 +77,11 @@ public class UserActivityLog implements Entity {
     }
 
     @Override
-    public String getId() {
-        return (this.id != null) ? String.valueOf(this.id) : null;
+    @JsonIgnore
+    public String getModelId() {
+        return (this.id != null)
+                ? String.valueOf(this.id)
+                : null;
     }
 
     public String getUserUuid() {
