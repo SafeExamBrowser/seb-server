@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -34,7 +35,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DeletionReport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
@@ -124,9 +124,9 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public Result<DeletionReport> delete(final Long id, final boolean archive) {
+    public Result<EntityProcessingReport> delete(final Long id, final boolean archive) {
         return Result.tryCatch(() -> {
-            final DeletionReport report = new DeletionReport();
+            final EntityProcessingReport report = new EntityProcessingReport();
 
             final UserActivityLog log = byId(id).getOrThrow();
             this.userLogRecordMapper.deleteByPrimaryKey(id);

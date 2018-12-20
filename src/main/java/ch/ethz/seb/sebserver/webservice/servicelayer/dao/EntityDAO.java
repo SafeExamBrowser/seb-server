@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -68,7 +69,7 @@ public interface EntityDAO<T extends Entity> {
      *            hard deleted
      * @return Result of a collection of all entities that has been deleted (or archived) or refer to an error if
      *         happened */
-    Result<DeletionReport> delete(Long id, boolean archive);
+    Result<EntityProcessingReport> delete(Long id, boolean archive);
 
     /** Utility method to extract an expected single resource entry form a Collection of specified type.
      * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer

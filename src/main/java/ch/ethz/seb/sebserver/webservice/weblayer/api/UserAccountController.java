@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -64,12 +66,12 @@ public class UserAccountController {
 
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserInfo> getAll(
-            @RequestParam(required = false) final Long institutionId,
-            @RequestParam(required = false) final Boolean active,
-            @RequestParam(required = false) final String name,
-            @RequestParam(required = false) final String userName,
-            @RequestParam(required = false) final String email,
-            @RequestParam(required = false) final String locale) {
+            @RequestParam(name = USER.ATTR_INSTITUTION_ID, required = false) final Long institutionId,
+            @RequestParam(name = USER.ATTR_ACTIVE, required = false) final Boolean active,
+            @RequestParam(name = USER.ATTR_NAME, required = false) final String name,
+            @RequestParam(name = USER.ATTR_USERNAME, required = false) final String username,
+            @RequestParam(name = USER.ATTR_EMAIL, required = false) final String email,
+            @RequestParam(name = USER.ATTR_LOCALE, required = false) final String locale) {
 
         // fist check if current user has any privileges for this action
         this.authorizationGrantService.checkHasAnyPrivilege(
@@ -77,8 +79,8 @@ public class UserAccountController {
                 PrivilegeType.READ_ONLY);
 
         final UserFilter userFilter = (institutionId != null || active != null || name != null ||
-                userName != null || email != null || locale != null)
-                        ? new UserFilter(institutionId, name, userName, email, active, locale)
+                username != null || email != null || locale != null)
+                        ? new UserFilter(institutionId, name, username, email, active, locale)
                         : null;
 
         if (this.authorizationGrantService.hasBasePrivilege(
@@ -120,10 +122,10 @@ public class UserAccountController {
                 .getUserInfo();
     }
 
-    @RequestMapping(value = "/{userUUID}", method = RequestMethod.GET)
-    public UserInfo accountInfo(@PathVariable final String userUUID) {
+    @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
+    public UserInfo accountInfo(@PathVariable final String uuid) {
         return this.userDao
-                .byUuid(userUUID)
+                .byUuid(uuid)
                 .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
                         userInfo,
                         PrivilegeType.READ_ONLY))
@@ -144,18 +146,38 @@ public class UserAccountController {
 
     }
 
-    @RequestMapping(value = "/{userUUID}/activate", method = RequestMethod.POST)
-    public UserInfo activateUser(@PathVariable final String userUUID) {
-        return setActivity(userUUID, true);
+    @RequestMapping(value = "/{uuid}/activate", method = RequestMethod.POST)
+    public UserInfo activateUser(@PathVariable final String uuid) {
+        return setActivity(uuid, true);
     }
 
-    @RequestMapping(value = "/{userUUID}/deactivate", method = RequestMethod.POST)
-    public UserInfo deactivateUser(@PathVariable final String userUUID) {
-        return setActivity(userUUID, false);
+    @RequestMapping(value = "/{uuid}/deactivate", method = RequestMethod.POST)
+    public UserInfo deactivateUser(@PathVariable final String uuid) {
+        return setActivity(uuid, false);
     }
 
-    private UserInfo setActivity(final String userUUID, final boolean activity) {
-        return this.userDao.byUuid(userUUID)
+    @RequestMapping(value = "/{uuid}/delete", method = RequestMethod.DELETE)
+    public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
+        return this.userDao.pkForUUID(uuid)
+                .flatMap(pk -> this.userDao.delete(pk, true))
+                .getOrThrow();
+    }
+
+    @RequestMapping(value = "/{uuid}/hard-delete", method = RequestMethod.DELETE)
+    public EntityProcessingReport hardDeleteUser(@PathVariable final String uuid) {
+        return this.userDao.pkForUUID(uuid)
+                .flatMap(pk -> this.userDao.delete(pk, false))
+                .getOrThrow();
+    }
+
+    @RequestMapping(value = "/{uuid}/relations", method = RequestMethod.GET)
+    public EntityProcessingReport getAllUserRelatedData(@PathVariable final String uuid) {
+        return this.userDao.getAllUserData(uuid)
+                .getOrThrow();
+    }
+
+    private UserInfo setActivity(final String uuid, final boolean activity) {
+        return this.userDao.byUuid(uuid)
                 .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(userInfo, PrivilegeType.WRITE))
                 .flatMap(userInfo -> this.userDao.setActive(userInfo.uuid, activity))
                 .map(userInfo -> {
@@ -179,7 +201,7 @@ public class UserAccountController {
                     // handle password change; revoke access tokens if password has changed
                     if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
                         this.applicationEventPublisher.publishEvent(
-                                new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.userName));
+                                new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.username));
                     }
                     return Result.of(userInfo);
                 });

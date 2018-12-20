@@ -50,7 +50,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 "{\"uuid\":\"user1\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"SEBAdmin\","
-                        + "\"userName\":\"admin\","
+                        + "\"username\":\"admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"locale\":\"en\","
@@ -68,7 +68,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
-                        + "\"userName\":\"inst1Admin\","
+                        + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"locale\":\"en\","
@@ -89,7 +89,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
-                        + "\"userName\":\"inst1Admin\","
+                        + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"locale\":\"en\","
@@ -169,7 +169,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     public void getAllUserInfoWithSearchUsernameLike() throws Exception {
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?userName=exam")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?username=exam")
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -318,7 +318,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         assertNotNull(user);
         assertEquals("User", user.name);
-        assertEquals("user1", user.userName);
+        assertEquals("user1", user.username);
         assertEquals("user@nomail.nomail", user.email);
         assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
 
@@ -349,7 +349,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(modifiedUserResult);
         assertEquals(user.uuid, modifiedUserResult.uuid);
         assertEquals("User", modifiedUserResult.name);
-        assertEquals("newUser1", modifiedUserResult.userName);
+        assertEquals("newUser1", modifiedUserResult.username);
         assertEquals("newUser@nomail.nomail", modifiedUserResult.email);
         assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
 
@@ -364,7 +364,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         assertNotNull(modifiedUserResult);
         assertEquals("User", modifiedUserResult.name);
-        assertEquals("newUser1", modifiedUserResult.userName);
+        assertEquals("newUser1", modifiedUserResult.username);
         assertEquals("newUser@nomail.nomail", modifiedUserResult.email);
         assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
     }
@@ -594,7 +594,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {
         return infos
                 .stream()
-                .filter(ui -> ui.userName.equals(name))
+                .filter(ui -> ui.username.equals(name))
                 .findFirst()
                 .orElseThrow(NoSuchElementException::new);
     }

@@ -301,7 +301,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `institution_id` BIGINT UNSIGNED NULL,
   `uuid` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
-  `user_name` VARCHAR(255) NOT NULL,
+  `username` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `locale` VARCHAR(45) NOT NULL,

@@ -49,8 +49,8 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
     public final String name;
 
     /** The internal user name */
-    @JsonProperty(USER.ATTR_USER_NAME)
-    public final String userName;
+    @JsonProperty(USER.ATTR_USERNAME)
+    public final String username;
 
     /** E-mail address of the user */
     @JsonProperty(USER.ATTR_EMAIL)
@@ -77,7 +77,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
-            @JsonProperty(USER.ATTR_USER_NAME) final String userName,
+            @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
@@ -87,7 +87,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         this.uuid = uuid;
         this.institutionId = institutionId;
         this.name = name;
-        this.userName = userName;
+        this.username = username;
         this.email = email;
         this.active = BooleanUtils.isTrue(active);
         this.locale = locale;
@@ -128,8 +128,8 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         return this.name;
     }
 
-    public String getUserName() {
-        return this.userName;
+    public String getUsername() {
+        return this.username;
     }
 
     public String getEmail() {
@@ -191,8 +191,8 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
     @Override
     public String toString() {
         return "UserInfo [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", userName="
-                + this.userName + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
+                + ", username="
+                + this.username + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
                 + ", timeZone=" + this.timeZone
                 + ", roles=" + this.roles + "]";
     }
@@ -206,7 +206,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
                 userInfo.getName(),
-                userInfo.getUserName(),
+                userInfo.getUsername(),
                 userInfo.getEmail(),
                 userInfo.getActive(),
                 userInfo.getLocale(),

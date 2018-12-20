@@ -49,8 +49,8 @@ public final class UserMod implements GrantEntity {
     /** The internal user name */
     @NotNull
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
-    @JsonProperty(USER.ATTR_USER_NAME)
-    public final String userName;
+    @JsonProperty(USER.ATTR_USERNAME)
+    public final String username;
 
     /** E-mail address of the user */
     @Email(message = "user:email:email:_:_:${validatedValue}")
@@ -85,7 +85,7 @@ public final class UserMod implements GrantEntity {
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
-            @JsonProperty(USER.ATTR_USER_NAME) final String userName,
+            @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
             @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
@@ -99,7 +99,7 @@ public final class UserMod implements GrantEntity {
         this.newPassword = newPassword;
         this.retypedNewPassword = retypedNewPassword;
         this.name = name;
-        this.userName = userName;
+        this.username = username;
         this.email = email;
         this.locale = locale;
         this.timeZone = timeZone;
@@ -114,7 +114,7 @@ public final class UserMod implements GrantEntity {
         this.newPassword = newPassword;
         this.retypedNewPassword = retypedNewPassword;
         this.name = userInfo.name;
-        this.userName = userInfo.userName;
+        this.username = userInfo.username;
         this.email = userInfo.email;
         this.locale = userInfo.locale;
         this.timeZone = userInfo.timeZone;
@@ -153,8 +153,8 @@ public final class UserMod implements GrantEntity {
         return this.name;
     }
 
-    public String getUserName() {
-        return this.userName;
+    public String getUsername() {
+        return this.username;
     }
 
     public String getEmail() {
@@ -188,8 +188,8 @@ public final class UserMod implements GrantEntity {
     @Override
     public String toString() {
         return "UserMod [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", userName="
-                + this.userName + ", email=" + this.email + ", locale=" + this.locale + ", timeZone=" + this.timeZone
+                + ", username="
+                + this.username + ", email=" + this.email + ", locale=" + this.locale + ", timeZone=" + this.timeZone
                 + ", roles=" + this.roles
                 + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.retypedNewPassword + "]";
     }

@@ -23,15 +23,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DeletionReport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -87,12 +88,15 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> allMatching(final String name, final boolean active) {
+    public Result<Collection<Institution>> allMatching(final String name, final Boolean active) {
         return Result.tryCatch(() -> this.institutionRecordMapper
                 .selectByExample()
-                .where(InstitutionRecordDynamicSqlSupport.active,
-                        SqlBuilder.isEqualTo(BooleanUtils.toInteger(active)))
-                .and(InstitutionRecordDynamicSqlSupport.name, SqlBuilder.isEqualToWhenPresent(name))
+                .where(
+                        InstitutionRecordDynamicSqlSupport.active,
+                        SqlBuilder.isEqualTo(BooleanUtils.toInteger(BooleanUtils.isNotFalse(active))))
+                .and(
+                        InstitutionRecordDynamicSqlSupport.name,
+                        SqlBuilder.isEqualToWhenPresent(Utils.toSQLWildcard(name)))
                 .build()
                 .execute()
                 .stream()
@@ -142,7 +146,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional
-    public Result<DeletionReport> delete(final Long id, final boolean archive) {
+    public Result<EntityProcessingReport> delete(final Long id, final boolean archive) {
         // TODO Auto-generated method stub
         return null;
     }

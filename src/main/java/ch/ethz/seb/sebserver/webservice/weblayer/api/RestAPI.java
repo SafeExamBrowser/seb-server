@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 public class RestAPI {
 
+    public static final String ENDPOINT_INSTITUTION = "/institution";
+
     public static final String ENDPOINT_USER_ACCOUNT = "/useraccount";
 
     public static final String ENDPOINT_USER_ACTIVITY_LOG = "/useractivity";

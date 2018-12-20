@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,8 +23,8 @@ public final class UserFilter {
     public final Long institutionId;
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
-    @JsonProperty(USER.ATTR_USER_NAME)
-    public final String userName;
+    @JsonProperty(USER.ATTR_USERNAME)
+    public final String username;
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
     @JsonProperty(USER.ATTR_LOCALE)
@@ -34,14 +33,14 @@ public final class UserFilter {
     public UserFilter(
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
-            @JsonProperty(USER.ATTR_USER_NAME) final String userName,
+            @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LOCALE) final String locale) {
 
         this.institutionId = institutionId;
         this.name = name;
-        this.userName = userName;
+        this.username = username;
         this.email = email;
         this.active = (active != null) ? active : true;
         this.locale = locale;
@@ -55,8 +54,8 @@ public final class UserFilter {
         return this.name;
     }
 
-    public String getUserName() {
-        return this.userName;
+    public String getUsername() {
+        return this.username;
     }
 
     public String getEmail() {
@@ -71,24 +70,9 @@ public final class UserFilter {
         return this.locale;
     }
 
-    @JsonIgnore
-    public String getNameLike() {
-        return (this.name == null) ? null : "%" + this.name + "%";
-    }
-
-    @JsonIgnore
-    public String getUserNameLike() {
-        return (this.userName == null) ? null : "%" + this.userName + "%";
-    }
-
-    @JsonIgnore
-    public String getEmailLike() {
-        return (this.email == null) ? null : "%" + this.email + "%";
-    }
-
     @Override
     public String toString() {
-        return "UserFilter [institutionId=" + this.institutionId + ", name=" + this.name + ", userName=" + this.userName
+        return "UserFilter [institutionId=" + this.institutionId + ", name=" + this.name + ", username=" + this.username
                 + ", email="
                 + this.email + ", active=" + this.active + ", locale=" + this.locale + "]";
     }

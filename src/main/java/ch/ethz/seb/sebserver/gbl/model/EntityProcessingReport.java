@@ -6,15 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
+package ch.ethz.seb.sebserver.gbl.model;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-
-public class DeletionReport {
+public class EntityProcessingReport {
 
     // TODO
 
-    public DeletionReport add(final Entity entity) {
+    public EntityProcessingReport add(final Entity entity) {
         // TODO
         return this;
     }

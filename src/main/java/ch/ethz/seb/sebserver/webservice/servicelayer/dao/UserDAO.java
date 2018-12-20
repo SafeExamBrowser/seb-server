@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -26,6 +27,12 @@ public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserI
      * @param uuid The UUID of the user to get UserInfo from
      * @return a Result of UserInfo data from user with the specified UUID. Or an exception result on error case */
     Result<UserInfo> byUuid(String uuid);
+
+    /** Use this to get the user id (PK) from a given UUID.
+     *
+     * @param uuid The UUID of the user
+     * @return the user id (PK) from a given UUID. */
+    Result<Long> pkForUUID(String uuid);
 
     /** Use this to get UserInfo by users username
      *
@@ -56,5 +63,12 @@ public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserI
      * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
      *         exception on error case */
     Result<UserInfo> save(UserMod userMod);
+
+    /** Use this to get an EntityProcessingReport containing the user account entity itself
+     * and all user related data entities.
+     *
+     * @param uuid The UUID of the user
+     * @return an EntityProcessingReport containing all user related entity data */
+    Result<EntityProcessingReport> getAllUserData(String uuid);
 
 }

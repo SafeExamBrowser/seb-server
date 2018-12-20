@@ -18,23 +18,6 @@ import java.util.stream.Collectors;
 
 public final class Utils {
 
-//    /** Use this to extract a single element from a Collection. This also checks if there is only a single element
-//     * within the Collection.
-//     *
-//     * @param collection the Collection to extract the single and only element
-//     * @return The single element
-//     * @throws IllegalArgumentException if the collection is null, or empty or has more then one element */
-//    public static <T> Result<T> getSingle(final Collection<T> collection) {
-//        if (collection == null || collection.isEmpty() || collection.size() > 1) {
-//            return Result.ofError(
-//                    new IllegalArgumentException(
-//                            "Collection has no or more then one element. Expected is exaclty one. Size: " +
-//                                    ((collection != null) ? collection.size() : "null")));
-//        }
-//
-//        return Result.of(collection.iterator().next());
-//    }
-
     /** Use this to create an immutable Collection of specified type from varargs
      *
      * @param values elements of the new immutable Collection
@@ -71,6 +54,10 @@ public final class Utils {
                 .stream()
                 .map(e -> new Tuple<>(e.name(), e.name()))
                 .collect(Collectors.toList()));
+    }
+
+    public static String toSQLWildcard(final String text) {
+        return (text == null) ? null : "%" + text + "%";
     }
 
 }

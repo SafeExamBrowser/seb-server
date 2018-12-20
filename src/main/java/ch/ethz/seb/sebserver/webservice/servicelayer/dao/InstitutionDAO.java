@@ -15,7 +15,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface InstitutionDAO extends EntityDAO<Institution>, ActivatableEntityDAO<Institution> {
 
-    Result<Collection<Institution>> allMatching(String name, boolean active);
+    Result<Collection<Institution>> allMatching(String name, Boolean active);
 
     Result<Institution> save(Institution institution);
 

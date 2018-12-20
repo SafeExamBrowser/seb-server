@@ -69,7 +69,7 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
 
     @Override
     public String getUsername() {
-        return this.userInfo.userName;
+        return this.userInfo.username;
     }
 
     @Override

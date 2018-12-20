@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
@@ -37,6 +38,7 @@ import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -49,7 +51,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DeletionReport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
@@ -90,6 +91,13 @@ public class UserDaoImpl implements UserDAO {
     public Result<UserInfo> byUuid(final String uuid) {
         return recordByUUID(uuid)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> pkForUUID(final String uuid) {
+        return recordByUUID(uuid)
+                .map(r -> r.getId());
     }
 
     @Override
@@ -138,11 +146,11 @@ public class UserDaoImpl implements UserDAO {
     public Result<Collection<UserInfo>> all(final UserFilter filter) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
                 UserRecordDynamicSqlSupport.active,
-                isEqualTo(BooleanUtils.toInteger(filter.active)))
+                isEqualTo(BooleanUtils.toInteger(BooleanUtils.isNotFalse(filter.active))))
                 .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
-                .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(filter.getNameLike()))
-                .and(UserRecordDynamicSqlSupport.userName, isLikeWhenPresent(filter.getUserNameLike()))
-                .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(filter.getEmailLike()))
+                .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(filter.name)))
+                .and(UserRecordDynamicSqlSupport.username, isLikeWhenPresent(toSQLWildcard(filter.username)))
+                .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(toSQLWildcard(filter.email)))
                 .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
                 .build()
                 .execute()
@@ -170,9 +178,18 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<DeletionReport> delete(final Long id, final boolean force) {
+    public Result<EntityProcessingReport> delete(final Long id, final boolean force) {
 
         // TODO clarify within discussion about deactivate, archive and delete user related data
+
+        return Result.ofError(new RuntimeException("TODO"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<EntityProcessingReport> getAllUserData(final String uuid) {
+
+        // TODO
 
         return Result.ofError(new RuntimeException("TODO"));
     }
@@ -242,7 +259,7 @@ public class UserDaoImpl implements UserDAO {
                             null,
                             null,
                             userMod.name,
-                            userMod.userName,
+                            userMod.username,
                             (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
                             userMod.email,
                             userMod.locale.toLanguageTag(),
@@ -267,7 +284,7 @@ public class UserDaoImpl implements UserDAO {
                     userMod.institutionId,
                     UUID.randomUUID().toString(),
                     userMod.name,
-                    userMod.userName,
+                    userMod.username,
                     this.userPasswordEncoder.encode(userMod.getNewPassword()),
                     userMod.email,
                     userMod.locale.toLanguageTag(),
@@ -303,7 +320,7 @@ public class UserDaoImpl implements UserDAO {
                 username,
                 this.userRecordMapper
                         .selectByExample()
-                        .where(UserRecordDynamicSqlSupport.userName, isEqualTo(username))
+                        .where(UserRecordDynamicSqlSupport.username, isEqualTo(username))
                         .and(UserRecordDynamicSqlSupport.active,
                                 isEqualToWhenPresent(BooleanUtils.toInteger(true)))
                         .build()
@@ -345,7 +362,7 @@ public class UserDaoImpl implements UserDAO {
                     record.getUuid(),
                     record.getInstitutionId(),
                     record.getName(),
-                    record.getUserName(),
+                    record.getUsername(),
                     record.getEmail(),
                     BooleanUtils.toBooleanObject(record.getActive()),
                     Locale.forLanguageTag(record.getLocale()),
