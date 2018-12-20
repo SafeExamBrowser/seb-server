@@ -19,11 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.CollectionUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -64,55 +63,85 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
-    public <E extends Entity> Result<E> logUserActivity(
-            final ActivityType actionType,
+    @Transactional
+    public <E extends Entity> Result<E> log(
+            final ActivityType activityType,
             final E entity,
             final String message) {
 
-        return logUserActivity(this.userService.getCurrentUser(), actionType, entity, message);
-    }
-
-    @Override
-    public <E extends Entity> Result<E> logUserActivity(final ActivityType actionType, final E entity) {
-        return logUserActivity(this.userService.getCurrentUser(), actionType, entity, null);
+        return log(this.userService.getCurrentUser(), activityType, entity, message);
     }
 
     @Override
     @Transactional
-    public <E extends Entity> Result<E> logUserActivity(
+    public <E extends Entity> Result<E> log(final ActivityType activityType, final E entity) {
+        return log(this.userService.getCurrentUser(), activityType, entity, null);
+    }
+
+    @Override
+    @Transactional
+    public void log(
+            final ActivityType activityType,
+            final EntityType entityType,
+            final String entityId,
+            final String message) {
+
+        try {
+            log(
+                    this.userService.getCurrentUser(),
+                    activityType,
+                    entityType,
+                    entityId,
+                    message);
+        } catch (final Exception e) {
+            log.error(
+                    "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
+                    this.userService.getCurrentUser(),
+                    activityType,
+                    entityType,
+                    entityId,
+                    e);
+            TransactionHandler.rollback();
+        }
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> log(
             final SEBServerUser user,
             final ActivityType activityType,
             final E entity,
             final String message) {
 
-        try {
+        return Result.tryCatch(() -> {
+            log(user, activityType, entity.entityType(), entity.getModelId(), message);
+            return entity;
+        })
+                .onErrorDo(TransactionHandler::rollback)
+                .onErrorDo(t -> log.error(
+                        "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
+                        user.getUserInfo().uuid,
+                        activityType,
+                        entity.entityType().name(),
+                        entity.getModelId(),
+                        t));
+    }
 
-            this.userLogRecordMapper.insertSelective(new UserActivityLogRecord(
-                    null,
-                    user.getUserInfo().uuid,
-                    System.currentTimeMillis(),
-                    activityType.name(),
-                    entity.entityType().name(),
-                    entity.getModelId(),
-                    message));
+    private void log(
+            final SEBServerUser user,
+            final ActivityType activityType,
+            final EntityType entityType,
+            final String entityId,
+            final String message) {
 
-            return Result.of(entity);
-
-        } catch (final Throwable t) {
-
-            log.error(
-                    "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
-                    user.getUserInfo().uuid,
-                    activityType,
-                    entity.entityType().name(),
-                    entity.getModelId(),
-                    t);
-            TransactionInterceptor
-                    .currentTransactionStatus()
-                    .setRollbackOnly();
-            return Result.ofError(t);
-
-        }
+        this.userLogRecordMapper.insertSelective(new UserActivityLogRecord(
+                null,
+                user.getUserInfo().uuid,
+                System.currentTimeMillis(),
+                activityType.name(),
+                entityType.name(),
+                entityId,
+                message));
     }
 
     @Override
@@ -169,7 +198,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                                     SqlBuilder.isEqualToWhenPresent(userId))
                             .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp, SqlBuilder.isLessThanWhenPresent(to))
+                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                                    SqlBuilder.isLessThanWhenPresent(to))
                             .build()
                             .execute()
                             .stream()
@@ -188,7 +218,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                                     SqlBuilder.isEqualToWhenPresent(institutionId))
                             .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp, SqlBuilder.isLessThanWhenPresent(to))
+                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                                    SqlBuilder.isLessThanWhenPresent(to))
                             .build()
                             .execute()
                             .stream()
@@ -215,7 +246,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Integer> overwriteUserReferences(final String userUuid, final boolean deactivate) {
         return Result.tryCatch(() -> {
             final List<UserActivityLogRecord> records = this.userLogRecordMapper.selectByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualTo(userUuid))
+                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            SqlBuilder.isEqualTo(userUuid))
                     .build()
                     .execute();
 
@@ -236,7 +268,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Integer> deleteUserEnities(final String userUuid) {
         return Result.tryCatch(() -> {
             return this.userLogRecordMapper.deleteByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid, SqlBuilder.isEqualToWhenPresent(userUuid))
+                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            SqlBuilder.isEqualToWhenPresent(userUuid))
                     .build()
                     .execute();
         });

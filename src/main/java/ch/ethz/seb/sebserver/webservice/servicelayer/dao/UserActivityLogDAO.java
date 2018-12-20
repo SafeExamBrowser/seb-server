@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
@@ -30,41 +31,48 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
 
     /** Creates a user activity log entry for the current user.
      *
-     * @param actionType the action type
+     * @param activityType the activity type
      * @param entity the Entity
      * @param message an optional message */
-    <E extends Entity> Result<E> logUserActivity(ActivityType actionType, E entity, String message);
+    <E extends Entity> Result<E> log(ActivityType activityType, E entity, String message);
 
     /** Creates a user activity log entry for the current user.
      *
      * @param actionType the action type
      * @param entity the Entity */
-    <E extends Entity> Result<E> logUserActivity(ActivityType actionType, E entity);
+    <E extends Entity> Result<E> log(ActivityType activityType, E entity);
+
+    /** Creates a user activity log entry for the current user.
+     *
+     * @param activityType the activity type
+     * @param entityType the EntityType
+     * @param message the message */
+    void log(ActivityType activityType, EntityType entityType, String entityId, String message);
 
     /** Creates a user activity log entry.
      *
      * @param user for specified SEBServerUser instance
-     * @param actionType the action type
+     * @param activityType the activity type
      * @param entity the Entity
      * @param message an optional message */
-    <E extends Entity> Result<E> logUserActivity(
+    <E extends Entity> Result<E> log(
             SEBServerUser user,
-            ActivityType actionType,
+            ActivityType activityType,
             E entity,
             String message);
 
     /** Creates a user activity log entry.
      *
      * @param user for specified SEBServerUser instance
-     * @param actionType the action type
+     * @param activityType the activity type
      * @param entityType the entity type
      * @param entityId the entity id (primary key or UUID) */
-    default <E extends Entity> Result<E> logUserActivity(
+    default <E extends Entity> Result<E> log(
             final SEBServerUser user,
-            final ActivityType actionType,
+            final ActivityType activityType,
             final E entity) {
 
-        return logUserActivity(user, actionType, entity, null);
+        return log(user, activityType, entity, null);
     }
 
     Result<Collection<UserActivityLog>> all(

@@ -148,18 +148,22 @@ public class UserAccountController {
 
     @RequestMapping(value = "/{uuid}/activate", method = RequestMethod.POST)
     public UserInfo activateUser(@PathVariable final String uuid) {
-        return setActivity(uuid, true);
+        return setActive(uuid, true);
     }
 
     @RequestMapping(value = "/{uuid}/deactivate", method = RequestMethod.POST)
     public UserInfo deactivateUser(@PathVariable final String uuid) {
-        return setActivity(uuid, false);
+        return setActive(uuid, false);
     }
 
     @RequestMapping(value = "/{uuid}/delete", method = RequestMethod.DELETE)
     public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
         return this.userDao.pkForUUID(uuid)
                 .flatMap(pk -> this.userDao.delete(pk, true))
+                .map(report -> {
+                    this.userActivityLogDAO.log(ActivityType.DELETE, EntityType.USER, uuid, "soft");
+                    return report;
+                })
                 .getOrThrow();
     }
 
@@ -167,6 +171,10 @@ public class UserAccountController {
     public EntityProcessingReport hardDeleteUser(@PathVariable final String uuid) {
         return this.userDao.pkForUUID(uuid)
                 .flatMap(pk -> this.userDao.delete(pk, false))
+                .map(report -> {
+                    this.userActivityLogDAO.log(ActivityType.DELETE, EntityType.USER, uuid, "hard");
+                    return report;
+                })
                 .getOrThrow();
     }
 
@@ -176,27 +184,33 @@ public class UserAccountController {
                 .getOrThrow();
     }
 
-    private UserInfo setActivity(final String uuid, final boolean activity) {
+    private UserInfo setActive(final String uuid, final boolean active) {
+
+        final ActivityType activityType = (active)
+                ? ActivityType.ACTIVATE
+                : ActivityType.DEACTIVATE;
+
         return this.userDao.byUuid(uuid)
                 .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(userInfo, PrivilegeType.WRITE))
-                .flatMap(userInfo -> this.userDao.setActive(userInfo.uuid, activity))
+                .flatMap(userInfo -> this.userDao.setActive(userInfo.uuid, active))
                 .map(userInfo -> {
-                    this.applicationEventPublisher.publishEvent(new EntityActivationEvent(userInfo, activity));
+                    this.applicationEventPublisher.publishEvent(new EntityActivationEvent(userInfo, active));
                     return userInfo;
                 })
+                .flatMap(userInfo -> this.userActivityLogDAO.log(activityType, userInfo))
                 .getOrThrow();
     }
 
     private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
 
-        final ActivityType actionType = (userData.uuid == null)
+        final ActivityType activityType = (userData.uuid == null)
                 ? ActivityType.CREATE
                 : ActivityType.MODIFY;
 
         return this.authorizationGrantService
                 .checkGrantOnEntity(userData, privilegeType)
                 .flatMap(this.userDao::save)
-                .flatMap(userInfo -> this.userActivityLogDAO.logUserActivity(actionType, userInfo))
+                .flatMap(userInfo -> this.userActivityLogDAO.log(activityType, userInfo))
                 .flatMap(userInfo -> {
                     // handle password change; revoke access tokens if password has changed
                     if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
