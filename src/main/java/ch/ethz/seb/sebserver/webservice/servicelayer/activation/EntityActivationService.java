@@ -30,9 +30,9 @@ public class EntityActivationService {
     public void notifyActivationEvent(final EntityActivationEvent event) {
         for (final ActivatableEntityDAO<?> dao : this.activatableEntityDAOs) {
             if (event.activated) {
-                dao.notifyActivation(event.entity);
+                dao.notifyActivation(event.getEntity());
             } else {
-                dao.notifyDeactivation(event.entity);
+                dao.notifyDeactivation(event.getEntity());
             }
         }
     }
