@@ -208,7 +208,7 @@ public final class Result<T> {
         }
     }
 
-    public static <T> Stream<T> skipWithError(final Result<T> result) {
+    public static <T> Stream<T> skipOnError(final Result<T> result) {
         if (result.error != null) {
             return Stream.empty();
         } else {

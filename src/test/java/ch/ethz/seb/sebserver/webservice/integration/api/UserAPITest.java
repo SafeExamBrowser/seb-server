@@ -29,6 +29,7 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -124,13 +125,14 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         // expecting all users for a SEBAdmin except inactive.
         assertNotNull(userInfos);
-        assertTrue(userInfos.size() == 6);
+        assertTrue(userInfos.size() == 7);
         assertNotNull(getUserInfo("admin", userInfos));
         assertNotNull(getUserInfo("inst1Admin", userInfos));
         assertNotNull(getUserInfo("examSupporter", userInfos));
         assertNotNull(getUserInfo("inst2Admin", userInfos));
         assertNotNull(getUserInfo("examAdmin1", userInfos));
         assertNotNull(getUserInfo("user1", userInfos));
+        assertNotNull(getUserInfo("deactivatedUser", userInfos));
 
         token = getAdminInstitution1Access();
         userInfos = this.jsonMapper.readValue(
@@ -150,6 +152,84 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     }
 
     @Test
+    public void getPageNoFilterNoPageAttributes() throws Exception {
+        final String token = getSebAdminAccess();
+        final Page<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/page")
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 7);
+        assertEquals("[user1, user2, user3, user4, user5, user6, user7]", getOrderedUUIDs(userInfos.content));
+    }
+
+    @Test
+    public void getPageNoFilterNoPageAttributesDescendingOrder() throws Exception {
+        final String token = getSebAdminAccess();
+        final Page<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/page?sortOrder=DESCENDING")
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 7);
+        assertEquals("[user7, user6, user5, user4, user3, user2, user1]", getOrderedUUIDs(userInfos.content));
+    }
+
+    @Test
+    public void getPageOfSize3NoFilter() throws Exception {
+        final String token = getSebAdminAccess();
+
+        // first page default sort order
+        Page<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/page?pageNumber=1&pageSize=3")
+                                .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 3);
+        assertEquals("[user1, user2, user3]", getOrderedUUIDs(userInfos.content));
+
+        // first page descending sort order
+        userInfos = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
+                                + "/page?pageNumber=1&pageSize=3&sortOrder=DESCENDING")
+                                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 3);
+        assertEquals("[user7, user6, user5]", getOrderedUUIDs(userInfos.content));
+    }
+
+    private String getOrderedUUIDs(final Collection<UserInfo> list) {
+        return list
+                .stream()
+                .map(userInfo -> userInfo.uuid)
+                .collect(Collectors.toList())
+                .toString();
+    }
+
+    @Test
     public void getAllUserInfoWithSearchInactive() throws Exception {
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
@@ -164,6 +244,22 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertTrue(userInfos.size() == 1);
         assertNotNull(getUserInfo("deactivatedUser", userInfos));
     }
+
+//    @Test
+//    public void getAllUserInfoWithFilterNameAndNoActiveFlagSet() throws Exception {
+//        final String token = getSebAdminAccess();
+//        final List<UserInfo> userInfos = this.jsonMapper.readValue(
+//                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false")
+//                        .header("Authorization", "Bearer " + token))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<List<UserInfo>>() {
+//                });
+//
+//        assertNotNull(userInfos);
+//        assertTrue(userInfos.size() == 1);
+//        assertNotNull(getUserInfo("deactivatedUser", userInfos));
+//    }
 
     @Test
     public void getAllUserInfoWithSearchUsernameLike() throws Exception {

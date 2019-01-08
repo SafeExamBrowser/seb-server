@@ -23,8 +23,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -80,7 +80,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
             return records.stream()
                     .map(InstitutionDAOImpl::toDomainModel)
-                    .flatMap(Result::skipWithError)
+                    .flatMap(Result::skipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
         });
@@ -101,7 +101,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 .execute()
                 .stream()
                 .map(InstitutionDAOImpl::toDomainModel)
-                .flatMap(Result::skipWithError)
+                .flatMap(Result::skipOnError)
                 .collect(Collectors.toList()));
     }
 

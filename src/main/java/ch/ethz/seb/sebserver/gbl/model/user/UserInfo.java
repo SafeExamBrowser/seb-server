@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 
@@ -24,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 /** The user info domain model contains primary user information
@@ -92,9 +92,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         this.active = BooleanUtils.isTrue(active);
         this.locale = locale;
         this.timeZone = timeZone;
-        this.roles = (roles != null)
-                ? Collections.unmodifiableSet(roles)
-                : Collections.emptySet();
+        this.roles = Utils.immutableSetOf(roles);
     }
 
     @Override

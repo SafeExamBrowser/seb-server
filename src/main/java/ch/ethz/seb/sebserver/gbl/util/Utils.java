@@ -18,6 +18,12 @@ import java.util.stream.Collectors;
 
 public final class Utils {
 
+    public static <T> Collection<T> immutableCollectionOf(final Collection<T> collection) {
+        return (collection != null)
+                ? Collections.unmodifiableCollection(collection)
+                : Collections.emptySet();
+    }
+
     /** Use this to create an immutable Collection of specified type from varargs
      *
      * @param values elements of the new immutable Collection
@@ -28,6 +34,12 @@ public final class Utils {
             return Collections.emptyList();
         }
         return Collections.unmodifiableCollection(Arrays.asList(values));
+    }
+
+    public static <T> Set<T> immutableSetOf(final Set<T> set) {
+        return (set != null)
+                ? Collections.unmodifiableSet(set)
+                : Collections.emptySet();
     }
 
     /** Use this to create an immutable Set of specified type from varargs

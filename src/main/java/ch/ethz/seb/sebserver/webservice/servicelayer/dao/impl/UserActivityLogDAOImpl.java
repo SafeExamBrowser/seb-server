@@ -205,7 +205,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                             .stream()
                             .filter(_predicate)
                             .map(UserActivityLogDAOImpl::toDomainModel)
-                            .flatMap(Result::skipWithError)
+                            .flatMap(Result::skipOnError)
                             .collect(Collectors.toList())
 
                     : this.userLogRecordMapper.selectByExample()
@@ -225,7 +225,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                             .stream()
                             .filter(_predicate)
                             .map(UserActivityLogDAOImpl::toDomainModel)
-                            .flatMap(Result::skipWithError)
+                            .flatMap(Result::skipOnError)
                             .collect(Collectors.toList());
 
         });
@@ -236,9 +236,11 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Collection<UserActivityLog>> all(
             final Predicate<UserActivityLog> predicate,
             final boolean onlyActive) {
-
+        throw new UnsupportedOperationException("TODO select with limit or paging");
         // TODO Auto-generated method stub
-        return null;
+        // https://gist.github.com/jeffgbutler/5df477b4f72f5461a8cc32fb7cf4669b
+        // or with page helper
+        // https://github.com/pagehelper/Mybatis-PageHelper
     }
 
     @Override

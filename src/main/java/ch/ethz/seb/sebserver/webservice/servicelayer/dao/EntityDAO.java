@@ -11,8 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -52,14 +52,14 @@ public interface EntityDAO<T extends Entity> {
      * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
      *         case */
     default Result<Collection<T>> all(final Predicate<T> predicate) {
-        return all(predicate, true);
+        return all(predicate, false);
     }
 
     /** Use this to get a Collection of all active entities of concrete type
      *
      * @return Result of Collection of all active entities or an exception result on error case */
     default Result<Collection<T>> all() {
-        return all(entity -> true, true);
+        return all(entity -> true);
     }
 
     /** Use this to delete an Entity and all its relationships by id

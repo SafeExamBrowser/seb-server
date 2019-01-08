@@ -135,7 +135,7 @@ public class UserDaoImpl implements UserDAO {
 
             return records.stream()
                     .map(this::toDomainModel)
-                    .flatMap(Result::skipWithError)
+                    .flatMap(Result::skipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
         });
@@ -143,10 +143,16 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> all(final UserFilter filter) {
+    public Result<Collection<UserInfo>> all(final UserFilter filter, final Predicate<UserInfo> predicate) {
+        if (filter == null) {
+            return (predicate == null)
+                    ? all()
+                    : all(predicate);
+        }
+
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
                 UserRecordDynamicSqlSupport.active,
-                isEqualTo(BooleanUtils.toInteger(BooleanUtils.isNotFalse(filter.active))))
+                isEqualToWhenPresent(BooleanUtils.toInteger(BooleanUtils.isNotFalse(filter.active))))
                 .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
                 .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(filter.name)))
                 .and(UserRecordDynamicSqlSupport.username, isLikeWhenPresent(toSQLWildcard(filter.username)))
@@ -156,7 +162,8 @@ public class UserDaoImpl implements UserDAO {
                 .execute()
                 .stream()
                 .map(this::toDomainModel)
-                .flatMap(Result::skipWithError)
+                .flatMap(Result::skipOnError)
+                .filter(predicate)
                 .collect(Collectors.toList()));
     }
 
