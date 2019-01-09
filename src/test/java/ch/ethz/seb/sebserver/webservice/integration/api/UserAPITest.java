@@ -163,6 +163,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 });
 
         assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 1);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 7);
         assertEquals("[user1, user2, user3, user4, user5, user6, user7]", getOrderedUUIDs(userInfos.content));
@@ -180,6 +181,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 });
 
         assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 1);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 7);
         assertEquals("[user7, user6, user5, user4, user3, user2, user1]", getOrderedUUIDs(userInfos.content));
@@ -200,9 +202,44 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 });
 
         assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 3);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 3);
         assertEquals("[user1, user2, user3]", getOrderedUUIDs(userInfos.content));
+
+        // second page default sort order
+        userInfos = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
+                                + "/page?pageNumber=2&pageSize=3")
+                                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 3);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 3);
+        assertEquals("[user4, user5, user6]", getOrderedUUIDs(userInfos.content));
+
+        // third page default sort order
+        userInfos = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
+                                + "/page?pageNumber=3&pageSize=3")
+                                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 3);
+        assertNotNull(userInfos.content);
+        assertTrue(userInfos.content.size() == 1);
+        assertEquals("[user7]", getOrderedUUIDs(userInfos.content));
 
         // first page descending sort order
         userInfos = this.jsonMapper.readValue(
@@ -216,6 +253,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                 });
 
         assertNotNull(userInfos);
+        assertTrue(userInfos.numberOfPages == 3);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 3);
         assertEquals("[user7, user6, user5]", getOrderedUUIDs(userInfos.content));
@@ -230,7 +268,39 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     }
 
     @Test
-    public void getAllUserInfoWithSearchInactive() throws Exception {
+    public void getAllUserInfo() throws Exception {
+        final String token = getSebAdminAccess();
+        final List<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.size() == 7);
+        assertNotNull(getUserInfo("deactivatedUser", userInfos));
+    }
+
+    @Test
+    public void getAllUserInfoWithOnlyActice() throws Exception {
+        final String token = getSebAdminAccess();
+        final List<UserInfo> userInfos = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=true")
+                        .header("Authorization", "Bearer " + token))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<List<UserInfo>>() {
+                });
+
+        assertNotNull(userInfos);
+        assertTrue(userInfos.size() == 6);
+        assertNull(getUserInfo("deactivatedUser", userInfos));
+    }
+
+    @Test
+    public void getAllUserInfoOnlyInactive() throws Exception {
         final String token = getSebAdminAccess();
         final List<UserInfo> userInfos = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false")
@@ -244,22 +314,6 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertTrue(userInfos.size() == 1);
         assertNotNull(getUserInfo("deactivatedUser", userInfos));
     }
-
-//    @Test
-//    public void getAllUserInfoWithFilterNameAndNoActiveFlagSet() throws Exception {
-//        final String token = getSebAdminAccess();
-//        final List<UserInfo> userInfos = this.jsonMapper.readValue(
-//                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false")
-//                        .header("Authorization", "Bearer " + token))
-//                        .andExpect(status().isOk())
-//                        .andReturn().getResponse().getContentAsString(),
-//                new TypeReference<List<UserInfo>>() {
-//                });
-//
-//        assertNotNull(userInfos);
-//        assertTrue(userInfos.size() == 1);
-//        assertNotNull(getUserInfo("deactivatedUser", userInfos));
-//    }
 
     @Test
     public void getAllUserInfoWithSearchUsernameLike() throws Exception {
@@ -688,11 +742,15 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {
-        return infos
-                .stream()
-                .filter(ui -> ui.username.equals(name))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
+        try {
+            return infos
+                    .stream()
+                    .filter(ui -> ui.username.equals(name))
+                    .findFirst()
+                    .orElseThrow(NoSuchElementException::new);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
 }
