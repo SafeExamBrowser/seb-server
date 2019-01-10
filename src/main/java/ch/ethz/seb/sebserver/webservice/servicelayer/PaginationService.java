@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.github.pagehelper.PageHelper;
@@ -23,16 +24,20 @@ import com.github.pagehelper.PageHelper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 
+@Lazy
 @Service
+@WebServiceProfile
 public class PaginationService {
 
     private final int defaultPageSize;
     private final int maxPageSize;
 
     private final Map<String, Map<String, String>> sortColumnMapping;
+    private final Map<String, String> defaultSortColumn;
 
     public PaginationService(
             @Value("${sebserver.webservice.api.pagination.defaultPageSize:10}") final int defaultPageSize,
@@ -41,18 +46,26 @@ public class PaginationService {
         this.defaultPageSize = defaultPageSize;
         this.maxPageSize = maxPageSize;
         this.sortColumnMapping = new HashMap<>();
+        this.defaultSortColumn = new HashMap<>();
         initSortColumnMapping();
     }
 
-    public void setOnePageLimit(final SqlTable table) {
+    public void setDefaultLimitOfNotSet(final SqlTable table) {
+        if (PageHelper.getLocalPage() != null) {
+            return;
+        }
         setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, table);
     }
 
-    public void setOnePageLimit(final String sortBy, final SqlTable table) {
+    public void setDefaultLimit(final SqlTable table) {
+        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, table);
+    }
+
+    public void setDefaultLimit(final String sortBy, final SqlTable table) {
         setPagination(1, this.maxPageSize, sortBy, Page.SortOrder.ASCENDING, table);
     }
 
-    public void setOnePageLimit(final String sortBy, final Page.SortOrder sortOrder, final SqlTable table) {
+    public void setDefaultLimit(final String sortBy, final Page.SortOrder sortOrder, final SqlTable table) {
         setPagination(1, this.maxPageSize, sortBy, sortOrder, table);
     }
 
@@ -104,7 +117,7 @@ public class PaginationService {
     private String verifySortColumnName(final String sortBy, final SqlTable table) {
 
         if (StringUtils.isBlank(sortBy)) {
-            return null;
+            return this.defaultSortColumn.get(table.name());
         }
 
         final Map<String, String> mapping = this.sortColumnMapping.get(table.name());
@@ -112,7 +125,7 @@ public class PaginationService {
             return mapping.get(sortBy);
         }
 
-        return null;
+        return this.defaultSortColumn.get(table.name());
     }
 
     // TODO is it possible to generate this within MyBatis generator?
@@ -124,6 +137,7 @@ public class PaginationService {
         userTableMap.put(Domain.USER.ATTR_EMAIL, UserRecordDynamicSqlSupport.email.name());
         userTableMap.put(Domain.USER.ATTR_LOCALE, UserRecordDynamicSqlSupport.locale.name());
         this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.name(), userTableMap);
+        this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.name(), Domain.USER.ATTR_ID);
 
         // User Activity Log Table
         final Map<String, String> userActivityLogTableMap = new HashMap<>();
@@ -145,6 +159,9 @@ public class PaginationService {
         this.sortColumnMapping.put(
                 UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.name(),
                 userActivityLogTableMap);
+        this.defaultSortColumn.put(
+                UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.name(),
+                Domain.USER_ACTIVITY_LOG.ATTR_ID);
 
     }
 

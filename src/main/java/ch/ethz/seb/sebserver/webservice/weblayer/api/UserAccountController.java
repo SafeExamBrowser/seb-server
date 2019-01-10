@@ -81,7 +81,7 @@ public class UserAccountController {
                 EntityType.USER,
                 PrivilegeType.READ_ONLY);
 
-        this.paginationService.setOnePageLimit(UserRecordDynamicSqlSupport.userRecord);
+        this.paginationService.setDefaultLimit(UserRecordDynamicSqlSupport.userRecord);
         return getAll(createUserFilter(institutionId, active, name, username, email, locale));
     }
 

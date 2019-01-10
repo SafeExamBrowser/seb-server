@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
@@ -46,15 +47,18 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     private final UserActivityLogRecordMapper userLogRecordMapper;
     private final UserService userService;
     private final AuthorizationGrantService authorizationGrantService;
+    private final PaginationService paginationService;
 
     public UserActivityLogDAOImpl(
             final UserActivityLogRecordMapper userLogRecordMapper,
             final UserService userService,
-            final AuthorizationGrantService authorizationGrantService) {
+            final AuthorizationGrantService authorizationGrantService,
+            final PaginationService paginationService) {
 
         this.userLogRecordMapper = userLogRecordMapper;
         this.userService = userService;
         this.authorizationGrantService = authorizationGrantService;
+        this.paginationService = paginationService;
     }
 
     @Override
@@ -236,11 +240,23 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Collection<UserActivityLog>> all(
             final Predicate<UserActivityLog> predicate,
             final boolean onlyActive) {
-        throw new UnsupportedOperationException("TODO select with limit or paging");
-        // TODO Auto-generated method stub
-        // https://gist.github.com/jeffgbutler/5df477b4f72f5461a8cc32fb7cf4669b
-        // or with page helper
-        // https://github.com/pagehelper/Mybatis-PageHelper
+
+        return Result.tryCatch(() -> {
+            // first check if there is a page limitation set. Otherwise set the default
+            // to not pollute the memory with log data
+            this.paginationService.setDefaultLimitOfNotSet(
+                    UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
+
+            return this.userLogRecordMapper
+                    .selectByExample()
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserActivityLogDAOImpl::toDomainModel)
+                    .flatMap(Result::skipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

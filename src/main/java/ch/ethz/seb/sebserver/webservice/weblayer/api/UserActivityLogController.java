@@ -60,7 +60,7 @@ public class UserActivityLogController {
             @RequestParam(required = false) final String entityTypes) {
 
         checkBaseReadPrivilege();
-        this.paginationService.setOnePageLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
+        this.paginationService.setDefaultLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
         return _getAll(null, from, to, activityTypes, entityTypes);
     }
 
@@ -73,7 +73,7 @@ public class UserActivityLogController {
             @RequestParam(required = false) final String entityTypes) {
 
         checkBaseReadPrivilege();
-        this.paginationService.setOnePageLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
+        this.paginationService.setDefaultLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
         return _getAll(userId, from, to, activityTypes, entityTypes);
     }
 
