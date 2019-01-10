@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
-public interface UserDAO extends EntityDAO<UserInfo>, ActivatableEntityDAO<UserInfo> {
+public interface UserDAO extends ActivatableEntityDAO<UserInfo> {
 
     /** Use this to get UserInfo by users UUID
      *

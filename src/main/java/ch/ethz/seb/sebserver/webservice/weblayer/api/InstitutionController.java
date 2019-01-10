@@ -8,22 +8,33 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
-import org.springframework.context.ApplicationEventPublisher;
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityIdAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.activation.EntityActivationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 @WebServiceProfile
 @RestController
@@ -34,51 +45,161 @@ public class InstitutionController {
     private final AuthorizationGrantService authorizationGrantService;
     private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final EntityActivationService entityActivationService;
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
             final AuthorizationGrantService authorizationGrantService,
             final UserService userService, final UserActivityLogDAO userActivityLogDAO,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final EntityActivationService entityActivationService) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;
         this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.entityActivationService = entityActivationService;
+    }
+
+    @RequestMapping(path = "/self", method = RequestMethod.GET)
+    public Institution getOwn() {
+
+        checkBaseReadPrivilege();
+
+        final SEBServerUser currentUser = this.userService.getCurrentUser();
+        final Long institutionId = currentUser.institutionId();
+        return this.institutionDAO.byId(institutionId).getOrThrow();
+
+    }
+
+    @RequestMapping(path = "/{id}", method = RequestMethod.GET)
+    public Institution getById(@PathVariable final Long id) {
+
+        checkBaseReadPrivilege();
+
+        return this.institutionDAO
+                .byId(id)
+                .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(
+                        inst,
+                        PrivilegeType.READ_ONLY))
+                .getOrThrow();
     }
 
     @RequestMapping(method = RequestMethod.GET)
     public Collection<Institution> getAll(
-            @RequestParam(name = Institution.FILTER_ATTR_ONLY_ACTIVE, required = false) final Boolean onlyActive) {
+            @RequestParam(name = Institution.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
-        // fist check if current user has any privileges for this action
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.INSTITUTION,
-                PrivilegeType.READ_ONLY);
+        checkBaseReadPrivilege();
 
-        final boolean hasBasePrivilege = this.authorizationGrantService.hasBasePrivilege(
+        if (!this.authorizationGrantService.hasBasePrivilege(
                 EntityType.USER,
-                PrivilegeType.READ_ONLY);
+                PrivilegeType.READ_ONLY)) {
 
-        if (onlyActive == null || onlyActive) {
+            // User has only institutional privilege, can see only the institution he/she belongs to
+            return Arrays.asList(getOwn());
+        } else {
+            return this.institutionDAO.all(inst -> true, active).getOrThrow();
+        }
+    }
 
-            return (hasBasePrivilege)
-                    ? this.institutionDAO.allActive().getOrThrow()
-                    : this.institutionDAO.all(
-                            institution -> this.authorizationGrantService.hasGrant(
-                                    institution,
-                                    PrivilegeType.READ_ONLY))
-                            .getOrThrow();
+    @RequestMapping(path = "/names", method = RequestMethod.GET)
+    public Collection<EntityIdAndName> getNames(
+            @RequestParam(name = Institution.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
+
+        checkBaseReadPrivilege();
+
+        if (!this.authorizationGrantService.hasBasePrivilege(
+                EntityType.USER,
+                PrivilegeType.READ_ONLY)) {
+
+            // User has only institutional privilege, can see only the institution he/she belongs to
+            return Arrays.asList(getOwn())
+                    .stream()
+                    .map(Institution::toName)
+                    .collect(Collectors.toList());
 
         } else {
 
-            return this.institutionDAO
-                    .all()
-                    .getOrThrow();
-
+            return this.institutionDAO.all(inst -> true, active)
+                    .getOrThrow()
+                    .stream()
+                    .map(Institution::toName)
+                    .collect(Collectors.toList());
         }
+    }
+
+    @RequestMapping(path = "/create", method = RequestMethod.PUT)
+    public Institution create(@Valid @RequestBody final Institution institution) {
+        return _saveInstitution(institution, PrivilegeType.WRITE)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/save", method = RequestMethod.POST)
+    public Institution save(@Valid @RequestBody final Institution institution) {
+        return _saveInstitution(institution, PrivilegeType.MODIFY)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)
+    public Institution activate(@PathVariable final Long id) {
+        return setActive(id, true);
+    }
+
+    @RequestMapping(value = "/{id}/deactivate", method = RequestMethod.POST)
+    public Institution deactivate(@PathVariable final Long id) {
+        return setActive(id, false);
+    }
+
+    @RequestMapping(path = "/{id}/delete", method = RequestMethod.DELETE)
+    public EntityProcessingReport deleteUser(@PathVariable final Long id) {
+        return this.institutionDAO.delete(id, true)
+                .flatMap(report -> this.userActivityLogDAO.log(
+                        ActivityType.DELETE,
+                        EntityType.INSTITUTION,
+                        String.valueOf(id),
+                        "soft-delete",
+                        report))
+                .getOrThrow();
+    }
+
+// TODO do we need a hard-delete for an institution? this may be dangerous?
+//    @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
+//    public EntityProcessingReport hardDeleteUser(@PathVariable final Long id) {
+//        return this.userDao.pkForUUID(uuid)
+//                .flatMap(pk -> this.userDao.delete(pk, false))
+//                .flatMap(report -> this.userActivityLogDAO.log(
+//                        ActivityType.DELETE,
+//                        EntityType.USER,
+//                        uuid,
+//                        "hard-delete",
+//                        report))
+//                .getOrThrow();
+//    }
+
+    private Institution setActive(final Long id, final boolean active) {
+
+        return this.institutionDAO
+                .byId(id)
+                .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(inst, PrivilegeType.WRITE))
+                .flatMap(inst -> this.entityActivationService.setActive(inst, active))
+                .getOrThrow();
+    }
+
+    private Result<Institution> _saveInstitution(final Institution institution, final PrivilegeType privilegeType) {
+
+        final ActivityType activityType = (institution.id == null)
+                ? ActivityType.CREATE
+                : ActivityType.MODIFY;
+
+        return this.authorizationGrantService
+                .checkGrantOnEntity(institution, privilegeType)
+                .flatMap(this.institutionDAO::save)
+                .flatMap(inst -> this.userActivityLogDAO.log(activityType, inst));
+    }
+
+    private void checkBaseReadPrivilege() {
+        this.authorizationGrantService.checkHasAnyPrivilege(
+                EntityType.INSTITUTION,
+                PrivilegeType.READ_ONLY);
     }
 
 }

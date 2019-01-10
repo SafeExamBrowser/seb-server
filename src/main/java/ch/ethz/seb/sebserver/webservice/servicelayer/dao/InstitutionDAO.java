@@ -13,7 +13,7 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface InstitutionDAO extends EntityDAO<Institution>, ActivatableEntityDAO<Institution> {
+public interface InstitutionDAO extends ActivatableEntityDAO<Institution> {
 
     Result<Collection<Institution>> allMatching(String name, Boolean active);
 

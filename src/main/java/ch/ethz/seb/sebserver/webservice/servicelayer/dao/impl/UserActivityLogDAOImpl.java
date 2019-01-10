@@ -110,6 +110,25 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
+    public <T> Result<T> log(
+            final ActivityType activityType,
+            final EntityType entityType,
+            final String entityId,
+            final String message,
+            final T data) {
+
+        return Result.tryCatch(() -> {
+            log(
+                    this.userService.getCurrentUser(),
+                    activityType,
+                    entityType,
+                    entityId,
+                    message);
+            return data;
+        });
+    }
+
+    @Override
     @Transactional
     public <E extends Entity> Result<E> log(
             final SEBServerUser user,

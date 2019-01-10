@@ -13,6 +13,7 @@ import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,9 +37,14 @@ public class UserServiceImpl implements UserService {
     }
 
     private final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public UserServiceImpl(final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies) {
+    public UserServiceImpl(
+            final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies,
+            final ApplicationEventPublisher applicationEventPublisher) {
+
         this.extractStrategies = extractStrategies;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override

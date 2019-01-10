@@ -17,12 +17,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
+import ch.ethz.seb.sebserver.gbl.model.EntityIdAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Institution implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_ONLY_ACTIVE = "onlyActive";
+    public static final String FILTER_ATTR_ACTIVE = "active";
 
     @JsonProperty(Domain.ATTR_ID)
     public final Long id;
@@ -106,6 +107,10 @@ public final class Institution implements GrantEntity, Activatable {
         return "Institution [id=" + this.id + ", name=" + this.name + ", urlSuffix=" + this.urlSuffix + ", logoImage="
                 + this.logoImage
                 + ", active=" + this.active + "]";
+    }
+
+    public static EntityIdAndName toName(final Institution institution) {
+        return new EntityIdAndName(String.valueOf(institution.id), institution.name);
     }
 
 }

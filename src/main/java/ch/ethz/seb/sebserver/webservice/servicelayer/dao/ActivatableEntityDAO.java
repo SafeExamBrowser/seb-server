@@ -16,7 +16,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 /** Interface of a DAO for an Entity that has activation feature.
  *
  * @param <T> the concrete Entity type */
-public interface ActivatableEntityDAO<T> {
+public interface ActivatableEntityDAO<T extends Entity> extends EntityDAO<T> {
 
     /** Get a Collection of all active Entity instances for a concrete entity-domain.
      *
@@ -35,7 +35,7 @@ public interface ActivatableEntityDAO<T> {
      * This can be used to take action in dependency of an activation of an Entity of different type.
      * For example a user-account DAO want to react on a Institution activation to also activate all user
      * accounts for this institution.
-     * 
+     *
      * @param source The source Entity that has been activated */
     void notifyActivation(Entity source);
 
@@ -43,7 +43,7 @@ public interface ActivatableEntityDAO<T> {
      * This can be used to take action in dependency of an deactivation of an Entity of different type.
      * For example a user-account DAO want to react on a Institution deactivation to also deactivate all user
      * accounts for this institution.
-     * 
+     *
      * @param source The source Entity that has been deactivated */
     void notifyDeactivation(Entity source);
 

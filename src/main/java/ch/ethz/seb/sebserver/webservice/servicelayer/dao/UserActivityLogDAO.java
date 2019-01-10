@@ -49,6 +49,13 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
      * @param message the message */
     void log(ActivityType activityType, EntityType entityType, String entityId, String message);
 
+    /** Creates a user activity log entry for the current user.
+     *
+     * @param activityType the activity type
+     * @param entityType the EntityType
+     * @param message the message */
+    <T> Result<T> log(ActivityType activityType, EntityType entityType, String entityId, String message, T data);
+
     /** Creates a user activity log entry.
      *
      * @param user for specified SEBServerUser instance
