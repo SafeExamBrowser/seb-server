@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -98,8 +99,13 @@ public interface EntityDAO<T extends Entity> {
             final Collection<EntityKey> keys,
             final Collection<Result<EntityKey>> result) {
 
+        if (keys == null) {
+            return Collections.emptyList();
+        }
+
         final EntityType entityType = entityType();
         final List<Long> ids = new ArrayList<>();
+
         for (final EntityKey key : keys) {
             if (key.entityType == entityType) {
                 try {
