@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model.institution;
+package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
-public final class CourseData {
+public final class QuizData {
 
     @JsonProperty(Domain.ATTR_ID)
     public final String uuid;
@@ -37,7 +37,7 @@ public final class CourseData {
     @JsonProperty("enrollmentURL")
     public final String enrollmentURL;
 
-    public CourseData(
+    public QuizData(
             final String uuid,
             final String name,
             final String description,
@@ -53,7 +53,7 @@ public final class CourseData {
         this.enrollmentURL = enrollmentURL;
     }
 
-    public CourseData(
+    public QuizData(
             final String uuid,
             final String name,
             final String description,
@@ -123,7 +123,7 @@ public final class CourseData {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final CourseData other = (CourseData) obj;
+        final QuizData other = (QuizData) obj;
         if (this.uuid == null) {
             if (other.uuid != null)
                 return false;
@@ -134,7 +134,7 @@ public final class CourseData {
 
     @Override
     public String toString() {
-        return "CourseData [uuid=" + this.uuid + ", name=" + this.name + ", description=" + this.description
+        return "QuizData [uuid=" + this.uuid + ", name=" + this.name + ", description=" + this.description
                 + ", startTime="
                 + this.startTime + ", endTime=" + this.endTime + ", enrollmentURL=" + this.enrollmentURL + "]";
     }

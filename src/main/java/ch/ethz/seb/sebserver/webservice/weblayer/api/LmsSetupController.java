@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LMSType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
@@ -65,7 +65,7 @@ public class LmsSetupController {
     public Collection<LmsSetup> getAll(
             @RequestParam(name = LmsSetup.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
             @RequestParam(name = LmsSetup.FILTER_ATTR_NAME, required = false) final String name,
-            @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LMSType lmsType,
+            @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LmsType lmsType,
             @RequestParam(name = LmsSetup.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
         checkBaseReadPrivilege();
@@ -96,7 +96,7 @@ public class LmsSetupController {
     public Collection<EntityKeyAndName> getNames(
             @RequestParam(name = LmsSetup.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
             @RequestParam(name = LmsSetup.FILTER_ATTR_NAME, required = false) final String name,
-            @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LMSType lmsType,
+            @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LmsType lmsType,
             @RequestParam(name = LmsSetup.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
         return getAll(institutionId, name, lmsType, active)

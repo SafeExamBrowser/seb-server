@@ -33,7 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LMSType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
@@ -96,7 +96,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
     public Result<Collection<LmsSetup>> allMatching(
             final Long institutionId,
             final String name,
-            final LMSType lmsType,
+            final LmsType lmsType,
             final Boolean active) {
 
         return Result.tryCatch(() -> {
@@ -265,7 +265,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
-                LMSType.valueOf(record.getLmsType()),
+                LmsType.valueOf(record.getLmsType()),
                 record.getLmsClientname(),
                 record.getLmsClientsecret(),
                 record.getLmsUrl(),

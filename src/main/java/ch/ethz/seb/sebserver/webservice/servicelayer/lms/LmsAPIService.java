@@ -8,19 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.Collection;
-
-import ch.ethz.seb.sebserver.gbl.model.institution.CourseData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface LMSConnectionTemplate {
+public interface LmsAPIService {
 
-    LmsSetup lmsSetup();
+    Result<LmsAPITemplate> createConnectionTemplate(Long lmsSetupId);
 
-    Collection<String> courseNames();
-
-    Collection<CourseData> searchCourses(String name, Long from, Long to);
-
-    CourseData course(String uuid);
+    Result<LmsAPITemplate> createConnectionTemplate(LmsSetup lmsSetup);
 
 }

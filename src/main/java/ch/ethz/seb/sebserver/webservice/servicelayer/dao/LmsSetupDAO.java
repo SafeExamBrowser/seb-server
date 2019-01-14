@@ -13,7 +13,7 @@ import java.util.Collection;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LMSType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup> {
@@ -23,7 +23,7 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup> {
         return allMatching(institutionId, null, null, active);
     }
 
-    Result<Collection<LmsSetup>> allMatching(Long institutionId, String name, LMSType lmsType, Boolean active);
+    Result<Collection<LmsSetup>> allMatching(Long institutionId, String name, LmsType lmsType, Boolean active);
 
     Result<LmsSetup> save(LmsSetup lmsSetup);
 

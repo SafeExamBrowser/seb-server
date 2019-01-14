@@ -30,7 +30,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
     public static final String FILTER_ATTR_ACTIVE = "active";
 
-    public enum LMSType {
+    public enum LmsType {
         MOCKUP,
         MOODLE,
         OPEN_EDX
@@ -50,7 +50,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE)
     @NotNull
-    public final LMSType lmsType;
+    public final LmsType lmsType;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTNAME)
     @Size(min = 3, max = 255, message = "lmsSetup:lmsAuthName:size:{min}:{max}:${validatedValue}")
@@ -84,7 +84,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
             @JsonProperty(Domain.ATTR_ID) final Long id,
             @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(LMS_SETUP.ATTR_NAME) final String name,
-            @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE) final LMSType lmsType,
+            @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE) final LmsType lmsType,
             @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTNAME) final String lmsAuthName,
             @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTSECRET) final String lmsAuthSecret,
             @JsonProperty(LMS_SETUP.ATTR_LMS_URL) final String lmsApiUrl,
@@ -144,7 +144,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         return this.name;
     }
 
-    public LMSType getLmsType() {
+    public LmsType getLmsType() {
         return this.lmsType;
     }
 
