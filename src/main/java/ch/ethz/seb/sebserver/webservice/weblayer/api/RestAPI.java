@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 public class RestAPI {
 
     public static final String ENDPOINT_INSTITUTION = "/institution";
+    public static final String ENDPOINT_LMS_SETUP = "/lms_setup";
 
     public static final String ENDPOINT_USER_ACCOUNT = "/useraccount";
 

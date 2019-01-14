@@ -13,17 +13,24 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Service
 @WebServiceProfile
 public class BulkActionService {
 
     private final Collection<BulkActionSupport> supporter;
+    private final UserActivityLogDAO userActivityLogDAO;
 
-    public BulkActionService(final Collection<BulkActionSupport> supporter) {
+    public BulkActionService(
+            final Collection<BulkActionSupport> supporter,
+            final UserActivityLogDAO userActivityLogDAO) {
+
         this.supporter = supporter;
+        this.userActivityLogDAO = userActivityLogDAO;
     }
 
     public void collectDependencies(final BulkAction action) {
@@ -55,8 +62,9 @@ public class BulkActionService {
             }
         }
 
-        // process bulk action
         action.result.addAll(supportForSource.processBulkAction(action));
+
+        processUserActivityLog(action);
         action.alreadyProcessed = true;
     }
 
@@ -70,6 +78,24 @@ public class BulkActionService {
         // TODO
 
         return report;
+    }
+
+    private void processUserActivityLog(final BulkAction action) {
+        for (final EntityKey key : action.dependencies) {
+            this.userActivityLogDAO.log(
+                    action.type.activityType,
+                    key.entityType,
+                    key.entityId,
+                    "bulk action dependency");
+        }
+
+        for (final EntityKey key : action.sources) {
+            this.userActivityLogDAO.log(
+                    action.type.activityType,
+                    key.entityType,
+                    key.entityId,
+                    "bulk action source");
+        }
     }
 
     private BulkActionSupport getSupporterForSource(final BulkAction action) {

@@ -200,7 +200,9 @@ public class UserAccountController {
                 EntityType.USER,
                 new EntityKey(uuid, EntityType.USER, false)));
 
-        return this.userDao.byUuid(uuid).getOrThrow();
+        return this.userDao
+                .byUuid(uuid)
+                .getOrThrow();
     }
 
     private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {

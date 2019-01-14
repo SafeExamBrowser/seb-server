@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.RestAPI;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
@@ -699,6 +700,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void deactivateUserAccount() throws Exception {
+        final long timeNow = System.currentTimeMillis();
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
         this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/deactivate")
@@ -717,10 +719,26 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         assertNotNull(deactivatedUser);
         assertFalse(deactivatedUser.isActive());
+
+        // check also user activity log
+        final Collection<UserActivityLog> userLogs = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "/user1?from=" + timeNow)
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<UserActivityLog>>() {
+                });
+
+        assertNotNull(userLogs);
+        assertTrue(userLogs.size() == 1);
+        final UserActivityLog userLog = userLogs.iterator().next();
+        assertEquals(ActivityType.DEACTIVATE, userLog.activityType);
+        assertEquals("user4", userLog.entityId);
     }
 
     @Test
     public void activateUserAccount() throws Exception {
+        final long timeNow = System.currentTimeMillis();
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
         this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
@@ -739,6 +757,21 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
         assertNotNull(activatedUser);
         assertTrue(activatedUser.isActive());
+
+        // check also user activity log
+        final Collection<UserActivityLog> userLogs = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "/user1?from=" + timeNow)
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<UserActivityLog>>() {
+                });
+
+        assertNotNull(userLogs);
+        assertTrue(userLogs.size() == 1);
+        final UserActivityLog userLog = userLogs.iterator().next();
+        assertEquals(ActivityType.ACTIVATE, userLog.activityType);
+        assertEquals("user6", userLog.entityId);
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

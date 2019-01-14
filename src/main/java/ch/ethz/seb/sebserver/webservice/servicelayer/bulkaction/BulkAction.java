@@ -19,13 +19,20 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public final class BulkAction {
 
     public enum Type {
-        HARD_DELETE,
-        DEACTIVATE,
-        ACTIVATE
+        HARD_DELETE(ActivityType.DELETE),
+        DEACTIVATE(ActivityType.DEACTIVATE),
+        ACTIVATE(ActivityType.ACTIVATE);
+
+        public final ActivityType activityType;
+
+        private Type(final ActivityType activityType) {
+            this.activityType = activityType;
+        }
     }
 
     public final Type type;

@@ -192,7 +192,9 @@ public class InstitutionController {
                 EntityType.INSTITUTION,
                 new EntityKey(id, EntityType.INSTITUTION)));
 
-        return this.institutionDAO.byId(id).getOrThrow();
+        return this.institutionDAO
+                .byId(id)
+                .getOrThrow();
     }
 
     private Result<Institution> _saveInstitution(final Institution institution, final PrivilegeType privilegeType) {
