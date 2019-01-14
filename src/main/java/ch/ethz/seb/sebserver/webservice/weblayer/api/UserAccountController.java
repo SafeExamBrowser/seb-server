@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import javax.validation.Valid;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -29,10 +31,12 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.activation.EntityActivationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
@@ -48,7 +52,8 @@ public class UserAccountController {
     private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
     private final PaginationService paginationService;
-    private final EntityActivationService entityActivationService;
+    private final BulkActionService bulkActionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserAccountController(
             final UserDAO userDao,
@@ -56,14 +61,16 @@ public class UserAccountController {
             final UserService userService,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final EntityActivationService entityActivationService) {
+            final BulkActionService bulkActionService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.userDao = userDao;
         this.authorizationGrantService = authorizationGrantService;
         this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
         this.paginationService = paginationService;
-        this.entityActivationService = entityActivationService;
+        this.bulkActionService = bulkActionService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -155,42 +162,45 @@ public class UserAccountController {
 
     @RequestMapping(path = "/{uuid}/delete", method = RequestMethod.DELETE)
     public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
-        return this.userDao.pkForUUID(uuid)
-                .flatMap(pk -> this.userDao.delete(pk, true))
-                .flatMap(report -> this.userActivityLogDAO.log(
-                        ActivityType.DELETE,
-                        EntityType.USER,
-                        uuid,
-                        "soft-delete",
-                        report))
-                .getOrThrow();
+        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
+
+        return this.bulkActionService.createReport(new BulkAction(
+                Type.DEACTIVATE,
+                EntityType.USER,
+                new EntityKey(uuid, EntityType.USER, false)));
     }
 
     @RequestMapping(path = "/{uuid}/hard-delete", method = RequestMethod.DELETE)
     public EntityProcessingReport hardDeleteUser(@PathVariable final String uuid) {
-        return this.userDao.pkForUUID(uuid)
-                .flatMap(pk -> this.userDao.delete(pk, false))
-                .flatMap(report -> this.userActivityLogDAO.log(
-                        ActivityType.DELETE,
-                        EntityType.USER,
-                        uuid,
-                        "hard-delete",
-                        report))
-                .getOrThrow();
+        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
+
+        return this.bulkActionService.createReport(new BulkAction(
+                Type.HARD_DELETE,
+                EntityType.USER,
+                new EntityKey(uuid, EntityType.USER, false)));
     }
 
-    @RequestMapping(path = "/{uuid}/relations", method = RequestMethod.GET)
-    public EntityProcessingReport getAllUserRelatedData(@PathVariable final String uuid) {
-        return this.userDao.getAllUserData(uuid)
+    private void checkPrivilegeForUser(final String uuid, final PrivilegeType type) {
+        this.authorizationGrantService.checkHasAnyPrivilege(
+                EntityType.USER,
+                type);
+
+        this.userDao.byUuid(uuid)
+                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
+                        userInfo,
+                        type))
                 .getOrThrow();
     }
 
     private UserInfo setActive(final String uuid, final boolean active) {
+        this.checkPrivilegeForUser(uuid, PrivilegeType.MODIFY);
 
-        return this.userDao.byUuid(uuid)
-                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(userInfo, PrivilegeType.WRITE))
-                .flatMap(userInfo -> this.entityActivationService.setActive(userInfo, active))
-                .getOrThrow();
+        this.bulkActionService.doBulkAction(new BulkAction(
+                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
+                EntityType.USER,
+                new EntityKey(uuid, EntityType.USER, false)));
+
+        return this.userDao.byUuid(uuid).getOrThrow();
     }
 
     private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
@@ -209,7 +219,7 @@ public class UserAccountController {
     private Result<UserInfo> revokePassword(final UserMod userData, final UserInfo userInfo) {
         // handle password change; revoke access tokens if password has changed
         if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
-            this.entityActivationService.getApplicationEventPublisher().publishEvent(
+            this.applicationEventPublisher.publishEvent(
                     new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.username));
         }
         return Result.of(userInfo);

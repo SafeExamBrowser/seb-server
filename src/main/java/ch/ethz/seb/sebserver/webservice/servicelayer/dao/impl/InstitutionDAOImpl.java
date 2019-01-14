@@ -9,9 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,8 +27,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -33,13 +36,15 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-public class InstitutionDAOImpl implements InstitutionDAO {
+public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
 
     private final InstitutionRecordMapper institutionRecordMapper;
 
@@ -61,19 +66,13 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> allActive() {
-        return allMatching(null, true);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Result<Collection<Institution>> all(final Predicate<Institution> predicate, final boolean onlyActive) {
+    public Result<Collection<Institution>> all(final Predicate<Institution> predicate, final Boolean active) {
         return Result.tryCatch(() -> {
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<InstitutionRecord>>> example =
                     this.institutionRecordMapper.selectByExample();
 
-            final List<InstitutionRecord> records = (onlyActive)
-                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+            final List<InstitutionRecord> records = (active != null)
+                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(active)))
                             .build()
                             .execute()
                     : example.build().execute();
@@ -113,42 +112,88 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         }
 
         return (institution.id != null)
-                ? updateUser(institution)
+                ? update(institution)
                         .flatMap(InstitutionDAOImpl::toDomainModel)
                         .onErrorDo(TransactionHandler::rollback)
-                : createNewUser(institution)
+                : createNew(institution)
                         .flatMap(InstitutionDAOImpl::toDomainModel)
                         .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional
-    public Result<Institution> setActive(final String entityId, final boolean active) {
-        return Result.tryCatch(() -> {
-            final Long institutionId = Long.valueOf(entityId);
+    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        final Collection<Result<EntityKey>> result = new ArrayList<>();
 
-            this.institutionRecordMapper.updateByPrimaryKeySelective(new InstitutionRecord(
-                    institutionId, null, null, BooleanUtils.toInteger(active), null));
+        final List<Long> ids = extractIdsFromKeys(all, result);
+        final InstitutionRecord institutionRecord = new InstitutionRecord(
+                null, null, null, BooleanUtils.toInteger(active), null);
 
-            return this.institutionRecordMapper.selectByPrimaryKey(institutionId);
-        }).flatMap(InstitutionDAOImpl::toDomainModel);
-    }
+        try {
+            this.institutionRecordMapper.updateByExampleSelective(institutionRecord)
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
 
-    @Override
-    public void notifyActivation(final Entity source) {
-        // No dependencies of activation on Institution
-    }
-
-    @Override
-    public void notifyDeactivation(final Entity source) {
-        // No dependencies of activation on Institution
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.INSTITUTION)))
+                    .collect(Collectors.toList());
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Activation failed on unexpected exception for Institution of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
     @Transactional
-    public Result<EntityProcessingReport> delete(final Long id, final boolean archive) {
-        // TODO Auto-generated method stub
-        return null;
+    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
+        final Collection<Result<EntityKey>> result = new ArrayList<>();
+
+        final List<Long> ids = extractIdsFromKeys(all, result);
+
+        try {
+            this.institutionRecordMapper.deleteByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.INSTITUTION)))
+                    .collect(Collectors.toList());
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Deletion failed on unexpected exception for Institution of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // NOTE since Institution is the top most Entity, there are no other Entity for that an Institution depends on.
+        return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional
+    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
+
+        final Set<EntityKey> all = bulkAction.extractKeys(EntityType.INSTITUTION);
+
+        switch (bulkAction.type) {
+            case ACTIVATE:
+                return setActive(all, true);
+            case DEACTIVATE:
+                return setActive(all, false);
+            case HARD_DELETE:
+                return delete(all);
+        }
+
+        // should never happen
+        throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
     }
 
     private Result<InstitutionRecord> recordById(final Long id) {
@@ -163,7 +208,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         });
     }
 
-    private Result<InstitutionRecord> createNewUser(final Institution institution) {
+    private Result<InstitutionRecord> createNew(final Institution institution) {
         return Result.tryCatch(() -> {
             final InstitutionRecord newRecord = new InstitutionRecord(
                     null,
@@ -177,9 +222,9 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         });
     }
 
-    private Result<InstitutionRecord> updateUser(final Institution institution) {
+    private Result<InstitutionRecord> update(final Institution institution) {
         return recordById(institution.id)
-                .flatMap(record -> Result.tryCatch(() -> {
+                .map(record -> {
 
                     final InstitutionRecord newRecord = new InstitutionRecord(
                             institution.id,
@@ -190,7 +235,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
                     this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
-                }));
+                });
     }
 
     private static Result<Institution> toDomainModel(final InstitutionRecord record) {

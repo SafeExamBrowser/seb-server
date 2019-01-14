@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import org.springframework.transaction.annotation.Transactional;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -53,6 +55,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo> {
      *
      * @param filter The UserFilter instance containing all filter criteria
      * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
+    @Transactional(readOnly = true)
     default Result<Collection<UserInfo>> all(final UserFilter filter) {
         return all(filter, userInfo -> true);
     }
@@ -80,11 +83,10 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo> {
      *         exception on error case */
     Result<UserInfo> save(UserMod userMod);
 
-    /** Use this to get an EntityProcessingReport containing the user account entity itself
-     * and all user related data entities.
+    /** Use this to get a Collection containing EntityKey's of all entities that belongs to a given User.
      *
      * @param uuid The UUID of the user
-     * @return an EntityProcessingReport containing all user related entity data */
-    Result<EntityProcessingReport> getAllUserData(String uuid);
+     * @return a Collection containing EntityKey's of all entities that belongs to a given User */
+    Collection<EntityKey> getAllUserData(String uuid);
 
 }

@@ -22,16 +22,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityIdAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.activation.EntityActivationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
@@ -45,19 +48,19 @@ public class InstitutionController {
     private final AuthorizationGrantService authorizationGrantService;
     private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
-    private final EntityActivationService entityActivationService;
+    private final BulkActionService bulkActionService;
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
             final AuthorizationGrantService authorizationGrantService,
             final UserService userService, final UserActivityLogDAO userActivityLogDAO,
-            final EntityActivationService entityActivationService) {
+            final BulkActionService bulkActionService) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;
         this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
-        this.entityActivationService = entityActivationService;
+        this.bulkActionService = bulkActionService;
     }
 
     @RequestMapping(path = "/self", method = RequestMethod.GET)
@@ -151,37 +154,45 @@ public class InstitutionController {
 
     @RequestMapping(path = "/{id}/delete", method = RequestMethod.DELETE)
     public EntityProcessingReport deleteUser(@PathVariable final Long id) {
-        return this.institutionDAO.delete(id, true)
-                .flatMap(report -> this.userActivityLogDAO.log(
-                        ActivityType.DELETE,
-                        EntityType.INSTITUTION,
-                        String.valueOf(id),
-                        "soft-delete",
-                        report))
+        checkPrivilegeForInstitution(id, PrivilegeType.WRITE);
+
+        return this.bulkActionService.createReport(new BulkAction(
+                Type.DEACTIVATE,
+                EntityType.INSTITUTION,
+                new EntityKey(id, EntityType.INSTITUTION)));
+    }
+
+    @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
+    public EntityProcessingReport hardDeleteUser(@PathVariable final Long id) {
+        checkPrivilegeForInstitution(id, PrivilegeType.WRITE);
+
+        return this.bulkActionService.createReport(new BulkAction(
+                Type.HARD_DELETE,
+                EntityType.INSTITUTION,
+                new EntityKey(id, EntityType.INSTITUTION)));
+    }
+
+    private void checkPrivilegeForInstitution(final Long id, final PrivilegeType type) {
+        this.authorizationGrantService.checkHasAnyPrivilege(
+                EntityType.INSTITUTION,
+                type);
+
+        this.institutionDAO.byId(id)
+                .flatMap(institution -> this.authorizationGrantService.checkGrantOnEntity(
+                        institution,
+                        type))
                 .getOrThrow();
     }
 
-// TODO do we need a hard-delete for an institution? this may be dangerous?
-//    @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
-//    public EntityProcessingReport hardDeleteUser(@PathVariable final Long id) {
-//        return this.userDao.pkForUUID(uuid)
-//                .flatMap(pk -> this.userDao.delete(pk, false))
-//                .flatMap(report -> this.userActivityLogDAO.log(
-//                        ActivityType.DELETE,
-//                        EntityType.USER,
-//                        uuid,
-//                        "hard-delete",
-//                        report))
-//                .getOrThrow();
-//    }
-
     private Institution setActive(final Long id, final boolean active) {
+        checkPrivilegeForInstitution(id, PrivilegeType.MODIFY);
 
-        return this.institutionDAO
-                .byId(id)
-                .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(inst, PrivilegeType.WRITE))
-                .flatMap(inst -> this.entityActivationService.setActive(inst, active))
-                .getOrThrow();
+        this.bulkActionService.doBulkAction(new BulkAction(
+                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
+                EntityType.INSTITUTION,
+                new EntityKey(id, EntityType.INSTITUTION)));
+
+        return this.institutionDAO.byId(id).getOrThrow();
     }
 
     private Result<Institution> _saveInstitution(final Institution institution, final PrivilegeType privilegeType) {

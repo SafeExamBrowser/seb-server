@@ -8,8 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -22,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -176,16 +180,26 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public Result<EntityProcessingReport> delete(final Long id, final boolean archive) {
-        return Result.tryCatch(() -> {
-            final EntityProcessingReport report = new EntityProcessingReport();
+    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
+        final Collection<Result<EntityKey>> result = new ArrayList<>();
 
-            final UserActivityLog log = byId(id).getOrThrow();
-            this.userLogRecordMapper.deleteByPrimaryKey(id);
-            report.add(log);
+        final List<Long> ids = extractIdsFromKeys(all, result);
 
-            return report;
-        }).onErrorDo(TransactionHandler::rollback);
+        try {
+            this.userLogRecordMapper.deleteByExample()
+                    .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.USER_ACTIVITY_LOG)))
+                    .collect(Collectors.toList());
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Deletion failed on unexpected exception for UserActivityLog of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -256,9 +270,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> all(
-            final Predicate<UserActivityLog> predicate,
-            final boolean onlyActive) {
+    public Result<Collection<UserActivityLog>> all(final Predicate<UserActivityLog> predicate, final Boolean active) {
 
         return Result.tryCatch(() -> {
             // first check if there is a page limitation set. Otherwise set the default

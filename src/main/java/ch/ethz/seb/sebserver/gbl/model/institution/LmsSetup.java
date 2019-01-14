@@ -15,12 +15,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
-public final class LmsSetup implements GrantEntity {
+public final class LmsSetup implements GrantEntity, Activatable {
 
     public enum LMSType {
         MOCKUP,
@@ -67,6 +69,10 @@ public final class LmsSetup implements GrantEntity {
     @Size(min = 8, max = 255, message = "lmsSetup:sebAuthSecret:size:{min}:{max}:${validatedValue}")
     public final String sebAuthSecret;
 
+    /** Indicates whether this LmsSetup is still active or not */
+    @JsonProperty(LMS_SETUP.ATTR_ACTIVE)
+    public final Boolean active;
+
     @JsonCreator
     public LmsSetup(
             @JsonProperty(Domain.ATTR_ID) final Long id,
@@ -78,7 +84,8 @@ public final class LmsSetup implements GrantEntity {
             @JsonProperty(LMS_SETUP.ATTR_LMS_URL) final String lmsApiUrl,
             @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN) final String lmsRestApiToken,
             @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTNAME) final String sebAuthName,
-            @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTSECRET) final String sebAuthSecret) {
+            @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTSECRET) final String sebAuthSecret,
+            @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -90,6 +97,7 @@ public final class LmsSetup implements GrantEntity {
         this.lmsRestApiToken = lmsRestApiToken;
         this.sebAuthName = sebAuthName;
         this.sebAuthSecret = sebAuthSecret;
+        this.active = active;
     }
 
     @Override
@@ -105,6 +113,11 @@ public final class LmsSetup implements GrantEntity {
 
     public Long getId() {
         return this.id;
+    }
+
+    @Override
+    public boolean isActive() {
+        return this.active;
     }
 
     @JsonIgnore
@@ -152,6 +165,10 @@ public final class LmsSetup implements GrantEntity {
         return this.sebAuthSecret;
     }
 
+    public Boolean getActive() {
+        return this.active;
+    }
+
     @Override
     public String toString() {
         return "LmsSetup [id=" + this.id + ", institutionId=" + this.institutionId + ", name=" + this.name
@@ -159,7 +176,7 @@ public final class LmsSetup implements GrantEntity {
                 + ", lmsAuthName=" + this.lmsAuthName + ", lmsAuthSecret=" + this.lmsAuthSecret + ", lmsApiUrl="
                 + this.lmsApiUrl
                 + ", lmsRestApiToken=" + this.lmsRestApiToken + ", sebAuthName=" + this.sebAuthName + ", sebAuthSecret="
-                + this.sebAuthSecret + "]";
+                + this.sebAuthSecret + ", active=" + this.active + "]";
     }
 
 }

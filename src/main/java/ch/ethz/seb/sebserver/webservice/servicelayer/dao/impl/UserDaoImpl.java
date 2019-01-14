@@ -11,8 +11,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -37,8 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -51,14 +52,17 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
-public class UserDaoImpl implements UserDAO {
+public class UserDaoImpl implements UserDAO, BulkActionSupport {
 
     private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
+    private static final UserFilter ALL_ACTIVE_ONLY_FILTER = new UserFilter(null, null, null, null, true, null);
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
@@ -117,18 +121,18 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> allActive() {
-        return all(new UserFilter(null, null, null, null, true, null));
+        return all(ALL_ACTIVE_ONLY_FILTER);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate, final boolean onlyActive) {
+    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate, final Boolean active) {
         return Result.tryCatch(() -> {
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>> example =
                     this.userRecordMapper.selectByExample();
 
-            final List<UserRecord> records = (onlyActive)
-                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+            final List<UserRecord> records = (active != null)
+                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(active)))
                             .build()
                             .execute()
                     : example.build().execute();
@@ -185,77 +189,136 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<EntityProcessingReport> delete(final Long id, final boolean force) {
+    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        final Collection<Result<EntityKey>> result = new ArrayList<>();
 
-        // TODO clarify within discussion about deactivate, archive and delete user related data
+        final List<Long> ids = extractIdsFromKeys(all, result);
+        final UserRecord userRecord = new UserRecord(
+                null, null, null, null, null, null, null, null, null,
+                BooleanUtils.toIntegerObject(active));
 
-        return Result.ofError(new RuntimeException("TODO"));
-    }
+        try {
+            this.userRecordMapper.updateByExampleSelective(userRecord)
+                    .where(UserRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
 
-    @Override
-    @Transactional(readOnly = true)
-    public Result<EntityProcessingReport> getAllUserData(final String uuid) {
-
-        // TODO
-
-        return Result.ofError(new RuntimeException("TODO"));
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.USER)))
+                    .collect(Collectors.toList());
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Activation failed on unexpected exception for User of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
     @Transactional
-    public Result<UserInfo> setActive(final String entityId, final boolean active) {
-        return Result.tryCatch(() -> {
+    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
+        final Collection<Result<EntityKey>> result = new ArrayList<>();
 
-            return this.userRecordMapper.updateByExampleSelective(
-                    new UserRecord(
-                            null, null, null, null, null, null, null, null, null,
-                            BooleanUtils.toIntegerObject(active)))
-                    .where(UserRecordDynamicSqlSupport.uuid, isEqualTo(entityId))
-                    .build()
-                    .execute();
+        final List<Long> ids = extractIdsFromKeys(all, result);
 
-        }).flatMap(count -> byUuid(entityId));
-    }
-
-    @Override
-    public void notifyActivation(final Entity source) {
-        // If an Institution has been deactivated, all its user accounts gets also be deactivated
-        if (source.entityType() == EntityType.INSTITUTION) {
-            setAllActiveForInstitution(Long.parseLong(source.getModelId()), true);
-        }
-    }
-
-    @Override
-    public void notifyDeactivation(final Entity source) {
-        // If an Institution has been deactivated, all its user accounts gets also be deactivated
-        if (source.entityType() == EntityType.INSTITUTION) {
-            setAllActiveForInstitution(Long.parseLong(source.getModelId()), false);
-        }
-    }
-
-    private void setAllActiveForInstitution(final Long institutionId, final boolean active) {
         try {
-
-            final UserRecord record = new UserRecord(
-                    null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toIntegerObject(active));
-
-            this.userRecordMapper.updateByExampleSelective(record)
-                    .where(UserRecordDynamicSqlSupport.institutionId, isEqualTo(institutionId))
+            this.userRecordMapper.deleteByExample()
+                    .where(UserRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.USER)))
+                    .collect(Collectors.toList());
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to set all active: {} for institution: {}",
-                    active,
-                    institutionId,
-                    e);
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Deletion failed on unexpected exception for User of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<EntityKey> getAllUserData(final String uuid) {
+
+        // TODO
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            final Set<EntityKey> result = new HashSet<>();
+            for (final EntityKey sourceKey : bulkAction.sources) {
+                try {
+                    result.addAll(this.userRecordMapper.selectIdsByExample()
+                            .where(UserRecordDynamicSqlSupport.institutionId,
+                                    isEqualTo(Long.valueOf(sourceKey.entityId)))
+                            .build()
+                            .execute()
+                            .stream()
+                            .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                            .collect(Collectors.toList()));
+                } catch (final Exception e) {
+                    log.error("Unexpected error: ", e);
+                    return Collections.emptySet();
+                }
+            }
+            return result;
+        }
+
+        return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional
+    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
+        final Set<EntityKey> all = bulkAction.extractKeys(EntityType.USER);
+
+        switch (bulkAction.type) {
+            case ACTIVATE:
+                return setActive(all, true);
+            case DEACTIVATE:
+                return setActive(all, false);
+            case HARD_DELETE:
+                return delete(all);
+        }
+
+        // should never happen
+        throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
+    }
+
+    @Override
+    public List<Long> extractIdsFromKeys(
+            final Collection<EntityKey> keys,
+            final Collection<Result<EntityKey>> result) {
+
+        if (keys == null || keys.isEmpty() || keys.iterator().next().isIdPK) {
+            return UserDAO.super.extractIdsFromKeys(keys, result);
+        } else {
+            final List<String> uuids = keys.stream()
+                    .map(key -> key.entityId)
+                    .collect(Collectors.toList());
+
+            try {
+                return this.userRecordMapper.selectIdsByExample()
+                        .where(UserRecordDynamicSqlSupport.uuid, isIn(uuids))
+                        .build()
+                        .execute();
+            } catch (final Exception e) {
+                log.error("Unexpected error: ", e);
+                return Collections.emptyList();
+            }
         }
     }
 
     private Result<UserRecord> updateUser(final UserMod userMod) {
         return recordByUUID(userMod.uuid)
-                .flatMap(record -> Result.tryCatch(() -> {
+                .map(record -> {
                     final boolean changePWD = userMod.passwordChangeRequest();
                     if (changePWD && !userMod.newPasswordMatch()) {
                         throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
@@ -276,7 +339,7 @@ public class UserDaoImpl implements UserDAO {
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
                     updateRolesForUser(record.getId(), userMod.roles);
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
-                }));
+                });
     }
 
     private Result<UserRecord> createNewUser(final UserMod userMod) {

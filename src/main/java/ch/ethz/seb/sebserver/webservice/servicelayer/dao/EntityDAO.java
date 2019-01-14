@@ -8,11 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -37,10 +40,10 @@ public interface EntityDAO<T extends Entity> {
      * If you need a fast filtering implement a specific filtering in SQL level
      *
      * @param predicate Predicate expecting instance of type specific entity type
-     * @param onlyActive indicates if only active entities should be included (on SQL level)
+     * @param active indicates if only active entities should be included (on SQL level). Can be null.
      * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
      *         case */
-    Result<Collection<T>> all(Predicate<T> predicate, boolean onlyActive);
+    Result<Collection<T>> all(Predicate<T> predicate, Boolean active);
 
     /** Use this to get a Collection of all entities of concrete type that matches a given predicate.
      *
@@ -52,7 +55,7 @@ public interface EntityDAO<T extends Entity> {
      * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
      *         case */
     default Result<Collection<T>> all(final Predicate<T> predicate) {
-        return all(predicate, false);
+        return all(predicate, null);
     }
 
     /** Use this to get a Collection of all active entities of concrete type
@@ -62,14 +65,12 @@ public interface EntityDAO<T extends Entity> {
         return all(entity -> true);
     }
 
-    /** Use this to delete an Entity and all its relationships by id
+    /** Use this to delete a set Entity by a Collection of EntityKey
      *
-     * @param id the identifier if the entity to delete
-     * @param archive indicates whether the Entity and all its relations should be archived (inactive and anonymous) or
-     *            hard deleted
-     * @return Result of a collection of all entities that has been deleted (or archived) or refer to an error if
+     * @param all The Collection of EntityKey to delete
+     * @return Result of a collection of all entities that has been deleted or refer to an error if
      *         happened */
-    Result<EntityProcessingReport> delete(Long id, boolean archive);
+    Collection<Result<EntityKey>> delete(Set<EntityKey> all);
 
     /** Utility method to extract an expected single resource entry form a Collection of specified type.
      * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer
@@ -91,6 +92,25 @@ public interface EntityDAO<T extends Entity> {
         }
 
         return Result.of(resources.iterator().next());
+    }
+
+    default List<Long> extractIdsFromKeys(
+            final Collection<EntityKey> keys,
+            final Collection<Result<EntityKey>> result) {
+
+        final EntityType entityType = entityType();
+        final List<Long> ids = new ArrayList<>();
+        for (final EntityKey key : keys) {
+            if (key.entityType == entityType) {
+                try {
+                    ids.add(Long.valueOf(key.entityId));
+                } catch (final Exception e) {
+                    result.add(Result.ofError(new IllegalArgumentException("Invalid id for EntityKey: " + key)));
+                }
+            }
+        }
+
+        return ids;
     }
 
 }

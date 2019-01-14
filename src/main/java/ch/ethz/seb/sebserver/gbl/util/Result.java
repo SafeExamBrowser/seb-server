@@ -32,6 +32,17 @@ import java.util.stream.Stream;
  *      }
  * </pre>
  *
+ * Or use the Results tryCatch that wraps the given code block in a try catch internally
+ *
+ * <pre>
+ *      public Result<String> compute(String s1, String s2) {
+ *          return Result.tryCatch(() -> {
+ *              ... do some computation
+ *              return result;
+ *          });
+ *      }
+ * </pre>
+ *
  * If you are familiar with <code>java.util.Optional</code> think of Result like an Optional with the
  * capability to report an error.
  *
@@ -107,7 +118,11 @@ public final class Result<T> {
      * @return mapped Result of type U */
     public <U> Result<U> map(final Function<? super T, ? extends U> mapf) {
         if (this.error == null) {
-            return Result.of(mapf.apply(this.value));
+            try {
+                return Result.of(mapf.apply(this.value));
+            } catch (final Throwable t) {
+                return Result.ofError(t);
+            }
         } else {
             return Result.ofError(this.error);
         }
@@ -126,7 +141,11 @@ public final class Result<T> {
      * @return mapped Result of type U */
     public <U> Result<U> flatMap(final Function<? super T, Result<U>> mapf) {
         if (this.error == null) {
-            return mapf.apply(this.value);
+            try {
+                return mapf.apply(this.value);
+            } catch (final Throwable t) {
+                return Result.ofError(t);
+            }
         } else {
             return Result.ofError(this.error);
         }
@@ -215,4 +234,35 @@ public final class Result<T> {
             return Stream.of(result.value);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.value == null) ? 0 : this.value.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Result<?> other = (Result<?>) obj;
+        if (this.value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!this.value.equals(other.value))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Result [value=" + this.value + ", error=" + this.error + "]";
+    }
+
 }
