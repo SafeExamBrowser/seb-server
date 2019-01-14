@@ -29,11 +29,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LMSType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
@@ -208,6 +210,24 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
         }
 
         return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+            final Collection<Result<EntityKey>> result = new ArrayList<>();
+            final List<Long> ids = extractIdsFromKeys(keys, result);
+
+            return this.lmsSetupRecordMapper.selectByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(LmsSetupDAOImpl::toDomainModel)
+                    .map(res -> res.getOrThrow())
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

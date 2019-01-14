@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -150,7 +151,6 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
         final Collection<Result<EntityKey>> result = new ArrayList<>();
-
         final List<Long> ids = extractIdsFromKeys(all, result);
 
         try {
@@ -175,6 +175,24 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
         // NOTE since Institution is the top most Entity, there are no other Entity for that an Institution depends on.
         return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+            final Collection<Result<EntityKey>> result = new ArrayList<>();
+            final List<Long> ids = extractIdsFromKeys(keys, result);
+
+            return this.institutionRecordMapper.selectByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(InstitutionDAOImpl::toDomainModel)
+                    .map(res -> res.getOrThrow())
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

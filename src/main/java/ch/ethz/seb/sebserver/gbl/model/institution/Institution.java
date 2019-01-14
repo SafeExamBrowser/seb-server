@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
-import ch.ethz.seb.sebserver.gbl.model.EntityIdAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
@@ -86,6 +86,7 @@ public final class Institution implements GrantEntity, Activatable {
         return null;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
@@ -109,8 +110,11 @@ public final class Institution implements GrantEntity, Activatable {
                 + ", active=" + this.active + "]";
     }
 
-    public static EntityIdAndName toName(final Institution institution) {
-        return new EntityIdAndName(String.valueOf(institution.id), institution.name);
+    public static EntityKeyAndName toName(final Institution institution) {
+        return new EntityKeyAndName(
+                EntityType.INSTITUTION,
+                String.valueOf(institution.id),
+                institution.name);
     }
 
 }

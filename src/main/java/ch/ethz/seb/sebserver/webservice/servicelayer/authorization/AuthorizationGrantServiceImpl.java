@@ -51,6 +51,11 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
         }
     }
 
+    @Override
+    public UserService getUserService() {
+        return this.userService;
+    }
+
     /** Initialize the (hard-coded) grants */
     @PostConstruct
     public void init() {

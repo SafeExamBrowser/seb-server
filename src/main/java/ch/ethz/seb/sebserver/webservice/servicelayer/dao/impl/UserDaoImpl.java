@@ -39,12 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -272,6 +274,24 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
         }
 
         return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+            final Collection<Result<EntityKey>> result = new ArrayList<>();
+            final List<Long> ids = extractIdsFromKeys(keys, result);
+
+            return this.userRecordMapper.selectByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .map(res -> res.getOrThrow())
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

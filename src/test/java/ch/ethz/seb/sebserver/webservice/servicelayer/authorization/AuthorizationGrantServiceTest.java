@@ -100,6 +100,11 @@ public class AuthorizationGrantServiceTest {
                 return "1";
             }
 
+            @Override
+            public String getName() {
+                return getModelId();
+            }
+
         };
     }
 

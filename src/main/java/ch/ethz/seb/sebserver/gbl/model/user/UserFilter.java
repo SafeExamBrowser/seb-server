@@ -15,7 +15,7 @@ public final class UserFilter {
     public static final String FILTER_ATTR_USER_NAME = "username";
     public static final String FILTER_ATTR_EMAIL = "email";
     public static final String FILTER_ATTR_LOCALE = "locale";
-    public static final String FILTER_ATTR_INSTITUTION = "institutionId";
+    public static final String FILTER_ATTR_INSTITUTION = "institution";
 
     public final Boolean active;
     public final Long institutionId;

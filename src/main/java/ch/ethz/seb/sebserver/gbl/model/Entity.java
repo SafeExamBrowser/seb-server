@@ -12,4 +12,6 @@ public interface Entity extends ModelIdAware {
 
     EntityType entityType();
 
+    String getName();
+
 }

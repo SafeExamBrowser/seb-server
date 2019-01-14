@@ -8,13 +8,31 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class EntityProcessingReport {
 
-    // TODO
+    @JsonProperty(value = "source", required = true)
+    public final Collection<Entity> source;
+    @JsonProperty(value = "dependencies", required = true)
+    public final Collection<EntityKeyAndName> dependencies;
+    @JsonProperty(value = "errors", required = true)
+    public final Map<EntityKeyAndName, String> errors;
 
-    public EntityProcessingReport add(final Entity entity) {
-        // TODO
-        return this;
+    @JsonCreator
+    public EntityProcessingReport(
+            @JsonProperty(value = "source", required = true) final Collection<Entity> source,
+            @JsonProperty(value = "dependencies", required = true) final Collection<EntityKeyAndName> dependencies,
+            @JsonProperty(value = "errors", required = true) final Map<EntityKeyAndName, String> errors) {
+
+        this.source = Collections.unmodifiableCollection(source);
+        this.dependencies = Collections.unmodifiableCollection(dependencies);
+        this.errors = Collections.unmodifiableMap(errors);
     }
 
 }

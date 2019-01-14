@@ -21,6 +21,11 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * has write, modify or even read-only rights on an entity instance or on an entity type. */
 public interface AuthorizationGrantService {
 
+    /** Gets the UserService that is bundled within the AuthorizationGrantService
+     * 
+     * @return the UserService that is bundled within the AuthorizationGrantService */
+    UserService getUserService();
+
     /** Checks if the current user has any privilege (base or institutional or owner) for the given EntityType and
      * PrivilegeType.
      *

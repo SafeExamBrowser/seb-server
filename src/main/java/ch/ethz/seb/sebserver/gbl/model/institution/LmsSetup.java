@@ -19,10 +19,16 @@ import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class LmsSetup implements GrantEntity, Activatable {
+
+    public static final String FILTER_ATTR_INSTITUTION = "institution";
+    public static final String FILTER_ATTR_NAME = "name";
+    public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
+    public static final String FILTER_ATTR_ACTIVE = "active";
 
     public enum LMSType {
         MOCKUP,
@@ -133,6 +139,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         return this.institutionId;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
@@ -177,6 +184,13 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 + this.lmsApiUrl
                 + ", lmsRestApiToken=" + this.lmsRestApiToken + ", sebAuthName=" + this.sebAuthName + ", sebAuthSecret="
                 + this.sebAuthSecret + ", active=" + this.active + "]";
+    }
+
+    public static EntityKeyAndName toName(final LmsSetup lmsSetup) {
+        return new EntityKeyAndName(
+                EntityType.LMS_SETUP,
+                String.valueOf(lmsSetup.id),
+                lmsSetup.name);
     }
 
 }

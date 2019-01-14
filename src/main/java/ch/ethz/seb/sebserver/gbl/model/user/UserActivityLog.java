@@ -84,6 +84,12 @@ public class UserActivityLog implements Entity {
                 : null;
     }
 
+    @Override
+    @JsonIgnore
+    public String getName() {
+        return getModelId();
+    }
+
     public String getUserUuid() {
         return this.userUUID;
     }

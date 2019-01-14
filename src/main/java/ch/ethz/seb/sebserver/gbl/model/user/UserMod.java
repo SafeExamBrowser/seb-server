@@ -149,6 +149,7 @@ public final class UserMod implements GrantEntity {
         return this.newPassword;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }

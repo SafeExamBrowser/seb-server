@@ -122,6 +122,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         return this.uuid;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }

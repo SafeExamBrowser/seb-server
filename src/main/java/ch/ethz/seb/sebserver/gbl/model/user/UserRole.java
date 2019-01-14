@@ -27,4 +27,9 @@ public enum UserRole implements Entity {
     public String getModelId() {
         return name();
     }
+
+    @Override
+    public String getName() {
+        return name();
+    }
 }

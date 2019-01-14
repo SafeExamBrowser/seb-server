@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityIdAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -31,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
@@ -46,19 +45,17 @@ public class InstitutionController {
 
     private final InstitutionDAO institutionDAO;
     private final AuthorizationGrantService authorizationGrantService;
-    private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
     private final BulkActionService bulkActionService;
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
             final AuthorizationGrantService authorizationGrantService,
-            final UserService userService, final UserActivityLogDAO userActivityLogDAO,
+            final UserActivityLogDAO userActivityLogDAO,
             final BulkActionService bulkActionService) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;
-        this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
         this.bulkActionService = bulkActionService;
     }
@@ -68,7 +65,9 @@ public class InstitutionController {
 
         checkBaseReadPrivilege();
 
-        final SEBServerUser currentUser = this.userService.getCurrentUser();
+        final SEBServerUser currentUser = this.authorizationGrantService
+                .getUserService()
+                .getCurrentUser();
         final Long institutionId = currentUser.institutionId();
         return this.institutionDAO.byId(institutionId).getOrThrow();
 
@@ -94,7 +93,7 @@ public class InstitutionController {
         checkBaseReadPrivilege();
 
         if (!this.authorizationGrantService.hasBasePrivilege(
-                EntityType.USER,
+                EntityType.INSTITUTION,
                 PrivilegeType.READ_ONLY)) {
 
             // User has only institutional privilege, can see only the institution he/she belongs to
@@ -105,40 +104,24 @@ public class InstitutionController {
     }
 
     @RequestMapping(path = "/names", method = RequestMethod.GET)
-    public Collection<EntityIdAndName> getNames(
+    public Collection<EntityKeyAndName> getNames(
             @RequestParam(name = Institution.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
-        checkBaseReadPrivilege();
-
-        if (!this.authorizationGrantService.hasBasePrivilege(
-                EntityType.USER,
-                PrivilegeType.READ_ONLY)) {
-
-            // User has only institutional privilege, can see only the institution he/she belongs to
-            return Arrays.asList(getOwn())
-                    .stream()
-                    .map(Institution::toName)
-                    .collect(Collectors.toList());
-
-        } else {
-
-            return this.institutionDAO.all(inst -> true, active)
-                    .getOrThrow()
-                    .stream()
-                    .map(Institution::toName)
-                    .collect(Collectors.toList());
-        }
+        return getAll(active)
+                .stream()
+                .map(Institution::toName)
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(path = "/create", method = RequestMethod.PUT)
     public Institution create(@Valid @RequestBody final Institution institution) {
-        return _saveInstitution(institution, PrivilegeType.WRITE)
+        return save(institution, PrivilegeType.WRITE)
                 .getOrThrow();
     }
 
     @RequestMapping(path = "/save", method = RequestMethod.POST)
     public Institution save(@Valid @RequestBody final Institution institution) {
-        return _saveInstitution(institution, PrivilegeType.MODIFY)
+        return save(institution, PrivilegeType.MODIFY)
                 .getOrThrow();
     }
 
@@ -197,7 +180,7 @@ public class InstitutionController {
                 .getOrThrow();
     }
 
-    private Result<Institution> _saveInstitution(final Institution institution, final PrivilegeType privilegeType) {
+    private Result<Institution> save(final Institution institution, final PrivilegeType privilegeType) {
 
         final ActivityType activityType = (institution.id == null)
                 ? ActivityType.CREATE
