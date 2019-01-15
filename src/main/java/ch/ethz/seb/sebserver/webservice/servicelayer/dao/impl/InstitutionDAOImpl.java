@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.ArrayList;
@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
@@ -73,7 +72,10 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
                     this.institutionRecordMapper.selectByExample();
 
             final List<InstitutionRecord> records = (active != null)
-                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(active)))
+                    ? example
+                            .where(
+                                    InstitutionRecordDynamicSqlSupport.active,
+                                    isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
                     : example.build().execute();
@@ -93,7 +95,7 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
                 .selectByExample()
                 .where(
                         InstitutionRecordDynamicSqlSupport.active,
-                        SqlBuilder.isEqualTo(BooleanUtils.toInteger(BooleanUtils.isNotFalse(active))))
+                        SqlBuilder.isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                 .and(
                         InstitutionRecordDynamicSqlSupport.name,
                         SqlBuilder.isEqualToWhenPresent(Utils.toSQLWildcard(name)))

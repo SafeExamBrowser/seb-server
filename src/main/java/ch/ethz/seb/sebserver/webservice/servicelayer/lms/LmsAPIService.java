@@ -13,8 +13,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface LmsAPIService {
 
-    Result<LmsAPITemplate> createConnectionTemplate(Long lmsSetupId);
+    Result<LmsAPITemplate> createLmsAPITemplate(Long lmsSetupId);
 
-    Result<LmsAPITemplate> createConnectionTemplate(LmsSetup lmsSetup);
+    Result<LmsAPITemplate> createLmsAPITemplate(LmsSetup lmsSetup);
 
 }

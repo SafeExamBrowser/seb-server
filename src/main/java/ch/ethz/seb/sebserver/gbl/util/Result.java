@@ -219,6 +219,14 @@ public final class Result<T> {
         return ofError(new RuntimeException(message));
     }
 
+    public static <T> Result<T> ofTODO() {
+        return ofTODO("No Comment");
+    }
+
+    public static <T> Result<T> ofTODO(final String message) {
+        return ofError(new RuntimeException("TODO: " + message));
+    }
+
     public static <T> Result<T> tryCatch(final Supplier<T> supplier) {
         try {
             return Result.of(supplier.get());

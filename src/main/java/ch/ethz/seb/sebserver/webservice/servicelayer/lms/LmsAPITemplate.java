@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.Collection;
+import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
@@ -30,18 +31,17 @@ public interface LmsAPITemplate {
 
     LmsSetupTestResult testLmsSetup();
 
-    Collection<QuizData> getQuizzes(String name, Long from, Long to, OrderBy orderBy, SortOrder sortOrder);
+    Collection<QuizData> getQuizzes(String name, Long from, OrderBy orderBy, SortOrder sortOrder);
 
     Page<QuizData> getQuizzesPage(
             String name,
             Long from,
-            Long to,
             OrderBy orderBy,
             SortOrder sortOrder,
             int pageNumber,
             int pageSize);
 
-    Collection<Result<QuizData>> getQuizzes(Collection<String> ids);
+    Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
     Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
 

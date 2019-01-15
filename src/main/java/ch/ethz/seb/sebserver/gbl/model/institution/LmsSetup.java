@@ -75,7 +75,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @Size(min = 8, max = 255, message = "lmsSetup:sebAuthSecret:size:{min}:{max}:${validatedValue}")
     public final String sebAuthSecret;
 
-    /** Indicates whether this LmsSetup is still active or not */
+    /** Indicates whether this LmsSetup is active or not */
     @JsonProperty(LMS_SETUP.ATTR_ACTIVE)
     public final Boolean active;
 
@@ -103,7 +103,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.lmsRestApiToken = lmsRestApiToken;
         this.sebAuthName = sebAuthName;
         this.sebAuthSecret = sebAuthSecret;
-        this.active = active;
+        this.active = (active != null) ? active : Boolean.FALSE;
     }
 
     @Override
@@ -113,7 +113,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     @JsonIgnore
     @Override
-    public String getOwnerUUID() {
+    public String getOwnerId() {
         return null;
     }
 

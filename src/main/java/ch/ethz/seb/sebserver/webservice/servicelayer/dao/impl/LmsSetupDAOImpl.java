@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
@@ -78,7 +77,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
 
             final List<LmsSetupRecord> records = (active != null)
                     ? example
-                            .where(LmsSetupRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(active)))
+                            .where(
+                                    LmsSetupRecordDynamicSqlSupport.active,
+                                    isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
                     : example.build().execute();
@@ -107,7 +108,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
                     .where(LmsSetupRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(institutionId))
                     .and(LmsSetupRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(name)))
                     .and(LmsSetupRecordDynamicSqlSupport.lmsType, isEqualToWhenPresent(_lmsType))
-                    .and(LmsSetupRecordDynamicSqlSupport.active,
+                    .and(
+                            LmsSetupRecordDynamicSqlSupport.active,
                             isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                     .build()
                     .execute()
@@ -220,7 +222,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
             final List<Long> ids = extractIdsFromKeys(keys, result);
 
             return this.lmsSetupRecordMapper.selectByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute()
                     .stream()

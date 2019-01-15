@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -79,7 +79,7 @@ public class LmsSetupController {
         if (!this.authorizationGrantService.hasBasePrivilege(
                 EntityType.LMS_SETUP,
                 PrivilegeType.READ_ONLY) &&
-                instId != usersInstitution) {
+                !instId.equals(usersInstitution)) {
 
             throw new PermissionDeniedException(
                     EntityType.LMS_SETUP,

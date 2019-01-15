@@ -23,6 +23,6 @@ public interface GrantEntity extends Entity {
     /** The institution association of a GrantEntity. This is the UUID of the owner-user
      *
      * @return The institution association of a GrantEntity */
-    String getOwnerUUID();
+    String getOwnerId();
 
 }

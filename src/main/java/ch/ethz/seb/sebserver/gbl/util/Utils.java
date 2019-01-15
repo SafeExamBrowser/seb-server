@@ -8,13 +8,19 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.joda.time.DateTime;
+
+import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
 
@@ -70,6 +76,33 @@ public final class Utils {
 
     public static String toSQLWildcard(final String text) {
         return (text == null) ? null : "%" + text + "%";
+    }
+
+    public static Result<Long> dateTimeStringToTimestamp(final String startTime) {
+        return Result.tryCatch(() -> {
+            return DateTime.parse(startTime, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS).getMillis();
+        });
+    }
+
+    public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {
+        return dateTimeStringToTimestamp(startTime)
+                .getOrElse(defaultValue);
+    }
+
+    public static <M extends Map<K, V>, K, V> M mapPut(final M map, final K key, final V value) {
+        map.put(key, value);
+        return map;
+    }
+
+    public static <M extends Map<K, V>, K, V> M mapPutAll(final M map1, final M map2) {
+        map1.putAll(map2);
+        return map1;
+    }
+
+    public static <M extends Map<K, Collection<V>>, K, V> M mapCollect(final M map, final K key, final V value) {
+        final List<V> list = (List<V>) map.computeIfAbsent(key, k -> new ArrayList<>());
+        list.add(value);
+        return map;
     }
 
 }

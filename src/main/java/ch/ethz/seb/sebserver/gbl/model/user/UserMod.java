@@ -141,7 +141,7 @@ public final class UserMod implements GrantEntity {
 
     @Override
     @JsonIgnore
-    public String getOwnerUUID() {
+    public String getOwnerId() {
         return this.uuid;
     }
 

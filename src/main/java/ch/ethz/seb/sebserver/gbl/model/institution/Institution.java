@@ -82,7 +82,7 @@ public final class Institution implements GrantEntity, Activatable {
     }
 
     @Override
-    public String getOwnerUUID() {
+    public String getOwnerId() {
         return null;
     }
 

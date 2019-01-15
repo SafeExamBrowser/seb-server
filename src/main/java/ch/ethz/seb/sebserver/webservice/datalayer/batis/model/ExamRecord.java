@@ -3,78 +3,87 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ExamRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.310+01:00", comments="Source field: exam.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.310+01:00", comments="Source field: exam.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.lms_setup_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.lms_setup_id")
     private Long lmsSetupId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.external_uuid")
-    private String externalUuid;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.external_id")
+    private String externalId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.owner")
     private String owner;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.supporter")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.supporter")
     private String supporter;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.312+01:00", comments="Source field: exam.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.status")
+    private String status;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.active")
     private Integer active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.310+01:00", comments="Source Table: exam")
-    public ExamRecord(Long id, Long institutionId, Long lmsSetupId, String externalUuid, String owner, String supporter, String type, Integer active) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.843+01:00", comments="Source Table: exam")
+    public ExamRecord(Long id, Long institutionId, Long lmsSetupId, String externalId, String owner, String supporter, String type, String status, Integer active) {
         this.id = id;
         this.institutionId = institutionId;
         this.lmsSetupId = lmsSetupId;
-        this.externalUuid = externalUuid;
+        this.externalId = externalId;
         this.owner = owner;
         this.supporter = supporter;
         this.type = type;
+        this.status = status;
         this.active = active;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.310+01:00", comments="Source field: exam.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.310+01:00", comments="Source field: exam.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.lms_setup_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.844+01:00", comments="Source field: exam.lms_setup_id")
     public Long getLmsSetupId() {
         return lmsSetupId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.external_uuid")
-    public String getExternalUuid() {
-        return externalUuid;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.external_id")
+    public String getExternalId() {
+        return externalId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.owner")
     public String getOwner() {
         return owner;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.supporter")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.supporter")
     public String getSupporter() {
         return supporter;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.311+01:00", comments="Source field: exam.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-08T14:34:59.312+01:00", comments="Source field: exam.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.status")
+    public String getStatus() {
+        return status;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-01-15T10:10:06.845+01:00", comments="Source field: exam.active")
     public Integer getActive() {
         return active;
     }
@@ -83,7 +92,7 @@ public class ExamRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam
      *
-     * @mbg.generated Tue Jan 08 14:34:59 CET 2019
+     * @mbg.generated Tue Jan 15 10:10:06 CET 2019
      */
     @Override
     public String toString() {
@@ -94,10 +103,11 @@ public class ExamRecord {
         sb.append(", id=").append(id);
         sb.append(", institutionId=").append(institutionId);
         sb.append(", lmsSetupId=").append(lmsSetupId);
-        sb.append(", externalUuid=").append(externalUuid);
+        sb.append(", externalId=").append(externalId);
         sb.append(", owner=").append(owner);
         sb.append(", supporter=").append(supporter);
         sb.append(", type=").append(type);
+        sb.append(", status=").append(status);
         sb.append(", active=").append(active);
         sb.append("]");
         return sb.toString();
@@ -107,7 +117,7 @@ public class ExamRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam
      *
-     * @mbg.generated Tue Jan 08 14:34:59 CET 2019
+     * @mbg.generated Tue Jan 15 10:10:06 CET 2019
      */
     @Override
     public boolean equals(Object that) {
@@ -124,10 +134,11 @@ public class ExamRecord {
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getInstitutionId() == null ? other.getInstitutionId() == null : this.getInstitutionId().equals(other.getInstitutionId()))
             && (this.getLmsSetupId() == null ? other.getLmsSetupId() == null : this.getLmsSetupId().equals(other.getLmsSetupId()))
-            && (this.getExternalUuid() == null ? other.getExternalUuid() == null : this.getExternalUuid().equals(other.getExternalUuid()))
+            && (this.getExternalId() == null ? other.getExternalId() == null : this.getExternalId().equals(other.getExternalId()))
             && (this.getOwner() == null ? other.getOwner() == null : this.getOwner().equals(other.getOwner()))
             && (this.getSupporter() == null ? other.getSupporter() == null : this.getSupporter().equals(other.getSupporter()))
             && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
+            && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
             && (this.getActive() == null ? other.getActive() == null : this.getActive().equals(other.getActive()));
     }
 
@@ -135,7 +146,7 @@ public class ExamRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam
      *
-     * @mbg.generated Tue Jan 08 14:34:59 CET 2019
+     * @mbg.generated Tue Jan 15 10:10:06 CET 2019
      */
     @Override
     public int hashCode() {
@@ -144,10 +155,11 @@ public class ExamRecord {
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getInstitutionId() == null) ? 0 : getInstitutionId().hashCode());
         result = prime * result + ((getLmsSetupId() == null) ? 0 : getLmsSetupId().hashCode());
-        result = prime * result + ((getExternalUuid() == null) ? 0 : getExternalUuid().hashCode());
+        result = prime * result + ((getExternalId() == null) ? 0 : getExternalId().hashCode());
         result = prime * result + ((getOwner() == null) ? 0 : getOwner().hashCode());
         result = prime * result + ((getSupporter() == null) ? 0 : getSupporter().hashCode());
         result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
+        result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
         result = prime * result + ((getActive() == null) ? 0 : getActive().hashCode());
         return result;
     }

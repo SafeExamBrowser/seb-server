@@ -12,56 +12,72 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 public final class QuizData {
 
-    @JsonProperty(Domain.ATTR_ID)
-    public final String uuid;
+    public static final String FILTER_ATTR_NAME = "name_like";
+    public static final String FILTER_ATTR_START_TIME = "start_timestamp";
 
-    @JsonProperty("courseName")
+    public static final String PAGE_ATTR_NUMBER = "page_number";
+    public static final String PAGE_ATTR_SIZE = "page_size";
+    public static final String PAGE_ATTR_SORT_BY = "sort_by";
+    public static final String PAGE_ATTR_SORT_ORDER = "sort_order";
+
+    public static final String QUIZ_ATTR_ID = "quiz_id";
+    public static final String QUIZ_ATTR_NAME = "quiz_name";
+    public static final String QUIZ_ATTR_DESCRIPTION = "quiz_description";
+    public static final String QUIZ_ATTR_START_TIME = "quiz_start_time";
+    public static final String QUIZ_ATTR_END_TIME = "quiz_end_time";
+    public static final String QUIZ_ATTR_START_URL = "quiz_start_url";
+
+    @JsonProperty(QUIZ_ATTR_ID)
+    public final String id;
+
+    @JsonProperty(QUIZ_ATTR_NAME)
     public final String name;
 
-    @JsonProperty("courseDescription")
+    @JsonProperty(QUIZ_ATTR_DESCRIPTION)
     public final String description;
 
-    @JsonProperty("startTime")
+    @JsonProperty(QUIZ_ATTR_START_TIME)
     public final DateTime startTime;
 
-    @JsonProperty("endTime")
+    @JsonProperty(QUIZ_ATTR_END_TIME)
     public final DateTime endTime;
 
-    @JsonProperty("enrollmentURL")
-    public final String enrollmentURL;
+    @JsonProperty(QUIZ_ATTR_START_URL)
+    public final String startURL;
 
+    @JsonCreator
     public QuizData(
-            final String uuid,
-            final String name,
-            final String description,
-            final DateTime startTime,
-            final DateTime endTime,
-            final String enrollmentURL) {
+            @JsonProperty(QUIZ_ATTR_ID) final String id,
+            @JsonProperty(QUIZ_ATTR_NAME) final String name,
+            @JsonProperty(QUIZ_ATTR_DESCRIPTION) final String description,
+            @JsonProperty(QUIZ_ATTR_START_TIME) final DateTime startTime,
+            @JsonProperty(QUIZ_ATTR_END_TIME) final DateTime endTime,
+            @JsonProperty(QUIZ_ATTR_START_URL) final String startURL) {
 
-        this.uuid = uuid;
+        this.id = id;
         this.name = name;
         this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.enrollmentURL = enrollmentURL;
+        this.startURL = startURL;
     }
 
     public QuizData(
-            final String uuid,
+            final String id,
             final String name,
             final String description,
             final String startTime,
             final String endTime,
-            final String enrollmentURL) {
+            final String startURL) {
 
-        this.uuid = uuid;
+        this.id = id;
         this.name = name;
         this.description = description;
         this.startTime = LocalDateTime
@@ -70,11 +86,11 @@ public final class QuizData {
         this.endTime = LocalDateTime
                 .parse(endTime, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS)
                 .toDateTime(DateTimeZone.UTC);
-        this.enrollmentURL = enrollmentURL;
+        this.startURL = startURL;
     }
 
-    public String getUuid() {
-        return this.uuid;
+    public String geId() {
+        return this.id;
     }
 
     public String getName() {
@@ -93,25 +109,15 @@ public final class QuizData {
         return this.endTime;
     }
 
-    public String getEnrollmentURL() {
-        return this.enrollmentURL;
+    public String getStartURL() {
+        return this.startURL;
     }
-
-//    public ExamStatus getStatus() {
-//        if (this.startTime.isAfterNow()) {
-//            return ExamStatus.READY;
-//        } else if (this.startTime.isBeforeNow() && this.endTime.isAfterNow()) {
-//            return ExamStatus.RUNNING;
-//        } else {
-//            return ExamStatus.FINISHED;
-//        }
-//    }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((this.uuid == null) ? 0 : this.uuid.hashCode());
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         return result;
     }
 
@@ -124,19 +130,19 @@ public final class QuizData {
         if (getClass() != obj.getClass())
             return false;
         final QuizData other = (QuizData) obj;
-        if (this.uuid == null) {
-            if (other.uuid != null)
+        if (this.id == null) {
+            if (other.id != null)
                 return false;
-        } else if (!this.uuid.equals(other.uuid))
+        } else if (!this.id.equals(other.id))
             return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "QuizData [uuid=" + this.uuid + ", name=" + this.name + ", description=" + this.description
-                + ", startTime="
-                + this.startTime + ", endTime=" + this.endTime + ", enrollmentURL=" + this.enrollmentURL + "]";
+        return "QuizData [id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", startTime="
+                + this.startTime
+                + ", endTime=" + this.endTime + ", startURL=" + this.startURL + "]";
     }
 
 }

@@ -134,7 +134,10 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
                     this.userRecordMapper.selectByExample();
 
             final List<UserRecord> records = (active != null)
-                    ? example.where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(active)))
+                    ? example
+                            .where(
+                                    UserRecordDynamicSqlSupport.active,
+                                    isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
                     : example.build().execute();
@@ -158,7 +161,7 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
 
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
                 UserRecordDynamicSqlSupport.active,
-                isEqualToWhenPresent(BooleanUtils.toInteger(BooleanUtils.isNotFalse(filter.active))))
+                isEqualToWhenPresent(BooleanUtils.toIntegerObject(filter.active)))
                 .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
                 .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(filter.name)))
                 .and(UserRecordDynamicSqlSupport.username, isLikeWhenPresent(toSQLWildcard(filter.username)))

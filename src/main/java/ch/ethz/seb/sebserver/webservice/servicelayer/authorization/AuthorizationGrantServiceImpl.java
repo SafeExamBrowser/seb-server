@@ -332,12 +332,12 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
                 final GrantEntity entity,
                 final PrivilegeType grantType) {
 
-            if (entity.getOwnerUUID() == null) {
+            if (entity.getOwnerId() == null) {
                 return false;
             }
 
             return roleTypeGrant.hasOwnershipPrivilege(grantType) &&
-                    user.uuid().equals(entity.getOwnerUUID());
+                    user.uuid().equals(entity.getOwnerId());
         }
     }
 

@@ -91,7 +91,7 @@ public class AuthorizationGrantServiceTest {
             }
 
             @Override
-            public String getOwnerUUID() {
+            public String getOwnerId() {
                 return owner;
             }
 

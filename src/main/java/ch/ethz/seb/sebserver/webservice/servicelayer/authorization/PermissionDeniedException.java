@@ -39,7 +39,7 @@ public class PermissionDeniedException extends RuntimeException {
         super("No grant: " + grantType +
                 " on type: " + entity.entityType() +
                 " entity institution: " + entity.getInstitutionId() +
-                " entity owner: " + entity.getOwnerUUID() +
+                " entity owner: " + entity.getOwnerId() +
                 " for user: " + userId);
         this.entityType = entity.entityType();
         this.entity = entity;

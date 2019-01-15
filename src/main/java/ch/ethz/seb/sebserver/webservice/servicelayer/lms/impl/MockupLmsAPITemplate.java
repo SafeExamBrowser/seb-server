@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -81,7 +82,6 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     public Collection<QuizData> getQuizzes(
             final String name,
             final Long from,
-            final Long to,
             final OrderBy orderBy,
             final SortOrder sortOrder) {
 
@@ -90,9 +90,7 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
                         ? mockup.name.contains(name)
                         : true && (from != null)
                                 ? mockup.startTime.getMillis() >= from
-                                : true && (to != null)
-                                        ? mockup.startTime.getMillis() < to
-                                        : true)
+                                : true)
                 .collect(Collectors.toList());
     }
 
@@ -100,7 +98,6 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     public Page<QuizData> getQuizzesPage(
             final String name,
             final Long from,
-            final Long to,
             final OrderBy orderBy,
             final SortOrder sortOrder,
             final int pageNumber,
@@ -109,7 +106,7 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
         final int startIndex = pageNumber * pageSize;
         final int endIndex = startIndex + pageSize;
         int index = 0;
-        final Collection<QuizData> quizzes = getQuizzes(name, from, to, orderBy, sortOrder);
+        final Collection<QuizData> quizzes = getQuizzes(name, from, orderBy, sortOrder);
         final int numberOfPages = quizzes.size() / pageSize;
         final Iterator<QuizData> iterator = quizzes.iterator();
         final List<QuizData> pageContent = new ArrayList<>();
@@ -125,9 +122,9 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Collection<String> ids) {
+    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
         return this.mockups.stream()
-                .filter(mockup -> ids.contains(mockup.uuid))
+                .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
                 .collect(Collectors.toList());
     }

@@ -28,14 +28,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     }
 
     @Override
-    public Result<LmsAPITemplate> createConnectionTemplate(final Long lmsSetupId) {
+    public Result<LmsAPITemplate> createLmsAPITemplate(final Long lmsSetupId) {
         return this.lmsSetupDAO
                 .byId(lmsSetupId)
-                .flatMap(this::createConnectionTemplate);
+                .flatMap(this::createLmsAPITemplate);
     }
 
     @Override
-    public Result<LmsAPITemplate> createConnectionTemplate(final LmsSetup lmsSetup) {
+    public Result<LmsAPITemplate> createLmsAPITemplate(final LmsSetup lmsSetup) {
         switch (lmsSetup.lmsType) {
             case MOCKUP:
                 return Result.of(new MockupLmsAPITemplate(lmsSetup));

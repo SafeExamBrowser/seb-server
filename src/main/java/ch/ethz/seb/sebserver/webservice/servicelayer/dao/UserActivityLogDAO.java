@@ -22,6 +22,7 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
 
     enum ActivityType {
         CREATE,
+        IMPORT,
         MODIFY,
         DEACTIVATE,
         ACTIVATE,
