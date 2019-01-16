@@ -12,8 +12,9 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface InstitutionDAO extends ActivatableEntityDAO<Institution> {
+public interface InstitutionDAO extends ActivatableEntityDAO<Institution>, BulkActionSupportDAO<Institution> {
 
     Result<Collection<Institution>> allMatching(String name, Boolean active);
 

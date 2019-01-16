@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +26,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -37,14 +35,13 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
+public class InstitutionDAOImpl implements InstitutionDAO {
 
     private final InstitutionRecordMapper institutionRecordMapper;
 
@@ -126,9 +123,7 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
         final InstitutionRecord institutionRecord = new InstitutionRecord(
                 null, null, null, BooleanUtils.toInteger(active), null);
 
@@ -152,8 +147,7 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
 
         try {
             this.institutionRecordMapper.deleteByExample()
@@ -181,10 +175,9 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<Institution>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final Collection<Result<EntityKey>> result = new ArrayList<>();
-            final List<Long> ids = extractIdsFromKeys(keys, result);
+            final List<Long> ids = extractIdsFromKeys(keys);
 
             return this.institutionRecordMapper.selectByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -195,25 +188,6 @@ public class InstitutionDAOImpl implements InstitutionDAO, BulkActionSupport {
                     .map(res -> res.getOrThrow())
                     .collect(Collectors.toList());
         });
-    }
-
-    @Override
-    @Transactional
-    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
-
-        final Set<EntityKey> all = bulkAction.extractKeys(EntityType.INSTITUTION);
-
-        switch (bulkAction.type) {
-            case ACTIVATE:
-                return setActive(all, true);
-            case DEACTIVATE:
-                return setActive(all, false);
-            case HARD_DELETE:
-                return delete(all);
-        }
-
-        // should never happen
-        throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
     }
 
     private Result<InstitutionRecord> recordById(final Long id) {

@@ -19,11 +19,12 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
-public interface UserDAO extends ActivatableEntityDAO<UserInfo> {
+public interface UserDAO extends ActivatableEntityDAO<UserInfo>, BulkActionSupportDAO<UserInfo> {
 
     /** Use this to get UserInfo by users UUID
      *
@@ -87,6 +88,6 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo> {
      *
      * @param uuid The UUID of the user
      * @return a Collection containing EntityKey's of all entities that belongs to a given User */
-    Collection<EntityKey> getAllUserData(String uuid);
+    Collection<EntityKey> getAllUserRelatedData(String uuid);
 
 }

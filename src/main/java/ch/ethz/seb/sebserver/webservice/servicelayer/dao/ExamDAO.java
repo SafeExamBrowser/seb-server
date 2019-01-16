@@ -13,8 +13,9 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface ExamDAO extends ActivatableEntityDAO<Exam> {
+public interface ExamDAO extends ActivatableEntityDAO<Exam>, BulkActionSupportDAO<Exam> {
 
     Result<Exam> importFromQuizData(QuizData quizData);
 

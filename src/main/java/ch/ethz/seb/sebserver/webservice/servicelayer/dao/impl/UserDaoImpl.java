@@ -11,10 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -39,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
@@ -55,13 +52,12 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
-public class UserDaoImpl implements UserDAO, BulkActionSupport {
+public class UserDaoImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
     private static final UserFilter ALL_ACTIVE_ONLY_FILTER = new UserFilter(null, null, null, null, true, null);
@@ -195,9 +191,7 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
         final UserRecord userRecord = new UserRecord(
                 null, null, null, null, null, null, null, null, null,
                 BooleanUtils.toIntegerObject(active));
@@ -222,9 +216,7 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
 
         try {
             this.userRecordMapper.deleteByExample()
@@ -245,9 +237,9 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<EntityKey> getAllUserData(final String uuid) {
+    public Collection<EntityKey> getAllUserRelatedData(final String uuid) {
 
-        // TODO
+        // TODO get
 
         return Collections.emptyList();
     }
@@ -257,23 +249,7 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
         // all of institution
         if (bulkAction.sourceType == EntityType.INSTITUTION) {
-            final Set<EntityKey> result = new HashSet<>();
-            for (final EntityKey sourceKey : bulkAction.sources) {
-                try {
-                    result.addAll(this.userRecordMapper.selectIdsByExample()
-                            .where(UserRecordDynamicSqlSupport.institutionId,
-                                    isEqualTo(Long.valueOf(sourceKey.entityId)))
-                            .build()
-                            .execute()
-                            .stream()
-                            .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
-                            .collect(Collectors.toList()));
-                } catch (final Exception e) {
-                    log.error("Unexpected error: ", e);
-                    return Collections.emptySet();
-                }
-            }
-            return result;
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
         }
 
         return Collections.emptySet();
@@ -281,10 +257,9 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<UserInfo>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final Collection<Result<EntityKey>> result = new ArrayList<>();
-            final List<Long> ids = extractIdsFromKeys(keys, result);
+            final List<Long> ids = extractIdsFromKeys(keys);
 
             return this.userRecordMapper.selectByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -298,45 +273,39 @@ public class UserDaoImpl implements UserDAO, BulkActionSupport {
     }
 
     @Override
-    @Transactional
-    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
-        final Set<EntityKey> all = bulkAction.extractKeys(EntityType.USER);
-
-        switch (bulkAction.type) {
-            case ACTIVATE:
-                return setActive(all, true);
-            case DEACTIVATE:
-                return setActive(all, false);
-            case HARD_DELETE:
-                return delete(all);
-        }
-
-        // should never happen
-        throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
-    }
-
-    @Override
-    public List<Long> extractIdsFromKeys(
-            final Collection<EntityKey> keys,
-            final Collection<Result<EntityKey>> result) {
-
+    public List<Long> extractIdsFromKeys(final Collection<EntityKey> keys) {
         if (keys == null || keys.isEmpty() || keys.iterator().next().isIdPK) {
-            return UserDAO.super.extractIdsFromKeys(keys, result);
+            return UserDAO.super.extractIdsFromKeys(keys);
         } else {
             final List<String> uuids = keys.stream()
                     .map(key -> key.entityId)
                     .collect(Collectors.toList());
 
             try {
+
                 return this.userRecordMapper.selectIdsByExample()
                         .where(UserRecordDynamicSqlSupport.uuid, isIn(uuids))
                         .build()
                         .execute();
+
             } catch (final Exception e) {
                 log.error("Unexpected error: ", e);
                 return Collections.emptyList();
             }
         }
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> {
+            return this.userRecordMapper.selectIdsByExample()
+                    .where(UserRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.USER))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<UserRecord> updateUser(final UserMod userMod) {

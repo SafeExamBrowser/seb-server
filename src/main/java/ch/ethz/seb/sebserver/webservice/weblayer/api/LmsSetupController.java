@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @WebServiceProfile
 @RestController
@@ -48,17 +50,20 @@ public class LmsSetupController {
     private final AuthorizationGrantService authorizationGrantService;
     private final UserActivityLogDAO userActivityLogDAO;
     private final BulkActionService bulkActionService;
+    private final LmsAPIService lmsAPIService;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
             final AuthorizationGrantService authorizationGrantService,
             final UserActivityLogDAO userActivityLogDAO,
-            final BulkActionService bulkActionService) {
+            final BulkActionService bulkActionService,
+            final LmsAPIService lmsAPIService) {
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.authorizationGrantService = authorizationGrantService;
         this.userActivityLogDAO = userActivityLogDAO;
         this.bulkActionService = bulkActionService;
+        this.lmsAPIService = lmsAPIService;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -115,6 +120,21 @@ public class LmsSetupController {
                 .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(
                         inst,
                         PrivilegeType.READ_ONLY))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = "/create_seb_config/{id}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE) // TODO check if this is the right format
+    public byte[] createSEBConfig(@PathVariable final Long id) {
+
+        this.authorizationGrantService.checkHasAnyPrivilege(
+                EntityType.LMS_SETUP,
+                PrivilegeType.WRITE);
+
+        return this.lmsAPIService
+                .createSEBStartConfiguration(id)
                 .getOrThrow();
     }
 

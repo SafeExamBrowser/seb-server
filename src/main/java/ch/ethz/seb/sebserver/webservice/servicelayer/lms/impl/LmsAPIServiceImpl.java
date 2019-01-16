@@ -45,4 +45,25 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         }
     }
 
+    @Override
+    public Result<byte[]> createSEBStartConfiguration(final Long lmsSetupId) {
+        return this.lmsSetupDAO
+                .byId(lmsSetupId)
+                .flatMap(this::createSEBStartConfiguration);
+    }
+
+    @Override
+    public Result<byte[]> createSEBStartConfiguration(final LmsSetup lmsSetup) {
+
+        // TODO implementation of creation of SEB start configuration for specified LmsSetup
+        // A SEB start configuration should at least contain the SEB-Client-Credentials to access the SEB Server API
+        // and the SEB Server URL
+        //
+        // To Clarify : The format of a SEB start configuration
+        // To Clarify : How the file should be encrypted (use case) maybe we need another encryption-secret for this that can be given by
+        //              an administrator on SEB start configuration creation time
+
+        return Result.ofTODO();
+    }
+
 }

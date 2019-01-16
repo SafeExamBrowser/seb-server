@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -42,14 +41,13 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamic
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @Lazy
 @Component
-public class ExamDAOImpl implements ExamDAO, BulkActionSupport {
+public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final LmsAPIService lmsAPIService;
@@ -164,44 +162,111 @@ public class ExamDAOImpl implements ExamDAO, BulkActionSupport {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
-    }
-
-    @Override
-    @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
-    }
-
-    @Override
-    @Transactional
     public Result<Exam> importFromQuizData(final QuizData quizData) {
         // TODO Auto-generated method stub
         return Result.ofTODO();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
-        // TODO Auto-generated method stub
-        return Collections.emptySet();
-    }
+    @Transactional
+    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        final List<Long> ids = extractIdsFromKeys(all);
+        final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
+                null, null, null, BooleanUtils.toInteger(active));
 
-    @Override
-    @Transactional(readOnly = true)
-    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
-        // TODO Auto-generated method stub
-        return Result.ofTODO();
+        try {
+
+            this.examRecordMapper.updateByExampleSelective(examRecord)
+                    .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.EXAM)))
+                    .collect(Collectors.toList());
+
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Activation failed on unexpected exception for Exam of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
+    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
+        final List<Long> ids = extractIdsFromKeys(all);
+
+        try {
+
+            this.examRecordMapper.deleteByExample()
+                    .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> Result.of(new EntityKey(id, EntityType.EXAM)))
+                    .collect(Collectors.toList());
+
+        } catch (final Exception e) {
+            return ids.stream()
+                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
+                            "Deletion failed on unexpected exception for Exam of id: " + id, e)))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // define the select function in case of source type
+        final Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction =
+                (bulkAction.sourceType == EntityType.INSTITUTION)
+                        ? this::allIdsOfInstitution
+                        : (bulkAction.sourceType == EntityType.LMS_SETUP)
+                                ? this::allIdsOfLmsSetup
+                                : key -> Result.of(Collections.emptyList()); // else : empty select function
+
+        return getDependencies(bulkAction, selectionFunction);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> bulkLoadEntities(final Collection<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+            final List<Long> ids = extractIdsFromKeys(keys);
+            return this.examRecordMapper.selectByExample()
+                    .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+        }).flatMap(this::toDomainModel);
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectIdsByExample()
+                    .where(ExamRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectIdsByExample()
+                    .where(ExamRecordDynamicSqlSupport.lmsSetupId,
+                            isEqualTo(Long.valueOf(lmsSetupKey.entityId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<ExamRecord> recordById(final Long id) {

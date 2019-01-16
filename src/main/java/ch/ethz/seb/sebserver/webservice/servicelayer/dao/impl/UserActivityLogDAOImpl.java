@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -181,9 +180,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
 
         try {
             this.userLogRecordMapper.deleteByExample()
@@ -231,11 +228,14 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
             return (institutionId == null)
                     ? this.userLogRecordMapper.selectByExample()
-                            .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            .where(
+                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
                                     SqlBuilder.isEqualToWhenPresent(userId))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            .and(
+                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            .and(
+                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isLessThanWhenPresent(to))
                             .build()
                             .execute()
@@ -247,15 +247,20 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
                     : this.userLogRecordMapper.selectByExample()
                             .join(UserRecordDynamicSqlSupport.userRecord)
-                            .on(UserRecordDynamicSqlSupport.uuid,
+                            .on(
+                                    UserRecordDynamicSqlSupport.uuid,
                                     SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
-                            .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            .where(
+                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
                                     SqlBuilder.isEqualToWhenPresent(userId))
-                            .and(UserRecordDynamicSqlSupport.institutionId,
+                            .and(
+                                    UserRecordDynamicSqlSupport.institutionId,
                                     SqlBuilder.isEqualToWhenPresent(institutionId))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            .and(
+                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            .and(
+                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
                                     SqlBuilder.isLessThanWhenPresent(to))
                             .build()
                             .execute()
@@ -295,7 +300,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Integer> overwriteUserReferences(final String userUuid, final boolean deactivate) {
         return Result.tryCatch(() -> {
             final List<UserActivityLogRecord> records = this.userLogRecordMapper.selectByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                    .where(
+                            UserActivityLogRecordDynamicSqlSupport.userUuid,
                             SqlBuilder.isEqualTo(userUuid))
                     .build()
                     .execute();
@@ -317,7 +323,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Integer> deleteUserEnities(final String userUuid) {
         return Result.tryCatch(() -> {
             return this.userLogRecordMapper.deleteByExample()
-                    .where(UserActivityLogRecordDynamicSqlSupport.userUuid,
+                    .where(
+                            UserActivityLogRecordDynamicSqlSupport.userUuid,
                             SqlBuilder.isEqualToWhenPresent(userUuid))
                     .build()
                     .execute();

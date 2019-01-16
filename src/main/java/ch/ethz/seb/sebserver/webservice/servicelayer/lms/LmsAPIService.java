@@ -17,4 +17,8 @@ public interface LmsAPIService {
 
     Result<LmsAPITemplate> createLmsAPITemplate(LmsSetup lmsSetup);
 
+    Result<byte[]> createSEBStartConfiguration(Long lmsSetupId);
+
+    Result<byte[]> createSEBStartConfiguration(LmsSetup lmsSetup);
+
 }

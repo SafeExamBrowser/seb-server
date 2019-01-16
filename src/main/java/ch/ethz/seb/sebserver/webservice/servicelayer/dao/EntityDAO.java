@@ -8,12 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -73,7 +73,7 @@ public interface EntityDAO<T extends Entity> {
      *         happened */
     Collection<Result<EntityKey>> delete(Set<EntityKey> all);
 
-    /** Utility method to extract an expected single resource entry form a Collection of specified type.
+    /** Context based utility method to extract an expected single resource entry form a Collection of specified type.
      * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer
      * to a ResourceNotFoundException if specified collection is null or empty or refer to a
      * unexpected RuntimeException if there are more then the expected single element in the given collection
@@ -95,28 +95,27 @@ public interface EntityDAO<T extends Entity> {
         return Result.of(resources.iterator().next());
     }
 
-    default List<Long> extractIdsFromKeys(
-            final Collection<EntityKey> keys,
-            final Collection<Result<EntityKey>> result) {
+    /** Context based utility method to extract a list of id's (PK) from a collection of various EntityKey
+     * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
+     * convert the matching EntityKey's to id's (PK's)
+     *
+     * Use this if you need to transform a Collection of EntityKey into a extracted List of id's of a specified
+     * EntityType
+     *
+     * @param keys Collection of EntityKey of various types
+     * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
+    default List<Long> extractIdsFromKeys(final Collection<EntityKey> keys) {
 
         if (keys == null) {
             return Collections.emptyList();
         }
 
         final EntityType entityType = entityType();
-        final List<Long> ids = new ArrayList<>();
-
-        for (final EntityKey key : keys) {
-            if (key.entityType == entityType) {
-                try {
-                    ids.add(Long.valueOf(key.entityId));
-                } catch (final Exception e) {
-                    result.add(Result.ofError(new IllegalArgumentException("Invalid id for EntityKey: " + key)));
-                }
-            }
-        }
-
-        return ids;
+        return keys
+                .stream()
+                .filter(key -> key.entityType == entityType)
+                .map(key -> Long.valueOf(key.entityId))
+                .collect(Collectors.toList());
     }
 
 }

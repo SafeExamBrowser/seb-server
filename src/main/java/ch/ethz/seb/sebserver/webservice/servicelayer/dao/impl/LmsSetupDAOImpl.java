@@ -11,10 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -23,13 +21,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -39,16 +34,13 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDyn
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
-
-    private static final Logger log = LoggerFactory.getLogger(LmsSetupDAOImpl.class);
+public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
 
@@ -105,9 +97,15 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
             final String _lmsType = (lmsType != null) ? lmsType.name() : null;
             return this.lmsSetupRecordMapper
                     .selectByExample()
-                    .where(LmsSetupRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(institutionId))
-                    .and(LmsSetupRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(name)))
-                    .and(LmsSetupRecordDynamicSqlSupport.lmsType, isEqualToWhenPresent(_lmsType))
+                    .where(
+                            LmsSetupRecordDynamicSqlSupport.institutionId,
+                            isEqualToWhenPresent(institutionId))
+                    .and(
+                            LmsSetupRecordDynamicSqlSupport.name,
+                            isLikeWhenPresent(toSQLWildcard(name)))
+                    .and(
+                            LmsSetupRecordDynamicSqlSupport.lmsType,
+                            isEqualToWhenPresent(_lmsType))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.active,
                             isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
@@ -139,9 +137,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
         final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                 null, null, null, null, null, null, null, null, null, null,
                 BooleanUtils.toIntegerObject(active));
@@ -166,9 +162,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final Collection<Result<EntityKey>> result = new ArrayList<>();
-
-        final List<Long> ids = extractIdsFromKeys(all, result);
+        final List<Long> ids = extractIdsFromKeys(all);
 
         try {
             this.lmsSetupRecordMapper.deleteByExample()
@@ -192,23 +186,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
         // all of institution
         if (bulkAction.sourceType == EntityType.INSTITUTION) {
-            final Set<EntityKey> result = new HashSet<>();
-            for (final EntityKey sourceKey : bulkAction.sources) {
-                try {
-                    result.addAll(this.lmsSetupRecordMapper.selectIdsByExample()
-                            .where(LmsSetupRecordDynamicSqlSupport.institutionId,
-                                    isEqualTo(Long.valueOf(sourceKey.entityId)))
-                            .build()
-                            .execute()
-                            .stream()
-                            .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
-                            .collect(Collectors.toList()));
-                } catch (final Exception e) {
-                    log.error("Unexpected error: ", e);
-                    return Collections.emptySet();
-                }
-            }
-            return result;
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
         }
 
         return Collections.emptySet();
@@ -216,10 +194,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Entity>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<LmsSetup>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final Collection<Result<EntityKey>> result = new ArrayList<>();
-            final List<Long> ids = extractIdsFromKeys(keys, result);
+            final List<Long> ids = extractIdsFromKeys(keys);
 
             return this.lmsSetupRecordMapper.selectByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
@@ -232,22 +209,17 @@ public class LmsSetupDAOImpl implements LmsSetupDAO, BulkActionSupport {
         });
     }
 
-    @Override
-    @Transactional
-    public Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
-        final Set<EntityKey> all = bulkAction.extractKeys(EntityType.LMS_SETUP);
-
-        switch (bulkAction.type) {
-            case ACTIVATE:
-                return setActive(all, true);
-            case DEACTIVATE:
-                return setActive(all, false);
-            case HARD_DELETE:
-                return delete(all);
-        }
-
-        // should never happen
-        throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
+    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> {
+            return this.lmsSetupRecordMapper.selectIdsByExample()
+                    .where(LmsSetupRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<LmsSetupRecord> recordById(final Long id) {

@@ -27,15 +27,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 @WebServiceProfile
 public class BulkActionService {
 
-    private final Map<EntityType, BulkActionSupport> supporter;
+    private final Map<EntityType, BulkActionSupportDAO<?>> supporter;
     private final UserActivityLogDAO userActivityLogDAO;
 
     public BulkActionService(
-            final Collection<BulkActionSupport> supporter,
+            final Collection<BulkActionSupportDAO<?>> supporter,
             final UserActivityLogDAO userActivityLogDAO) {
 
         this.supporter = new HashMap<>();
-        for (final BulkActionSupport support : supporter) {
+        for (final BulkActionSupportDAO<?> support : supporter) {
             this.supporter.put(support.entityType(), support);
         }
         this.userActivityLogDAO = userActivityLogDAO;
@@ -43,7 +43,7 @@ public class BulkActionService {
 
     public void collectDependencies(final BulkAction action) {
         checkProcessing(action);
-        for (final BulkActionSupport sup : this.supporter.values()) {
+        for (final BulkActionSupportDAO<?> sup : this.supporter.values()) {
             action.dependencies.addAll(sup.getDependencies(action));
         }
         action.alreadyProcessed = true;
@@ -52,7 +52,7 @@ public class BulkActionService {
     public void doBulkAction(final BulkAction action) {
         checkProcessing(action);
 
-        final BulkActionSupport supportForSource = this.supporter.get(action.sourceType);
+        final BulkActionSupportDAO<?> supportForSource = this.supporter.get(action.sourceType);
         if (supportForSource == null) {
             action.alreadyProcessed = true;
             return;
@@ -62,10 +62,10 @@ public class BulkActionService {
 
         if (!action.dependencies.isEmpty()) {
             // process dependencies first...
-            final List<BulkActionSupport> dependancySupporter =
+            final List<BulkActionSupportDAO<?>> dependancySupporter =
                     getDependancySupporter(action);
 
-            for (final BulkActionSupport support : dependancySupporter) {
+            for (final BulkActionSupportDAO<?> support : dependancySupporter) {
                 action.result.addAll(support.processBulkAction(action));
             }
         }
@@ -111,12 +111,12 @@ public class BulkActionService {
         }
     }
 
-    private List<BulkActionSupport> getDependancySupporter(final BulkAction action) {
+    private List<BulkActionSupportDAO<?>> getDependancySupporter(final BulkAction action) {
         switch (action.type) {
             case ACTIVATE:
             case DEACTIVATE:
             case HARD_DELETE: {
-                final List<BulkActionSupport> dependantSupporterInHierarchicalOrder =
+                final List<BulkActionSupportDAO<?>> dependantSupporterInHierarchicalOrder =
                         getDependantSupporterInHierarchicalOrder(action);
                 Collections.reverse(dependantSupporterInHierarchicalOrder);
                 return dependantSupporterInHierarchicalOrder;
@@ -126,7 +126,7 @@ public class BulkActionService {
         }
     }
 
-    private List<BulkActionSupport> getDependantSupporterInHierarchicalOrder(final BulkAction action) {
+    private List<BulkActionSupportDAO<?>> getDependantSupporterInHierarchicalOrder(final BulkAction action) {
         switch (action.sourceType) {
             case INSTITUTION:
                 return Arrays.asList(
