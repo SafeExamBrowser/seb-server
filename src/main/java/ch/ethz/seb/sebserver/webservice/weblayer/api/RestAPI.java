@@ -18,6 +18,8 @@ public class RestAPI {
 
     public static final String ENDPOINT_QUIZ_IMPORT = "/quiz";
 
+    public static final String ENDPOINT_EXAM_ADMINISTRATION = "/exam";
+
     public static final String ENDPOINT_USER_ACTIVITY_LOG = "/useractivity";
 
 }

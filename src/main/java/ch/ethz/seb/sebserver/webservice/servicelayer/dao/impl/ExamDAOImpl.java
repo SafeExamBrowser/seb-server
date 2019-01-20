@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
@@ -67,7 +68,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Exam> byId(final Long id) {
+    public Result<Exam> byPK(final Long id) {
         return recordById(id)
                 .flatMap(this::toDomainModel);
     }
@@ -108,7 +109,7 @@ public class ExamDAOImpl implements ExamDAO {
             final String name,
             final ExamStatus status,
             final ExamType type,
-            final Long startTime,
+            final DateTime from,
             final String owner,
             final Boolean active) {
 
@@ -121,8 +122,8 @@ public class ExamDAOImpl implements ExamDAO {
                     }
                 }
 
-                if (startTime != null) {
-                    if (exam.startTime.getMillis() < startTime.longValue()) {
+                if (from != null) {
+                    if (exam.startTime.isAfter(from)) {
                         return false;
                     }
                 }
@@ -168,9 +169,39 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public Result<Exam> save(final Exam exam) {
+        if (exam == null) {
+            return Result.ofError(new NullPointerException("exam has null-reference"));
+        }
+        if (exam.id == null) {
+            return Result.ofError(new IllegalArgumentException("exam.id has null-reference"));
+        }
+
+        return update(exam)
+                .flatMap(this::toDomainModel);
+    }
+
+    private Result<ExamRecord> update(final Exam exam) {
+        return Result.tryCatch(() -> {
+            final ExamRecord examRecord = new ExamRecord(
+                    exam.id,
+                    null, null, null, null,
+                    (exam.supporter != null)
+                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null,
+                    (exam.type != null) ? exam.type.name() : null,
+                    (exam.status != null) ? exam.status.name() : null,
+                    BooleanUtils.toIntegerObject(exam.active));
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(exam.id);
+        });
+    }
+
+    @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
         final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
                 null, null, null, BooleanUtils.toInteger(active));
 
@@ -196,7 +227,7 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
 
         try {
 
@@ -235,7 +266,7 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractIdsFromKeys(keys);
+            final List<Long> ids = extractPKsFromKeys(keys);
             return this.examRecordMapper.selectByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
@@ -247,7 +278,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectIdsByExample()
                     .where(ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                            isEqualTo(Long.valueOf(institutionKey.modelId)))
                     .build()
                     .execute()
                     .stream()
@@ -260,7 +291,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectIdsByExample()
                     .where(ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualTo(Long.valueOf(lmsSetupKey.entityId)))
+                            isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
                     .build()
                     .execute()
                     .stream()

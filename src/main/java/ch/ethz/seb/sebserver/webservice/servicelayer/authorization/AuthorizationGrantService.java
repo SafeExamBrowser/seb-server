@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface AuthorizationGrantService {
 
     /** Gets the UserService that is bundled within the AuthorizationGrantService
-     * 
+     *
      * @return the UserService that is bundled within the AuthorizationGrantService */
     UserService getUserService();
 
@@ -32,6 +32,10 @@ public interface AuthorizationGrantService {
      * @param entityType the EntityType
      * @param privilegeType the PrivilegeType to check on EntityType */
     void checkHasAnyPrivilege(EntityType entityType, PrivilegeType privilegeType);
+
+    void checkPrivilege(EntityType entityType, PrivilegeType privilegeType, Long institutionId);
+
+    void checkPrivilege(EntityType entityType, PrivilegeType privilegeType, Long institutionId, Long ownerId);
 
     /** Check if current user has grant on a given GrantEntity instance for specified PrivilegeType
      *

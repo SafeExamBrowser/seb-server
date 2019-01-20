@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import java.io.InputStream;
+
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -17,8 +19,8 @@ public interface LmsAPIService {
 
     Result<LmsAPITemplate> createLmsAPITemplate(LmsSetup lmsSetup);
 
-    Result<byte[]> createSEBStartConfiguration(Long lmsSetupId);
+    Result<InputStream> createSEBStartConfiguration(Long lmsSetupId);
 
-    Result<byte[]> createSEBStartConfiguration(LmsSetup lmsSetup);
+    Result<InputStream> createSEBStartConfiguration(LmsSetup lmsSetup);
 
 }

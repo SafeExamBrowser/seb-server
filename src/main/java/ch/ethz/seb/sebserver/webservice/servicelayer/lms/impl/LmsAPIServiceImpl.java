@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.io.InputStream;
+
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -30,7 +32,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     @Override
     public Result<LmsAPITemplate> createLmsAPITemplate(final Long lmsSetupId) {
         return this.lmsSetupDAO
-                .byId(lmsSetupId)
+                .byPK(lmsSetupId)
                 .flatMap(this::createLmsAPITemplate);
     }
 
@@ -46,14 +48,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     }
 
     @Override
-    public Result<byte[]> createSEBStartConfiguration(final Long lmsSetupId) {
+    public Result<InputStream> createSEBStartConfiguration(final Long lmsSetupId) {
         return this.lmsSetupDAO
-                .byId(lmsSetupId)
+                .byPK(lmsSetupId)
                 .flatMap(this::createSEBStartConfiguration);
     }
 
     @Override
-    public Result<byte[]> createSEBStartConfiguration(final LmsSetup lmsSetup) {
+    public Result<InputStream> createSEBStartConfiguration(final LmsSetup lmsSetup) {
 
         // TODO implementation of creation of SEB start configuration for specified LmsSetup
         // A SEB start configuration should at least contain the SEB-Client-Credentials to access the SEB Server API

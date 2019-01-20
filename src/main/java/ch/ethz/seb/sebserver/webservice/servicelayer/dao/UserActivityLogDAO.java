@@ -84,6 +84,7 @@ public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog
     }
 
     Result<Collection<UserActivityLog>> all(
+            Long InstitutionId,
             String userId,
             Long from,
             Long to,

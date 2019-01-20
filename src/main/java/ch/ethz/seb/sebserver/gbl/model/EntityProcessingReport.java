@@ -9,30 +9,46 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
 public class EntityProcessingReport {
 
     @JsonProperty(value = "source", required = true)
-    public final Collection<Entity> source;
+    public final Collection<EntityKey> source;
     @JsonProperty(value = "dependencies", required = true)
-    public final Collection<EntityKeyAndName> dependencies;
+    public final Collection<EntityKey> dependencies;
     @JsonProperty(value = "errors", required = true)
-    public final Map<EntityKeyAndName, String> errors;
+    public final Collection<ErrorEntry> errors;
 
     @JsonCreator
     public EntityProcessingReport(
-            @JsonProperty(value = "source", required = true) final Collection<Entity> source,
-            @JsonProperty(value = "dependencies", required = true) final Collection<EntityKeyAndName> dependencies,
-            @JsonProperty(value = "errors", required = true) final Map<EntityKeyAndName, String> errors) {
+            @JsonProperty(value = "source", required = true) final Collection<EntityKey> source,
+            @JsonProperty(value = "dependencies", required = true) final Collection<EntityKey> dependencies,
+            @JsonProperty(value = "errors", required = true) final Collection<ErrorEntry> errors) {
 
-        this.source = Collections.unmodifiableCollection(source);
-        this.dependencies = Collections.unmodifiableCollection(dependencies);
-        this.errors = Collections.unmodifiableMap(errors);
+        this.source = Utils.immutableCollectionOf(source);
+        this.dependencies = Utils.immutableCollectionOf(dependencies);
+        this.errors = Utils.immutableCollectionOf(errors);
+    }
+
+    public static final class ErrorEntry {
+
+        public final EntityKey entityKey;
+        public final APIMessage errorMessage;
+
+        @JsonCreator
+        public ErrorEntry(
+                @JsonProperty(value = "entity_key", required = true) final EntityKey entityKey,
+                @JsonProperty(value = "error_message", required = true) final APIMessage errorMessage) {
+
+            this.entityKey = entityKey;
+            this.errorMessage = errorMessage;
+        }
+
     }
 
 }

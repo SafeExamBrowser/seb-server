@@ -19,7 +19,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
     @JsonProperty(value = "entityType", required = true)
     public final EntityType entityType;
     @JsonProperty(value = Domain.ATTR_ID, required = true)
-    public final String id;
+    public final String modelId;
     @JsonProperty(value = "name", required = true)
     public final String name;
 
@@ -30,23 +30,19 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
             @JsonProperty(value = "name", required = true) final String name) {
 
         this.entityType = entityType;
-        this.id = id;
+        this.modelId = id;
         this.name = name;
     }
 
     public EntityKeyAndName(final EntityKey entityKey, final String name) {
 
         this.entityType = entityKey.entityType;
-        this.id = entityKey.entityId;
+        this.modelId = entityKey.modelId;
         this.name = name;
     }
 
     public EntityType getEntityType() {
         return this.entityType;
-    }
-
-    public String getId() {
-        return this.id;
     }
 
     @Override
@@ -57,7 +53,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
     @Override
     @JsonIgnore
     public String getModelId() {
-        return this.id;
+        return this.modelId;
     }
 
     @Override
@@ -65,7 +61,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.modelId == null) ? 0 : this.modelId.hashCode());
         result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
         return result;
     }
@@ -81,10 +77,10 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
         final EntityKeyAndName other = (EntityKeyAndName) obj;
         if (this.entityType != other.entityType)
             return false;
-        if (this.id == null) {
-            if (other.id != null)
+        if (this.modelId == null) {
+            if (other.modelId != null)
                 return false;
-        } else if (!this.id.equals(other.id))
+        } else if (!this.modelId.equals(other.modelId))
             return false;
         if (this.name == null) {
             if (other.name != null)
@@ -96,7 +92,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
 
     @Override
     public String toString() {
-        return "EntityIdAndName [entityType=" + this.entityType + ", id=" + this.id + ", name=" + this.name + "]";
+        return "EntityIdAndName [entityType=" + this.entityType + ", id=" + this.modelId + ", name=" + this.name + "]";
     }
 
 }

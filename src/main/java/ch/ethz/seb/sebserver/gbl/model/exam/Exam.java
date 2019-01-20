@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Exam implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_INSTITUTION = "institution";
+    public static final String FILTER_ATTR_INSTITUTION = ATTR_INSTITUTION;
     public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
     public static final String FILTER_ATTR_NAME = "name_like";
     public static final String FILTER_ATTR_STATUS = "status";

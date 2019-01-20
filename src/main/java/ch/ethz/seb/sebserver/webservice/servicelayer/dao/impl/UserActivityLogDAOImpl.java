@@ -34,8 +34,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -49,18 +47,15 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private final UserActivityLogRecordMapper userLogRecordMapper;
     private final UserService userService;
-    private final AuthorizationGrantService authorizationGrantService;
     private final PaginationService paginationService;
 
     public UserActivityLogDAOImpl(
             final UserActivityLogRecordMapper userLogRecordMapper,
             final UserService userService,
-            final AuthorizationGrantService authorizationGrantService,
             final PaginationService paginationService) {
 
         this.userLogRecordMapper = userLogRecordMapper;
         this.userService = userService;
-        this.authorizationGrantService = authorizationGrantService;
         this.paginationService = paginationService;
     }
 
@@ -172,7 +167,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<UserActivityLog> byId(final Long id) {
+    public Result<UserActivityLog> byPK(final Long id) {
         return Result.tryCatch(() -> this.userLogRecordMapper.selectByPrimaryKey(id))
                 .flatMap(UserActivityLogDAOImpl::toDomainModel);
     }
@@ -180,7 +175,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
 
         try {
             this.userLogRecordMapper.deleteByExample()
@@ -202,12 +197,24 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> getAllForUser(final String userUuid) {
-        return all(userUuid, null, null, model -> true);
+        return Result.tryCatch(() -> {
+            return this.userLogRecordMapper.selectByExample()
+                    .where(
+                            UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            SqlBuilder.isEqualTo(userUuid))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserActivityLogDAOImpl::toDomainModel)
+                    .flatMap(Result::skipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> all(
+            final Long institutionId,
             final String userId,
             final Long from,
             final Long to,
@@ -218,57 +225,30 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     ? predicate
                     : model -> true;
 
-            final boolean basePrivilege = this.authorizationGrantService.hasBasePrivilege(
-                    EntityType.USER_ACTIVITY_LOG,
-                    PrivilegeType.READ_ONLY);
-
-            final Long institutionId = (basePrivilege)
-                    ? null
-                    : this.userService.getCurrentUser().institutionId();
-
-            return (institutionId == null)
-                    ? this.userLogRecordMapper.selectByExample()
-                            .where(
-                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
-                                    SqlBuilder.isEqualToWhenPresent(userId))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isLessThanWhenPresent(to))
-                            .build()
-                            .execute()
-                            .stream()
-                            .filter(_predicate)
-                            .map(UserActivityLogDAOImpl::toDomainModel)
-                            .flatMap(Result::skipOnError)
-                            .collect(Collectors.toList())
-
-                    : this.userLogRecordMapper.selectByExample()
-                            .join(UserRecordDynamicSqlSupport.userRecord)
-                            .on(
-                                    UserRecordDynamicSqlSupport.uuid,
-                                    SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
-                            .where(
-                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
-                                    SqlBuilder.isEqualToWhenPresent(userId))
-                            .and(
-                                    UserRecordDynamicSqlSupport.institutionId,
-                                    SqlBuilder.isEqualToWhenPresent(institutionId))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isLessThanWhenPresent(to))
-                            .build()
-                            .execute()
-                            .stream()
-                            .filter(_predicate)
-                            .map(UserActivityLogDAOImpl::toDomainModel)
-                            .flatMap(Result::skipOnError)
-                            .collect(Collectors.toList());
+            return this.userLogRecordMapper.selectByExample()
+                    .join(UserRecordDynamicSqlSupport.userRecord)
+                    .on(
+                            UserRecordDynamicSqlSupport.uuid,
+                            SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
+                    .where(
+                            UserRecordDynamicSqlSupport.institutionId,
+                            SqlBuilder.isEqualTo(institutionId))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.userUuid,
+                            SqlBuilder.isEqualToWhenPresent(userId))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isLessThanWhenPresent(to))
+                    .build()
+                    .execute()
+                    .stream()
+                    .filter(_predicate)
+                    .map(UserActivityLogDAOImpl::toDomainModel)
+                    .flatMap(Result::skipOnError)
+                    .collect(Collectors.toList());
 
         });
     }

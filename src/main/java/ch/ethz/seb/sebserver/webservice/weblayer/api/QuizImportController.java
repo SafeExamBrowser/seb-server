@@ -74,18 +74,19 @@ public class QuizImportController {
             @RequestParam(name = LMS_SETUP.ATTR_ID, required = true) final Long lmsSetupId,
             @RequestParam(name = QuizData.FILTER_ATTR_NAME, required = false) final String nameLike,
             @RequestParam(name = QuizData.FILTER_ATTR_START_TIME, required = false) final String startTime,
-            @RequestParam(name = QuizData.PAGE_ATTR_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = QuizData.PAGE_ATTR_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = QuizData.PAGE_ATTR_SORT_BY, required = false) final String orderBy,
-            @RequestParam(name = QuizData.PAGE_ATTR_SORT_ORDER, required = false) final String sortOrder) {
-
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.EXAM,
-                PrivilegeType.READ_ONLY);
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String orderBy,
+            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final String sortOrder) {
 
         final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
                 .createLmsAPITemplate(lmsSetupId)
                 .getOrThrow();
+
+        this.authorizationGrantService.checkPrivilege(
+                EntityType.EXAM,
+                PrivilegeType.READ_ONLY,
+                lmsAPITemplate.lmsSetup().institutionId);
 
         return lmsAPITemplate.getQuizzesPage(
                 nameLike,

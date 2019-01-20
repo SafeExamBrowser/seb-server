@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -103,6 +104,26 @@ public final class Utils {
         final List<V> list = (List<V>) map.computeIfAbsent(key, k -> new ArrayList<>());
         list.add(value);
         return map;
+    }
+
+    public static DateTime toDateTime(final String dateString) {
+        if (StringUtils.isBlank(dateString)) {
+            return null;
+        }
+
+        if (dateString.contains(".")) {
+            return DateTime.parse(dateString, Constants.DATE_TIME_PATTERN_UTC_MILLIS);
+        } else {
+            return DateTime.parse(dateString, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        }
+    }
+
+    public static Long toMilliSeconds(final String dateString) {
+        if (StringUtils.isBlank(dateString)) {
+            return null;
+        }
+
+        return toDateTime(dateString).getMillis();
     }
 
 }

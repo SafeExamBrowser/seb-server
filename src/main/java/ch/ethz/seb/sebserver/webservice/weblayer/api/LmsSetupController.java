@@ -8,12 +8,18 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,9 +36,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
@@ -66,43 +71,41 @@ public class LmsSetupController {
         this.lmsAPIService = lmsAPIService;
     }
 
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) throws Exception {
+        this.authorizationGrantService
+                .getUserService()
+                .addUsersInstitutionDefaultPropertySupport(binder);
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public Collection<LmsSetup> getAll(
-            @RequestParam(name = LmsSetup.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
+            @RequestParam(
+                    name = LmsSetup.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = LmsSetup.FILTER_ATTR_NAME, required = false) final String name,
             @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LmsType lmsType,
             @RequestParam(name = LmsSetup.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
-        checkBaseReadPrivilege();
-
-        final SEBServerUser currentUser = this.authorizationGrantService
-                .getUserService()
-                .getCurrentUser();
-        final Long usersInstitution = currentUser.institutionId();
-        final Long instId = (institutionId != null) ? institutionId : usersInstitution;
-
-        if (!this.authorizationGrantService.hasBasePrivilege(
-                EntityType.LMS_SETUP,
-                PrivilegeType.READ_ONLY) &&
-                !instId.equals(usersInstitution)) {
-
-            throw new PermissionDeniedException(
-                    EntityType.LMS_SETUP,
-                    PrivilegeType.READ_ONLY,
-                    currentUser.getUserInfo().uuid);
-        }
+        checkReadPrivilege(institutionId);
 
         return this.lmsSetupDAO
-                .allMatching(instId, name, lmsType, active)
+                .allMatching(institutionId, name, lmsType, active)
                 .getOrThrow();
     }
 
     @RequestMapping(path = "/names", method = RequestMethod.GET)
     public Collection<EntityKeyAndName> getNames(
-            @RequestParam(name = LmsSetup.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
+            @RequestParam(
+                    name = LmsSetup.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = LmsSetup.FILTER_ATTR_NAME, required = false) final String name,
             @RequestParam(name = LmsSetup.FILTER_ATTR_LMS_TYPE, required = false) final LmsType lmsType,
             @RequestParam(name = LmsSetup.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
+
+        checkReadPrivilege(institutionId);
 
         return getAll(institutionId, name, lmsType, active)
                 .stream()
@@ -112,13 +115,10 @@ public class LmsSetupController {
 
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public LmsSetup getById(@PathVariable final Long id) {
-
-        checkBaseReadPrivilege();
-
         return this.lmsSetupDAO
-                .byId(id)
-                .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(
-                        inst,
+                .byPK(id)
+                .flatMap(lmsSetup -> this.authorizationGrantService.checkGrantOnEntity(
+                        lmsSetup,
                         PrivilegeType.READ_ONLY))
                 .getOrThrow();
     }
@@ -127,15 +127,28 @@ public class LmsSetupController {
             path = "/create_seb_config/{id}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE) // TODO check if this is the right format
-    public byte[] createSEBConfig(@PathVariable final Long id) {
+    public void downloadSEBConfig(
+            @PathVariable final Long id,
+            final HttpServletResponse response) {
 
         this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.LMS_SETUP,
                 PrivilegeType.WRITE);
 
-        return this.lmsAPIService
-                .createSEBStartConfiguration(id)
-                .getOrThrow();
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setStatus(HttpStatus.OK.value());
+
+        try {
+            final InputStream sebConfigFileIn = this.lmsAPIService
+                    .createSEBStartConfiguration(id)
+                    .getOrThrow();
+
+            IOUtils.copyLarge(sebConfigFileIn, response.getOutputStream());
+            response.flushBuffer();
+
+        } catch (final Exception e) {
+            throw new RuntimeException("Unexpected error while trying to creae SEB start config: ", e);
+        }
     }
 
     @RequestMapping(path = "/create", method = RequestMethod.PUT)
@@ -151,12 +164,12 @@ public class LmsSetupController {
     }
 
     @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)
-    public LmsSetup activate(@PathVariable final Long id) {
+    public EntityProcessingReport activate(@PathVariable final Long id) {
         return setActive(id, true);
     }
 
     @RequestMapping(value = "/{id}/deactivate", method = RequestMethod.POST)
-    public LmsSetup deactivate(@PathVariable final Long id) {
+    public EntityProcessingReport deactivate(@PathVariable final Long id) {
         return setActive(id, false);
     }
 
@@ -167,7 +180,8 @@ public class LmsSetupController {
         return this.bulkActionService.createReport(new BulkAction(
                 Type.DEACTIVATE,
                 EntityType.LMS_SETUP,
-                new EntityKey(id, EntityType.LMS_SETUP)));
+                new EntityKey(id, EntityType.LMS_SETUP)))
+                .getOrThrow();
     }
 
     @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
@@ -177,31 +191,29 @@ public class LmsSetupController {
         return this.bulkActionService.createReport(new BulkAction(
                 Type.HARD_DELETE,
                 EntityType.LMS_SETUP,
-                new EntityKey(id, EntityType.LMS_SETUP)));
+                new EntityKey(id, EntityType.LMS_SETUP)))
+                .getOrThrow();
     }
 
-    private void checkPrivilegeForInstitution(final Long id, final PrivilegeType type) {
+    private void checkPrivilegeForInstitution(final Long lmsSetupId, final PrivilegeType type) {
         this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.LMS_SETUP,
                 type);
 
-        this.lmsSetupDAO.byId(id)
+        this.lmsSetupDAO.byPK(lmsSetupId)
                 .flatMap(institution -> this.authorizationGrantService.checkGrantOnEntity(
                         institution,
                         type))
                 .getOrThrow();
     }
 
-    private LmsSetup setActive(final Long id, final boolean active) {
+    private EntityProcessingReport setActive(final Long id, final boolean active) {
         checkPrivilegeForInstitution(id, PrivilegeType.MODIFY);
 
-        this.bulkActionService.doBulkAction(new BulkAction(
+        return this.bulkActionService.createReport(new BulkAction(
                 (active) ? Type.ACTIVATE : Type.DEACTIVATE,
                 EntityType.LMS_SETUP,
-                new EntityKey(id, EntityType.LMS_SETUP)));
-
-        return this.lmsSetupDAO
-                .byId(id)
+                new EntityKey(id, EntityType.LMS_SETUP)))
                 .getOrThrow();
     }
 
@@ -214,13 +226,14 @@ public class LmsSetupController {
         return this.authorizationGrantService
                 .checkGrantOnEntity(lmsSetup, privilegeType)
                 .flatMap(this.lmsSetupDAO::save)
-                .flatMap(inst -> this.userActivityLogDAO.log(activityType, inst));
+                .flatMap(exam -> this.userActivityLogDAO.log(activityType, exam));
     }
 
-    private void checkBaseReadPrivilege() {
-        this.authorizationGrantService.checkHasAnyPrivilege(
+    private void checkReadPrivilege(final Long institutionId) {
+        this.authorizationGrantService.checkPrivilege(
                 EntityType.LMS_SETUP,
-                PrivilegeType.READ_ONLY);
+                PrivilegeType.READ_ONLY,
+                institutionId);
     }
 
 }

@@ -10,8 +10,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
 
+import org.springframework.web.bind.WebDataBinder;
+
 /** A service to get the authenticated user from current request */
 public interface UserService {
+
+    String USERS_INSTITUTION_AS_DEFAULT = "USERS_INSTITUTION_AS_DEFAULT";
 
     /** Use this to get the current User within a request-response thread cycle.
      *
@@ -45,5 +49,7 @@ public interface UserService {
      *
      * @return an overall super user with all rights */
     SEBServerUser getSuperUser();
+
+    void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder);
 
 }

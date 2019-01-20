@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Service
@@ -49,44 +50,56 @@ public class BulkActionService {
         action.alreadyProcessed = true;
     }
 
-    public void doBulkAction(final BulkAction action) {
-        checkProcessing(action);
+    public Result<BulkAction> doBulkAction(final BulkAction action) {
+        return Result.tryCatch(() -> {
 
-        final BulkActionSupportDAO<?> supportForSource = this.supporter.get(action.sourceType);
-        if (supportForSource == null) {
-            action.alreadyProcessed = true;
-            return;
-        }
+            checkProcessing(action);
 
-        collectDependencies(action);
-
-        if (!action.dependencies.isEmpty()) {
-            // process dependencies first...
-            final List<BulkActionSupportDAO<?>> dependancySupporter =
-                    getDependancySupporter(action);
-
-            for (final BulkActionSupportDAO<?> support : dependancySupporter) {
-                action.result.addAll(support.processBulkAction(action));
+            final BulkActionSupportDAO<?> supportForSource = this.supporter
+                    .get(action.sourceType);
+            if (supportForSource == null) {
+                action.alreadyProcessed = true;
+                throw new IllegalArgumentException("No bulk action support for: " + action);
             }
-        }
 
-        action.result.addAll(supportForSource.processBulkAction(action));
+            collectDependencies(action);
 
-        processUserActivityLog(action);
-        action.alreadyProcessed = true;
+            if (!action.dependencies.isEmpty()) {
+                // process dependencies first...
+                final List<BulkActionSupportDAO<?>> dependancySupporter =
+                        getDependancySupporter(action);
+
+                for (final BulkActionSupportDAO<?> support : dependancySupporter) {
+                    action.result.addAll(support.processBulkAction(action));
+                }
+            }
+
+            action.result.addAll(supportForSource.processBulkAction(action));
+
+            processUserActivityLog(action);
+            action.alreadyProcessed = true;
+            return action;
+        });
     }
 
-    public EntityProcessingReport createReport(final BulkAction action) {
+    public Result<EntityProcessingReport> createReport(final BulkAction action) {
         if (!action.alreadyProcessed) {
-            doBulkAction(action);
+            return doBulkAction(action)
+                    .flatMap(this::createFullReport);
+        } else {
+            return createFullReport(action);
         }
+    }
 
-        // TODO
+    private Result<EntityProcessingReport> createFullReport(final BulkAction action) {
+        return Result.tryCatch(() -> {
 
-        return new EntityProcessingReport(
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyMap());
+            // TODO
+            return new EntityProcessingReport(
+                    action.sources,
+                    Collections.emptyList(),
+                    Collections.emptyList());
+        });
     }
 
     private void processUserActivityLog(final BulkAction action) {
@@ -98,7 +111,7 @@ public class BulkActionService {
             this.userActivityLogDAO.log(
                     action.type.activityType,
                     key.entityType,
-                    key.entityId,
+                    key.modelId,
                     "bulk action dependency");
         }
 
@@ -106,7 +119,7 @@ public class BulkActionService {
             this.userActivityLogDAO.log(
                     action.type.activityType,
                     key.entityType,
-                    key.entityId,
+                    key.modelId,
                     "bulk action source");
         }
     }

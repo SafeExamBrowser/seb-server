@@ -55,7 +55,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<LmsSetup> byId(final Long id) {
+    public Result<LmsSetup> byPK(final Long id) {
         return recordById(id)
                 .flatMap(LmsSetupDAOImpl::toDomainModel);
     }
@@ -137,7 +137,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
         final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                 null, null, null, null, null, null, null, null, null, null,
                 BooleanUtils.toIntegerObject(active));
@@ -162,7 +162,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
 
         try {
             this.lmsSetupRecordMapper.deleteByExample()
@@ -196,7 +196,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractIdsFromKeys(keys);
+            final List<Long> ids = extractPKsFromKeys(keys);
 
             return this.lmsSetupRecordMapper.selectByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
@@ -213,7 +213,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         return Result.tryCatch(() -> {
             return this.lmsSetupRecordMapper.selectIdsByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                            isEqualTo(Long.valueOf(institutionKey.modelId)))
                     .build()
                     .execute()
                     .stream()
@@ -271,25 +271,24 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     }
 
     private Result<LmsSetupRecord> update(final LmsSetup lmsSetup) {
-        return recordById(lmsSetup.id)
-                .map(record -> {
+        return Result.tryCatch(() -> {
 
-                    final LmsSetupRecord newRecord = new LmsSetupRecord(
-                            lmsSetup.id,
-                            lmsSetup.institutionId,
-                            lmsSetup.name,
-                            (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
-                            lmsSetup.lmsApiUrl,
-                            lmsSetup.lmsAuthName,
-                            lmsSetup.lmsAuthSecret,
-                            lmsSetup.lmsRestApiToken,
-                            lmsSetup.sebAuthName,
-                            lmsSetup.sebAuthSecret,
-                            null);
+            final LmsSetupRecord newRecord = new LmsSetupRecord(
+                    lmsSetup.id,
+                    lmsSetup.institutionId,
+                    lmsSetup.name,
+                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
+                    lmsSetup.lmsApiUrl,
+                    lmsSetup.lmsAuthName,
+                    lmsSetup.lmsAuthSecret,
+                    lmsSetup.lmsRestApiToken,
+                    lmsSetup.sebAuthName,
+                    lmsSetup.sebAuthSecret,
+                    null);
 
-                    this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
-                });
+            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
+        });
     }
 
 }

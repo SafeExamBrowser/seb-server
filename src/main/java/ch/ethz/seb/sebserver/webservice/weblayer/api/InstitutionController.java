@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -62,24 +62,18 @@ public class InstitutionController {
 
     @RequestMapping(path = "/self", method = RequestMethod.GET)
     public Institution getOwn() {
-
-        checkBaseReadPrivilege();
-
         final SEBServerUser currentUser = this.authorizationGrantService
                 .getUserService()
                 .getCurrentUser();
-        final Long institutionId = currentUser.institutionId();
-        return this.institutionDAO.byId(institutionId).getOrThrow();
 
+        final Long institutionId = currentUser.institutionId();
+        return this.institutionDAO.byPK(institutionId).getOrThrow();
     }
 
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public Institution getById(@PathVariable final Long id) {
-
-        checkBaseReadPrivilege();
-
         return this.institutionDAO
-                .byId(id)
+                .byPK(id)
                 .flatMap(inst -> this.authorizationGrantService.checkGrantOnEntity(
                         inst,
                         PrivilegeType.READ_ONLY))
@@ -89,8 +83,6 @@ public class InstitutionController {
     @RequestMapping(method = RequestMethod.GET)
     public Collection<Institution> getAll(
             @RequestParam(name = Institution.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
-
-        checkBaseReadPrivilege();
 
         if (!this.authorizationGrantService.hasBasePrivilege(
                 EntityType.INSTITUTION,
@@ -126,13 +118,15 @@ public class InstitutionController {
     }
 
     @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)
-    public Institution activate(@PathVariable final Long id) {
-        return setActive(id, true);
+    public EntityProcessingReport activate(@PathVariable final Long id) {
+        return setActive(id, true)
+                .getOrThrow();
     }
 
     @RequestMapping(value = "/{id}/deactivate", method = RequestMethod.POST)
-    public Institution deactivate(@PathVariable final Long id) {
-        return setActive(id, false);
+    public EntityProcessingReport deactivate(@PathVariable final Long id) {
+        return setActive(id, false)
+                .getOrThrow();
     }
 
     @RequestMapping(path = "/{id}/delete", method = RequestMethod.DELETE)
@@ -142,7 +136,8 @@ public class InstitutionController {
         return this.bulkActionService.createReport(new BulkAction(
                 Type.DEACTIVATE,
                 EntityType.INSTITUTION,
-                new EntityKey(id, EntityType.INSTITUTION)));
+                new EntityKey(id, EntityType.INSTITUTION)))
+                .getOrThrow();
     }
 
     @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
@@ -152,7 +147,8 @@ public class InstitutionController {
         return this.bulkActionService.createReport(new BulkAction(
                 Type.HARD_DELETE,
                 EntityType.INSTITUTION,
-                new EntityKey(id, EntityType.INSTITUTION)));
+                new EntityKey(id, EntityType.INSTITUTION)))
+                .getOrThrow();
     }
 
     private void checkPrivilegeForInstitution(final Long id, final PrivilegeType type) {
@@ -160,24 +156,21 @@ public class InstitutionController {
                 EntityType.INSTITUTION,
                 type);
 
-        this.institutionDAO.byId(id)
+        this.institutionDAO.byPK(id)
                 .flatMap(institution -> this.authorizationGrantService.checkGrantOnEntity(
                         institution,
                         type))
                 .getOrThrow();
     }
 
-    private Institution setActive(final Long id, final boolean active) {
+    private Result<EntityProcessingReport> setActive(final Long id, final boolean active) {
         checkPrivilegeForInstitution(id, PrivilegeType.MODIFY);
 
-        this.bulkActionService.doBulkAction(new BulkAction(
+        return this.bulkActionService.createReport(new BulkAction(
                 (active) ? Type.ACTIVATE : Type.DEACTIVATE,
                 EntityType.INSTITUTION,
                 new EntityKey(id, EntityType.INSTITUTION)));
 
-        return this.institutionDAO
-                .byId(id)
-                .getOrThrow();
     }
 
     private Result<Institution> save(final Institution institution, final PrivilegeType privilegeType) {
@@ -190,12 +183,6 @@ public class InstitutionController {
                 .checkGrantOnEntity(institution, privilegeType)
                 .flatMap(this.institutionDAO::save)
                 .flatMap(inst -> this.userActivityLogDAO.log(activityType, inst));
-    }
-
-    private void checkBaseReadPrivilege() {
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.INSTITUTION,
-                PrivilegeType.READ_ONLY);
     }
 
 }

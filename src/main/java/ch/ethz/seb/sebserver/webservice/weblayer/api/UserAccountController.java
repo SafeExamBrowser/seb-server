@@ -13,15 +13,14 @@ import java.util.Collection;
 import javax.validation.Valid;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
@@ -34,8 +33,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
@@ -45,11 +42,10 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_USER_ACCOUNT)
-public class UserAccountController {
+public class UserAccountController extends ActivatableEntityController<UserInfo> {
 
     private final UserDAO userDao;
     private final AuthorizationGrantService authorizationGrantService;
-    private final UserService userService;
     private final UserActivityLogDAO userActivityLogDAO;
     private final PaginationService paginationService;
     private final BulkActionService bulkActionService;
@@ -58,34 +54,40 @@ public class UserAccountController {
     public UserAccountController(
             final UserDAO userDao,
             final AuthorizationGrantService authorizationGrantService,
-            final UserService userService,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BulkActionService bulkActionService,
             final ApplicationEventPublisher applicationEventPublisher) {
 
+        super(authorizationGrantService, bulkActionService, userDao);
         this.userDao = userDao;
         this.authorizationGrantService = authorizationGrantService;
-        this.userService = userService;
         this.userActivityLogDAO = userActivityLogDAO;
         this.paginationService = paginationService;
         this.bulkActionService = bulkActionService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) throws Exception {
+        this.authorizationGrantService
+                .getUserService()
+                .addUsersInstitutionDefaultPropertySupport(binder);
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserInfo> getAll(
-            @RequestParam(name = UserFilter.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
+            @RequestParam(
+                    name = UserFilter.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = UserFilter.FILTER_ATTR_ACTIVE, required = false) final Boolean active,
             @RequestParam(name = UserFilter.FILTER_ATTR_NAME, required = false) final String name,
             @RequestParam(name = UserFilter.FILTER_ATTR_USER_NAME, required = false) final String username,
             @RequestParam(name = UserFilter.FILTER_ATTR_EMAIL, required = false) final String email,
             @RequestParam(name = UserFilter.FILTER_ATTR_LOCALE, required = false) final String locale) {
 
-        // fist check if current user has any privileges for this action
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.USER,
-                PrivilegeType.READ_ONLY);
+        checkReadPrivilege(institutionId);
 
         this.paginationService.setDefaultLimit(UserRecordDynamicSqlSupport.userRecord);
         return getAll(createUserFilter(institutionId, active, name, username, email, locale));
@@ -93,7 +95,10 @@ public class UserAccountController {
 
     @RequestMapping(path = "/page", method = RequestMethod.GET)
     public Page<UserInfo> getPage(
-            @RequestParam(name = UserFilter.FILTER_ATTR_INSTITUTION, required = false) final Long institutionId,
+            @RequestParam(
+                    name = UserFilter.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = UserFilter.FILTER_ATTR_ACTIVE, required = false) final Boolean active,
             @RequestParam(name = UserFilter.FILTER_ATTR_NAME, required = false) final String name,
             @RequestParam(name = UserFilter.FILTER_ATTR_USER_NAME, required = false) final String username,
@@ -104,10 +109,7 @@ public class UserAccountController {
             @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
             @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
 
-        // fist check if current user has any privileges for this action
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.USER,
-                PrivilegeType.READ_ONLY);
+        checkReadPrivilege(institutionId);
 
         return this.paginationService.getPage(
                 pageNumber,
@@ -121,21 +123,22 @@ public class UserAccountController {
 
     @RequestMapping(path = "/me", method = RequestMethod.GET)
     public UserInfo loggedInUser() {
-        return this.userService
+        return this.authorizationGrantService
+                .getUserService()
                 .getCurrentUser()
                 .getUserInfo();
     }
 
-    @RequestMapping(path = "/{uuid}", method = RequestMethod.GET)
-    public UserInfo accountInfo(@PathVariable final String uuid) {
-        return this.userDao
-                .byUuid(uuid)
-                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
-                        userInfo,
-                        PrivilegeType.READ_ONLY))
-                .getOrThrow();
-
-    }
+//    @Override
+//    @RequestMapping(path = "/{uuid}", method = RequestMethod.GET)
+//    public UserInfo accountInfo(@PathVariable final String uuid) {
+//        return this.userDao
+//                .byModelId(uuid)
+//                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
+//                        userInfo,
+//                        PrivilegeType.READ_ONLY))
+//                .getOrThrow();
+//    }
 
     @RequestMapping(path = "/create", method = RequestMethod.PUT)
     public UserInfo createUser(@Valid @RequestBody final UserMod userData) {
@@ -150,60 +153,52 @@ public class UserAccountController {
 
     }
 
-    @RequestMapping(path = "/{uuid}/activate", method = RequestMethod.POST)
-    public UserInfo activateUser(@PathVariable final String uuid) {
-        return setActive(uuid, true);
-    }
+//    @Override
+//    @RequestMapping(path = "/{uuid}/activate", method = RequestMethod.POST)
+//    public EntityProcessingReport activateUser(@PathVariable final String uuid) {
+//        return setActive(uuid, true)
+//                .getOrThrow();
+//    }
+//
+//    @Override
+//    @RequestMapping(value = "/{uuid}/deactivate", method = RequestMethod.POST)
+//    public EntityProcessingReport deactivateUser(@PathVariable final String uuid) {
+//        return setActive(uuid, false)
+//                .getOrThrow();
+//    }
+//
+//    @Override
+//    @RequestMapping(path = "/{uuid}/delete", method = RequestMethod.DELETE)
+//    public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
+//        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
+//
+//        return this.bulkActionService.createReport(new BulkAction(
+//                Type.DEACTIVATE,
+//                EntityType.USER,
+//                new EntityKey(uuid, EntityType.USER, false)))
+//                .getOrThrow();
+//    }
 
-    @RequestMapping(value = "/{uuid}/deactivate", method = RequestMethod.POST)
-    public UserInfo deactivateUser(@PathVariable final String uuid) {
-        return setActive(uuid, false);
-    }
+//    private void checkPrivilegeForUser(final String uuid, final PrivilegeType type) {
+//        this.authorizationGrantService.checkHasAnyPrivilege(
+//                EntityType.USER,
+//                type);
+//
+//        this.userDao.byModelId(uuid)
+//                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
+//                        userInfo,
+//                        type))
+//                .getOrThrow();
+//    }
 
-    @RequestMapping(path = "/{uuid}/delete", method = RequestMethod.DELETE)
-    public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
-        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
-
-        return this.bulkActionService.createReport(new BulkAction(
-                Type.DEACTIVATE,
-                EntityType.USER,
-                new EntityKey(uuid, EntityType.USER, false)));
-    }
-
-    @RequestMapping(path = "/{uuid}/hard-delete", method = RequestMethod.DELETE)
-    public EntityProcessingReport hardDeleteUser(@PathVariable final String uuid) {
-        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
-
-        return this.bulkActionService.createReport(new BulkAction(
-                Type.HARD_DELETE,
-                EntityType.USER,
-                new EntityKey(uuid, EntityType.USER, false)));
-    }
-
-    private void checkPrivilegeForUser(final String uuid, final PrivilegeType type) {
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.USER,
-                type);
-
-        this.userDao.byUuid(uuid)
-                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
-                        userInfo,
-                        type))
-                .getOrThrow();
-    }
-
-    private UserInfo setActive(final String uuid, final boolean active) {
-        this.checkPrivilegeForUser(uuid, PrivilegeType.MODIFY);
-
-        this.bulkActionService.doBulkAction(new BulkAction(
-                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
-                EntityType.USER,
-                new EntityKey(uuid, EntityType.USER, false)));
-
-        return this.userDao
-                .byUuid(uuid)
-                .getOrThrow();
-    }
+//    private Result<EntityProcessingReport> setActive(final String uuid, final boolean active) {
+//        this.checkPrivilegeForUser(uuid, PrivilegeType.MODIFY);
+//
+//        return this.bulkActionService.createReport(new BulkAction(
+//                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
+//                EntityType.USER,
+//                new EntityKey(uuid, EntityType.USER, false)));
+//    }
 
     private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
 
@@ -259,6 +254,13 @@ public class UserAccountController {
                 username != null || email != null || locale != null)
                         ? new UserFilter(institutionId, name, username, email, active, locale)
                         : null;
+    }
+
+    private void checkReadPrivilege(final Long institutionId) {
+        this.authorizationGrantService.checkPrivilege(
+                EntityType.USER,
+                PrivilegeType.READ_ONLY,
+                institutionId);
     }
 
 }

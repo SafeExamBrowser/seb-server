@@ -32,7 +32,21 @@ public interface EntityDAO<T extends Entity> {
      * @param id the data base identifier of the entity
      * @return Result refer the Entity instance with the specified database identifier or refer to an error if
      *         happened */
-    Result<T> byId(Long id);
+    Result<T> byPK(Long id);
+
+    /** Use this to get an Entity instance of concrete type by model identifier
+     *
+     * NOTE: A model identifier may differ from the string representation of the database identifier
+     * but usually they are the same.
+     *
+     * @param id the model identifier
+     * @return Result refer the Entity instance with the specified model identifier or refer to an error if
+     *         happened */
+    default Result<T> byModelId(final String id) {
+        return Result.tryCatch(() -> {
+            return Long.parseLong(id);
+        }).flatMap(this::byPK);
+    }
 
     /** Use this to get a Collection of all entities of concrete type that matches a given predicate.
      *
@@ -104,7 +118,7 @@ public interface EntityDAO<T extends Entity> {
      *
      * @param keys Collection of EntityKey of various types
      * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
-    default List<Long> extractIdsFromKeys(final Collection<EntityKey> keys) {
+    default List<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
 
         if (keys == null) {
             return Collections.emptyList();
@@ -114,7 +128,7 @@ public interface EntityDAO<T extends Entity> {
         return keys
                 .stream()
                 .filter(key -> key.entityType == entityType)
-                .map(key -> Long.valueOf(key.entityId))
+                .map(key -> Long.valueOf(key.modelId))
                 .collect(Collectors.toList());
     }
 

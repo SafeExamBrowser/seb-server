@@ -22,11 +22,11 @@ public final class Page<T> {
         DESCENDING
     }
 
-    public static final String ATTR_NUMBER_OF_PAGES = "numberOfPages";
-    public static final String ATTR_PAGE_NUMBER = "pageNumber";
-    public static final String ATTR_PAGE_SIZE = "pageSize";
-    public static final String ATTR_SORT_BY = "sortBy";
-    public static final String ATTR_SORT_ORDER = "sortOrder";
+    public static final String ATTR_NUMBER_OF_PAGES = "number_of_pages";
+    public static final String ATTR_PAGE_NUMBER = "page_number";
+    public static final String ATTR_PAGE_SIZE = "page_size";
+    public static final String ATTR_SORT_BY = "sort_by";
+    public static final String ATTR_SORT_ORDER = "sort_order";
     public static final String ATTR_CONTENT = "content";
 
     @JsonProperty(ATTR_NUMBER_OF_PAGES)

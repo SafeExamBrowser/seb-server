@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.gbl.model;
 
 public interface Entity extends ModelIdAware {
 
+    public static final String ATTR_ID = "id";
+    public static final String ATTR_INSTITUTION = "institution";
+
     EntityType entityType();
 
     String getName();

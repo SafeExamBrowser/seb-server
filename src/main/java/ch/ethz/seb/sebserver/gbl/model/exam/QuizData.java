@@ -22,11 +22,6 @@ public final class QuizData {
     public static final String FILTER_ATTR_NAME = "name_like";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
 
-    public static final String PAGE_ATTR_NUMBER = "page_number";
-    public static final String PAGE_ATTR_SIZE = "page_size";
-    public static final String PAGE_ATTR_SORT_BY = "sort_by";
-    public static final String PAGE_ATTR_SORT_ORDER = "sort_order";
-
     public static final String QUIZ_ATTR_ID = "quiz_id";
     public static final String QUIZ_ATTR_NAME = "quiz_name";
     public static final String QUIZ_ATTR_DESCRIPTION = "quiz_description";

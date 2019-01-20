@@ -26,17 +26,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
  * within SEBServerUser. */
 public interface UserDAO extends ActivatableEntityDAO<UserInfo>, BulkActionSupportDAO<UserInfo> {
 
-    /** Use this to get UserInfo by users UUID
-     *
-     * @param uuid The UUID of the user to get UserInfo from
-     * @return a Result of UserInfo data from user with the specified UUID. Or an exception result on error case */
-    Result<UserInfo> byUuid(String uuid);
-
     /** Use this to get the user id (PK) from a given UUID.
      *
      * @param uuid The UUID of the user
      * @return the user id (PK) from a given UUID. */
-    Result<Long> pkForUUID(String uuid);
+    Result<Long> pkForModelId(String uuid);
 
     /** Use this to get UserInfo by users username
      *

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
+import java.beans.PropertyEditorSupport;
 import java.security.Principal;
 import java.util.Collection;
 
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.WebDataBinder;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -76,6 +78,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public SEBServerUser getSuperUser() {
         return SUPER_USER;
+    }
+
+    @Override
+    public void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder) {
+        final PropertyEditorSupport usersInstitutionDefaultEditor = new PropertyEditorSupport() {
+            @Override
+            public void setAsText(final String text) throws IllegalArgumentException {
+                if (UserService.USERS_INSTITUTION_AS_DEFAULT.equals(text)) {
+                    setValue(getCurrentUser().institutionId());
+                } else {
+                    setValue((text == null) ? null : Long.decode(text));
+                }
+            }
+        };
+        binder.registerCustomEditor(Long.class, usersInstitutionDefaultEditor);
+
     }
 
     // 1. OAuth2Authentication strategy

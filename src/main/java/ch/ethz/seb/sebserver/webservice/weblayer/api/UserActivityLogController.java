@@ -13,8 +13,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,11 +29,14 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @WebServiceProfile
@@ -52,84 +58,113 @@ public class UserActivityLogController {
         this.paginationService = paginationService;
     }
 
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) throws Exception {
+        this.authorizationGrantService
+                .getUserService()
+                .addUsersInstitutionDefaultPropertySupport(binder);
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public Collection<UserActivityLog> getAll(
-            @RequestParam(required = false) final Long from,
-            @RequestParam(required = false) final Long to,
-            @RequestParam(required = false) final String activityTypes,
-            @RequestParam(required = false) final String entityTypes) {
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_FROM,
+                    required = false) final String from,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_TO,
+                    required = false) final String to,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
+                    required = false) final String activityTypes,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES,
+                    required = false) final String entityTypes) {
 
-        checkBaseReadPrivilege();
+        checkBaseReadPrivilege(institutionId);
         this.paginationService.setDefaultLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
-        return _getAll(null, from, to, activityTypes, entityTypes);
+        return _getAll(institutionId, null, from, to, activityTypes, entityTypes);
     }
 
     @RequestMapping(path = "/{userId}", method = RequestMethod.GET)
     public Collection<UserActivityLog> getAllForUser(
             @PathVariable final String userId,
-            @RequestParam(required = false) final Long from,
-            @RequestParam(required = false) final Long to,
-            @RequestParam(required = false) final String activityTypes,
-            @RequestParam(required = false) final String entityTypes) {
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_FROM, required = false) final String from,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_TO, required = false) final String to,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
+                    required = false) final String activityTypes,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES, required = false) final String entityTypes) {
 
-        checkBaseReadPrivilege();
+        checkBaseReadPrivilege(institutionId);
         this.paginationService.setDefaultLimit(UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
-        return _getAll(userId, from, to, activityTypes, entityTypes);
+        return _getAll(institutionId, userId, from, to, activityTypes, entityTypes);
     }
 
     @RequestMapping(path = "/page", method = RequestMethod.GET)
     public Page<UserActivityLog> getPage(
-            @RequestParam(required = false) final Long from,
-            @RequestParam(required = false) final Long to,
-            @RequestParam(required = false) final String activityTypes,
-            @RequestParam(required = false) final String entityTypes,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_FROM, required = false) final String from,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_TO, required = false) final String to,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
+                    required = false) final String activityTypes,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES, required = false) final String entityTypes,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
             @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
 
-        checkBaseReadPrivilege();
+        checkBaseReadPrivilege(institutionId);
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
                 sortBy,
                 sortOrder,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> _getAll(null, from, to, activityTypes, entityTypes));
+                () -> _getAll(institutionId, null, from, to, activityTypes, entityTypes));
     }
 
     @RequestMapping(path = "/page/{userId}", method = RequestMethod.GET)
     public Page<UserActivityLog> getPageForUser(
             @PathVariable final String userId,
-            @RequestParam(required = false) final Long from,
-            @RequestParam(required = false) final Long to,
-            @RequestParam(required = false) final String activityTypes,
-            @RequestParam(required = false) final String entityTypes,
+            @RequestParam(
+                    name = UserActivityLog.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_FROM, required = false) final String from,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_TO, required = false) final String to,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
+                    required = false) final String activityTypes,
+            @RequestParam(name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES, required = false) final String entityTypes,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
             @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
 
-        checkBaseReadPrivilege();
+        checkBaseReadPrivilege(institutionId);
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
                 sortBy,
                 sortOrder,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> _getAll(userId, from, to, activityTypes, entityTypes));
-    }
-
-    private void checkBaseReadPrivilege() {
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.USER_ACTIVITY_LOG,
-                PrivilegeType.READ_ONLY);
+                () -> _getAll(institutionId, userId, from, to, activityTypes, entityTypes));
     }
 
     private Collection<UserActivityLog> _getAll(
+            final Long institutionId,
             final String userId,
-            final Long from,
-            final Long to,
+            final String from,
+            final String to,
             final String activityTypes,
             final String entityTypes) {
 
@@ -142,24 +177,32 @@ public class UserActivityLogController {
                         Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))))
                 : null;
 
-        if (_activityTypes != null || _entityTypes != null) {
+        final Predicate<UserActivityLogRecord> filter = (_activityTypes != null || _entityTypes != null)
+                ? record -> {
+                    if (_activityTypes != null && !_activityTypes.contains(record.getActivityType())) {
+                        return false;
+                    }
+                    if (_entityTypes != null && !_entityTypes.contains(record.getEntityType())) {
+                        return false;
+                    }
 
-            return this.userActivityLogDAO.all(userId, from, to, record -> {
-                if (_activityTypes != null && !_activityTypes.contains(record.getActivityType())) {
-                    return false;
+                    return true;
                 }
-                if (_entityTypes != null && !_entityTypes.contains(record.getEntityType())) {
-                    return false;
-                }
+                : record -> true;
 
-                return true;
-            }).getOrThrow();
+        return this.userActivityLogDAO.all(
+                institutionId,
+                userId,
+                Utils.toMilliSeconds(from),
+                Utils.toMilliSeconds(to),
+                filter).getOrThrow();
+    }
 
-        } else {
-
-            return this.userActivityLogDAO.all(userId, from, to, record -> true)
-                    .getOrThrow();
-        }
+    private void checkBaseReadPrivilege(final Long institutionId) {
+        this.authorizationGrantService.checkPrivilege(
+                EntityType.USER_ACTIVITY_LOG,
+                PrivilegeType.READ_ONLY,
+                institutionId);
     }
 
 }

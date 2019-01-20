@@ -24,10 +24,10 @@ INSERT INTO user_role VALUES
     ;
     
 INSERT INTO user_activity_log VALUES
-    (1, 'user1', 1, 'MODIFY', 'INSTITUTION', '1', 'some message'),
-    (2, 'user2', 2, 'CREATE', 'EXAM', '1', 'some message'),
-    (3, 'user3', 3, 'CREATE', 'EXAM', '2', 'some message'),
-    (4, 'user4', 4, 'CREATE', 'EXAM', '33', 'some message'),
-    (5, 'user4', 5, 'MODIFY', 'EXAM', '33', 'some message')
+    (1, 'user1', 1000, 'MODIFY', 'INSTITUTION', '1', 'some message'),
+    (2, 'user2', 2000, 'CREATE', 'EXAM', '1', 'some message'),
+    (3, 'user3', 3000, 'CREATE', 'EXAM', '2', 'some message'),
+    (4, 'user4', 4000, 'CREATE', 'EXAM', '33', 'some message'),
+    (5, 'user4', 5000, 'MODIFY', 'EXAM', '33', 'some message')
     ;
 

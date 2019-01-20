@@ -56,7 +56,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Institution> byId(final Long id) {
+    public Result<Institution> byPK(final Long id) {
         return recordById(id)
                 .flatMap(InstitutionDAOImpl::toDomainModel);
     }
@@ -123,7 +123,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
         final InstitutionRecord institutionRecord = new InstitutionRecord(
                 null, null, null, BooleanUtils.toInteger(active), null);
 
@@ -147,7 +147,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
 
         try {
             this.institutionRecordMapper.deleteByExample()
@@ -177,7 +177,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Transactional(readOnly = true)
     public Result<Collection<Institution>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractIdsFromKeys(keys);
+            final List<Long> ids = extractPKsFromKeys(keys);
 
             return this.institutionRecordMapper.selectByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -217,19 +217,18 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     }
 
     private Result<InstitutionRecord> update(final Institution institution) {
-        return recordById(institution.id)
-                .map(record -> {
+        return Result.tryCatch(() -> {
 
-                    final InstitutionRecord newRecord = new InstitutionRecord(
-                            institution.id,
-                            institution.name,
-                            institution.urlSuffix,
-                            null,
-                            institution.logoImage);
+            final InstitutionRecord newRecord = new InstitutionRecord(
+                    institution.id,
+                    institution.name,
+                    institution.urlSuffix,
+                    null,
+                    institution.logoImage);
 
-                    this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
-                });
+            this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
+        });
     }
 
     private static Result<Institution> toDomainModel(final InstitutionRecord record) {

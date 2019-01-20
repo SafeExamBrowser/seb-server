@@ -99,4 +99,12 @@ public abstract class AdministrationAPIIntegrationTest {
         return obtainAccessToken("examAdmin1", "admin");
     }
 
+//    protected static class TestHelper {
+//
+//        private Supplier<String> accessTokenSuplier;
+//        private String query;
+//        private String endpoint;
+//        private Object
+//    }
+
 }

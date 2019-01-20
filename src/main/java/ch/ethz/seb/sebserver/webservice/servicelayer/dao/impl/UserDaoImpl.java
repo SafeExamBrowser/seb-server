@@ -83,22 +83,22 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<UserInfo> byId(final Long id) {
+    public Result<UserInfo> byPK(final Long id) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByPrimaryKey(id))
                 .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<UserInfo> byUuid(final String uuid) {
-        return recordByUUID(uuid)
+    public Result<UserInfo> byModelId(final String modelId) {
+        return recordByUUID(modelId)
                 .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Long> pkForUUID(final String uuid) {
-        return recordByUUID(uuid)
+    public Result<Long> pkForModelId(final String modelId) {
+        return recordByUUID(modelId)
                 .map(r -> r.getId());
     }
 
@@ -191,7 +191,7 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
         final UserRecord userRecord = new UserRecord(
                 null, null, null, null, null, null, null, null, null,
                 BooleanUtils.toIntegerObject(active));
@@ -216,7 +216,7 @@ public class UserDaoImpl implements UserDAO {
     @Override
     @Transactional
     public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractIdsFromKeys(all);
+        final List<Long> ids = extractPKsFromKeys(all);
 
         try {
             this.userRecordMapper.deleteByExample()
@@ -259,7 +259,7 @@ public class UserDaoImpl implements UserDAO {
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> bulkLoadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractIdsFromKeys(keys);
+            final List<Long> ids = extractPKsFromKeys(keys);
 
             return this.userRecordMapper.selectByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -273,12 +273,12 @@ public class UserDaoImpl implements UserDAO {
     }
 
     @Override
-    public List<Long> extractIdsFromKeys(final Collection<EntityKey> keys) {
+    public List<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
         if (keys == null || keys.isEmpty() || keys.iterator().next().isIdPK) {
-            return UserDAO.super.extractIdsFromKeys(keys);
+            return UserDAO.super.extractPKsFromKeys(keys);
         } else {
             final List<String> uuids = keys.stream()
-                    .map(key -> key.entityId)
+                    .map(key -> key.modelId)
                     .collect(Collectors.toList());
 
             try {
@@ -299,7 +299,7 @@ public class UserDaoImpl implements UserDAO {
         return Result.tryCatch(() -> {
             return this.userRecordMapper.selectIdsByExample()
                     .where(UserRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.entityId)))
+                            isEqualTo(Long.valueOf(institutionKey.modelId)))
                     .build()
                     .execute()
                     .stream()

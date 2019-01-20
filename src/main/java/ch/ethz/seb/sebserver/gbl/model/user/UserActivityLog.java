@@ -19,6 +19,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.Acti
 
 public class UserActivityLog implements Entity {
 
+    public static final String FILTER_ATTR_INSTITUTION = ATTR_INSTITUTION;
+    public static final String FILTER_ATTR_FROM = "from";
+    public static final String FILTER_ATTR_TO = "to";
+    public static final String FILTER_ATTR_ACTIVITY_TYPES = "activity_types";
+    public static final String FILTER_ATTR_ENTITY_TYPES = "entity_types";
+
     @JsonIgnore
     public final Long id;
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID)

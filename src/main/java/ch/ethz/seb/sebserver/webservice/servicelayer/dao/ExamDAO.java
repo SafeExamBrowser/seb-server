@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import org.joda.time.DateTime;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -27,8 +29,10 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam>, BulkActionSupportDA
             String name,
             Exam.ExamStatus status,
             Exam.ExamType type,
-            Long startTime,
+            DateTime from,
             String owner,
             Boolean active);
+
+    Result<Exam> save(Exam exam);
 
 }

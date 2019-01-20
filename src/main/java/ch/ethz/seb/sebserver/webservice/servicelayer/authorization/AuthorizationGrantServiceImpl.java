@@ -120,49 +120,86 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     }
 
     @Override
-    public void checkHasAnyPrivilege(final EntityType entityType, final PrivilegeType grantType) {
+    public void checkHasAnyPrivilege(final EntityType entityType, final PrivilegeType privilegeType) {
         final SEBServerUser currentUser = this.userService.getCurrentUser();
-        if (hasBasePrivilege(entityType, grantType, currentUser) ||
-                hasInstitutionalPrivilege(entityType, grantType, currentUser)) {
+        if (hasBasePrivilege(entityType, privilegeType, currentUser) ||
+                hasInstitutionalPrivilege(entityType, privilegeType, currentUser)) {
             return;
         }
 
-        throw new PermissionDeniedException(entityType, grantType, currentUser.getUserInfo().uuid);
+        throw new PermissionDeniedException(entityType, privilegeType, currentUser.getUserInfo().uuid);
     }
 
     @Override
-    public <E extends GrantEntity> Result<E> checkGrantOnEntity(final E entity, final PrivilegeType grantType) {
+    public void checkPrivilege(
+            final EntityType entityType,
+            final PrivilegeType privilegeType,
+            final Long institutionId) {
 
         final SEBServerUser currentUser = this.userService.getCurrentUser();
-        if (hasGrant(entity, grantType, currentUser)) {
+        if (hasBasePrivilege(entityType, privilegeType, currentUser)) {
+            return;
+        }
+
+        if (institutionId == null) {
+            throw new PermissionDeniedException(entityType, privilegeType, currentUser.getUserInfo().uuid);
+        }
+
+        if (hasInstitutionalPrivilege(entityType, privilegeType, currentUser) &&
+                currentUser.institutionId().longValue() == institutionId.longValue()) {
+            return;
+        }
+
+        throw new PermissionDeniedException(entityType, privilegeType, currentUser.getUserInfo().uuid);
+    }
+
+    @Override
+    public void checkPrivilege(
+            final EntityType entityType,
+            final PrivilegeType privilegeType,
+            final Long institutionId,
+            final Long ownerId) {
+
+        final SEBServerUser currentUser = this.userService.getCurrentUser();
+
+        // TODO Auto-generated method stub
+
+        throw new PermissionDeniedException(entityType, privilegeType, currentUser.getUserInfo().uuid);
+    }
+
+    @Override
+    public <E extends GrantEntity> Result<E> checkGrantOnEntity(final E entity, final PrivilegeType privilegeType) {
+
+        final SEBServerUser currentUser = this.userService.getCurrentUser();
+        if (hasGrant(entity, privilegeType, currentUser)) {
             return Result.of(entity);
         } else {
-            return Result.ofError(new PermissionDeniedException(entity, grantType, currentUser.getUserInfo().uuid));
+            return Result.ofError(new PermissionDeniedException(entity, privilegeType, currentUser.getUserInfo().uuid));
         }
     }
 
     @Override
-    public boolean hasBasePrivilege(final EntityType entityType, final PrivilegeType grantType) {
-        return hasBasePrivilege(entityType, grantType, this.userService.getCurrentUser());
+    public boolean hasBasePrivilege(final EntityType entityType, final PrivilegeType privilegeType) {
+        return hasBasePrivilege(entityType, privilegeType, this.userService.getCurrentUser());
     }
 
     @Override
     public boolean hasBasePrivilege(
             final EntityType entityType,
-            final PrivilegeType grantType,
+            final PrivilegeType privilegeType,
             final Principal principal) {
 
-        return hasBasePrivilege(entityType, grantType, this.userService.extractFromPrincipal(principal));
+        return hasBasePrivilege(entityType, privilegeType, this.userService.extractFromPrincipal(principal));
     }
 
     private boolean hasBasePrivilege(
             final EntityType entityType,
-            final PrivilegeType grantType,
+            final PrivilegeType privilegeType,
             final SEBServerUser user) {
 
         for (final UserRole role : user.getUserRoles()) {
             final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
-            if (roleTypeGrant != null && roleTypeGrant.hasBasePrivilege(grantType)) {
+            if (roleTypeGrant != null && roleTypeGrant.hasBasePrivilege(privilegeType)) {
                 return true;
             }
         }
@@ -171,27 +208,36 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     }
 
     @Override
-    public boolean hasInstitutionalPrivilege(final EntityType entityType, final PrivilegeType grantType) {
-        return hasInstitutionalPrivilege(entityType, grantType, this.userService.getCurrentUser());
+    public boolean hasInstitutionalPrivilege(
+            final EntityType entityType,
+            final PrivilegeType privilegeType) {
+
+        return hasInstitutionalPrivilege(
+                entityType,
+                privilegeType,
+                this.userService.getCurrentUser());
     }
 
     @Override
     public boolean hasInstitutionalPrivilege(
             final EntityType entityType,
-            final PrivilegeType grantType,
+            final PrivilegeType privilegeType,
             final Principal principal) {
 
-        return hasInstitutionalPrivilege(entityType, grantType, this.userService.extractFromPrincipal(principal));
+        return hasInstitutionalPrivilege(
+                entityType,
+                privilegeType,
+                this.userService.extractFromPrincipal(principal));
     }
 
     private boolean hasInstitutionalPrivilege(
             final EntityType entityType,
-            final PrivilegeType grantType,
+            final PrivilegeType privilegeType,
             final SEBServerUser user) {
 
         for (final UserRole role : user.getUserRoles()) {
             final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
-            if (roleTypeGrant != null && roleTypeGrant.hasInstitutionalPrivilege(grantType)) {
+            if (roleTypeGrant != null && roleTypeGrant.hasInstitutionalPrivilege(privilegeType)) {
                 return true;
             }
         }
