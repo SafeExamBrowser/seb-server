@@ -10,12 +10,9 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
 
-import javax.validation.Valid;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,20 +32,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_USER_ACCOUNT)
-public class UserAccountController extends ActivatableEntityController<UserInfo> {
+public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
     private final UserDAO userDao;
     private final AuthorizationGrantService authorizationGrantService;
-    private final UserActivityLogDAO userActivityLogDAO;
     private final PaginationService paginationService;
-    private final BulkActionService bulkActionService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserAccountController(
@@ -59,12 +53,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo>
             final BulkActionService bulkActionService,
             final ApplicationEventPublisher applicationEventPublisher) {
 
-        super(authorizationGrantService, bulkActionService, userDao);
+        super(authorizationGrantService, bulkActionService, userDao, userActivityLogDAO, paginationService);
         this.userDao = userDao;
         this.authorizationGrantService = authorizationGrantService;
-        this.userActivityLogDAO = userActivityLogDAO;
         this.paginationService = paginationService;
-        this.bulkActionService = bulkActionService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -129,91 +121,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo>
                 .getUserInfo();
     }
 
-//    @Override
-//    @RequestMapping(path = "/{uuid}", method = RequestMethod.GET)
-//    public UserInfo accountInfo(@PathVariable final String uuid) {
-//        return this.userDao
-//                .byModelId(uuid)
-//                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
-//                        userInfo,
-//                        PrivilegeType.READ_ONLY))
-//                .getOrThrow();
-//    }
-
-    @RequestMapping(path = "/create", method = RequestMethod.PUT)
-    public UserInfo createUser(@Valid @RequestBody final UserMod userData) {
-        return _saveUser(userData, PrivilegeType.WRITE)
-                .getOrThrow();
-    }
-
-    @RequestMapping(path = "/save", method = RequestMethod.POST)
-    public UserInfo saveUser(@Valid @RequestBody final UserMod userData) {
-        return _saveUser(userData, PrivilegeType.MODIFY)
-                .getOrThrow();
-
-    }
-
-//    @Override
-//    @RequestMapping(path = "/{uuid}/activate", method = RequestMethod.POST)
-//    public EntityProcessingReport activateUser(@PathVariable final String uuid) {
-//        return setActive(uuid, true)
-//                .getOrThrow();
-//    }
-//
-//    @Override
-//    @RequestMapping(value = "/{uuid}/deactivate", method = RequestMethod.POST)
-//    public EntityProcessingReport deactivateUser(@PathVariable final String uuid) {
-//        return setActive(uuid, false)
-//                .getOrThrow();
-//    }
-//
-//    @Override
-//    @RequestMapping(path = "/{uuid}/delete", method = RequestMethod.DELETE)
-//    public EntityProcessingReport deleteUser(@PathVariable final String uuid) {
-//        checkPrivilegeForUser(uuid, PrivilegeType.WRITE);
-//
-//        return this.bulkActionService.createReport(new BulkAction(
-//                Type.DEACTIVATE,
-//                EntityType.USER,
-//                new EntityKey(uuid, EntityType.USER, false)))
-//                .getOrThrow();
-//    }
-
-//    private void checkPrivilegeForUser(final String uuid, final PrivilegeType type) {
-//        this.authorizationGrantService.checkHasAnyPrivilege(
-//                EntityType.USER,
-//                type);
-//
-//        this.userDao.byModelId(uuid)
-//                .flatMap(userInfo -> this.authorizationGrantService.checkGrantOnEntity(
-//                        userInfo,
-//                        type))
-//                .getOrThrow();
-//    }
-
-//    private Result<EntityProcessingReport> setActive(final String uuid, final boolean active) {
-//        this.checkPrivilegeForUser(uuid, PrivilegeType.MODIFY);
-//
-//        return this.bulkActionService.createReport(new BulkAction(
-//                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
-//                EntityType.USER,
-//                new EntityKey(uuid, EntityType.USER, false)));
-//    }
-
-    private Result<UserInfo> _saveUser(final UserMod userData, final PrivilegeType privilegeType) {
-
-        final ActivityType activityType = (userData.uuid == null)
-                ? ActivityType.CREATE
-                : ActivityType.MODIFY;
-
-        return this.authorizationGrantService
-                .checkGrantOnEntity(userData, privilegeType)
-                .flatMap(this.userDao::save)
-                .flatMap(userInfo -> this.userActivityLogDAO.log(activityType, userInfo))
-                .flatMap(userInfo -> revokePassword(userData, userInfo));
-    }
-
-    private Result<UserInfo> revokePassword(final UserMod userData, final UserInfo userInfo) {
+    @Override
+    protected Result<UserInfo> notifySave(final UserMod userData, final UserInfo userInfo) {
         // handle password change; revoke access tokens if password has changed
         if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
             this.applicationEventPublisher.publishEvent(
@@ -254,13 +163,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo>
                 username != null || email != null || locale != null)
                         ? new UserFilter(institutionId, name, username, email, active, locale)
                         : null;
-    }
-
-    private void checkReadPrivilege(final Long institutionId) {
-        this.authorizationGrantService.checkPrivilege(
-                EntityType.USER,
-                PrivilegeType.READ_ONLY,
-                institutionId);
     }
 
 }

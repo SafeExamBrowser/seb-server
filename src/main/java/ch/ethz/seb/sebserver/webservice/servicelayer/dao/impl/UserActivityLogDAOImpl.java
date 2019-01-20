@@ -277,6 +277,20 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<UserActivityLog>> loadEntities(final Collection<EntityKey> keys) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public Result<UserActivityLog> save(final UserActivityLog modified) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    @Transactional
     public Result<Integer> overwriteUserReferences(final String userUuid, final boolean deactivate) {
         return Result.tryCatch(() -> {
             final List<UserActivityLogRecord> records = this.userLogRecordMapper.selectByExample()

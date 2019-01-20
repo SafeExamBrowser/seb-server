@@ -15,12 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** Interface of a DAO for an Entity that has activation feature.
  *
  * @param <T> the concrete Entity type */
-public interface ActivatableEntityDAO<T extends Entity> extends EntityDAO<T> {
+public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> extends EntityDAO<T, M> {
 
     /** Get a Collection of all active Entity instances for a concrete entity-domain.
      *

@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface ExamDAO extends ActivatableEntityDAO<Exam>, BulkActionSupportDAO<Exam> {
+public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
     Result<Exam> importFromQuizData(QuizData quizData);
 
@@ -32,7 +32,5 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam>, BulkActionSupportDA
             DateTime from,
             String owner,
             Boolean active);
-
-    Result<Exam> save(Exam exam);
 
 }

@@ -15,12 +15,16 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface EntityDAO<T extends Entity> {
+public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     /** Get the entity type for a concrete EntityDAO implementation.
      *
@@ -79,6 +83,32 @@ public interface EntityDAO<T extends Entity> {
     default Result<Collection<T>> all() {
         return all(entity -> true);
     }
+
+    Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
+
+    @Transactional(readOnly = true)
+    default Result<Collection<EntityKeyAndName>> loadEntityNames(final Collection<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+            return loadEntities(keys)
+                    .getOrThrow()
+                    .stream()
+                    .map(entity -> new EntityKeyAndName(
+                            entity.entityType(),
+                            entity.getModelId(),
+                            entity.getName()))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    /** Use this to save/modify an entity.
+     * If the model identifier from given modified entity data is null or not exists already, a new entity is created.
+     * If the model identifier is available and matches an existing entity, all entity data that are
+     * not null on modified entity data instance are updated within the existing entity.
+     *
+     * @param modified modified data instance containing all data that should be modified
+     * @return A Result of the entity instance where the successfully saved/modified entity data is available or a
+     *         reported exception on error case */
+    Result<T> save(M modified);
 
     /** Use this to delete a set Entity by a Collection of EntityKey
      *

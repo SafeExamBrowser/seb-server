@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
@@ -23,15 +24,19 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
-public abstract class ActivatableEntityController<T extends GrantEntity> extends EntityController<T> {
+public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
+        extends EntityController<T, M> {
 
     public ActivatableEntityController(
             final AuthorizationGrantService authorizationGrantService,
             final BulkActionService bulkActionService,
-            final EntityDAO<T> entityDAO) {
+            final EntityDAO<T, M> entityDAO,
+            final UserActivityLogDAO userActivityLogDAO,
+            final PaginationService paginationService) {
 
-        super(authorizationGrantService, bulkActionService, entityDAO);
+        super(authorizationGrantService, bulkActionService, entityDAO, userActivityLogDAO, paginationService);
     }
 
     @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)

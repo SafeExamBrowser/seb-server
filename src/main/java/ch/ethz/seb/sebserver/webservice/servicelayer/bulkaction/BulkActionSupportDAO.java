@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
@@ -37,22 +36,6 @@ public interface BulkActionSupportDAO<T extends Entity> {
 
     Set<EntityKey> getDependencies(BulkAction bulkAction);
 
-    Result<Collection<T>> bulkLoadEntities(Collection<EntityKey> keys);
-
-    @Transactional(readOnly = true)
-    default Result<Collection<EntityKeyAndName>> bulkLoadEntityNames(final Collection<EntityKey> keys) {
-        return Result.tryCatch(() -> {
-            return bulkLoadEntities(keys)
-                    .getOrThrow()
-                    .stream()
-                    .map(entity -> new EntityKeyAndName(
-                            EntityType.INSTITUTION,
-                            entity.getModelId(),
-                            entity.getName()))
-                    .collect(Collectors.toList());
-        });
-    }
-
     @Transactional
     default Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
         final Set<EntityKey> all = bulkAction.extractKeys(entityType());
@@ -60,15 +43,15 @@ public interface BulkActionSupportDAO<T extends Entity> {
         switch (bulkAction.type) {
             case ACTIVATE:
                 return (this instanceof ActivatableEntityDAO)
-                        ? ((ActivatableEntityDAO<?>) this).setActive(all, true)
+                        ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, true)
                         : Collections.emptyList();
             case DEACTIVATE:
                 return (this instanceof ActivatableEntityDAO)
-                        ? ((ActivatableEntityDAO<?>) this).setActive(all, false)
+                        ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, false)
                         : Collections.emptyList();
             case HARD_DELETE:
                 return (this instanceof EntityDAO)
-                        ? ((EntityDAO<?>) this).delete(all)
+                        ? ((EntityDAO<?, ?>) this).delete(all)
                         : Collections.emptyList();
         }
 

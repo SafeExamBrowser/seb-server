@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup>, BulkActionSupportDAO<LmsSetup> {
+public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, BulkActionSupportDAO<LmsSetup> {
 
     @Transactional(readOnly = true)
     default Result<Collection<LmsSetup>> allOfInstitution(final Long institutionId, final Boolean active) {
@@ -25,7 +25,5 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup>, BulkActionS
     }
 
     Result<Collection<LmsSetup>> allMatching(Long institutionId, String name, LmsType lmsType, Boolean active);
-
-    Result<LmsSetup> save(LmsSetup lmsSetup);
 
 }

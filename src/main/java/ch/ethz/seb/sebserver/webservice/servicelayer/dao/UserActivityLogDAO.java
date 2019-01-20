@@ -18,7 +18,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
-public interface UserActivityLogDAO extends UserRelatedEntityDAO<UserActivityLog> {
+public interface UserActivityLogDAO
+        extends EntityDAO<UserActivityLog, UserActivityLog>, UserRelatedEntityDAO<UserActivityLog> {
 
     enum ActivityType {
         CREATE,

@@ -12,9 +12,17 @@ public interface Entity extends ModelIdAware {
 
     public static final String ATTR_ID = "id";
     public static final String ATTR_INSTITUTION = "institution";
+    public static final String ATTR_ACTIVE = "active";
 
     EntityType entityType();
 
     String getName();
+
+    public static EntityKeyAndName toName(final Entity entity) {
+        return new EntityKeyAndName(
+                entity.entityType(),
+                entity.getModelId(),
+                entity.getName());
+    }
 
 }

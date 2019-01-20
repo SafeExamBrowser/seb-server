@@ -194,7 +194,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<LmsSetup>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<LmsSetup>> loadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

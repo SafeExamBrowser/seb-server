@@ -257,7 +257,7 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<UserInfo>> loadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

@@ -175,7 +175,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<Institution>> loadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

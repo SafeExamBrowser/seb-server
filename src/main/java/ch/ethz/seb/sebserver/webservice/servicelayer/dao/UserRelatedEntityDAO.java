@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  *
  *
  * @param <T> the concrete type of the Entity */
-public interface UserRelatedEntityDAO<T extends Entity> extends EntityDAO<T> {
+public interface UserRelatedEntityDAO<T extends Entity> {
 
     /** Get all Entity instances that has a relation to the user-account
      * of a given user identity (UUID)

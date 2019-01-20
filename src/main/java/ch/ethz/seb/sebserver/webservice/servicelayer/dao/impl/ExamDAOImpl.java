@@ -264,7 +264,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Exam>> bulkLoadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<Exam>> loadEntities(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
             return this.examRecordMapper.selectByExample()

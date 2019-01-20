@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
  * within SEBServerUser. */
-public interface UserDAO extends ActivatableEntityDAO<UserInfo>, BulkActionSupportDAO<UserInfo> {
+public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkActionSupportDAO<UserInfo> {
 
     /** Use this to get the user id (PK) from a given UUID.
      *
@@ -67,16 +67,6 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo>, BulkActionSuppo
      * @param predicate Predicate of UserInfo to filter the result of the SQL query afterwards
      * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
     Result<Collection<UserInfo>> all(UserFilter filter, Predicate<UserInfo> predicate);
-
-    /** Use this to save/modify user data.
-     * If the UUID from given UserMod is null or not exists already, a new user is created.
-     * If the UUID is available and matches an existing user record, all user data that are
-     * not null on UserMod instance are updated within the existing user record.
-     *
-     * @param userMod UserMod instance containing new user record data
-     * @return A Result of UserInfo where the successfully saved/modified user data is available or a reported
-     *         exception on error case */
-    Result<UserInfo> save(UserMod userMod);
 
     /** Use this to get a Collection containing EntityKey's of all entities that belongs to a given User.
      *
