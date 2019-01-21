@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -62,7 +61,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<LmsSetup>> all(final Predicate<LmsSetup> predicate, final Boolean active) {
+    public Result<Collection<LmsSetup>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<LmsSetupRecord>>> example =
                     this.lmsSetupRecordMapper.selectByExample();
@@ -70,6 +69,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             final List<LmsSetupRecord> records = (active != null)
                     ? example
                             .where(
+                                    LmsSetupRecordDynamicSqlSupport.institutionId,
+                                    isEqualToWhenPresent(institutionId))
+                            .and(
                                     LmsSetupRecordDynamicSqlSupport.active,
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
@@ -79,7 +81,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             return records.stream()
                     .map(LmsSetupDAOImpl::toDomainModel)
                     .flatMap(Result::skipOnError)
-                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }

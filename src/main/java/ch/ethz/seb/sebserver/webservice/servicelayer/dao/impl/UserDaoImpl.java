@@ -17,15 +17,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
-import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
-import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 public class UserDaoImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
-    private static final UserFilter ALL_ACTIVE_ONLY_FILTER = new UserFilter(null, null, null, null, true, null);
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
@@ -118,43 +114,35 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> allActive() {
-        return all(ALL_ACTIVE_ONLY_FILTER);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> all(final Predicate<UserInfo> predicate, final Boolean active) {
+    public Result<Collection<UserInfo>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>> example =
-                    this.userRecordMapper.selectByExample();
-
             final List<UserRecord> records = (active != null)
-                    ? example
+                    ? this.userRecordMapper.selectByExample()
                             .where(
+                                    UserRecordDynamicSqlSupport.institutionId,
+                                    isEqualToWhenPresent(institutionId))
+                            .and(
                                     UserRecordDynamicSqlSupport.active,
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
-                    : example.build().execute();
+                    : this.userRecordMapper.selectByExample()
+                            .where(
+                                    UserRecordDynamicSqlSupport.institutionId,
+                                    isEqualToWhenPresent(institutionId))
+                            .build()
+                            .execute();
 
             return records.stream()
                     .map(this::toDomainModel)
                     .flatMap(Result::skipOnError)
-                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> all(final UserFilter filter, final Predicate<UserInfo> predicate) {
-        if (filter == null) {
-            return (predicate == null)
-                    ? all()
-                    : all(predicate);
-        }
-
+    public Result<Collection<UserInfo>> allMatching(final UserFilter filter) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
                 UserRecordDynamicSqlSupport.active,
                 isEqualToWhenPresent(BooleanUtils.toIntegerObject(filter.active)))
@@ -168,7 +156,6 @@ public class UserDaoImpl implements UserDAO {
                 .stream()
                 .map(this::toDomainModel)
                 .flatMap(Result::skipOnError)
-                .filter(predicate)
                 .collect(Collectors.toList()));
     }
 

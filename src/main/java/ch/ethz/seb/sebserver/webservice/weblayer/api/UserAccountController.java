@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.WebDataBinder;
@@ -28,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
@@ -41,8 +44,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
     private final UserDAO userDao;
-    private final AuthorizationGrantService authorizationGrantService;
-    private final PaginationService paginationService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserAccountController(
@@ -55,8 +56,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
         super(authorizationGrantService, bulkActionService, userDao, userActivityLogDAO, paginationService);
         this.userDao = userDao;
-        this.authorizationGrantService = authorizationGrantService;
-        this.paginationService = paginationService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -137,17 +136,21 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 PrivilegeType.READ_ONLY)) {
 
             return this.userDao
-                    .all(userFilter)
+                    .allMatching(userFilter)
                     .getOrThrow();
 
         } else {
 
-            return this.userDao.all(
-                    userFilter,
-                    this.authorizationGrantService.getGrantFilter(
-                            EntityType.USER,
-                            PrivilegeType.READ_ONLY))
-                    .getOrThrow();
+            final Predicate<GrantEntity> grantFilter = this.authorizationGrantService.getGrantFilter(
+                    EntityType.USER,
+                    PrivilegeType.READ_ONLY);
+
+            return this.userDao
+                    .allMatching(userFilter)
+                    .getOrThrow()
+                    .stream()
+                    .filter(grantFilter)
+                    .collect(Collectors.toList());
         }
     }
 

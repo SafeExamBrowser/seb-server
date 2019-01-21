@@ -9,9 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.integration.api;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -20,15 +23,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.JSONMapper;
@@ -99,12 +108,110 @@ public abstract class AdministrationAPIIntegrationTest {
         return obtainAccessToken("examAdmin1", "admin");
     }
 
-//    protected static class TestHelper {
-//
-//        private Supplier<String> accessTokenSuplier;
-//        private String query;
-//        private String endpoint;
-//        private Object
-//    }
+    protected class RestAPITestHelper {
+
+        private String path = "";
+        private final Map<String, String> queryAttrs = new HashMap<>();
+        private String accessToken;
+        private HttpStatus expectedStatus;
+        private HttpMethod httpMethod = HttpMethod.GET;
+
+        public RestAPITestHelper withAccessToken(final String accessToken) {
+            this.accessToken = accessToken;
+            return this;
+        }
+
+        public RestAPITestHelper withPath(final String path) {
+            this.path = this.path + path;
+            return this;
+        }
+
+        public RestAPITestHelper withAttribute(final String name, final String value) {
+            this.queryAttrs.put(name, value);
+            return this;
+        }
+
+        public RestAPITestHelper withExpectedStatus(final HttpStatus expectedStatus) {
+            this.expectedStatus = expectedStatus;
+            return this;
+        }
+
+        public RestAPITestHelper withMethod(final HttpMethod httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+
+        public String getAsString() throws Exception {
+            final ResultActions action = AdministrationAPIIntegrationTest.this.mockMvc
+                    .perform(requestBuilder());
+            if (this.expectedStatus != null) {
+                action.andExpect(status().is(this.expectedStatus.value()));
+            }
+
+            return action
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+        }
+
+        public <T> T getAsObject(final TypeReference<T> ref) throws Exception {
+            final ResultActions action = AdministrationAPIIntegrationTest.this.mockMvc
+                    .perform(requestBuilder());
+            if (this.expectedStatus != null) {
+                action.andExpect(status().is(this.expectedStatus.value()));
+            }
+
+            return AdministrationAPIIntegrationTest.this.jsonMapper.readValue(
+                    action
+                            .andReturn()
+                            .getResponse()
+                            .getContentAsString(),
+                    ref);
+        }
+
+        private RequestBuilder requestBuilder() {
+            MockHttpServletRequestBuilder builder = get(getFullPath());
+            switch (this.httpMethod) {
+                case GET:
+                    builder = get(getFullPath());
+                    break;
+                case POST:
+                    builder = post(getFullPath());
+                    break;
+                case PUT:
+                    builder = put(getFullPath());
+                    break;
+                case DELETE:
+                    builder = delete(getFullPath());
+                    break;
+                case PATCH:
+                    builder = patch(getFullPath());
+                    break;
+                default:
+                    get(getFullPath());
+                    break;
+            }
+            return builder.header("Authorization", "Bearer " + this.accessToken);
+        }
+
+        private String getFullPath() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(AdministrationAPIIntegrationTest.this.endpoint);
+            sb.append(this.path);
+            if (!this.queryAttrs.isEmpty()) {
+                sb.append("?");
+                this.queryAttrs.entrySet()
+                        .stream()
+                        .reduce(
+                                sb,
+                                (buffer, entry) -> buffer.append(entry.getKey()).append("=").append(entry.getValue())
+                                        .append("&"),
+                                (sb1, sb2) -> sb1.append(sb2));
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            return sb.toString();
+        }
+
+    }
 
 }

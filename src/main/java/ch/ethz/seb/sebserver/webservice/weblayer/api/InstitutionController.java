@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 public class InstitutionController extends ActivatableEntityController<Institution, Institution> {
 
     private final InstitutionDAO institutionDAO;
-    private final AuthorizationGrantService authorizationGrantService;
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
@@ -43,9 +42,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
             final PaginationService paginationService) {
 
         super(authorizationGrantService, bulkActionService, institutionDAO, userActivityLogDAO, paginationService);
-
         this.institutionDAO = institutionDAO;
-        this.authorizationGrantService = authorizationGrantService;
     }
 
     @RequestMapping(path = "/self", method = RequestMethod.GET)
@@ -69,7 +66,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
             // User has only institutional privilege, can see only the institution he/she belongs to
             return Arrays.asList(getOwn());
         } else {
-            return this.institutionDAO.all(inst -> true, active).getOrThrow();
+            return this.institutionDAO.all(null, active).getOrThrow();
         }
     }
 

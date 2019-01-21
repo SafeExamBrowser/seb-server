@@ -13,22 +13,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
@@ -37,29 +31,21 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_EXAM_ADMINISTRATION)
-public class ExamAdministrationController {
+public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
 
-    private final AuthorizationGrantService authorizationGrantService;
-    private final UserActivityLogDAO userActivityLogDAO;
     private final ExamDAO examDAO;
-    private final PaginationService paginationService;
-    private final BulkActionService bulkActionService;
 
     public ExamAdministrationController(
             final AuthorizationGrantService authorizationGrantService,
@@ -68,11 +54,8 @@ public class ExamAdministrationController {
             final PaginationService paginationService,
             final BulkActionService bulkActionService) {
 
-        this.authorizationGrantService = authorizationGrantService;
-        this.userActivityLogDAO = userActivityLogDAO;
+        super(authorizationGrantService, bulkActionService, examDAO, userActivityLogDAO, paginationService);
         this.examDAO = examDAO;
-        this.paginationService = paginationService;
-        this.bulkActionService = bulkActionService;
     }
 
     @InitBinder
@@ -96,7 +79,7 @@ public class ExamAdministrationController {
             @RequestParam(name = Exam.FILTER_ATTR_TYPE, required = false) final ExamType type,
             @RequestParam(name = Exam.FILTER_ATTR_OWNER, required = false) final String owner) {
 
-        checkBaseReadPrivilege(institutionId);
+        checkReadPrivilege(institutionId);
 
         this.paginationService.setDefaultLimit(ExamRecordDynamicSqlSupport.examRecord);
         return getExams(institutionId, lmsSetupId, active, name, from, status, type, owner);
@@ -120,7 +103,7 @@ public class ExamAdministrationController {
             @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
             @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
 
-        checkBaseReadPrivilege(institutionId);
+        checkReadPrivilege(institutionId);
 
         // NOTE: several attributes for sorting may be originated by the QuizData from LMS not by the database
         //       of the SEB Server. Therefore in the case we have no or the default sorting we can use the
@@ -166,46 +149,6 @@ public class ExamAdministrationController {
         }
     }
 
-    @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-    public Exam byId(@PathVariable final Long id) {
-        return this.examDAO
-                .byPK(id)
-                .flatMap(exam -> this.authorizationGrantService.checkGrantOnEntity(
-                        exam,
-                        PrivilegeType.READ_ONLY))
-                .getOrThrow();
-    }
-
-    @RequestMapping(path = "/save", method = RequestMethod.POST)
-    public Exam save(@Valid @RequestBody final Exam exam) {
-        return this.authorizationGrantService
-                .checkGrantOnEntity(exam, PrivilegeType.MODIFY)
-                .flatMap(this.examDAO::save)
-                .flatMap(entity -> this.userActivityLogDAO.log(ActivityType.MODIFY, entity))
-                .getOrThrow();
-    }
-
-    @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)
-    public EntityProcessingReport activate(@PathVariable final Long id) {
-        return setActive(id, true)
-                .getOrThrow();
-    }
-
-    @RequestMapping(value = "/{id}/deactivate", method = RequestMethod.POST)
-    public EntityProcessingReport deactivate(@PathVariable final Long id) {
-        return setActive(id, false)
-                .getOrThrow();
-    }
-
-    private Result<EntityProcessingReport> setActive(final Long id, final boolean active) {
-
-        return this.bulkActionService.createReport(new BulkAction(
-                (active) ? Type.ACTIVATE : Type.DEACTIVATE,
-                EntityType.LMS_SETUP,
-                new EntityKey(id, EntityType.LMS_SETUP)));
-
-    }
-
     private Collection<Exam> getExams(
             final Long institutionId,
             final Long lmsSetupId,
@@ -234,13 +177,6 @@ public class ExamAdministrationController {
                 _from,
                 owner,
                 active).getOrThrow();
-    }
-
-    private void checkBaseReadPrivilege(final Long institutionId) {
-        this.authorizationGrantService.checkPrivilege(
-                EntityType.EXAM,
-                PrivilegeType.READ_ONLY,
-                institutionId);
     }
 
 }

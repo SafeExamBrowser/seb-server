@@ -82,7 +82,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Exam>> all(final Predicate<Exam> predicate, final Boolean active) {
+    public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>> example =
                     this.examRecordMapper.selectByExample();
@@ -90,6 +90,9 @@ public class ExamDAOImpl implements ExamDAO {
             return (active != null)
                     ? example
                             .where(
+                                    ExamRecordDynamicSqlSupport.institutionId,
+                                    isEqualToWhenPresent(institutionId))
+                            .and(
                                     ExamRecordDynamicSqlSupport.active,
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()

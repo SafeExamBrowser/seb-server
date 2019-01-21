@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -46,11 +48,11 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void getMyUserInfo() throws Exception {
-        String sebAdminAccessToken = getSebAdminAccess();
-        String contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
-                .header("Authorization", "Bearer " + sebAdminAccessToken))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+        String contentAsString = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsString();
 
         assertEquals(
                 "{\"uuid\":\"user1\","
@@ -64,11 +66,11 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
                         + "\"userRoles\":[\"SEB_SERVER_ADMIN\"]}",
                 contentAsString);
 
-        sebAdminAccessToken = getAdminInstitution1Access();
-        contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
-                .header("Authorization", "Bearer " + sebAdminAccessToken))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+        contentAsString = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT + "/me")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsString();
 
         assertEquals(
                 "{\"uuid\":\"user2\","
@@ -119,22 +121,20 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
 
     @Test
     public void institutionalAdminNotAllowedToSeeUsersOfOtherInstitution() throws Exception {
-        final String token = getAdminInstitution1Access();
-        this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2")
-                .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden())
-                .andReturn().getResponse().getContentAsString();
+        new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2")
+                .withExpectedStatus(HttpStatus.FORBIDDEN)
+                .getAsString();
     }
 
     @Test
     public void getAllUserInfoNoFilter() throws Exception {
-        String token = getSebAdminAccess();
-        List<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
-                        .header("Authorization", "Bearer " + token))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<List<UserInfo>>() {
+        List<UserInfo> userInfos = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<List<UserInfo>>() {
                 });
 
         // expecting all users for a SEBAdmin except inactive.
@@ -144,13 +144,12 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(getUserInfo("inst1Admin", userInfos));
         assertNotNull(getUserInfo("examSupporter", userInfos));
 
-        token = getAdminInstitution2Access();
-        userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2")
-                        .header("Authorization", "Bearer " + token))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<List<UserInfo>>() {
+        userInfos = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
+                .withAttribute("institution", "2")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<List<UserInfo>>() {
                 });
 
         // expecting all users of institution 2 also inactive when active flag is not set
@@ -162,13 +161,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(getUserInfo("user1", userInfos));
 
         //.. and without inactive, if active flag is set to true
-        token = getAdminInstitution2Access();
-        userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2&active=true")
-                        .header("Authorization", "Bearer " + token))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<List<UserInfo>>() {
+        userInfos = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
+                .withAttribute("institution", "2")
+                .withAttribute("active", "true")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<List<UserInfo>>() {
                 });
 
         assertNotNull(userInfos);
@@ -178,13 +177,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         assertNotNull(getUserInfo("user1", userInfos));
 
         //.. and only inactive, if active flag is set to false
-        token = getAdminInstitution2Access();
-        userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2&active=false")
-                        .header("Authorization", "Bearer " + token))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<List<UserInfo>>() {
+        userInfos = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
+                .withAttribute("institution", "2")
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<List<UserInfo>>() {
                 });
 
         assertNotNull(userInfos);
@@ -885,6 +884,152 @@ public class UserAPITest extends AdministrationAPIIntegrationTest {
         final UserActivityLog userLog = userLogs.iterator().next();
         assertEquals(ActivityType.ACTIVATE, userLog.activityType);
         assertEquals("user6", userLog.entityId);
+    }
+
+    @Test
+    public void testGeneralAllActiveInactiveEndpoint() throws Exception {
+        final String sebAdminToken = getSebAdminAccess();
+
+        // all active for the own institution
+        Page<UserInfo> usersPage = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/active")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(usersPage);
+        assertTrue(usersPage.pageSize == 3);
+        assertEquals("[user1, user2, user5]", getOrderedUUIDs(usersPage.content));
+
+        // all inactive of the own institution
+        usersPage = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/inactive")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(usersPage);
+        assertTrue(usersPage.pageSize == 0);
+        assertEquals("[]", getOrderedUUIDs(usersPage.content));
+
+        // all active of institution 2
+        usersPage = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/active?institution=2")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(usersPage);
+        assertTrue(usersPage.pageSize == 3);
+        assertEquals("[user3, user4, user7]", getOrderedUUIDs(usersPage.content));
+
+        // all inactive of institution 2
+        usersPage = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/inactive?institution=2")
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserInfo>>() {
+                });
+
+        assertNotNull(usersPage);
+        assertTrue(usersPage.pageSize == 1);
+        assertEquals("[user6]", getOrderedUUIDs(usersPage.content));
+    }
+
+    @Test
+    public void testGeneralInEndpoint() throws Exception {
+        final String sebAdminToken = getSebAdminAccess();
+
+        // for SEB Admin it should be possible to get from different institutions
+        Collection<UserInfo> users = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/in?ids=user1,user2,user6,user7")
+                                .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<UserInfo>>() {
+                });
+
+        assertNotNull(users);
+        assertTrue(users.size() == 4);
+        assertEquals("[user1, user2, user6, user7]", getOrderedUUIDs(users));
+
+        // for an institutional admin it should only be possible to get from own institution
+        final String instAdminToken = getAdminInstitution2Access();
+        users = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/in?ids=user1,user2,user6,user7")
+                                .header("Authorization", "Bearer " + instAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<UserInfo>>() {
+                });
+
+        assertNotNull(users);
+        assertTrue(users.size() == 2);
+        assertEquals("[user6, user7]", getOrderedUUIDs(users));
+    }
+
+    @Test
+    public void testGeneralNamesEndpoint() throws Exception {
+        final String sebAdminToken = getSebAdminAccess();
+
+        // for SEB Admin
+        Collection<EntityKeyAndName> names = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names")
+                                .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<EntityKeyAndName>>() {
+                });
+
+        assertNotNull(names);
+        assertTrue(names.size() == 3);
+        assertEquals("[EntityIdAndName [entityType=USER, id=user1, name=SEBAdmin], "
+                + "EntityIdAndName [entityType=USER, id=user2, name=Institutional1 Admin], "
+                + "EntityIdAndName [entityType=USER, id=user5, name=Exam Supporter]]", names.toString());
+
+        // for an institutional admin 2
+        final String instAdminToken = getAdminInstitution2Access();
+        names = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names")
+                                .header("Authorization", "Bearer " + instAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<EntityKeyAndName>>() {
+                });
+
+        assertNotNull(names);
+        assertTrue(names.size() == 4);
+        assertEquals("[EntityIdAndName [entityType=USER, id=user3, name=Institutional2 Admin], "
+                + "EntityIdAndName [entityType=USER, id=user4, name=ExamAdmin1], "
+                + "EntityIdAndName [entityType=USER, id=user6, name=Deactivated], "
+                + "EntityIdAndName [entityType=USER, id=user7, name=User]]", names.toString());
+
+        // for an institutional admin 2 only active
+        names = this.jsonMapper.readValue(
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names?active=true")
+                                .header("Authorization", "Bearer " + instAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<EntityKeyAndName>>() {
+                });
+
+        assertNotNull(names);
+        assertTrue(names.size() == 3);
+        assertEquals("[EntityIdAndName [entityType=USER, id=user3, name=Institutional2 Admin], "
+                + "EntityIdAndName [entityType=USER, id=user4, name=ExamAdmin1], "
+                + "EntityIdAndName [entityType=USER, id=user7, name=User]]", names.toString());
     }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {

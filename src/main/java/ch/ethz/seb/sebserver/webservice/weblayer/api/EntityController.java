@@ -27,9 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
@@ -74,37 +72,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 .getOrThrow();
     }
 
-    @RequestMapping(path = "/all", method = RequestMethod.GET)
-    public Page<T> allActive(
-            @RequestParam(
-                    name = Entity.ATTR_INSTITUTION,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
-
-        checkReadPrivilege(institutionId);
-        return this.paginationService.getPage(
-                pageNumber,
-                pageSize,
-                sortBy,
-                sortOrder,
-                UserRecordDynamicSqlSupport.userRecord,
-                () -> this.entityDAO.all(entity -> true, true).getOrThrow());
-    }
-
-    @RequestMapping(path = "/all/in", method = RequestMethod.GET)
-    public Collection<T> getForIds(
-            @RequestParam(
-                    name = Entity.ATTR_INSTITUTION,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = "ids", required = true) final String ids) {
-
-        checkReadPrivilege(institutionId);
-
+    @RequestMapping(path = "/in", method = RequestMethod.GET)
+    public Collection<T> getForIds(@RequestParam(name = "ids", required = true) final String ids) {
         return Result.tryCatch(() -> {
             return Arrays.asList(StringUtils.split(ids, Constants.LIST_SEPARATOR_CHAR))
                     .stream()
@@ -112,16 +81,24 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                     .collect(Collectors.toList());
         })
                 .flatMap(this.entityDAO::loadEntities)
-                .getOrThrow();
+                .getOrThrow()
+                .stream()
+                .filter(entity -> this.authorizationGrantService.hasGrant(entity, PrivilegeType.READ_ONLY))
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(path = "/names", method = RequestMethod.GET)
     public Collection<EntityKeyAndName> getNames(
+            @RequestParam(
+                    name = Entity.ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Entity.ATTR_ACTIVE, required = false) final Boolean active) {
 
-        return this.entityDAO.all(entity -> true, true)
+        return getAll(institutionId, active)
                 .getOrThrow()
                 .stream()
+                .filter(entity -> this.authorizationGrantService.hasGrant(entity, PrivilegeType.READ_ONLY))
                 .map(Entity::toName)
                 .collect(Collectors.toList());
     }
@@ -169,5 +146,9 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 this.entityDAO.entityType(),
                 PrivilegeType.READ_ONLY,
                 institutionId);
+    }
+
+    protected Result<Collection<T>> getAll(final Long institutionId, final Boolean active) {
+        return this.entityDAO.all(institutionId);
     }
 }

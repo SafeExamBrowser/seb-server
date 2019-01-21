@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -63,7 +62,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> all(final Predicate<Institution> predicate, final Boolean active) {
+    public Result<Collection<Institution>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<InstitutionRecord>>> example =
                     this.institutionRecordMapper.selectByExample();
@@ -71,6 +70,9 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             final List<InstitutionRecord> records = (active != null)
                     ? example
                             .where(
+                                    InstitutionRecordDynamicSqlSupport.id,
+                                    isEqualToWhenPresent(institutionId))
+                            .and(
                                     InstitutionRecordDynamicSqlSupport.active,
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
@@ -80,7 +82,6 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             return records.stream()
                     .map(InstitutionDAOImpl::toDomainModel)
                     .flatMap(Result::skipOnError)
-                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }

@@ -255,7 +255,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> all(final Predicate<UserActivityLog> predicate, final Boolean active) {
+    public Result<Collection<UserActivityLog>> all(final Long institutionId) {
 
         return Result.tryCatch(() -> {
             // first check if there is a page limitation set. Otherwise set the default
@@ -263,15 +263,32 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
             this.paginationService.setDefaultLimitOfNotSet(
                     UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
 
-            return this.userLogRecordMapper
-                    .selectByExample()
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
-                    .filter(predicate)
-                    .collect(Collectors.toList());
+            if (institutionId == null) {
+                return this.userLogRecordMapper
+                        .selectByExample()
+                        .build()
+                        .execute()
+                        .stream()
+                        .map(UserActivityLogDAOImpl::toDomainModel)
+                        .flatMap(Result::skipOnError)
+                        .collect(Collectors.toList());
+            } else {
+                return this.userLogRecordMapper
+                        .selectByExample()
+                        .join(UserRecordDynamicSqlSupport.userRecord)
+                        .on(
+                                UserRecordDynamicSqlSupport.uuid,
+                                SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
+                        .where(
+                                UserRecordDynamicSqlSupport.institutionId,
+                                SqlBuilder.isEqualTo(institutionId))
+                        .build()
+                        .execute()
+                        .stream()
+                        .map(UserActivityLogDAOImpl::toDomainModel)
+                        .flatMap(Result::skipOnError)
+                        .collect(Collectors.toList());
+            }
         });
     }
 

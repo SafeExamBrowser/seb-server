@@ -11,8 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.Set;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
@@ -23,13 +21,20 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * @param <T> the concrete Entity type */
 public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> extends EntityDAO<T, M> {
 
-    /** Get a Collection of all active Entity instances for a concrete entity-domain.
-     *
-     * @return A Result refer to a Collection of all active Entity instances for a concrete entity-domain
-     *         or refer to an error if happened */
-    @Transactional(readOnly = true)
-    default Result<Collection<T>> allActive() {
-        return all(i -> true, true);
+    Result<Collection<T>> all(Long institutionId, Boolean active);
+
+    default Result<Collection<T>> allOfInstitution(final long institutionId, final Boolean active) {
+        return all(institutionId, active);
+    }
+
+    @Override
+    default Result<Collection<T>> all(final Long institutionId) {
+        return all(institutionId, true);
+    }
+
+    @Override
+    default Result<Collection<T>> allOfInstitution(final long institutionId) {
+        return all(institutionId, true);
     }
 
     /** Set all entities referred by the given Collection of EntityKey active / inactive

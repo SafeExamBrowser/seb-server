@@ -9,9 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
-import java.util.function.Predicate;
-
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
@@ -50,23 +47,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      *
      * @param filter The UserFilter instance containing all filter criteria
      * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
-    @Transactional(readOnly = true)
-    default Result<Collection<UserInfo>> all(final UserFilter filter) {
-        return all(filter, userInfo -> true);
-    }
-
-    /** Use this to get a Collection of filtered UserInfo. The filter criteria
-     * from given UserFilter instance will be translated to SQL query and
-     * the filtering happens on data-base level
-     *
-     * Additional there can also given a predicate to filter UserInfo models after the SQL query
-     *
-     * NOTE: filter and predicate can be null. In this case(s) the default all methods are called
-     *
-     * @param filter The UserFilter instance containing all filter criteria
-     * @param predicate Predicate of UserInfo to filter the result of the SQL query afterwards
-     * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
-    Result<Collection<UserInfo>> all(UserFilter filter, Predicate<UserInfo> predicate);
+    Result<Collection<UserInfo>> allMatching(final UserFilter filter);
 
     /** Use this to get a Collection containing EntityKey's of all entities that belongs to a given User.
      *

@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +58,11 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * If you need a fast filtering implement a specific filtering in SQL level
      *
      * @param predicate Predicate expecting instance of type specific entity type
+     * @param
      * @param active indicates if only active entities should be included (on SQL level). Can be null.
      * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
      *         case */
-    Result<Collection<T>> all(Predicate<T> predicate, Boolean active);
+    Result<Collection<T>> all(Long institutionId);
 
     /** Use this to get a Collection of all entities of concrete type that matches a given predicate.
      *
@@ -73,15 +73,8 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @param predicate Predicate expecting instance of type specific entity type
      * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
      *         case */
-    default Result<Collection<T>> all(final Predicate<T> predicate) {
-        return all(predicate, null);
-    }
-
-    /** Use this to get a Collection of all active entities of concrete type
-     *
-     * @return Result of Collection of all active entities or an exception result on error case */
-    default Result<Collection<T>> all() {
-        return all(entity -> true);
+    default Result<Collection<T>> allOfInstitution(final long institutionId) {
+        return all(institutionId);
     }
 
     Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
