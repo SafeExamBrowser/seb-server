@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
 import java.util.Collection;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,11 +19,11 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public class EntityProcessingReport {
 
     @JsonProperty(value = "source", required = true)
-    public final Collection<EntityKey> source;
+    public final Set<EntityKey> source;
     @JsonProperty(value = "dependencies", required = true)
-    public final Collection<EntityKey> dependencies;
+    public final Set<EntityKey> dependencies;
     @JsonProperty(value = "errors", required = true)
-    public final Collection<ErrorEntry> errors;
+    public final Set<ErrorEntry> errors;
 
     @JsonCreator
     public EntityProcessingReport(
@@ -30,9 +31,9 @@ public class EntityProcessingReport {
             @JsonProperty(value = "dependencies", required = true) final Collection<EntityKey> dependencies,
             @JsonProperty(value = "errors", required = true) final Collection<ErrorEntry> errors) {
 
-        this.source = Utils.immutableCollectionOf(source);
-        this.dependencies = Utils.immutableCollectionOf(dependencies);
-        this.errors = Utils.immutableCollectionOf(errors);
+        this.source = Utils.immutableSetOf(source);
+        this.dependencies = Utils.immutableSetOf(dependencies);
+        this.errors = Utils.immutableSetOf(errors);
     }
 
     public static final class ErrorEntry {

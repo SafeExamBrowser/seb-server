@@ -25,10 +25,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class LmsSetup implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_INSTITUTION = "institution";
     public static final String FILTER_ATTR_NAME = "name";
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
-    public static final String FILTER_ATTR_ACTIVE = "active";
 
     public enum LmsType {
         MOCKUP,

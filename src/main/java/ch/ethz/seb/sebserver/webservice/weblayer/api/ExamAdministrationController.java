@@ -12,25 +12,34 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
@@ -38,6 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @WebServiceProfile
@@ -46,16 +56,19 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
 
     private final ExamDAO examDAO;
+    private final IndicatorDAO indicatorDAO;
 
     public ExamAdministrationController(
             final AuthorizationGrantService authorizationGrantService,
             final UserActivityLogDAO userActivityLogDAO,
             final ExamDAO examDAO,
             final PaginationService paginationService,
-            final BulkActionService bulkActionService) {
+            final BulkActionService bulkActionService,
+            final IndicatorDAO indicatorDAO) {
 
         super(authorizationGrantService, bulkActionService, examDAO, userActivityLogDAO, paginationService);
         this.examDAO = examDAO;
+        this.indicatorDAO = indicatorDAO;
     }
 
     @InitBinder
@@ -147,6 +160,80 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     sortOrder,
                     exams.subList(pageNum * pSize, pageNum * pSize + pSize));
         }
+    }
+
+    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.GET)
+    public Collection<Indicator> getIndicatorOfExam(@PathVariable final Long examId) {
+        // check read-only grant on Exam
+        this.examDAO.byPK(examId)
+                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.READ_ONLY))
+                .getOrThrow();
+
+        return this.indicatorDAO.allForExam(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator/delete/{indicatorId}", method = RequestMethod.DELETE)
+    public Collection<Indicator> deleteIndicatorOfExam(
+            @PathVariable final Long examId,
+            @PathVariable(required = false) final Long indicatorId) {
+
+        // check write grant on Exam
+        this.examDAO.byPK(examId)
+                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .getOrThrow();
+
+        final Set<EntityKey> toDelete = (indicatorId != null)
+                ? this.indicatorDAO.allForExam(examId)
+                        .getOrThrow()
+                        .stream()
+                        .map(ind -> new EntityKey(String.valueOf(ind.id), EntityType.INDICATOR))
+                        .collect(Collectors.toSet())
+                : Utils.immutableSetOf(new EntityKey(String.valueOf(indicatorId), EntityType.INDICATOR));
+
+        this.indicatorDAO.delete(toDelete);
+
+        return this.indicatorDAO.allForExam(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator/new", method = RequestMethod.PUT)
+    public Indicator addNewIndicatorToExam(
+            @PathVariable final Long examId,
+            @Valid @RequestBody final Indicator indicator) {
+
+        // check write grant on Exam
+        this.examDAO.byPK(examId)
+                .flatMap(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .getOrThrow();
+
+        if (indicator.id != null) {
+            return this.indicatorDAO.byPK(indicator.id)
+                    .getOrThrow();
+        }
+
+        return this.indicatorDAO
+                .save(indicator)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator/save", method = RequestMethod.POST)
+    public Indicator saveIndicatorForExam(
+            @PathVariable final Long examId,
+            @Valid @RequestBody final Indicator indicator) {
+
+        // check modify grant on Exam
+        this.examDAO.byPK(examId)
+                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.MODIFY))
+                .getOrThrow();
+
+        return this.indicatorDAO.save(new Indicator(
+                indicator.id,
+                examId,
+                indicator.name,
+                indicator.type,
+                indicator.defaultColor,
+                indicator.thresholds)).getOrThrow();
     }
 
     private Collection<Exam> getExams(

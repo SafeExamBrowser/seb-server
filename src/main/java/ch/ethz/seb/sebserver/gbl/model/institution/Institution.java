@@ -22,8 +22,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Institution implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_ACTIVE = "active";
-
     @JsonProperty(Domain.ATTR_ID)
     public final Long id;
 

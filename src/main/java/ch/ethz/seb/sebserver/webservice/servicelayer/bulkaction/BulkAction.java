@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +18,7 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public final class BulkAction {
@@ -37,7 +37,7 @@ public final class BulkAction {
 
     public final Type type;
     public final EntityType sourceType;
-    public final Collection<EntityKey> sources;
+    public final Set<EntityKey> sources;
 
     final Set<EntityKey> dependencies;
     final Set<Result<EntityKey>> result;
@@ -51,9 +51,7 @@ public final class BulkAction {
 
         this.type = type;
         this.sourceType = sourceType;
-        this.sources = (sources != null)
-                ? Collections.unmodifiableCollection(new ArrayList<>(sources))
-                : Collections.emptyList();
+        this.sources = Utils.immutableSetOf(sources);
         this.dependencies = new HashSet<>();
         this.result = new HashSet<>();
 
@@ -89,7 +87,8 @@ public final class BulkAction {
                     .filter(key -> key.entityType == type)
                     .collect(Collectors.toList())));
         }
-        return null;
+
+        return Collections.emptySet();
     }
 
     @Override

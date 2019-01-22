@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -81,7 +82,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
             return records.stream()
                     .map(InstitutionDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }
@@ -101,7 +102,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 .execute()
                 .stream()
                 .map(InstitutionDAOImpl::toDomainModel)
-                .flatMap(Result::skipOnError)
+                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                 .collect(Collectors.toList()));
     }
 
@@ -123,48 +124,40 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractPKsFromKeys(all);
-        final InstitutionRecord institutionRecord = new InstitutionRecord(
-                null, null, null, BooleanUtils.toInteger(active), null);
+    public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+            final InstitutionRecord institutionRecord = new InstitutionRecord(
+                    null, null, null, BooleanUtils.toInteger(active), null);
+
             this.institutionRecordMapper.updateByExampleSelective(institutionRecord)
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.INSTITUTION)))
+                    .map(id -> new EntityKey(id, EntityType.INSTITUTION))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Activation failed on unexpected exception for Institution of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractPKsFromKeys(all);
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+
             this.institutionRecordMapper.deleteByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.INSTITUTION)))
+                    .map(id -> new EntityKey(id, EntityType.INSTITUTION))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Deletion failed on unexpected exception for Institution of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
@@ -186,7 +179,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     .execute()
                     .stream()
                     .map(InstitutionDAOImpl::toDomainModel)
-                    .map(res -> res.getOrThrow())
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }

@@ -123,7 +123,10 @@ public class QuizImportController {
 
         return lmsAPITemplate.getQuizzes(ids)
                 .stream()
-                .map(result -> result.flatMap(this.examDAO::importFromQuizData))
+                .map(result -> result.flatMap(quiz -> this.examDAO.importFromQuizData(
+                        lmsAPITemplate.lmsSetup().institutionId,
+                        lmsSetupId,
+                        quiz)))
                 .flatMap(Result::skipOnError)
                 .peek(exam -> this.userActivityLogDAO.log(ActivityType.IMPORT, exam))
                 .collect(Collectors.toList());

@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -24,6 +26,8 @@ import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
+
+    Logger log = LoggerFactory.getLogger(EntityDAO.class);
 
     /** Get the entity type for a concrete EntityDAO implementation.
      *
@@ -108,7 +112,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @param all The Collection of EntityKey to delete
      * @return Result of a collection of all entities that has been deleted or refer to an error if
      *         happened */
-    Collection<Result<EntityKey>> delete(Set<EntityKey> all);
+    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
     /** Context based utility method to extract an expected single resource entry form a Collection of specified type.
      * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer

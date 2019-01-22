@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
-import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,9 +39,11 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @Lazy
@@ -52,13 +52,16 @@ public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final LmsAPIService lmsAPIService;
+    private final UserService userService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
-            final LmsAPIService lmsAPIService) {
+            final LmsAPIService lmsAPIService,
+            final UserService userService) {
 
         this.examRecordMapper = examRecordMapper;
         this.lmsAPIService = lmsAPIService;
+        this.userService = userService;
     }
 
     @Override
@@ -84,11 +87,8 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>> example =
-                    this.examRecordMapper.selectByExample();
-
             return (active != null)
-                    ? example
+                    ? this.examRecordMapper.selectByExample()
                             .where(
                                     ExamRecordDynamicSqlSupport.institutionId,
                                     isEqualToWhenPresent(institutionId))
@@ -97,7 +97,7 @@ public class ExamDAOImpl implements ExamDAO {
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
-                    : example
+                    : this.examRecordMapper.selectByExample()
                             .build()
                             .execute();
 
@@ -166,12 +166,51 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
-    public Result<Exam> importFromQuizData(final QuizData quizData) {
-        // TODO Auto-generated method stub
-        return Result.ofTODO();
+    public Result<Exam> importFromQuizData(
+            final Long institutionId,
+            final Long lmsSetupId,
+            final QuizData quizData) {
+
+        return Result.tryCatch(() -> {
+            // fist check if it is not already existing
+            final List<ExamRecord> exam = this.examRecordMapper.selectByExample()
+                    .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(lmsSetupId))
+                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(quizData.id))
+                    .build()
+                    .execute();
+
+            // if there is already an existing imported exam for the quiz, this is returned
+            if (exam != null && exam.size() > 0) {
+                return exam.get(0);
+            }
+
+            // otherwise create a new one
+            final String ownerId = this.userService.getCurrentUser().uuid();
+            final ExamRecord examRecord = new ExamRecord(
+                    null,
+                    institutionId,
+                    lmsSetupId,
+                    quizData.id,
+                    ownerId,
+                    null,
+                    ExamType.UNDEFINED.name(),
+                    ExamStatus.ON_CREATION.name(),
+                    BooleanUtils.toIntegerObject(true));
+
+            final int insert = this.examRecordMapper.insert(examRecord);
+            if (insert != 1) {
+
+            }
+
+            return this.examRecordMapper.selectByPrimaryKey(examRecord.getId());
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+
     }
 
     @Override
+    @Transactional
     public Result<Exam> save(final Exam exam) {
         if (exam == null) {
             return Result.ofError(new NullPointerException("exam has null-reference"));
@@ -181,7 +220,8 @@ public class ExamDAOImpl implements ExamDAO {
         }
 
         return update(exam)
-                .flatMap(this::toDomainModel);
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     private Result<ExamRecord> update(final Exam exam) {
@@ -203,12 +243,12 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractPKsFromKeys(all);
-        final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                null, null, null, BooleanUtils.toInteger(active));
+    public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+            final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
+                    null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -216,23 +256,18 @@ public class ExamDAOImpl implements ExamDAO {
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.EXAM)))
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
                     .collect(Collectors.toList());
 
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Activation failed on unexpected exception for Exam of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractPKsFromKeys(all);
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
 
             this.examRecordMapper.deleteByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -240,15 +275,10 @@ public class ExamDAOImpl implements ExamDAO {
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.EXAM)))
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
                     .collect(Collectors.toList());
 
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Deletion failed on unexpected exception for Exam of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override

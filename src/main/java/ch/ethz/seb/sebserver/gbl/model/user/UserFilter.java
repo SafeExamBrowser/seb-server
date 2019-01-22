@@ -8,14 +8,16 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+
 public final class UserFilter {
 
-    public static final String FILTER_ATTR_ACTIVE = "active";
+    public static final String FILTER_ATTR_ACTIVE = Entity.FILTER_ATTR_ACTIVE;
     public static final String FILTER_ATTR_NAME = "name";
     public static final String FILTER_ATTR_USER_NAME = "username";
     public static final String FILTER_ATTR_EMAIL = "email";
     public static final String FILTER_ATTR_LOCALE = "locale";
-    public static final String FILTER_ATTR_INSTITUTION = "institution";
+    public static final String FILTER_ATTR_INSTITUTION = Entity.FILTER_ATTR_INSTITUTION;
 
     public final Boolean active;
     public final Long institutionId;

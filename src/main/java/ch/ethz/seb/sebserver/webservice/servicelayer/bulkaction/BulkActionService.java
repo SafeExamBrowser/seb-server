@@ -146,24 +146,29 @@ public class BulkActionService {
                         this.supporter.get(EntityType.LMS_SETUP),
                         this.supporter.get(EntityType.USER),
                         this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE));
             case LMS_SETUP:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
             case USER:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE));
             case EXAM:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
             case CONFIGURATION:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
             default:
                 return Collections.emptyList();

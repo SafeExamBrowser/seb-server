@@ -90,10 +90,10 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     @RequestMapping(path = "/names", method = RequestMethod.GET)
     public Collection<EntityKeyAndName> getNames(
             @RequestParam(
-                    name = Entity.ATTR_INSTITUTION,
+                    name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Entity.ATTR_ACTIVE, required = false) final Boolean active) {
+            @RequestParam(name = Entity.FILTER_ATTR_ACTIVE, required = false) final Boolean active) {
 
         return getAll(institutionId, active)
                 .getOrThrow()
@@ -104,7 +104,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     }
 
     @RequestMapping(path = "/{id}/hard-delete", method = RequestMethod.DELETE)
-    public EntityProcessingReport hardDeleteUser(@PathVariable final String id) {
+    public EntityProcessingReport hardDelete(@PathVariable final String id) {
         final EntityType entityType = this.entityDAO.entityType();
         final BulkAction bulkAction = new BulkAction(
                 Type.HARD_DELETE,

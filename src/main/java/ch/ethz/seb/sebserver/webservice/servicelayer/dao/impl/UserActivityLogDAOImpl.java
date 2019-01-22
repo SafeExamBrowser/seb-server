@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRec
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
@@ -174,24 +175,20 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractPKsFromKeys(all);
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+
             this.userLogRecordMapper.deleteByExample()
                     .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.USER_ACTIVITY_LOG)))
+                    .map(id -> new EntityKey(id, EntityType.USER_ACTIVITY_LOG))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Deletion failed on unexpected exception for UserActivityLog of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
@@ -206,7 +203,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .execute()
                     .stream()
                     .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }
@@ -247,7 +244,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .stream()
                     .filter(_predicate)
                     .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
 
         });
@@ -270,7 +267,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                         .execute()
                         .stream()
                         .map(UserActivityLogDAOImpl::toDomainModel)
-                        .flatMap(Result::skipOnError)
+                        .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                         .collect(Collectors.toList());
             } else {
                 return this.userLogRecordMapper
@@ -286,7 +283,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                         .execute()
                         .stream()
                         .map(UserActivityLogDAOImpl::toDomainModel)
-                        .flatMap(Result::skipOnError)
+                        .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                         .collect(Collectors.toList());
             }
         });

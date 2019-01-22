@@ -26,14 +26,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Exam implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_INSTITUTION = ATTR_INSTITUTION;
     public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
     public static final String FILTER_ATTR_NAME = "name_like";
     public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_FROM = "from";
     public static final String FILTER_ATTR_OWNER = "owner";
-    public static final String FILTER_ATTR_ACTIVE = "active";
 
     public enum ExamStatus {
         ON_CREATION,
@@ -75,15 +73,12 @@ public final class Exam implements GrantEntity, Activatable {
     public final ExamStatus status;
 
     @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
-    @NotNull
     public final DateTime startTime;
 
     @JsonProperty(QuizData.QUIZ_ATTR_END_TIME)
-    @NotNull
     public final DateTime endTime;
 
     @JsonProperty(QuizData.QUIZ_ATTR_START_URL)
-    @NotNull
     public final String startURL;
 
     @JsonProperty(EXAM.ATTR_TYPE)

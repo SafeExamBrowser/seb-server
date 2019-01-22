@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDyn
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -80,7 +81,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             return records.stream()
                     .map(LmsSetupDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }
@@ -114,7 +115,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .execute()
                     .stream()
                     .map(LmsSetupDAOImpl::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }
@@ -137,49 +138,41 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractPKsFromKeys(all);
-        final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
-                null, null, null, null, null, null, null, null, null, null,
-                BooleanUtils.toIntegerObject(active));
+    public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+            final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
+                    null, null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toIntegerObject(active));
+
             this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.LMS_SETUP)))
+                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Activation failed on unexpected exception for LmsSetup of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractPKsFromKeys(all);
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+
             this.lmsSetupRecordMapper.deleteByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.LMS_SETUP)))
+                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Deletion failed on unexpected exception for LmsSetup of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
@@ -205,7 +198,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .execute()
                     .stream()
                     .map(LmsSetupDAOImpl::toDomainModel)
-                    .map(res -> res.getOrThrow())
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }

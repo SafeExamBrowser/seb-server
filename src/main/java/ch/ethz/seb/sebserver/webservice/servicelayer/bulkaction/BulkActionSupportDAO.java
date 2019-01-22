@@ -10,12 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -23,11 +22,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 
 public interface BulkActionSupportDAO<T extends Entity> {
-
-    Logger log = LoggerFactory.getLogger(BulkActionSupportDAO.class);
 
     /** Get the entity type for a concrete EntityDAO implementation.
      *
@@ -44,19 +42,37 @@ public interface BulkActionSupportDAO<T extends Entity> {
             case ACTIVATE:
                 return (this instanceof ActivatableEntityDAO)
                         ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, true)
+                                .map(BulkActionSupportDAO::transformResult)
+                                .getOrHandleError(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
             case DEACTIVATE:
                 return (this instanceof ActivatableEntityDAO)
                         ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, false)
+                                .map(BulkActionSupportDAO::transformResult)
+                                .getOrHandleError(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
             case HARD_DELETE:
                 return (this instanceof EntityDAO)
                         ? ((EntityDAO<?, ?>) this).delete(all)
+                                .map(BulkActionSupportDAO::transformResult)
+                                .getOrHandleError(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
         }
 
         // should never happen
         throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
+    }
+
+    static Collection<Result<EntityKey>> transformResult(final Collection<EntityKey> keys) {
+        return keys.stream()
+                .map(key -> Result.of(key))
+                .collect(Collectors.toList());
+    }
+
+    static List<Result<EntityKey>> handleBulkActionError(final Throwable error, final Set<EntityKey> all) {
+        return all.stream()
+                .map(key -> Result.<EntityKey> ofError(new BulkActionEntityException(key)))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -67,8 +83,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
         return bulkAction.sources
                 .stream()
                 .map(selectionFunction) // apply select function for each source key
-                .peek(result -> result.onErrorDo(error -> log.error("Unexpected error: ", error)))
-                .flatMap(Result::skipOnError) // handle and skip results with error
+                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip) // handle and skip results with error
                 .flatMap(Collection::stream) // Flatten stream of Collection in to one stream
                 .collect(Collectors.toSet());
     }

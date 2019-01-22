@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
-    Result<Exam> importFromQuizData(QuizData quizData);
+    Result<Exam> importFromQuizData(Long institutionId, Long lmsSetupId, QuizData quizData);
 
     Result<Exam> byQuizId(String quizId);
 

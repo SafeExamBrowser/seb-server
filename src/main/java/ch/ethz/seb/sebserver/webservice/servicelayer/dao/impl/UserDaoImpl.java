@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
@@ -135,7 +136,7 @@ public class UserDaoImpl implements UserDAO {
 
             return records.stream()
                     .map(this::toDomainModel)
-                    .flatMap(Result::skipOnError)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }
@@ -155,7 +156,7 @@ public class UserDaoImpl implements UserDAO {
                 .execute()
                 .stream()
                 .map(this::toDomainModel)
-                .flatMap(Result::skipOnError)
+                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                 .collect(Collectors.toList()));
     }
 
@@ -177,49 +178,41 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        final List<Long> ids = extractPKsFromKeys(all);
-        final UserRecord userRecord = new UserRecord(
-                null, null, null, null, null, null, null, null, null,
-                BooleanUtils.toIntegerObject(active));
+    public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+            final UserRecord userRecord = new UserRecord(
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toIntegerObject(active));
+
             this.userRecordMapper.updateByExampleSelective(userRecord)
                     .where(UserRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.USER)))
+                    .map(id -> new EntityKey(id, EntityType.USER))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Activation failed on unexpected exception for User of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
     @Transactional
-    public Collection<Result<EntityKey>> delete(final Set<EntityKey> all) {
-        final List<Long> ids = extractPKsFromKeys(all);
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
 
-        try {
+            final List<Long> ids = extractPKsFromKeys(all);
+
             this.userRecordMapper.deleteByExample()
                     .where(UserRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
 
             return ids.stream()
-                    .map(id -> Result.of(new EntityKey(id, EntityType.USER)))
+                    .map(id -> new EntityKey(id, EntityType.USER))
                     .collect(Collectors.toList());
-        } catch (final Exception e) {
-            return ids.stream()
-                    .map(id -> Result.<EntityKey> ofError(new RuntimeException(
-                            "Deletion failed on unexpected exception for User of id: " + id, e)))
-                    .collect(Collectors.toList());
-        }
+        });
     }
 
     @Override
@@ -254,7 +247,7 @@ public class UserDaoImpl implements UserDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .map(res -> res.getOrThrow())
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
     }

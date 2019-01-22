@@ -52,7 +52,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     @RequestMapping(path = "/active", method = RequestMethod.GET)
     public Page<T> allActive(
             @RequestParam(
-                    name = Entity.ATTR_INSTITUTION,
+                    name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
@@ -73,7 +73,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     @RequestMapping(path = "/inactive", method = RequestMethod.GET)
     public Page<T> allInactive(
             @RequestParam(
-                    name = Entity.ATTR_INSTITUTION,
+                    name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
