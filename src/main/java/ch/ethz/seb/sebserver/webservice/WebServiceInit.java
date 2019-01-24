@@ -12,11 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
-@Component
 @WebServiceProfile
 public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -29,5 +27,4 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
         // TODO whatever has to be initialized for the web-service component right after startup comes here
 
     }
-
 }

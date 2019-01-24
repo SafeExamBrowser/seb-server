@@ -13,14 +13,13 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
@@ -47,7 +46,6 @@ public final class UserMod implements GrantEntity {
     public final String name;
 
     /** The internal user name */
-    @NotNull
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
@@ -58,18 +56,14 @@ public final class UserMod implements GrantEntity {
     public final String email;
 
     /** The users locale */
-    @NotNull
     @JsonProperty(USER.ATTR_LOCALE)
     public final Locale locale;
 
     /** The users time zone */
-    @NotNull
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
-    /** The users roles in a unmodifiable set. Is never null */
-    @NotNull
-    @NotEmpty(message = "user:roles:notEmpty:_:_:_")
+    /** The users roles in a unmodifiable set */
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
@@ -81,6 +75,7 @@ public final class UserMod implements GrantEntity {
     private final String retypedNewPassword;
 
     @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public UserMod(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -101,8 +96,8 @@ public final class UserMod implements GrantEntity {
         this.name = name;
         this.username = username;
         this.email = email;
-        this.locale = locale;
-        this.timeZone = timeZone;
+        this.locale = (locale != null) ? locale : Locale.ROOT;
+        this.timeZone = (timeZone != null) ? timeZone : DateTimeZone.UTC;
         this.roles = (roles != null)
                 ? Collections.unmodifiableSet(roles)
                 : Collections.emptySet();
@@ -122,25 +117,21 @@ public final class UserMod implements GrantEntity {
     }
 
     @Override
-    @JsonIgnore
     public String getModelId() {
         return this.uuid;
     }
 
     @Override
-    @JsonIgnore
     public EntityType entityType() {
         return EntityType.USER;
     }
 
     @Override
-    @JsonIgnore
     public Long getInstitutionId() {
         return this.institutionId;
     }
 
     @Override
-    @JsonIgnore
     public String getOwnerId() {
         return this.uuid;
     }

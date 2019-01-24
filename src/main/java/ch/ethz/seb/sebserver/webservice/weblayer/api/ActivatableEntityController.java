@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
-
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +31,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
         extends EntityController<T, M> {
@@ -43,13 +43,23 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             final BulkActionService bulkActionService,
             final ActivatableEntityDAO<T, M> entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
-            final PaginationService paginationService) {
+            final PaginationService paginationService,
+            final BeanValidationService beanValidationService) {
 
-        super(authorizationGrantService, bulkActionService, entityDAO, userActivityLogDAO, paginationService);
+        super(authorizationGrantService,
+                bulkActionService,
+                entityDAO,
+                userActivityLogDAO,
+                paginationService,
+                beanValidationService);
         this.activatableEntityDAO = entityDAO;
     }
 
-    @RequestMapping(path = "/active", method = RequestMethod.GET)
+    @RequestMapping(
+            path = "/all/active",
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> allActive(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -67,10 +77,14 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 sortBy,
                 sortOrder,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> this.activatableEntityDAO.all(institutionId, true).getOrThrow());
+                () -> this.activatableEntityDAO.all(institutionId, true)).getOrThrow();
     }
 
-    @RequestMapping(path = "/inactive", method = RequestMethod.GET)
+    @RequestMapping(
+            path = "/all/inactive",
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> allInactive(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -88,29 +102,27 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 sortBy,
                 sortOrder,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> this.activatableEntityDAO.all(institutionId, false).getOrThrow());
+                () -> this.activatableEntityDAO.all(institutionId, false)).getOrThrow();
     }
 
-    @RequestMapping(path = "/{id}/activate", method = RequestMethod.POST)
+    @RequestMapping(
+            path = "/{id}/activate",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport activate(@PathVariable final String id) {
         return setActive(id, true)
                 .getOrThrow();
     }
 
-    @RequestMapping(value = "/{id}/deactivate", method = RequestMethod.POST)
+    @RequestMapping(
+            value = "/{id}/deactivate",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport deactivate(@PathVariable final String id) {
         return setActive(id, false)
                 .getOrThrow();
-    }
-
-    @RequestMapping(path = "/{id}/delete", method = RequestMethod.DELETE)
-    public EntityProcessingReport delete(@PathVariable final String id) {
-        return deactivate(id);
-    }
-
-    @Override
-    protected Result<Collection<T>> getAll(final Long institutionId, final Boolean active) {
-        return this.activatableEntityDAO.all(institutionId, active);
     }
 
     private Result<EntityProcessingReport> setActive(final String id, final boolean active) {

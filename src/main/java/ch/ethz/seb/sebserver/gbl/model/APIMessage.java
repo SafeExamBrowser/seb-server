@@ -27,8 +27,10 @@ public class APIMessage implements Serializable {
     private static final long serialVersionUID = -6858683658311637361L;
 
     public enum ErrorMessage {
+        GENERIC("0", HttpStatus.INTERNAL_SERVER_ERROR, "Generic error message"),
         UNAUTHORIZED("1000", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"),
         FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
+        ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
         PASSWORD_MISSMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match retyped password")

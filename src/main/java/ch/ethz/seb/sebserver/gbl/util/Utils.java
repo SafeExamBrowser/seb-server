@@ -26,6 +26,12 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
 
+    public static <T> List<T> immutableListOf(final Collection<T> collection) {
+        return (collection != null)
+                ? Collections.unmodifiableList(new ArrayList<>(collection))
+                : Collections.emptyList();
+    }
+
     public static <T> Collection<T> immutableCollectionOf(final Collection<T> collection) {
         return (collection != null)
                 ? Collections.unmodifiableCollection(collection)
@@ -72,16 +78,18 @@ public final class Utils {
                 : Collections.emptyList();
     }
 
+    public static Map<String, String> immutableMapOf(final Map<String, String> params) {
+        return (params != null)
+                ? Collections.unmodifiableMap(params)
+                : Collections.emptyMap();
+    }
+
     public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
         return Collections.unmodifiableCollection(Arrays.asList(
                 enumClass.getEnumConstants())
                 .stream()
                 .map(e -> new Tuple<>(e.name(), e.name()))
                 .collect(Collectors.toList()));
-    }
-
-    public static String toSQLWildcard(final String text) {
-        return (text == null) ? null : "%" + text + "%";
     }
 
     public static Result<Long> dateTimeStringToTimestamp(final String startTime) {

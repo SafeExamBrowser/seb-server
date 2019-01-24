@@ -32,6 +32,7 @@ public final class Exam implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_FROM = "from";
     public static final String FILTER_ATTR_OWNER = "owner";
+    public static final String FILTER_ATTR_QUIZ_ID = "quiz";
 
     public enum ExamStatus {
         ON_CREATION,

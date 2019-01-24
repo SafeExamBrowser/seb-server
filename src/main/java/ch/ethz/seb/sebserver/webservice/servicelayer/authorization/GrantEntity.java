@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 /** Interface of an entity that needs a grant for access.
@@ -18,11 +20,13 @@ public interface GrantEntity extends Entity {
      * of the institution entity associated within this entity.
      *
      * @return The institution association of a GrantEntity */
+    @JsonIgnore
     Long getInstitutionId();
 
     /** The institution association of a GrantEntity. This is the UUID of the owner-user
      *
      * @return The institution association of a GrantEntity */
+    @JsonIgnore
     String getOwnerId();
 
 }

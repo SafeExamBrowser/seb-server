@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.integration.api;
+package ch.ethz.seb.sebserver.webservice.integration.api.exam;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,7 +39,7 @@ import ch.ethz.seb.sebserver.gbl.JSONMapper;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public abstract class ExamAPIIntegrationTest {
+public abstract class ExamAPIIntegrationTester {
 
     @Value("${sebserver.webservice.api.exam.endpoint}")
     protected String endpoint;

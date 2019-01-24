@@ -8,13 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMap
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -89,33 +90,31 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> allMatching(
-            final Long institutionId,
-            final String name,
-            final LmsType lmsType,
-            final Boolean active) {
+            final FilterMap filterMap,
+            final Predicate<LmsSetup> predicate) {
 
         return Result.tryCatch(() -> {
 
-            final String _lmsType = (lmsType != null) ? lmsType.name() : null;
             return this.lmsSetupRecordMapper
                     .selectByExample()
                     .where(
                             LmsSetupRecordDynamicSqlSupport.institutionId,
-                            isEqualToWhenPresent(institutionId))
+                            isEqualToWhenPresent(filterMap.getInstitutionId()))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.name,
-                            isLikeWhenPresent(toSQLWildcard(name)))
+                            isLikeWhenPresent(filterMap.getLmsSetupName()))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.lmsType,
-                            isEqualToWhenPresent(_lmsType))
+                            isEqualToWhenPresent(filterMap.getLmsSetupType()))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
+                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
                     .build()
                     .execute()
                     .stream()
                     .map(LmsSetupDAOImpl::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }

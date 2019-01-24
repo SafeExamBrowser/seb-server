@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,6 +23,7 @@ public final class Page<T> {
         DESCENDING
     }
 
+    public static final String ATTR_NAMES_ONLY = "names_only";
     public static final String ATTR_NUMBER_OF_PAGES = "number_of_pages";
     public static final String ATTR_PAGE_NUMBER = "page_number";
     public static final String ATTR_PAGE_SIZE = "page_size";
@@ -41,7 +43,7 @@ public final class Page<T> {
     public final SortOrder sortOrder;
 
     @JsonProperty(ATTR_CONTENT)
-    public final Collection<T> content;
+    public final List<T> content;
 
     @JsonCreator
     public Page(
@@ -53,7 +55,7 @@ public final class Page<T> {
 
         this.numberOfPages = numberOfPages;
         this.pageNumber = pageNumber;
-        this.content = Utils.immutableCollectionOf(content);
+        this.content = Utils.immutableListOf(content);
         this.pageSize = content.size();
         this.sortBy = sortBy;
         this.sortOrder = sortOrder;

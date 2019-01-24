@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.integration.api;
+package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -25,6 +25,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,7 +49,7 @@ import ch.ethz.seb.sebserver.gbl.JSONMapper;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public abstract class AdministrationAPIIntegrationTest {
+public abstract class AdministrationAPIIntegrationTester {
 
     @Value("${sebserver.webservice.api.admin.clientId}")
     protected String clientId;
@@ -115,6 +116,8 @@ public abstract class AdministrationAPIIntegrationTest {
         private String accessToken;
         private HttpStatus expectedStatus;
         private HttpMethod httpMethod = HttpMethod.GET;
+        private MediaType contentType = MediaType.APPLICATION_FORM_URLENCODED;
+        private String body = null;
 
         public RestAPITestHelper withAccessToken(final String accessToken) {
             this.accessToken = accessToken;
@@ -141,9 +144,20 @@ public abstract class AdministrationAPIIntegrationTest {
             return this;
         }
 
+        public RestAPITestHelper withBodyJson(final Object object) throws Exception {
+            this.contentType = MediaType.APPLICATION_JSON_UTF8;
+            this.body = AdministrationAPIIntegrationTester.this.jsonMapper.writeValueAsString(object);
+            return this;
+        }
+
+        public void checkStatus() throws Exception {
+            this.getAsString();
+        }
+
         public String getAsString() throws Exception {
-            final ResultActions action = AdministrationAPIIntegrationTest.this.mockMvc
+            final ResultActions action = AdministrationAPIIntegrationTester.this.mockMvc
                     .perform(requestBuilder());
+
             if (this.expectedStatus != null) {
                 action.andExpect(status().is(this.expectedStatus.value()));
             }
@@ -155,13 +169,13 @@ public abstract class AdministrationAPIIntegrationTest {
         }
 
         public <T> T getAsObject(final TypeReference<T> ref) throws Exception {
-            final ResultActions action = AdministrationAPIIntegrationTest.this.mockMvc
+            final ResultActions action = AdministrationAPIIntegrationTester.this.mockMvc
                     .perform(requestBuilder());
             if (this.expectedStatus != null) {
                 action.andExpect(status().is(this.expectedStatus.value()));
             }
 
-            return AdministrationAPIIntegrationTest.this.jsonMapper.readValue(
+            return AdministrationAPIIntegrationTester.this.jsonMapper.readValue(
                     action
                             .andReturn()
                             .getResponse()
@@ -191,12 +205,21 @@ public abstract class AdministrationAPIIntegrationTest {
                     get(getFullPath());
                     break;
             }
-            return builder.header("Authorization", "Bearer " + this.accessToken);
+            builder.header("Authorization", "Bearer " + this.accessToken);
+
+            if (this.contentType != null) {
+                builder.contentType(this.contentType);
+            }
+            if (this.body != null) {
+                builder.content(this.body);
+            }
+
+            return builder;
         }
 
         private String getFullPath() {
             final StringBuilder sb = new StringBuilder();
-            sb.append(AdministrationAPIIntegrationTest.this.endpoint);
+            sb.append(AdministrationAPIIntegrationTester.this.endpoint);
             sb.append(this.path);
             if (!this.queryAttrs.isEmpty()) {
                 sb.append("?");
@@ -211,7 +234,6 @@ public abstract class AdministrationAPIIntegrationTest {
             }
             return sb.toString();
         }
-
     }
 
 }

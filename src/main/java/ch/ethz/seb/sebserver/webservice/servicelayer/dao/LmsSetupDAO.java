@@ -8,22 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-
-import org.springframework.transaction.annotation.Transactional;
-
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, BulkActionSupportDAO<LmsSetup> {
-
-    @Transactional(readOnly = true)
-    default Result<Collection<LmsSetup>> allOfInstitution(final Long institutionId, final Boolean active) {
-        return allMatching(institutionId, null, null, active);
-    }
-
-    Result<Collection<LmsSetup>> allMatching(Long institutionId, String name, LmsType lmsType, Boolean active);
 
 }

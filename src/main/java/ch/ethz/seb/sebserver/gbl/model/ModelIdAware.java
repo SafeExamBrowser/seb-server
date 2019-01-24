@@ -8,8 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface ModelIdAware {
 
+    @JsonIgnore
     String getModelId();
 
 }

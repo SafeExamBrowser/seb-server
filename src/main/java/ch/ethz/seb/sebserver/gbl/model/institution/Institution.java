@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -55,7 +54,6 @@ public final class Institution implements GrantEntity, Activatable {
     }
 
     @Override
-    @JsonIgnore
     public EntityType entityType() {
         return EntityType.INSTITUTION;
     }
@@ -68,7 +66,6 @@ public final class Institution implements GrantEntity, Activatable {
     }
 
     @Override
-    @JsonIgnore
     public boolean isActive() {
         return this.active;
     }

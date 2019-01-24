@@ -8,13 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,14 +30,17 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.IndicatorRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ThresholdRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -48,13 +51,16 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     private final IndicatorRecordMapper indicatorRecordMapper;
     private final ThresholdRecordMapper thresholdRecordMapper;
+    private final ExamRecordMapper examRecordMapper;
 
     public IndicatorDAOImpl(
             final IndicatorRecordMapper indicatorRecordMapper,
-            final ThresholdRecordMapper thresholdRecordMapper) {
+            final ThresholdRecordMapper thresholdRecordMapper,
+            final ExamRecordMapper examRecordMapper) {
 
         this.indicatorRecordMapper = indicatorRecordMapper;
         this.thresholdRecordMapper = thresholdRecordMapper;
+        this.examRecordMapper = examRecordMapper;
     }
 
     @Override
@@ -86,6 +92,34 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .stream()
                     .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Indicator>> allMatching(final FilterMap filterMap, final Predicate<Indicator> predicate) {
+        return Result.tryCatch(() -> {
+            return this.indicatorRecordMapper.selectByExample()
+                    .join(ExamRecordDynamicSqlSupport.examRecord)
+                    .on(
+                            ExamRecordDynamicSqlSupport.id,
+                            SqlBuilder.equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                    .where(
+                            ExamRecordDynamicSqlSupport.institutionId,
+                            isEqualToWhenPresent(filterMap.getInstitutionId()))
+                    .and(
+                            IndicatorRecordDynamicSqlSupport.examId,
+                            isEqualToWhenPresent(filterMap.getIndicatorExamId()))
+                    .and(
+                            IndicatorRecordDynamicSqlSupport.name,
+                            isLikeWhenPresent(filterMap.getIndicatorName()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }
@@ -202,6 +236,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     private Result<Indicator> toDomainModel(final IndicatorRecord record) {
         return Result.tryCatch(() -> {
 
+            final ExamRecord examRecord = this.examRecordMapper.selectByPrimaryKey(record.getExamId());
+
             final List<Threshold> thresholds = this.thresholdRecordMapper.selectByExample()
                     .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(record.getId()))
                     .build()
@@ -216,6 +252,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
             return new Indicator(
                     record.getId(),
+                    examRecord.getInstitutionId(),
+                    examRecord.getOwner(),
                     record.getExamId(),
                     record.getName(),
                     IndicatorType.valueOf(record.getType()),

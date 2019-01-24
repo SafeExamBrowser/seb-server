@@ -63,24 +63,9 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
     }
 
     private DateTime getDateTime(final SupplierSQLExceptionAware<String> supplier) throws SQLException {
-        String dateFormattedString = supplier.get();
-
+        final String dateFormattedString = supplier.get();
         try {
-            // cutting milliseconds if there are some. This is needed to be able to use a general pattern
-            // independently from the different data-base-drivers format the date-time values
-            if (dateFormattedString.contains(".")) {
-                dateFormattedString = dateFormattedString.substring(
-                        0,
-                        dateFormattedString.indexOf("."));
-            }
-
-            // NOTE: This create a DateTime in UTC time.zone with no time-zone-offset.
-            final LocalDateTime localDateTime = LocalDateTime.parse(
-                    dateFormattedString,
-                    Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
-            final DateTime dateTime = localDateTime.toDateTime(DateTimeZone.UTC);
-
-            return dateTime;
+            return getDateTime(supplier.get());
         } catch (final Exception e) {
             log.error("while trying to parse LocalDateTime; value: " + dateFormattedString + " format: "
                     + Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS, e);
@@ -88,8 +73,28 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
         }
     }
 
+    public static final DateTime getDateTime(final String stringValue) {
+        String dateFormattedString = stringValue;
+
+        // cutting milliseconds if there are some. This is needed to be able to use a general pattern
+        // independently from the different data-base-drivers format the date-time values
+        if (dateFormattedString.contains(".")) {
+            dateFormattedString = dateFormattedString.substring(
+                    0,
+                    dateFormattedString.indexOf("."));
+        }
+
+        // NOTE: This create a DateTime in UTC time.zone with no time-zone-offset.
+        final LocalDateTime localDateTime = LocalDateTime.parse(
+                dateFormattedString,
+                Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        final DateTime dateTime = localDateTime.toDateTime(DateTimeZone.UTC);
+
+        return dateTime;
+    }
+
     @FunctionalInterface
-    private interface SupplierSQLExceptionAware<T> {
+    public interface SupplierSQLExceptionAware<T> {
         T get() throws SQLException;
     }
 

@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
@@ -44,9 +45,8 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final HttpStatus status,
             final WebRequest request) {
 
-        log.error("Unexpected internal error catched at the API endpoint: ", ex);
-        return APIMessage.ErrorMessage.UNEXPECTED
-                .createErrorResponse(ex.getMessage());
+        log.error("Unexpected generic error catched at the API endpoint: ", ex);
+        return new ResponseEntity<>(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()), status);
     }
 
     @Override
@@ -54,6 +54,20 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final MethodArgumentNotValidException ex,
             final HttpHeaders headers,
             final HttpStatus status,
+            final WebRequest request) {
+
+        final Collection<APIMessage> valErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(field -> APIMessage.fieldValidationError(field))
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(valErrors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BeanValidationException.class)
+    public ResponseEntity<Object> handleBeanValidationException(
+            final BeanValidationException ex,
             final WebRequest request) {
 
         final Collection<APIMessage> valErrors = ex.getBindingResult()
@@ -81,6 +95,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.warn("Permission Denied Exception: ", ex);
         return APIMessage.ErrorMessage.FORBIDDEN
+                .createErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalAPIArgumentException.class)
+    public ResponseEntity<Object> handleIllegalAPIArgumentException(
+            final IllegalAPIArgumentException ex,
+            final WebRequest request) {
+
+        log.warn("Illegal API Argument Exception: ", ex);
+        return APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
                 .createErrorResponse(ex.getMessage());
     }
 

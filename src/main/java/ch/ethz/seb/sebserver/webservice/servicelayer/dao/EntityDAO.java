@@ -12,10 +12,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -27,14 +26,12 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
-    Logger log = LoggerFactory.getLogger(EntityDAO.class);
-
     /** Get the entity type for a concrete EntityDAO implementation.
      *
      * @return The EntityType for a concrete EntityDAO implementation */
     EntityType entityType();
 
-    /** Use this to get an Entity instance of concrete type by database identifier
+    /** Use this to get an Entity instance of concrete type by database identifier/primary-key (PK)
      *
      * @param id the data base identifier of the entity
      * @return Result refer the Entity instance with the specified database identifier or refer to an error if
@@ -49,37 +46,22 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @param id the model identifier
      * @return Result refer the Entity instance with the specified model identifier or refer to an error if
      *         happened */
+    @Transactional(readOnly = true)
     default Result<T> byModelId(final String id) {
         return Result.tryCatch(() -> {
             return Long.parseLong(id);
         }).flatMap(this::byPK);
     }
 
-    /** Use this to get a Collection of all entities of concrete type that matches a given predicate.
+    /** Use this to get a Collection of all entities of concrete type of the given institution.
      *
-     * NOTE: This first gets all records from database, for each creates new Entity instance and then
-     * tests then matching predicate. So predicate filtering is not really fast
-     * If you need a fast filtering implement a specific filtering in SQL level
+     * NOTE: institutionId may be null. In that case this method uses a query to get all entities of
+     * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
+     * using the <code>PaginationService</code> before calling this method
      *
-     * @param predicate Predicate expecting instance of type specific entity type
-     * @param
-     * @param active indicates if only active entities should be included (on SQL level). Can be null.
-     * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
-     *         case */
+     * @param institutionId the identifier of the institution.
+     * @return Result of Collection of Entity of the given institution */
     Result<Collection<T>> all(Long institutionId);
-
-    /** Use this to get a Collection of all entities of concrete type that matches a given predicate.
-     *
-     * NOTE: This first gets all records from database, for each creates new Entity instance and then
-     * tests then matching predicate. So predicate filtering is not really fast
-     * If you need a fast filtering implement a specific filtering in SQL level
-     *
-     * @param predicate Predicate expecting instance of type specific entity type
-     * @return Result of Collection of Entity that matches a given predicate. Or an exception result on error
-     *         case */
-    default Result<Collection<T>> allOfInstitution(final long institutionId) {
-        return all(institutionId);
-    }
 
     Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
 
@@ -113,6 +95,13 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return Result of a collection of all entities that has been deleted or refer to an error if
      *         happened */
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
+
+    @Transactional(readOnly = true)
+    default Result<Collection<T>> allMatching(final FilterMap filterMap) {
+        return allMatching(filterMap, e -> true);
+    }
+
+    Result<Collection<T>> allMatching(FilterMap filterMap, Predicate<T> predicate);
 
     /** Context based utility method to extract an expected single resource entry form a Collection of specified type.
      * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer

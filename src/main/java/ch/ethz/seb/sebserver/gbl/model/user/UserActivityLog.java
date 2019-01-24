@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.Acti
 
 public class UserActivityLog implements Entity {
 
+    public static final String FILTER_ATTR_USER = "user";
     public static final String FILTER_ATTR_FROM = "from";
     public static final String FILTER_ATTR_TO = "to";
     public static final String FILTER_ATTR_ACTIVITY_TYPES = "activity_types";
@@ -76,13 +77,11 @@ public class UserActivityLog implements Entity {
     }
 
     @Override
-    @JsonIgnore
     public EntityType entityType() {
         return EntityType.USER_ACTIVITY_LOG;
     }
 
     @Override
-    @JsonIgnore
     public String getModelId() {
         return (this.id != null)
                 ? String.valueOf(this.id)
@@ -90,7 +89,6 @@ public class UserActivityLog implements Entity {
     }
 
     @Override
-    @JsonIgnore
     public String getName() {
         return getModelId();
     }

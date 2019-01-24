@@ -11,9 +11,13 @@ package ch.ethz.seb.sebserver.webservice.batis;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -86,6 +90,12 @@ public class JodaTimeTypeResolverTest {
         assertNotNull(nullableResult);
         assertEquals("1970-01-01 00:00:00", nullableResult.toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS));
         assertEquals(pointInTime, nullableResult);
+    }
+
+    @Test
+    public void test() throws JsonParseException, JsonMappingException, IOException {
+        final Boolean readValue = new ObjectMapper().readValue("true", Boolean.class);
+        assertTrue(readValue);
     }
 
 }

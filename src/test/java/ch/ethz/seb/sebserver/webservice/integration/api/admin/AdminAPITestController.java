@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.integration.api;
+package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import java.security.Principal;
 

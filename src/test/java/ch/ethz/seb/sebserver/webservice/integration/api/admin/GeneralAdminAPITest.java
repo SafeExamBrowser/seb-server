@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.integration.api;
+package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,7 +16,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
 
-public class GeneralAdminAPITest extends AdministrationAPIIntegrationTest {
+public class GeneralAdminAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void getHello_givenNoToken_thenRedirect() throws Exception {

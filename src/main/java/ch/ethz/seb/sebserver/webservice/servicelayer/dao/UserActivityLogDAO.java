@@ -15,7 +15,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
 public interface UserActivityLogDAO
@@ -89,6 +88,8 @@ public interface UserActivityLogDAO
             String userId,
             Long from,
             Long to,
-            Predicate<UserActivityLogRecord> predicate);
+            String activityTypes,
+            String entityTypes,
+            Predicate<UserActivityLog> predicate);
 
 }

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -29,12 +30,12 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.InstitutionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -89,20 +90,24 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> allMatching(final String name, final Boolean active) {
+    public Result<Collection<Institution>> allMatching(
+            final FilterMap filterMap,
+            final Predicate<Institution> predicate) {
+
         return Result.tryCatch(() -> this.institutionRecordMapper
                 .selectByExample()
                 .where(
                         InstitutionRecordDynamicSqlSupport.active,
-                        SqlBuilder.isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getActiveAsInt()))
                 .and(
                         InstitutionRecordDynamicSqlSupport.name,
-                        SqlBuilder.isEqualToWhenPresent(Utils.toSQLWildcard(name)))
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getName()))
                 .build()
                 .execute()
                 .stream()
                 .map(InstitutionDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .filter(predicate)
                 .collect(Collectors.toList()));
     }
 

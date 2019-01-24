@@ -16,13 +16,16 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INDICATOR;
 import ch.ethz.seb.sebserver.gbl.model.Domain.THRESHOLD;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
-public final class Indicator implements Entity {
+public final class Indicator implements GrantEntity {
+
+    public static final String FILTER_ATTR_EXAM = "exam";
 
     public enum IndicatorType {
         UNDEFINED,
@@ -32,6 +35,13 @@ public final class Indicator implements Entity {
 
     @JsonProperty(INDICATOR.ATTR_ID)
     public final Long id;
+
+    @JsonProperty(EXAM.ATTR_INSTITUTION_ID)
+    @NotNull
+    public final Long institutionId;
+
+    @JsonProperty(EXAM.ATTR_OWNER)
+    public final String owner;
 
     @JsonProperty(INDICATOR.ATTR_EXAM_ID)
     @NotNull
@@ -55,6 +65,8 @@ public final class Indicator implements Entity {
     @JsonCreator
     public Indicator(
             @JsonProperty(INDICATOR.ATTR_ID) final Long id,
+            @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(INDICATOR.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(INDICATOR.ATTR_NAME) final String name,
             @JsonProperty(INDICATOR.ATTR_TYPE) final IndicatorType type,
@@ -62,6 +74,8 @@ public final class Indicator implements Entity {
             @JsonProperty(THRESHOLD.REFERENCE_NAME) final Collection<Threshold> thresholds) {
 
         this.id = id;
+        this.institutionId = institutionId;
+        this.owner = owner;
         this.examId = examId;
         this.name = name;
         this.type = type;
@@ -86,6 +100,19 @@ public final class Indicator implements Entity {
 
     public Long getId() {
         return this.id;
+    }
+
+    @Override
+
+    public Long getInstitutionId() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getOwnerId() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public Long getExamId() {

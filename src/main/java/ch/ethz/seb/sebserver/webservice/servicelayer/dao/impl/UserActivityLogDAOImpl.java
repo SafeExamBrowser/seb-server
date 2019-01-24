@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -33,10 +36,10 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
@@ -48,16 +51,13 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private final UserActivityLogRecordMapper userLogRecordMapper;
     private final UserService userService;
-    private final PaginationService paginationService;
 
     public UserActivityLogDAOImpl(
             final UserActivityLogRecordMapper userLogRecordMapper,
-            final UserService userService,
-            final PaginationService paginationService) {
+            final UserService userService) {
 
         this.userLogRecordMapper = userLogRecordMapper;
         this.userService = userService;
-        this.paginationService = paginationService;
     }
 
     @Override
@@ -210,15 +210,38 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<UserActivityLog>> allMatching(final FilterMap filterMap,
+            final Predicate<UserActivityLog> predicate) {
+        return all(
+                filterMap.getInstitutionId(),
+                filterMap.getString(UserActivityLog.FILTER_ATTR_USER),
+                filterMap.getLong(UserActivityLog.FILTER_ATTR_FROM),
+                filterMap.getLong(UserActivityLog.FILTER_ATTR_TO),
+                filterMap.getString(UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES),
+                filterMap.getString(UserActivityLog.FILTER_ATTR_ENTITY_TYPES),
+                predicate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> all(
             final Long institutionId,
             final String userId,
             final Long from,
             final Long to,
-            final Predicate<UserActivityLogRecord> predicate) {
+            final String activityTypes,
+            final String entityTypes,
+            final Predicate<UserActivityLog> predicate) {
 
         return Result.tryCatch(() -> {
-            final Predicate<UserActivityLogRecord> _predicate = (predicate != null)
+            final List<String> _activityTypes = (activityTypes != null)
+                    ? Arrays.asList(StringUtils.split(activityTypes, Constants.LIST_SEPARATOR))
+                    : null;
+            final List<String> _entityTypes = (entityTypes != null)
+                    ? Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))
+                    : null;
+
+            final Predicate<UserActivityLog> _predicate = (predicate != null)
                     ? predicate
                     : model -> true;
 
@@ -239,12 +262,18 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .and(
                             UserActivityLogRecordDynamicSqlSupport.timestamp,
                             SqlBuilder.isLessThanWhenPresent(to))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.activityType,
+                            SqlBuilder.isInCaseInsensitiveWhenPresent(_activityTypes))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isInCaseInsensitiveWhenPresent(_entityTypes))
                     .build()
                     .execute()
                     .stream()
-                    .filter(_predicate)
                     .map(UserActivityLogDAOImpl::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .filter(_predicate)
                     .collect(Collectors.toList());
 
         });
@@ -255,11 +284,6 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Collection<UserActivityLog>> all(final Long institutionId) {
 
         return Result.tryCatch(() -> {
-            // first check if there is a page limitation set. Otherwise set the default
-            // to not pollute the memory with log data
-            this.paginationService.setDefaultLimitOfNotSet(
-                    UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord);
-
             if (institutionId == null) {
                 return this.userLogRecordMapper
                         .selectByExample()

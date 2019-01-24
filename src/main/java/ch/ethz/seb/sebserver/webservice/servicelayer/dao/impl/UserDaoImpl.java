@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static ch.ethz.seb.sebserver.gbl.util.Utils.toSQLWildcard;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -50,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
@@ -117,6 +117,7 @@ public class UserDaoImpl implements UserDAO {
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
+
             final List<UserRecord> records = (active != null)
                     ? this.userRecordMapper.selectByExample()
                             .where(
@@ -143,20 +144,33 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> allMatching(final UserFilter filter) {
-        return Result.tryCatch(() -> this.userRecordMapper.selectByExample().where(
-                UserRecordDynamicSqlSupport.active,
-                isEqualToWhenPresent(BooleanUtils.toIntegerObject(filter.active)))
-                .and(UserRecordDynamicSqlSupport.institutionId, isEqualToWhenPresent(filter.institutionId))
-                .and(UserRecordDynamicSqlSupport.name, isLikeWhenPresent(toSQLWildcard(filter.name)))
-                .and(UserRecordDynamicSqlSupport.username, isLikeWhenPresent(toSQLWildcard(filter.username)))
-                .and(UserRecordDynamicSqlSupport.email, isLikeWhenPresent(toSQLWildcard(filter.email)))
-                .and(UserRecordDynamicSqlSupport.locale, isLikeWhenPresent(filter.locale))
+    public Result<Collection<UserInfo>> allMatching(final FilterMap filterMap, final Predicate<UserInfo> predicate) {
+        return Result.tryCatch(() -> this.userRecordMapper
+                .selectByExample()
+                .where(
+                        UserRecordDynamicSqlSupport.active,
+                        isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                .and(
+                        UserRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        UserRecordDynamicSqlSupport.name,
+                        isLikeWhenPresent(filterMap.getName()))
+                .and(
+                        UserRecordDynamicSqlSupport.username,
+                        isLikeWhenPresent(filterMap.getUserUsername()))
+                .and(
+                        UserRecordDynamicSqlSupport.email,
+                        isLikeWhenPresent(filterMap.getUserEmail()))
+                .and(
+                        UserRecordDynamicSqlSupport.locale,
+                        isLikeWhenPresent(filterMap.getUserLocale()))
                 .build()
                 .execute()
                 .stream()
                 .map(this::toDomainModel)
                 .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .filter(predicate)
                 .collect(Collectors.toList()));
     }
 

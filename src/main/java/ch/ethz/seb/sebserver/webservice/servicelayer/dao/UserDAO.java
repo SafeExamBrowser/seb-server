@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.user.UserFilter;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -41,13 +40,13 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
     Result<SEBServerUser> sebServerUserByUsername(String username);
 
-    /** Use this to get a Collection of filtered UserInfo. The filter criteria
-     * from given UserFilter instance will be translated to SQL query and
-     * the filtering happens on data-base level
-     *
-     * @param filter The UserFilter instance containing all filter criteria
-     * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
-    Result<Collection<UserInfo>> allMatching(final UserFilter filter);
+//    /** Use this to get a Collection of filtered UserInfo. The filter criteria
+//     * from given UserFilter instance will be translated to SQL query and
+//     * the filtering happens on data-base level
+//     *
+//     * @param filter The UserFilter instance containing all filter criteria
+//     * @return a Result of Collection of filtered UserInfo. Or an exception result on error case */
+//    Result<Collection<UserInfo>> allMatching(final UserFilter filter);
 
     /** Use this to get a Collection containing EntityKey's of all entities that belongs to a given User.
      *

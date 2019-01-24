@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.integration.api;
+package ch.ethz.seb.sebserver.webservice.integration.api.exam;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
 
-public class GeneralExamAPITest extends ExamAPIIntegrationTest {
+public class GeneralExamAPITest extends ExamAPIIntegrationTester {
 
     @Test
     public void getHello_givenNoToken_thenUnauthorized() throws Exception {

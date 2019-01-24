@@ -8,29 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-
-import org.joda.time.DateTime;
-
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
-    Result<Exam> importFromQuizData(Long institutionId, Long lmsSetupId, QuizData quizData);
-
-    Result<Exam> byQuizId(String quizId);
-
-    Result<Collection<Exam>> allMatching(
-            Long institutionId,
-            Long lmsSetupId,
-            String name,
-            Exam.ExamStatus status,
-            Exam.ExamType type,
-            DateTime from,
-            String owner,
-            Boolean active);
+//    Result<Exam> importFromQuizData(Long institutionId, Long lmsSetupId, QuizData quizData);
+//
+//    Result<Exam> byQuizId(String quizId);
 
 }

@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -70,15 +71,17 @@ public class PaginationService {
         return tableMap.containsKey(orderBy);
     }
 
-    public void setDefaultLimitOfNotSet(final SqlTable table) {
+    /** Use this to set a page limitation on SQL level. This checks first if there is
+     * already a page-limitation set for the local thread and if not, set the default page-limitation */
+    public void setDefaultLimitIfNotSet() {
         if (PageHelper.getLocalPage() != null) {
             return;
         }
-        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, table);
+        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, null);
     }
 
-    public void setDefaultLimit(final SqlTable table) {
-        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, table);
+    public void setDefaultLimit() {
+        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, null);
     }
 
     public void setDefaultLimit(final String sortBy, final SqlTable table) {
@@ -113,29 +116,34 @@ public class PaginationService {
         final com.github.pagehelper.Page<Object> startPage =
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
-        final String sortColumnName = verifySortColumnName(sortBy, table);
-        if (StringUtils.isNoneBlank(sortColumnName)) {
-            if (sortOrder == Page.SortOrder.DESCENDING) {
-                PageHelper.orderBy(sortColumnName + " DESC");
-            } else {
-                PageHelper.orderBy(sortColumnName);
+        if (table != null) {
+            final String sortColumnName = verifySortColumnName(sortBy, table);
+            if (StringUtils.isNoneBlank(sortColumnName)) {
+                if (sortOrder == Page.SortOrder.DESCENDING) {
+                    PageHelper.orderBy(sortColumnName + " DESC");
+                } else {
+                    PageHelper.orderBy(sortColumnName);
+                }
             }
         }
 
         return startPage;
     }
 
-    public <T extends Entity> Page<T> getPage(
+    public <T extends Entity> Result<Page<T>> getPage(
             final Integer pageNumber,
             final Integer pageSize,
             final String sortBy,
             final Page.SortOrder sortOrder,
             final SqlTable table,
-            final Supplier<Collection<T>> delegate) {
+            final Supplier<Result<Collection<T>>> delegate) {
 
-        final com.github.pagehelper.Page<Object> page = setPagination(pageNumber, pageSize, sortBy, sortOrder, table);
-        final Collection<T> pageList = delegate.get();
-        return new Page<>(page.getPages(), page.getPageNum(), sortBy, sortOrder, pageList);
+        return Result.tryCatch(() -> {
+            final com.github.pagehelper.Page<Object> page =
+                    setPagination(pageNumber, pageSize, sortBy, sortOrder, table);
+            final Collection<T> pageList = delegate.get().getOrThrow();
+            return new Page<>(page.getPages(), page.getPageNum(), sortBy, sortOrder, pageList);
+        });
     }
 
     private String verifySortColumnName(final String sortBy, final SqlTable table) {

@@ -18,22 +18,30 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** Interface of a DAO for an Entity that has activation feature.
  *
- * @param <T> the concrete Entity type */
+ * @param <T> the type of Entity */
 public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> extends EntityDAO<T, M> {
 
+    /** Load all active entities of concrete type for the given institution and of given activity
+     *
+     * NOTE: institutionId may be null. In that case this method uses a query to get all active entities of
+     * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
+     * using the <code>PaginationService</code> before calling this method
+     *
+     * @param institutionId the identifier of the institution.
+     * @param active activity flag: true = all active, false = all inactive, null = all active and inactive
+     * @return Result of Collection of Entity of the given institution and activity */
     Result<Collection<T>> all(Long institutionId, Boolean active);
 
-    default Result<Collection<T>> allOfInstitution(final long institutionId, final Boolean active) {
-        return all(institutionId, active);
-    }
-
+    /** Load all active entities of concrete type for the given institution
+     *
+     * NOTE: institutionId may be null. In that case this method uses a query to get all active entities of
+     * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
+     * using the <code>PaginationService</code> before calling this method
+     *
+     * @param institutionId the identifier of the institution.
+     * @return Result of Collection of Entity of the given institution */
     @Override
     default Result<Collection<T>> all(final Long institutionId) {
-        return all(institutionId, true);
-    }
-
-    @Override
-    default Result<Collection<T>> allOfInstitution(final long institutionId) {
         return all(institutionId, true);
     }
 
