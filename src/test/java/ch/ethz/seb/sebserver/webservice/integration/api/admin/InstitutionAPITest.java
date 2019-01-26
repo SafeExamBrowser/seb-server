@@ -81,7 +81,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         final APIMessage errorMessage = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(RestAPI.ENDPOINT_INSTITUTION)
-                .withAttribute("institution", "2") // try to hack
+                .withAttribute("institutionId", "2") // try to hack
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsObject(new TypeReference<APIMessage>() {
                 });
@@ -124,7 +124,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
     @Test
     public void createNewInstitution() throws Exception {
         // create new institution with seb-admin
-        final Institution institution = new RestAPITestHelper()
+        Institution institution = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(RestAPI.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
@@ -151,12 +151,11 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 .getAsObject(new TypeReference<APIMessage>() {
                 });
 
-        // and predefined id should not be possible
+        // and name for institution must be unique
         errorMessage = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(RestAPI.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
-                .withAttribute("id", "123")
                 .withAttribute("name", "new institution")
                 .withAttribute("urlSuffix", "new_inst")
                 .withAttribute("active", "false")
@@ -166,6 +165,22 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(errorMessage);
         assertEquals("1010", errorMessage.messageCode);
+
+        // and predefined id should be ignored
+        institution = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("id", "123")
+                .withAttribute("name", "newer institution")
+                .withAttribute("urlSuffix", "new_inst")
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertEquals("newer institution", institution.name);
     }
 
 //    @Test

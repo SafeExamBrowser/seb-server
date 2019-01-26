@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -131,6 +132,24 @@ public final class Exam implements GrantEntity, Activatable {
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
                 : Collections.emptyList();
+    }
+
+    public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
+
+        this.id = (modelId != null) ? Long.parseLong(modelId) : null;
+        this.institutionId = mapper.getLong(EXAM.ATTR_INSTITUTION_ID);
+        this.lmsSetupId = mapper.getLong(EXAM.ATTR_LMS_SETUP_ID);
+        this.externalId = mapper.getString(EXAM.ATTR_EXTERNAL_ID);
+        this.name = quizData.name;
+        this.description = quizData.description;
+        this.status = mapper.getEnum(EXAM.ATTR_STATUS, ExamStatus.class);
+        this.startTime = quizData.startTime;
+        this.endTime = quizData.endTime;
+        this.startURL = mapper.getString(EXAM.ATTR_INSTITUTION_ID);
+        this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class);
+        this.owner = mapper.getString(EXAM.ATTR_OWNER);
+        this.active = mapper.getBooleanObject(EXAM.ATTR_ACTIVE);
+        this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
     }
 
     @Override

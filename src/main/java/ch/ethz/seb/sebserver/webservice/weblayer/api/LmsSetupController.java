@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -96,6 +97,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         } catch (final Exception e) {
             throw new RuntimeException("Unexpected error while trying to creae SEB start config: ", e);
         }
+    }
+
+    @Override
+    protected LmsSetup createNew(final POSTMapper postParams) {
+        return new LmsSetup(null, postParams);
     }
 
 }

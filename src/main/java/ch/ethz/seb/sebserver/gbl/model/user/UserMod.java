@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -46,6 +47,7 @@ public final class UserMod implements GrantEntity {
     public final String name;
 
     /** The internal user name */
+    @NotNull
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
@@ -56,10 +58,12 @@ public final class UserMod implements GrantEntity {
     public final String email;
 
     /** The users locale */
+    @NotNull
     @JsonProperty(USER.ATTR_LOCALE)
     public final Locale locale;
 
     /** The users time zone */
+    @NotNull
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
@@ -114,6 +118,19 @@ public final class UserMod implements GrantEntity {
         this.locale = userInfo.locale;
         this.timeZone = userInfo.timeZone;
         this.roles = userInfo.roles;
+    }
+
+    public UserMod(final String modelId, final POSTMapper postAttrMapper) {
+        this.uuid = modelId;
+        this.institutionId = postAttrMapper.getLong(USER.ATTR_INSTITUTION_ID);
+        this.newPassword = postAttrMapper.getString(ATTR_NAME_NEW_PASSWORD);
+        this.retypedNewPassword = postAttrMapper.getString(ATTR_NAME_RETYPED_NEW_PASSWORD);
+        this.name = postAttrMapper.getString(USER.ATTR_NAME);
+        this.username = postAttrMapper.getString(USER.ATTR_USERNAME);
+        this.email = postAttrMapper.getString(USER.ATTR_EMAIL);
+        this.locale = postAttrMapper.getLocale(USER.ATTR_LOCALE);
+        this.timeZone = postAttrMapper.getDateTimeZone(USER.ATTR_TIMEZONE);
+        this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
     }
 
     @Override

@@ -317,14 +317,20 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> loadEntities(final Collection<EntityKey> keys) {
         // TODO Auto-generated method stub
-        return null;
+        return Result.ofTODO();
     }
 
     @Override
     @Transactional
-    public Result<UserActivityLog> save(final UserActivityLog modified) {
+    public Result<UserActivityLog> save(final String modelId, final UserActivityLog modified) {
         // TODO Auto-generated method stub
-        return null;
+        return Result.ofTODO();
+    }
+
+    @Override
+    public Result<UserActivityLog> createNew(final UserActivityLog data) {
+        // TODO Auto-generated method stub
+        return Result.ofTODO();
     }
 
     @Override

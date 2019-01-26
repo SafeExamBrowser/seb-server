@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -29,7 +30,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_USER_ACCOUNT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_USER_ACCOUNT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -71,13 +72,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
-    protected Result<UserInfo> notifySave(final UserMod userData, final UserInfo userInfo) {
+    protected Result<UserInfo> notifySaved(final UserMod userData, final UserInfo userInfo) {
         // handle password change; revoke access tokens if password has changed
         if (userData.passwordChangeRequest() && userData.newPasswordMatch()) {
             this.applicationEventPublisher.publishEvent(
                     new RevokeTokenEndpoint.RevokeTokenEvent(this, userInfo.username));
         }
         return Result.of(userInfo);
+    }
+
+    @Override
+    protected UserMod createNew(final POSTMapper postParams) {
+        return new UserMod(null, postParams);
     }
 
 }

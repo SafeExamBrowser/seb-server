@@ -14,4 +14,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 public interface InstitutionDAO
         extends ActivatableEntityDAO<Institution, Institution>, BulkActionSupportDAO<Institution> {
 
+    boolean exists(String name);
+
 }

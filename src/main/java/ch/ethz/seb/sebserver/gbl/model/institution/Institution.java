@@ -13,6 +13,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
@@ -51,6 +52,14 @@ public final class Institution implements GrantEntity, Activatable {
         this.urlSuffix = urlSuffix;
         this.logoImage = logoImage;
         this.active = active;
+    }
+
+    public Institution(final String modelId, final POSTMapper mapper) {
+        this.id = (modelId != null) ? Long.parseLong(modelId) : null;
+        this.name = mapper.getString(INSTITUTION.ATTR_NAME);
+        this.urlSuffix = mapper.getString(INSTITUTION.ATTR_URL_SUFFIX);
+        this.logoImage = mapper.getString(INSTITUTION.ATTR_LOGO_IMAGE);
+        this.active = mapper.getBooleanObject(INSTITUTION.ATTR_ACTIVE);
     }
 
     @Override

@@ -79,15 +79,15 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         });
     }
 
+    Result<T> createNew(M data);
+
     /** Use this to save/modify an entity.
-     * If the model identifier from given modified entity data is null or not exists already, a new entity is created.
-     * If the model identifier is available and matches an existing entity, all entity data that are
-     * not null on modified entity data instance are updated within the existing entity.
      *
-     * @param modified modified data instance containing all data that should be modified
+     * @param modelId the model id of the entity to save
+     * @param data entity instance containing all data that should be saved
      * @return A Result of the entity instance where the successfully saved/modified entity data is available or a
      *         reported exception on error case */
-    Result<T> save(M modified);
+    Result<T> save(String modelId, M data);
 
     /** Use this to delete a set Entity by a Collection of EntityKey
      *

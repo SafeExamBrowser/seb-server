@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -53,6 +53,21 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Override
     public EntityType entityType() {
         return EntityType.INSTITUTION;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean exists(final String name) {
+        if (StringUtils.isBlank(name)) {
+            return false;
+        }
+
+        final Long count = this.institutionRecordMapper.countByExample()
+                .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(name))
+                .build()
+                .execute();
+
+        return count != null && count.longValue() > 0;
     }
 
     @Override
@@ -113,18 +128,39 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional
-    public Result<Institution> save(final Institution institution) {
-        if (institution == null) {
-            return Result.ofError(new NullPointerException("institution has null-reference"));
-        }
+    public Result<Institution> save(final String modelId, final Institution institution) {
+        return Result.tryCatch(() -> {
 
-        return (institution.id != null)
-                ? update(institution)
-                        .flatMap(InstitutionDAOImpl::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback)
-                : createNew(institution)
-                        .flatMap(InstitutionDAOImpl::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback);
+            final InstitutionRecord newRecord = new InstitutionRecord(
+                    institution.id,
+                    institution.name,
+                    institution.urlSuffix,
+                    null,
+                    institution.logoImage);
+
+            this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
+        })
+                .flatMap(InstitutionDAOImpl::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Institution> createNew(final Institution institution) {
+        return Result.tryCatch(() -> {
+            final InstitutionRecord newRecord = new InstitutionRecord(
+                    null,
+                    institution.name,
+                    institution.urlSuffix,
+                    BooleanUtils.toInteger(false),
+                    institution.logoImage);
+
+            this.institutionRecordMapper.insert(newRecord);
+            return newRecord;
+        })
+                .flatMap(InstitutionDAOImpl::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
@@ -198,35 +234,6 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                         String.valueOf(id));
             }
             return record;
-        });
-    }
-
-    private Result<InstitutionRecord> createNew(final Institution institution) {
-        return Result.tryCatch(() -> {
-            final InstitutionRecord newRecord = new InstitutionRecord(
-                    null,
-                    institution.name,
-                    institution.urlSuffix,
-                    BooleanUtils.toInteger(false),
-                    institution.logoImage);
-
-            this.institutionRecordMapper.insert(newRecord);
-            return newRecord;
-        });
-    }
-
-    private Result<InstitutionRecord> update(final Institution institution) {
-        return Result.tryCatch(() -> {
-
-            final InstitutionRecord newRecord = new InstitutionRecord(
-                    institution.id,
-                    institution.name,
-                    institution.urlSuffix,
-                    null,
-                    institution.logoImage);
-
-            this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
         });
     }
 

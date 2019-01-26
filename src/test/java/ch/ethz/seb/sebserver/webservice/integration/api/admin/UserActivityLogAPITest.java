@@ -47,7 +47,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         // for a user in another institution, the institution has to be defined
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?user=user4&institution=2")
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?user=user4&institutionId=2")
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -82,7 +82,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institution=2&from=" + sec2)
+                        get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2)
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -94,7 +94,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institution=2&from="
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from="
                                 + sec2 + "&to=" + sec4)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -107,9 +107,10 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institution=2&from=" + sec2
-                                + "&to=" + sec5)
-                                        .header("Authorization", "Bearer " + token))
+                        .perform(
+                                get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2
+                                        + "&to=" + sec5)
+                                                .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -120,9 +121,10 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institution=2&from=" + sec2
-                                + "&to=" + sec6)
-                                        .header("Authorization", "Bearer " + token))
+                        .perform(
+                                get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2
+                                        + "&to=" + sec6)
+                                                .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -165,7 +167,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG
-                                        + "?institution=2&activity_types=CREATE,MODIFY")
+                                        + "?institutionId=2&activity_types=CREATE,MODIFY")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -209,7 +211,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + RestAPI.ENDPOINT_USER_ACTIVITY_LOG
-                                        + "?entity_types=INSTITUTION,EXAM&institution=2")
+                                        + "?entity_types=INSTITUTION,EXAM&institutionId=2")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),

@@ -119,7 +119,11 @@ public final class Result<T> {
     public <U> Result<U> map(final Function<? super T, ? extends U> mapf) {
         if (this.error == null) {
             try {
-                return Result.of(mapf.apply(this.value));
+                final U result = mapf.apply(this.value);
+                if (result instanceof Result) {
+                    throw new IllegalArgumentException("Use flatMap instead!");
+                }
+                return Result.of(result);
             } catch (final Throwable t) {
                 return Result.ofError(t);
             }

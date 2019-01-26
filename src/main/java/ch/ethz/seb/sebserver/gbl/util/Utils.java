@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
@@ -137,6 +140,19 @@ public final class Utils {
         }
 
         return toDateTime(dateString).getMillis();
+    }
+
+    public static String toJsonArray(final String string) {
+        if (string == null) {
+            return null;
+        }
+
+        final List<String> asList = Arrays.asList(StringUtils.split(string, Constants.LIST_SEPARATOR_CHAR));
+        try {
+            return new ObjectMapper().writeValueAsString(asList);
+        } catch (final JsonProcessingException e) {
+            return string;
+        }
     }
 
 }

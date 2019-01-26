@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -90,6 +91,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getUserInfoWithUUID() throws Exception {
         final String sebAdminAccessToken = getSebAdminAccess();
         String contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user2")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header("Authorization", "Bearer " + sebAdminAccessToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -108,6 +110,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         final String adminInstitution2AccessToken = getAdminInstitution2Access();
         contentAsString = this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user1")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header("Authorization", "Bearer " + adminInstitution2AccessToken))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
@@ -124,7 +127,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void institutionalAdminNotAllowedToSeeUsersOfOtherInstitution() throws Exception {
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2")
+                .withPath(RestAPI.ENDPOINT_USER_ACCOUNT + "?institutionId=2")
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsString();
     }
@@ -148,7 +151,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution2Access())
                 .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
-                .withAttribute("institution", "2")
+                .withAttribute("institutionId", "2")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<UserInfo>>() {
                 });
@@ -165,8 +168,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution2Access())
                 .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
-                .withAttribute("institution", "2")
-                .withAttribute("active", "true")
+                .withAttribute(Entity.FILTER_ATTR_INSTITUTION, "2")
+                .withAttribute(Entity.FILTER_ATTR_ACTIVE, "true")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<UserInfo>>() {
                 });
@@ -181,8 +184,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution2Access())
                 .withPath(RestAPI.ENDPOINT_USER_ACCOUNT)
-                .withAttribute("institution", "2")
-                .withAttribute("active", "false")
+                .withAttribute(Entity.FILTER_ATTR_INSTITUTION, "2")
+                .withAttribute(Entity.FILTER_ATTR_ACTIVE, "false")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<UserInfo>>() {
                 });
@@ -222,7 +225,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institution=2")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?institutionId=2")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -264,7 +267,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         Page<UserInfo> userInfos = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
-                                + "?page_number=1&page_size=3&institution=2")
+                                + "?page_number=1&page_size=3&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -282,7 +285,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
-                                + "?page_number=2&page_size=3&institution=2")
+                                + "?page_number=2&page_size=3&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -301,7 +304,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
-                                + "?page_number=3&page_size=3&institution=2")
+                                + "?page_number=3&page_size=3&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -320,7 +323,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
-                                + "?page_number=1&page_size=3&sort_order=DESCENDING&institution=2")
+                                + "?page_number=1&page_size=3&sort_order=DESCENDING&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -363,7 +366,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getAllUserInfoWithOnlyActive() throws Exception {
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=true&institution=2")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=true&institutionId=2")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -395,9 +398,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // expecting one for institution 2
         userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false&institution=2")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .header("Authorization", "Bearer " + token))
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?active=false&institutionId=2")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserInfo>>() {
@@ -436,13 +440,15 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void createUserTest() throws Exception {
-
         final String token = getSebAdminAccess();
         final UserInfo createdUser = this.jsonMapper.readValue(
                 this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param(Domain.USER.ATTR_NAME, "NewTestUser")
+                        .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
+                        .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
+                        .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
                         .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
                         .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isOk())
@@ -456,6 +462,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // get newly created user and check equality
         final UserInfo createdUserGet = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + createdUser.uuid)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -551,6 +558,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         final UserInfo user = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user7")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -565,7 +573,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // change userName, email and roles
         final UserMod modifyUser = new UserMod(new UserInfo(
-                user.getUuid(),
+                null,
                 user.getInstitutionId(),
                 user.getName(),
                 "newUser1",
@@ -578,7 +586,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
 
         UserInfo modifiedUserResult = this.jsonMapper.readValue(
-                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + user.getUuid())
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(modifyUserJson))
@@ -597,6 +605,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // double check by getting the user by UUID
         modifiedUserResult = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUserResult.uuid)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -610,39 +619,39 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
     }
 
-    @Test
-    public void modifyUserWithPOSTMethod() throws Exception {
-        final String token = getSebAdminAccess();
-
-        final UserInfo modifiedUser = this.jsonMapper.readValue(
-                this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name", "PostModifyTest"))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<UserInfo>() {
-                });
-
-        assertNotNull(modifiedUser);
-        assertEquals("PostModifyTest", modifiedUser.name);
-
-        // check validation
-        final Collection<APIMessage> errors = this.jsonMapper.readValue(
-                this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name", "P"))
-                        .andExpect(status().isBadRequest())
-                        .andReturn().getResponse().getContentAsString(),
-                new TypeReference<Collection<APIMessage>>() {
-                });
-
-        assertNotNull(errors);
-        assertFalse(errors.isEmpty());
-        final APIMessage error = errors.iterator().next();
-        assertEquals("1200", error.messageCode);
-    }
+//    @Test
+//    public void modifyUserWithPOSTMethod() throws Exception {
+//        final String token = getSebAdminAccess();
+//
+//        final UserInfo modifiedUser = this.jsonMapper.readValue(
+//                this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+//                        .header("Authorization", "Bearer " + token)
+//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                        .param("name", "PostModifyTest"))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<UserInfo>() {
+//                });
+//
+//        assertNotNull(modifiedUser);
+//        assertEquals("PostModifyTest", modifiedUser.name);
+//
+//        // check validation
+//        final Collection<APIMessage> errors = this.jsonMapper.readValue(
+//                this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+//                        .header("Authorization", "Bearer " + token)
+//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                        .param("name", "P"))
+//                        .andExpect(status().isBadRequest())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<Collection<APIMessage>>() {
+//                });
+//
+//        assertNotNull(errors);
+//        assertFalse(errors.isEmpty());
+//        final APIMessage error = errors.iterator().next();
+//        assertEquals("1200", error.messageCode);
+//    }
 
     @Test
     public void testOwnerModifyPossibleForExamAdmin() throws Exception {
@@ -658,7 +667,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final UserMod modifiedUser = new UserMod(examAdmin, null, null);
         final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
 
-        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUser.uuid)
                 .header("Authorization", "Bearer " + examAdminToken1)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(modifiedUserJson))
@@ -680,21 +689,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
-        this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
-                .param(Domain.USER.ATTR_NAME, "NewTestUser"))
-                .andExpect(status().isForbidden())
-                .andReturn().getResponse().getContentAsString();
-
         final UserInfo userInfo = new UserInfo(
                 null, 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
         final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
-        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/NewTestUser")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newUserJson))
@@ -716,23 +717,13 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
-        this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user3")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
-                .param(Domain.USER.ATTR_NAME, "NewTestUser")
-                .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
-                .andExpect(status().isForbidden())
-                .andReturn().getResponse().getContentAsString();
-
         final UserInfo userInfo = new UserInfo(
                 null, 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
         final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
-        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/NewTestUser")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newUserJson))
@@ -749,6 +740,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String sebAdminToken = getSebAdminAccess();
         final UserInfo examAdmin1 = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -761,7 +753,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "newPassword");
         final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
 
-        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+        this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUser.uuid)
                 .header("Authorization", "Bearer " + sebAdminToken)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(modifiedUserJson))
@@ -795,6 +787,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String sebAdminToken = getSebAdminAccess();
         final UserInfo examAdmin1 = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -809,7 +802,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
 
         List<APIMessage> messages = this.jsonMapper.readValue(
-                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUser.uuid)
                         .header("Authorization", "Bearer " + sebAdminToken)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(modifiedUserJson))
@@ -831,7 +824,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
 
         messages = this.jsonMapper.readValue(
-                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+                this.mockMvc.perform(put(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + modifiedUser.uuid)
                         .header("Authorization", "Bearer " + sebAdminToken)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(modifiedUserJson))
@@ -997,7 +990,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // all active of institution 2
         usersPage = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/all/active?institution=2")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/all/active?institutionId=2")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -1011,9 +1004,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // all inactive of institution 2
         usersPage = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/all/inactive?institution=2")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .header("Authorization", "Bearer " + sebAdminToken))
+                this.mockMvc
+                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/all/inactive?institutionId=2")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserInfo>>() {
@@ -1025,14 +1019,16 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
-    public void testGeneralInEndpoint() throws Exception {
+    public void testGeneralListEndpoint() throws Exception {
         final String sebAdminToken = getSebAdminAccess();
 
         // for SEB Admin it should be possible to get from different institutions
         Collection<UserInfo> users = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/in?ids=user1,user2,user6,user7")
-                                .header("Authorization", "Bearer " + sebAdminToken))
+                        .perform(
+                                get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/list?ids=user1,user2,user6,user7")
+                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                        .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Collection<UserInfo>>() {
@@ -1046,8 +1042,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String instAdminToken = getAdminInstitution2Access();
         users = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/in?ids=user1,user2,user6,user7")
-                                .header("Authorization", "Bearer " + instAdminToken))
+                        .perform(
+                                get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/list?ids=user1,user2,user6,user7")
+                                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                        .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Collection<UserInfo>>() {
@@ -1066,6 +1064,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         Collection<EntityKeyAndName> names = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -1083,6 +1082,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         names = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -1100,6 +1100,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         names = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/names?active=true")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -1112,6 +1113,44 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 + "EntityIdAndName [entityType=USER, id=user4, name=ExamAdmin1], "
                 + "EntityIdAndName [entityType=USER, id=user7, name=User]]", names.toString());
     }
+
+//    @Test
+//    public void createWithRoleAddRoleDeleteRole() throws Exception {
+//        final String token = getSebAdminAccess();
+//        UserInfo createdUser = this.jsonMapper.readValue(
+//                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT)
+//                        .header("Authorization", "Bearer " + token)
+//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                        .param(Domain.USER.ATTR_NAME, "NewTestUser")
+//                        .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
+//                        .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
+//                        .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+//                        .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
+//                        .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<UserInfo>() {
+//                });
+//
+//        assertNotNull(createdUser);
+//        assertEquals("NewTestUser", createdUser.name);
+//        assertEquals("[]", String.valueOf(createdUser.roles));
+//
+//        // add two roles
+//        createdUser = this.jsonMapper.readValue(
+//                this.mockMvc.perform(patch(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/" + createdUser.uuid)
+//                        .header("Authorization", "Bearer " + token)
+//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                        .param(USER_ROLE.REFERENCE_NAME, "EXAM_SUPPORTER", "EXAM_ADMIN"))
+//                        .andExpect(status().isOk())
+//                        .andReturn().getResponse().getContentAsString(),
+//                new TypeReference<UserInfo>() {
+//                });
+//
+//        assertNotNull(createdUser);
+//        assertEquals("NewTestUser", createdUser.name);
+//        assertEquals("[]", String.valueOf(createdUser.roles));
+//    }
 
     private UserInfo getUserInfo(final String name, final Collection<UserInfo> infos) {
         try {

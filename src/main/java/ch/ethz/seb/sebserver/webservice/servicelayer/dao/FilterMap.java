@@ -8,27 +8,20 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.joda.time.DateTime;
+import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
 
-public class FilterMap {
+public class FilterMap extends POSTMapper {
 
-    public final Map<String, String> params;
-
-    public FilterMap(final Map<String, String> params) {
-        super();
-        this.params = Utils.immutableMapOf(params);
+    public FilterMap(final MultiValueMap<String, String> params) {
+        super(params);
     }
 
     public Integer getActiveAsInt() {
@@ -95,55 +88,8 @@ public class FilterMap {
         return getSQLWildcard(Indicator.FILTER_ATTR_NAME);
     }
 
-    public String getString(final String name) {
-        return this.params.get(name);
-    }
-
     public String getSQLWildcard(final String name) {
-        return toSQLWildcard(this.params.get(name));
-    }
-
-    public Long getLong(final String name) {
-        final String value = this.params.get(name);
-        if (value == null) {
-            return null;
-        }
-
-        return Long.parseLong(value);
-    }
-
-    public Integer getInteger(final String name) {
-        final String value = this.params.get(name);
-        if (value == null) {
-            return null;
-        }
-
-        return Integer.parseInt(value);
-    }
-
-    public Locale getLocale(final String name) {
-        final String value = this.params.get(name);
-        if (value == null) {
-            return null;
-        }
-
-        return LocaleUtils.toLocale(name);
-    }
-
-    public boolean getBoolean(final String name) {
-        return BooleanUtils.toBoolean(this.params.get(name));
-    }
-
-    public Boolean getBooleanObject(final String name) {
-        return BooleanUtils.toBooleanObject(this.params.get(name));
-    }
-
-    public Integer getBooleanAsInteger(final String name) {
-        final Boolean booleanObject = getBooleanObject(name);
-        if (booleanObject == null) {
-            return null;
-        }
-        return BooleanUtils.toIntegerObject(booleanObject);
+        return toSQLWildcard(this.params.getFirst(name));
     }
 
     public static String toSQLWildcard(final String text) {

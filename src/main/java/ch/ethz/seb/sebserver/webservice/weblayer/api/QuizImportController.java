@@ -87,31 +87,4 @@ public class QuizImportController {
                         : this.defaultPageSize);
     }
 
-//    @RequestMapping(path = "/import", method = RequestMethod.POST)
-//    public Collection<Exam> importExam(
-//            @RequestParam(name = LMS_SETUP.ATTR_ID, required = true) final Long lmsSetupId,
-//            @RequestParam(name = QuizData.QUIZ_ATTR_ID, required = true) final String quizId) {
-//
-//        this.authorizationGrantService.checkHasAnyPrivilege(
-//                EntityType.EXAM,
-//                PrivilegeType.WRITE);
-//
-//        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
-//                .createLmsAPITemplate(lmsSetupId)
-//                .getOrThrow();
-//
-//        final Set<String> ids = new HashSet<>(Arrays.asList(
-//                StringUtils.split(quizId, Constants.LIST_SEPARATOR_CHAR)));
-//
-//        return lmsAPITemplate.getQuizzes(ids)
-//                .stream()
-//                .map(result -> result.flatMap(quiz -> this.examDAO.importFromQuizData(
-//                        lmsAPITemplate.lmsSetup().institutionId,
-//                        lmsSetupId,
-//                        quiz)))
-//                .flatMap(Result::skipOnError)
-//                .peek(exam -> this.userActivityLogDAO.log(ActivityType.IMPORT, exam))
-//                .collect(Collectors.toList());
-//    }
-
 }

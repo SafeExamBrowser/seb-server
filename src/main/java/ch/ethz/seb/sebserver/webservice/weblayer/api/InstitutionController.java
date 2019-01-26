@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
@@ -67,6 +68,15 @@ public class InstitutionController extends ActivatableEntityController<Instituti
 
         final Long institutionId = currentUser.institutionId();
         return this.institutionDAO.byPK(institutionId).getOrThrow();
+    }
+
+    @Override
+    protected Institution createNew(final POSTMapper postParams) {
+        final Institution institution = new Institution(null, postParams);
+        if (this.institutionDAO.exists(institution.name)) {
+            throw new IllegalAPIArgumentException("institution:name:unique:" + institution.name);
+        }
+        return institution;
     }
 
 }

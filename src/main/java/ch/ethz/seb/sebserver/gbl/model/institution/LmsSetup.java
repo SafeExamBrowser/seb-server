@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
@@ -101,6 +102,20 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.sebAuthName = sebAuthName;
         this.sebAuthSecret = sebAuthSecret;
         this.active = (active != null) ? active : Boolean.FALSE;
+    }
+
+    public LmsSetup(final String modelId, final POSTMapper mapper) {
+        this.id = (modelId != null) ? Long.parseLong(modelId) : null;
+        this.institutionId = mapper.getLong(LMS_SETUP.ATTR_INSTITUTION_ID);
+        this.name = mapper.getString(LMS_SETUP.ATTR_NAME);
+        this.lmsType = mapper.getEnum(LMS_SETUP.ATTR_LMS_TYPE, LmsType.class);
+        this.lmsAuthName = mapper.getString(LMS_SETUP.ATTR_LMS_CLIENTNAME);
+        this.lmsAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_CLIENTSECRET);
+        this.lmsApiUrl = mapper.getString(LMS_SETUP.ATTR_LMS_URL);
+        this.lmsRestApiToken = mapper.getString(LMS_SETUP.ATTR_LMS_REST_API_TOKEN);
+        this.sebAuthName = mapper.getString(LMS_SETUP.ATTR_SEB_CLIENTNAME);
+        this.sebAuthSecret = mapper.getString(LMS_SETUP.ATTR_SEB_CLIENTSECRET);
+        this.active = mapper.getBooleanObject(LMS_SETUP.ATTR_ACTIVE);
     }
 
     @Override

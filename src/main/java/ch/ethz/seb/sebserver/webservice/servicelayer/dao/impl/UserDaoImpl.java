@@ -176,18 +176,65 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> save(final UserMod userMod) {
-        if (userMod == null) {
-            return Result.ofError(new NullPointerException("userMod has null-reference"));
-        }
+    public Result<UserInfo> createNew(final UserMod userMod) {
+        return Result.tryCatch(() -> {
 
-        return (userMod.uuid != null)
-                ? updateUser(userMod)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback)
-                : createNewUser(userMod)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback);
+            if (!userMod.newPasswordMatch()) {
+                throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
+            }
+
+            final UserRecord recordToSave = new UserRecord(
+                    null,
+                    userMod.institutionId,
+                    UUID.randomUUID().toString(),
+                    userMod.name,
+                    userMod.username,
+                    this.userPasswordEncoder.encode(userMod.getNewPassword()),
+                    userMod.email,
+                    userMod.locale.toLanguageTag(),
+                    userMod.timeZone.getID(),
+                    BooleanUtils.toInteger(false));
+
+            this.userRecordMapper.insert(recordToSave);
+            final Long newUserPK = recordToSave.getId();
+            final UserRecord newRecord = this.userRecordMapper
+                    .selectByPrimaryKey(newUserPK);
+            insertRolesForUser(newUserPK, userMod.roles);
+            return newRecord;
+
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<UserInfo> save(final String modelId, final UserMod userMod) {
+        return recordByUUID(modelId)
+                .map(record -> {
+                    final boolean changePWD = userMod.passwordChangeRequest();
+                    if (changePWD && !userMod.newPasswordMatch()) {
+                        throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
+                    }
+
+                    final UserRecord newRecord = new UserRecord(
+                            record.getId(),
+                            null,
+                            null,
+                            userMod.name,
+                            userMod.username,
+                            (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
+                            userMod.email,
+                            userMod.locale.toLanguageTag(),
+                            userMod.timeZone.getID(),
+                            null);
+
+                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    updateRolesForUser(record.getId(), userMod.roles);
+                    return this.userRecordMapper.selectByPrimaryKey(record.getId());
+                })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
@@ -299,59 +346,6 @@ public class UserDaoImpl implements UserDAO {
                     .stream()
                     .map(id -> new EntityKey(id, EntityType.USER))
                     .collect(Collectors.toList());
-        });
-    }
-
-    private Result<UserRecord> updateUser(final UserMod userMod) {
-        return recordByUUID(userMod.uuid)
-                .map(record -> {
-                    final boolean changePWD = userMod.passwordChangeRequest();
-                    if (changePWD && !userMod.newPasswordMatch()) {
-                        throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
-                    }
-
-                    final UserRecord newRecord = new UserRecord(
-                            record.getId(),
-                            null,
-                            null,
-                            userMod.name,
-                            userMod.username,
-                            (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
-                            userMod.email,
-                            userMod.locale.toLanguageTag(),
-                            userMod.timeZone.getID(),
-                            null);
-
-                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    updateRolesForUser(record.getId(), userMod.roles);
-                    return this.userRecordMapper.selectByPrimaryKey(record.getId());
-                });
-    }
-
-    private Result<UserRecord> createNewUser(final UserMod userMod) {
-        return Result.tryCatch(() -> {
-
-            if (!userMod.newPasswordMatch()) {
-                throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
-            }
-
-            final UserRecord newRecord = new UserRecord(
-                    null,
-                    userMod.institutionId,
-                    UUID.randomUUID().toString(),
-                    userMod.name,
-                    userMod.username,
-                    this.userPasswordEncoder.encode(userMod.getNewPassword()),
-                    userMod.email,
-                    userMod.locale.toLanguageTag(),
-                    userMod.timeZone.getID(),
-                    BooleanUtils.toInteger(false));
-
-            this.userRecordMapper.insert(newRecord);
-            final Long newUserId = newRecord.getId();
-            insertRolesForUser(newUserId, userMod.roles);
-            return newRecord;
-
         });
     }
 

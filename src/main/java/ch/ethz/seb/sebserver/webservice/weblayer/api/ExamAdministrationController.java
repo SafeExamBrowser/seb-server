@@ -9,25 +9,39 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
@@ -38,6 +52,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -47,6 +63,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
     private final ExamDAO examDAO;
     private final IndicatorDAO indicatorDAO;
+    private final LmsAPIService lmsAPIService;
 
     public ExamAdministrationController(
             final AuthorizationGrantService authorizationGrantService,
@@ -54,8 +71,9 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final ExamDAO examDAO,
             final PaginationService paginationService,
             final BulkActionService bulkActionService,
+            final BeanValidationService beanValidationService,
             final IndicatorDAO indicatorDAO,
-            final BeanValidationService beanValidationService) {
+            final LmsAPIService lmsAPIService) {
 
         super(authorizationGrantService,
                 bulkActionService,
@@ -66,6 +84,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         this.examDAO = examDAO;
         this.indicatorDAO = indicatorDAO;
+        this.lmsAPIService = lmsAPIService;
     }
 
     @Override
@@ -92,7 +111,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
             @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder,
-            @RequestParam final Map<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
 
@@ -139,77 +158,111 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         }
     }
 
-//    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.GET)
-//    public Collection<Indicator> getIndicatorOfExam(@PathVariable final Long examId) {
-//        // check read-only grant on Exam
-//        this.examDAO.byPK(examId)
-//                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.READ_ONLY))
-//                .getOrThrow();
+    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.GET)
+    public Collection<Indicator> getIndicatorOfExam(@PathVariable final Long examId) {
+        // check read-only grant on Exam
+        this.examDAO.byPK(examId)
+                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.READ_ONLY))
+                .getOrThrow();
+
+        return this.indicatorDAO.allForExam(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator/{indicatorId}", method = RequestMethod.DELETE)
+    public Collection<Indicator> deleteIndicatorOfExam(
+            @PathVariable final Long examId,
+            @PathVariable(required = false) final Long indicatorId) {
+
+        // check write grant on Exam
+        this.examDAO.byPK(examId)
+                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .getOrThrow();
+
+        final Set<EntityKey> toDelete = (indicatorId != null)
+                ? this.indicatorDAO.allForExam(examId)
+                        .getOrThrow()
+                        .stream()
+                        .map(ind -> new EntityKey(String.valueOf(ind.id), EntityType.INDICATOR))
+                        .collect(Collectors.toSet())
+                : Utils.immutableSetOf(new EntityKey(String.valueOf(indicatorId), EntityType.INDICATOR));
+
+        this.indicatorDAO.delete(toDelete);
+
+        return this.indicatorDAO.allForExam(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.POST)
+    public Indicator addNewIndicatorToExam(
+            @PathVariable final Long examId,
+            @Valid @RequestBody final Indicator indicator) {
+
+        // check write grant on Exam
+        this.examDAO.byPK(examId)
+                .flatMap(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .getOrThrow();
+
+        if (indicator.id != null) {
+            return this.indicatorDAO.byPK(indicator.id)
+                    .getOrThrow();
+        }
+
+        return this.indicatorDAO
+                .createNew(indicator)
+                .getOrThrow();
+    }
+
+    @RequestMapping(path = "/{examId}/indicator/{id}", method = RequestMethod.PUT)
+    public Indicator putIndicatorForExam(
+            @PathVariable final String id,
+            @Valid @RequestBody final Indicator indicator) {
+
+        // check modify grant on Exam
+        this.examDAO.byPK(indicator.examId)
+                .flatMap(e -> this.authorizationGrantService.checkGrantOnEntity(e, PrivilegeType.MODIFY))
+                .getOrThrow();
+
+        return this.indicatorDAO
+                .save(id, indicator)
+                .getOrThrow();
+    }
+
+//  @RequestMapping(path = "/{examId}/indicator/{id}", method = RequestMethod.PATCH)
+//  public Indicator patchSaveIndicatorForExam(
+//          @PathVariable final Long examId,
+//          @Valid @RequestBody final Indicator indicator) {
 //
-//        return this.indicatorDAO.allForExam(examId)
-//                .getOrThrow();
-//    }
+//      // check modify grant on Exam
+//      this.examDAO.byPK(examId)
+//              .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.MODIFY))
+//              .getOrThrow();
 //
-//    @RequestMapping(path = "/{examId}/indicator/delete/{indicatorId}", method = RequestMethod.DELETE)
-//    public Collection<Indicator> deleteIndicatorOfExam(
-//            @PathVariable final Long examId,
-//            @PathVariable(required = false) final Long indicatorId) {
-//
-//        // check write grant on Exam
-//        this.examDAO.byPK(examId)
-//                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
-//                .getOrThrow();
-//
-//        final Set<EntityKey> toDelete = (indicatorId != null)
-//                ? this.indicatorDAO.allForExam(examId)
-//                        .getOrThrow()
-//                        .stream()
-//                        .map(ind -> new EntityKey(String.valueOf(ind.id), EntityType.INDICATOR))
-//                        .collect(Collectors.toSet())
-//                : Utils.immutableSetOf(new EntityKey(String.valueOf(indicatorId), EntityType.INDICATOR));
-//
-//        this.indicatorDAO.delete(toDelete);
-//
-//        return this.indicatorDAO.allForExam(examId)
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(path = "/{examId}/indicator/new", method = RequestMethod.POST)
-//    public Indicator addNewIndicatorToExam(
-//            @PathVariable final Long examId,
-//            @Valid @RequestBody final Indicator indicator) {
-//
-//        // check write grant on Exam
-//        this.examDAO.byPK(examId)
-//                .flatMap(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
-//                .getOrThrow();
-//
-//        if (indicator.id != null) {
-//            return this.indicatorDAO.byPK(indicator.id)
-//                    .getOrThrow();
-//        }
-//
-//        return this.indicatorDAO
-//                .save(indicator)
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(path = "/{examId}/indicator/save", method = RequestMethod.PUT)
-//    public Indicator saveIndicatorForExam(
-//            @PathVariable final Long examId,
-//            @Valid @RequestBody final Indicator indicator) {
-//
-//        // check modify grant on Exam
-//        this.examDAO.byPK(examId)
-//                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.MODIFY))
-//                .getOrThrow();
-//
-//        return this.indicatorDAO.save(new Indicator(
-//                indicator.id,
-//                examId,
-//                indicator.name,
-//                indicator.type,
-//                indicator.defaultColor,
-//                indicator.thresholds)).getOrThrow();
-//    }
+//      return this.indicatorDAO.save(new Indicator(
+//              indicator.id,
+//              examId,
+//              indicator.name,
+//              indicator.type,
+//              indicator.defaultColor,
+//              indicator.thresholds)).getOrThrow();
+//  }
+
+    @Override
+    protected Exam createNew(final POSTMapper postParams) {
+
+        final Long lmsSetupId = postParams.getLong(LMS_SETUP.ATTR_ID);
+        final String quizId = postParams.getString(QuizData.QUIZ_ATTR_ID);
+
+        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
+                .createLmsAPITemplate(lmsSetupId)
+                .getOrThrow();
+
+        final QuizData quiz = lmsAPITemplate.getQuizzes(new HashSet<>(Arrays.asList(quizId)))
+                .iterator()
+                .next()
+                .getOrThrow();
+
+        return new Exam(null, quiz, postParams);
+    }
+
 }

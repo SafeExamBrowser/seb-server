@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface Entity extends ModelIdAware {
 
-    public static final String FILTER_ATTR_INSTITUTION = "institution";
+    public static final String FILTER_ATTR_INSTITUTION = Domain.ATTR_INSTITUTION_ID;
     public static final String FILTER_ATTR_ACTIVE = "active";
     public static final String FILTER_ATTR_NAME = "name";
 

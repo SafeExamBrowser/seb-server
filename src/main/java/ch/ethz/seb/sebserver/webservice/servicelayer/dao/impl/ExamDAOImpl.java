@@ -157,18 +157,58 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
-    public Result<Exam> save(final Exam exam) {
-        if (exam == null) {
-            return Result.ofError(new NullPointerException("exam has null-reference"));
-        }
+    public Result<Exam> save(final String modelId, final Exam exam) {
+        return Result.tryCatch(() -> {
+            final ExamRecord examRecord = new ExamRecord(
+                    exam.id,
+                    null, null, null, null,
+                    (exam.supporter != null)
+                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null,
+                    (exam.type != null) ? exam.type.name() : null,
+                    (exam.status != null) ? exam.status.name() : null,
+                    BooleanUtils.toIntegerObject(exam.active));
 
-        return (exam.id == null)
-                ? insert(exam)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback)
-                : update(exam)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback);
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(exam.id);
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Exam> createNew(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            // fist check if it is not already existing
+            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
+                    .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(exam.lmsSetupId))
+                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(exam.externalId))
+                    .build()
+                    .execute();
+
+            // if there is already an existing imported exam for the quiz, this is returned
+            if (records != null && records.size() > 0) {
+                return records.get(0);
+            }
+
+            final ExamRecord examRecord = new ExamRecord(
+                    null,
+                    exam.institutionId,
+                    exam.lmsSetupId,
+                    exam.externalId,
+                    this.userService.getCurrentUser().uuid(),
+                    null,
+                    null,
+                    null,
+                    BooleanUtils.toInteger(false));
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(exam.id);
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
@@ -235,54 +275,6 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
         }).flatMap(this::toDomainModel);
-    }
-
-    private Result<ExamRecord> insert(final Exam exam) {
-        return Result.tryCatch(() -> {
-
-            // fist check if it is not already existing
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(exam.lmsSetupId))
-                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(exam.externalId))
-                    .build()
-                    .execute();
-
-            // if there is already an existing imported exam for the quiz, this is returned
-            if (records != null && records.size() > 0) {
-                return records.get(0);
-            }
-
-            final ExamRecord examRecord = new ExamRecord(
-                    null,
-                    exam.institutionId,
-                    exam.lmsSetupId,
-                    exam.externalId,
-                    this.userService.getCurrentUser().uuid(),
-                    null,
-                    null,
-                    null,
-                    BooleanUtils.toInteger(false));
-
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(exam.id);
-        });
-    }
-
-    private Result<ExamRecord> update(final Exam exam) {
-        return Result.tryCatch(() -> {
-            final ExamRecord examRecord = new ExamRecord(
-                    exam.id,
-                    null, null, null, null,
-                    (exam.supporter != null)
-                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
-                            : null,
-                    (exam.type != null) ? exam.type.name() : null,
-                    (exam.status != null) ? exam.status.name() : null,
-                    BooleanUtils.toIntegerObject(exam.active));
-
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(exam.id);
-        });
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {

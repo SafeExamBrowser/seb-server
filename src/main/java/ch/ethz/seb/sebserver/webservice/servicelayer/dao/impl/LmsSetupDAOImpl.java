@@ -121,18 +121,52 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional
-    public Result<LmsSetup> save(final LmsSetup lmsSetup) {
-        if (lmsSetup == null) {
-            return Result.ofError(new NullPointerException("lmsSetup has null-reference"));
-        }
+    public Result<LmsSetup> save(final String modelId, final LmsSetup lmsSetup) {
+        return Result.tryCatch(() -> {
 
-        return (lmsSetup.id != null)
-                ? update(lmsSetup)
-                        .flatMap(LmsSetupDAOImpl::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback)
-                : createNew(lmsSetup)
-                        .flatMap(LmsSetupDAOImpl::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback);
+            final LmsSetupRecord newRecord = new LmsSetupRecord(
+                    lmsSetup.id,
+                    lmsSetup.institutionId,
+                    lmsSetup.name,
+                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
+                    lmsSetup.lmsApiUrl,
+                    lmsSetup.lmsAuthName,
+                    lmsSetup.lmsAuthSecret,
+                    lmsSetup.lmsRestApiToken,
+                    lmsSetup.sebAuthName,
+                    lmsSetup.sebAuthSecret,
+                    null);
+
+            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
+        })
+                .flatMap(LmsSetupDAOImpl::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<LmsSetup> createNew(final LmsSetup lmsSetup) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetupRecord newRecord = new LmsSetupRecord(
+                    null,
+                    lmsSetup.institutionId,
+                    lmsSetup.name,
+                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
+                    lmsSetup.lmsApiUrl,
+                    lmsSetup.lmsAuthName,
+                    lmsSetup.lmsAuthSecret,
+                    lmsSetup.lmsRestApiToken,
+                    lmsSetup.sebAuthName,
+                    lmsSetup.sebAuthSecret,
+                    BooleanUtils.toInteger(false));
+
+            this.lmsSetupRecordMapper.insert(newRecord);
+            return newRecord;
+        })
+                .flatMap(LmsSetupDAOImpl::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
@@ -240,48 +274,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getSebClientname(),
                 record.getSebClientsecret(),
                 BooleanUtils.toBooleanObject(record.getActive())));
-    }
-
-    private Result<LmsSetupRecord> createNew(final LmsSetup lmsSetup) {
-        return Result.tryCatch(() -> {
-
-            final LmsSetupRecord newRecord = new LmsSetupRecord(
-                    null,
-                    lmsSetup.institutionId,
-                    lmsSetup.name,
-                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
-                    lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
-                    lmsSetup.lmsRestApiToken,
-                    lmsSetup.sebAuthName,
-                    lmsSetup.sebAuthSecret,
-                    BooleanUtils.toInteger(false));
-
-            this.lmsSetupRecordMapper.insert(newRecord);
-            return newRecord;
-        });
-    }
-
-    private Result<LmsSetupRecord> update(final LmsSetup lmsSetup) {
-        return Result.tryCatch(() -> {
-
-            final LmsSetupRecord newRecord = new LmsSetupRecord(
-                    lmsSetup.id,
-                    lmsSetup.institutionId,
-                    lmsSetup.name,
-                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
-                    lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
-                    lmsSetup.lmsRestApiToken,
-                    lmsSetup.sebAuthName,
-                    lmsSetup.sebAuthSecret,
-                    null);
-
-            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
-        });
     }
 
 }

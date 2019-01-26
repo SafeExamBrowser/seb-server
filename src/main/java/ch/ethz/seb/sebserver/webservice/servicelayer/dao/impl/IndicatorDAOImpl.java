@@ -143,18 +143,56 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     @Override
     @Transactional
-    public Result<Indicator> save(final Indicator modified) {
-        if (modified == null) {
-            return Result.ofError(new NullPointerException("Indicator has null-reference"));
-        }
+    public Result<Indicator> save(final String modelId, final Indicator modified) {
+        return Result.tryCatch(() -> {
 
-        return (modified.id != null)
-                ? update(modified)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback)
-                : createNew(modified)
-                        .flatMap(this::toDomainModel)
-                        .onErrorDo(TransactionHandler::rollback);
+            final IndicatorRecord newRecord = new IndicatorRecord(
+                    modified.id,
+                    null,
+                    modified.type.name(),
+                    modified.name,
+                    modified.defaultColor);
+
+            this.indicatorRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+            // update also the thresholds
+            this.thresholdRecordMapper.deleteByExample()
+                    .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(modified.id))
+                    .build()
+                    .execute();
+
+            modified.thresholds
+                    .stream()
+                    .map(threshold -> new ThresholdRecord(
+                            null,
+                            modified.id,
+                            new BigDecimal(threshold.value),
+                            threshold.color))
+                    .forEach(this.thresholdRecordMapper::insert);
+
+            return this.indicatorRecordMapper.selectByPrimaryKey(modified.id);
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Indicator> createNew(final Indicator modified) {
+        return Result.tryCatch(() -> {
+
+            final IndicatorRecord newRecord = new IndicatorRecord(
+                    null,
+                    modified.examId,
+                    modified.type.name(),
+                    modified.name,
+                    modified.defaultColor);
+
+            this.indicatorRecordMapper.insert(newRecord);
+            return newRecord;
+        })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
@@ -261,52 +299,6 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     thresholds);
         });
 
-    }
-
-    private Result<IndicatorRecord> createNew(final Indicator indicator) {
-        return Result.tryCatch(() -> {
-
-            final IndicatorRecord newRecord = new IndicatorRecord(
-                    null,
-                    indicator.examId,
-                    indicator.type.name(),
-                    indicator.name,
-                    indicator.defaultColor);
-
-            this.indicatorRecordMapper.insert(newRecord);
-            return newRecord;
-        });
-    }
-
-    private Result<IndicatorRecord> update(final Indicator indicator) {
-        return Result.tryCatch(() -> {
-
-            final IndicatorRecord newRecord = new IndicatorRecord(
-                    indicator.id,
-                    null,
-                    indicator.type.name(),
-                    indicator.name,
-                    indicator.defaultColor);
-
-            this.indicatorRecordMapper.updateByPrimaryKeySelective(newRecord);
-
-            // update also the thresholds
-            this.thresholdRecordMapper.deleteByExample()
-                    .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(indicator.id))
-                    .build()
-                    .execute();
-
-            indicator.thresholds
-                    .stream()
-                    .map(threshold -> new ThresholdRecord(
-                            null,
-                            indicator.id,
-                            new BigDecimal(threshold.value),
-                            threshold.color))
-                    .forEach(this.thresholdRecordMapper::insert);
-
-            return this.indicatorRecordMapper.selectByPrimaryKey(indicator.id);
-        });
     }
 
 }
