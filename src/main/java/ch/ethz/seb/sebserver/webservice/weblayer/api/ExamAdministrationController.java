@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -44,6 +43,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -109,8 +109,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
@@ -118,10 +117,10 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         // NOTE: several attributes for sorting may be originated by the QuizData from LMS not by the database
         //       of the SEB Server. Therefore in the case we have no or the default sorting we can use the
         //       native PaginationService within MyBatis and SQL. For the other cases we need an in-line sorting and paging
-        if (StringUtils.isBlank(sortBy) ||
-                this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sortBy)) {
+        if (StringUtils.isBlank(sort) ||
+                this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort)) {
 
-            return super.getAll(institutionId, pageNumber, pageSize, sortBy, sortOrder, allRequestParams);
+            return super.getAll(institutionId, pageNumber, pageSize, sort, allRequestParams);
 
         } else {
 
@@ -136,7 +135,8 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final List<Exam> exams = new ArrayList<>(
                     this.examDAO.allMatching(new FilterMap(allRequestParams)).getOrThrow());
 
-            if (!StringUtils.isBlank(sortBy)) {
+            if (!StringUtils.isBlank(sort)) {
+                final String sortBy = SortOrder.getSortColumn(sort);
                 if (sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
                     Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
                 }
@@ -145,15 +145,14 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                 }
             }
 
-            if (SortOrder.DESCENDING == sortOrder) {
+            if (SortOrder.DESCENDING == SortOrder.getSortOrder(sort)) {
                 Collections.reverse(exams);
             }
 
             return new Page<>(
                     exams.size() / pSize,
                     pageNum,
-                    sortBy,
-                    sortOrder,
+                    sort,
                     exams.subList(pageNum * pSize, pageNum * pSize + pSize));
         }
     }

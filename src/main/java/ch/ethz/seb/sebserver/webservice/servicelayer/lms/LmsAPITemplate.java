@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -21,23 +20,14 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface LmsAPITemplate {
 
-    enum OrderBy {
-        NAME,
-        FROM,
-        TO
-    }
-
     LmsSetup lmsSetup();
 
     LmsSetupTestResult testLmsSetup();
 
-    Collection<QuizData> getQuizzes(String name, Long from, OrderBy orderBy, SortOrder sortOrder);
-
-    Page<QuizData> getQuizzesPage(
+    Page<QuizData> getQuizzes(
             String name,
             Long from,
-            OrderBy orderBy,
-            SortOrder sortOrder,
+            String sort,
             int pageNumber,
             int pageSize);
 

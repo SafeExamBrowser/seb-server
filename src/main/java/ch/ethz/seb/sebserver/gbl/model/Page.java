@@ -18,17 +18,11 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class Page<T> {
 
-    public enum SortOrder {
-        ASCENDING,
-        DESCENDING
-    }
-
     public static final String ATTR_NAMES_ONLY = "names_only";
     public static final String ATTR_NUMBER_OF_PAGES = "number_of_pages";
     public static final String ATTR_PAGE_NUMBER = "page_number";
     public static final String ATTR_PAGE_SIZE = "page_size";
-    public static final String ATTR_SORT_BY = "sort_by";
-    public static final String ATTR_SORT_ORDER = "sort_order";
+    public static final String ATTR_SORT = "sort";
     public static final String ATTR_CONTENT = "content";
 
     @JsonProperty(ATTR_NUMBER_OF_PAGES)
@@ -37,10 +31,8 @@ public final class Page<T> {
     public final Integer pageNumber;
     @JsonProperty(ATTR_PAGE_SIZE)
     public final Integer pageSize;
-    @JsonProperty(ATTR_SORT_BY)
-    public final String sortBy;
-    @JsonProperty(ATTR_SORT_ORDER)
-    public final SortOrder sortOrder;
+    @JsonProperty(ATTR_SORT)
+    public final String sort;
 
     @JsonProperty(ATTR_CONTENT)
     public final List<T> content;
@@ -49,16 +41,14 @@ public final class Page<T> {
     public Page(
             @JsonProperty(ATTR_NUMBER_OF_PAGES) final Integer numberOfPages,
             @JsonProperty(ATTR_PAGE_NUMBER) final Integer pageNumber,
-            @JsonProperty(ATTR_SORT_BY) final String sortBy,
-            @JsonProperty(ATTR_SORT_ORDER) final SortOrder sortOrder,
+            @JsonProperty(ATTR_SORT) final String sort,
             @JsonProperty(ATTR_CONTENT) final Collection<T> content) {
 
         this.numberOfPages = numberOfPages;
         this.pageNumber = pageNumber;
         this.content = Utils.immutableListOf(content);
         this.pageSize = content.size();
-        this.sortBy = sortBy;
-        this.sortOrder = sortOrder;
+        this.sort = sort;
     }
 
     public Integer getNumberOfPages() {
@@ -73,16 +63,15 @@ public final class Page<T> {
         return this.pageSize;
     }
 
-    public String getSortBy() {
-        return this.sortBy;
-    }
-
-    public SortOrder getSortOrder() {
-        return this.sortOrder;
-    }
-
     public Collection<T> getContent() {
         return this.content;
+    }
+
+    @Override
+    public String toString() {
+        return "Page [numberOfPages=" + this.numberOfPages + ", pageNumber=" + this.pageNumber + ", pageSize="
+                + this.pageSize
+                + ", sort=" + this.sort + ", content=" + this.content + "]";
     }
 
 }

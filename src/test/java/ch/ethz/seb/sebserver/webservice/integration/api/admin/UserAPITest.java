@@ -244,7 +244,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getPageNoFilterNoPageAttributesDescendingOrder() throws Exception {
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?sort_order=DESCENDING")
+                this.mockMvc.perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "?sort=-")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -323,7 +323,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         userInfos = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT
-                                + "?page_number=1&page_size=3&sort_order=DESCENDING&institutionId=2")
+                                + "?page_number=1&page_size=3&sort=-&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())

@@ -67,15 +67,13 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkReadPrivilege(institutionId);
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
-                sortBy,
-                sortOrder,
+                sort,
                 UserRecordDynamicSqlSupport.userRecord,
                 () -> this.activatableEntityDAO.all(institutionId, true)).getOrThrow();
     }
@@ -92,15 +90,13 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkReadPrivilege(institutionId);
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
-                sortBy,
-                sortOrder,
+                sort,
                 UserRecordDynamicSqlSupport.userRecord,
                 () -> this.activatableEntityDAO.all(institutionId, false)).getOrThrow();
     }

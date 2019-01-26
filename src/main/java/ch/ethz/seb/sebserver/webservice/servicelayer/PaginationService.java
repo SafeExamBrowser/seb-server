@@ -35,6 +35,32 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 @WebServiceProfile
 public class PaginationService {
 
+    public enum SortOrder {
+        ASCENDING("+"),
+        DESCENDING("-");
+
+        public final String prefix;
+
+        private SortOrder(final String prefix) {
+            this.prefix = prefix;
+        }
+
+        public static SortOrder getSortOrder(final String sort) {
+            return (sort != null && sort.startsWith(DESCENDING.prefix))
+                    ? SortOrder.DESCENDING
+                    : SortOrder.ASCENDING;
+        }
+
+        public static String getSortColumn(final String sort) {
+            return (sort == null)
+                    ? null
+                    : (sort.startsWith(SortOrder.ASCENDING.prefix) || sort.startsWith(SortOrder.DESCENDING.prefix))
+                            ? sort.substring(1)
+                            : sort;
+        }
+
+    }
+
     private final int defaultPageSize;
     private final int maxPageSize;
 
@@ -77,19 +103,15 @@ public class PaginationService {
         if (PageHelper.getLocalPage() != null) {
             return;
         }
-        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, null);
+        setPagination(1, this.maxPageSize, null, null);
     }
 
     public void setDefaultLimit() {
-        setPagination(1, this.maxPageSize, null, Page.SortOrder.ASCENDING, null);
+        setPagination(1, this.maxPageSize, null, null);
     }
 
-    public void setDefaultLimit(final String sortBy, final SqlTable table) {
-        setPagination(1, this.maxPageSize, sortBy, Page.SortOrder.ASCENDING, table);
-    }
-
-    public void setDefaultLimit(final String sortBy, final Page.SortOrder sortOrder, final SqlTable table) {
-        setPagination(1, this.maxPageSize, sortBy, sortOrder, table);
+    public void setDefaultLimit(final String sort, final SqlTable table) {
+        setPagination(1, this.maxPageSize, sort, table);
     }
 
     public int getPageNumber(final Integer pageNumber) {
@@ -109,20 +131,23 @@ public class PaginationService {
     public com.github.pagehelper.Page<Object> setPagination(
             final Integer pageNumber,
             final Integer pageSize,
-            final String sortBy,
-            final Page.SortOrder sortOrder,
+            final String sort,
             final SqlTable table) {
 
         final com.github.pagehelper.Page<Object> startPage =
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
         if (table != null) {
-            final String sortColumnName = verifySortColumnName(sortBy, table);
+            final String sortColumnName = verifySortColumnName(sort, table);
             if (StringUtils.isNoneBlank(sortColumnName)) {
-                if (sortOrder == Page.SortOrder.DESCENDING) {
-                    PageHelper.orderBy(sortColumnName + " DESC");
-                } else {
-                    PageHelper.orderBy(sortColumnName);
+                switch (SortOrder.getSortOrder(sort)) {
+                    case DESCENDING: {
+                        PageHelper.orderBy(sortColumnName + " DESC");
+                        break;
+                    }
+                    default: {
+                        PageHelper.orderBy(sortColumnName);
+                    }
                 }
             }
         }
@@ -133,28 +158,31 @@ public class PaginationService {
     public <T extends Entity> Result<Page<T>> getPage(
             final Integer pageNumber,
             final Integer pageSize,
-            final String sortBy,
-            final Page.SortOrder sortOrder,
+            final String sort,
             final SqlTable table,
             final Supplier<Result<Collection<T>>> delegate) {
 
         return Result.tryCatch(() -> {
             final com.github.pagehelper.Page<Object> page =
-                    setPagination(pageNumber, pageSize, sortBy, sortOrder, table);
+                    setPagination(pageNumber, pageSize, sort, table);
             final Collection<T> pageList = delegate.get().getOrThrow();
-            return new Page<>(page.getPages(), page.getPageNum(), sortBy, sortOrder, pageList);
+            return new Page<>(page.getPages(), page.getPageNum(), sort, pageList);
         });
     }
 
-    private String verifySortColumnName(final String sortBy, final SqlTable table) {
+    private String verifySortColumnName(final String sort, final SqlTable table) {
 
-        if (StringUtils.isBlank(sortBy)) {
+        if (StringUtils.isBlank(sort)) {
             return this.defaultSortColumn.get(table.name());
         }
 
         final Map<String, String> mapping = this.sortColumnMapping.get(table.name());
         if (mapping != null) {
-            return mapping.get(sortBy);
+            final String sortColumn = SortOrder.getSortColumn(sort);
+            if (StringUtils.isBlank(sortColumn)) {
+                return this.defaultSortColumn.get(table.name());
+            }
+            return mapping.get(sortColumn);
         }
 
         return this.defaultSortColumn.get(table.name());

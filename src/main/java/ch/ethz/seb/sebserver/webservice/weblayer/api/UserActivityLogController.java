@@ -70,15 +70,13 @@ public class UserActivityLogController {
             @RequestParam(name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES, required = false) final String entityTypes,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkBaseReadPrivilege(institutionId);
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
-                sortBy,
-                sortOrder,
+                sort,
                 UserRecordDynamicSqlSupport.userRecord,
                 () -> _getAll(institutionId, userId, from, to, activityTypes, entityTypes)).getOrThrow();
     }

@@ -17,16 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.Page.SortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate.OrderBy;
 
 @WebServiceProfile
 @RestController
@@ -58,8 +55,7 @@ public class QuizImportController {
             @RequestParam(name = QuizData.FILTER_ATTR_START_TIME, required = false) final String startTime,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String orderBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final String sortOrder) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
                 .createLmsAPITemplate(lmsSetupId)
@@ -70,13 +66,10 @@ public class QuizImportController {
                 PrivilegeType.READ_ONLY,
                 lmsAPITemplate.lmsSetup().institutionId);
 
-        return lmsAPITemplate.getQuizzesPage(
+        return lmsAPITemplate.getQuizzes(
                 nameLike,
                 Utils.dateTimeStringToTimestamp(startTime, null),
-                Result.tryCatch(() -> OrderBy.valueOf(orderBy))
-                        .getOrElse(OrderBy.NAME),
-                Result.tryCatch(() -> SortOrder.valueOf(sortOrder))
-                        .getOrElse(SortOrder.ASCENDING),
+                sort,
                 (pageNumber != null)
                         ? pageNumber
                         : 1,

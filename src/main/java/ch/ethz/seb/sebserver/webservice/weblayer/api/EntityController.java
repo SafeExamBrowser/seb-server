@@ -98,8 +98,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT_BY, required = false) final String sortBy,
-            @RequestParam(name = Page.ATTR_SORT_ORDER, required = false) final Page.SortOrder sortOrder,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
@@ -111,8 +110,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
-                sortBy,
-                sortOrder,
+                sort,
                 getSQLTableOfEntity(),
                 () -> getAll(filterMap)).getOrThrow();
     }
