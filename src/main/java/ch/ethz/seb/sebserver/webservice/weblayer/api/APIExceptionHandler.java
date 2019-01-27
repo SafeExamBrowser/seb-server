@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -77,6 +78,15 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(valErrors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Object> handleResourceNotFoundException(
+            final ResourceNotFoundException ex,
+            final WebRequest request) {
+
+        return APIMessage.ErrorMessage.RESOURCE_NOT_FOUND
+                .createErrorResponse(ex.getMessage());
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)

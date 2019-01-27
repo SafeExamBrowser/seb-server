@@ -52,4 +52,11 @@ public class EntityProcessingReport {
 
     }
 
+    @Override
+    public String toString() {
+        return "EntityProcessingReport [source=" + this.source + ", dependencies=" + this.dependencies + ", errors="
+                + this.errors
+                + "]";
+    }
+
 }

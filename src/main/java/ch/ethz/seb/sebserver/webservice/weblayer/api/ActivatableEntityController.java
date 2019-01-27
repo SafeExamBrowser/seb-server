@@ -102,7 +102,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/{id}/activate",
+            path = "/{id}/active",
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -112,7 +112,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            value = "/{id}/deactivate",
+            value = "/{id}/inactive",
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

@@ -20,6 +20,7 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.RestAPI;
@@ -78,6 +79,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(institutions.content.size() == 1);
         assertContainsInstitution("Institution1", institutions.content);
 
+        // Institutional admin tries to get data from other institution
         final APIMessage errorMessage = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(RestAPI.ENDPOINT_INSTITUTION)
@@ -183,18 +185,137 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("newer institution", institution.name);
     }
 
-//    @Test
-//    public void createActivateModifyDeactivateAndDeleteInstitution() throws Exception  {
-//        final Institution institution = new RestAPITestHelper()
-//                .withAccessToken(getSebAdminAccess())
-//                .withPath(RestAPI.ENDPOINT_INSTITUTION + "/create")
-//                .withMethod(HttpMethod.PUT)
-//                .withBodyJson(new Institution(null, ))
-//                .withExpectedStatus(HttpStatus.OK)
-//
-//                .getAsObject(new TypeReference<Institution>() {
-//                });
-//    }
+    @Test
+    public void createActivateModifyDeactivateAndDeleteInstitution() throws Exception {
+        // create new institution with seb-admin
+        final String sebAdminAccess = getSebAdminAccess();
+        Institution institution = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "testInstitution")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertEquals("testInstitution", institution.name);
+        assertFalse(institution.active);
+
+        // get
+        institution = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertEquals("testInstitution", institution.name);
+        assertEquals(null, institution.urlSuffix);
+        assertFalse(institution.active);
+
+        // modify
+        institution = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.PUT)
+                .withBodyJson(new Institution(null, "testInstitution", "testSuffix", null, null))
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertEquals("testInstitution", institution.name);
+        assertEquals("testSuffix", institution.urlSuffix);
+        assertFalse(institution.active);
+
+        // activate
+        EntityProcessingReport report = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath("/").withPath(String.valueOf(institution.id)).withPath("/active")
+                .withMethod(HttpMethod.POST)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<EntityProcessingReport>() {
+                });
+
+        assertNotNull(report);
+        assertEquals("EntityProcessingReport "
+                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
+                + "dependencies=[], "
+                + "errors=[]]",
+                report.toString());
+        // get
+        institution = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertTrue(institution.active);
+
+        // deactivate
+        report = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath("/").withPath(String.valueOf(institution.id)).withPath("/inactive")
+                .withMethod(HttpMethod.POST)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<EntityProcessingReport>() {
+                });
+
+        assertNotNull(report);
+        assertEquals("EntityProcessingReport "
+                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
+                + "dependencies=[], "
+                + "errors=[]]",
+                report.toString());
+        // get
+        institution = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertFalse(institution.active);
+
+        // delete
+        report = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.DELETE)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<EntityProcessingReport>() {
+                });
+
+        assertNotNull(report);
+        assertEquals("EntityProcessingReport "
+                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
+                + "dependencies=[], "
+                + "errors=[]]",
+                report.toString());
+
+        // get
+        final APIMessage error = new RestAPITestHelper()
+                .withAccessToken(sebAdminAccess)
+                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.NOT_FOUND)
+                .getAsObject(new TypeReference<APIMessage>() {
+                });
+
+        assertNotNull(error);
+        assertEquals("Resource INSTITUTION with ID: 4 not found", error.details);
+    }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {
         assert institutions != null;

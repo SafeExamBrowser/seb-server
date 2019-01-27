@@ -843,7 +843,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
-        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/deactivate")
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/inactive")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header("Authorization", "Bearer " + examAdminToken))
                 .andExpect(status().isForbidden());
@@ -851,7 +851,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // With SEB Administrator it should work
         final String sebAdminToken = getSebAdminAccess();
         final EntityProcessingReport report = this.jsonMapper.readValue(
-                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/deactivate")
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user4/inactive")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -903,7 +903,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
-        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
+        this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/active")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .header("Authorization", "Bearer " + examAdminToken))
                 .andExpect(status().isForbidden());
@@ -911,7 +911,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // With SEB Administrator it should work
         final String sebAdminToken = getSebAdminAccess();
         final EntityProcessingReport report = this.jsonMapper.readValue(
-                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/activate")
+                this.mockMvc.perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/user6/active")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())

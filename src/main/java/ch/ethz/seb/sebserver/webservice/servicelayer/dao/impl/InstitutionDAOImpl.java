@@ -131,15 +131,16 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Institution> save(final String modelId, final Institution institution) {
         return Result.tryCatch(() -> {
 
+            final Long pk = Long.parseLong(modelId);
             final InstitutionRecord newRecord = new InstitutionRecord(
-                    institution.id,
+                    pk,
                     institution.name,
                     institution.urlSuffix,
                     null,
                     institution.logoImage);
 
             this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
+            return this.institutionRecordMapper.selectByPrimaryKey(pk);
         })
                 .flatMap(InstitutionDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);

@@ -146,8 +146,9 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     public Result<Indicator> save(final String modelId, final Indicator modified) {
         return Result.tryCatch(() -> {
 
+            final Long pk = Long.parseLong(modelId);
             final IndicatorRecord newRecord = new IndicatorRecord(
-                    modified.id,
+                    pk,
                     null,
                     modified.type.name(),
                     modified.name,
@@ -157,7 +158,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
             // update also the thresholds
             this.thresholdRecordMapper.deleteByExample()
-                    .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(modified.id))
+                    .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(pk))
                     .build()
                     .execute();
 
@@ -165,12 +166,12 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .stream()
                     .map(threshold -> new ThresholdRecord(
                             null,
-                            modified.id,
+                            pk,
                             new BigDecimal(threshold.value),
                             threshold.color))
                     .forEach(this.thresholdRecordMapper::insert);
 
-            return this.indicatorRecordMapper.selectByPrimaryKey(modified.id);
+            return this.indicatorRecordMapper.selectByPrimaryKey(pk);
         })
                 .flatMap(this::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);

@@ -30,6 +30,7 @@ public class APIMessage implements Serializable {
         GENERIC("0", HttpStatus.INTERNAL_SERVER_ERROR, "Generic error message"),
         UNAUTHORIZED("1000", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"),
         FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
+        RESOURCE_NOT_FOUND("1002", HttpStatus.NOT_FOUND, "resource not found"),
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
