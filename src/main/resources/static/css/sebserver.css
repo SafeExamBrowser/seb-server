@@ -1,0 +1,681 @@
+* {
+    color: #000000;
+    font: normal 12px Arial, Helvetica, sans-serif;
+    background-image: none;
+    background-color: #FFFFFF;
+    padding: 0; 
+}
+
+*:disabled {
+    color: #CFCFCF;
+}
+
+/* Label default theme */
+Label {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: transparent;
+    background-image: none;
+    background-repeat: repeat;
+    background-position: left top;
+    border: none;
+    border-radius: 0;
+    text-decoration: none;
+    cursor: default;
+    opacity: 1;
+    text-shadow: none;
+}
+
+Label.h1 {
+    font: 25px Arial, Helvetica, sans-serif;
+    height: 28px;
+    padding: 0px 12px 12px 12px;
+    color: #1f407a;
+}
+
+Label.h2 {
+    font: 19px Arial, Helvetica, sans-serif;
+    height: 22px;
+    padding: 0 0 10px 0;
+    color: #1f407a;
+}
+
+Label.h3 {
+    font: bold 14px Arial, Helvetica, sans-serif;
+    height: 20px;
+    padding: 0;
+    color: #1f407a;
+}
+
+Label:hover.imageButton {
+    background-color: #82BE1E;
+    background-gradient-color: #82BE1E;
+    background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
+}
+
+Composite.bordered {
+    border: 2px;
+}
+
+Composite.header {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+Composite.logo {
+    background-color: #1F407A;
+}
+
+Composite.bgLogo {
+    background-color: #1F407A;
+    background-image: url(static/images/ethz_logo_white.png);
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+Composite.bgContent {
+    background-color: #EAECEE;
+    background-image: url(static/images/blueBackground.png);
+    background-repeat: repeat-x;
+}
+
+Composite.content {
+    background-color: #FFFFFF;
+    margin: 0 0 0 0;
+}
+
+Composite.selectionPane {
+    background-color: #D3D9DB;
+}
+
+Composite.bgFooter {
+    background-color: #EAECEE;
+}
+
+Composite.footer {
+    background-color: #1F407A;
+}
+
+Composite.login {
+    background-color: #EAECEE;
+    margin: 20px 0 0 0;
+    padding: 15px 8px 8px 8px;
+    border: 1px solid #bdbdbd;
+    border-radius: 2px;
+}
+
+*.header {
+    font: bold 12px Arial, Helvetica, sans-serif;
+    color: #FFFFFF;
+    background-color: transparent;
+}
+
+*.footer {
+    font: bold 12px Arial, Helvetica, sans-serif;
+    color: #FFFFFF;
+    background-color: transparent;
+}
+
+
+/* Text default */
+Text {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    border: none;
+    border-radius: 0;
+    padding: 3px 10px 3px 10px;
+    color: #4a4a4a;
+    background-repeat: repeat;
+    background-position: left top;
+    background-color: #ffffff;
+    background-image: none;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+Text.error {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    border: none;
+    border-radius: 0;
+    padding: 3px 10px 3px 10px;
+    color: #4a4a4a;
+    background-repeat: repeat;
+    background-position: left top;
+    background-color: #ff0000;
+    background-image: none;
+    text-shadow: none;
+    box-shadow: none;
+    opacity: 0.5;
+}
+
+Text[MULTI] {
+    padding: 5px 10px 5px 10px;
+}
+
+Text[BORDER], Text[MULTI][BORDER] {
+    border: 1px solid #aaaaaa;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
+    border: 1px solid #4f7cb1;
+    box-shadow: none;
+}
+
+Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
+    Text[MULTI][BORDER]:read-only {
+    box-shadow: none;
+}
+
+/* Combo default theme */
+Combo, Combo[BORDER] {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: #ffffff;
+    border: 1px solid #aaaaaa;
+    border-radius: 0 2px 2px 0;
+    background-image: none;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+Combo:focused, Combo[BORDER]:focused {
+    text-shadow: none;
+    box-shadow: none;
+}
+
+Combo:disabled, Combo[BORDER]:disabled {
+    text-shadow: none;
+    box-shadow: none;
+}
+
+Combo-Button {
+    cursor: default;
+    background-color: #ffffff;
+    background-image: gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff));
+    border: none;
+    width: 30px;
+}
+
+Combo-Field {
+  padding: 3px 10px 3px 10px;
+}
+
+
+/* Message titlebar */
+Shell.message {
+  animation: none;
+  border: 1px solid #bdbdbd;
+  background-color: #ffffff;
+  background-image: none;
+  padding: 0px;
+  opacity: 1;
+  box-shadow: none;
+  width: 400px;
+}
+
+Shell-Titlebar.message {
+  background-color: #1f407a;
+  background-gradient-color: #1f407a;
+  color: white;
+  background-image: gradient( linear, left top, left bottom, from( #0069B4 ), to( #0069B4 ) );
+  padding: 2px 5px 2px;
+  margin: 0px;
+  height: 22px;
+  font: 14px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  border: none;
+  border-radius: 1px 1px 0px 0px;
+  text-shadow: none;
+}
+
+Button {
+    font: 12px Arial, Helvetica, sans-serif;
+    padding: 5px 6px 5px 6px;
+}
+
+/* Push Buttons */
+Button[PUSH],
+Button[PUSH]:default {
+    font: bold 12px Arial, Helvetica, sans-serif;
+    background-color: #0069B4;
+    background-gradient-color: #0069B4;
+    background-image: gradient( linear, left top, left bottom, from( #0069B4 ), to( #0069B4 ) );
+    color: #fff;
+    border: none;
+    border-radius: 0px;
+    padding: 6px 15px;
+    text-shadow: none;
+}
+
+Button[PUSH]:pressed {
+    background-color: #444;
+    color: #fff;
+    background-gradient-color: #444;
+    background-image: gradient( linear, left top, left bottom, from( #444 ), to( #444 ) );
+}
+
+Button[PUSH]:hover {
+    background-color: #82BE1E;
+    background-gradient-color: #82BE1E;
+    background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
+    color: #444;
+    cursor: pointer;
+}
+
+Button[PUSH]:disabled {
+    background-color: transparent;
+    border: 1px solid #EAECEE;
+    color: #c0c0c0;
+    background-repeat: no-repeat;
+    background-position: right;
+}
+
+Button-FocusIndicator[PUSH] {
+    background-color: transparent;
+}
+
+/* Push Buttons header */
+Button[PUSH].header,
+Button[PUSH]:default.header {
+    font: bold 12px Arial, Helvetica, sans-serif;
+    background-color: #595959;
+    background-gradient-color: #595959;
+    background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );
+    color: #fff;
+    border: none;
+    border-radius: 0px;
+    padding: 6px 15px;
+    text-shadow: none;
+}
+
+Button[PUSH]:pressed.header {
+    background-color: #444;
+    color: #fff;
+    background-gradient-color: #444;
+    background-image: gradient( linear, left top, left bottom, from( #444 ), to( #444 ) );
+}
+
+Button[PUSH]:hover.header {
+    background-color: #82BE1E;
+    background-gradient-color: #82BE1E;
+    background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
+    color: #444;
+    cursor: pointer;
+}
+
+
+/* Sash default */
+Sash {
+    background-image: none;
+    background-color: transparent;
+    background-color: #EAECEE;
+}
+
+Sash:hover {
+    background-color: #444444;
+}
+
+
+/*Standard Einstellungen fuer Trees*/
+Tree {
+    font: bold 14px Arial, Helvetica, sans-serif;
+    background-color: transparent;
+    border: none;
+    color: #1f407a;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+}
+
+Tree[BORDER] {
+    border: 1px solid #eceeef;
+}
+
+TreeItem {
+    font: bold 14px Arial, Helvetica, sans-serif;
+    color: #1f407a;
+    background-color: transparent;
+    text-decoration: none;
+    text-shadow: none;
+    background-image: none;
+    margin: 20px 20px 20px 20px;
+    padding: 20px 20px 20px 20px;
+}
+
+TreeItem:linesvisible:even {
+    background-color: #f3f3f4;
+}
+
+Tree-RowOverlay {
+    background-color: transparent;
+    color: inherit;
+    background-image: none;
+}
+
+Tree-RowOverlay:hover {
+    background-color: #82be1e;
+    color: #1F407A;
+}
+
+Tree-RowOverlay:selected {
+    background-color: #D3D9DB;
+    color: #1F407A;
+}
+
+Tree-RowOverlay:selected:unfocused {
+    background-color: #D3D9DB;
+    color: #1f407a;
+}
+
+Tree-RowOverlay:selected:hover {
+    background-color: #82be1e;
+    color: #000000;
+}
+
+Tree.actions {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: transparent;
+    border: none;
+    margin: 0 0 0 0;
+}
+
+Tree[BORDER].actions {
+    border: 1px solid #eceeef;
+}
+
+TreeItem.actions {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: transparent;
+    text-decoration: none;
+    text-shadow: none;
+    background-image: none;
+    margin: 0 0 0 0;
+}
+
+Tree-RowOverlay:hover.actions {
+    background-color: #82be1e;
+    color: #4a4a4a;
+}
+
+Tree-RowOverlay:selected.actions {
+    background-color: #595959;
+    color: #4a4a4a;
+}
+
+/* TabFolder default theme */
+
+TabFolder {
+  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  color: #4a4a4a;
+  border: none;
+}
+
+TabFolder-ContentContainer {
+  border: none;
+  border-top: 1px solid #bdbdbd;
+}
+
+TabItem {
+  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  color: #4a4a4a;
+  background-color: #FFFFFF;
+  text-decoration: none;
+  text-shadow: none;
+  background-image: none;
+  margin: 1px 0px 0px -1px;
+  border: 1px solid #bdbdbd;
+  border-bottom: none;
+  border-left: none;
+}
+
+TabItem:selected {
+  background-color: #D3D9DB;
+  background-gradient-color: #D3D9DB;
+  background-image: gradient( linear, left top, left bottom, from( #D3D9DB ), to( #D3D9DB ) );
+  color: #4a4a4a;
+  margin: 0px 0px 0px 0px;
+  border: 1px solid #bdbdbd;
+  border-bottom: none;
+  border-left: none;
+}
+
+TabItem:hover {
+    background-color: #82be1e;
+    background-gradient-color: #82be1e;
+    background-image: gradient( linear, left top, left bottom, from( #82be1e ), to( #82be1e ) );
+    color: #4a4a4a;
+    margin: 1px 0px 0px -1px;
+    border-left: none;
+}
+
+TabItem:selected:hover {
+    background-color: #82be1e;
+    background-gradient-color: #82be1e;
+    background-image: gradient( linear, left top, left bottom, from( #82be1e ), to( #82be1e ) );
+    color: #4a4a4a;
+    margin: 0px 0px 0px 0px;
+    border-left: none;
+}
+
+TabItem:first {
+  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  color: #4a4a4a;
+  background-color: #FFFFFF;
+  text-decoration: none;
+  text-shadow: none;
+  background-image: none;
+  margin: 1px 0px 0px -1px;
+  border: 1px solid #bdbdbd;
+  border-bottom: none;
+}
+
+TabItem:first:hover {
+    background-color: #82be1e;
+    background-gradient-color: #82be1e;
+    background-image: gradient( linear, left top, left bottom, from( #82be1e ), to( #82be1e ) );
+    color: #4a4a4a;
+    margin: 1px 0px 0px -1px;
+    border-left: none;
+}
+
+TabItem:selected:first {
+  background-color: #D3D9DB;
+  color: #4a4a4a;
+  margin: 0px 0px 0px 0px;
+  border-left: 1px solid #bdbdbd;
+}
+
+TabItem:selected:hover:first {
+  background-color: #82be1e;
+  background-gradient-color: #82be1e;
+  background-image: gradient( linear, left top, left bottom, from( #82be1e ), to( #82be1e ) );
+  color: #4a4a4a;
+  margin: 0px 0px 0px 0px;
+  border-left: 1px solid #bdbdbd;
+}
+
+
+/* ScrollBar default theme */
+ScrollBar {
+    background-color: #c0c0c0;
+    background-image: none;
+    border: none;
+    border-radius: 0;
+    width: 10px;
+}
+
+ScrollBar-Thumb {
+    background-color: #c0c0c0;
+    border: 1px solid #bdbdbd;
+    border-radius: 15px;
+    /*background-image: url( themes/images/scrollbar/scrollbar-background.png );*/
+    min-height: 20px;
+}
+
+ScrollBar-UpButton, ScrollBar-DownButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    cursor: default;
+}
+/*
+ScrollBar-UpButton[HORIZONTAL] {
+    background-image: url( themes/images/scrollbar/right.png );
+}
+
+ScrollBar-DownButton[HORIZONTAL] {
+    background-image: url( themes/images/scrollbar/left.png );
+}
+
+ScrollBar-UpButton[VERTICAL] {
+    background-image: url( themes/images/scrollbar/down.png )
+}
+
+ScrollBar-DownButton[VERTICAL] {
+    background-image: url( themes/images/scrollbar/up.png );
+}
+*/
+
+Widget-ToolTip {
+    padding: 1px 3px 2px 3px;
+    background-color: #82be1e;
+    border: 1px solid #3C5A0F;
+    border-radius: 2px 2px 2px 2px;
+    color: #4a4a4a;
+    opacity: 1;
+    animation: fadeIn 200ms linear, fadeOut 600ms ease-out;
+    box-shadow: 3px 4px 2px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+Widget-ToolTip-Pointer {
+    background-image: none;
+}
+
+
+
+
+
+
+
+
+
+
+/* Table default theme */
+Table {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    background-color: #ffffff;
+    background-image: none;
+    color: #4a4a4a;
+    border: none;
+}
+
+Table[BORDER] {
+    border: 1px solid #bdbdbd;
+}
+
+TableColumn {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    background-color: #595959;
+    background-gradient-color: #595959;
+    background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );
+    padding: 4px 3px 4px 3px;
+    
+    color: #FFFFFF;
+    border-bottom: 1px solid #bdbdbd;
+    text-shadow: none;
+}
+
+TableColumn:hover {
+    background-color: #595959;
+    background-gradient-color: #595959;
+    background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );
+}
+
+TableItem, TableItem:linesvisible:even:rowtemplate {
+    background-color: transparent;
+    color: inherit;
+    text-decoration: none;
+    text-shadow: none;
+    background-image: none;
+}
+
+TableItem:linesvisible:even {
+    background-color: #ffffff;
+    color: inherit;
+}
+
+Table-RowOverlay {
+    background-color: transparent;
+    color: inherit;
+    background-image: none;
+}
+
+Table-RowOverlay:hover {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5), to(#b5b5b5));
+}
+
+Table-RowOverlay:selected {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+}
+
+Table-RowOverlay:selected:unfocused {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+}
+
+Table-RowOverlay:linesvisible:even:hover {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#d5d5d5));
+}
+
+Table-RowOverlay:linesvisible:even:selected {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+}
+
+Table-RowOverlay:linesvisible:even:selected:unfocused {
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    color: #4a4a4a;
+}
+
+TableColumn-SortIndicator {
+    background-image: none;
+}
+/*
+TableColumn-SortIndicator:up {
+    background-image: url( themes/images/column/sort-indicator-up.png );
+}
+
+TableColumn-SortIndicator:down {
+    background-image: url( themes/images/column/sort-indicator-down.png );
+}
+*/
+
+Table-Cell {
+    spacing: 3px;
+    padding: 5px 3px 5px 3px;
+}
+
+Table-GridLine, Table-GridLine:vertical:rowtemplate {
+    color: transparent;
+}
+
+Table-GridLine:vertical, Table-GridLine:header, Table-GridLine:horizontal:rowtemplate {
+    color: transparent;
+}
+
+
+
+
+
+

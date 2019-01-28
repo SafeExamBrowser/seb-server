@@ -21,6 +21,6 @@ import org.springframework.context.annotation.Profile;
  * but for all vertical profiles like dev, prod and test */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Profile({ "dev-gui", "prod-gui", "test" })
+@Profile({ "dev-gui", "prod-gui" })
 public @interface GuiProfile {
 }

@@ -14,10 +14,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class WebServiceUserDetails implements UserDetailsService {
 
     private final UserDAO userDAO;

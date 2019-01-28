@@ -41,6 +41,7 @@ public class WebClientDetailsService implements ClientDetailsService {
     @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
 
+    // TODO inject a collection of BaseClientDetails here to allow multiple admin client configurations
     public WebClientDetailsService(final AdminAPIClientDetails adminClientDetails) {
         this.adminClientDetails = adminClientDetails;
     }

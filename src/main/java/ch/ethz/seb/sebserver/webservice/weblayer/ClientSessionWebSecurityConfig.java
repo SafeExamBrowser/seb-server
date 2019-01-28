@@ -64,7 +64,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebResourceServerConfigur
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
-@Order(4)
+@Order(5)
 public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(ClientSessionWebSecurityConfig.class);
@@ -86,6 +86,8 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
     private String adminAPIEndpoint;
     @Value("${sebserver.webservice.api.exam.endpoint}")
     private String examAPIEndpoint;
+    @Value("${sebserver.webservice.api.redirect.unauthorized}")
+    private String unauthorizedRedirect;
 
     @Bean
     public AccessTokenConverter accessTokenConverter() {
@@ -116,13 +118,28 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
                 .passwordEncoder(this.userPasswordEncoder);
     }
 
+    @Override
+    public void configure(final HttpSecurity http) throws Exception {
+        http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .formLogin().disable()
+                .httpBasic().disable()
+                .logout().disable()
+                .headers().frameOptions().disable()
+                .and()
+                .csrf().disable();
+    }
+
     @Bean
     protected ResourceServerConfiguration sebServerAdminAPIResources() throws Exception {
         return new AdminAPIResourceServerConfiguration(
                 this.tokenStore,
                 this.webServiceClientDetails,
                 authenticationManagerBean(),
-                this.adminAPIEndpoint);
+                this.adminAPIEndpoint,
+                this.unauthorizedRedirect);
     }
 
     @Bean
@@ -134,28 +151,6 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
                 this.examAPIEndpoint);
     }
 
-    @Override
-    public void configure(final HttpSecurity http) throws Exception {
-        http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .antMatcher("/**")
-                .authorizeRequests()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(new LoginRedirectOnUnauthorized())
-                .and()
-                .formLogin().disable()
-                .httpBasic().disable()
-                .logout().disable()
-                .headers().frameOptions().disable()
-                .and()
-                .csrf().disable();
-    }
-
     // NOTE: We need two different class types here to support Spring configuration for different
     //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
     private static final class AdminAPIResourceServerConfiguration extends WebResourceServerConfiguration {
@@ -164,17 +159,18 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
                 final TokenStore tokenStore,
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
-                final String apiEndpoint) {
+                final String apiEndpoint,
+                final String redirect) {
 
             super(
                     tokenStore,
                     webServiceClientDetails,
                     authenticationManager,
-                    new LoginRedirectOnUnauthorized(),
+                    new LoginRedirectOnUnauthorized(redirect),
                     ADMIN_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
-                    1);
+                    2);
         }
     }
 
@@ -202,11 +198,17 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
                     EXAM_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
-                    2);
+                    3);
         }
     }
 
     private static class LoginRedirectOnUnauthorized implements AuthenticationEntryPoint {
+
+        private final String redirect;
+
+        protected LoginRedirectOnUnauthorized(final String redirect) {
+            this.redirect = redirect;
+        }
 
         @Override
         public void commence(
@@ -216,8 +218,8 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
 
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
                     request.getRequestURI());
-            // TODO define login redirect
-            response.sendRedirect("/gui/");
+
+            response.sendRedirect(this.redirect);
         }
     }
 
