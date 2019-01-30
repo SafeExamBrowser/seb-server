@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -27,7 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_QUIZ_IMPORT)
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + SEBServerRestEndpoints.ENDPOINT_QUIZ_IMPORT)
 public class QuizImportController {
 
     private final int defaultPageSize;

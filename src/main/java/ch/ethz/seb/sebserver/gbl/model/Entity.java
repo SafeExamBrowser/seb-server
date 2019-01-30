@@ -22,8 +22,8 @@ public interface Entity extends ModelIdAware {
     @JsonIgnore
     String getName();
 
-    public static EntityKeyAndName toName(final Entity entity) {
-        return new EntityKeyAndName(
+    public static EntityName toName(final Entity entity) {
+        return new EntityName(
                 entity.entityType(),
                 entity.getModelId(),
                 entity.getName());

@@ -41,7 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.SEBServer;
-import ch.ethz.seb.sebserver.gbl.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(

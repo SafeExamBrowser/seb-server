@@ -30,8 +30,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -58,7 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + RestAPI.ENDPOINT_EXAM_ADMINISTRATION)
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + SEBServerRestEndpoints.ENDPOINT_EXAM_ADMINISTRATION)
 public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
 
     private final ExamDAO examDAO;

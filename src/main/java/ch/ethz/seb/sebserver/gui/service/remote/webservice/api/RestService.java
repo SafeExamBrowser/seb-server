@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -15,10 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import ch.ethz.seb.sebserver.gbl.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIBuilderSupplier;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
 @Lazy
 @Service
@@ -28,17 +32,23 @@ public class RestService {
     private static final Logger log = LoggerFactory.getLogger(RestService.class);
 
     private final AuthorizationContextHolder authorizationContextHolder;
-    private final WebserviceURIBuilderSupplier webserviceURIBuilderSupplier;
-    private final JSONMapper jsonMapper;
+    private final WebserviceURIService webserviceURIBuilderSupplier;
+    private final Map<String, RestCall<?>> calls;
 
     public RestService(
             final AuthorizationContextHolder authorizationContextHolder,
-            final WebserviceURIBuilderSupplier webserviceURIBuilderSupplier,
-            final JSONMapper jsonMapper) {
+            final WebserviceURIService webserviceURIBuilderSupplier,
+            final JSONMapper jsonMapper,
+            final Collection<RestCall<?>> calls) {
 
         this.authorizationContextHolder = authorizationContextHolder;
         this.webserviceURIBuilderSupplier = webserviceURIBuilderSupplier;
-        this.jsonMapper = jsonMapper;
+
+        this.calls = calls
+                .stream()
+                .collect(Collectors.toMap(
+                        call -> call.getClass().getName(),
+                        call -> call.init(this, jsonMapper)));
     }
 
     public RestTemplate getWebserviceAPIRestTemplate() {
@@ -51,15 +61,19 @@ public class RestService {
         return this.webserviceURIBuilderSupplier.getBuilder();
     }
 
+    @SuppressWarnings("unchecked")
     public <T> RestCall<T> getRestCall(final Class<? extends RestCall<T>> type) {
-        try {
-            final RestCall<T> restCall = type.getDeclaredConstructor().newInstance();
-            restCall.init(this, this.jsonMapper);
-            return restCall;
-        } catch (final Exception e) {
-            log.error("Error while trying to create RestCall of type: {}", type, e);
-            return new BuildErrorCall<>(e);
+        return (RestCall<T>) this.calls.get(type.getName());
+    }
+
+    public <T> RestCall<T>.RestCallBuilder getBuilder(final Class<? extends RestCall<T>> type) {
+        @SuppressWarnings("unchecked")
+        final RestCall<T> restCall = (RestCall<T>) this.calls.get(type.getName());
+        if (restCall == null) {
+            return null;
         }
+
+        return restCall.newBuilder();
     }
 
 }

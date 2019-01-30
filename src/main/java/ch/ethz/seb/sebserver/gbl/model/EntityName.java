@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
+public class EntityName implements ModelIdAware, ModelNameAware {
 
     @JsonProperty(value = "entityType", required = true)
     public final EntityType entityType;
@@ -24,7 +24,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
     public final String name;
 
     @JsonCreator
-    public EntityKeyAndName(
+    public EntityName(
             @JsonProperty(value = "entityType", required = true) final EntityType entityType,
             @JsonProperty(value = Domain.ATTR_ID, required = true) final String id,
             @JsonProperty(value = "name", required = true) final String name) {
@@ -34,7 +34,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
         this.name = name;
     }
 
-    public EntityKeyAndName(final EntityKey entityKey, final String name) {
+    public EntityName(final EntityKey entityKey, final String name) {
 
         this.entityType = entityKey.entityType;
         this.modelId = entityKey.modelId;
@@ -74,7 +74,7 @@ public class EntityKeyAndName implements ModelIdAware, ModelNameAware {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final EntityKeyAndName other = (EntityKeyAndName) obj;
+        final EntityName other = (EntityName) obj;
         if (this.entityType != other.entityType)
             return false;
         if (this.modelId == null) {

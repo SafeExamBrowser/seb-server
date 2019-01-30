@@ -103,7 +103,7 @@ public final class Utils {
 
     public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {
         return dateTimeStringToTimestamp(startTime)
-                .getOrElse(defaultValue);
+                .getOr(defaultValue);
     }
 
     public static <M extends Map<K, V>, K, V> M mapPut(final M map, final K key, final V value) {

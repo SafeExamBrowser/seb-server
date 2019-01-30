@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl;
+package ch.ethz.seb.sebserver.gbl.api;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

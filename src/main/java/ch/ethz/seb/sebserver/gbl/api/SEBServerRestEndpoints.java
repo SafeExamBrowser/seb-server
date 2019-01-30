@@ -6,9 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.weblayer.api;
+package ch.ethz.seb.sebserver.gbl.api;
 
-public class RestAPI {
+public class SEBServerRestEndpoints {
 
     public static final String ENDPOINT_INSTITUTION = "/institution";
 

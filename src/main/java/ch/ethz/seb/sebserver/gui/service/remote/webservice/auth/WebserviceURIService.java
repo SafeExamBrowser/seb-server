@@ -9,25 +9,30 @@
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
-@Lazy
 @Component
 @GuiProfile
-public class WebserviceURIBuilderSupplier {
+public class WebserviceURIService {
 
+    private static final String OAUTH_TOKEN_URI_PATH = "oauth/token"; // TODO to config properties?
+    private static final String OAUTH_REVOKE_TOKEN_URI_PATH = "/oauth/revoke-token"; // TODO to config properties?
+    private static final String CURRENT_USER_URI_PATH = SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/me";
+
+    private final String webserviceServerAddress;
     private final UriComponentsBuilder webserviceURIBuilder;
 
-    public WebserviceURIBuilderSupplier(
+    public WebserviceURIService(
             @Value("${sebserver.gui.webservice.protocol}") final String webserviceProtocol,
             @Value("${sebserver.gui.webservice.address}") final String webserviceServerAdress,
-            @Value("${sebserver.gui.webservice.portol}") final String webserviceServerPort,
+            @Value("${sebserver.gui.webservice.port}") final String webserviceServerPort,
             @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath) {
 
+        this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAdress + ":" + webserviceServerPort;
         this.webserviceURIBuilder = UriComponentsBuilder
                 .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAdress)
                 .port(webserviceServerPort)
@@ -36,5 +41,23 @@ public class WebserviceURIBuilderSupplier {
 
     public UriComponentsBuilder getBuilder() {
         return this.webserviceURIBuilder.cloneBuilder();
+    }
+
+    public String getOAuthTokenURI() {
+        return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
+                .path(OAUTH_TOKEN_URI_PATH)
+                .toUriString();
+    }
+
+    public String getOAuthRevokeTokenURI() {
+        return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
+                .path(OAUTH_REVOKE_TOKEN_URI_PATH)
+                .toUriString();
+    }
+
+    public String getCurrentUserRequestURI() {
+        return getBuilder()
+                .path(CURRENT_USER_URI_PATH)
+                .toUriString();
     }
 }

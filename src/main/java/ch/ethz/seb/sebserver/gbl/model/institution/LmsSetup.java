@@ -15,12 +15,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
-import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
@@ -198,8 +198,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 + this.sebAuthSecret + ", active=" + this.active + "]";
     }
 
-    public static EntityKeyAndName toName(final LmsSetup lmsSetup) {
-        return new EntityKeyAndName(
+    public static EntityName toName(final LmsSetup lmsSetup) {
+        return new EntityName(
                 EntityType.LMS_SETUP,
                 String.valueOf(lmsSetup.id),
                 lmsSetup.name);

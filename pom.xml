@@ -224,7 +224,13 @@
       <artifactId>spring-security-jwt</artifactId>
       <version>1.0.9.RELEASE</version>
     </dependency>
-    
+
+    <!-- Apache HTTP -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
+
     <!-- Eclipse RAP / RWT -->
     <dependency>
       <groupId>org.eclipse.rap</groupId>

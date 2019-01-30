@@ -69,21 +69,56 @@ public final class Result<T> {
         return this.value;
     }
 
-    /** @return the error if some was reporter or null if there was no error */
-    public Throwable getError() {
-        return this.error;
+    /** Use this to get the resulting value. In an error case, a given error handling
+     * function is used that receives the error and returns a resulting value instead
+     * (or throw some error instead)
+     *
+     * @param errorHandler the error handling function
+     * @return */
+    public T get(final Function<Throwable, T> errorHandler) {
+        return this.error != null ? errorHandler.apply(this.error) : this.value;
     }
 
-    public boolean hasError() {
-        return this.error != null;
+    public T get(final Consumer<Throwable> errorHandler, final Supplier<T> supplier) {
+        if (this.error != null) {
+            errorHandler.accept(this.error);
+            return supplier.get();
+        } else {
+            return this.value;
+        }
     }
 
     /** Use this to get the resulting value or (if null) to get a given other value
      *
      * @param other the other value to get if the computed value is null
      * @return return either the computed value if existing or a given other value */
-    public T getOrElse(final T other) {
+    public T getOr(final T other) {
         return this.value != null ? this.value : other;
+    }
+
+    /** Use this to get the resulting value if existing or throw an Runtime exception with
+     * given message otherwise.
+     *
+     * @param message the message for the RuntimeException in error case
+     * @return the resulting value */
+    public T getOrThrowRuntime(final String message) {
+        if (this.error != null) {
+            throw new RuntimeException(message, this.error);
+        }
+
+        return this.value;
+    }
+
+    public T getOrThrow() {
+        if (this.error != null) {
+            if (this.error instanceof RuntimeException) {
+                throw (RuntimeException) this.error;
+            } else {
+                throw new RuntimeException("RuntimeExceptionWrapper cause: ", this.error);
+            }
+        }
+
+        return this.value;
     }
 
     /** Use this to get the resulting value or (if null) to get a given other value
@@ -92,6 +127,15 @@ public final class Result<T> {
      * @return return either the computed value if existing or a given other value */
     public T getOrElse(final Supplier<T> supplier) {
         return this.value != null ? this.value : supplier.get();
+    }
+
+    /** @return the error if some was reporter or null if there was no error */
+    public Throwable getError() {
+        return this.error;
+    }
+
+    public boolean hasError() {
+        return this.error != null;
     }
 
     /** If a value is present, performs the given action with the value,
@@ -155,46 +199,11 @@ public final class Result<T> {
         }
     }
 
-    /** Use this to get the resulting value. In an error case, a given error handling
-     * function is used that receives the error and returns a resulting value instead
-     * (or throw some error instead)
-     *
-     * @param errorHandler the error handling function
-     * @return */
-    public T getOrHandleError(final Function<Throwable, T> errorHandler) {
-        return this.error != null ? errorHandler.apply(this.error) : this.value;
-    }
-
     public Result<T> onErrorDo(final Consumer<Throwable> block) {
         if (this.error != null) {
             block.accept(this.error);
         }
         return this;
-    }
-
-    /** Use this to get the resulting value if existing or throw an Runtime exception with
-     * given message otherwise.
-     *
-     * @param message the message for the RuntimeException in error case
-     * @return the resulting value */
-    public T getOrThrowRuntime(final String message) {
-        if (this.error != null) {
-            throw new RuntimeException(message, this.error);
-        }
-
-        return this.value;
-    }
-
-    public T getOrThrow() {
-        if (this.error != null) {
-            if (this.error instanceof RuntimeException) {
-                throw (RuntimeException) this.error;
-            } else {
-                throw new RuntimeException("RuntimeExceptionWrapper cause: ", this.error);
-            }
-        }
-
-        return this.value;
     }
 
     /** Use this to create a Result of a given resulting value.

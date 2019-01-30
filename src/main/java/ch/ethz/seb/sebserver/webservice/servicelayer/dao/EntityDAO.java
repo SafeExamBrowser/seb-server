@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityKeyAndName;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -66,12 +66,12 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
 
     @Transactional(readOnly = true)
-    default Result<Collection<EntityKeyAndName>> loadEntityNames(final Collection<EntityKey> keys) {
+    default Result<Collection<EntityName>> loadEntityNames(final Collection<EntityKey> keys) {
         return Result.tryCatch(() -> {
             return loadEntities(keys)
                     .getOrThrow()
                     .stream()
-                    .map(entity -> new EntityKeyAndName(
+                    .map(entity -> new EntityName(
                             entity.entityType(),
                             entity.getModelId(),
                             entity.getName()))

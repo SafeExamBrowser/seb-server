@@ -43,19 +43,19 @@ public interface BulkActionSupportDAO<T extends Entity> {
                 return (this instanceof ActivatableEntityDAO)
                         ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, true)
                                 .map(BulkActionSupportDAO::transformResult)
-                                .getOrHandleError(error -> handleBulkActionError(error, all))
+                                .get(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
             case DEACTIVATE:
                 return (this instanceof ActivatableEntityDAO)
                         ? ((ActivatableEntityDAO<?, ?>) this).setActive(all, false)
                                 .map(BulkActionSupportDAO::transformResult)
-                                .getOrHandleError(error -> handleBulkActionError(error, all))
+                                .get(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
             case HARD_DELETE:
                 return (this instanceof EntityDAO)
                         ? ((EntityDAO<?, ?>) this).delete(all)
                                 .map(BulkActionSupportDAO::transformResult)
-                                .getOrHandleError(error -> handleBulkActionError(error, all))
+                                .get(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
         }
 

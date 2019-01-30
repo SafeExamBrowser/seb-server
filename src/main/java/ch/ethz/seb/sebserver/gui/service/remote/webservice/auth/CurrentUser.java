@@ -34,7 +34,9 @@ public class CurrentUser {
 
     public UserInfo get() {
         if (isAvailable()) {
-            return this.authContext.getLoggedInUser();
+            return this.authContext
+                    .getLoggedInUser()
+                    .getOrThrow();
         }
 
         log.warn("Current user requested but no user is currently logged in");

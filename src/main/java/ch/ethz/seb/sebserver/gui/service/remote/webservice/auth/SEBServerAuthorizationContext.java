@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface SEBServerAuthorizationContext {
 
@@ -23,7 +24,7 @@ public interface SEBServerAuthorizationContext {
 
     boolean logout();
 
-    UserInfo getLoggedInUser();
+    Result<UserInfo> getLoggedInUser();
 
     public boolean hasRole(UserRole role);
 

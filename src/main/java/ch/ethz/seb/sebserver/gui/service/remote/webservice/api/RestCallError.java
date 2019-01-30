@@ -11,9 +11,10 @@ package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 import java.util.ArrayList;
 import java.util.List;
 
-import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 
-public class RestCallError extends RuntimeException {
+public class RestCallError extends RuntimeException implements APIMessageError {
 
     private static final long serialVersionUID = -5201349295667957490L;
 
@@ -27,6 +28,7 @@ public class RestCallError extends RuntimeException {
         super(message);
     }
 
+    @Override
     public List<APIMessage> getErrorMessages() {
         return this.errors;
     }

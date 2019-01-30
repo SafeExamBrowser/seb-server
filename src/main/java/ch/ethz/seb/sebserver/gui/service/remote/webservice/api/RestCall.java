@@ -28,8 +28,8 @@ import org.springframework.web.client.RestClientResponseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
@@ -58,9 +58,10 @@ public abstract class RestCall<T> {
 
     }
 
-    void init(final RestService restService, final JSONMapper jsonMapper) {
+    RestCall<T> init(final RestService restService, final JSONMapper jsonMapper) {
         this.restService = restService;
         this.jsonMapper = jsonMapper;
+        return this;
     }
 
     protected Result<T> exchange(final RestCallBuilder builder) {
@@ -107,6 +108,10 @@ public abstract class RestCall<T> {
         }
     }
 
+    public RestCallBuilder newBuilder() {
+        return new RestCallBuilder();
+    }
+
     public final class RestCallBuilder {
 
         private final HttpHeaders httpHeaders = new HttpHeaders();
@@ -117,7 +122,7 @@ public abstract class RestCall<T> {
         RestCallBuilder() {
             this.httpHeaders.set(
                     HttpHeaders.CONTENT_TYPE,
-                    RestCall.this.contentType.getType());
+                    RestCall.this.contentType.toString());
         }
 
         public RestCallBuilder withHeaders(final HttpHeaders headers) {
@@ -165,7 +170,7 @@ public abstract class RestCall<T> {
             return this;
         }
 
-        public final Result<T> exchange() {
+        public final Result<T> call() {
             return RestCall.this.exchange(this);
         }
 

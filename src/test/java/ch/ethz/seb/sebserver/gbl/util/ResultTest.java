@@ -75,8 +75,8 @@ public class ResultTest {
         final Result<String> resultOf = Result.of("ONE");
         final Result<String> resultOfError = Result.ofError(new RuntimeException("Some Error"));
 
-        assertEquals("ONE", resultOf.getOrElse("TWO"));
-        assertEquals("TWO", resultOfError.getOrElse("TWO"));
+        assertEquals("ONE", resultOf.getOr("TWO"));
+        assertEquals("TWO", resultOfError.getOr("TWO"));
 
         assertEquals("ONE", resultOf.getOrElse(() -> "TWO"));
         assertEquals("TWO", resultOfError.getOrElse(() -> "TWO"));
@@ -87,8 +87,8 @@ public class ResultTest {
         final Result<String> resultOf = Result.of("ONE");
         final Result<String> resultOfError = Result.ofError(new RuntimeException("Some Error"));
 
-        assertEquals("ONE", resultOf.getOrHandleError(t -> t.getMessage()));
-        assertEquals("Some Error", resultOfError.getOrHandleError(t -> t.getMessage()));
+        assertEquals("ONE", resultOf.get(t -> t.getMessage()));
+        assertEquals("Some Error", resultOfError.get(t -> t.getMessage()));
 
         assertEquals("ONE", resultOf.getOrThrowRuntime("Should not be thrown"));
         try {

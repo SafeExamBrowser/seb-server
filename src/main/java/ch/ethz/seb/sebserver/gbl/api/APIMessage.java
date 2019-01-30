@@ -6,9 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model;
+package ch.ethz.seb.sebserver.gbl.api;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -72,12 +74,14 @@ public class APIMessage implements Serializable {
             return new APIMessage(this.messageCode, this.systemMessage, error.getMessage());
         }
 
-        public ResponseEntity<APIMessage> createErrorResponse() {
-            return new ResponseEntity<>(of(), this.httpStatus);
+        public ResponseEntity<List<APIMessage>> createErrorResponse() {
+            final APIMessage message = of();
+            return new ResponseEntity<>(Arrays.asList(message), this.httpStatus);
         }
 
         public ResponseEntity<Object> createErrorResponse(final String details, final String... attributes) {
-            return new ResponseEntity<>(of(details, attributes), this.httpStatus);
+            final APIMessage message = of(details, attributes);
+            return new ResponseEntity<>(Arrays.asList(message), this.httpStatus);
         }
     }
 
@@ -132,6 +136,24 @@ public class APIMessage implements Serializable {
     public static final APIMessage fieldValidationError(final FieldError error) {
         final String[] args = StringUtils.split(error.getDefaultMessage(), ":");
         return ErrorMessage.FIELD_VALIDATION.of(error.toString(), args);
+    }
+
+    public static String toHTML(final Collection<APIMessage> messages) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("<b>Messages:</b><br/><br/>");
+        messages.stream().forEach(message -> {
+            builder
+                    .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
+                    .append(message.messageCode)
+                    .append("<br/>")
+                    .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
+                    .append(message.systemMessage)
+                    .append("<br/>")
+                    .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
+                    .append(StringUtils.abbreviate(message.details, 100))
+                    .append("<br/><br/>");
+        });
+        return builder.toString();
     }
 
     public static class APIMessageException extends RuntimeException {

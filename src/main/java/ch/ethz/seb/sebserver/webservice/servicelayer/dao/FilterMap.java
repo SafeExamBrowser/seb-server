@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import org.joda.time.DateTime;
 import org.springframework.util.MultiValueMap;
 
-import ch.ethz.seb.sebserver.gbl.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;

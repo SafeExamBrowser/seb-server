@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -26,8 +27,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import ch.ethz.seb.sebserver.gbl.model.APIMessage;
-import ch.ethz.seb.sebserver.gbl.model.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
@@ -47,7 +48,8 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final WebRequest request) {
 
         log.error("Unexpected generic error catched at the API endpoint: ", ex);
-        return new ResponseEntity<>(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()), status);
+        final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
+        return new ResponseEntity<>(errors, status);
     }
 
     @Override

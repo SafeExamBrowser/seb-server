@@ -19,6 +19,7 @@ import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -90,6 +91,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                                     final HttpServletResponse response,
                                     final AuthenticationException authException) throws IOException, ServletException {
 
+                                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                                 response.sendRedirect(WebSecurityConfig.this.unauthorizedRedirect);
                             }
                         })
@@ -104,6 +106,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
     @RequestMapping("/error")
     public void handleError(final HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
         response.sendRedirect(this.unauthorizedRedirect);
     }
 

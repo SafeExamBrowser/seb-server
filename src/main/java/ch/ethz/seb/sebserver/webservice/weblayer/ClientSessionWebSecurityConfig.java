@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -219,6 +220,7 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
                     request.getRequestURI());
 
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.sendRedirect(this.redirect);
         }
     }

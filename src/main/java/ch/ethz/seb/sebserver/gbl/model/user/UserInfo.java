@@ -156,6 +156,13 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         return this.roles;
     }
 
+    public boolean hasRole(final UserRole userRole) {
+        if (userRole == null) {
+            return false;
+        }
+        return this.roles.contains(userRole.name());
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

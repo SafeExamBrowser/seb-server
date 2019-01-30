@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -41,6 +43,7 @@ import org.springframework.web.client.RestTemplate;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @Lazy
 @Component
@@ -50,23 +53,23 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     private static final Logger log = LoggerFactory.getLogger(OAuth2AuthorizationContextHolder.class);
 
     private static final String CONTEXT_HOLDER_ATTRIBUTE = "CONTEXT_HOLDER_ATTRIBUTE";
-    private static final String OAUTH_TOKEN_URI_PATH = "oauth/token"; // TODO to config properties?
-    private static final String OAUTH_REVOKE_TOKEN_URI_PATH = "/oauth/revoke-token"; // TODO to config properties?
-    private static final String CURRENT_USER_URI_PATH = "/user/me"; // TODO to config properties?
 
     private final String guiClientId;
     private final String guiClientSecret;
-    private final WebserviceURIBuilderSupplier webserviceURIBuilderSupplier;
+    private final WebserviceURIService webserviceURIService;
+    private final ClientHttpRequestFactory clientHttpRequestFactory;
 
     @Autowired
     public OAuth2AuthorizationContextHolder(
             @Value("${sebserver.gui.webservice.clientId}") final String guiClientId,
             @Value("${sebserver.gui.webservice.clientSecret}") final String guiClientSecret,
-            final WebserviceURIBuilderSupplier webserviceURIBuilderSupplier) {
+            final WebserviceURIService webserviceURIService,
+            final ClientHttpRequestFactory clientHttpRequestFactory) {
 
         this.guiClientId = guiClientId;
         this.guiClientSecret = guiClientSecret;
-        this.webserviceURIBuilderSupplier = webserviceURIBuilderSupplier;
+        this.webserviceURIService = webserviceURIService;
+        this.clientHttpRequestFactory = clientHttpRequestFactory;
     }
 
     @Override
@@ -85,7 +88,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             context = new OAuth2AuthorizationContext(
                     this.guiClientId,
                     this.guiClientSecret,
-                    this.webserviceURIBuilderSupplier);
+                    this.webserviceURIService,
+                    this.clientHttpRequestFactory);
             session.setAttribute(CONTEXT_HOLDER_ATTRIBUTE, context);
         }
 
@@ -132,7 +136,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         private static final String GRANT_TYPE = "password";
         private static final List<String> SCOPES = Collections.unmodifiableList(
-                Arrays.asList("web-service-api-read", "web-service-api-write"));
+                Arrays.asList("read", "write"));
 
         private boolean valid = true;
 
@@ -141,34 +145,26 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         private final String revokeTokenURI;
         private final String currentUserURI;
 
-        private UserInfo loggedInUser = null;
+        private Result<UserInfo> loggedInUser = null;
 
         OAuth2AuthorizationContext(
                 final String guiClientId,
                 final String guiClientSecret,
-                final WebserviceURIBuilderSupplier webserviceURIBuilderSupplier) {
+                final WebserviceURIService webserviceURIService,
+                final ClientHttpRequestFactory clientHttpRequestFactory) {
 
             this.resource = new ResourceOwnerPasswordResourceDetails();
-            this.resource.setAccessTokenUri(
-                    webserviceURIBuilderSupplier
-                            .getBuilder()
-                            .path(OAUTH_TOKEN_URI_PATH)
-                            .toUriString() /* restCallBuilder.withPath(OAUTH_TOKEN_URI_PATH) */);
+            this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
             this.resource.setClientId(guiClientId);
             this.resource.setClientSecret(guiClientSecret);
             this.resource.setGrantType(GRANT_TYPE);
             this.resource.setScope(SCOPES);
 
             this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
+            this.restTemplate.setRequestFactory(clientHttpRequestFactory);
 
-            this.revokeTokenURI = webserviceURIBuilderSupplier
-                    .getBuilder()
-                    .path(OAUTH_REVOKE_TOKEN_URI_PATH)
-                    .toUriString(); //restCallBuilder.withPath(OAUTH_REVOKE_TOKEN_URI_PATH);
-            this.currentUserURI = webserviceURIBuilderSupplier
-                    .getBuilder()
-                    .path(CURRENT_USER_URI_PATH)
-                    .toUriString(); //restCallBuilder.withPath(CURRENT_USER_URI_PATH);
+            this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
+            this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
         }
 
         @Override
@@ -227,7 +223,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         }
 
         @Override
-        public UserInfo getLoggedInUser() {
+        public Result<UserInfo> getLoggedInUser() {
             if (this.loggedInUser != null) {
                 return this.loggedInUser;
             }
@@ -237,18 +233,27 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             try {
                 if (isValid() && isLoggedIn()) {
                     final ResponseEntity<UserInfo> response =
-                            this.restTemplate.getForEntity(this.currentUserURI, UserInfo.class);
-                    this.loggedInUser = response.getBody();
-                    return this.loggedInUser;
+                            this.restTemplate
+                                    .getForEntity(this.currentUserURI, UserInfo.class);
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        this.loggedInUser = Result.of(response.getBody());
+                        return this.loggedInUser;
+                    } else {
+                        log.error("Unexpected error response: {}", response);
+                        return Result.ofError(new IllegalStateException(
+                                "Http Request responded with status: " + response.getStatusCode()));
+                    }
                 } else {
-                    throw new IllegalStateException("Logged in User requested on invalid or not logged in ");
+                    return Result.ofError(
+                            new IllegalStateException("Logged in User requested on invalid or not logged in "));
                 }
             } catch (final AccessDeniedException | OAuth2AccessDeniedException ade) {
                 log.error("Acccess denied while trying to request logged in User from API", ade);
-                throw ade;
+                return Result.ofError(ade);
             } catch (final Exception e) {
                 log.error("Unexpected error while trying to request logged in User from API", e);
-                throw new RuntimeException("Unexpected error while trying to request logged in User from API", e);
+                return Result.ofError(
+                        new RuntimeException("Unexpected error while trying to request logged in User from API", e));
             }
         }
 
@@ -258,8 +263,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 return false;
             }
 
-            return getLoggedInUser().roles
-                    .contains(role.name());
+            return getLoggedInUser()
+                    .getOrThrow().roles
+                            .contains(role.name());
         }
     }
 }

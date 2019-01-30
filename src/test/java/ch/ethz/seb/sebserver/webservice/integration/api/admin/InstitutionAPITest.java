@@ -19,11 +19,11 @@ import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.model.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
-import ch.ethz.seb.sebserver.webservice.weblayer.api.RestAPI;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
@@ -32,7 +32,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
     public void getInstitutions() throws Exception {
         Page<Institution> institutions = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<Institution>>() {
                 });
@@ -44,7 +44,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         institutions = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withAttribute("active", "true")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<Institution>>() {
@@ -57,7 +57,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         institutions = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withAttribute("active", "false")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<Institution>>() {
@@ -70,7 +70,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // institutional admin sees only his institution
         institutions = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<Institution>>() {
                 });
@@ -82,7 +82,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // Institutional admin tries to get data from other institution
         final APIMessage errorMessage = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withAttribute("institutionId", "2") // try to hack
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsObject(new TypeReference<APIMessage>() {
@@ -96,7 +96,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
     public void getInstitutionById() throws Exception {
         Institution institution = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION + "/1")
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION + "/1")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
                 });
@@ -107,7 +107,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // a seb-admin is also able to get an institution that is not the one he self belongs to
         institution = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION + "/2")
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION + "/2")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
                 });
@@ -118,7 +118,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // but a institutional-admin is not able to get an institution that is not the one he self belongs to
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION + "/2")
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION + "/2")
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsString();
     }
@@ -128,7 +128,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // create new institution with seb-admin
         Institution institution = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new institution")
                 .withAttribute("urlSuffix", "new_inst")
@@ -144,7 +144,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // an institutional admin should not be allowed to create a new institution
         APIMessage errorMessage = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new institution")
                 .withAttribute("urlSuffix", "new_inst")
@@ -156,7 +156,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // and name for institution must be unique
         errorMessage = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new institution")
                 .withAttribute("urlSuffix", "new_inst")
@@ -171,7 +171,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // and predefined id should be ignored
         institution = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("id", "123")
                 .withAttribute("name", "newer institution")
@@ -191,7 +191,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         final String sebAdminAccess = getSebAdminAccess();
         Institution institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "testInstitution")
                 .withExpectedStatus(HttpStatus.OK)
@@ -205,7 +205,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // get
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
@@ -219,7 +219,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // modify
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.PUT)
                 .withBodyJson(new Institution(null, "testInstitution", "testSuffix", null, null))
                 .withExpectedStatus(HttpStatus.OK)
@@ -234,7 +234,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // activate
         EntityProcessingReport report = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withPath("/").withPath(String.valueOf(institution.id)).withPath("/active")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
@@ -250,7 +250,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // get
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
@@ -262,7 +262,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // deactivate
         report = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withPath("/").withPath(String.valueOf(institution.id)).withPath("/inactive")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
@@ -278,7 +278,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // get
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
@@ -290,7 +290,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // delete
         report = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
                 .withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.DELETE)
                 .withExpectedStatus(HttpStatus.OK)
@@ -307,7 +307,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // get
         final APIMessage error = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(RestAPI.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION).withPath("/").withPath(String.valueOf(institution.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.NOT_FOUND)
                 .getAsObject(new TypeReference<APIMessage>() {

@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -41,40 +40,6 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
         web
                 .ignoring()
                 .requestMatchers(PUBLIC_URLS);
-    }
-
-    @Override
-    protected void configure(final HttpSecurity http) throws Exception {
-        System.out.println("**************** GuiWebConfig: ");
-//        //@formatter:off
-//        http
-//            .sessionManagement()
-//            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//        .and()
-//            .antMatcher("/**"/*this.guiEndpointPath + "/**"*/)
-//            .authorizeRequests()
-//            .anyRequest()
-//            .authenticated()
-//            .and()
-//            .exceptionHandling()
-//            .authenticationEntryPoint(
-//                    new AuthenticationEntryPoint() {
-//
-//                        @Override
-//                        public void commence(final HttpServletRequest request, final HttpServletResponse response,
-//                                final AuthenticationException authException) throws IOException, ServletException {
-//                            response.sendRedirect("/gui");
-//                        }
-//
-//                    })
-//        .and()
-//            .formLogin().disable()
-//            .httpBasic().disable()
-//            .logout().disable()
-//            .headers().frameOptions().disable()
-//         .and()
-//            .csrf().disable();
-      //@formatter:on
     }
 
 }
