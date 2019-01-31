@@ -87,11 +87,14 @@ public final class Exam implements GrantEntity, Activatable {
     @NotNull
     public final ExamType type;
 
-    @JsonProperty(EXAM.ATTR_SUPPORTER)
+    @JsonProperty(EXAM.ATTR_QUIT_PASSWORD)
+    public final String quitPassword;
+
+    @JsonProperty(EXAM.ATTR_OWNER)
     @NotNull
     public final String owner;
 
-    @JsonProperty(EXAM.ATTR_ACTIVE)
+    @JsonProperty(EXAM.ATTR_SUPPORTER)
     public final Collection<String> supporter;
 
     /** Indicates whether this Exam is active or not */
@@ -111,6 +114,7 @@ public final class Exam implements GrantEntity, Activatable {
             @JsonProperty(QuizData.QUIZ_ATTR_END_TIME) final DateTime endTime,
             @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType type,
+            @JsonProperty(EXAM.ATTR_QUIT_PASSWORD) final String quitPassword,
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active) {
@@ -126,6 +130,7 @@ public final class Exam implements GrantEntity, Activatable {
         this.endTime = endTime;
         this.startURL = startURL;
         this.type = type;
+        this.quitPassword = quitPassword;
         this.owner = owner;
         this.active = (active != null) ? active : Boolean.FALSE;
 
@@ -147,6 +152,7 @@ public final class Exam implements GrantEntity, Activatable {
         this.endTime = quizData.endTime;
         this.startURL = mapper.getString(EXAM.ATTR_INSTITUTION_ID);
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class);
+        this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
         this.active = mapper.getBooleanObject(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
@@ -221,6 +227,10 @@ public final class Exam implements GrantEntity, Activatable {
 
     public String getStartURL() {
         return this.startURL;
+    }
+
+    public String getQuitPassword() {
+        return this.quitPassword;
     }
 
     @Override

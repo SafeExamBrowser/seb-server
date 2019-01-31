@@ -169,6 +169,7 @@ public class ExamDAOImpl implements ExamDAO {
                             : null,
                     (exam.type != null) ? exam.type.name() : null,
                     (exam.status != null) ? exam.status.name() : null,
+                    exam.quitPassword,
                     BooleanUtils.toIntegerObject(exam.active));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
@@ -204,6 +205,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null,
                     null,
                     null,
+                    null,
                     BooleanUtils.toInteger(false));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
@@ -220,7 +222,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractPKsFromKeys(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -382,6 +384,7 @@ public class ExamDAOImpl implements ExamDAO {
                     quizData.endTime,
                     quizData.startURL,
                     ExamType.valueOf(record.getType()),
+                    record.getQuitPassword(),
                     record.getOwner(),
                     supporter,
                     BooleanUtils.toBooleanObject(record.getActive()));
