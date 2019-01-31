@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -78,7 +78,8 @@ public class QuizImportController {
                         ? (pageSize <= this.maxPageSize)
                                 ? pageSize
                                 : this.maxPageSize
-                        : this.defaultPageSize);
+                        : this.defaultPageSize)
+                .getOrThrow();
     }
 
 }

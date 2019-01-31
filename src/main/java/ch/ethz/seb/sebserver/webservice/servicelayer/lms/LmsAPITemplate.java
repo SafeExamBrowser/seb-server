@@ -24,7 +24,7 @@ public interface LmsAPITemplate {
 
     LmsSetupTestResult testLmsSetup();
 
-    Page<QuizData> getQuizzes(
+    Result<Page<QuizData>> getQuizzes(
             String name,
             Long from,
             String sort,

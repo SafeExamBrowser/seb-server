@@ -18,12 +18,16 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -32,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -44,9 +49,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
+    private final InternalEncryptionService internalEncryptionService;
+    private final PasswordEncoder clientPasswordEncoder;
 
-    public LmsSetupDAOImpl(final LmsSetupRecordMapper lmsSetupRecordMapper) {
+    protected LmsSetupDAOImpl(
+            final LmsSetupRecordMapper lmsSetupRecordMapper,
+            final InternalEncryptionService internalEncryptionService,
+            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder) {
+
         this.lmsSetupRecordMapper = lmsSetupRecordMapper;
+        this.internalEncryptionService = internalEncryptionService;
+        this.clientPasswordEncoder = clientPasswordEncoder;
     }
 
     @Override
@@ -132,10 +145,14 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
                     lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
+                    (StringUtils.isNotBlank(lmsSetup.lmsAuthSecret))
+                            ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
+                            : null,
                     lmsSetup.lmsRestApiToken,
                     lmsSetup.sebAuthName,
-                    lmsSetup.sebAuthSecret,
+                    (StringUtils.isNotBlank(lmsSetup.sebAuthSecret))
+                            ? this.clientPasswordEncoder.encode(lmsSetup.sebAuthSecret)
+                            : null,
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -276,5 +293,30 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getSebClientsecret(),
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
+
+//    private LmsSetup handlePasswortReset(LmsSetup lmsSetup) {
+//        String lmsPWDEncrypted = null;
+//        String sebPWDEncrypted = null;
+//        if (StringUtils.isNotBlank(lmsSetup.lmsAuthName) && StringUtils.isNotBlank(lmsSetup.lmsAuthSecret)) {
+//
+//        }
+//
+//        if (StringUtils.isNotBlank(lmsSetup.sebAuthName) && StringUtils.isNotBlank(lmsSetup.sebAuthSecret)) {
+//
+//        }
+//
+//        return new LmsSetup(
+//                lmsSetup.id,
+//                lmsSetup.institutionId,
+//                lmsSetup.name,
+//                lmsSetup.lmsType,
+//                lmsSetup.lmsAuthName,
+//                lmsPWDEncrypted,
+//                lmsSetup.lmsApiUrl,
+//                lmsSetup.lmsRestApiToken,
+//                lmsSetup.sebAuthName,
+//                sebPWDEncrypted,
+//                lmsSetup.active);
+//    }
 
 }

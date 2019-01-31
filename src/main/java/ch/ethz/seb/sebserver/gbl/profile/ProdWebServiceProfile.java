@@ -21,6 +21,6 @@ import org.springframework.context.annotation.Profile;
  * and only for production and/or testing */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Profile({ "prod-ws", "test" })
+@Profile({ "prod-ws" })
 public @interface ProdWebServiceProfile {
 }

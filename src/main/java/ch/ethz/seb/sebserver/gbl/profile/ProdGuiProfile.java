@@ -21,6 +21,6 @@ import org.springframework.context.annotation.Profile;
  * and only for production and/or testing */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Profile({ "prod-gui", "test" })
+@Profile({ "prod-gui" })
 public @interface ProdGuiProfile {
 }

@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -98,6 +99,21 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         } catch (final Exception e) {
             throw new RuntimeException("Unexpected error while trying to creae SEB start config: ", e);
         }
+    }
+
+    @RequestMapping(
+            path = "/connection_report/{id}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public LmsSetupTestResult connectionReport(@PathVariable final Long id) {
+
+        this.authorizationGrantService.checkHasAnyPrivilege(
+                EntityType.LMS_SETUP,
+                PrivilegeType.MODIFY);
+
+        return this.lmsAPIService.createLmsAPITemplate(id)
+                .map(template -> template.testLmsSetup())
+                .getOrThrow();
     }
 
     @Override

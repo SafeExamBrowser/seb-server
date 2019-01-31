@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -26,13 +27,13 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
-public class MockupLmsAPITemplate implements LmsAPITemplate {
+final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     private final LmsSetup setup;
 
     private final Collection<QuizData> mockups;
 
-    public MockupLmsAPITemplate(final LmsSetup setup) {
+    MockupLmsAPITemplate(final LmsSetup setup) {
         if (!setup.isActive() || setup.lmsType != LmsType.MOCKUP) {
             throw new IllegalArgumentException();
         }
@@ -69,13 +70,19 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testLmsSetup() {
+        if (this.setup.lmsType != LmsType.MOCKUP) {
+            return LmsSetupTestResult.ofMissingAttributes(LMS_SETUP.ATTR_LMS_TYPE);
+        }
         if (this.setup.lmsApiUrl.equals("mockup") &&
                 this.setup.lmsAuthName.equals("mockup") &&
                 this.setup.lmsAuthSecret.equals("mockup")) {
 
-            return new LmsSetupTestResult(true);
+            return LmsSetupTestResult.ofOkay();
         } else {
-            return new LmsSetupTestResult(false);
+            return LmsSetupTestResult.ofMissingAttributes(
+                    LMS_SETUP.ATTR_LMS_URL,
+                    LMS_SETUP.ATTR_LMS_CLIENTNAME,
+                    LMS_SETUP.ATTR_LMS_CLIENTSECRET);
         }
     }
 
@@ -106,29 +113,31 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Page<QuizData> getQuizzes(
+    public Result<Page<QuizData>> getQuizzes(
             final String name,
             final Long from,
             final String sort,
             final int pageNumber,
             final int pageSize) {
 
-        final int startIndex = pageNumber * pageSize;
-        final int endIndex = startIndex + pageSize;
-        int index = 0;
-        final Collection<QuizData> quizzes = getQuizzes(name, from, sort);
-        final int numberOfPages = quizzes.size() / pageSize;
-        final Iterator<QuizData> iterator = quizzes.iterator();
-        final List<QuizData> pageContent = new ArrayList<>();
-        while (iterator.hasNext() && index < endIndex) {
-            final QuizData next = iterator.next();
-            if (index >= startIndex) {
-                pageContent.add(next);
+        return Result.tryCatch(() -> {
+            final int startIndex = pageNumber * pageSize;
+            final int endIndex = startIndex + pageSize;
+            int index = 0;
+            final Collection<QuizData> quizzes = getQuizzes(name, from, sort);
+            final int numberOfPages = quizzes.size() / pageSize;
+            final Iterator<QuizData> iterator = quizzes.iterator();
+            final List<QuizData> pageContent = new ArrayList<>();
+            while (iterator.hasNext() && index < endIndex) {
+                final QuizData next = iterator.next();
+                if (index >= startIndex) {
+                    pageContent.add(next);
+                }
+                index++;
             }
-            index++;
-        }
 
-        return new Page<>(numberOfPages, pageNumber, sort, pageContent);
+            return new Page<>(numberOfPages, pageNumber, sort, pageContent);
+        });
     }
 
     @Override

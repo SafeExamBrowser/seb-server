@@ -10,11 +10,16 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.InputStream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -24,9 +29,23 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 public class LmsAPIServiceImpl implements LmsAPIService {
 
     private final LmsSetupDAO lmsSetupDAO;
+    private final InternalEncryptionService internalEncryptionService;
+    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final String[] openEdxAlternativeTokenRequestPaths;
 
-    public LmsAPIServiceImpl(final LmsSetupDAO lmsSetupDAO) {
+    public LmsAPIServiceImpl(
+            final LmsSetupDAO lmsSetupDAO,
+            final InternalEncryptionService internalEncryptionService,
+            final ClientHttpRequestFactory clientHttpRequestFactory,
+            @Value("${sebserver.lms.openedix.api.token.request.paths}") final String alternativeTokenRequestPaths) {
+
         this.lmsSetupDAO = lmsSetupDAO;
+        this.internalEncryptionService = internalEncryptionService;
+        this.clientHttpRequestFactory = clientHttpRequestFactory;
+
+        this.openEdxAlternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
+                ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
+                : null;
     }
 
     @Override
@@ -41,10 +60,17 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         switch (lmsSetup.lmsType) {
             case MOCKUP:
                 return Result.of(new MockupLmsAPITemplate(lmsSetup));
+            case OPEN_EDX:
+                return Result.of(new OpenEdxLmsAPITemplate(
+                        lmsSetup,
+                        this.internalEncryptionService,
+                        this.clientHttpRequestFactory,
+                        this.openEdxAlternativeTokenRequestPaths));
             default:
                 return Result.ofError(
                         new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType));
         }
+
     }
 
     @Override
