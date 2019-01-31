@@ -154,7 +154,7 @@ public class PageContextImpl implements PageContext {
         }
 
         listeners.stream()
-                .sorted(LISTENER_COMPARATOR)
+                .sorted(createListenerComparator())
                 .forEach(listener -> listener.notify(event));
     }
 
@@ -262,14 +262,15 @@ public class PageContextImpl implements PageContext {
                 + "]";
     }
 
-    private static final Comparator<PageEventListener<?>> LISTENER_COMPARATOR =
-            new Comparator<>() {
-                @Override
-                public int compare(final PageEventListener<?> o1, final PageEventListener<?> o2) {
-                    final int x = o1.priority();
-                    final int y = o2.priority();
-                    return (x < y) ? -1 : ((x == y) ? 0 : 1);
-                }
-            };
+    private static final Comparator<PageEventListener<?>> createListenerComparator() {
+        return new Comparator<>() {
+            @Override
+            public int compare(final PageEventListener<?> o1, final PageEventListener<?> o2) {
+                final int x = o1.priority();
+                final int y = o2.priority();
+                return (x < y) ? -1 : ((x == y) ? 0 : 1);
+            }
+        };
+    }
 
 }
