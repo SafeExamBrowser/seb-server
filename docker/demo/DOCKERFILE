@@ -1,7 +1,15 @@
-FROM java:openjdk-8
-
+FROM alpine/git
 WORKDIR /demo
+RUN git clone https://github.com/SafeExamBrowser/seb-server.git
 
+FROM maven:3.5-jdk-8-alpine
+WORKDIR /demo
+COPY --from=0 /demo/seb-server /demo
+RUN mvn clean install -e -P Demo -DskipTests
+
+FROM openjdk:8-jre-alpine
+WORKDIR /demo
+COPY --from=1 /demo/target/seb-server-0.1.0-SNAPSHOT.jar /demo
 EXPOSE 8090
-
-ENTRYPOINT ["java","-jar",".\seb-server-0.1.0-SNAPSHOT.jar","--spring.config.location=classpath:/config/,file:/externalResources/","--spring.profiles.active=dev"]
+ENTRYPOINT ["sh", "-c"]
+CMD ["java -jar seb-server-0.1.0-SNAPSHOT.jar --spring.config.location=classpath:/config/,file:/demo/externalResources/ --spring.profiles.active=demo"] 

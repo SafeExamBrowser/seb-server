@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @SpringBootApplication(exclude = {
         // OAuth2ResourceServerAutoConfiguration.class,
@@ -19,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
         //DataSourceAutoConfiguration.class
 })
 @Configuration
+@Import(DataSourceAutoConfiguration.class)
 public class SEBServer {
 
     public static void main(final String[] args) {
