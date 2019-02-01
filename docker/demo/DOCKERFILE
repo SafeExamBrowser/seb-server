@@ -1,0 +1,7 @@
+FROM java:openjdk-8
+
+WORKDIR /demo
+
+EXPOSE 8090
+
+ENTRYPOINT ["java","-jar",".\seb-server-0.1.0-SNAPSHOT.jar","--spring.config.location=classpath:/config/,file:/externalResources/","--spring.profiles.active=dev"]

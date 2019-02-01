@@ -25,9 +25,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -60,6 +62,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @GuiProfile
 @RestController
 @Order(6)
+@Import(DataSourceAutoConfiguration.class)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
 
     @Value("${sebserver.webservice.api.redirect.unauthorized}")

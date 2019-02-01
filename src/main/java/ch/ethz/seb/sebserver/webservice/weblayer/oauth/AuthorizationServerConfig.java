@@ -46,7 +46,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Autowired
     private AccessTokenConverter accessTokenConverter;
-    @Autowired
+    @Autowired(required = true)
     private DataSource dataSource;
     @Autowired
     private WebServiceUserDetails webServiceUserDetails;
@@ -74,6 +74,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Bean
     public TokenStore tokenStore() {
+        System.out.println("************************* this.dataSource:" + this.dataSource);
         return new JdbcTokenStore(this.dataSource);
     }
 

@@ -21,6 +21,6 @@ import org.springframework.context.annotation.Profile;
  * and only for development and/or testing */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Profile({ "dev-ws", "test" })
+@Profile({ "dev-ws", "test", "demo" })
 public @interface DevWebServiceProfile {
 }
