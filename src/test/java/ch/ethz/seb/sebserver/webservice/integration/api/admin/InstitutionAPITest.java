@@ -92,6 +92,17 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(errorMessage);
         assertTrue(errorMessage.size() > 0);
         assertEquals("1001", errorMessage.get(0).messageCode);
+
+        // get own institution
+        final Institution own = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION + "/self")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(own);
+        assertTrue(own.id.longValue() == 1);
     }
 
     @Test
