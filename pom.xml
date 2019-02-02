@@ -152,6 +152,10 @@
               <includes>
                 <include>ch/ethz/seb/sebserver/*</include>
               </includes>
+              <excludes>
+                <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper</exclude>
+                <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model</exclude>
+              </excludes>
             </configuration>
             <executions>
               <execution>

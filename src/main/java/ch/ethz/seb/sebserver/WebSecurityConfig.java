@@ -17,8 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import javax.net.ssl.SSLContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.client.HttpClient;
@@ -36,14 +34,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -90,40 +84,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         web
                 .ignoring()
                 .antMatchers("/error");
-    }
-
-    @Override
-    public void configure(final HttpSecurity http) throws Exception {
-        http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .antMatcher("/**")
-                .authorizeRequests()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(
-                        new AuthenticationEntryPoint() {
-
-                            @Override
-                            public void commence(
-                                    final HttpServletRequest request,
-                                    final HttpServletResponse response,
-                                    final AuthenticationException authException) throws IOException, ServletException {
-
-                                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                                response.sendRedirect(WebSecurityConfig.this.unauthorizedRedirect);
-                            }
-                        })
-                .and()
-                .formLogin().disable()
-                .httpBasic().disable()
-                .logout().disable()
-                .headers().frameOptions().disable()
-                .and()
-                .csrf().disable();
     }
 
     @RequestMapping("/error")
