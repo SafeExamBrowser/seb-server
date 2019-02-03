@@ -20,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface LmsAPITemplate {
 
-    LmsSetup lmsSetup();
+    Result<LmsSetup> lmsSetup();
 
     LmsSetupTestResult testLmsSetup();
 
@@ -34,5 +34,7 @@ public interface LmsAPITemplate {
     Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
     Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+
+    void reset();
 
 }

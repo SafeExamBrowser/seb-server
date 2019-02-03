@@ -33,6 +33,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientHttpRequestFactory clientHttpRequestFactory;
     private final String[] openEdxAlternativeTokenRequestPaths;
 
+    // TODO internal caching of LmsAPITemplate per LmsSetup (Id)
+
     public LmsAPIServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
             final InternalEncryptionService internalEncryptionService,
@@ -59,10 +61,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     public Result<LmsAPITemplate> createLmsAPITemplate(final LmsSetup lmsSetup) {
         switch (lmsSetup.lmsType) {
             case MOCKUP:
-                return Result.of(new MockupLmsAPITemplate(lmsSetup));
+                return Result.of(new MockupLmsAPITemplate(
+                        this.lmsSetupDAO,
+                        lmsSetup,
+                        this.internalEncryptionService));
             case OPEN_EDX:
                 return Result.of(new OpenEdxLmsAPITemplate(
-                        lmsSetup,
+                        lmsSetup.getModelId(),
+                        this.lmsSetupDAO,
                         this.internalEncryptionService,
                         this.clientHttpRequestFactory,
                         this.openEdxAlternativeTokenRequestPaths));

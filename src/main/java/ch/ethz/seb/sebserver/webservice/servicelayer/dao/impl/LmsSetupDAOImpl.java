@@ -254,6 +254,34 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         });
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Credentials> getLmsAPIAccessCredentials(final String lmsSetupId) {
+        return Result.tryCatch(() -> {
+            final LmsSetupRecord record = this.lmsSetupRecordMapper
+                    .selectByPrimaryKey(Long.parseLong(lmsSetupId));
+
+            return new Credentials(
+                    record.getLmsClientname(),
+                    record.getLmsClientsecret(),
+                    record.getLmsRestApiToken());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Credentials> getSEBClientCredentials(final String lmsSetupId) {
+        return Result.tryCatch(() -> {
+            final LmsSetupRecord record = this.lmsSetupRecordMapper
+                    .selectByPrimaryKey(Long.parseLong(lmsSetupId));
+
+            return new Credentials(
+                    record.getSebClientname(),
+                    record.getSebClientsecret(),
+                    null);
+        });
+    }
+
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> {
             return this.lmsSetupRecordMapper.selectIdsByExample()

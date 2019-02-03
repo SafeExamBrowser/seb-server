@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
@@ -51,6 +53,10 @@ public class QuizImportController {
 
     @RequestMapping(method = RequestMethod.GET)
     public Page<QuizData> search(
+            @RequestParam(
+                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = LMS_SETUP.ATTR_ID, required = true) final Long lmsSetupId,
             @RequestParam(name = QuizData.FILTER_ATTR_NAME, required = false) final String nameLike,
             @RequestParam(name = QuizData.FILTER_ATTR_START_TIME, required = false) final String startTime,
@@ -65,7 +71,7 @@ public class QuizImportController {
         this.authorizationGrantService.checkPrivilege(
                 EntityType.EXAM,
                 PrivilegeType.READ_ONLY,
-                lmsAPITemplate.lmsSetup().institutionId);
+                institutionId);
 
         return lmsAPITemplate.getQuizzes(
                 nameLike,

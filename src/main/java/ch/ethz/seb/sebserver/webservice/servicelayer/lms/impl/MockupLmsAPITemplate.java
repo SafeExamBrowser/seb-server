@@ -24,16 +24,30 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 final class MockupLmsAPITemplate implements LmsAPITemplate {
 
+    public static final String MOCKUP_LMS_CLIENT_NAME = "mockupLmsClientName";
+    public static final String MOCKUP_LMS_CLIENT_SECRET = "mockupLmsClientSecret";
+
+    private final InternalEncryptionService internalEncryptionService;
+    private final LmsSetupDAO lmsSetupDao;
     private final LmsSetup setup;
 
+    private LmsSetupDAO.Credentials credentials = null;
     private final Collection<QuizData> mockups;
 
-    MockupLmsAPITemplate(final LmsSetup setup) {
+    MockupLmsAPITemplate(
+            final LmsSetupDAO lmsSetupDao,
+            final LmsSetup setup,
+            final InternalEncryptionService internalEncryptionService) {
+
+        this.lmsSetupDao = lmsSetupDao;
+        this.internalEncryptionService = internalEncryptionService;
         if (!setup.isActive() || setup.lmsType != LmsType.MOCKUP) {
             throw new IllegalArgumentException();
         }
@@ -64,8 +78,8 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public LmsSetup lmsSetup() {
-        return this.setup;
+    public Result<LmsSetup> lmsSetup() {
+        return Result.of(this.setup);
     }
 
     @Override
@@ -73,10 +87,8 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         if (this.setup.lmsType != LmsType.MOCKUP) {
             return LmsSetupTestResult.ofMissingAttributes(LMS_SETUP.ATTR_LMS_TYPE);
         }
-        if (this.setup.lmsApiUrl.equals("mockup") &&
-                this.setup.lmsAuthName.equals("mockup") &&
-                this.setup.lmsAuthSecret.equals("mockup")) {
-
+        initCredentials();
+        if (this.credentials != null) {
             return LmsSetupTestResult.ofOkay();
         } else {
             return LmsSetupTestResult.ofMissingAttributes(
@@ -121,6 +133,11 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
             final int pageSize) {
 
         return Result.tryCatch(() -> {
+            initCredentials();
+            if (this.credentials == null) {
+                throw new IllegalArgumentException("Wrong clientId or secret");
+            }
+
             final int startIndex = pageNumber * pageSize;
             final int endIndex = startIndex + pageSize;
             int index = 0;
@@ -142,6 +159,11 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
+        initCredentials();
+        if (this.credentials == null) {
+            throw new IllegalArgumentException("Wrong clientId or secret");
+        }
+
         return this.mockups.stream()
                 .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
@@ -150,7 +172,31 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
+        initCredentials();
+        if (this.credentials == null) {
+            throw new IllegalArgumentException("Wrong clientId or secret");
+        }
+
         return Result.of(new ExamineeAccountDetails(examineeUserId, "mockup", "mockup", "mockup"));
+    }
+
+    @Override
+    public void reset() {
+        this.credentials = null;
+    }
+
+    private void initCredentials() {
+        try {
+            this.credentials = this.lmsSetupDao
+                    .getLmsAPIAccessCredentials(this.setup.getModelId())
+                    .getOrThrow();
+
+            assert (this.credentials.clientId.equals("lmsMockupClientId")) : "wrong clientId";
+            assert (this.internalEncryptionService.decrypt(this.credentials.clientId)
+                    .equals("lmsMockupSecret")) : "wrong clientId";
+        } catch (final Exception e) {
+            this.credentials = null;
+        }
     }
 
 }
