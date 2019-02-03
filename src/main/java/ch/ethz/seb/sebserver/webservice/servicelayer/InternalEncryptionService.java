@@ -39,7 +39,7 @@ public class InternalEncryptionService {
                     NO_SALT).encrypt(text);
         } catch (final Exception e) {
             log.error("Failed to encrypt text: ", e);
-            return null;
+            return text;
         }
     }
 
@@ -50,7 +50,7 @@ public class InternalEncryptionService {
                     NO_SALT).decrypt(text);
         } catch (final Exception e) {
             log.error("Failed to decrypt text: ", e);
-            return null;
+            return text;
         }
     }
 
@@ -61,7 +61,7 @@ public class InternalEncryptionService {
                     salt).encrypt(text);
         } catch (final Exception e) {
             log.error("Failed to encrypt text: ", e);
-            return null;
+            return text;
         }
     }
 
@@ -72,7 +72,7 @@ public class InternalEncryptionService {
                     salt).decrypt(text);
         } catch (final Exception e) {
             log.error("Failed to decrypt text: ", e);
-            return null;
+            return text;
         }
     }
 
@@ -81,7 +81,7 @@ public class InternalEncryptionService {
             return Encryptors.text(secret, salt).encrypt(text);
         } catch (final Exception e) {
             log.error("Failed to encrypt text: ", e);
-            return null;
+            return text;
         }
     }
 
@@ -90,7 +90,7 @@ public class InternalEncryptionService {
             return Encryptors.text(secret, salt).decrypt(text);
         } catch (final Exception e) {
             log.error("Failed to decrypt text: ", e);
-            return null;
+            return text;
         }
     }
 

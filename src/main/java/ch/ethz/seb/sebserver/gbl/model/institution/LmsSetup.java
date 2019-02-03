@@ -42,12 +42,12 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final Long institutionId;
 
     @JsonProperty(LMS_SETUP.ATTR_NAME)
-    @NotNull
+    @NotNull(message = "lmsSetup:name:notNull")
     @Size(min = 3, max = 255, message = "lmsSetup:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE)
-    @NotNull
+    @NotNull(message = "lmsSetup:lmsType:notNull")
     public final LmsType lmsType;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTNAME)
@@ -59,7 +59,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final String lmsAuthSecret;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_URL)
-    @NotNull
     public final String lmsApiUrl;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN)

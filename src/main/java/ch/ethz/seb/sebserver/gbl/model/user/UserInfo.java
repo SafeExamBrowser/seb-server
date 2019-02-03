@@ -16,6 +16,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -76,6 +77,7 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
     public final Set<String> roles;
 
     @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public UserInfo(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -26,7 +27,7 @@ public final class Institution implements GrantEntity, Activatable {
     public final Long id;
 
     @JsonProperty(INSTITUTION.ATTR_NAME)
-    @NotNull
+    @NotNull(message = "institution:name:notNull")
     @Size(min = 3, max = 255, message = "institution:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
@@ -40,6 +41,7 @@ public final class Institution implements GrantEntity, Activatable {
     @JsonProperty(INSTITUTION.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonCreator
     public Institution(
             @JsonProperty(Domain.ATTR_ID) final Long id,
             @JsonProperty(INSTITUTION.ATTR_NAME) final String name,

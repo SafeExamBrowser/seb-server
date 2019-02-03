@@ -286,37 +286,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
                 record.getLmsClientname(),
-                record.getLmsClientsecret(),
+                null,
                 record.getLmsUrl(),
                 record.getLmsRestApiToken(),
                 record.getSebClientname(),
-                record.getSebClientsecret(),
+                null,
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
-
-//    private LmsSetup handlePasswortReset(LmsSetup lmsSetup) {
-//        String lmsPWDEncrypted = null;
-//        String sebPWDEncrypted = null;
-//        if (StringUtils.isNotBlank(lmsSetup.lmsAuthName) && StringUtils.isNotBlank(lmsSetup.lmsAuthSecret)) {
-//
-//        }
-//
-//        if (StringUtils.isNotBlank(lmsSetup.sebAuthName) && StringUtils.isNotBlank(lmsSetup.sebAuthSecret)) {
-//
-//        }
-//
-//        return new LmsSetup(
-//                lmsSetup.id,
-//                lmsSetup.institutionId,
-//                lmsSetup.name,
-//                lmsSetup.lmsType,
-//                lmsSetup.lmsAuthName,
-//                lmsPWDEncrypted,
-//                lmsSetup.lmsApiUrl,
-//                lmsSetup.lmsRestApiToken,
-//                lmsSetup.sebAuthName,
-//                sebPWDEncrypted,
-//                lmsSetup.active);
-//    }
 
 }

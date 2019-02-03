@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
@@ -41,13 +41,13 @@ public final class UserMod implements GrantEntity {
     public final Long institutionId;
 
     /** Full name of the user */
-    @NotNull
+    @NotNull(message = "user:name:notNull")
     @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** The internal user name */
-    @NotNull
+    @NotNull(message = "user:username:notNull")
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
@@ -58,12 +58,12 @@ public final class UserMod implements GrantEntity {
     public final String email;
 
     /** The users locale */
-    @NotNull
+    @NotNull(message = "user:locale:notNull")
     @JsonProperty(USER.ATTR_LOCALE)
     public final Locale locale;
 
     /** The users time zone */
-    @NotNull
+    @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
