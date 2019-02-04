@@ -8,14 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
-import javax.sql.DataSource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +21,6 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
@@ -44,13 +38,12 @@ import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 @Configuration
 @EnableAuthorizationServer
 @Order(100)
-@Import(DataSourceAutoConfiguration.class)
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
     private AccessTokenConverter accessTokenConverter;
     @Autowired(required = true)
-    private DataSource dataSource;
+    private TokenStore tokenStore;
     @Autowired
     private WebServiceUserDetails webServiceUserDetails;
     @Autowired
@@ -75,18 +68,12 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         clients.withClientDetails(this.webServiceClientDetails);
     }
 
-    @Bean
-    public TokenStore tokenStore(final DataSource dataSource) {
-        System.out.println("************************* this.dataSource:" + this.dataSource);
-        return new JdbcTokenStore(this.dataSource);
-    }
-
     @Override
     public void configure(final AuthorizationServerEndpointsConfigurer endpoints) {
         final JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setAccessTokenConverter(this.accessTokenConverter);
         endpoints
-                .tokenStore(tokenStore(this.dataSource))
+                .tokenStore(this.tokenStore)
                 .authenticationManager(this.authenticationManager)
                 .userDetailsService(this.webServiceUserDetails)
                 .accessTokenConverter(jwtAccessTokenConverter);
