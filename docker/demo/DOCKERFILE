@@ -13,6 +13,6 @@ COPY --from=1 /demo/target/seb-server-0.1.0-SNAPSHOT.jar /demo
 
 ENTRYPOINT ["sh", "-c"]
 
-CMD ["java -jar seb-server-0.1.0-SNAPSHOT.jar --spring.config.location=classpath:/config/,file:/demo/externalResources/ --spring.profiles.active=demo"]
+CMD ["java -jar seb-server-0.1.0-SNAPSHOT.jar --spring.config.location=classpath:/config/,file:/demo/externalResources/ --server.address=0.0.0.0 --spring.profiles.active=demo"]
 
 EXPOSE 8080
