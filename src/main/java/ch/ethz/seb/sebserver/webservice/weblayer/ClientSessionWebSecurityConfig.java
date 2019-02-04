@@ -19,8 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -66,6 +68,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebResourceServerConfigur
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @Order(5)
+@Import(DataSourceAutoConfiguration.class)
 public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(ClientSessionWebSecurityConfig.class);
