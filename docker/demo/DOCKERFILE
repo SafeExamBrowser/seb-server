@@ -10,6 +10,6 @@ RUN mvn clean install -e -P Demo -DskipTests
 FROM openjdk:8-jre-alpine
 WORKDIR /demo
 COPY --from=1 /demo/target/seb-server-0.1.0-SNAPSHOT.jar /demo
-EXPOSE 8090
+EXPOSE 8080
 ENTRYPOINT ["sh", "-c"]
 CMD ["java -jar seb-server-0.1.0-SNAPSHOT.jar --spring.config.location=classpath:/config/,file:/demo/externalResources/ --spring.profiles.active=demo"] 
