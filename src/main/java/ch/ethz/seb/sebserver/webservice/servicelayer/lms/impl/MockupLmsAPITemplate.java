@@ -107,7 +107,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 ? -1
                 : 1;
 
-        final String _sort = SortOrder.getSortColumn(sort);
+        final String _sort = SortOrder.decode(sort);
         final Comparator<QuizData> comp = (_sort != null)
                 ? (_sort.equals(QuizData.FILTER_ATTR_START_TIME))
                         ? (q1, q2) -> q1.startTime.compareTo(q2.startTime) * orderFactor

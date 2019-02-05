@@ -10,10 +10,10 @@ package ch.ethz.seb.sebserver.gui.service.page;
 
 public interface TemplateComposer {
 
-    default boolean validate(final PageContext context) {
+    default boolean validate(final PageContext pageContext) {
         return true;
     }
 
-    void compose(PageContext composerCtx);
+    void compose(PageContext pageContext);
 
 }

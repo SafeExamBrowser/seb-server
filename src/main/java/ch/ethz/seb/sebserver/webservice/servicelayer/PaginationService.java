@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 
@@ -36,29 +37,26 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 public class PaginationService {
 
     public enum SortOrder {
-        ASCENDING("+"),
-        DESCENDING("-");
+        ASCENDING,
+        DESCENDING;
 
-        public final String prefix;
+        public final static String DESCENDING_PREFIX = "-";
 
-        private SortOrder(final String prefix) {
-            this.prefix = prefix;
+        public String encode(final String sort) {
+            return (this == DESCENDING) ? DESCENDING_PREFIX + sort : sort;
         }
 
-        public static SortOrder getSortOrder(final String sort) {
-            return (sort != null && sort.startsWith(DESCENDING.prefix))
+        public static String decode(final String sort) {
+            return (sort != null && sort.startsWith(DESCENDING_PREFIX))
+                    ? sort.substring(1)
+                    : sort;
+        }
+
+        public static SortOrder getSortOrder(final String encoded) {
+            return (encoded != null && encoded.startsWith(DESCENDING_PREFIX))
                     ? SortOrder.DESCENDING
                     : SortOrder.ASCENDING;
         }
-
-        public static String getSortColumn(final String sort) {
-            return (sort == null)
-                    ? null
-                    : (sort.startsWith(SortOrder.ASCENDING.prefix) || sort.startsWith(SortOrder.DESCENDING.prefix))
-                            ? sort.substring(1)
-                            : sort;
-        }
-
     }
 
     private final int defaultPageSize;
@@ -137,10 +135,11 @@ public class PaginationService {
         final com.github.pagehelper.Page<Object> startPage =
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
-        if (table != null) {
+        if (table != null && StringUtils.isNoneBlank(sort)) {
+            final SortOrder sortOrder = SortOrder.getSortOrder(sort);
             final String sortColumnName = verifySortColumnName(sort, table);
             if (StringUtils.isNoneBlank(sortColumnName)) {
-                switch (SortOrder.getSortOrder(sort)) {
+                switch (sortOrder) {
                     case DESCENDING: {
                         PageHelper.orderBy(sortColumnName + " DESC");
                         break;
@@ -178,7 +177,7 @@ public class PaginationService {
 
         final Map<String, String> mapping = this.sortColumnMapping.get(table.name());
         if (mapping != null) {
-            final String sortColumn = SortOrder.getSortColumn(sort);
+            final String sortColumn = SortOrder.decode(sort);
             if (StringUtils.isBlank(sortColumn)) {
                 return this.defaultSortColumn.get(table.name());
             }
@@ -190,6 +189,24 @@ public class PaginationService {
 
     // TODO is it possible to generate this within MyBatis generator?
     private void initSortColumnMapping() {
+
+        // Institution Table
+        final Map<String, String> institutionTableMap = new HashMap<>();
+        institutionTableMap.put(
+                Domain.INSTITUTION.ATTR_NAME,
+                InstitutionRecordDynamicSqlSupport.name.name());
+        institutionTableMap.put(
+                Domain.INSTITUTION.ATTR_URL_SUFFIX,
+                InstitutionRecordDynamicSqlSupport.urlSuffix.name());
+        institutionTableMap.put(
+                Domain.INSTITUTION.ATTR_ACTIVE,
+                InstitutionRecordDynamicSqlSupport.active.name());
+        this.sortColumnMapping.put(
+                InstitutionRecordDynamicSqlSupport.institutionRecord.name(),
+                institutionTableMap);
+        this.defaultSortColumn.put(
+                InstitutionRecordDynamicSqlSupport.institutionRecord.name(),
+                Domain.INSTITUTION.ATTR_ID);
 
         // User Table
         final Map<String, String> userTableMap = new HashMap<>();

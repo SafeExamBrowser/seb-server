@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
@@ -166,7 +167,21 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withSorting(final String column, final SortOrder order) {
-            this.queryParams.put(Page.ATTR_SORT, Arrays.asList(order.prefix + column));
+            if (column != null) {
+                this.queryParams.put(Page.ATTR_SORT, Arrays.asList(order.encode(column)));
+            }
+            return this;
+        }
+
+        public RestCallBuilder withFilterAttributes(final FilterAttributeSupplier filterAttributes) {
+            if (filterAttributes != null) {
+                this.queryParams.putAll(filterAttributes.getAttributes());
+            }
+            return this;
+        }
+
+        public RestCallBuilder onlyActive(final boolean active) {
+            this.queryParams.put(Entity.FILTER_ATTR_ACTIVE, Arrays.asList(String.valueOf(active)));
             return this;
         }
 
@@ -188,6 +203,7 @@ public abstract class RestCall<T> {
                 return new HttpEntity<>(this.httpHeaders);
             }
         }
+
     }
 
 }

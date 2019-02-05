@@ -12,9 +12,7 @@ import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -29,7 +27,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Controller
 @WebServiceProfile
-@Import(DataSourceAutoConfiguration.class)
 public class RevokeTokenEndpoint {
 
     private final ConsumerTokenServices tokenServices;

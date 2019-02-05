@@ -30,9 +30,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
@@ -137,7 +137,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     this.examDAO.allMatching(new FilterMap(allRequestParams)).getOrThrow());
 
             if (!StringUtils.isBlank(sort)) {
-                final String sortBy = SortOrder.getSortColumn(sort);
+                final String sortBy = SortOrder.decode(sort);
                 if (sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
                     Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
                 }

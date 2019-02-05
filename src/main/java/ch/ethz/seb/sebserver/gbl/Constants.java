@@ -16,6 +16,7 @@ public final class Constants {
 
     public static final Character LIST_SEPARATOR_CHAR = ',';
     public static final String LIST_SEPARATOR = ",";
+    public static final String EMPTY_NOTE = "--";
 
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
     public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat

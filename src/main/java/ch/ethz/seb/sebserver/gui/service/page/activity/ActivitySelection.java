@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionPane;
+import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionList;
 import ch.ethz.seb.sebserver.gui.service.page.impl.TODOTemplate;
 
 public class ActivitySelection {
@@ -31,7 +32,7 @@ public class ActivitySelection {
     public enum Activity {
         NONE(TODOTemplate.class, TODOTemplate.class, (String) null),
         INSTITUTION_ROOT(
-                TODOTemplate.class,
+                InstitutionList.class,
                 ActionPane.class,
                 new LocTextKey("sebserver.activities.inst")),
         INSTITUTION_NODE(

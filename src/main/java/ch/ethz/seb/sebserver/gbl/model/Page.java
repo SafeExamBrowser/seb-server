@@ -51,16 +51,16 @@ public final class Page<T> {
         this.sort = sort;
     }
 
-    public Integer getNumberOfPages() {
-        return this.numberOfPages;
+    public int getNumberOfPages() {
+        return (this.numberOfPages != null) ? this.numberOfPages : 1;
     }
 
-    public Integer getPageNumber() {
-        return this.pageNumber;
+    public int getPageNumber() {
+        return (this.pageNumber != null) ? this.pageNumber : 0;
     }
 
-    public Integer getPageSize() {
-        return this.pageSize;
+    public int getPageSize() {
+        return (this.pageSize != null) ? this.pageSize : -1;
     }
 
     public Collection<T> getContent() {

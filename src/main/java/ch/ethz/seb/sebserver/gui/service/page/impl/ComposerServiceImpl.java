@@ -14,13 +14,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.RWTUtils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -108,7 +108,7 @@ public class ComposerServiceImpl implements ComposerService {
 
         if (composer.validate(pageContext)) {
 
-            clear(pageContext.getParent());
+            RWTUtils.clearComposite(pageContext.getParent());
 
             try {
                 composer.compose(pageContext);
@@ -171,16 +171,6 @@ public class ComposerServiceImpl implements ComposerService {
     private PageContext createPageContext(final Composite root) {
         return new PageContextImpl(
                 this.i18nSupport, this, root, root, null);
-    }
-
-    private void clear(final Composite parent) {
-        if (parent == null) {
-            return;
-        }
-
-        for (final Control control : parent.getChildren()) {
-            control.dispose();
-        }
     }
 
 }

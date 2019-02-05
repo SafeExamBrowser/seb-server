@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.widget;
 
-import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_TREE_ITEM_TEXT_DATA_KEY;
-import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY;
+import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.*;
 
 import java.io.InputStream;
 import java.util.Iterator;
@@ -39,12 +38,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.RWTUtils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.table.TableBuilder;
 
 @Lazy
 @Service
@@ -158,6 +162,12 @@ public class WidgetFactory {
         return label;
     }
 
+    public Label labelLocalizedTitle(final Composite content, final LocTextKey locTextKey) {
+        final Label labelLocalized = labelLocalized(content, RWTUtils.TEXT_NAME_H2, locTextKey);
+        labelLocalized.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
+        return labelLocalized;
+    }
+
     public Tree treeLocalized(final Composite parent, final int style) {
         final Tree tree = new Tree(parent, SWT.SINGLE | SWT.FULL_SELECTION);
         this.injectI18n(tree);
@@ -188,15 +198,23 @@ public class WidgetFactory {
         return item;
     }
 
+    public <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
+        return new TableBuilder<>(this, apiCall);
+    }
+
     public Table tableLocalized(final Composite parent) {
-        final Table table = new Table(parent, SWT.NONE);
+        final Table table = new Table(parent, SWT.SINGLE | SWT.NO_SCROLL);
         this.injectI18n(table);
         return table;
     }
 
-    public TableColumn tableColumnLocalized(final Table table, final String locTextKey) {
+    public TableColumn tableColumnLocalized(
+            final Table table,
+            final LocTextKey locTextKey,
+            final LocTextKey toolTipKey) {
+
         final TableColumn tableColumn = new TableColumn(table, SWT.NONE);
-        this.injectI18n(tableColumn, new LocTextKey(locTextKey));
+        this.injectI18n(tableColumn, locTextKey, toolTipKey);
         return tableColumn;
     }
 
@@ -322,9 +340,14 @@ public class WidgetFactory {
         table.setData(POLYGLOT_WIDGET_FUNCTION_KEY, tableFunction(this.i18nSupport));
     }
 
-    public void injectI18n(final TableColumn tableColumn, final LocTextKey locTextKey) {
+    public void injectI18n(final TableColumn tableColumn, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
         tableColumn.setData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY, locTextKey);
         tableColumn.setText(this.i18nSupport.getText(locTextKey));
+
+        if (locTooltipKey != null) {
+            tableColumn.setData(POLYGLOT_TREE_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            tableColumn.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+        }
     }
 
     public void injectI18n(final TableItem tableItem, final LocTextKey... locTextKey) {

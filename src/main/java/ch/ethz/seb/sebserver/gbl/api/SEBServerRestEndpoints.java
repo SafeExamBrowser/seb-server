@@ -22,4 +22,6 @@ public class SEBServerRestEndpoints {
 
     public static final String ENDPOINT_USER_ACTIVITY_LOG = "/useractivity";
 
+    public static final String NAMES_ENDPOINT_SUFFIX = "/names";
+
 }
