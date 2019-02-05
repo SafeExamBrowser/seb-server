@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -75,7 +76,7 @@ public final class LmsSetupTestResult {
     }
 
     public static final LmsSetupTestResult ofOkay() {
-        return new LmsSetupTestResult(true, null, null, null);
+        return new LmsSetupTestResult(true, Collections.emptyList(), null, null);
     }
 
     public static final LmsSetupTestResult ofMissingAttributes(final Collection<String> attrs) {
@@ -84,13 +85,13 @@ public final class LmsSetupTestResult {
 
     public static final LmsSetupTestResult ofMissingAttributes(final String... attrs) {
         if (attrs == null) {
-            return new LmsSetupTestResult(false, null, null, null);
+            return new LmsSetupTestResult(false, Collections.emptyList(), null, null);
         }
         return new LmsSetupTestResult(false, Arrays.asList(attrs), null, null);
     }
 
     public static final LmsSetupTestResult ofTokenRequestError(final String message) {
-        return new LmsSetupTestResult(false, null, message, null);
+        return new LmsSetupTestResult(false, Collections.emptyList(), message, null);
     }
 
     public static final LmsSetupTestResult ofQuizRequestError(final String message) {
