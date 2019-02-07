@@ -60,8 +60,8 @@ public class SEBLogin implements TemplateComposer {
         if (pageContext.hasAttribute((AttributeKeys.LGOUT_SUCCESS))) {
             final MessageBox logoutSuccess = new Message(
                     pageContext.getShell(),
-                    this.i18nSupport.getText("org.sebserver.logout"),
-                    this.i18nSupport.getText("org.sebserver.logout.success.message"),
+                    this.i18nSupport.getText("sebserver.logout"),
+                    this.i18nSupport.getText("sebserver.logout.success.message"),
                     SWT.ICON_INFORMATION);
             logoutSuccess.open(null);
         }

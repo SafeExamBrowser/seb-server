@@ -11,6 +11,9 @@ package ch.ethz.seb.sebserver.gui.service.page;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
+import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
 public interface PageContext {
@@ -30,7 +33,10 @@ public interface PageContext {
 
         public static final String ATTR_PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
-        public static final String INSTITUTION_ID = "INSTITUTION_ID";
+        public static final String ATTR_ENTITY_ID = "ENTITY_ID";
+        public static final String ATTR_PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
+        public static final String ATTR_ENTITY_TYPE = "ENTITY_TYPE";
+        public static final String ATTR_PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
 
 //        public static final String USER_NAME = "USER_NAME";
 //        public static final String PASSWORD = "PASSWORD";
@@ -86,6 +92,8 @@ public interface PageContext {
      * @return this PageContext instance (builder pattern) */
     PageContext withAttr(String key, String value);
 
+    PageContext withSelection(ActivitySelection selection);
+
     String getAttribute(String name);
 
     String getAttribute(String name, String def);
@@ -98,6 +106,8 @@ public interface PageContext {
      *
      * @param event the concrete PageEvent instance */
     <T extends PageEvent> void publishPageEvent(T event);
+
+    Action createAction(ActionDefinition actionDefinition);
 
     /** Apply a confirm dialog with a specified confirm message and a callback code
      * block that will be executed on users OK selection.
@@ -124,5 +134,7 @@ public interface PageContext {
     void notifyError(Throwable error);
 
     <T> T logoutOnError(Throwable error);
+
+    void publishPageMessage(PageMessageException pme);
 
 }

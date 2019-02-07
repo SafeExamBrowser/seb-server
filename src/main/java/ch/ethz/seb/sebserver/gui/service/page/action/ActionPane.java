@@ -22,11 +22,12 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -42,18 +43,21 @@ public class ActionPane implements TemplateComposer {
     }
 
     @Override
-    public void compose(final PageContext composerCtx) {
+    public void compose(final PageContext pageContext) {
 
         final Label label = this.widgetFactory.labelLocalized(
-                composerCtx.getParent(),
-                "h3",
+                pageContext.getParent(),
+                CustomVariant.TEXT_H2,
                 new LocTextKey("sebserver.actionpane.title"));
+
         final GridData titleLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
         titleLayout.verticalIndent = 10;
         titleLayout.horizontalIndent = 10;
         label.setLayoutData(titleLayout);
 
-        final Tree actions = this.widgetFactory.treeLocalized(composerCtx.getParent(), SWT.SINGLE | SWT.FULL_SELECTION);
+        final Tree actions = this.widgetFactory.treeLocalized(
+                pageContext.getParent(),
+                SWT.SINGLE | SWT.FULL_SELECTION);
         actions.setData(RWT.CUSTOM_VARIANT, "actions");
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         actions.setLayoutData(gridData);
@@ -69,7 +73,7 @@ public class ActionPane implements TemplateComposer {
         actions.addListener(SWT.Selection, event -> {
             final TreeItem treeItem = (TreeItem) event.item;
 
-            final Runnable action = (Runnable) treeItem.getData(ACTION_EVENT_CALL_KEY);
+            final Action action = (Action) treeItem.getData(ACTION_EVENT_CALL_KEY);
             action.run();
 
             if (!treeItem.isDisposed()) {
@@ -82,12 +86,16 @@ public class ActionPane implements TemplateComposer {
                 new ActionPublishEventListener() {
                     @Override
                     public void notify(final ActionPublishEvent event) {
+
                         final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                                 actions,
-                                event.actionDefinition.name);
-                        actionItem.setImage(event.actionDefinition.icon.getImage(composerCtx.getParent().getDisplay()));
-                        actionItem.setData(ACTION_EVENT_CALL_KEY,
-                                new SafeActionExecution(composerCtx, event, event.run));
+                                event.action.definition.name);
+
+                        actionItem.setImage(event.action.definition.icon.getImage(
+                                pageContext.getParent().getDisplay()));
+
+                        actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
+
                     }
                 });
 

@@ -25,6 +25,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
@@ -42,7 +43,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.RWTUtils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -57,9 +57,27 @@ public class WidgetFactory {
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
+    public enum CustomVariant {
+        TEXT_H1("h1"),
+        TEXT_H2("h2"),
+        TEXT_H3("h3"),
+        TEXT_ACTION("action"),
+
+        FOOTER("footer"),
+
+        ;
+
+        public final String key;
+
+        private CustomVariant(final String key) {
+            this.key = key;
+        }
+    }
+
     public enum IconButtonType {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
+        MODIFY_ACTION("editAction.png"),
         SAVE_ACTION("saveAction.png"),
         NEW_ACTION("newAction.png"),
         DELETE_ACTION("deleteAction.png"),
@@ -108,10 +126,10 @@ public class WidgetFactory {
         return button;
     }
 
-    public Button buttonLocalized(final Composite parent, final String style, final String locTextKey) {
+    public Button buttonLocalized(final Composite parent, final CustomVariant variant, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
         this.injectI18n(button, new LocTextKey(locTextKey));
-        button.setData(RWT.CUSTOM_VARIANT, style);
+        button.setData(RWT.CUSTOM_VARIANT, variant.key);
         return button;
     }
 
@@ -133,10 +151,10 @@ public class WidgetFactory {
         return label;
     }
 
-    public Label labelLocalized(final Composite parent, final String style, final LocTextKey locTextKey) {
+    public Label labelLocalized(final Composite parent, final CustomVariant variant, final LocTextKey locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
         this.injectI18n(label, locTextKey);
-        label.setData(RWT.CUSTOM_VARIANT, style);
+        label.setData(RWT.CUSTOM_VARIANT, variant.key);
         return label;
     }
 
@@ -152,24 +170,24 @@ public class WidgetFactory {
 
     public Label labelLocalized(
             final Composite parent,
-            final String style,
+            final CustomVariant variant,
             final LocTextKey locTextKey,
             final LocTextKey locToolTextKey) {
 
         final Label label = new Label(parent, SWT.NONE);
         this.injectI18n(label, locTextKey, locToolTextKey);
-        label.setData(RWT.CUSTOM_VARIANT, style);
+        label.setData(RWT.CUSTOM_VARIANT, variant.key);
         return label;
     }
 
     public Label labelLocalizedTitle(final Composite content, final LocTextKey locTextKey) {
-        final Label labelLocalized = labelLocalized(content, RWTUtils.TEXT_NAME_H2, locTextKey);
+        final Label labelLocalized = labelLocalized(content, CustomVariant.TEXT_H1, locTextKey);
         labelLocalized.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
         return labelLocalized;
     }
 
     public Tree treeLocalized(final Composite parent, final int style) {
-        final Tree tree = new Tree(parent, SWT.SINGLE | SWT.FULL_SELECTION);
+        final Tree tree = new Tree(parent, style);
         this.injectI18n(tree);
         return tree;
     }
@@ -378,6 +396,16 @@ public class WidgetFactory {
             languageSelection.addListener(SWT.MouseDown, event -> {
                 this.polyglotPageService.setPageLocale(composerCtx.getRoot(), locale);
             });
+        }
+    }
+
+    public static void clearComposite(final Composite parent) {
+        if (parent == null) {
+            return;
+        }
+
+        for (final Control control : parent.getChildren()) {
+            control.dispose();
         }
     }
 

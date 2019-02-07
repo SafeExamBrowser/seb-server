@@ -13,10 +13,14 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.IconButtonType;
 public enum ActionDefinition {
 
     INSTITUTION_NEW(
-            "actions.new.institution",
+            "sebserver.institution.action.new",
             IconButtonType.NEW_ACTION),
 
     INSTITUTION_MODIFY(
+            "sebserver.institution.action.modify",
+            IconButtonType.MODIFY_ACTION),
+
+    INSTITUTION_SAVE(
             "actions.modify.institution",
             IconButtonType.SAVE_ACTION),
 

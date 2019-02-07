@@ -8,46 +8,16 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 
+/** This action is used to publish an Action to the Action-Pane for a specified context.
+ * The ActionPane is listening to this events and render specified actions on notify */
 public class ActionPublishEvent implements PageEvent {
 
-    public final ActionDefinition actionDefinition;
-    public final Runnable run;
-    public final String confirmationMessage;
-    public final String successMessage;
+    public final Action action;
 
-    public ActionPublishEvent(
-            final ActionDefinition actionDefinition,
-            final Runnable run) {
-
-        this(actionDefinition, run, null, null);
-    }
-
-    public ActionPublishEvent(
-            final ActionDefinition actionDefinition,
-            final Runnable run,
-            final String confirmationMessage) {
-
-        this(actionDefinition, run, confirmationMessage, null);
-    }
-
-    public ActionPublishEvent(
-            final ActionDefinition actionDefinition,
-            final Runnable run,
-            final String confirmationMessage,
-            final String successMessage) {
-
-        this.actionDefinition = actionDefinition;
-        this.run = run;
-        this.confirmationMessage = confirmationMessage;
-        this.successMessage = successMessage;
-    }
-
-    @Override
-    public String toString() {
-        return "ActionPublishEvent [actionDefinition=" + this.actionDefinition + ", confirmationMessage="
-                + this.confirmationMessage + ", successMessage=" + this.successMessage + "]";
+    public ActionPublishEvent(final Action action) {
+        this.action = action;
     }
 
 }

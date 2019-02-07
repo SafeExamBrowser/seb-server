@@ -56,6 +56,11 @@ public class EntityName implements ModelIdAware, ModelNameAware {
         return this.modelId;
     }
 
+    @JsonIgnore
+    public EntityKey getEntityKey() {
+        return new EntityKey(getModelId(), getEntityType());
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

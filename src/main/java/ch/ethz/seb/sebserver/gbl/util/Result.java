@@ -88,6 +88,12 @@ public final class Result<T> {
         }
     }
 
+    public void handleError(final Consumer<Throwable> errorHandler) {
+        if (this.error != null) {
+            errorHandler.accept(this.error);
+        }
+    }
+
     /** Use this to get the resulting value or (if null) to get a given other value
      *
      * @param other the other value to get if the computed value is null

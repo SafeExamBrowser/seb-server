@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page.activity;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -28,18 +26,18 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.impl.MainPageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -76,7 +74,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         final Label activities = this.widgetFactory.labelLocalized(
                 pageContext.getParent(),
-                "h3",
+                CustomVariant.TEXT_H2,
                 new LocTextKey("sebserver.activitiespane.title"));
         final GridData activitiesGridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         activitiesGridData.horizontalIndent = 20;
@@ -88,10 +86,10 @@ public class ActivitiesPane implements TemplateComposer {
         navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
 
-        final List<EntityName> insitutionNames = this.restService
-                .getBuilder(GetInstitutionNames.class)
-                .call()
-                .get(pageContext::notifyError, () -> Collections.emptyList());
+//        final List<EntityName> insitutionNames = this.restService
+//                .getBuilder(GetInstitutionNames.class)
+//                .call()
+//                .get(pageContext::notifyError, () -> Collections.emptyList());
 
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
@@ -100,12 +98,17 @@ public class ActivitiesPane implements TemplateComposer {
                     Activity.INSTITUTION_ROOT.title);
             ActivitySelection.inject(institutions, Activity.INSTITUTION_ROOT.createSelection());
 
-            for (final EntityName inst : insitutionNames) {
-                createInstitutionItem(institutions, inst);
-            }
+//            for (final EntityName inst : insitutionNames) {
+//                createInstitutionItem(institutions, inst);
+//            }
         } else {
-            final EntityName inst = insitutionNames.iterator().next();
-            createInstitutionItem(navigation, inst);
+            // institution node as none root
+            final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    Activity.INSTITUTION_ROOT.title);
+            ActivitySelection.inject(institutions, Activity.INSTITUTION_NODE.createSelection());
+//            final EntityName inst = insitutionNames.iterator().next();
+//            createInstitutionItem(navigation, inst);
         }
 
 //        final TreeItem user = this.widgetFactory.treeItemLocalized(
@@ -222,21 +225,25 @@ public class ActivitiesPane implements TemplateComposer {
         }
     }
 
-    static TreeItem createInstitutionItem(final Tree parent, final EntityName idAndName) {
+    static TreeItem createInstitutionItem(final Tree parent, final EntityName entityName) {
         final TreeItem institution = new TreeItem(parent, SWT.NONE);
-        createInstitutionItem(idAndName, institution);
+        createInstitutionItem(entityName, institution);
         return institution;
     }
 
-    static TreeItem createInstitutionItem(final TreeItem parent, final EntityName idAndName) {
+    static TreeItem createInstitutionItem(final TreeItem parent, final EntityName entityName) {
         final TreeItem institution = new TreeItem(parent, SWT.NONE);
-        createInstitutionItem(idAndName, institution);
+        createInstitutionItem(entityName, institution);
         return institution;
     }
 
-    static void createInstitutionItem(final EntityName idAndName, final TreeItem institution) {
-        institution.setText(idAndName.name);
-        ActivitySelection.inject(institution, Activity.INSTITUTION_NODE.createSelection(idAndName));
+    static void createInstitutionItem(final EntityName entityName, final TreeItem institution) {
+        institution.setText(entityName.name);
+        ActivitySelection.inject(
+                institution,
+                Activity.INSTITUTION_NODE
+                        .createSelection()
+                        .withEntity(entityName.getEntityKey()));
     }
 
     static final TreeItem findItemByActivity(
@@ -250,7 +257,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         for (final TreeItem item : items) {
             final ActivitySelection activitySelection = ActivitySelection.get(item);
-            final String id = activitySelection.getObjectIdentifier();
+            final String id = activitySelection.getEntityId();
             if (activitySelection != null && activitySelection.activity == activity &&
                     (id == null || (objectId != null && objectId.equals(id)))) {
                 return item;

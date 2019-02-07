@@ -37,4 +37,8 @@ public class RestCallError extends RuntimeException implements APIMessageError {
         return !this.errors.isEmpty();
     }
 
+    @Override
+    public String toString() {
+        return "RestCallError [errors=" + this.errors + "]";
+    }
 }

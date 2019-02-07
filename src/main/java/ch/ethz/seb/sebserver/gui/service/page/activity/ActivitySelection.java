@@ -8,11 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.activity;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.eclipse.swt.widgets.TreeItem;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -30,7 +33,7 @@ public class ActivitySelection {
     };
 
     public enum Activity {
-        NONE(TODOTemplate.class, TODOTemplate.class, (String) null),
+        NONE(TODOTemplate.class, TODOTemplate.class),
         INSTITUTION_ROOT(
                 InstitutionList.class,
                 ActionPane.class,
@@ -38,7 +41,7 @@ public class ActivitySelection {
         INSTITUTION_NODE(
                 TODOTemplate.class,
                 ActionPane.class,
-                AttributeKeys.INSTITUTION_ID),
+                new LocTextKey("sebserver.activities.inst")),
 //
 //        USERS(UserAccountsForm.class, ActionPane.class),
 //
@@ -55,7 +58,7 @@ public class ActivitySelection {
         public final LocTextKey title;
         public final Class<? extends TemplateComposer> contentPaneComposer;
         public final Class<? extends TemplateComposer> actionPaneComposer;
-        public final String objectIdentifierAttribute;
+        //public final String modelIdAttribute;
 
         private Activity(
                 final Class<? extends TemplateComposer> objectPaneComposer,
@@ -65,43 +68,54 @@ public class ActivitySelection {
             this.title = title;
             this.contentPaneComposer = objectPaneComposer;
             this.actionPaneComposer = selectionPaneComposer;
-            this.objectIdentifierAttribute = null;
         }
 
         private Activity(
                 final Class<? extends TemplateComposer> objectPaneComposer,
-                final Class<? extends TemplateComposer> selectionPaneComposer,
-                final String objectIdentifierAttribute) {
+                final Class<? extends TemplateComposer> selectionPaneComposer) {
 
             this.title = null;
             this.contentPaneComposer = objectPaneComposer;
             this.actionPaneComposer = selectionPaneComposer;
-            this.objectIdentifierAttribute = objectIdentifierAttribute;
         }
 
         public final ActivitySelection createSelection() {
             return new ActivitySelection(this);
-        }
-
-        public final ActivitySelection createSelection(final EntityName entityName) {
-            return new ActivitySelection(this, entityName);
         }
     }
 
     private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
 
     public final Activity activity;
-    public final EntityName entityName;
+    final Map<String, String> attributes;
     Consumer<TreeItem> expandFunction = EMPTY_FUNCTION;
 
     ActivitySelection(final Activity activity) {
-        this(activity, null);
+        this.activity = activity;
+        this.attributes = new HashMap<>();
     }
 
-    ActivitySelection(final Activity activity, final EntityName entityName) {
-        this.activity = activity;
-        this.entityName = entityName;
-        this.expandFunction = EMPTY_FUNCTION;
+    public ActivitySelection withEntity(final EntityKey entityKey) {
+        if (entityKey != null) {
+            this.attributes.put(AttributeKeys.ATTR_ENTITY_ID, entityKey.modelId);
+            this.attributes.put(AttributeKeys.ATTR_ENTITY_TYPE, entityKey.entityType.name());
+        }
+
+        return this;
+
+    }
+
+    public ActivitySelection withParentEntity(final EntityKey parentEntityKey) {
+        if (parentEntityKey != null) {
+            this.attributes.put(AttributeKeys.ATTR_PARENT_ENTITY_ID, parentEntityKey.modelId);
+            this.attributes.put(AttributeKeys.ATTR_PARENT_ENTITY_TYPE, parentEntityKey.entityType.name());
+        }
+
+        return this;
+    }
+
+    public Map<String, String> getAttributes() {
+        return Collections.unmodifiableMap(this.attributes);
     }
 
     public ActivitySelection withExpandFunction(final Consumer<TreeItem> expandFunction) {
@@ -112,44 +126,12 @@ public class ActivitySelection {
         return this;
     }
 
-    public String getObjectIdentifier() {
-        if (this.entityName == null) {
-            return null;
-        }
-
-        return this.entityName.modelId;
-    }
-
     public void processExpand(final TreeItem item) {
         this.expandFunction.accept(item);
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.activity == null) ? 0 : this.activity.hashCode());
-        result = prime * result + ((this.entityName == null) ? 0 : this.entityName.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final ActivitySelection other = (ActivitySelection) obj;
-        if (this.activity != other.activity)
-            return false;
-        if (this.entityName == null) {
-            if (other.entityName != null)
-                return false;
-        } else if (!this.entityName.equals(other.entityName))
-            return false;
-        return true;
+    public String getEntityId() {
+        return this.attributes.get(AttributeKeys.ATTR_ENTITY_ID);
     }
 
     public static ActivitySelection get(final TreeItem item) {

@@ -23,11 +23,11 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitiesPane;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.IconButtonType;
 
@@ -128,9 +128,9 @@ public class SEBMainPage implements TemplateComposer {
                     public void notify(final ActivitySelectionEvent event) {
                         pageContext.composerService().compose(
                                 event.selection.activity.contentPaneComposer,
-                                pageContext.copyOf(contentObjects).withAttr(
-                                        event.selection.activity.objectIdentifierAttribute,
-                                        event.selection.getObjectIdentifier()));
+                                pageContext
+                                        .copyOf(contentObjects)
+                                        .withSelection(event.selection));
                     }
                 });
 
@@ -150,9 +150,9 @@ public class SEBMainPage implements TemplateComposer {
                     public void notify(final ActivitySelectionEvent event) {
                         pageContext.composerService().compose(
                                 event.selection.activity.actionPaneComposer,
-                                pageContext.copyOf(actionPane).withAttr(
-                                        event.selection.activity.objectIdentifierAttribute,
-                                        event.selection.getObjectIdentifier()));
+                                pageContext
+                                        .copyOf(actionPane)
+                                        .withSelection(event.selection));
                     }
                 });
 

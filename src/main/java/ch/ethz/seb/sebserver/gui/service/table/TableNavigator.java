@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gui.service.RWTUtils;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 
 public class TableNavigator extends Composite {
 
@@ -39,7 +39,7 @@ public class TableNavigator extends Composite {
 
     public Page<?> update(final Page<?> pageData) {
         // clear all
-        RWTUtils.clearComposite(this);
+        WidgetFactory.clearComposite(this);
 
         final int pageNumber = pageData.getPageNumber();
         final int numberOfPages = pageData.getNumberOfPages();

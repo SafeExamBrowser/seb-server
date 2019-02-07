@@ -8,9 +8,47 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.action;
 
-public interface InstitutionActions {
+import static ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity.INSTITUTION_NODE;
 
-//    /** Use this higher-order function to create a new Institution action Runnable.
+import java.util.Collection;
+import java.util.function.Function;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
+import ch.ethz.seb.sebserver.gui.service.table.EntityTable;
+
+public final class InstitutionActions {
+
+    public static Result<?> newInstitution(final Action action) {
+        return action.restService
+                .getBuilder(NewInstitution.class)
+                .call();
+    }
+
+    public static Function<Action, Result<?>> editInstitution(final EntityTable<?> fromTable) {
+        return action -> {
+            final Collection<String> selection = fromTable.getSelection();
+            if (selection.isEmpty()) {
+                return Result.ofError(new PageMessageException("sebserver.institution.info.pleaseSelect"));
+            }
+
+            final EntityKey entityKey = new EntityKey(
+                    selection.iterator().next(),
+                    EntityType.INSTITUTION);
+            action.pageContext.publishPageEvent(new ActivitySelectionEvent(
+                    INSTITUTION_NODE
+                            .createSelection()
+                            .withEntity(entityKey)));
+
+            return Result.of(entityKey);
+        };
+    }
+
+//    /** Use this higher-order function to create a new Institution action function.
 //     *
 //     * @return */
 //    static Runnable newInstitution(final PageContext composerCtx, final RestServices restServices) {
@@ -23,7 +61,7 @@ public interface InstitutionActions {
 //        };
 //    }
 //
-//    /** Use this higher-order function to create a delete Institution action Runnable.
+//    /** Use this higher-order function to create a delete Institution action function.
 //     *
 //     * @return */
 //    static Runnable deleteInstitution(final PageContext composerCtx, final RestServices restServices,

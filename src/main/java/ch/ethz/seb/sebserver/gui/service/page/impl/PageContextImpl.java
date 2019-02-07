@@ -29,8 +29,13 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
+import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.widget.Message;
 
 public class PageContextImpl implements PageContext {
@@ -39,6 +44,7 @@ public class PageContextImpl implements PageContext {
 
     private static final ListenerComparator LIST_COMPARATOR = new ListenerComparator();
 
+    private final RestService restService;
     private final I18nSupport i18nSupport;
     private final ComposerService composerService;
     private final Composite root;
@@ -46,12 +52,14 @@ public class PageContextImpl implements PageContext {
     private final Map<String, String> attributes;
 
     PageContextImpl(
+            final RestService restService,
             final I18nSupport i18nSupport,
             final ComposerService composerService,
             final Composite root,
             final Composite parent,
             final Map<String, String> attributes) {
 
+        this.restService = restService;
         this.i18nSupport = i18nSupport;
         this.composerService = composerService;
         this.root = root;
@@ -86,6 +94,7 @@ public class PageContextImpl implements PageContext {
     @Override
     public PageContext copyOf(final Composite parent) {
         return new PageContextImpl(
+                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -99,6 +108,7 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.putAll(((PageContextImpl) otherContext).attributes);
         return new PageContextImpl(
+                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -112,10 +122,31 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.put(key, value);
         return new PageContextImpl(
+                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
-                this.parent, attrs);
+                this.parent,
+                attrs);
+    }
+
+    @Override
+    public PageContext withSelection(final ActivitySelection selection) {
+        if (selection == null) {
+            return this;
+        }
+
+        final Map<String, String> attrs = new HashMap<>();
+        attrs.putAll(this.attributes);
+        attrs.putAll(selection.getAttributes());
+
+        return new PageContextImpl(
+                this.restService,
+                this.i18nSupport,
+                this.composerService,
+                this.root,
+                this.parent,
+                attrs);
     }
 
     @Override
@@ -158,6 +189,11 @@ public class PageContextImpl implements PageContext {
         listeners.stream()
                 .sorted(LIST_COMPARATOR)
                 .forEach(listener -> listener.notify(event));
+    }
+
+    @Override
+    public Action createAction(final ActionDefinition actionDefinition) {
+        return new Action(actionDefinition, this, this.restService);
     }
 
     @Override
@@ -210,6 +246,17 @@ public class PageContextImpl implements PageContext {
     @Override
     public void forwardToLoginPage(final PageContext pageContext) {
         forwardToPage(this.composerService.loginPage(), pageContext);
+    }
+
+    @Override
+    public void publishPageMessage(final PageMessageException pme) {
+        final MessageBox messageBox = new Message(
+                getShell(),
+                this.i18nSupport.getText("sebserver.page.message"),
+                this.i18nSupport.getText(pme.getMessage()),
+                SWT.NONE);
+        messageBox.setMarkupEnabled(true);
+        messageBox.open(null);
     }
 
     @Override

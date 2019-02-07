@@ -95,7 +95,7 @@ public final class LmsSetupTestResult {
     }
 
     public static final LmsSetupTestResult ofQuizRequestError(final String message) {
-        return new LmsSetupTestResult(false, null, null, message);
+        return new LmsSetupTestResult(false, Collections.emptyList(), null, message);
     }
 
 }

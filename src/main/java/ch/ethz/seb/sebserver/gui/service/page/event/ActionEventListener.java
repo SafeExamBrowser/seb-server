@@ -13,7 +13,6 @@ import java.util.function.Predicate;
 
 import org.eclipse.swt.widgets.Widget;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 
 public interface ActionEventListener extends PageEventListener<ActionEvent> {

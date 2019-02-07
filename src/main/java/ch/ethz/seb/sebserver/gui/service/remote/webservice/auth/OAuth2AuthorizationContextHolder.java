@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,9 +26,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.AccessTokenRequest;
@@ -162,6 +165,14 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
             this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
             this.restTemplate.setRequestFactory(clientHttpRequestFactory);
+            this.restTemplate.setErrorHandler(new OAuth2ErrorHandler(this.resource) {
+                @Override
+                public boolean hasError(final ClientHttpResponse response) throws IOException {
+                    final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
+                    return (statusCode != null && statusCode.series() == HttpStatus.Series.SERVER_ERROR);
+                }
+
+            });
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();

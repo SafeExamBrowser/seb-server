@@ -6,13 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.page.event;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
-public interface LogoutEventListener extends PageEventListener<LogoutEvent> {
+public interface FormBinding {
 
-    @Override
-    default boolean match(final Class<? extends PageEvent> eventType) {
-        return eventType == LogoutEvent.class;
-    }
+    String getFormAsJson();
 
 }

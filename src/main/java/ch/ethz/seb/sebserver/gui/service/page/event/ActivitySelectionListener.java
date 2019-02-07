@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageEventListener;
-
 public interface ActivitySelectionListener extends PageEventListener<ActivitySelectionEvent> {
 
     @Override

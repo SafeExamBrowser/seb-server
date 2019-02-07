@@ -20,13 +20,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.RWTUtils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 
 @Lazy
 @Service
@@ -40,17 +41,20 @@ public class ComposerServiceImpl implements ComposerService {
     private final Class<? extends PageDefinition> mainPageType = DefaultMainPage.class;
 
     final AuthorizationContextHolder authorizationContextHolder;
+    private final RestService restService;
     private final I18nSupport i18nSupport;
     private final Map<String, TemplateComposer> composer;
     private final Map<String, PageDefinition> pages;
 
     public ComposerServiceImpl(
             final AuthorizationContextHolder authorizationContextHolder,
+            final RestService restService,
             final I18nSupport i18nSupport,
             final Collection<TemplateComposer> composer,
             final Collection<PageDefinition> pageDefinitions) {
 
         this.authorizationContextHolder = authorizationContextHolder;
+        this.restService = restService;
         this.i18nSupport = i18nSupport;
         this.composer = composer
                 .stream()
@@ -108,7 +112,7 @@ public class ComposerServiceImpl implements ComposerService {
 
         if (composer.validate(pageContext)) {
 
-            RWTUtils.clearComposite(pageContext.getParent());
+            WidgetFactory.clearComposite(pageContext.getParent());
 
             try {
                 composer.compose(pageContext);
@@ -169,8 +173,7 @@ public class ComposerServiceImpl implements ComposerService {
     }
 
     private PageContext createPageContext(final Composite root) {
-        return new PageContextImpl(
-                this.i18nSupport, this, root, root, null);
+        return new PageContextImpl(this.restService, this.i18nSupport, this, root, root, null);
     }
 
 }

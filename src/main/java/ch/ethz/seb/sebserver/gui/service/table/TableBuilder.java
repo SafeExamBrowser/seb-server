@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.table;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -41,7 +42,7 @@ public class TableBuilder<ROW extends Entity> {
     final List<TableRowAction> actions = new ArrayList<>();
 
     private int pageSize = -1;
-    private boolean selectableRows = false;
+    private int type = SWT.NONE;
 
     public TableBuilder(
             final WidgetFactory widgetFactory,
@@ -61,13 +62,13 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
-    public TableBuilder<ROW> withSelectableRows() {
-        this.selectableRows = true;
+    public TableBuilder<ROW> withAction(final TableRowAction action) {
+        this.actions.add(action);
         return this;
     }
 
-    public TableBuilder<ROW> withAction(final TableRowAction action) {
-        this.actions.add(action);
+    public TableBuilder<ROW> withMultiselection() {
+        this.type |= SWT.MULTI;
         return this;
     }
 
@@ -79,14 +80,14 @@ public class TableBuilder<ROW extends Entity> {
                 .isPresent();
 
         return new EntityTable<>(
+                this.type,
                 parent,
                 this.restCall,
                 this.widgetFactory,
                 this.columns,
                 this.actions,
                 this.pageSize,
-                withFilter,
-                this.selectableRows);
+                withFilter);
     }
 
 }

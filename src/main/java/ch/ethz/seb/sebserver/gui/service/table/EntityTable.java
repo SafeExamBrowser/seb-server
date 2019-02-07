@@ -8,7 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.service.table;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -46,8 +50,6 @@ public class EntityTable<ROW extends Entity> extends Composite {
     private final Table table;
     private final TableNavigator navigator;
 
-    private final boolean selectableRows;
-
     private int pageNumber = 1;
     private int pageSize;
     private String sortColumn = null;
@@ -56,31 +58,34 @@ public class EntityTable<ROW extends Entity> extends Composite {
     private boolean columnsWithSameWidth = true;
 
     EntityTable(
+            final int type,
             final Composite parent,
             final RestCall<Page<ROW>> restCall,
             final WidgetFactory widgetFactory,
             final List<ColumnDefinition<ROW>> columns,
             final List<TableRowAction> actions,
             final int pageSize,
-            final boolean withFilter,
-            final boolean selectableRows) {
+            final boolean withFilter) {
 
-        super(parent, SWT.NONE);
+        super(parent, type);
         this.widgetFactory = widgetFactory;
         this.restCall = restCall;
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
 
         super.setLayout(new GridLayout());
-        super.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+
+        gridData.heightHint = (pageSize + 1) * 40;
+        super.setLayoutData(gridData);
 
         this.pageSize = pageSize;
         this.filter = (withFilter) ? new TableFilter<>(this) : null;
-        this.selectableRows = selectableRows;
 
         this.table = widgetFactory.tableLocalized(this);
         this.table.setLayout(new GridLayout(columns.size(), true));
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.heightHint = (pageSize + 1) * 25;
         this.table.setLayoutData(gridData);
         this.table.addListener(SWT.Resize, this::adaptColumnWidth);
 
@@ -148,6 +153,18 @@ public class EntityTable<ROW extends Entity> extends Composite {
                 this.sortOrder);
     }
 
+    public Collection<String> getSelection() {
+        final TableItem[] selection = this.table.getSelection();
+        if (selection == null) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.asList(selection)
+                .stream()
+                .map(this::getRowDataId)
+                .collect(Collectors.toList());
+    }
+
     private void createTableColumns() {
         for (final ColumnDefinition<ROW> column : this.columns) {
             final TableColumn tableColumn = this.widgetFactory.tableColumnLocalized(
@@ -204,9 +221,6 @@ public class EntityTable<ROW extends Entity> extends Composite {
             final TableItem item = new TableItem(this.table, SWT.NONE);
             item.setData(TABLE_ROW_DATA, row);
             int index = 0;
-            if (this.selectableRows) {
-                // TODO
-            }
             for (final ColumnDefinition<ROW> column : this.columns) {
                 final Object value = column.valueSupplier.apply(row);
                 if (value instanceof Boolean) {
@@ -245,6 +259,15 @@ public class EntityTable<ROW extends Entity> extends Composite {
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private ROW getRowData(final TableItem item) {
+        return (ROW) item.getData(TABLE_ROW_DATA);
+    }
+
+    private String getRowDataId(final TableItem item) {
+        return getRowData(item).getModelId();
     }
 
 }

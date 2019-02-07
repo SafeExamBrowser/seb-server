@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -243,11 +244,17 @@ public class DefaultPageLayout implements TemplateComposer {
         rowLayout.marginRight = 20;
         footerRight.setLayout(rowLayout);
 
-        this.widgetFactory.labelLocalized(footerLeft, "footer", new LocTextKey("sebserver.overall.imprint"));
-        this.widgetFactory.labelLocalized(footerLeft, "footer", new LocTextKey("sebserver.overall.about"));
+        this.widgetFactory.labelLocalized(
+                footerLeft,
+                CustomVariant.FOOTER,
+                new LocTextKey("sebserver.overall.imprint"));
+        this.widgetFactory.labelLocalized(
+                footerLeft,
+                CustomVariant.FOOTER,
+                new LocTextKey("sebserver.overall.about"));
         this.widgetFactory.labelLocalized(
                 footerRight,
-                "footer",
+                CustomVariant.FOOTER,
                 new LocTextKey("sebserver.overall.version", this.sebServerVersion));
     }
 

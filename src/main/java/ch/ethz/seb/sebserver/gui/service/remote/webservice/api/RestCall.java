@@ -66,6 +66,9 @@ public abstract class RestCall<T> {
     }
 
     protected Result<T> exchange(final RestCallBuilder builder) {
+
+        log.debug("Call webservice API on {} for {}", this.path, builder);
+
         try {
             final ResponseEntity<String> responseEntity = RestCall.this.restService
                     .getWebserviceAPIRestTemplate()
@@ -90,6 +93,11 @@ public abstract class RestCall<T> {
                         responseEntity.getBody(),
                         new TypeReference<List<APIMessage>>() {
                         }));
+
+                log.debug(
+                        "Webservice answered with well defined error- or validation-failure-response: ",
+                        restCallError);
+
                 return Result.ofError(restCallError);
             }
 
@@ -102,7 +110,7 @@ public abstract class RestCall<T> {
                         new TypeReference<List<APIMessage>>() {
                         }));
             } catch (final Exception e) {
-                log.error("Unable to handle rest call error: ", e);
+                log.error("Unexpected error-response while webservice API call for: {}", builder, e);
             }
 
             return Result.ofError(restCallError);
@@ -180,6 +188,11 @@ public abstract class RestCall<T> {
             return this;
         }
 
+        public RestCallBuilder withFormBinding(final FormBinding formBinding) {
+            // TODO Auto-generated method stub
+            return this;
+        }
+
         public RestCallBuilder onlyActive(final boolean active) {
             this.queryParams.put(Entity.FILTER_ATTR_ACTIVE, Arrays.asList(String.valueOf(active)));
             return this;
@@ -202,6 +215,13 @@ public abstract class RestCall<T> {
             } else {
                 return new HttpEntity<>(this.httpHeaders);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "RestCallBuilder [httpHeaders=" + this.httpHeaders + ", body=" + this.body + ", queryParams="
+                    + this.queryParams
+                    + ", uriVariables=" + this.uriVariables + "]";
         }
 
     }

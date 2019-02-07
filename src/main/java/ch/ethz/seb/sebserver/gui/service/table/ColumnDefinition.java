@@ -43,6 +43,15 @@ public final class ColumnDefinition<ROW extends Entity> {
     public ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
+            final Function<ROW, Object> valueSupplier,
+            final boolean sortable) {
+
+        this(columnName, displayName, null, -1, valueSupplier, null, sortable);
+    }
+
+    public ColumnDefinition(
+            final String columnName,
+            final LocTextKey displayName,
             final LocTextKey tooltip,
             final int widthPercent,
             final Function<ROW, Object> valueSupplier,
