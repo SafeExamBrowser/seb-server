@@ -125,7 +125,10 @@ public abstract class AdministrationAPIIntegrationTester {
         }
 
         public RestAPITestHelper withPath(final String path) {
-            this.path = this.path + path;
+            if (path == null) {
+                return this;
+            }
+            this.path += (path.startsWith("/")) ? path : "/" + path;
             return this;
         }
 

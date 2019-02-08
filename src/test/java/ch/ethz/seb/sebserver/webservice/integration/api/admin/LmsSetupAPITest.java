@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -31,9 +33,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void testCreateModifyActivateDelete() throws Exception {
-        // Institutional admin 1 create a LMSSetup
-
-        // create new institution with seb-admin
+        // create new LmsSetup with seb-admin
         LmsSetup lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
@@ -194,6 +194,136 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(errors.size() == 1);
         assertEquals("Field validation error", errors.get(0).systemMessage);
         assertEquals("[lmsSetup, lmsType, notNull]", String.valueOf(errors.get(0).attributes));
+    }
+
+    @Test
+    public void getForIds() throws Exception {
+        // create some new LmsSetup with seb-admin
+        final LmsSetup lmsSetup1 = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+        final LmsSetup lmsSetup2 = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 2")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        final Collection<LmsSetup> lmsSetups = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(SEBServerRestEndpoints.LIST_ENDPOINT_SUFFIX)
+                .withAttribute("ids", lmsSetup1.id + "," + lmsSetup2.id)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<LmsSetup>>() {
+                });
+
+        assertNotNull(lmsSetups);
+        assertTrue(lmsSetups.size() == 2);
+    }
+
+    @Test
+    public void getNames() throws Exception {
+        // create some new LmsSetup with seb-admin
+        new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+        new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 2")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        final Collection<EntityName> lmsSetupNames = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<EntityName>>() {
+                });
+
+        assertNotNull(lmsSetupNames);
+        assertTrue(lmsSetupNames.size() == 2);
+    }
+
+    @Test
+    public void getById() throws Exception {
+        final Long id1 = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                }).id;
+
+        final Long id2 = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new LmsSetup 2")
+                .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "2")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                }).id;
+
+        LmsSetup lmsSetup = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(String.valueOf(id1))
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        assertNotNull(lmsSetup);
+        assertTrue(lmsSetup.id.longValue() == id1.longValue());
+
+        // a seb-admin is also able to get an institution that is not the one he self belongs to
+        lmsSetup = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(String.valueOf(id2))
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        assertNotNull(lmsSetup);
+        assertTrue(lmsSetup.id.longValue() == id2.longValue());
+
+        // but a institutional-admin is not able to get an institution that is not the one he self belongs to
+        new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(String.valueOf(id2))
+                .withExpectedStatus(HttpStatus.FORBIDDEN)
+                .getAsString();
     }
 
 }
