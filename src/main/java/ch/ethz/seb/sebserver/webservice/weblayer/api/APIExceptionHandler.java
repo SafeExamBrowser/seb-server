@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
@@ -137,6 +138,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(
                 Arrays.asList(ex.getAPIMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FieldValidationException.class)
+    public ResponseEntity<Object> handleFieldValidationException(
+            final FieldValidationException ex,
+            final WebRequest request) {
+
+        return new ResponseEntity<>(
+                Arrays.asList(ex.apiMessage),
                 HttpStatus.BAD_REQUEST);
     }
 

@@ -26,4 +26,8 @@ public class SEBServerRestEndpoints {
 
     public static final String LIST_ENDPOINT_SUFFIX = "/list";
 
+    public static final String ENDPOINT_ACTIVE = "/active";
+
+    public static final String ENDPOINT_INACTIVE = "/inactive";
+
 }

@@ -170,10 +170,12 @@ public final class Form implements FormBinding {
 
     //@formatter:off
     private FormFieldAccessor<?> createAccessor(final Label label, final Label field) {
-        return new FormFieldAccessor<>(label, field) {
+        final FormFieldAccessor<?> result =  new FormFieldAccessor<>(label, field) {
             @Override public String getValue() { return field.getText(); }
             @Override public void setValue(final String value) { field.setText(value); }
         };
+
+        return result;
     }
     private FormFieldAccessor<Text> createAccessor(final Label label, final Text text) {
         return new FormFieldAccessor<>(label, text) {

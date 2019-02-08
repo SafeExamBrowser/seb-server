@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -365,6 +368,37 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(institutions);
         assertTrue(institutions.size() == 3);
+    }
+
+    @Test
+    public void testlAllActiveInactive() throws Exception {
+        final String sebAdminToken = getSebAdminAccess();
+
+        Page<Institution> institutions = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_INSTITUTION + "/active")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<Institution>>() {
+                });
+
+        assertNotNull(institutions);
+        assertEquals("[1]", getOrderedUUIDs(institutions.content));
+
+        // all inactive of the own institution
+        institutions = this.jsonMapper.readValue(
+                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/inactive")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("Authorization", "Bearer " + sebAdminToken))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<Institution>>() {
+                });
+
+        assertNotNull(institutions);
+        assertTrue(institutions.pageSize == 0);
+        assertEquals("[]", getOrderedUUIDs(institutions.content));
     }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {

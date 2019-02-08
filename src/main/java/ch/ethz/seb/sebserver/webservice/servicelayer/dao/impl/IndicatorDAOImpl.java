@@ -77,27 +77,6 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Indicator>> all(final Long institutionId) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectByExample()
-                    .join(ExamRecordDynamicSqlSupport.examRecord)
-                    .on(
-                            ExamRecordDynamicSqlSupport.id,
-                            SqlBuilder.equalTo(IndicatorRecordDynamicSqlSupport.examId))
-                    .where(
-                            ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(institutionId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
-                    .collect(Collectors.toList());
-        });
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Indicator>> allMatching(final FilterMap filterMap, final Predicate<Indicator> predicate) {
         return Result.tryCatch(() -> {
             return this.indicatorRecordMapper.selectByExample()

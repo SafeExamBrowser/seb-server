@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -131,6 +132,16 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Institution> save(final String modelId, final Institution institution) {
         return Result.tryCatch(() -> {
 
+            final Long count = this.institutionRecordMapper.countByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(institution.name))
+                    .and(InstitutionRecordDynamicSqlSupport.id, isNotEqualTo(institution.id))
+                    .build()
+                    .execute();
+
+            if (count != null && count.longValue() > 0) {
+                throw new FieldValidationException("name", "institution:name:exists");
+            }
+
             final Long pk = Long.parseLong(modelId);
             final InstitutionRecord newRecord = new InstitutionRecord(
                     pk,
@@ -150,6 +161,16 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Transactional
     public Result<Institution> createNew(final Institution institution) {
         return Result.tryCatch(() -> {
+
+            final Long count = this.institutionRecordMapper.countByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(institution.name))
+                    .build()
+                    .execute();
+
+            if (count != null && count.longValue() > 0) {
+                throw new FieldValidationException("name", "institution:name:exists");
+            }
+
             final InstitutionRecord newRecord = new InstitutionRecord(
                     null,
                     institution.name,

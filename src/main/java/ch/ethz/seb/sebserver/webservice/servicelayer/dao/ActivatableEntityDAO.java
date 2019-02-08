@@ -32,19 +32,6 @@ public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> 
      * @return Result of Collection of Entity of the given institution and activity */
     Result<Collection<T>> all(Long institutionId, Boolean active);
 
-    /** Load all active entities of concrete type for the given institution
-     *
-     * NOTE: institutionId may be null. In that case this method uses a query to get all active entities of
-     * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
-     * using the <code>PaginationService</code> before calling this method
-     *
-     * @param institutionId the identifier of the institution.
-     * @return Result of Collection of Entity of the given institution */
-    @Override
-    default Result<Collection<T>> all(final Long institutionId) {
-        return all(institutionId, true);
-    }
-
     /** Set all entities referred by the given Collection of EntityKey active / inactive
      *
      * @param all The Collection of EntityKeys to set active or inactive

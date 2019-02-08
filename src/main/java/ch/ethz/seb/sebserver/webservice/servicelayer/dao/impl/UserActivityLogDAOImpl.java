@@ -281,40 +281,6 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> all(final Long institutionId) {
-
-        return Result.tryCatch(() -> {
-            if (institutionId == null) {
-                return this.userLogRecordMapper
-                        .selectByExample()
-                        .build()
-                        .execute()
-                        .stream()
-                        .map(UserActivityLogDAOImpl::toDomainModel)
-                        .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
-                        .collect(Collectors.toList());
-            } else {
-                return this.userLogRecordMapper
-                        .selectByExample()
-                        .join(UserRecordDynamicSqlSupport.userRecord)
-                        .on(
-                                UserRecordDynamicSqlSupport.uuid,
-                                SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
-                        .where(
-                                UserRecordDynamicSqlSupport.institutionId,
-                                SqlBuilder.isEqualTo(institutionId))
-                        .build()
-                        .execute()
-                        .stream()
-                        .map(UserActivityLogDAOImpl::toDomainModel)
-                        .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
-                        .collect(Collectors.toList());
-            }
-        });
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> loadEntities(final Collection<EntityKey> keys) {
         // TODO Auto-generated method stub
         return Result.ofTODO();

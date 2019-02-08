@@ -13,8 +13,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -42,6 +44,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -237,6 +240,14 @@ public abstract class AdministrationAPIIntegrationTester {
             }
             return sb.toString();
         }
+    }
+
+    protected String getOrderedUUIDs(final Collection<? extends Entity> list) {
+        return list
+                .stream()
+                .map(userInfo -> userInfo.getModelId())
+                .collect(Collectors.toList())
+                .toString();
     }
 
 }

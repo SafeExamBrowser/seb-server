@@ -341,14 +341,6 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("[user7, user6, user4]", getOrderedUUIDs(userInfos.content));
     }
 
-    private String getOrderedUUIDs(final Collection<UserInfo> list) {
-        return list
-                .stream()
-                .map(userInfo -> userInfo.uuid)
-                .collect(Collectors.toList())
-                .toString();
-    }
-
     @Test
     public void getAllUserInfo() throws Exception {
         final String token = getSebAdminAccess();
@@ -982,7 +974,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // all active for the own institution
         Page<UserInfo> usersPage = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/all/active")
+                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/active")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -996,7 +988,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // all inactive of the own institution
         usersPage = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/all/inactive")
+                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/inactive")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -1012,7 +1004,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         usersPage = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT
-                                + "/all/active?institutionId=2")
+                                + "/active?institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -1028,7 +1020,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         usersPage = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT
-                                + "/all/inactive?institutionId=2")
+                                + "/inactive?institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())

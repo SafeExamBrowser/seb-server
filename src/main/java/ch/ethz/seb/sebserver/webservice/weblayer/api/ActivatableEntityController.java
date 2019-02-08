@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -56,7 +57,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/all/active",
+            path = SEBServerRestEndpoints.ENDPOINT_ACTIVE,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -79,7 +80,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/all/inactive",
+            path = SEBServerRestEndpoints.ENDPOINT_INACTIVE,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -102,22 +103,22 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/{id}/active",
+            path = "/{modelId}" + SEBServerRestEndpoints.ENDPOINT_ACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntityProcessingReport activate(@PathVariable final String id) {
-        return setActive(id, true)
+    public EntityProcessingReport activate(@PathVariable final String modelId) {
+        return setActive(modelId, true)
                 .getOrThrow();
     }
 
     @RequestMapping(
-            value = "/{id}/inactive",
+            value = "/{modelId}" + SEBServerRestEndpoints.ENDPOINT_INACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntityProcessingReport deactivate(@PathVariable final String id) {
-        return setActive(id, false)
+    public EntityProcessingReport deactivate(@PathVariable final String modelId) {
+        return setActive(modelId, false)
                 .getOrThrow();
     }
 

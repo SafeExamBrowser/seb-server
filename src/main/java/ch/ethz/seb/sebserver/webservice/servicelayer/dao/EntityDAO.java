@@ -53,16 +53,6 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         }).flatMap(this::byPK);
     }
 
-    /** Use this to get a Collection of all entities of concrete type of the given institution.
-     *
-     * NOTE: institutionId may be null. In that case this method uses a query to get all entities of
-     * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
-     * using the <code>PaginationService</code> before calling this method
-     *
-     * @param institutionId the identifier of the institution.
-     * @return Result of Collection of Entity of the given institution */
-    Result<Collection<T>> all(Long institutionId);
-
     Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
 
     @Transactional(readOnly = true)

@@ -138,6 +138,11 @@ public class APIMessage implements Serializable {
         return ErrorMessage.FIELD_VALIDATION.of(error.toString(), args);
     }
 
+    public static APIMessage fieldValidationError(final String fieldName, final String defaultMessage) {
+        final String[] args = StringUtils.split(defaultMessage, ":");
+        return ErrorMessage.FIELD_VALIDATION.of(fieldName, args);
+    }
+
     public static String toHTML(final Collection<APIMessage> messages) {
         final StringBuilder builder = new StringBuilder();
         builder.append("<b>Messages:</b><br/><br/>");
@@ -179,6 +184,17 @@ public class APIMessage implements Serializable {
 
         public APIMessage getAPIMessage() {
             return this.apiMessage;
+        }
+    }
+
+    public static class FieldValidationException extends RuntimeException {
+
+        private static final long serialVersionUID = 3324566460573096815L;
+
+        public final APIMessage apiMessage;
+
+        public FieldValidationException(final String fieldName, final String defaultMessage) {
+            this.apiMessage = APIMessage.fieldValidationError(fieldName, defaultMessage);
         }
     }
 
