@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -335,6 +336,35 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(error);
         assertTrue(error.size() > 0);
         assertEquals("Resource INSTITUTION with ID: 4 not found", error.get(0).details);
+    }
+
+    @Test
+    public void getForIds() throws Exception {
+        final Collection<Institution> institutions = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.LIST_ENDPOINT_SUFFIX)
+                .withAttribute("ids", "1,2,3")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<Institution>>() {
+                });
+
+        assertNotNull(institutions);
+        assertTrue(institutions.size() == 3);
+    }
+
+    @Test
+    public void getNames() throws Exception {
+        final Collection<EntityName> institutions = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(SEBServerRestEndpoints.ENDPOINT_INSTITUTION)
+                .withPath(SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<EntityName>>() {
+                });
+
+        assertNotNull(institutions);
+        assertTrue(institutions.size() == 3);
     }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {

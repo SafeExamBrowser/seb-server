@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -120,7 +121,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = "/names",
+            path = SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -168,16 +169,19 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = "/list",
+            path = SEBServerRestEndpoints.LIST_ENDPOINT_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<T> getForIds(@RequestParam(name = "ids", required = true) final String ids) {
+
         return Result.tryCatch(() -> {
+
             return Arrays.asList(StringUtils.split(ids, Constants.LIST_SEPARATOR_CHAR))
                     .stream()
                     .map(modelId -> new EntityKey(modelId, this.entityDAO.entityType()))
                     .collect(Collectors.toList());
+
         })
                 .flatMap(this.entityDAO::loadEntities)
                 .getOrThrow()
@@ -274,17 +278,17 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = "/{id}",
+            path = "/{modelId}",
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntityProcessingReport hardDelete(@PathVariable final String id) {
+    public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
         final EntityType entityType = this.entityDAO.entityType();
         final BulkAction bulkAction = new BulkAction(
                 Type.HARD_DELETE,
                 entityType,
-                new EntityKey(id, entityType));
+                new EntityKey(modelId, entityType));
 
-        return this.entityDAO.byModelId(id)
+        return this.entityDAO.byModelId(modelId)
                 .flatMap(entity -> this.authorizationGrantService.checkGrantOnEntity(
                         entity,
                         PrivilegeType.WRITE))

@@ -24,4 +24,6 @@ public class SEBServerRestEndpoints {
 
     public static final String NAMES_ENDPOINT_SUFFIX = "/names";
 
+    public static final String LIST_ENDPOINT_SUFFIX = "/list";
+
 }
