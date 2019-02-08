@@ -35,7 +35,7 @@ public final class Form implements FormBinding {
     private final JSONMapper jsonMapper;
     private final ObjectNode objectRoot;
 
-    private final Map<String, FormFieldAccessor<?>> formFields = new LinkedHashMap<>();
+    private final Map<String, FormFieldAccessor> formFields = new LinkedHashMap<>();
     private final Map<String, Form> subForms = new LinkedHashMap<>();
     private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
@@ -56,7 +56,7 @@ public final class Form implements FormBinding {
     }
 
     public String getValue(final String name) {
-        final FormFieldAccessor<?> formFieldAccessor = this.formFields.get(name);
+        final FormFieldAccessor formFieldAccessor = this.formFields.get(name);
         if (formFieldAccessor != null) {
             return formFieldAccessor.getValue();
         }
@@ -132,7 +132,7 @@ public final class Form implements FormBinding {
 
     public void process(
             final Predicate<String> nameFilter,
-            final Consumer<FormFieldAccessor<?>> processor) {
+            final Consumer<FormFieldAccessor> processor) {
 
         this.formFields.entrySet()
                 .stream()
@@ -142,8 +142,8 @@ public final class Form implements FormBinding {
     }
 
     public void flush() {
-        for (final Map.Entry<String, FormFieldAccessor<?>> entry : this.formFields.entrySet()) {
-            final FormFieldAccessor<?> accessor = entry.getValue();
+        for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
+            final FormFieldAccessor accessor = entry.getValue();
             if (accessor.control.isVisible()) {
                 this.objectRoot.put(entry.getKey(), accessor.getValue());
             }
@@ -169,38 +169,36 @@ public final class Form implements FormBinding {
     }
 
     //@formatter:off
-    private FormFieldAccessor<?> createAccessor(final Label label, final Label field) {
-        final FormFieldAccessor<?> result =  new FormFieldAccessor<>(label, field) {
+    private FormFieldAccessor createAccessor(final Label label, final Label field) {
+        return  new FormFieldAccessor(label, field) {
             @Override public String getValue() { return field.getText(); }
             @Override public void setValue(final String value) { field.setText(value); }
         };
-
-        return result;
     }
-    private FormFieldAccessor<Text> createAccessor(final Label label, final Text text) {
-        return new FormFieldAccessor<>(label, text) {
+    private FormFieldAccessor createAccessor(final Label label, final Text text) {
+        return new FormFieldAccessor(label, text) {
             @Override public String getValue() { return text.getText(); }
             @Override public void setValue(final String value) { text.setText(value); }
         };
     }
-    private FormFieldAccessor<SingleSelection> createAccessor(
+    private FormFieldAccessor createAccessor(
             final Label label,
             final SingleSelection singleSelection) {
 
-        return new FormFieldAccessor<>(label, singleSelection) {
+        return new FormFieldAccessor(label, singleSelection) {
             @Override public String getValue() { return singleSelection.getSelectionValue(); }
             @Override public void setValue(final String value) { singleSelection.select(value); }
         };
     }
     //@formatter:on
 
-    public static abstract class FormFieldAccessor<T extends Control> {
+    public static abstract class FormFieldAccessor {
 
         public final Label label;
-        public final T control;
+        public final Control control;
         private boolean hasError;
 
-        public FormFieldAccessor(final Label label, final T control) {
+        public FormFieldAccessor(final Label label, final Control control) {
             this.label = label;
             this.control = control;
         }

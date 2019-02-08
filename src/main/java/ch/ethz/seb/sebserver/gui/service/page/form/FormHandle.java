@@ -75,7 +75,7 @@ public class FormHandle<T> {
     }
 
     private final void showValidationError(
-            final FormFieldAccessor<?> fieldAccessor,
+            final FormFieldAccessor fieldAccessor,
             final FieldValidationError valError) {
 
         fieldAccessor.setError(this.i18nSupport.getText(new LocTextKey(
