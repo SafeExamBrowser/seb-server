@@ -40,6 +40,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.DevGuiProfile;
 import ch.ethz.seb.sebserver.gbl.profile.DevWebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -80,7 +81,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     public void configure(final WebSecurity web) {
         web
                 .ignoring()
-                .antMatchers("/error");
+                .antMatchers("/error")
+                .antMatchers(API.LOGO_ENDPOINT + "/*");
     }
 
     @RequestMapping("/error")

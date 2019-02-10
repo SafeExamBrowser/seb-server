@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Component
@@ -21,7 +21,7 @@ public class WebserviceURIService {
 
     private static final String OAUTH_TOKEN_URI_PATH = "oauth/token"; // TODO to config properties?
     private static final String OAUTH_REVOKE_TOKEN_URI_PATH = "/oauth/revoke-token"; // TODO to config properties?
-    private static final String CURRENT_USER_URI_PATH = SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT + "/me";
+    private static final String CURRENT_USER_URI_PATH = API.USER_ACCOUNT_ENDPOINT + "/me";
 
     private final String webserviceServerAddress;
     private final UriComponentsBuilder webserviceURIBuilder;
@@ -37,6 +37,10 @@ public class WebserviceURIService {
                 .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAdress)
                 .port(webserviceServerPort)
                 .path(webserviceAPIPath);
+    }
+
+    public String getWebserviceServerAddress() {
+        return this.webserviceServerAddress;
     }
 
     public UriComponentsBuilder getBuilder() {

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -57,7 +57,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = SEBServerRestEndpoints.ENDPOINT_ACTIVE,
+            path = API.ACTIVE_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -80,7 +80,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = SEBServerRestEndpoints.ENDPOINT_INACTIVE,
+            path = API.INACTIVE_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -103,7 +103,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/{modelId}" + SEBServerRestEndpoints.ENDPOINT_ACTIVE,
+            path = "/{modelId}" + API.ACTIVE_SUFFIX,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -113,7 +113,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            value = "/{modelId}" + SEBServerRestEndpoints.ENDPOINT_INACTIVE,
+            value = "/{modelId}" + API.INACTIVE_SUFFIX,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

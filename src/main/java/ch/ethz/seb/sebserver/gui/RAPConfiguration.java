@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 
@@ -106,11 +106,11 @@ public class RAPConfiguration implements ApplicationConfiguration {
             //       some restriction to search the user. This is especially useful if the user is external registered and verified
             //       with LDAP or AAI SAML
             final StartupParameters reqParams = RWT.getClient().getService(StartupParameters.class);
-            final String institutionId = reqParams.getParameter(Entity.FILTER_ATTR_INSTITUTION);
+            final String institutionId = reqParams.getParameter(Domain.ATTR_INSTITUTION_ID);
             if (StringUtils.isNotBlank(institutionId)) {
-                httpSession.setAttribute(Entity.FILTER_ATTR_INSTITUTION, institutionId);
+                httpSession.setAttribute(Domain.ATTR_INSTITUTION_ID, institutionId);
             } else {
-                httpSession.removeAttribute(Entity.FILTER_ATTR_INSTITUTION);
+                httpSession.removeAttribute(Domain.ATTR_INSTITUTION_ID);
             }
 
             final AuthorizationContextHolder authorizationContextHolder = webApplicationContext

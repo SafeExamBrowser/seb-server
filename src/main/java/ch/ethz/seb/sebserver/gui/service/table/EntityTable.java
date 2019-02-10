@@ -40,15 +40,15 @@ public class EntityTable<ROW extends Entity> extends Composite {
 
     public static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
 
-    private final WidgetFactory widgetFactory;
+    private transient final WidgetFactory widgetFactory;
 
-    private final RestCall<Page<ROW>> restCall;
-    private final List<ColumnDefinition<ROW>> columns;
-    private final List<TableRowAction> actions;
+    private transient final RestCall<Page<ROW>> restCall;
+    private transient final List<ColumnDefinition<ROW>> columns;
+    private transient final List<TableRowAction> actions;
 
-    private final TableFilter<ROW> filter;
-    private final Table table;
-    private final TableNavigator navigator;
+    private transient final TableFilter<ROW> filter;
+    private transient final Table table;
+    private transient final TableNavigator navigator;
 
     private int pageNumber = 1;
     private int pageSize;

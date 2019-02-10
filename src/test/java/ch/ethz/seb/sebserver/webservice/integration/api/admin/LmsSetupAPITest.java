@@ -21,7 +21,7 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -36,7 +36,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // create new LmsSetup with seb-admin
         LmsSetup lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -68,7 +68,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP + "/" + lmsSetup.id)
+                .withPath(API.LMS_SETUP_ENDPOINT + "/" + lmsSetup.id)
                 .withMethod(HttpMethod.PUT)
                 .withBodyJson(modified)
                 .withExpectedStatus(HttpStatus.OK)
@@ -90,7 +90,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // activate
         EntityProcessingReport report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath("/").withPath(String.valueOf(lmsSetup.id)).withPath("/active")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
@@ -107,7 +107,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // get
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
@@ -120,7 +120,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // deactivate
         report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath("/").withPath(String.valueOf(lmsSetup.id)).withPath("/inactive")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
@@ -136,7 +136,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
@@ -149,7 +149,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // delete
         report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath("/").withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.DELETE)
                 .withExpectedStatus(HttpStatus.OK)
@@ -166,7 +166,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // get
         final List<APIMessage> error = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.NOT_FOUND)
@@ -183,7 +183,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // create new institution with seb-admin
         final List<APIMessage> errors = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute("active", "false")
@@ -201,7 +201,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // create some new LmsSetup with seb-admin
         final LmsSetup lmsSetup1 = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -211,7 +211,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 });
         final LmsSetup lmsSetup2 = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -222,8 +222,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         final Collection<LmsSetup> lmsSetups = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
-                .withPath(SEBServerRestEndpoints.LIST_ENDPOINT_SUFFIX)
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(API.LIST_SUFFIX)
                 .withAttribute("ids", lmsSetup1.id + "," + lmsSetup2.id)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<LmsSetup>>() {
@@ -238,7 +238,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // create some new LmsSetup with seb-admin
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -248,7 +248,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 });
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -259,8 +259,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         final Collection<EntityName> lmsSetupNames = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
-                .withPath(SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX)
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(API.NAMES_SUFFIX)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<EntityName>>() {
                 });
@@ -273,7 +273,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
     public void getById() throws Exception {
         final Long id1 = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
@@ -284,7 +284,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         final Long id2 = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "2")
@@ -296,7 +296,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         LmsSetup lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(id1))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
@@ -308,7 +308,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // a seb-admin is also able to get an institution that is not the one he self belongs to
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(id2))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
@@ -320,7 +320,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // but a institutional-admin is not able to get an institution that is not the one he self belongs to
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(SEBServerRestEndpoints.ENDPOINT_LMS_SETUP)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(id2))
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsString();

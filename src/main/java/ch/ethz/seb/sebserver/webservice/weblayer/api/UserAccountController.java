@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + SEBServerRestEndpoints.ENDPOINT_USER_ACCOUNT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
     private final ApplicationEventPublisher applicationEventPublisher;

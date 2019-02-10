@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -31,7 +31,7 @@ public class GetInstitution extends RestCall<Institution> {
                 },
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                SEBServerRestEndpoints.ENDPOINT_INSTITUTION);
+                API.INSTITUTION_ENDPOINT);
     }
 
 }

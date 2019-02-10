@@ -88,6 +88,14 @@ Composite.bgLogo {
     background-position: left center;
 }
 
+Composite.bgLogoNoImage {
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+
+
 Composite.bgContent {
     background-color: #EAECEE;
     background-image: url(static/images/blueBackground.png);

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -33,7 +33,7 @@ public class GetInstitutionNames extends RestCall<List<EntityName>> {
                 },
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                SEBServerRestEndpoints.ENDPOINT_INSTITUTION + SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX);
+                API.INSTITUTION_ENDPOINT + API.NAMES_SUFFIX);
     }
 
     @Override

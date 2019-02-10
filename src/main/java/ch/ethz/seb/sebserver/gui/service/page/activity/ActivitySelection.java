@@ -97,8 +97,8 @@ public class ActivitySelection {
 
     public ActivitySelection withEntity(final EntityKey entityKey) {
         if (entityKey != null) {
-            this.attributes.put(AttributeKeys.ATTR_ENTITY_ID, entityKey.modelId);
-            this.attributes.put(AttributeKeys.ATTR_ENTITY_TYPE, entityKey.entityType.name());
+            this.attributes.put(AttributeKeys.ENTITY_ID, entityKey.modelId);
+            this.attributes.put(AttributeKeys.ENTITY_TYPE, entityKey.entityType.name());
         }
 
         return this;
@@ -107,8 +107,8 @@ public class ActivitySelection {
 
     public ActivitySelection withParentEntity(final EntityKey parentEntityKey) {
         if (parentEntityKey != null) {
-            this.attributes.put(AttributeKeys.ATTR_PARENT_ENTITY_ID, parentEntityKey.modelId);
-            this.attributes.put(AttributeKeys.ATTR_PARENT_ENTITY_TYPE, parentEntityKey.entityType.name());
+            this.attributes.put(AttributeKeys.PARENT_ENTITY_ID, parentEntityKey.modelId);
+            this.attributes.put(AttributeKeys.PARENT_ENTITY_TYPE, parentEntityKey.entityType.name());
         }
 
         return this;
@@ -131,7 +131,7 @@ public class ActivitySelection {
     }
 
     public String getEntityId() {
-        return this.attributes.get(AttributeKeys.ATTR_ENTITY_ID);
+        return this.attributes.get(AttributeKeys.ENTITY_ID);
     }
 
     public static ActivitySelection get(final TreeItem item) {

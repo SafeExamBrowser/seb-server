@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -121,7 +121,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = SEBServerRestEndpoints.NAMES_ENDPOINT_SUFFIX,
+            path = API.NAMES_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -169,7 +169,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = SEBServerRestEndpoints.LIST_ENDPOINT_SUFFIX,
+            path = API.LIST_SUFFIX,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

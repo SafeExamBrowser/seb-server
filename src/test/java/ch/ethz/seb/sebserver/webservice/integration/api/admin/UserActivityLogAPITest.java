@@ -19,7 +19,7 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.SEBServerRestEndpoints;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 
@@ -30,7 +30,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
     public void getAllAsSEBAdmin() throws Exception {
         final String token = getSebAdminAccess();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG)
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -47,7 +47,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         // for a user in another institution, the institution has to be defined
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?user=user4&institutionId=2")
+                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4&institutionId=2")
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -59,7 +59,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         // for a user in the same institution no institution is needed
         logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?user=user2")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user2")
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -82,7 +82,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2)
+                        get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2)
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -94,7 +94,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from="
+                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from="
                                 + sec2 + "&to=" + sec4)
                                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -108,7 +108,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2
                                         + "&to=" + sec5)
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -122,7 +122,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?institutionId=2&from=" + sec2
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2
                                         + "&to=" + sec6)
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -138,7 +138,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
     public void getAllAsSEBAdminForActivityType() throws Exception {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?activity_types=CREATE")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?activity_types=CREATE")
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -151,7 +151,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?activity_types=CREATE,MODIFY")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -166,7 +166,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?institutionId=2&activity_types=CREATE,MODIFY")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -183,7 +183,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?entity_types=INSTITUTION")
+                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?entity_types=INSTITUTION")
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -196,7 +196,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?entity_types=INSTITUTION,EXAM")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -210,7 +210,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG
+                                get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?entity_types=INSTITUTION,EXAM&institutionId=2")
                                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -226,7 +226,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
     public void getAllAsInstitutionalAdmin() throws Exception {
         final String token = getAdminInstitution1Access();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG)
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -242,18 +242,18 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         String token = getExamAdmin1();
 
         // no privilege at all
-        this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG)
+        this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
         // no privilege at all
-        this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?user=user4")
+        this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
 
         // no privilege to query logs of users of other institution
         token = getAdminInstitution1Access();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + SEBServerRestEndpoints.ENDPOINT_USER_ACTIVITY_LOG + "?user=user4")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4")
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),

@@ -31,12 +31,14 @@ public interface PageContext {
 
     public interface AttributeKeys {
 
-        public static final String ATTR_PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
+        public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
-        public static final String ATTR_ENTITY_ID = "ENTITY_ID";
-        public static final String ATTR_PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
-        public static final String ATTR_ENTITY_TYPE = "ENTITY_TYPE";
-        public static final String ATTR_PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
+        public static final String INSTITUTION_ID = "INSTITUTION_ID";
+
+        public static final String ENTITY_ID = "ENTITY_ID";
+        public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
+        public static final String ENTITY_TYPE = "ENTITY_TYPE";
+        public static final String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
 
 //        public static final String USER_NAME = "USER_NAME";
 //        public static final String PASSWORD = "PASSWORD";
