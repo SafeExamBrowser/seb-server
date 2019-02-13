@@ -57,7 +57,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = API.ACTIVE_SUFFIX,
+            path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -80,7 +80,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = API.INACTIVE_SUFFIX,
+            path = API.INACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -103,7 +103,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            path = "/{modelId}" + API.ACTIVE_SUFFIX,
+            path = API.PATH_VAR_ACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -113,7 +113,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     }
 
     @RequestMapping(
-            value = "/{modelId}" + API.INACTIVE_SUFFIX,
+            value = API.PATH_VAR_INACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -74,11 +74,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @RequestMapping(
-            path = "/SEB_Configuration/{id}",
+            path = "/SEB_Configuration" + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE) // TODO check if this is the right format
     public void downloadSEBConfig(
-            @PathVariable final Long id,
+            @PathVariable final Long modelId,
             final HttpServletResponse response) {
 
         this.authorizationGrantService.checkHasAnyPrivilege(
@@ -90,7 +90,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         try {
             final InputStream sebConfigFileIn = this.lmsAPIService
-                    .createSEBStartConfiguration(id)
+                    .createSEBStartConfiguration(modelId)
                     .getOrThrow();
 
             IOUtils.copyLarge(sebConfigFileIn, response.getOutputStream());
@@ -102,16 +102,16 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @RequestMapping(
-            path = "/connection_report/{id}",
+            path = "/connection_report" + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public LmsSetupTestResult connectionReport(@PathVariable final Long id) {
+    public LmsSetupTestResult connectionReport(@PathVariable final Long modelId) {
 
         this.authorizationGrantService.checkHasAnyPrivilege(
                 EntityType.LMS_SETUP,
                 PrivilegeType.MODIFY);
 
-        return this.lmsAPIService.createLmsAPITemplate(id)
+        return this.lmsAPIService.createLmsAPITemplate(modelId)
                 .map(template -> template.testLmsSetup())
                 .getOrThrow();
     }

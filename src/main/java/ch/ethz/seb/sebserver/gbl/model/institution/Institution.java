@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
@@ -26,7 +25,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Institution implements GrantEntity, Activatable {
 
-    @JsonProperty(Domain.ATTR_ID)
+    @JsonProperty(INSTITUTION.ATTR_ID)
     public final Long id;
 
     @JsonProperty(INSTITUTION.ATTR_NAME)
@@ -46,7 +45,7 @@ public final class Institution implements GrantEntity, Activatable {
 
     @JsonCreator
     public Institution(
-            @JsonProperty(Domain.ATTR_ID) final Long id,
+            @JsonProperty(INSTITUTION.ATTR_ID) final Long id,
             @JsonProperty(INSTITUTION.ATTR_NAME) final String name,
             @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX) final String urlSuffix,
             @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE) final String logoImage,

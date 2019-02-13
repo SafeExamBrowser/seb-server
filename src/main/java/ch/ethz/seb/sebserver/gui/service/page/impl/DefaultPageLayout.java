@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -177,11 +176,11 @@ public class DefaultPageLayout implements TemplateComposer {
         try {
             final String institutionId = (String) RWT.getUISession()
                     .getHttpSession()
-                    .getAttribute(Domain.ATTR_INSTITUTION_ID);
+                    .getAttribute(API.PARAM_INSTITUTION_ID);
 
             final String logoBase64 = new RestTemplate()
                     .getForObject(
-                            this.webserviceURIService.getWebserviceServerAddress() + API.LOGO_PATH_CODE,
+                            this.webserviceURIService.getWebserviceServerAddress() + API.INSTITUTIONAL_LOGO_PATH,
                             String.class,
                             institutionId);
 

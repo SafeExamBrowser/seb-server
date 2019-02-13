@@ -76,7 +76,7 @@ public class InstitutionForm implements TemplateComposer {
             final String instId = pageContext.getAttribute(AttributeKeys.ENTITY_ID);
             institution = this.restService
                     .getBuilder(GetInstitution.class)
-                    .withURIVariable(API.PATH_VAR_MODEL_ID_NAME, instId)
+                    .withURIVariable(API.PARAM_MODEL_ID, instId)
                     .call()
                     .get(pageContext::notifyError);
         }

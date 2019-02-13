@@ -33,7 +33,7 @@ public class GetInstitutionNames extends RestCall<List<EntityName>> {
                 },
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.INSTITUTION_ENDPOINT + API.NAMES_SUFFIX);
+                API.INSTITUTION_ENDPOINT + API.NAMES_PATH_SEGMENT);
     }
 
     @Override

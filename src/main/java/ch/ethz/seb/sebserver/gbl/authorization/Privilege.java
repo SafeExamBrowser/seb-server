@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.authorization;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
@@ -16,23 +19,31 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 public final class Privilege {
 
     /** The RoleTypeKey defining the UserRole and EntityType for this Privilege */
+    @JsonProperty
     public final RoleTypeKey roleTypeKey;
+
     /** Defines a base-privilege type that defines the overall access for an entity-type */
-    public final PrivilegeType privilegeType;
+    @JsonProperty
+    public final PrivilegeType basePrivilege;
+
     /** Defines an institutional privilege type that defines the institutional restricted access for a
      * entity-type */
+    @JsonProperty
     public final PrivilegeType institutionalPrivilege;
+
     /** Defines an ownership privilege type that defines the ownership restricted access for a entity-type */
+    @JsonProperty
     public final PrivilegeType ownershipPrivilege;
 
+    @JsonCreator
     public Privilege(
             final RoleTypeKey roleTypeKey,
-            final PrivilegeType privilegeType,
+            final PrivilegeType basePrivilege,
             final PrivilegeType institutionalPrivilege,
             final PrivilegeType ownershipPrivilege) {
 
         this.roleTypeKey = roleTypeKey;
-        this.privilegeType = privilegeType;
+        this.basePrivilege = basePrivilege;
         this.institutionalPrivilege = institutionalPrivilege;
         this.ownershipPrivilege = ownershipPrivilege;
     }
@@ -43,7 +54,7 @@ public final class Privilege {
      * @param privilegeType to check
      * @return true if the privilegeType includes the given privilegeType */
     public boolean hasBasePrivilege(final PrivilegeType privilegeType) {
-        return this.privilegeType.hasImplicit(privilegeType);
+        return this.basePrivilege.hasImplicit(privilegeType);
     }
 
     /** Checks the institutional privilege on given privilegeType by using the hasImplicit
@@ -66,7 +77,7 @@ public final class Privilege {
 
     @Override
     public String toString() {
-        return "Privilege [privilegeType=" + this.privilegeType + ", institutionalPrivilege="
+        return "Privilege [privilegeType=" + this.basePrivilege + ", institutionalPrivilege="
                 + this.institutionalPrivilege
                 + ", ownershipPrivilege=" + this.ownershipPrivilege + "]";
     }
@@ -74,9 +85,12 @@ public final class Privilege {
     /** A key that combines UserRole EntityType identity */
     public static final class RoleTypeKey {
 
+        @JsonProperty
         public final EntityType entityType;
+        @JsonProperty
         public final UserRole userRole;
 
+        @JsonCreator
         public RoleTypeKey(final EntityType type, final UserRole role) {
             this.entityType = type;
             this.userRole = role;

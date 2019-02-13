@@ -192,7 +192,7 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withFormBinding(final FormBinding formBinding) {
-            return withURIVariable(API.PATH_VAR_MODEL_ID_NAME, formBinding.entityKey().modelId)
+            return withURIVariable(API.PARAM_MODEL_ID, formBinding.entityKey().modelId)
                     .withBody(formBinding.getFormAsJson());
         }
 

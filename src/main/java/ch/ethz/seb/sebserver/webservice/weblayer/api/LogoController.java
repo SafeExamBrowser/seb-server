@@ -28,7 +28,7 @@ public class LogoController {
         this.institutionDAO = institutionDAO;
     }
 
-    @RequestMapping(API.LOGO_ENDPOINT + "/{institutionId}")
+    @RequestMapping(API.INSTITUTIONAL_LOGO_PATH)
     public String logo(@PathVariable final String institutionId) throws IOException {
         return this.institutionDAO
                 .byModelId(institutionId)

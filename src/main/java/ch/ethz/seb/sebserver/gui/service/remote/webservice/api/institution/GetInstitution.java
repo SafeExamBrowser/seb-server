@@ -31,7 +31,7 @@ public class GetInstitution extends RestCall<Institution> {
                 },
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.INSTITUTION_ENDPOINT + API.PATH_VAR_MODEL_ID);
+                API.INSTITUTION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

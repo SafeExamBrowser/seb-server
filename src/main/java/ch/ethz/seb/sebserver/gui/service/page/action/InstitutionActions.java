@@ -65,7 +65,7 @@ public final class InstitutionActions {
         return action.restService
                 .getBuilder(ActivateInstitution.class)
                 .withURIVariable(
-                        API.PATH_VAR_MODEL_ID_NAME,
+                        API.PARAM_MODEL_ID,
                         action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
                 .call()
                 .map(report -> goToInstitution(action.pageContext, report.getSingleSource().modelId, false));
@@ -75,7 +75,7 @@ public final class InstitutionActions {
         return action.restService
                 .getBuilder(DeactivateInstitution.class)
                 .withURIVariable(
-                        API.PATH_VAR_MODEL_ID_NAME,
+                        API.PARAM_MODEL_ID,
                         action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
                 .call()
                 .map(report -> goToInstitution(action.pageContext, report.getSingleSource().modelId, false));

@@ -20,8 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -223,7 +223,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         final Collection<LmsSetup> lmsSetups = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath(API.LIST_SUFFIX)
+                .withPath(API.LIST_PATH_SEGMENT)
                 .withAttribute("ids", lmsSetup1.id + "," + lmsSetup2.id)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<LmsSetup>>() {
@@ -260,7 +260,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         final Collection<EntityName> lmsSetupNames = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath(API.NAMES_SUFFIX)
+                .withPath(API.NAMES_PATH_SEGMENT)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<EntityName>>() {
                 });

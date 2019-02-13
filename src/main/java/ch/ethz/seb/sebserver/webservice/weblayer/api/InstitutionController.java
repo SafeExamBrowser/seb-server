@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
@@ -61,7 +61,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
         return InstitutionRecordDynamicSqlSupport.institutionRecord;
     }
 
-    @RequestMapping(path = "/self", method = RequestMethod.GET)
+    @RequestMapping(path = API.SELF_PATH_SEGMENT, method = RequestMethod.GET)
     public Institution getOwn() {
         final SEBServerUser currentUser = this.authorizationGrantService
                 .getUserService()

@@ -13,20 +13,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityName implements ModelIdAware, ModelNameAware {
 
-    @JsonProperty(value = "entityType", required = true)
+    @JsonProperty(value = API.PARAM_ENTITY_TYPE, required = true)
     public final EntityType entityType;
-    @JsonProperty(value = Domain.ATTR_ID, required = true)
+    @JsonProperty(value = API.PARAM_MODEL_ID, required = true)
     public final String modelId;
     @JsonProperty(value = "name", required = true)
     public final String name;
 
     @JsonCreator
     public EntityName(
-            @JsonProperty(value = "entityType", required = true) final EntityType entityType,
-            @JsonProperty(value = Domain.ATTR_ID, required = true) final String id,
+            @JsonProperty(value = API.PARAM_ENTITY_TYPE, required = true) final EntityType entityType,
+            @JsonProperty(value = API.PARAM_MODEL_ID, required = true) final String id,
             @JsonProperty(value = "name", required = true) final String name) {
 
         this.entityType = entityType;

@@ -31,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
@@ -94,7 +93,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> getAll(
             @RequestParam(
-                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
@@ -104,7 +103,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         checkReadPrivilege(institutionId);
         final FilterMap filterMap = new FilterMap(allRequestParams)
-                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         return this.paginationService.getPage(
                 pageNumber,
@@ -119,20 +118,20 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = API.NAMES_SUFFIX,
+            path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
-                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
         final FilterMap filterMap = new FilterMap(allRequestParams)
-                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         return getAll(filterMap)
                 .getOrThrow()
@@ -165,7 +164,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = API.LIST_SUFFIX,
+            path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -197,7 +196,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     public T create(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
-                    name = Domain.ATTR_INSTITUTION_ID,
+                    name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
@@ -208,7 +207,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 institutionId);
 
         final POSTMapper postMap = new POSTMapper(allRequestParams)
-                .putIfAbsent(Domain.ATTR_INSTITUTION_ID, String.valueOf(institutionId));
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final M requestModel = this.createNew(postMap);
 

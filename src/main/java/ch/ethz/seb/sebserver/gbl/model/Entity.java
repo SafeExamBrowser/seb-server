@@ -10,9 +10,11 @@ package ch.ethz.seb.sebserver.gbl.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+
 public interface Entity extends ModelIdAware {
 
-    public static final String FILTER_ATTR_INSTITUTION = Domain.ATTR_INSTITUTION_ID;
+    public static final String FILTER_ATTR_INSTITUTION = API.PARAM_INSTITUTION_ID;
     public static final String FILTER_ATTR_ACTIVE = "active";
     public static final String FILTER_ATTR_NAME = "name";
 

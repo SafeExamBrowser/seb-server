@@ -17,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
@@ -34,7 +33,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         OPEN_EDX
     }
 
-    @JsonProperty(Domain.ATTR_ID)
+    @JsonProperty(LMS_SETUP.ATTR_ID)
     public final Long id;
 
     @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID)
@@ -78,7 +77,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     @JsonCreator
     public LmsSetup(
-            @JsonProperty(Domain.ATTR_ID) final Long id,
+            @JsonProperty(LMS_SETUP.ATTR_ID) final Long id,
             @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(LMS_SETUP.ATTR_NAME) final String name,
             @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE) final LmsType lmsType,

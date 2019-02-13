@@ -6,8 +6,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.authorization;
+package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-public class EntityPrivileges {
+import org.springframework.web.bind.annotation.RestController;
+
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+
+@WebServiceProfile
+@RestController
+public class PrivilegesController {
 
 }

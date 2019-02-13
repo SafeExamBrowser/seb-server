@@ -31,7 +31,7 @@ public class SaveInstitution extends RestCall<Institution> {
                 },
                 HttpMethod.PUT,
                 MediaType.APPLICATION_JSON_UTF8,
-                API.INSTITUTION_ENDPOINT + API.PATH_VAR_MODEL_ID);
+                API.INSTITUTION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }
