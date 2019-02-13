@@ -28,6 +28,7 @@ import org.springframework.web.client.RestClientResponseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -111,6 +112,7 @@ public abstract class RestCall<T> {
                         }));
             } catch (final Exception e) {
                 log.error("Unexpected error-response while webservice API call for: {}", builder, e);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
             }
 
             return Result.ofError(restCallError);
@@ -147,6 +149,7 @@ public abstract class RestCall<T> {
         public RestCallBuilder withBody(final Object body) {
             if (body instanceof String) {
                 this.body = String.valueOf(body);
+                return this;
             }
 
             try {
@@ -189,8 +192,8 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withFormBinding(final FormBinding formBinding) {
-            // TODO Auto-generated method stub
-            return this;
+            return withURIVariable(API.PATH_VAR_MODEL_ID_NAME, formBinding.entityKey().modelId)
+                    .withBody(formBinding.getFormAsJson());
         }
 
         public RestCallBuilder onlyActive(final boolean active) {

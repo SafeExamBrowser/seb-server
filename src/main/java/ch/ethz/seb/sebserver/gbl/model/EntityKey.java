@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,8 +17,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class EntityKey {
 
     @JsonProperty(value = "modelId", required = true)
+    @NotNull
     public final String modelId;
     @JsonProperty(value = "entityType", required = true)
+    @NotNull
     public final EntityType entityType;
     @JsonIgnore
     public final boolean isIdPK;
@@ -25,6 +29,9 @@ public class EntityKey {
     public EntityKey(
             @JsonProperty(value = "modelId", required = true) final String modelId,
             @JsonProperty(value = "entityType", required = true) final EntityType entityType) {
+
+        assert (modelId != null) : "modelId has null reference";
+        assert (entityType != null) : "entityType has null reference";
 
         this.modelId = modelId;
         this.entityType = entityType;

@@ -9,9 +9,9 @@
 package ch.ethz.seb.sebserver.gui.service.table;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -153,16 +154,16 @@ public class EntityTable<ROW extends Entity> extends Composite {
                 this.sortOrder);
     }
 
-    public Collection<String> getSelection() {
+    public Set<String> getSelection() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
         return Arrays.asList(selection)
                 .stream()
                 .map(this::getRowDataId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     private void createTableColumns() {
@@ -227,7 +228,11 @@ public class EntityTable<ROW extends Entity> extends Composite {
                     // TODO set an image or HTML with checkbox
                     item.setText(index, String.valueOf(value));
                 } else {
-                    item.setText(index, String.valueOf(value));
+                    if (value != null) {
+                        item.setText(index, String.valueOf(value));
+                    } else {
+                        item.setText(index, Constants.EMPTY_NOTE);
+                    }
                 }
                 index++;
             }

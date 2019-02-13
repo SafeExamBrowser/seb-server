@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.page;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
@@ -33,7 +34,8 @@ public interface PageContext {
 
         public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
-        public static final String INSTITUTION_ID = "INSTITUTION_ID";
+        public static final String READ_ONLY = "READ_ONLY";
+        public static final String CREATE_NEW = "CREATE_NEW";
 
         public static final String ENTITY_ID = "ENTITY_ID";
         public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
@@ -55,8 +57,7 @@ public interface PageContext {
 //
 //        public static final String AUTHORIZATION_CONTEXT = "AUTHORIZATION_CONTEXT";
 //        public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
-        public static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
-        public static final String LGOUT_SUCCESS = "LGOUT_SUCCESS";
+//        public static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
 
     }
 
@@ -92,15 +93,29 @@ public interface PageContext {
      * @param key the key of the attribute
      * @param value the value of the attribute
      * @return this PageContext instance (builder pattern) */
-    PageContext withAttr(String key, String value);
+    PageContext withAttribute(String key, String value);
 
-    PageContext withSelection(ActivitySelection selection);
+    default PageContext withSelection(final ActivitySelection selection) {
+        return withSelection(selection, true);
+    }
+
+    PageContext withSelection(ActivitySelection selection, boolean clearAttributes);
 
     String getAttribute(String name);
 
     String getAttribute(String name, String def);
 
+    EntityKey getEntityKey();
+
+    EntityKey getParentEntityKey();
+
+    PageContext withEntityKey(EntityKey entityKey);
+
+    PageContext withParentEntityKey(EntityKey entityKey);
+
     boolean hasAttribute(String name);
+
+    PageContext removeAttribute(String name);
 
     /** Publishes a given PageEvent to the current page tree
      * This goes through the page-tree and collects all listeners the are listen to
@@ -133,7 +148,7 @@ public interface PageContext {
      * @param error the error as Throwable */
     void notifyError(String errorMessage, Throwable error);
 
-    void notifyError(Throwable error);
+    <T> T notifyError(Throwable error);
 
     <T> T logoutOnError(Throwable error);
 

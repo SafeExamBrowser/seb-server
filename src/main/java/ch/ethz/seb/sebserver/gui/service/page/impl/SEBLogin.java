@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
@@ -57,14 +56,15 @@ public class SEBLogin implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite parent = pageContext.getParent();
 
-        if (pageContext.hasAttribute((AttributeKeys.LGOUT_SUCCESS))) {
-            final MessageBox logoutSuccess = new Message(
-                    pageContext.getShell(),
-                    this.i18nSupport.getText("sebserver.logout"),
-                    this.i18nSupport.getText("sebserver.logout.success.message"),
-                    SWT.ICON_INFORMATION);
-            logoutSuccess.open(null);
-        }
+//        if (pageContext.hasAttribute((AttributeKeys.LGOUT_SUCCESS))) {
+//            final MessageBox logoutSuccess = new Message(
+//                    pageContext.getShell(),
+//                    this.i18nSupport.getText("sebserver.logout"),
+//                    this.i18nSupport.getText("sebserver.logout.success.message"),
+//                    SWT.ICON_INFORMATION);
+//            logoutSuccess.open(null);
+//            pageContext = pageContext.removeAttribute(AttributeKeys.LGOUT_SUCCESS);
+//        }
 
         final Composite loginGroup = new Composite(parent, SWT.NONE);
         final GridLayout rowLayout = new GridLayout();

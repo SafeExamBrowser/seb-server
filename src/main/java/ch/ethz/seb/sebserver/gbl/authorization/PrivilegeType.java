@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
+package ch.ethz.seb.sebserver.gbl.authorization;
 
 /** Defines SEB-Server internal privilege types **/
 public enum PrivilegeType {

@@ -12,12 +12,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 
 @Lazy
 @Component
+@GuiProfile
 public class PageFormService {
 
     private final JSONMapper jsonMapper;
@@ -34,8 +37,26 @@ public class PageFormService {
         this.polyglotPageService = polyglotPageService;
     }
 
-    public FormBuilder getBuilder(final PageContext pageContext, final int rows) {
+    public FormBuilder getBuilder(
+            final PageContext pageContext,
+            final int rows) {
+
         return new FormBuilder(
+                pageContext.getEntityKey(),
+                this.jsonMapper,
+                this.widgetFactory,
+                this.polyglotPageService,
+                pageContext,
+                rows);
+    }
+
+    public FormBuilder getBuilder(
+            final EntityKey entityKey,
+            final PageContext pageContext,
+            final int rows) {
+
+        return new FormBuilder(
+                entityKey,
                 this.jsonMapper,
                 this.widgetFactory,
                 this.polyglotPageService,

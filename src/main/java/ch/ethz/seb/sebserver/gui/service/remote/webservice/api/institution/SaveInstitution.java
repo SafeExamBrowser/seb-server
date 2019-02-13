@@ -23,14 +23,14 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetInstitution extends RestCall<Institution> {
+public class SaveInstitution extends RestCall<Institution> {
 
-    protected GetInstitution() {
+    protected SaveInstitution() {
         super(
                 new TypeReference<Institution>() {
                 },
-                HttpMethod.GET,
-                MediaType.APPLICATION_FORM_URLENCODED,
+                HttpMethod.PUT,
+                MediaType.APPLICATION_JSON_UTF8,
                 API.INSTITUTION_ENDPOINT + API.PATH_VAR_MODEL_ID);
     }
 

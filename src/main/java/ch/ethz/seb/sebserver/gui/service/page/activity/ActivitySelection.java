@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionPane;
+import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionList;
 import ch.ethz.seb.sebserver.gui.service.page.impl.TODOTemplate;
 
@@ -39,7 +40,7 @@ public class ActivitySelection {
                 ActionPane.class,
                 new LocTextKey("sebserver.activities.inst")),
         INSTITUTION_NODE(
-                TODOTemplate.class,
+                InstitutionForm.class,
                 ActionPane.class,
                 new LocTextKey("sebserver.activities.inst")),
 //
@@ -84,8 +85,6 @@ public class ActivitySelection {
         }
     }
 
-    private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
-
     public final Activity activity;
     final Map<String, String> attributes;
     Consumer<TreeItem> expandFunction = EMPTY_FUNCTION;
@@ -114,6 +113,11 @@ public class ActivitySelection {
         return this;
     }
 
+    public ActivitySelection withAttribute(final String name, final String value) {
+        this.attributes.put(name, value);
+        return this;
+    }
+
     public Map<String, String> getAttributes() {
         return Collections.unmodifiableMap(this.attributes);
     }
@@ -132,14 +136,6 @@ public class ActivitySelection {
 
     public String getEntityId() {
         return this.attributes.get(AttributeKeys.ENTITY_ID);
-    }
-
-    public static ActivitySelection get(final TreeItem item) {
-        return (ActivitySelection) item.getData(ATTR_ACTIVITY_SELECTION);
-    }
-
-    public static void inject(final TreeItem item, final ActivitySelection selection) {
-        item.setData(ATTR_ACTIVITY_SELECTION, selection);
     }
 
 }

@@ -6,14 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
+package ch.ethz.seb.sebserver.gbl.authorization;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-
-public interface FormBinding {
-
-    EntityKey entityKey();
-
-    String getFormAsJson();
-
+public enum PrivilegeLevel {
+    BASE,
+    INSTITUTIONAL,
+    OWNERSHIP
 }

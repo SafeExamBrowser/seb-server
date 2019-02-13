@@ -22,14 +22,15 @@ public interface ActionEventListener extends PageEventListener<ActionEvent> {
         return type == ActionEvent.class;
     }
 
-    static ActionEventListener of(final Consumer<ActionEvent> eventConsumer) {
-        return new ActionEventListener() {
-            @Override
-            public void notify(final ActionEvent event) {
-                eventConsumer.accept(event);
-            }
-        };
-    }
+//    static ActionEventListener of(final Consumer<ActionEvent> eventConsumer) {
+//        return new ActionEventListener() {
+//            @Override
+//            public void notify(final ActionEvent event) {
+//                eventConsumer.accept(event);
+//            }
+//        };
+//    }
+//
 
     static ActionEventListener of(
             final Predicate<ActionEvent> predicate,

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -47,6 +49,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.table.TableBuilder;
 
@@ -78,6 +81,10 @@ public class WidgetFactory {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
         MODIFY_ACTION("editAction.png"),
+        CANCEL_ACTION("cancelEditAction.png"),
+        VIEW_ACTION("viewAction.png"),
+        ACTIVATE_ACTION("inactive.png"),
+        DEACTIVATE_ACTION("active.png"),
         SAVE_ACTION("saveAction.png"),
         NEW_ACTION("newAction.png"),
         DELETE_ACTION("deleteAction.png"),
@@ -108,10 +115,15 @@ public class WidgetFactory {
 
     private final PolyglotPageService polyglotPageService;
     private final I18nSupport i18nSupport;
+    private final ServerPushService serverPushService;
 
-    public WidgetFactory(final PolyglotPageService polyglotPageService) {
+    public WidgetFactory(
+            final PolyglotPageService polyglotPageService,
+            final ServerPushService serverPushService) {
+
         this.polyglotPageService = polyglotPageService;
         this.i18nSupport = polyglotPageService.getI18nSupport();
+        this.serverPushService = serverPushService;
     }
 
     public Button buttonLocalized(final Composite parent, final String locTextKey) {
@@ -265,7 +277,7 @@ public class WidgetFactory {
 
     public Label formValueLabel(final Composite parent, final String value, final int span) {
         final Label label = new Label(parent, SWT.NONE);
-        label.setText(value);
+        label.setText((StringUtils.isNoneBlank(value)) ? value : Constants.EMPTY_NOTE);
         final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, span, 1);
         label.setLayoutData(gridData);
         return label;
@@ -280,7 +292,9 @@ public class WidgetFactory {
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan);
         gridData.heightHint = 15;
         textInput.setLayoutData(gridData);
-        textInput.setText(value);
+        if (value != null) {
+            textInput.setText(value);
+        }
         return textInput;
     }
 
@@ -323,6 +337,31 @@ public class WidgetFactory {
         final SingleSelection combo = new SingleSelection(parent, items);
         this.injectI18n(combo, combo.valueMapping);
         return combo;
+    }
+
+    public ImageUpload formImageUpload(
+            final Composite parent,
+            final String value,
+            final LocTextKey locTextKey,
+            final int hspan, final int vspan) {
+
+        final ImageUpload imageUpload = imageUploadLocalized(parent, locTextKey);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan);
+        imageUpload.setLayoutData(gridData);
+        imageUpload.setImageBase64(value);
+        return imageUpload;
+    }
+
+    public ImageUpload imageUploadLocalized(final Composite parent, final LocTextKey locTextKey) {
+        final ImageUpload imageUpload = new ImageUpload(parent, this.serverPushService);
+        injectI18n(imageUpload, locTextKey);
+        return imageUpload;
+    }
+
+    public void injectI18n(final ImageUpload imageUpload, final LocTextKey locTextKey) {
+        final Consumer<ImageUpload> imageUploadFunction = imageUploadFunction(locTextKey, this.i18nSupport);
+        imageUpload.setData(POLYGLOT_WIDGET_FUNCTION_KEY, imageUploadFunction);
+        imageUploadFunction.accept(imageUpload);
     }
 
     public void injectI18n(final Label label, final LocTextKey locTextKey) {
@@ -407,6 +446,17 @@ public class WidgetFactory {
         for (final Control control : parent.getChildren()) {
             control.dispose();
         }
+    }
+
+    private static Consumer<ImageUpload> imageUploadFunction(
+            final LocTextKey locTextKey,
+            final I18nSupport i18nSupport) {
+
+        return imageUpload -> {
+            if (locTextKey != null) {
+                imageUpload.fileUpload.setText(i18nSupport.getText(locTextKey));
+            }
+        };
     }
 
     private static Consumer<Tree> treeFunction(final I18nSupport i18nSupport) {

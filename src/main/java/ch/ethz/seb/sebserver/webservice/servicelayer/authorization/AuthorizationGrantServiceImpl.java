@@ -20,11 +20,13 @@ import javax.annotation.PostConstruct;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.authorization.Privilege.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Privilege.RoleTypeKey;
 
 @Lazy
 @Service
@@ -430,6 +432,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
         public void create() {
             final RoleTypeKey roleTypeKey = new RoleTypeKey(this.entityType, this.userRole);
             final Privilege roleTypeGrant = new Privilege(
+                    roleTypeKey,
                     this.basePrivilege,
                     this.institutionalPrivilege,
                     this.ownerPrivilege);

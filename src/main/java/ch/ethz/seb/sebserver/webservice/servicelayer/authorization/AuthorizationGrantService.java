@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 import java.security.Principal;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 

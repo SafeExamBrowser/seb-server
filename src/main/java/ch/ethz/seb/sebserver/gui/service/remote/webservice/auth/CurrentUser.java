@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
+import java.util.function.Function;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -37,6 +39,18 @@ public class CurrentUser {
             return this.authContext
                     .getLoggedInUser()
                     .getOrThrow();
+        }
+
+        log.warn("Current user requested but no user is currently logged in");
+
+        return null;
+    }
+
+    public UserInfo getOrHandleError(final Function<Throwable, UserInfo> errorHandler) {
+        if (isAvailable()) {
+            return this.authContext
+                    .getLoggedInUser()
+                    .get(errorHandler);
         }
 
         log.warn("Current user requested but no user is currently logged in");

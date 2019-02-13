@@ -83,8 +83,13 @@ public class InstitutionList implements TemplateComposer {
         pageContext.createAction(ActionDefinition.INSTITUTION_NEW)
                 .withExec(InstitutionActions::newInstitution)
                 .publish()
+                .createAction(ActionDefinition.INSTITUTION_VIEW)
+                .withSelectionSupplier(table::getSelection)
+                .withExec(InstitutionActions::viewInstitution)
+                .publish()
                 .createAction(ActionDefinition.INSTITUTION_MODIFY)
-                .withExec(InstitutionActions.editInstitution(table))
+                .withSelectionSupplier(table::getSelection)
+                .withExec(InstitutionActions::editInstitutionFromList)
                 .publish();
 
     }

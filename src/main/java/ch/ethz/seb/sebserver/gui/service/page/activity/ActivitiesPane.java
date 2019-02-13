@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.impl.MainPageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 
@@ -43,22 +43,25 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 @Component
 public class ActivitiesPane implements TemplateComposer {
 
+    private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
+
     private final WidgetFactory widgetFactory;
     private final RestService restService;
-    private final AuthorizationContextHolder authorizationContextHolder;
+    private final CurrentUser currentUser;
 
+    // TODO are those really needed?
     private final Map<ActionDefinition, ActivityActionHandler> activityActionHandler =
             new EnumMap<>(ActionDefinition.class);
 
     public ActivitiesPane(
             final WidgetFactory widgetFactory,
             final RestService restService,
-            final AuthorizationContextHolder authorizationContextHolder,
+            final CurrentUser currentUser,
             final Collection<ActivityActionHandler> activityActionHandler) {
 
         this.widgetFactory = widgetFactory;
         this.restService = restService;
-        this.authorizationContextHolder = authorizationContextHolder;
+        this.currentUser = currentUser;
 
         for (final ActivityActionHandler aah : activityActionHandler) {
             this.activityActionHandler.put(aah.handlesAction(), aah);
@@ -67,10 +70,8 @@ public class ActivitiesPane implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final UserInfo userInfo = this.authorizationContextHolder
-                .getAuthorizationContext()
-                .getLoggedInUser()
-                .get(pageContext::logoutOnError);
+        final UserInfo userInfo = this.currentUser
+                .getOrHandleError(pageContext::logoutOnError);
 
         final Label activities = this.widgetFactory.labelLocalized(
                 pageContext.getParent(),
@@ -80,8 +81,9 @@ public class ActivitiesPane implements TemplateComposer {
         activitiesGridData.horizontalIndent = 20;
         activities.setLayoutData(activitiesGridData);
 
-        final Tree navigation =
-                this.widgetFactory.treeLocalized(pageContext.getParent(), SWT.SINGLE | SWT.FULL_SELECTION);
+        final Tree navigation = this.widgetFactory.treeLocalized(
+                pageContext.getParent(),
+                SWT.SINGLE | SWT.FULL_SELECTION);
         final GridData navigationGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
@@ -96,7 +98,7 @@ public class ActivitiesPane implements TemplateComposer {
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
                     Activity.INSTITUTION_ROOT.title);
-            ActivitySelection.inject(institutions, Activity.INSTITUTION_ROOT.createSelection());
+            injectActivitySelection(institutions, Activity.INSTITUTION_ROOT.createSelection());
 
 //            for (final EntityName inst : insitutionNames) {
 //                createInstitutionItem(institutions, inst);
@@ -106,7 +108,7 @@ public class ActivitiesPane implements TemplateComposer {
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
                     Activity.INSTITUTION_ROOT.title);
-            ActivitySelection.inject(institutions, Activity.INSTITUTION_NODE.createSelection());
+            injectActivitySelection(institutions, Activity.INSTITUTION_NODE.createSelection());
 //            final EntityName inst = insitutionNames.iterator().next();
 //            createInstitutionItem(navigation, inst);
         }
@@ -155,16 +157,20 @@ public class ActivitiesPane implements TemplateComposer {
 
         navigation.addListener(SWT.Expand, this::handleExpand);
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
-
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ActionEventListener() {
                     @Override
                     public void notify(final ActionEvent event) {
-                        final ActivityActionHandler aah =
-                                ActivitiesPane.this.activityActionHandler.get(event.actionDefinition);
-                        if (aah != null) {
-                            aah.notifyAction(event, navigation, pageContext);
+//                        final ActivityActionHandler aah =
+//                                ActivitiesPane.this.activityActionHandler.get(event.actionDefinition);
+//                        if (aah != null) {
+//                            aah.notifyAction(event, navigation, pageContext);
+//                        }
+                        // on case of an Action with ActivitySelection, reset the MainPageState
+                        if (event.source instanceof ActivitySelection) {
+                            final MainPageState mainPageState = MainPageState.get();
+                            mainPageState.activitySelection = (ActivitySelection) event.source;
                         }
                     }
                 });
@@ -172,11 +178,13 @@ public class ActivitiesPane implements TemplateComposer {
         // page-selection on (re)load
         final MainPageState mainPageState = MainPageState.get();
 
-        if (mainPageState.activitySelection == null) {
-            mainPageState.activitySelection = ActivitySelection.get(navigation.getItem(0));
+        if (mainPageState.activitySelection == null ||
+                mainPageState.activitySelection.activity == ActivitySelection.Activity.NONE) {
+            mainPageState.activitySelection = getActivitySelection(navigation.getItem(0));
         }
         pageContext.publishPageEvent(
                 new ActivitySelectionEvent(mainPageState.activitySelection));
+        navigation.select(navigation.getItem(0));
     }
 
 //    private void runningExamExpand(final TreeItem item) {
@@ -202,7 +210,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         System.out.println("opened: " + treeItem);
 
-        final ActivitySelection activity = ActivitySelection.get(treeItem);
+        final ActivitySelection activity = getActivitySelection(treeItem);
         if (activity != null) {
             activity.processExpand(treeItem);
         }
@@ -214,7 +222,7 @@ public class ActivitiesPane implements TemplateComposer {
         System.out.println("selected: " + treeItem);
 
         final MainPageState mainPageState = MainPageState.get();
-        final ActivitySelection activitySelection = ActivitySelection.get(treeItem);
+        final ActivitySelection activitySelection = getActivitySelection(treeItem);
         if (mainPageState.activitySelection == null) {
             mainPageState.activitySelection = Activity.NONE.createSelection();
         }
@@ -239,7 +247,7 @@ public class ActivitiesPane implements TemplateComposer {
 
     static void createInstitutionItem(final EntityName entityName, final TreeItem institution) {
         institution.setText(entityName.name);
-        ActivitySelection.inject(
+        injectActivitySelection(
                 institution,
                 Activity.INSTITUTION_NODE
                         .createSelection()
@@ -256,7 +264,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         for (final TreeItem item : items) {
-            final ActivitySelection activitySelection = ActivitySelection.get(item);
+            final ActivitySelection activitySelection = getActivitySelection(item);
             final String id = activitySelection.getEntityId();
             if (activitySelection != null && activitySelection.activity == activity &&
                     (id == null || (objectId != null && objectId.equals(id)))) {
@@ -283,6 +291,14 @@ public class ActivitiesPane implements TemplateComposer {
 
         item.setExpanded(true);
         expand(item.getParentItem());
+    }
+
+    public static ActivitySelection getActivitySelection(final TreeItem item) {
+        return (ActivitySelection) item.getData(ATTR_ACTIVITY_SELECTION);
+    }
+
+    public static void injectActivitySelection(final TreeItem item, final ActivitySelection selection) {
+        item.setData(ATTR_ACTIVITY_SELECTION, selection);
     }
 
 }

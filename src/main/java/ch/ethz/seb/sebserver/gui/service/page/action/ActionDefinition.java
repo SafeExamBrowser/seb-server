@@ -16,16 +16,32 @@ public enum ActionDefinition {
             "sebserver.institution.action.new",
             IconButtonType.NEW_ACTION),
 
+    INSTITUTION_VIEW(
+            "sebserver.institution.action.view",
+            IconButtonType.VIEW_ACTION),
+
     INSTITUTION_MODIFY(
             "sebserver.institution.action.modify",
             IconButtonType.MODIFY_ACTION),
 
+    INSTITUTION_CANCEL_MODIFY(
+            "sebserver.overall.action.modify.cancel",
+            IconButtonType.CANCEL_ACTION),
+
     INSTITUTION_SAVE(
-            "actions.modify.institution",
+            "sebserver.institution.action.save",
             IconButtonType.SAVE_ACTION),
 
+    INSTITUTION_ACTIVATE(
+            "sebserver.institution.action.activate",
+            IconButtonType.ACTIVATE_ACTION),
+
+    INSTITUTION_DEACTIVATE(
+            "sebserver.institution.action.deactivate",
+            IconButtonType.DEACTIVATE_ACTION),
+
     INSTITUTION_DELETE(
-            "actions.delete.institution",
+            "sebserver.institution.action.modify",
             IconButtonType.DELETE_ACTION),
 
     LMS_SETUP_NEW(

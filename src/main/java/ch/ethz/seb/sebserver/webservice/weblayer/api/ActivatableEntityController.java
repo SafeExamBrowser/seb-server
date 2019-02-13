@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -25,7 +26,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;

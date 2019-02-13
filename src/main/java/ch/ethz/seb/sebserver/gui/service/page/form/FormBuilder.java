@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.page.form;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -23,10 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 
 public class FormBuilder {
@@ -42,6 +46,7 @@ public class FormBuilder {
     private boolean readonly = false;
 
     FormBuilder(
+            final EntityKey entityKey,
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
@@ -51,7 +56,7 @@ public class FormBuilder {
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.pageContext = pageContext;
-        this.form = new Form(jsonMapper);
+        this.form = new Form(jsonMapper, entityKey);
 
         this.formParent = new Composite(pageContext.getParent(), SWT.NONE);
         final GridLayout layout = new GridLayout(rows, true);
@@ -181,8 +186,48 @@ public class FormBuilder {
         return this;
     }
 
-    public <T> FormHandle<T> buildFor(final RestCall<T> post) {
-        return new FormHandle<>(this.pageContext, this.form, post, this.polyglotPageService.getI18nSupport());
+    public FormBuilder addImageUpload(
+            final String name,
+            final String label,
+            final String value,
+            final int span) {
+
+        return addImageUpload(name, label, value, span, null);
+    }
+
+    public FormBuilder addImageUpload(
+            final String name,
+            final String label,
+            final String value,
+            final int span,
+            final String group) {
+
+        final Label lab = this.widgetFactory.formLabelLocalized(this.formParent, label);
+        final ImageUpload imageUpload = this.widgetFactory.formImageUpload(
+                this.formParent,
+                value,
+                new LocTextKey("sebserver.overall.upload"),
+                span, 1);
+        if (this.readonly) {
+            imageUpload.setReadonly();
+            this.form.putField(name, lab, imageUpload);
+        } else {
+            this.form.putField(name, lab, imageUpload);
+        }
+
+        return this;
+    }
+
+    public <T> FormHandle<T> buildFor(
+            final RestCall<T> post,
+            final Function<T, T> postPostHandle) {
+
+        return new FormHandle<>(
+                this.pageContext,
+                this.form,
+                post,
+                (postPostHandle == null) ? Function.identity() : postPostHandle,
+                this.polyglotPageService.getI18nSupport());
     }
 
 }

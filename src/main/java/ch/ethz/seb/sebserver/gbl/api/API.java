@@ -34,4 +34,9 @@ public class API {
 
     public static final String INACTIVE_SUFFIX = "/inactive";
 
+    public static final String PATH_VAR_MODEL_ID_NAME = "modelId";
+    public static final String PATH_VAR_MODEL_ID = "/{" + PATH_VAR_MODEL_ID_NAME + "}";
+    public static final String PATH_VAR_ACTIVE = PATH_VAR_MODEL_ID + ACTIVE_SUFFIX;
+    public static final String PATH_VAR_INACTIVE = PATH_VAR_MODEL_ID + INACTIVE_SUFFIX;
+
 }

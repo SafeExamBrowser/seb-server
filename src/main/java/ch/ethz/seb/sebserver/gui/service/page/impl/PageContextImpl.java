@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
@@ -99,7 +101,7 @@ public class PageContextImpl implements PageContext {
                 this.composerService,
                 this.root,
                 parent,
-                this.attributes);
+                new HashMap<>(this.attributes));
     }
 
     @Override
@@ -117,7 +119,7 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public PageContext withAttr(final String key, final String value) {
+    public PageContext withAttribute(final String key, final String value) {
         final Map<String, String> attrs = new HashMap<>();
         attrs.putAll(this.attributes);
         attrs.put(key, value);
@@ -131,13 +133,15 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public PageContext withSelection(final ActivitySelection selection) {
+    public PageContext withSelection(final ActivitySelection selection, final boolean clearAttributes) {
         if (selection == null) {
             return this;
         }
 
         final Map<String, String> attrs = new HashMap<>();
-        attrs.putAll(this.attributes);
+        if (!clearAttributes) {
+            attrs.putAll(this.attributes);
+        }
         attrs.putAll(selection.getAttributes());
 
         return new PageContextImpl(
@@ -164,8 +168,56 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public EntityKey getEntityKey() {
+        if (hasAttribute(AttributeKeys.ENTITY_ID) && hasAttribute(AttributeKeys.ENTITY_TYPE)) {
+            return new EntityKey(
+                    getAttribute(AttributeKeys.ENTITY_ID),
+                    EntityType.valueOf(getAttribute(AttributeKeys.ENTITY_TYPE)));
+        }
+
+        return null;
+    }
+
+    @Override
+    public EntityKey getParentEntityKey() {
+        if (hasAttribute(AttributeKeys.PARENT_ENTITY_ID) && hasAttribute(AttributeKeys.PARENT_ENTITY_TYPE)) {
+            return new EntityKey(
+                    getAttribute(AttributeKeys.PARENT_ENTITY_ID),
+                    EntityType.valueOf(getAttribute(AttributeKeys.PARENT_ENTITY_TYPE)));
+        }
+
+        return null;
+    }
+
+    @Override
+    public PageContext withEntityKey(final EntityKey entityKey) {
+        return withAttribute(AttributeKeys.ENTITY_ID, entityKey.modelId)
+                .withAttribute(AttributeKeys.ENTITY_TYPE, entityKey.entityType.name());
+    }
+
+    @Override
+    public PageContext withParentEntityKey(final EntityKey entityKey) {
+        return withAttribute(AttributeKeys.PARENT_ENTITY_ID, entityKey.modelId)
+                .withAttribute(AttributeKeys.PARENT_ENTITY_TYPE, entityKey.entityType.name());
+    }
+
+    @Override
     public boolean hasAttribute(final String name) {
         return this.attributes.containsKey(name);
+    }
+
+    @Override
+    public PageContext removeAttribute(final String name) {
+        final Map<String, String> attrs = new HashMap<>();
+        attrs.putAll(this.attributes);
+        attrs.remove(name);
+        return new PageContextImpl(
+                this.restService,
+                this.i18nSupport,
+                this.composerService,
+                this.root,
+                this.parent,
+                attrs);
     }
 
     @Override
@@ -282,8 +334,9 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public void notifyError(final Throwable error) {
+    public <T> T notifyError(final Throwable error) {
         notifyError(error.getMessage(), error);
+        return null;
     }
 
     @Override
@@ -298,9 +351,7 @@ public class PageContextImpl implements PageContext {
         }
 
         MainPageState.clear();
-        forwardToLoginPage(this.withAttr(
-                AttributeKeys.AUTHORIZATION_FAILURE,
-                error.getMessage()));
+        forwardToLoginPage(this);
 
         return null;
     }

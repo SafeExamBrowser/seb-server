@@ -9,13 +9,16 @@
 package ch.ethz.seb.sebserver.gui.service.page.form;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.form.Form.FormFieldAccessor;
@@ -27,31 +30,38 @@ public class FormHandle<T> {
 
     private static final Logger log = LoggerFactory.getLogger(FormHandle.class);
 
-    public static final String FIELD_VALIDATION_LOCTEXT_PREFIX = "org.sebserver.form.validation.fieldError.";
+    public static final String FIELD_VALIDATION_LOCTEXT_PREFIX = "sebserver.form.validation.fieldError.";
 
     private final PageContext pageContext;
     private final Form form;
     private final RestCall<T> post;
+    private final Function<T, T> postPostHandle;
     private final I18nSupport i18nSupport;
 
     FormHandle(
             final PageContext pageContext,
             final Form form,
             final RestCall<T> post,
+            final Function<T, T> postPostHandle,
             final I18nSupport i18nSupport) {
 
         this.pageContext = pageContext;
         this.form = form;
         this.post = post;
+        this.postPostHandle = postPostHandle;
         this.i18nSupport = i18nSupport;
     }
 
-    public void doAPIPost(final ActionDefinition action) {
+    public final Result<T> postChanges(final Action action) {
+        return doAPIPost(action.definition);
+    }
+
+    public Result<T> doAPIPost(final ActionDefinition action) {
         this.form.process(
                 name -> true,
                 fieldAccessor -> fieldAccessor.resetError());
 
-        this.post
+        return this.post
                 .newBuilder()
                 .withFormBinding(this.form)
                 .call()
@@ -71,7 +81,8 @@ public class FormHandle<T> {
                         log.error("Unexpected error while trying to post form: ", error);
                         this.pageContext.notifyError(error);
                     }
-                });
+                })
+                .map(this.postPostHandle);
     }
 
     private final void showValidationError(

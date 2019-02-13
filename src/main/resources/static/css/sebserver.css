@@ -163,7 +163,7 @@ Text.error {
     color: #4a4a4a;
     background-repeat: repeat;
     background-position: left top;
-    background-color: #ff0000;
+    background-color: #A8322D;
     background-image: none;
     text-shadow: none;
     box-shadow: none;
@@ -258,7 +258,9 @@ Button {
 
 /* Push Buttons */
 Button[PUSH],
-Button[PUSH]:default {
+Button[PUSH]:default,
+FileUpload,
+FileUpload:default {
     font: bold 12px Arial, Helvetica, sans-serif;
     background-color: #0069B4;
     background-gradient-color: #0069B4;
@@ -270,14 +272,16 @@ Button[PUSH]:default {
     text-shadow: none;
 }
 
-Button[PUSH]:pressed {
+Button[PUSH]:pressed,
+FileUpload:pressed {
     background-color: #444;
     color: #fff;
     background-gradient-color: #444;
     background-image: gradient( linear, left top, left bottom, from( #444 ), to( #444 ) );
 }
 
-Button[PUSH]:hover {
+Button[PUSH]:hover,
+FileUpload:hover {
     background-color: #82BE1E;
     background-gradient-color: #82BE1E;
     background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
@@ -285,7 +289,8 @@ Button[PUSH]:hover {
     cursor: pointer;
 }
 
-Button[PUSH]:disabled {
+Button[PUSH]:disabled,
+FileUpload:disabled {
     background-color: transparent;
     border: 1px solid #EAECEE;
     color: #c0c0c0;
@@ -293,7 +298,7 @@ Button[PUSH]:disabled {
     background-position: right;
 }
 
-Button-FocusIndicator[PUSH] {
+Button-FocusIndicator[PUSH][BORDER] {
     background-color: transparent;
 }
 

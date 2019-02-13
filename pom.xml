@@ -152,10 +152,10 @@
               <includes>
                 <include>ch/ethz/seb/sebserver/*</include>
               </includes>
-<!--               <excludes> -->
-<!--                 <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper/*</exclude> -->
-<!--                 <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model/*</exclude> -->
-<!--               </excludes> -->
+              <!-- <excludes> -->
+              <!-- <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper/*</exclude> -->
+              <!-- <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model/*</exclude> -->
+              <!-- </excludes> -->
             </configuration>
             <executions>
               <execution>
@@ -269,6 +269,11 @@
       <groupId>org.eclipse.rap</groupId>
       <artifactId>org.eclipse.rap.rwt</artifactId>
       <version>3.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.rap</groupId>
+      <artifactId>org.eclipse.rap.fileupload</artifactId>
+      <version>3.7.0</version>
     </dependency>
 
     <!-- Misc -->

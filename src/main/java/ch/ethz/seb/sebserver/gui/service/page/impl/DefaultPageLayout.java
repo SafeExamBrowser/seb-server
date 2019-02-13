@@ -21,6 +21,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
+import ch.ethz.seb.sebserver.gui.service.widget.Message;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
 
@@ -138,8 +140,15 @@ public class DefaultPageLayout implements TemplateComposer {
                 MainPageState.clear();
 
                 // forward to login page with success message
-                pageContext.forwardToLoginPage(
-                        pageContext.withAttr(AttributeKeys.LGOUT_SUCCESS, "true"));
+                pageContext.forwardToLoginPage(pageContext);
+
+                // show successful logout message
+                final MessageBox logoutSuccess = new Message(
+                        pageContext.getShell(),
+                        this.polyglotPageService.getI18nSupport().getText("sebserver.logout"),
+                        this.polyglotPageService.getI18nSupport().getText("sebserver.logout.success.message"),
+                        SWT.ICON_INFORMATION);
+                logoutSuccess.open(null);
             });
         }
     }
@@ -184,7 +193,7 @@ public class DefaultPageLayout implements TemplateComposer {
             logo.setBackgroundImage(new Image(pageContext.getShell().getDisplay(), input));
 
         } catch (final Exception e) {
-            log.warn("Get institutional logo failed: ", e);
+            log.warn("Get institutional logo failed: {}", e.getMessage());
             logo.setData(RWT.CUSTOM_VARIANT, "bgLogo");
         }
 

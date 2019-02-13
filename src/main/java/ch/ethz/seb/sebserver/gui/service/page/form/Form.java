@@ -27,7 +27,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
+import ch.ethz.seb.sebserver.gui.service.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.service.widget.SingleSelection;
 
 public final class Form implements FormBinding {
@@ -40,9 +42,17 @@ public final class Form implements FormBinding {
     private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
 
-    Form(final JSONMapper jsonMapper) {
+    private final EntityKey entityKey;
+
+    Form(final JSONMapper jsonMapper, final EntityKey entityKey) {
         this.jsonMapper = jsonMapper;
         this.objectRoot = this.jsonMapper.createObjectNode();
+        this.entityKey = entityKey;
+    }
+
+    @Override
+    public EntityKey entityKey() {
+        return this.entityKey;
     }
 
     @Override
@@ -89,6 +99,10 @@ public final class Form implements FormBinding {
         if (field instanceof SingleSelection) {
             this.formFields.put(name, createAccessor(label, (SingleSelection) field));
         }
+    }
+
+    public void putField(final String name, final Label label, final ImageUpload imageUpload) {
+        this.formFields.put(name, createAccessor(label, imageUpload));
     }
 
     public void putSubForm(final String name, final Form form) {
@@ -190,6 +204,13 @@ public final class Form implements FormBinding {
             @Override public void setValue(final String value) { singleSelection.select(value); }
         };
     }
+
+    private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload) {
+        return new FormFieldAccessor(label, imageUpload) {
+            @Override public String getValue() { return imageUpload.getImageBase64(); }
+            @Override public void setValue(final String value) { imageUpload.setImageBase64(value); }
+        };
+    }
     //@formatter:on
 
     public static abstract class FormFieldAccessor {
@@ -215,7 +236,6 @@ public final class Form implements FormBinding {
         public void setError(final String errorTooltip) {
             if (!this.hasError) {
                 this.control.setData(RWT.CUSTOM_VARIANT, "error");
-                //this.control.setBackground(new Color(this.control.getDisplay(), 255, 0, 0, 50));
                 this.control.setToolTipText(errorTooltip);
                 this.hasError = true;
             }
@@ -224,7 +244,6 @@ public final class Form implements FormBinding {
         public void resetError() {
             if (this.hasError) {
                 this.control.setData(RWT.CUSTOM_VARIANT, null);
-                //this.control.setBackground(new Color(this.control.getDisplay(), 0, 0, 0, 0));
                 this.control.setToolTipText(null);
                 this.hasError = false;
             }

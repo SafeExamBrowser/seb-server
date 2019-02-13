@@ -12,11 +12,14 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityProcessingReport {
 
     @JsonProperty(value = "source", required = true)
@@ -35,6 +38,15 @@ public class EntityProcessingReport {
         this.source = Utils.immutableSetOf(source);
         this.dependencies = Utils.immutableSetOf(dependencies);
         this.errors = Utils.immutableSetOf(errors);
+    }
+
+    @JsonIgnore
+    public EntityKey getSingleSource() {
+        if (!this.source.isEmpty()) {
+            return this.source.iterator().next();
+        }
+
+        return null;
     }
 
     public static final class ErrorEntry {

@@ -9,9 +9,11 @@
 package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -21,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Institution implements GrantEntity, Activatable {
 
     @JsonProperty(Domain.ATTR_ID)
@@ -32,7 +35,7 @@ public final class Institution implements GrantEntity, Activatable {
     public final String name;
 
     @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX)
-    @Size(min = 3, max = 255, message = "institution:urlSuffix:size:{min}:{max}:${validatedValue}")
+    @Pattern(regexp = "(^$|.{3,255})", message = "institution:urlSuffix:size:{min}:{max}:${validatedValue}")
     public final String urlSuffix;
 
     @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE)

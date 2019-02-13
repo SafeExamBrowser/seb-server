@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
+package ch.ethz.seb.sebserver.gbl.authorization;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -15,6 +15,8 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
  * institutional rights and ownershipRights. */
 public final class Privilege {
 
+    /** The RoleTypeKey defining the UserRole and EntityType for this Privilege */
+    public final RoleTypeKey roleTypeKey;
     /** Defines a base-privilege type that defines the overall access for an entity-type */
     public final PrivilegeType privilegeType;
     /** Defines an institutional privilege type that defines the institutional restricted access for a
@@ -24,10 +26,12 @@ public final class Privilege {
     public final PrivilegeType ownershipPrivilege;
 
     public Privilege(
+            final RoleTypeKey roleTypeKey,
             final PrivilegeType privilegeType,
             final PrivilegeType institutionalPrivilege,
             final PrivilegeType ownershipPrivilege) {
 
+        this.roleTypeKey = roleTypeKey;
         this.privilegeType = privilegeType;
         this.institutionalPrivilege = institutionalPrivilege;
         this.ownershipPrivilege = ownershipPrivilege;
@@ -68,7 +72,7 @@ public final class Privilege {
     }
 
     /** A key that combines UserRole EntityType identity */
-    static final class RoleTypeKey {
+    public static final class RoleTypeKey {
 
         public final EntityType entityType;
         public final UserRole userRole;

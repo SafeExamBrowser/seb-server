@@ -29,7 +29,7 @@ public class DefaultLoginPage implements PageDefinition {
 
     @Override
     public PageContext applyPageContext(final PageContext pageContext) {
-        return pageContext.withAttr(
+        return pageContext.withAttribute(
                 AttributeKeys.PAGE_TEMPLATE_COMPOSER_NAME,
                 SEBLogin.class.getName());
     }

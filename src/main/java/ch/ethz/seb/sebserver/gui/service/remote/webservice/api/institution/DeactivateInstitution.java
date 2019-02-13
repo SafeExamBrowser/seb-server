@@ -16,22 +16,22 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetInstitution extends RestCall<Institution> {
+public class DeactivateInstitution extends RestCall<EntityProcessingReport> {
 
-    protected GetInstitution() {
+    protected DeactivateInstitution() {
         super(
-                new TypeReference<Institution>() {
+                new TypeReference<EntityProcessingReport>() {
                 },
-                HttpMethod.GET,
+                HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.INSTITUTION_ENDPOINT + API.PATH_VAR_MODEL_ID);
+                API.INSTITUTION_ENDPOINT + API.PATH_VAR_INACTIVE);
     }
 
 }

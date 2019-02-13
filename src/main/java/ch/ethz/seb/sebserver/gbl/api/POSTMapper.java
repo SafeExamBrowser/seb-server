@@ -8,14 +8,20 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -26,7 +32,23 @@ public class POSTMapper {
 
     public POSTMapper(final MultiValueMap<String, String> params) {
         super();
-        this.params = params;
+        this.params = new LinkedMultiValueMap<>();
+        if (params != null) {
+            for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+                this.params.put(
+                        entry.getKey(),
+                        entry.getValue()
+                                .stream()
+                                .map(encoded -> {
+                                    try {
+                                        return URLDecoder.decode(encoded, "UTF-8");
+                                    } catch (final UnsupportedEncodingException e) {
+                                        return encoded;
+                                    }
+                                })
+                                .collect(Collectors.toList()));
+            }
+        }
     }
 
     public String getString(final String name) {
@@ -115,6 +137,12 @@ public class POSTMapper {
         }
 
         return Utils.toDateTime(value);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends POSTMapper> T putIfAbsent(final String name, final String value) {
+        this.params.putIfAbsent(name, Arrays.asList(value));
+        return (T) this;
     }
 
 }

@@ -28,8 +28,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -41,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
@@ -103,10 +103,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
-        final FilterMap filterMap = new FilterMap(allRequestParams);
-        allRequestParams.putIfAbsent(
-                Entity.FILTER_ATTR_INSTITUTION,
-                Arrays.asList(String.valueOf(institutionId)));
+        final FilterMap filterMap = new FilterMap(allRequestParams)
+                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
 
         return this.paginationService.getPage(
                 pageNumber,
@@ -133,10 +131,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         checkReadPrivilege(institutionId);
-        final FilterMap filterMap = new FilterMap(allRequestParams);
-        allRequestParams.putIfAbsent(
-                Entity.FILTER_ATTR_INSTITUTION,
-                Arrays.asList(String.valueOf(institutionId)));
+        final FilterMap filterMap = new FilterMap(allRequestParams)
+                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
 
         return getAll(filterMap)
                 .getOrThrow()
@@ -211,10 +207,10 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 PrivilegeType.WRITE,
                 institutionId);
 
-        allRequestParams.putIfAbsent(
-                Domain.ATTR_INSTITUTION_ID,
-                Arrays.asList(String.valueOf(institutionId)));
-        final M requestModel = this.createNew(new POSTMapper(allRequestParams));
+        final POSTMapper postMap = new POSTMapper(allRequestParams)
+                .putIfAbsent(Domain.ATTR_INSTITUTION_ID, String.valueOf(institutionId));
+
+        final M requestModel = this.createNew(postMap);
 
         return this.beanValidationService.validateBean(requestModel)
                 .flatMap(this.entityDAO::createNew)

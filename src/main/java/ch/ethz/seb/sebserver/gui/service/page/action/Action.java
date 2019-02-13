@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page.action;
 
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -23,12 +24,13 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 
-public class Action implements Runnable {
+public final class Action implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(Action.class);
 
     public final ActionDefinition definition;
     String confirmationMessage;
+    BooleanSupplier confirmComdition = () -> true;
     String successMessage;
     boolean updateOnSelection;
 
@@ -49,7 +51,7 @@ public class Action implements Runnable {
 
     @Override
     public void run() {
-        if (StringUtils.isNotBlank(this.confirmationMessage)) {
+        if (StringUtils.isNotBlank(this.confirmationMessage) && this.confirmComdition.getAsBoolean()) {
             this.pageContext.applyConfirmDialog(
                     this.confirmationMessage,
                     () -> exec());
