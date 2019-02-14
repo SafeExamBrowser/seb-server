@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -37,18 +37,18 @@ public class QuizImportController {
     private final int maxPageSize;
 
     private final LmsAPIService lmsAPIService;
-    private final AuthorizationGrantService authorizationGrantService;
+    private final AuthorizationService authorization;
 
     public QuizImportController(
             @Value("${sebserver.webservice.api.pagination.defaultPageSize:10}") final int defaultPageSize,
             @Value("${sebserver.webservice.api.pagination.maxPageSize:500}") final int maxPageSize,
             final LmsAPIService lmsAPIService,
-            final AuthorizationGrantService authorizationGrantService) {
+            final AuthorizationService authorization) {
 
         this.defaultPageSize = defaultPageSize;
         this.maxPageSize = maxPageSize;
         this.lmsAPIService = lmsAPIService;
-        this.authorizationGrantService = authorizationGrantService;
+        this.authorization = authorization;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -68,9 +68,9 @@ public class QuizImportController {
                 .createLmsAPITemplate(lmsSetupId)
                 .getOrThrow();
 
-        this.authorizationGrantService.checkPrivilege(
-                EntityType.EXAM,
+        this.authorization.check(
                 PrivilegeType.READ_ONLY,
+                EntityType.EXAM,
                 institutionId);
 
         return lmsAPITemplate.getQuizzes(

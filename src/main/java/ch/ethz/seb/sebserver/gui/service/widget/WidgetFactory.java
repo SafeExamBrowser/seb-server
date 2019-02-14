@@ -343,17 +343,23 @@ public class WidgetFactory {
             final Composite parent,
             final String value,
             final LocTextKey locTextKey,
-            final int hspan, final int vspan) {
+            final int hspan,
+            final int vspan,
+            final boolean readonly) {
 
-        final ImageUpload imageUpload = imageUploadLocalized(parent, locTextKey);
+        final ImageUpload imageUpload = imageUploadLocalized(parent, locTextKey, readonly);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan);
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(value);
         return imageUpload;
     }
 
-    public ImageUpload imageUploadLocalized(final Composite parent, final LocTextKey locTextKey) {
-        final ImageUpload imageUpload = new ImageUpload(parent, this.serverPushService);
+    public ImageUpload imageUploadLocalized(
+            final Composite parent,
+            final LocTextKey locTextKey,
+            final boolean readonly) {
+
+        final ImageUpload imageUpload = new ImageUpload(parent, this.serverPushService, readonly);
         injectI18n(imageUpload, locTextKey);
         return imageUpload;
     }
@@ -454,7 +460,7 @@ public class WidgetFactory {
 
         return imageUpload -> {
             if (locTextKey != null) {
-                imageUpload.fileUpload.setText(i18nSupport.getText(locTextKey));
+                imageUpload.setSelectionText(i18nSupport.getText(locTextKey));
             }
         };
     }

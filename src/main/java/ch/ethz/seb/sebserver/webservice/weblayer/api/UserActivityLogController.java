@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
@@ -37,22 +37,22 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 public class UserActivityLogController {
 
     private final UserActivityLogDAO userActivityLogDAO;
-    private final AuthorizationGrantService authorizationGrantService;
+    private final AuthorizationService authorization;
     private final PaginationService paginationService;
 
     public UserActivityLogController(
             final UserActivityLogDAO userActivityLogDAO,
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final PaginationService paginationService) {
 
         this.userActivityLogDAO = userActivityLogDAO;
-        this.authorizationGrantService = authorizationGrantService;
+        this.authorization = authorization;
         this.paginationService = paginationService;
     }
 
     @InitBinder
     public void initBinder(final WebDataBinder binder) throws Exception {
-        this.authorizationGrantService
+        this.authorization
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
@@ -133,9 +133,9 @@ public class UserActivityLogController {
     }
 
     private void checkBaseReadPrivilege(final Long institutionId) {
-        this.authorizationGrantService.checkPrivilege(
-                EntityType.USER_ACTIVITY_LOG,
+        this.authorization.check(
                 PrivilegeType.READ_ONLY,
+                EntityType.USER_ACTIVITY_LOG,
                 institutionId);
     }
 

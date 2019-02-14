@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
@@ -35,13 +35,13 @@ public class InstitutionController extends ActivatableEntityController<Instituti
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final UserActivityLogDAO userActivityLogDAO,
             final BulkActionService bulkActionService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
 
-        super(authorizationGrantService,
+        super(authorization,
                 bulkActionService,
                 institutionDAO,
                 userActivityLogDAO,
@@ -63,7 +63,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
 
     @RequestMapping(path = API.SELF_PATH_SEGMENT, method = RequestMethod.GET)
     public Institution getOwn() {
-        final SEBServerUser currentUser = this.authorizationGrantService
+        final SEBServerUser currentUser = this.authorization
                 .getUserService()
                 .getCurrentUser();
 

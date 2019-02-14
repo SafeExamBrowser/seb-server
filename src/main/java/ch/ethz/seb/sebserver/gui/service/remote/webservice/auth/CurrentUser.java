@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +77,17 @@ public class CurrentUser {
     public boolean hasPrivilege(final PrivilegeType privilegeType, final EntityType entityType) {
         if (loadPrivileges()) {
             try {
-                return get().getRoles()
+                final UserInfo userInfo = get();
+                return userInfo.getRoles()
                         .stream()
                         .map(roleName -> UserRole.valueOf(roleName))
                         .map(role -> new RoleTypeKey(entityType, role))
                         .map(key -> this.privileges.get(key))
-                        .filter(checkPrivilege(get(), privilegeType, null))
+                        .filter(priv -> (priv != null) && priv.hasGrant(
+                                userInfo.uuid,
+                                userInfo.institutionId,
+                                privilegeType,
+                                null, null))
                         .findFirst()
                         .isPresent();
             } catch (final Exception e) {
@@ -102,12 +106,18 @@ public class CurrentUser {
         if (loadPrivileges()) {
             final EntityType entityType = grantEntity.entityType();
             try {
-                return get().getRoles()
+                final UserInfo userInfo = get();
+                return userInfo.getRoles()
                         .stream()
                         .map(roleName -> UserRole.valueOf(roleName))
                         .map(role -> new RoleTypeKey(entityType, role))
                         .map(key -> this.privileges.get(key))
-                        .filter(checkPrivilege(get(), privilegeType, grantEntity))
+                        .filter(priv -> (priv != null) && priv.hasGrant(
+                                userInfo.uuid,
+                                userInfo.institutionId,
+                                privilegeType,
+                                grantEntity.getInstitutionId(),
+                                grantEntity.getOwnerId()))
                         .findFirst()
                         .isPresent();
             } catch (final Exception e) {
@@ -117,20 +127,6 @@ public class CurrentUser {
         }
 
         return false;
-    }
-
-    private Predicate<Privilege> checkPrivilege(
-            final UserInfo userInfo,
-            final PrivilegeType privilegeType,
-            final GrantEntity grantEntity) {
-
-        return priv -> priv.hasBasePrivilege(privilegeType)
-                || ((grantEntity != null) &&
-                        (priv.hasInstitutionalPrivilege(privilegeType)
-                                && get().institutionId.longValue() == grantEntity.getInstitutionId()
-                                        .longValue())
-                        || (priv.hasOwnershipPrivilege(privilegeType)
-                                && get().uuid.equals(grantEntity.getOwnerId())));
     }
 
     public boolean isAvailable() {

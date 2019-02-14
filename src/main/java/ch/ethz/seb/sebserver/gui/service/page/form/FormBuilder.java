@@ -207,13 +207,8 @@ public class FormBuilder {
                 this.formParent,
                 value,
                 new LocTextKey("sebserver.overall.upload"),
-                span, 1);
-        if (this.readonly) {
-            imageUpload.setReadonly();
-            this.form.putField(name, lab, imageUpload);
-        } else {
-            this.form.putField(name, lab, imageUpload);
-        }
+                span, 1, this.readonly);
+        this.form.putField(name, lab, imageUpload);
 
         return this;
     }

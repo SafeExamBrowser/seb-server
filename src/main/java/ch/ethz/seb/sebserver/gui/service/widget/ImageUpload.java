@@ -41,88 +41,71 @@ public class ImageUpload extends Composite {
 
     private final ServerPushService serverPushService;
 
-    final Composite imageCanvas;
-    final FileUpload fileUpload;
+    private final Composite imageCanvas;
+    private final FileUpload fileUpload;
     private String imageBase64 = null;
     private boolean loadNewImage = false;
     private boolean imageLoaded = false;
 
-    ImageUpload(final Composite parent, final ServerPushService serverPushService) {
+    ImageUpload(final Composite parent, final ServerPushService serverPushService, final boolean readonly) {
         super(parent, SWT.NONE);
         super.setLayout(new GridLayout(2, false));
 
         this.serverPushService = serverPushService;
 
-        this.fileUpload = new FileUpload(this, SWT.NONE);
-        this.fileUpload.setText("Select File");
-        this.fileUpload.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+        if (!readonly) {
+            this.fileUpload = new FileUpload(this, SWT.NONE);
+            this.fileUpload.setText("Select File");
+            this.fileUpload.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+
+            final FileUploadHandler uploadHandler = new FileUploadHandler(new FileUploadReceiver() {
+
+                @Override
+                public void receive(final InputStream stream, final FileDetails details) throws IOException {
+                    try {
+                        final String contentType = details.getContentType();
+                        if (contentType != null && contentType.startsWith("image")) {
+                            ImageUpload.this.imageBase64 = Base64.getEncoder().encodeToString(stream.readAllBytes());
+                        }
+                    } catch (final Exception e) {
+                        log.error("Error while trying to upload image", e);
+                    } finally {
+                        ImageUpload.this.imageLoaded = true;
+                        stream.close();
+                    }
+                }
+            });
+
+            this.fileUpload.addSelectionListener(new SelectionAdapter() {
+
+                private static final long serialVersionUID = -6776734104137568801L;
+
+                @Override
+                public void widgetSelected(final SelectionEvent event) {
+                    ImageUpload.this.loadNewImage = true;
+                    ImageUpload.this.imageLoaded = false;
+                    ImageUpload.this.fileUpload.submit(uploadHandler.getUploadUrl());
+
+                    ImageUpload.this.serverPushService.runServerPush(
+                            new ServerPushContext(ImageUpload.this, ImageUpload::uploadInProgress),
+                            ImageUpload::wait,
+                            ImageUpload::update);
+                }
+            });
+        } else {
+            this.fileUpload = null;
+        }
 
         this.imageCanvas = new Composite(this, SWT.NONE);
         final GridData canvas = new GridData(SWT.FILL, SWT.FILL, true, true);
         this.imageCanvas.setLayoutData(canvas);
 
-        final FileUploadHandler uploadHandler = new FileUploadHandler(new FileUploadReceiver() {
+    }
 
-            @Override
-            public void receive(final InputStream stream, final FileDetails details) throws IOException {
-                try {
-                    final String contentType = details.getContentType();
-                    if (contentType != null && contentType.startsWith("image")) {
-                        ImageUpload.this.imageBase64 = Base64.getEncoder().encodeToString(stream.readAllBytes());
-                    }
-                } catch (final Exception e) {
-                    log.error("Error while trying to upload image", e);
-                } finally {
-                    ImageUpload.this.imageLoaded = true;
-                    stream.close();
-                }
-            }
-        });
-
-        this.fileUpload.addSelectionListener(new SelectionAdapter() {
-
-            private static final long serialVersionUID = -6776734104137568801L;
-
-            @Override
-            public void widgetSelected(final SelectionEvent event) {
-                ImageUpload.this.loadNewImage = true;
-                ImageUpload.this.imageLoaded = false;
-                ImageUpload.this.fileUpload.submit(uploadHandler.getUploadUrl());
-
-                ImageUpload.this.serverPushService.runServerPush(
-                        new ServerPushContext(
-                                ImageUpload.this,
-                                runAgainContext -> {
-                                    final ImageUpload imageUpload = (ImageUpload) runAgainContext.getAnchor();
-                                    return imageUpload.loadNewImage && !imageUpload.imageLoaded;
-                                }),
-                        context -> {
-                            try {
-                                Thread.sleep(200);
-                            } catch (final Exception e) {
-                                e.printStackTrace();
-                            }
-                        },
-                        context -> {
-                            final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
-                            if (imageUpload.imageBase64 != null
-                                    && imageUpload.loadNewImage
-                                    && imageUpload.imageLoaded) {
-                                final Base64InputStream input = new Base64InputStream(
-                                        new ByteArrayInputStream(
-                                                imageUpload.imageBase64.getBytes(StandardCharsets.UTF_8)),
-                                        false);
-
-                                imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
-                                imageUpload.imageCanvas.setBackgroundImage(new Image(context.getDisplay(), input));
-                                context.layout();
-                                imageUpload.layout();
-                                imageUpload.loadNewImage = false;
-                            }
-                        });
-            }
-        });
-
+    public void setSelectionText(final String text) {
+        if (this.fileUpload != null) {
+            this.fileUpload.setText(text);
+        }
     }
 
     public String getImageBase64() {
@@ -141,9 +124,34 @@ public class ImageUpload extends Composite {
         this.imageCanvas.setBackgroundImage(new Image(super.getDisplay(), input));
     }
 
-    public void setReadonly() {
-        this.fileUpload.setVisible(false);
-        this.fileUpload.setEnabled(false);
+    private static final boolean uploadInProgress(final ServerPushContext context) {
+        final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
+        return imageUpload.loadNewImage && !imageUpload.imageLoaded;
+    }
+
+    private static final void wait(final ServerPushContext context) {
+        try {
+            Thread.sleep(200);
+        } catch (final Exception e) {
+        }
+    }
+
+    private static final void update(final ServerPushContext context) {
+        final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
+        if (imageUpload.imageBase64 != null
+                && imageUpload.loadNewImage
+                && imageUpload.imageLoaded) {
+            final Base64InputStream input = new Base64InputStream(
+                    new ByteArrayInputStream(
+                            imageUpload.imageBase64.getBytes(StandardCharsets.UTF_8)),
+                    false);
+
+            imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
+            imageUpload.imageCanvas.setBackgroundImage(new Image(context.getDisplay(), input));
+            context.layout();
+            imageUpload.layout();
+            imageUpload.loadNewImage = false;
+        }
     }
 
 }

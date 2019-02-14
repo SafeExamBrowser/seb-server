@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -24,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
@@ -40,7 +39,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
     private final ActivatableEntityDAO<T, M> activatableEntityDAO;
 
     public ActivatableEntityController(
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorizationGrantService,
             final BulkActionService bulkActionService,
             final ActivatableEntityDAO<T, M> entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
@@ -130,9 +129,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 new EntityKey(id, entityType));
 
         return this.entityDAO.byModelId(id)
-                .flatMap(entity -> this.authorizationGrantService.checkGrantOnEntity(
-                        entity,
-                        PrivilegeType.WRITE))
+                .flatMap(this.authorization::checkWrite)
                 .flatMap(entity -> this.bulkActionService.createReport(bulkAction));
     }
 

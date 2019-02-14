@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 
 @WebServiceProfile
@@ -28,11 +28,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 public class InfoController {
 
     private final InstitutionDAO institutionDAO;
-    private final AuthorizationGrantService authorizationGrantService;
+    private final AuthorizationService authorizationGrantService;
 
     protected InfoController(
             final InstitutionDAO institutionDAO,
-            final AuthorizationGrantService authorizationGrantService) {
+            final AuthorizationService authorizationGrantService) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;

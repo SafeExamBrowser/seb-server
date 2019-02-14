@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -46,14 +46,14 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final UserActivityLogDAO userActivityLogDAO,
             final BulkActionService bulkActionService,
             final LmsAPIService lmsAPIService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
 
-        super(authorizationGrantService,
+        super(authorization,
                 bulkActionService,
                 lmsSetupDAO,
                 userActivityLogDAO,
@@ -81,9 +81,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             @PathVariable final Long modelId,
             final HttpServletResponse response) {
 
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.LMS_SETUP,
-                PrivilegeType.WRITE);
+        this.authorization.check(PrivilegeType.WRITE, EntityType.LMS_SETUP);
 
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         response.setStatus(HttpStatus.OK.value());
@@ -107,9 +105,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public LmsSetupTestResult connectionReport(@PathVariable final Long modelId) {
 
-        this.authorizationGrantService.checkHasAnyPrivilege(
-                EntityType.LMS_SETUP,
-                PrivilegeType.MODIFY);
+        this.authorization.check(PrivilegeType.MODIFY, EntityType.LMS_SETUP);
 
         return this.lmsAPIService.createLmsAPITemplate(modelId)
                 .map(template -> template.testLmsSetup())

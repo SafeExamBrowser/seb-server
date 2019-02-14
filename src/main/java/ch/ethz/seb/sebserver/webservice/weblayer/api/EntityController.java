@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -39,7 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
@@ -53,7 +52,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 public abstract class EntityController<T extends GrantEntity, M extends GrantEntity> {
 
-    protected final AuthorizationGrantService authorizationGrantService;
+    protected final AuthorizationService authorization;
     protected final BulkActionService bulkActionService;
     protected final EntityDAO<T, M> entityDAO;
     protected final UserActivityLogDAO userActivityLogDAO;
@@ -61,14 +60,14 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     protected final BeanValidationService beanValidationService;
 
     protected EntityController(
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final EntityDAO<T, M> entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
 
-        this.authorizationGrantService = authorizationGrantService;
+        this.authorization = authorization;
         this.bulkActionService = bulkActionService;
         this.entityDAO = entityDAO;
         this.userActivityLogDAO = userActivityLogDAO;
@@ -78,7 +77,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
     @InitBinder
     public void initBinder(final WebDataBinder binder) throws Exception {
-        this.authorizationGrantService
+        this.authorization
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
@@ -153,9 +152,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         return this.entityDAO
                 .byModelId(modelId)
-                .flatMap(entity -> this.authorizationGrantService.checkGrantOnEntity(
-                        entity,
-                        PrivilegeType.READ_ONLY))
+                .flatMap(this.authorization::checkReadonly)
                 .getOrThrow();
     }
 
@@ -181,7 +178,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 .flatMap(this.entityDAO::loadEntities)
                 .getOrThrow()
                 .stream()
-                .filter(entity -> this.authorizationGrantService.hasGrant(entity, PrivilegeType.READ_ONLY))
+                .filter(this.authorization::hasReadonlyPrivilege)
                 .collect(Collectors.toList());
     }
 
@@ -201,9 +198,9 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         // check write privilege for requested institution and concrete entityType
-        this.authorizationGrantService.checkPrivilege(
-                this.entityDAO.entityType(),
+        this.authorization.check(
                 PrivilegeType.WRITE,
+                this.entityDAO.entityType(),
                 institutionId);
 
         final POSTMapper postMap = new POSTMapper(allRequestParams)
@@ -232,7 +229,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             @Valid @RequestBody final M modifyData) {
 
         return this.beanValidationService.validateBean(modifyData)
-                .flatMap(m -> this.authorizationGrantService.checkGrantOnEntity(m, PrivilegeType.MODIFY))
+                .flatMap(this.authorization::checkModify)
                 .flatMap(m -> this.entityDAO.save(modelId, m))
                 .flatMap(e -> this.userActivityLogDAO.log(ActivityType.MODIFY, e))
                 .flatMap(e -> notifySaved(modifyData, e))
@@ -284,26 +281,22 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 new EntityKey(modelId, entityType));
 
         return this.entityDAO.byModelId(modelId)
-                .flatMap(entity -> this.authorizationGrantService.checkGrantOnEntity(
-                        entity,
-                        PrivilegeType.WRITE))
+                .flatMap(this.authorization::checkWrite)
                 .flatMap(entity -> this.bulkActionService.createReport(bulkAction))
                 .getOrThrow();
     }
 
     protected void checkReadPrivilege(final Long institutionId) {
-        this.authorizationGrantService.checkPrivilege(
-                this.entityDAO.entityType(),
+        this.authorization.check(
                 PrivilegeType.READ_ONLY,
+                this.entityDAO.entityType(),
                 institutionId);
     }
 
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
-        final Predicate<T> grantFilter = this.authorizationGrantService.getGrantFilter(
-                this.entityDAO.entityType(),
-                PrivilegeType.READ_ONLY);
-
-        return this.entityDAO.allMatching(filterMap, grantFilter);
+        return this.entityDAO.allMatching(
+                filterMap,
+                this.authorization::hasReadonlyPrivilege);
     }
 
     protected Result<T> notifySaved(final M modifyData, final T entity) {

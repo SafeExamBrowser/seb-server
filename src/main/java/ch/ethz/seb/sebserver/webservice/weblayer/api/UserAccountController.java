@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
@@ -38,14 +38,14 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
     public UserAccountController(
             final UserDAO userDao,
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BulkActionService bulkActionService,
             final ApplicationEventPublisher applicationEventPublisher,
             final BeanValidationService beanValidationService) {
 
-        super(authorizationGrantService,
+        super(authorization,
                 bulkActionService,
                 userDao,
                 userActivityLogDAO,
@@ -56,7 +56,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
     @RequestMapping(path = "/me", method = RequestMethod.GET)
     public UserInfo loggedInUser() {
-        return this.authorizationGrantService
+        return this.authorization
                 .getUserService()
                 .getCurrentUser()
                 .getUserInfo();

@@ -45,7 +45,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationGrantService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -66,7 +66,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     private final LmsAPIService lmsAPIService;
 
     public ExamAdministrationController(
-            final AuthorizationGrantService authorizationGrantService,
+            final AuthorizationService authorization,
             final UserActivityLogDAO userActivityLogDAO,
             final ExamDAO examDAO,
             final PaginationService paginationService,
@@ -75,7 +75,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final IndicatorDAO indicatorDAO,
             final LmsAPIService lmsAPIService) {
 
-        super(authorizationGrantService,
+        super(authorization,
                 bulkActionService,
                 examDAO,
                 userActivityLogDAO,
@@ -124,9 +124,9 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         } else {
 
-            this.authorizationGrantService.checkPrivilege(
-                    EntityType.EXAM,
+            this.authorization.check(
                     PrivilegeType.READ_ONLY,
+                    EntityType.EXAM,
                     institutionId);
 
             final int pageNum = this.paginationService.getPageNumber(pageNumber);
@@ -161,7 +161,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     public Collection<Indicator> getIndicatorOfExam(@PathVariable final Long examId) {
         // check read-only grant on Exam
         this.examDAO.byPK(examId)
-                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.READ_ONLY))
+                .map(this.authorization::checkReadonly)
                 .getOrThrow();
 
         return this.indicatorDAO.allForExam(examId)
@@ -175,7 +175,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         // check write grant on Exam
         this.examDAO.byPK(examId)
-                .map(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .map(this.authorization::checkWrite)
                 .getOrThrow();
 
         final Set<EntityKey> toDelete = (indicatorId != null)
@@ -199,7 +199,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         // check write grant on Exam
         this.examDAO.byPK(examId)
-                .flatMap(exam -> this.authorizationGrantService.checkGrantOnEntity(exam, PrivilegeType.WRITE))
+                .flatMap(this.authorization::checkWrite)
                 .getOrThrow();
 
         if (indicator.id != null) {
@@ -219,7 +219,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         // check modify grant on Exam
         this.examDAO.byPK(indicator.examId)
-                .flatMap(e -> this.authorizationGrantService.checkGrantOnEntity(e, PrivilegeType.MODIFY))
+                .flatMap(this.authorization::checkModify)
                 .getOrThrow();
 
         return this.indicatorDAO

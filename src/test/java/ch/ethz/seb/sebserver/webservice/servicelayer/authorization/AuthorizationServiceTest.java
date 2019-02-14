@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
@@ -28,45 +26,42 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
-public class AuthorizationGrantServiceTest {
-
-    @Mock
-    private Principal principal;
+public class AuthorizationServiceTest {
 
     @Test
     public void testInstitutionGrantForSEB_SERVER_ADMIN() {
-        final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
+        final AuthorizationServiceImpl service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
 
-        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.READ_ONLY, this.principal));
-        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.MODIFY, this.principal));
-        assertTrue(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.WRITE, this.principal));
+        assertTrue(service.hasPrivilege(PrivilegeType.READ_ONLY, EntityType.INSTITUTION));
+        assertTrue(service.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
+        assertTrue(service.hasPrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION));
 
         final GrantEntity institution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertTrue(service.hasGrant(institution, PrivilegeType.READ_ONLY, this.principal));
-        assertTrue(service.hasGrant(institution, PrivilegeType.MODIFY, this.principal));
-        assertTrue(service.hasGrant(institution, PrivilegeType.WRITE, this.principal));
+        assertTrue(service.hasReadonlyPrivilege(institution));
+        assertTrue(service.hasModifyPrivilege(institution));
+        assertTrue(service.hasWritePrivilege(institution));
     }
 
     @Test
     public void testInstitutionGrantsForINSTITUTIONAL_ADMIN() {
-        final AuthorizationGrantServiceImpl service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
+        final AuthorizationServiceImpl service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
 
-        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.READ_ONLY, this.principal));
-        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.MODIFY, this.principal));
-        assertFalse(service.hasBasePrivilege(EntityType.INSTITUTION, PrivilegeType.WRITE, this.principal));
+        assertFalse(service.hasPrivilege(PrivilegeType.READ_ONLY, EntityType.INSTITUTION));
+        assertFalse(service.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
+        assertFalse(service.hasPrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION));
 
         final GrantEntity ownInstitution = entityOf(EntityType.INSTITUTION, 1L, "");
 
-        assertTrue(service.hasGrant(ownInstitution, PrivilegeType.READ_ONLY, this.principal));
-        assertTrue(service.hasGrant(ownInstitution, PrivilegeType.MODIFY, this.principal));
-        assertFalse(service.hasGrant(ownInstitution, PrivilegeType.WRITE, this.principal));
+        assertTrue(service.hasReadonlyPrivilege(ownInstitution));
+        assertTrue(service.hasModifyPrivilege(ownInstitution));
+        assertFalse(service.hasWritePrivilege(ownInstitution));
 
         final GrantEntity otherInstitution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.READ_ONLY, this.principal));
-        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.MODIFY, this.principal));
-        assertFalse(service.hasGrant(otherInstitution, PrivilegeType.WRITE, this.principal));
+        assertFalse(service.hasReadonlyPrivilege(otherInstitution));
+        assertFalse(service.hasModifyPrivilege(otherInstitution));
+        assertFalse(service.hasWritePrivilege(otherInstitution));
     }
 
     private SEBServerUser getUser(final UserRole... roles) {
@@ -109,13 +104,12 @@ public class AuthorizationGrantServiceTest {
         };
     }
 
-    private AuthorizationGrantServiceImpl getTestServiceWithUserWithRoles(final UserRole... roles) {
+    private AuthorizationServiceImpl getTestServiceWithUserWithRoles(final UserRole... roles) {
         final SEBServerUser user = getUser(roles);
         final UserServiceImpl currentUserServiceMock = Mockito.mock(UserServiceImpl.class);
-        Mockito.when(currentUserServiceMock.extractFromPrincipal(this.principal)).thenReturn(user);
+        Mockito.when(currentUserServiceMock.getCurrentUser()).thenReturn(user);
 
-        final AuthorizationGrantServiceImpl authorizationGrantService = new AuthorizationGrantServiceImpl(
-                Collections.emptyList(),
+        final AuthorizationServiceImpl authorizationGrantService = new AuthorizationServiceImpl(
                 currentUserServiceMock);
         authorizationGrantService.init();
         return authorizationGrantService;

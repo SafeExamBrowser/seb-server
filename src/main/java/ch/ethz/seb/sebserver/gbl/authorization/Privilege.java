@@ -75,6 +75,22 @@ public final class Privilege {
         return this.ownershipPrivilege.hasImplicit(privilegeType);
     }
 
+    public final boolean hasGrant(
+            final String userId,
+            final Long userInstitutionId,
+            final PrivilegeType privilegeType,
+            final Long institutionId,
+            final String ownerId) {
+
+        return this.hasBasePrivilege(privilegeType)
+                || ((institutionId != null) &&
+                        (this.hasInstitutionalPrivilege(privilegeType)
+                                && userInstitutionId.longValue() == institutionId
+                                        .longValue())
+                        || (this.hasOwnershipPrivilege(privilegeType)
+                                && userId.equals(ownerId)));
+    }
+
     @Override
     public String toString() {
         return "Privilege [privilegeType=" + this.basePrivilege + ", institutionalPrivilege="
