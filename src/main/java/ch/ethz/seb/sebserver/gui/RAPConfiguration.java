@@ -14,7 +14,6 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.application.AbstractEntryPoint;
 import org.eclipse.rap.rwt.application.Application;
@@ -22,14 +21,12 @@ import org.eclipse.rap.rwt.application.ApplicationConfiguration;
 import org.eclipse.rap.rwt.application.EntryPoint;
 import org.eclipse.rap.rwt.application.EntryPointFactory;
 import org.eclipse.rap.rwt.client.WebClient;
-import org.eclipse.rap.rwt.client.service.StartupParameters;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 
@@ -99,19 +96,6 @@ public class RAPConfiguration implements ApplicationConfiguration {
         private boolean isAuthenticated(
                 final HttpSession httpSession,
                 final WebApplicationContext webApplicationContext) {
-
-            // NOTE: if the user comes from a specified institutional login url (redirect from server) the institutionId is get from
-            //       request and put to the session attributes. The institutionId can later be used for institution specific login page
-            //       look and feel as well as for sending the institutionId within the login credentials to give the authorization service
-            //       some restriction to search the user. This is especially useful if the user is external registered and verified
-            //       with LDAP or AAI SAML
-            final StartupParameters reqParams = RWT.getClient().getService(StartupParameters.class);
-            final String institutionId = reqParams.getParameter(API.PARAM_INSTITUTION_ID);
-            if (StringUtils.isNotBlank(institutionId)) {
-                httpSession.setAttribute(API.PARAM_INSTITUTION_ID, institutionId);
-            } else {
-                httpSession.removeAttribute(API.PARAM_INSTITUTION_ID);
-            }
 
             final AuthorizationContextHolder authorizationContextHolder = webApplicationContext
                     .getBean(AuthorizationContextHolder.class);

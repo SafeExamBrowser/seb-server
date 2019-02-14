@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.gui.service.widget.Message;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
@@ -47,20 +46,17 @@ public class DefaultPageLayout implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultPageLayout.class);
 
-    private final WebserviceURIService webserviceURIService;
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
     private final AuthorizationContextHolder authorizationContextHolder;
     private final String sebServerVersion;
 
     public DefaultPageLayout(
-            final WebserviceURIService webserviceURIService,
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final AuthorizationContextHolder authorizationContextHolder,
             @Value("${sebserver.version}") final String sebServerVersion) {
 
-        this.webserviceURIService = webserviceURIService;
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.authorizationContextHolder = authorizationContextHolder;
@@ -173,28 +169,7 @@ public class DefaultPageLayout implements TemplateComposer {
         logo.setLayoutData(logoCell);
 
         // try to get institutional logo first. If no success, use default logo
-        try {
-            final String institutionId = (String) RWT.getUISession()
-                    .getHttpSession()
-                    .getAttribute(API.PARAM_INSTITUTION_ID);
-
-            final String logoBase64 = new RestTemplate()
-                    .getForObject(
-                            this.webserviceURIService.getWebserviceServerAddress() + API.INSTITUTIONAL_LOGO_PATH,
-                            String.class,
-                            institutionId);
-
-            final Base64InputStream input = new Base64InputStream(
-                    new ByteArrayInputStream(logoBase64.getBytes(StandardCharsets.UTF_8)),
-                    false);
-
-            logo.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
-            logo.setBackgroundImage(new Image(pageContext.getShell().getDisplay(), input));
-
-        } catch (final Exception e) {
-            log.warn("Get institutional logo failed: {}", e.getMessage());
-            logo.setData(RWT.CUSTOM_VARIANT, "bgLogo");
-        }
+        loadInstitutionalLogo(pageContext, logo);
 
         final Composite langSupport = new Composite(logoBar, SWT.NONE);
         final GridData langSupportCell = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
@@ -208,14 +183,6 @@ public class DefaultPageLayout implements TemplateComposer {
         langSupport.setLayout(rowLayout);
 
         this.widgetFactory.createLanguageSelector(pageContext.copyOf(langSupport));
-//        for (final Locale locale : this.i18nSupport.supportedLanguages()) {
-//            final LanguageSelection languageSelection = new LanguageSelection(langSupport, locale);
-//            languageSelection.updateLocale(this.i18nSupport);
-//            languageSelection.addListener(SWT.MouseDown, event -> {
-//                this.polyglotPageService.setPageLocale(pageContext.root, languageSelection.locale);
-//
-//            });
-//        }
     }
 
     private void composeContent(final PageContext pageContext) {
@@ -305,25 +272,28 @@ public class DefaultPageLayout implements TemplateComposer {
                 new LocTextKey("sebserver.overall.version", this.sebServerVersion));
     }
 
-//    private final class LanguageSelection extends Label implements Polyglot {
-//
-//        private static final long serialVersionUID = 8110167162843383940L;
-//        private final Locale locale;
-//
-//        public LanguageSelection(final Composite parent, final Locale locale) {
-//            super(parent, SWT.NONE);
-//            this.locale = locale;
-//            super.setData(RWT.CUSTOM_VARIANT, "header");
-//            super.setText("|  " + locale.getLanguage().toUpperCase());
-//        }
-//
-//        @Override
-//        public void updateLocale(final I18nSupport i18nSupport) {
-//            super.setVisible(
-//                    !i18nSupport.getCurrentLocale()
-//                            .getLanguage()
-//                            .equals(this.locale.getLanguage()));
-//        }
-//    }
+    private void loadInstitutionalLogo(final PageContext pageContext, final Composite logo) {
+        logo.setData(RWT.CUSTOM_VARIANT, "bgLogo");
+        try {
+
+            final String imageBase64 = (String) RWT.getUISession()
+                    .getHttpSession()
+                    .getAttribute(API.PARAM_LOGO_IMAGE);
+
+            if (StringUtils.isBlank(imageBase64)) {
+                return;
+            }
+
+            final Base64InputStream input = new Base64InputStream(
+                    new ByteArrayInputStream(imageBase64.getBytes(StandardCharsets.UTF_8)),
+                    false);
+
+            logo.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
+            logo.setBackgroundImage(new Image(pageContext.getShell().getDisplay(), input));
+
+        } catch (final Exception e) {
+            log.warn("Get institutional logo failed: {}", e.getMessage());
+        }
+    }
 
 }

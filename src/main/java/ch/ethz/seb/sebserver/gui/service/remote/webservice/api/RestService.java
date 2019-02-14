@@ -33,12 +33,12 @@ public class RestService {
 
     public RestService(
             final AuthorizationContextHolder authorizationContextHolder,
-            final WebserviceURIService webserviceURIBuilderSupplier,
             final JSONMapper jsonMapper,
             final Collection<RestCall<?>> calls) {
 
         this.authorizationContextHolder = authorizationContextHolder;
-        this.webserviceURIBuilderSupplier = webserviceURIBuilderSupplier;
+        this.webserviceURIBuilderSupplier = authorizationContextHolder
+                .getWebserviceURIService();
 
         this.calls = calls
                 .stream()
@@ -54,7 +54,7 @@ public class RestService {
     }
 
     public UriComponentsBuilder getWebserviceURIBuilder() {
-        return this.webserviceURIBuilderSupplier.getBuilder();
+        return this.webserviceURIBuilderSupplier.getURIBuilder();
     }
 
     @SuppressWarnings("unchecked")

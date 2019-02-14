@@ -76,6 +76,11 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     }
 
     @Override
+    public WebserviceURIService getWebserviceURIService() {
+        return this.webserviceURIService;
+    }
+
+    @Override
     public SEBServerAuthorizationContext getAuthorizationContext(final HttpSession session) {
         log.debug("Trying to get OAuth2AuthorizationContext from HttpSession: {}", session.getId());
 

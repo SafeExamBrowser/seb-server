@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 public final class API {
 
+    public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
     public static final String PARAM_INSTITUTION_ID = "institutionId";
     public static final String PARAM_MODEL_ID = "modelId";
     public static final String PARAM_ENTITY_TYPE = "entityType";
@@ -17,8 +18,13 @@ public final class API {
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";
 
-    public static final String LOGO_ENDPOINT = "/logo";
-    public static final String INSTITUTIONAL_LOGO_PATH = LOGO_ENDPOINT + INSTITUTION_VAR_PATH_SEGMENT;
+    public static final String INFO_ENDPOINT = "/info";
+
+    public static final String LOGO_PATH_SEGMENT = "/logo";
+    public static final String INSTITUTIONAL_LOGO_PATH = LOGO_PATH_SEGMENT + "/{urlSuffix}";
+
+    public static final String PRIVILEGES_PATH_SEGMENT = "/privileges";
+    public static final String PRIVILEGES_ENDPOINT = INFO_ENDPOINT + PRIVILEGES_PATH_SEGMENT;
 
     public static final String INSTITUTION_ENDPOINT = "/institution";
 

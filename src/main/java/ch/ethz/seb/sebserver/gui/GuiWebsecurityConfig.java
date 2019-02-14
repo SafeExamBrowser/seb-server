@@ -8,22 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -35,10 +26,8 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 @Order(4)
 public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${sebserver.gui.entrypoint}")
-    private String guiEndpointPath;
-    @Value("${sebserver.webservice.api.redirect.unauthorized}")
-    private String unauthorizedRedirect;
+    @Autowired
+    private InstitutionalAuthenticationEntryPoint institutionalAuthenticationEntryPoint;
 
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
@@ -67,19 +56,7 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(
-                        new AuthenticationEntryPoint() {
-
-                            @Override
-                            public void commence(
-                                    final HttpServletRequest request,
-                                    final HttpServletResponse response,
-                                    final AuthenticationException authException) throws IOException, ServletException {
-
-                                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                                response.sendRedirect(GuiWebsecurityConfig.this.unauthorizedRedirect);
-                            }
-                        })
+                .authenticationEntryPoint(this.institutionalAuthenticationEntryPoint)
                 .and()
                 .formLogin().disable()
                 .httpBasic().disable()

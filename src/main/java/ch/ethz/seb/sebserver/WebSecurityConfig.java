@@ -57,6 +57,8 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @Order(6)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
 
+    @Value("${sebserver.webservice.api.admin.endpoint}")
+    private String adminEndpoint;
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
 
@@ -82,7 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         web
                 .ignoring()
                 .antMatchers("/error")
-                .antMatchers(API.LOGO_ENDPOINT + "/*");
+                .antMatchers(this.adminEndpoint + API.INFO_ENDPOINT + "/**");
     }
 
     @RequestMapping("/error")

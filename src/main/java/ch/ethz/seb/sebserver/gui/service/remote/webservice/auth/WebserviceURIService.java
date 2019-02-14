@@ -43,7 +43,7 @@ public class WebserviceURIService {
         return this.webserviceServerAddress;
     }
 
-    public UriComponentsBuilder getBuilder() {
+    public UriComponentsBuilder getURIBuilder() {
         return this.webserviceURIBuilder.cloneBuilder();
     }
 
@@ -60,7 +60,7 @@ public class WebserviceURIService {
     }
 
     public String getCurrentUserRequestURI() {
-        return getBuilder()
+        return getURIBuilder()
                 .path(CURRENT_USER_URI_PATH)
                 .toUriString();
     }

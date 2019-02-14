@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +22,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.authorization.Privilege.RoleTypeKey;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -34,7 +35,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public class AuthorizationGrantServiceImpl implements AuthorizationGrantService {
 
     /** Map of role based grants for specified entity types. */
-    private final Map<Privilege.RoleTypeKey, Privilege> grants = new HashMap<>();
+    private final Map<Privilege.RoleTypeKey, Privilege> privileges = new HashMap<>();
     /** Map of collected AuthorizationGrantRule exceptions */
     private final Map<EntityType, AuthorizationGrantRule> exceptionalRules =
             new EnumMap<>(EntityType.class);
@@ -56,6 +57,11 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
     @Override
     public UserService getUserService() {
         return this.userService;
+    }
+
+    @Override
+    public Collection<Privilege> getAllPrivileges() {
+        return Collections.unmodifiableCollection(this.privileges.values());
     }
 
     /** Initialize the (hard-coded) grants */
@@ -200,7 +206,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
             final SEBServerUser user) {
 
         for (final UserRole role : user.getUserRoles()) {
-            final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
+            final Privilege roleTypeGrant = this.privileges.get(new RoleTypeKey(entityType, role));
             if (roleTypeGrant != null && roleTypeGrant.hasBasePrivilege(privilegeType)) {
                 return true;
             }
@@ -238,7 +244,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
             final SEBServerUser user) {
 
         for (final UserRole role : user.getUserRoles()) {
-            final Privilege roleTypeGrant = this.grants.get(new RoleTypeKey(entityType, role));
+            final Privilege roleTypeGrant = this.privileges.get(new RoleTypeKey(entityType, role));
             if (roleTypeGrant != null && roleTypeGrant.hasInstitutionalPrivilege(privilegeType)) {
                 return true;
             }
@@ -328,7 +334,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
             this.grants = new EnumMap<>(UserRole.class);
             for (final UserRole role : UserRole.values()) {
                 this.grants.put(role,
-                        service.grants.get(new RoleTypeKey(type, role)));
+                        service.privileges.get(new RoleTypeKey(type, role)));
             }
         }
 
@@ -437,7 +443,7 @@ public class AuthorizationGrantServiceImpl implements AuthorizationGrantService 
                     this.institutionalPrivilege,
                     this.ownerPrivilege);
 
-            AuthorizationGrantServiceImpl.this.grants.put(roleTypeKey, roleTypeGrant);
+            AuthorizationGrantServiceImpl.this.privileges.put(roleTypeKey, roleTypeGrant);
         }
     }
 

@@ -16,8 +16,11 @@ public interface AuthorizationContextHolder {
 
     SEBServerAuthorizationContext getAuthorizationContext(HttpSession session);
 
+    WebserviceURIService getWebserviceURIService();
+
     // TODO error handling!?
     default SEBServerAuthorizationContext getAuthorizationContext() {
         return getAuthorizationContext(RWT.getUISession().getHttpSession());
     }
+
 }

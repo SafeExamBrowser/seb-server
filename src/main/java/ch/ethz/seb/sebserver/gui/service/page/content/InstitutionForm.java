@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -37,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.SaveInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 
 @Lazy
@@ -46,10 +48,16 @@ public class InstitutionForm implements TemplateComposer {
 
     private final PageFormService pageFormService;
     private final RestService restService;
+    private final CurrentUser currentUser;
 
-    protected InstitutionForm(final PageFormService pageFormService, final RestService restService) {
+    protected InstitutionForm(
+            final PageFormService pageFormService,
+            final RestService restService,
+            final CurrentUser currentUser) {
+
         this.pageFormService = pageFormService;
         this.restService = restService;
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -93,7 +101,7 @@ public class InstitutionForm implements TemplateComposer {
         content.setLayout(contentLayout);
         content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        // title
+        // title (interactive9
         final Label pageTitle = widgetFactory.labelLocalizedTitle(
                 content, new LocTextKey(
                         "sebserver.institution.form.title",
@@ -141,20 +149,24 @@ public class InstitutionForm implements TemplateComposer {
 
         // propagate content actions to action-pane
         if (readonly) {
-            formContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                    .withExec(InstitutionActions::newInstitution)
-                    .publish()
-                    .createAction(ActionDefinition.INSTITUTION_MODIFY)
-                    .withExec(InstitutionActions::editInstitution)
-                    .publish();
-            if (!institution.isActive()) {
-                formContext.createAction(ActionDefinition.INSTITUTION_ACTIVATE)
-                        .withExec(InstitutionActions::activateInstitution)
+            if (this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution)) {
+                formContext.createAction(ActionDefinition.INSTITUTION_NEW)
+                        .withExec(InstitutionActions::newInstitution)
                         .publish();
-            } else {
-                formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
-                        .withExec(InstitutionActions::deactivateInstitution)
+            }
+            if (this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution)) {
+                formContext.createAction(ActionDefinition.INSTITUTION_MODIFY)
+                        .withExec(InstitutionActions::editInstitution)
                         .publish();
+                if (!institution.isActive()) {
+                    formContext.createAction(ActionDefinition.INSTITUTION_ACTIVATE)
+                            .withExec(InstitutionActions::activateInstitution)
+                            .publish();
+                } else {
+                    formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
+                            .withExec(InstitutionActions::deactivateInstitution)
+                            .publish();
+                }
             }
         } else {
             formContext.createAction(ActionDefinition.INSTITUTION_SAVE)
@@ -164,7 +176,6 @@ public class InstitutionForm implements TemplateComposer {
                     .withExec(InstitutionActions::cancelEditInstitution)
                     .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                     .publish();
-
         }
 
     }

@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
+import java.util.Collection;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -26,6 +28,11 @@ public interface AuthorizationGrantService {
      *
      * @return the UserService that is bundled within the AuthorizationGrantService */
     UserService getUserService();
+
+    /** All Privileges in a collection.
+     * 
+     * @return all registered Privileges */
+    Collection<Privilege> getAllPrivileges();
 
     /** Checks if the current user has any privilege (base or institutional or owner) for the given EntityType and
      * PrivilegeType.

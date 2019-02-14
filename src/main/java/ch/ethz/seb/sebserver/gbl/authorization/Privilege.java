@@ -19,28 +19,28 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 public final class Privilege {
 
     /** The RoleTypeKey defining the UserRole and EntityType for this Privilege */
-    @JsonProperty
+    @JsonProperty("roleTypeKey")
     public final RoleTypeKey roleTypeKey;
 
     /** Defines a base-privilege type that defines the overall access for an entity-type */
-    @JsonProperty
+    @JsonProperty("basePrivilege")
     public final PrivilegeType basePrivilege;
 
     /** Defines an institutional privilege type that defines the institutional restricted access for a
      * entity-type */
-    @JsonProperty
+    @JsonProperty("institutionalPrivilege")
     public final PrivilegeType institutionalPrivilege;
 
     /** Defines an ownership privilege type that defines the ownership restricted access for a entity-type */
-    @JsonProperty
+    @JsonProperty("ownershipPrivilege")
     public final PrivilegeType ownershipPrivilege;
 
     @JsonCreator
     public Privilege(
-            final RoleTypeKey roleTypeKey,
-            final PrivilegeType basePrivilege,
-            final PrivilegeType institutionalPrivilege,
-            final PrivilegeType ownershipPrivilege) {
+            @JsonProperty("roleTypeKey") final RoleTypeKey roleTypeKey,
+            @JsonProperty("basePrivilege") final PrivilegeType basePrivilege,
+            @JsonProperty("institutionalPrivilege") final PrivilegeType institutionalPrivilege,
+            @JsonProperty("ownershipPrivilege") final PrivilegeType ownershipPrivilege) {
 
         this.roleTypeKey = roleTypeKey;
         this.basePrivilege = basePrivilege;
@@ -85,13 +85,16 @@ public final class Privilege {
     /** A key that combines UserRole EntityType identity */
     public static final class RoleTypeKey {
 
-        @JsonProperty
+        @JsonProperty("entityType")
         public final EntityType entityType;
-        @JsonProperty
+        @JsonProperty("userRole")
         public final UserRole userRole;
 
         @JsonCreator
-        public RoleTypeKey(final EntityType type, final UserRole role) {
+        public RoleTypeKey(
+                @JsonProperty("entityType") final EntityType type,
+                @JsonProperty("userRole") final UserRole role) {
+
             this.entityType = type;
             this.userRole = role;
         }
