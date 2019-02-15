@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public final class BulkAction {
         this.type = type;
         this.sourceType = sourceType;
         this.sources = Utils.immutableSetOf(sources);
-        this.dependencies = new HashSet<>();
+        this.dependencies = new LinkedHashSet<>();
         this.result = new HashSet<>();
 
         check();
@@ -66,14 +67,8 @@ public final class BulkAction {
         this(type, sourceType, (sources != null) ? Arrays.asList(sources) : Collections.emptyList());
     }
 
-    private void check() {
-        for (final EntityKey source : this.sources) {
-            if (source.entityType != this.sourceType) {
-                throw new IllegalArgumentException(
-                        "At least one EntityType in sources list has not the expected EntityType");
-            }
-        }
-
+    public Set<EntityKey> getDependencies() {
+        return Collections.unmodifiableSet(this.dependencies);
     }
 
     public Set<EntityKey> extractKeys(final EntityType type) {
@@ -94,6 +89,16 @@ public final class BulkAction {
     @Override
     public String toString() {
         return "BulkAction [type=" + this.type + ", sourceType=" + this.sourceType + ", sources=" + this.sources + "]";
+    }
+
+    private void check() {
+        for (final EntityKey source : this.sources) {
+            if (source.entityType != this.sourceType) {
+                throw new IllegalArgumentException(
+                        "At least one EntityType in sources list has not the expected EntityType");
+            }
+        }
+
     }
 
 }

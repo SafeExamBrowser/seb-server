@@ -140,11 +140,37 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     }
 
     // ******************
+    // * GET (dependency)
+    // ******************
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<EntityKey> getDependencies(
+            @PathVariable final String modelId,
+            @RequestParam final BulkAction.Type type) {
+
+        this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this.authorization::checkReadonly);
+
+        final BulkAction bulkAction = new BulkAction(
+                type,
+                this.entityDAO.entityType(),
+                Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())));
+
+        this.bulkActionService.collectDependencies(bulkAction);
+        return bulkAction.getDependencies();
+    }
+
+    // ******************
     // * GET (single)
     // ******************
 
     @RequestMapping(
-            path = "/{modelId}",
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

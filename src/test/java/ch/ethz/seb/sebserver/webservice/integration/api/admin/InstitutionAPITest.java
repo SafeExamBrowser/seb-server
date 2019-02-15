@@ -25,10 +25,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
@@ -399,6 +402,25 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(institutions);
         assertTrue(institutions.pageSize == 0);
         assertEquals("[]", getOrderedUUIDs(institutions.content));
+    }
+
+    @Test
+    public void testDependency() throws Exception {
+        final Collection<EntityKey> dependencies = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.INSTITUTION_ENDPOINT)
+                .withPath("1")
+                .withPath(API.DEPENDENCY_PATH_SEGMENT)
+                .withAttribute("type", BulkAction.Type.DEACTIVATE.name())
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<EntityKey>>() {
+                });
+
+        assertNotNull(dependencies);
+        assertTrue(dependencies.size() == 3);
+        assertTrue(dependencies.contains(new EntityKey("1", EntityType.USER)));
+        assertTrue(dependencies.contains(new EntityKey("2", EntityType.USER)));
+        assertTrue(dependencies.contains(new EntityKey("5", EntityType.USER)));
     }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {
