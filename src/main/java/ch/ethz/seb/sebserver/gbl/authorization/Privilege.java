@@ -15,7 +15,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
 /** Defines a Privilege by combining a PrivilegeType for base (overall) rights,
- * institutional rights and ownershipRights. */
+ * institutional rights and ownership rights.
+ *
+ * A base-, institutional- and ownership- grant is checked in this exact order and the
+ * first match fund makes a grant or a denied if none of the three privilege levels has a match */
 public final class Privilege {
 
     /** The RoleTypeKey defining the UserRole and EntityType for this Privilege */
@@ -75,6 +78,22 @@ public final class Privilege {
         return this.ownershipPrivilege.hasImplicit(privilegeType);
     }
 
+    /** Checks if this Privilege has a grant for a given context.
+     *
+     * The privilege grant check function always checks first the base privilege with no institutional or owner grant.
+     * If user has a grant on base privileges this returns true without checking further institutional or owner grant
+     * If user has no base privilege grant the function checks further grants, first the institutional grant, where
+     * the institution id and the users institution id must match and further more the owner grant, where ownerId
+     * and the users id must match.
+     *
+     * @param userId The user identifier of the user to check the grant on
+     * @param userInstitutionId the users institution identifier. The institution where the user belong to
+     * @param privilegeType the type of privilege to check (READ_ONLY, MODIFY, WRITE...)
+     * @param institutionId the institution identifier of an Entity for the institutional grant check,
+     *            may be null in case the institutional grant check should be skipped
+     * @param ownerId the owner identifier of an Entity for ownership grant check, may be null in case
+     *            the ownership grant check should be skipped
+     * @return true if there is any grant within the given context or false on deny */
     public final boolean hasGrant(
             final String userId,
             final Long userInstitutionId,

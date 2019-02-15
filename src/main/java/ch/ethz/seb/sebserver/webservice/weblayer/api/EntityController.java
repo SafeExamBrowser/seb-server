@@ -178,7 +178,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 .flatMap(this.entityDAO::loadEntities)
                 .getOrThrow()
                 .stream()
-                .filter(this.authorization::hasReadonlyPrivilege)
+                .filter(this.authorization::hasReadonlyGrant)
                 .collect(Collectors.toList());
     }
 
@@ -296,7 +296,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
         return this.entityDAO.allMatching(
                 filterMap,
-                this.authorization::hasReadonlyPrivilege);
+                this.authorization::hasReadonlyGrant);
     }
 
     protected Result<T> notifySaved(final M modifyData, final T entity) {

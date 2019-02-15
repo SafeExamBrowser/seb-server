@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.authorization.Privilege.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
@@ -115,10 +114,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public boolean hasPrivilege(
+    public boolean hasGrant(
             final PrivilegeType privilegeType,
             final EntityType entityType,
             final Long institutionId,
+            final String ownerId,
             final String userId,
             final Long userInstitutionId,
             final Set<UserRole> userRoles) {
@@ -132,25 +132,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                         userInstitutionId,
                         privilegeType,
                         institutionId,
-                        null))
-                .findFirst()
-                .isPresent();
-    }
-
-    @Override
-    public boolean hasPrivilege(final PrivilegeType privilegeType, final GrantEntity grantEntity) {
-        final UserInfo userInfo = this.userService.getCurrentUser().getUserInfo();
-        return userInfo.getRoles()
-                .stream()
-                .map(roleName -> UserRole.valueOf(roleName))
-                .map(role -> new RoleTypeKey(grantEntity.entityType(), role))
-                .map(key -> this.privileges.get(key))
-                .filter(priv -> (priv != null) && priv.hasGrant(
-                        userInfo.uuid,
-                        userInfo.institutionId,
-                        privilegeType,
-                        grantEntity.getInstitutionId(),
-                        grantEntity.getOwnerId()))
+                        ownerId))
                 .findFirst()
                 .isPresent();
     }
