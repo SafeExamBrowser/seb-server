@@ -11,8 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public final class ResourceNotFoundException extends RuntimeException {

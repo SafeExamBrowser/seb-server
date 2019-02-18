@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.gbl.authorization;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
 /** Defines a Privilege by combining a PrivilegeType for base (overall) rights,

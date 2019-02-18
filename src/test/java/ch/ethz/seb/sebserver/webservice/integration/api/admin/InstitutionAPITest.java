@@ -24,14 +24,14 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
@@ -411,7 +411,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 .withPath(API.INSTITUTION_ENDPOINT)
                 .withPath("1")
                 .withPath(API.DEPENDENCY_PATH_SEGMENT)
-                .withAttribute("type", BulkAction.Type.DEACTIVATE.name())
+                .withAttribute(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<EntityKey>>() {
                 });
