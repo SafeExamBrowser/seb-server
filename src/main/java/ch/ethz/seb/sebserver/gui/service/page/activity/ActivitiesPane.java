@@ -21,11 +21,13 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity;
@@ -88,11 +90,7 @@ public class ActivitiesPane implements TemplateComposer {
         navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
 
-//        final List<EntityName> insitutionNames = this.restService
-//                .getBuilder(GetInstitutionNames.class)
-//                .call()
-//                .get(pageContext::notifyError, () -> Collections.emptyList());
-
+        // institution
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
@@ -100,17 +98,16 @@ public class ActivitiesPane implements TemplateComposer {
                     Activity.INSTITUTION_ROOT.title);
             injectActivitySelection(institutions, Activity.INSTITUTION_ROOT.createSelection());
 
-//            for (final EntityName inst : insitutionNames) {
-//                createInstitutionItem(institutions, inst);
-//            }
         } else {
             // institution node as none root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.INSTITUTION_ROOT.title);
-            injectActivitySelection(institutions, Activity.INSTITUTION_NODE.createSelection());
-//            final EntityName inst = insitutionNames.iterator().next();
-//            createInstitutionItem(navigation, inst);
+                    Activity.INSTITUTION_NODE.title);
+            injectActivitySelection(
+                    institutions,
+                    Activity.INSTITUTION_NODE.createSelection()
+                            .withEntity(new EntityKey(userInfo.institutionId, EntityType.INSTITUTION))
+                            .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 
 //        final TreeItem user = this.widgetFactory.treeItemLocalized(
@@ -231,27 +228,6 @@ public class ActivitiesPane implements TemplateComposer {
             composerCtx.publishPageEvent(
                     new ActivitySelectionEvent(mainPageState.activitySelection));
         }
-    }
-
-    static TreeItem createInstitutionItem(final Tree parent, final EntityName entityName) {
-        final TreeItem institution = new TreeItem(parent, SWT.NONE);
-        createInstitutionItem(entityName, institution);
-        return institution;
-    }
-
-    static TreeItem createInstitutionItem(final TreeItem parent, final EntityName entityName) {
-        final TreeItem institution = new TreeItem(parent, SWT.NONE);
-        createInstitutionItem(entityName, institution);
-        return institution;
-    }
-
-    static void createInstitutionItem(final EntityName entityName, final TreeItem institution) {
-        institution.setText(entityName.name);
-        injectActivitySelection(
-                institution,
-                Activity.INSTITUTION_NODE
-                        .createSelection()
-                        .withEntity(entityName.getEntityKey()));
     }
 
     static final TreeItem findItemByActivity(

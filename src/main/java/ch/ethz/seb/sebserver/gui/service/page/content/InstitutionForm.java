@@ -151,11 +151,6 @@ public class InstitutionForm implements TemplateComposer {
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         "sebserver.institution.form.logoImage",
                         institution.logoImage, 2)
-                .addEmptyCell()
-                .addTextField(
-                        Domain.INSTITUTION.ATTR_URL_SUFFIX,
-                        "sebserver.institution.form.urlSuffix",
-                        institution.urlSuffix, 2)
                 .buildFor(
                         this.restService.getRestCall(SaveInstitution.class),
                         InstitutionActions.postSaveAdapter(pageContext));
