@@ -10,10 +10,17 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 public final class API {
 
+    public enum BulkActionType {
+        HARD_DELETE,
+        DEACTIVATE,
+        ACTIVATE;
+    }
+
     public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
     public static final String PARAM_INSTITUTION_ID = "institutionId";
     public static final String PARAM_MODEL_ID = "modelId";
     public static final String PARAM_ENTITY_TYPE = "entityType";
+    public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";

@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
@@ -129,9 +130,9 @@ public interface PageContext {
     /** Apply a confirm dialog with a specified confirm message and a callback code
      * block that will be executed on users OK selection.
      *
-     * @param confirmMessage
+     * @param confirmMessage the localized confirm message key
      * @param onOK callback code block that will be executed on users OK selection */
-    void applyConfirmDialog(String confirmMessage, Runnable onOK);
+    void applyConfirmDialog(LocTextKey confirmMessage, Runnable onOK);
 
     void forwardToPage(
             PageDefinition pageDefinition,

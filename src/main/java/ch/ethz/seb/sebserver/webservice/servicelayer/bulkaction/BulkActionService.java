@@ -17,12 +17,13 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 @Service
 @WebServiceProfile
@@ -103,13 +104,15 @@ public class BulkActionService {
     }
 
     private void processUserActivityLog(final BulkAction action) {
-        if (action.type.activityType == null) {
+        final ActivityType activityType = action.getActivityType();
+
+        if (activityType == null) {
             return;
         }
 
         for (final EntityKey key : action.dependencies) {
             this.userActivityLogDAO.log(
-                    action.type.activityType,
+                    activityType,
                     key.entityType,
                     key.modelId,
                     "bulk action dependency");
@@ -117,7 +120,7 @@ public class BulkActionService {
 
         for (final EntityKey key : action.sources) {
             this.userActivityLogDAO.log(
-                    action.type.activityType,
+                    activityType,
                     key.entityType,
                     key.modelId,
                     "bulk action source");

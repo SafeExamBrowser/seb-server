@@ -28,13 +28,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -42,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -150,14 +150,14 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityKey> getDependencies(
             @PathVariable final String modelId,
-            @RequestParam final BulkAction.Type type) {
+            @RequestParam(API.PARAM_BULK_ACTION_TYPE) final BulkActionType bulkActionType) {
 
         this.entityDAO
                 .byModelId(modelId)
                 .flatMap(this.authorization::checkReadonly);
 
         final BulkAction bulkAction = new BulkAction(
-                type,
+                bulkActionType,
                 this.entityDAO.entityType(),
                 Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())));
 
@@ -302,7 +302,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
         final EntityType entityType = this.entityDAO.entityType();
         final BulkAction bulkAction = new BulkAction(
-                Type.HARD_DELETE,
+                BulkActionType.HARD_DELETE,
                 entityType,
                 new EntityKey(modelId, entityType));
 

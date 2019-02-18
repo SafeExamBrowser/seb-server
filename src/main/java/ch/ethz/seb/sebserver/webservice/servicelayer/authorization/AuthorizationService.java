@@ -11,9 +11,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 import java.util.Collection;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;

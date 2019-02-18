@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 
 /** Defines the possible user roles of SEB Server users. */
 public enum UserRole implements Entity {

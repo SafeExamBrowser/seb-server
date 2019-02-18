@@ -16,27 +16,16 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public final class BulkAction {
 
-    public enum Type {
-        HARD_DELETE(ActivityType.DELETE),
-        DEACTIVATE(ActivityType.DEACTIVATE),
-        ACTIVATE(ActivityType.ACTIVATE);
-
-        public final ActivityType activityType;
-
-        private Type(final ActivityType activityType) {
-            this.activityType = activityType;
-        }
-    }
-
-    public final Type type;
+    public final BulkActionType type;
     public final EntityType sourceType;
     public final Set<EntityKey> sources;
 
@@ -46,7 +35,7 @@ public final class BulkAction {
     boolean alreadyProcessed = false;
 
     public BulkAction(
-            final Type type,
+            final BulkActionType type,
             final EntityType sourceType,
             final Collection<EntityKey> sources) {
 
@@ -60,7 +49,7 @@ public final class BulkAction {
     }
 
     public BulkAction(
-            final Type type,
+            final BulkActionType type,
             final EntityType sourceType,
             final EntityKey... sources) {
 
@@ -84,6 +73,23 @@ public final class BulkAction {
         }
 
         return Collections.emptySet();
+    }
+
+    public ActivityType getActivityType() {
+        if (this.type == null) {
+            return null;
+        }
+
+        switch (this.type) {
+            case ACTIVATE:
+                return ActivityType.ACTIVATE;
+            case DEACTIVATE:
+                return ActivityType.DEACTIVATE;
+            case HARD_DELETE:
+                return ActivityType.DELETE;
+            default:
+                throw new IllegalStateException("There is no ActivityType mapped to the BulkActionType " + this.type);
+        }
     }
 
     @Override

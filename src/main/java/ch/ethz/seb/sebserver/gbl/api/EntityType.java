@@ -1,4 +1,4 @@
-package ch.ethz.seb.sebserver.gbl.model;
+package ch.ethz.seb.sebserver.gbl.api;
 
 import javax.annotation.Generated;
 

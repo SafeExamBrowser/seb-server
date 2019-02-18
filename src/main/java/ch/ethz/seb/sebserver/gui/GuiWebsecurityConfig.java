@@ -35,7 +35,9 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
             // RAP/RWT resources has to be accessible
             new AntPathRequestMatcher("/rwt-resources/**"),
             // project specific static resources
-            new AntPathRequestMatcher("/images/**"));
+            new AntPathRequestMatcher("/images/**"),
+
+            new AntPathRequestMatcher("/favicon.ico"));
 
     @Override
     public void configure(final WebSecurity web) {

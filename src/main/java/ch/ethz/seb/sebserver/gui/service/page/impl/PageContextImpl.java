@@ -24,10 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
@@ -250,12 +251,13 @@ public class PageContextImpl implements PageContext {
 
     @Override
     @SuppressWarnings("serial")
-    public void applyConfirmDialog(final String confirmMessage, final Runnable onOK) {
+    public void applyConfirmDialog(final LocTextKey confirmMessage, final Runnable onOK) {
         final Message messageBox = new Message(
                 this.root.getShell(),
                 this.i18nSupport.getText("org.sebserver.dialog.confirm.title"),
                 this.i18nSupport.getText(confirmMessage),
                 SWT.OK | SWT.CANCEL);
+        messageBox.setMarkupEnabled(true);
         messageBox.open(new DialogCallback() {
             @Override
             public void dialogClosed(final int returnCode) {

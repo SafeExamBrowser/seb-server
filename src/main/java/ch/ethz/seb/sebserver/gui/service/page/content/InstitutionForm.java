@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.content;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
@@ -16,13 +18,17 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -36,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.page.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.page.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionDependency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.SaveInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -45,6 +52,8 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class InstitutionForm implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(InstitutionForm.class);
 
     private final PageFormService pageFormService;
     private final RestService restService;
@@ -62,8 +71,12 @@ public class InstitutionForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Compose Institutoion Form");
+        }
+
+        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final boolean readonly = BooleanUtils.toBoolean(
                 pageContext.getAttribute(AttributeKeys.READ_ONLY, "true"));
         final boolean createNew = BooleanUtils.toBoolean(
@@ -165,6 +178,7 @@ public class InstitutionForm implements TemplateComposer {
                 } else {
                     formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                             .withExec(InstitutionActions::deactivateInstitution)
+                            .withConfirm(confirmDeactivation(institution))
                             .publish();
                 }
             }
@@ -177,7 +191,27 @@ public class InstitutionForm implements TemplateComposer {
                     .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                     .publish();
         }
+    }
 
+    private Supplier<LocTextKey> confirmDeactivation(final Institution institution) {
+        return () -> {
+            try {
+                final Set<EntityKey> dependencies = this.restService.getBuilder(GetInstitutionDependency.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(institution.id))
+                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
+                        .call()
+                        .getOrThrow();
+                final int size = dependencies.size();
+                if (size > 0) {
+                    return new LocTextKey("sebserver.institution.form.confirm.deactivation", String.valueOf(size));
+                } else {
+                    return new LocTextKey("sebserver.institution.form.confirm.deactivation.noDependencies");
+                }
+            } catch (final Exception e) {
+                log.error("Failed to get dependencyies for Institution: {}", institution, e);
+                return new LocTextKey("sebserver.institution.form.confirm.deactivation", "");
+            }
+        };
     }
 
 }

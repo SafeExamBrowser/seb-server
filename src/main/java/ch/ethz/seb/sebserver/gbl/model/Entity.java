@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
 public interface Entity extends ModelIdAware {
 
