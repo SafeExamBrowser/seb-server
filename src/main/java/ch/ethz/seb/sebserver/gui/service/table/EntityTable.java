@@ -49,14 +49,14 @@ public class EntityTable<ROW extends Entity> extends Composite {
     static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
 
     transient final WidgetFactory widgetFactory;
-
     transient final RestCall<Page<ROW>> restCall;
+
     transient final List<ColumnDefinition<ROW>> columns;
     transient final List<TableRowAction> actions;
 
-    private transient final TableFilter<ROW> filter;
-    private transient final Table table;
-    private transient final TableNavigator navigator;
+    private final TableFilter<ROW> filter;
+    private final Table table;
+    private final TableNavigator navigator;
 
     private int pageNumber = 1;
     private int pageSize;
