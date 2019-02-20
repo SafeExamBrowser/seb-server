@@ -90,30 +90,31 @@ public class ActivitiesPane implements TemplateComposer {
         navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
 
-        // institution
+        // Institution
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.INSTITUTION_ROOT.title);
-            injectActivitySelection(institutions, Activity.INSTITUTION_ROOT.createSelection());
+                    Activity.INSTITUTION_LIST.title);
+            injectActivitySelection(institutions, Activity.INSTITUTION_LIST.createSelection());
 
         } else {
             // institution node as none root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.INSTITUTION_NODE.title);
+                    Activity.INSTITUTION_FORM.title);
             injectActivitySelection(
                     institutions,
-                    Activity.INSTITUTION_NODE.createSelection()
+                    Activity.INSTITUTION_FORM.createSelection()
                             .withEntity(new EntityKey(userInfo.institutionId, EntityType.INSTITUTION))
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 
-//        final TreeItem user = this.widgetFactory.treeItemLocalized(
-//                navigation,
-//                "org.sebserver.activities.user");
-//        ActivitySelection.set(user, Activity.USERS.createSelection());
+        // User Account
+        final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
+                navigation,
+                Activity.USER_ACCOUNT_LIST.title);
+        injectActivitySelection(userAccounts, Activity.USER_ACCOUNT_LIST.createSelection());
 //
 //        final TreeItem configs = this.widgetFactory.treeItemLocalized(
 //                navigation,

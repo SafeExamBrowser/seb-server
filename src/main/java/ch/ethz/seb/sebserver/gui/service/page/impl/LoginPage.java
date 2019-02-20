@@ -34,15 +34,15 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SEBLogin implements TemplateComposer {
+public class LoginPage implements TemplateComposer {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBLogin.class);
+    private static final Logger log = LoggerFactory.getLogger(LoginPage.class);
 
     private final AuthorizationContextHolder authorizationContextHolder;
     private final WidgetFactory widgetFactory;
     private final I18nSupport i18nSupport;
 
-    public SEBLogin(
+    public LoginPage(
             final AuthorizationContextHolder authorizationContextHolder,
             final WidgetFactory widgetFactory,
             final I18nSupport i18nSupport) {
@@ -55,16 +55,6 @@ public class SEBLogin implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final Composite parent = pageContext.getParent();
-
-//        if (pageContext.hasAttribute((AttributeKeys.LGOUT_SUCCESS))) {
-//            final MessageBox logoutSuccess = new Message(
-//                    pageContext.getShell(),
-//                    this.i18nSupport.getText("sebserver.logout"),
-//                    this.i18nSupport.getText("sebserver.logout.success.message"),
-//                    SWT.ICON_INFORMATION);
-//            logoutSuccess.open(null);
-//            pageContext = pageContext.removeAttribute(AttributeKeys.LGOUT_SUCCESS);
-//        }
 
         final Composite loginGroup = new Composite(parent, SWT.NONE);
         final GridLayout rowLayout = new GridLayout();

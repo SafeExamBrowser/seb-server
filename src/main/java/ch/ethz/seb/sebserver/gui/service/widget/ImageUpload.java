@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
@@ -62,10 +63,12 @@ public class ImageUpload extends Composite {
 
                 @Override
                 public void receive(final InputStream stream, final FileDetails details) throws IOException {
+
                     try {
                         final String contentType = details.getContentType();
                         if (contentType != null && contentType.startsWith("image")) {
-                            ImageUpload.this.imageBase64 = Base64.getEncoder().encodeToString(stream.readAllBytes());
+                            ImageUpload.this.imageBase64 = Base64.getEncoder()
+                                    .encodeToString(StreamUtils.copyToByteArray(stream));
                         }
                     } catch (final Exception e) {
                         log.error("Error while trying to upload image", e);

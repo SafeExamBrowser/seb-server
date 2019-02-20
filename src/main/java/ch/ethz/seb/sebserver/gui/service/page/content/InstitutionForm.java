@@ -13,11 +13,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -31,15 +27,14 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.form.FormHandle;
+import ch.ethz.seb.sebserver.gui.service.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.action.InstitutionActions;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.service.page.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionDependency;
@@ -107,29 +102,17 @@ public class InstitutionForm implements TemplateComposer {
             return;
         }
 
-        // page grid
-        final Composite content = new Composite(formContext.getParent(), SWT.NONE);
-        final GridLayout contentLayout = new GridLayout();
-        contentLayout.marginLeft = 10;
-        content.setLayout(contentLayout);
-        content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-        // title (interactive9
-        final Label pageTitle = widgetFactory.labelLocalizedTitle(
-                content, new LocTextKey(
-                        "sebserver.institution.form.title",
-                        institution.name));
-
-        pageTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
-        ActionEventListener.injectListener(
-                pageTitle,
+        // the default page layout with interactive title
+        final Composite content = widgetFactory.defaultPageLayout(
+                formContext.getParent(),
+                new LocTextKey("sebserver.institution.form.title", institution.name),
                 ActionDefinition.INSTITUTION_SAVE,
-                event -> {
+                title -> event -> {
                     final Entity entity = (Entity) event.source;
-                    widgetFactory.injectI18n(pageTitle, new LocTextKey(
+                    widgetFactory.injectI18n(title, new LocTextKey(
                             "sebserver.institution.form.title",
                             entity.getName()));
-                    content.layout();
+                    title.getParent().layout();
                 });
 
         // The Institution form

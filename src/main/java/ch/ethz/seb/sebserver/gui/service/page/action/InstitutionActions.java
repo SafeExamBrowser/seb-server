@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.action;
 
-import static ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity.INSTITUTION_NODE;
-
 import java.util.Collection;
 import java.util.function.Function;
 
@@ -22,10 +20,12 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
+import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
 
+/** Defines the action execution functions for all Institution action. */
 public final class InstitutionActions {
 
     public static Function<Institution, Institution> postSaveAdapter(final PageContext pageContext) {
@@ -92,7 +92,7 @@ public final class InstitutionActions {
 
     private static ActivitySelection goToInstitution(final PageContext pageContext, final String modelId,
             final boolean edit) {
-        final ActivitySelection activitySelection = INSTITUTION_NODE
+        final ActivitySelection activitySelection = Activity.INSTITUTION_FORM
                 .createSelection()
                 .withEntity(new EntityKey(modelId, EntityType.INSTITUTION))
                 .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit))

@@ -6,9 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution;
-
-import java.util.List;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -18,22 +16,23 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetInstitutionNames extends RestCall<List<EntityName>> {
+public class GetUserAccounts extends RestCall<Page<UserInfo>> {
 
-    protected GetInstitutionNames() {
+    protected GetUserAccounts() {
         super(
-                new TypeReference<List<EntityName>>() {
+                new TypeReference<Page<UserInfo>>() {
                 },
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.INSTITUTION_ENDPOINT + API.NAMES_PATH_SEGMENT);
+                API.USER_ACCOUNT_ENDPOINT);
     }
 
 }

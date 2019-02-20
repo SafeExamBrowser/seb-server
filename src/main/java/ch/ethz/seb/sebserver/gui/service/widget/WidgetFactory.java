@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -23,6 +24,7 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -49,6 +51,9 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.table.TableBuilder;
@@ -60,40 +65,24 @@ public class WidgetFactory {
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
-    public enum CustomVariant {
-        TEXT_H1("h1"),
-        TEXT_H2("h2"),
-        TEXT_H3("h3"),
-        TEXT_ACTION("action"),
-
-        FOOTER("footer"),
-
-        ;
-
-        public final String key;
-
-        private CustomVariant(final String key) {
-            this.key = key;
-        }
-    }
-
-    public enum IconButtonType {
+    public enum ImageIcon {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
-        MODIFY_ACTION("editAction.png"),
-        CANCEL_ACTION("cancelEditAction.png"),
-        VIEW_ACTION("viewAction.png"),
-        ACTIVATE_ACTION("inactive.png"),
-        DEACTIVATE_ACTION("active.png"),
-        SAVE_ACTION("saveAction.png"),
-        NEW_ACTION("newAction.png"),
-        DELETE_ACTION("deleteAction.png"),
-        ;
+        EDIT("edit.png"),
+        CANCEL("cancel.png"),
+        CANCEL_EDIT("cancelEdit.png"),
+        SHOW("show.png"),
+        ACTIVE("active.png"),
+        INACTIVE("inactive.png"),
+        SAVE("save.png"),
+        NEW("new.png"),
+        DELETE("delete.png"),
+        SEARCH("lens.png");
 
         private String fileName;
         private ImageData image = null;
 
-        private IconButtonType(final String fileName) {
+        private ImageIcon(final String fileName) {
             this.fileName = fileName;
         }
 
@@ -113,6 +102,24 @@ public class WidgetFactory {
 
     }
 
+    public enum CustomVariant {
+        TEXT_H1("h1"),
+        TEXT_H2("h2"),
+        TEXT_H3("h3"),
+        IMAGE_BUTTON("imageButton"),
+        TEXT_ACTION("action"),
+
+        FOOTER("footer"),
+
+        ;
+
+        public final String key;
+
+        private CustomVariant(final String key) {
+            this.key = key;
+        }
+    }
+
     private final PolyglotPageService polyglotPageService;
     private final I18nSupport i18nSupport;
     private final ServerPushService serverPushService;
@@ -124,6 +131,42 @@ public class WidgetFactory {
         this.polyglotPageService = polyglotPageService;
         this.i18nSupport = polyglotPageService.getI18nSupport();
         this.serverPushService = serverPushService;
+    }
+
+    public I18nSupport getI18nSupport() {
+        return this.i18nSupport;
+    }
+
+    public Composite defaultPageLayout(final Composite parent) {
+        final Composite content = new Composite(parent, SWT.NONE);
+        final GridLayout contentLayout = new GridLayout();
+        contentLayout.marginLeft = 10;
+        content.setLayout(contentLayout);
+        content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        return content;
+    }
+
+    public Composite defaultPageLayout(final Composite parent, final LocTextKey title) {
+        final Composite defaultPageLayout = defaultPageLayout(parent);
+        final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
+        labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
+        return defaultPageLayout;
+    }
+
+    public Composite defaultPageLayout(
+            final Composite parent,
+            final LocTextKey title,
+            final ActionDefinition actionDefinition,
+            final Function<Label, Consumer<ActionEvent>> eventFunction) {
+
+        final Composite defaultPageLayout = defaultPageLayout(parent);
+        final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
+        labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
+        ActionEventListener.injectListener(
+                labelLocalizedTitle,
+                actionDefinition,
+                eventFunction.apply(labelLocalizedTitle));
+        return defaultPageLayout;
     }
 
     public Button buttonLocalized(final Composite parent, final String locTextKey) {
@@ -254,13 +297,13 @@ public class WidgetFactory {
     }
 
     public Label imageButton(
-            final IconButtonType type,
+            final ImageIcon type,
             final Composite parent,
             final LocTextKey toolTip,
             final Listener listener) {
 
         final Label imageButton = labelLocalized(parent, (LocTextKey) null, toolTip);
-        imageButton.setData(RWT.CUSTOM_VARIANT, "imageButton");
+        imageButton.setData(RWT.CUSTOM_VARIANT, CustomVariant.IMAGE_BUTTON.name());
         imageButton.setImage(type.getImage(parent.getDisplay()));
         if (listener != null) {
             imageButton.addListener(SWT.MouseDown, listener);
@@ -337,6 +380,10 @@ public class WidgetFactory {
         final SingleSelection combo = new SingleSelection(parent, items);
         this.injectI18n(combo, combo.valueMapping);
         return combo;
+    }
+
+    public LanguageSelector countrySelector(final Composite parent) {
+        return new LanguageSelector(parent, this.i18nSupport);
     }
 
     public ImageUpload formImageUpload(
@@ -497,6 +544,18 @@ public class WidgetFactory {
             }
             if (locToolTipKey != null) {
                 label.setToolTipText(i18nSupport.getText(locToolTipKey));
+                // TODO managing a tool-tip delay is not working as expected
+                //      is there another way to achieve this?
+//                label.addListener(SWT.MouseEnter, event -> {
+//                    System.out.println("*************** set tooltip delay");
+//                    label.getDisplay().timerExec(1000, () -> {
+//                        System.out.println("*************** set tooltip");
+//                        label.setToolTipText(i18nSupport.getText(locToolTipKey));
+//                    });
+//                });
+//                label.addListener(SWT.MouseExit, event -> {
+//                    label.setToolTipText(null);
+//                });
             }
         };
     }

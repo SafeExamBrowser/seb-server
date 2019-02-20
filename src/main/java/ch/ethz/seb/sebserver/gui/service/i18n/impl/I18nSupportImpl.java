@@ -53,11 +53,11 @@ public class I18nSupportImpl implements I18nSupport {
                 .withZoneUTC();
     }
 
-    private static final Collection<Locale> SUPPORTED = Arrays.asList(Locale.ENGLISH, Locale.GERMANY);
+    private static final Collection<Locale> SUPPORTED_LANGUAGES = Arrays.asList(Locale.ENGLISH, Locale.GERMAN);
 
     @Override
     public Collection<Locale> supportedLanguages() {
-        return SUPPORTED;
+        return SUPPORTED_LANGUAGES;
     }
 
     @Override

@@ -58,7 +58,7 @@
     <profile>
       <id>Java 11</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
         <java.version>11</java.version>

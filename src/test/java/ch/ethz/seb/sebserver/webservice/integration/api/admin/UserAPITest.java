@@ -31,8 +31,8 @@ import org.springframework.test.context.jdbc.Sql;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -138,7 +138,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getAllUserInfoNoFilter() throws Exception {
         Page<UserInfo> userInfos = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
-                .withPath(API.USER_ACCOUNT_ENDPOINT)
+                .withPath(API.USER_ACCOUNT_ENDPOINT + "?institutionId=1")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<UserInfo>>() {
                 });
@@ -205,7 +205,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?institutionId=1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -247,7 +247,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getPageNoFilterNoPageAttributesDescendingOrder() throws Exception {
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?sort=-")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?sort=-&institutionId=1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -345,7 +345,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
     public void getAllUserInfo() throws Exception {
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?institutionId=1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -382,7 +382,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // expecting none for SEBAdmins institution
         final String token = getSebAdminAccess();
         Page<UserInfo> userInfos = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?active=false")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?active=false&institutionId=1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -415,7 +415,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         final Page<UserInfo> userInfos = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?username=exam")
+                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "?username=exam&institutionId=1")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + token))
                         .andExpect(status().isOk())
@@ -1080,7 +1080,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         // for SEB Admin
         Collection<EntityName> names = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names")
+                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names" + "?institutionId=1")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -1098,7 +1098,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String instAdminToken = getAdminInstitution2Access();
         names = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names")
+                        .perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names" + "?institutionId=2")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                 .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())
@@ -1117,7 +1117,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         names = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
-                                get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names?active=true")
+                                get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/names?active=true&institutionId=2")
                                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                         .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())

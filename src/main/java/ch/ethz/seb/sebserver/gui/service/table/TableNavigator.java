@@ -68,8 +68,6 @@ public class TableNavigator extends Composite {
             }
         }
 
-        this.layout();
-
         return pageData;
     }
 

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.widget;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,12 +27,20 @@ public class SingleSelection extends Combo {
 
     public SingleSelection(final Composite parent, final List<Tuple<String>> mapping) {
         super(parent, SWT.READ_ONLY);
-        this.valueMapping = mapping.stream()
+        this.valueMapping = new ArrayList<>();
+        this.keyMapping = new ArrayList<>();
+        applyNewMapping(mapping);
+    }
+
+    protected void applyNewMapping(final List<Tuple<String>> mapping) {
+        this.valueMapping.clear();
+        this.keyMapping.clear();
+        this.valueMapping.addAll(mapping.stream()
                 .map(t -> t._2)
-                .collect(Collectors.toList());
-        this.keyMapping = mapping.stream()
+                .collect(Collectors.toList()));
+        this.keyMapping.addAll(mapping.stream()
                 .map(t -> t._1)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
         super.setItems(this.valueMapping.toArray(new String[mapping.size()]));
     }
 

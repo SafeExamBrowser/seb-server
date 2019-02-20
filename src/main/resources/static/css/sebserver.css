@@ -62,10 +62,16 @@ Label.h3 {
     color: #1f407a;
 }
 
+/*
 Label:hover.imageButton {
     background-color: #82BE1E;
     background-gradient-color: #82BE1E;
     background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
+}*/
+
+Label:hover.imageButton {
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
 
 Composite.bordered {
@@ -661,7 +667,7 @@ Table-RowOverlay:selected:unfocused {
 Table-RowOverlay:linesvisible:even:hover {
     color: #4a4a4a;
     background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#d5d5d5));
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
 }
 
 Table-RowOverlay:linesvisible:even:selected {

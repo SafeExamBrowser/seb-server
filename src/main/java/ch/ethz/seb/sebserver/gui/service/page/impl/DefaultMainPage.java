@@ -31,7 +31,7 @@ public class DefaultMainPage implements PageDefinition {
     public PageContext applyPageContext(final PageContext pageContext) {
         return pageContext.withAttribute(
                 AttributeKeys.PAGE_TEMPLATE_COMPOSER_NAME,
-                SEBMainPage.class.getName());
+                MainPage.class.getName());
     }
 
 }

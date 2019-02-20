@@ -28,8 +28,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -100,9 +100,16 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
+        // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
-        final FilterMap filterMap = new FilterMap(allRequestParams)
-                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+
+        // if current user has no read access for specified entity type within other institution then its own institution,
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ_ONLY, this.entityDAO.entityType())) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
 
         return this.paginationService.getPage(
                 pageNumber,
@@ -128,9 +135,16 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
+        // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
-        final FilterMap filterMap = new FilterMap(allRequestParams)
-                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+
+        // if current user has no read access for specified entity type within other institution then its own institution,
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ_ONLY, this.entityDAO.entityType())) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
 
         return getAll(filterMap)
                 .getOrThrow()

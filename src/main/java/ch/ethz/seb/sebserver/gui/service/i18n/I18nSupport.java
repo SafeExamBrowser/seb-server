@@ -15,6 +15,9 @@ import org.joda.time.DateTime;
 
 public interface I18nSupport {
 
+    /** Get all supported languages as a collection of Locale
+     *
+     * @return all supported languages as a collection of Locale */
     Collection<Locale> supportedLanguages();
 
     /** Get the current Locale either form a user if this is called from a logged in user context or the

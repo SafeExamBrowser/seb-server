@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.page.form;
+package ch.ethz.seb.sebserver.gui.service.form;
 
 import java.util.ArrayList;
 import java.util.HashSet;

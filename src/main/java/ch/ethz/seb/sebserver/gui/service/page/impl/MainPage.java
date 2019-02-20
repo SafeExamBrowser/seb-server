@@ -29,20 +29,20 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.IconButtonType;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.ImageIcon;
 
 @Lazy
 @Component
 @GuiProfile
-public class SEBMainPage implements TemplateComposer {
+public class MainPage implements TemplateComposer {
 
-    static final Logger log = LoggerFactory.getLogger(SEBMainPage.class);
+    static final Logger log = LoggerFactory.getLogger(MainPage.class);
 
     public static final String ATTR_MAIN_PAGE_STATE = "MAIN_PAGE_STATE";
 
-    private static final int ACTIVITY_PANE_WEIGHT = 20;
+    private static final int ACTIVITY_PANE_WEIGHT = 15;
     private static final int CONTENT_PANE_WEIGHT = 65;
-    private static final int ACTION_PANE_WEIGHT = 15;
+    private static final int ACTION_PANE_WEIGHT = 20;
     private static final int[] DEFAULT_SASH_WEIGHTS = new int[] {
             ACTIVITY_PANE_WEIGHT,
             CONTENT_PANE_WEIGHT,
@@ -52,7 +52,7 @@ public class SEBMainPage implements TemplateComposer {
 
     private final WidgetFactory widgetFactory;
 
-    public SEBMainPage(final WidgetFactory widgetFactory) {
+    public MainPage(final WidgetFactory widgetFactory) {
         this.widgetFactory = widgetFactory;
     }
 
@@ -84,7 +84,7 @@ public class SEBMainPage implements TemplateComposer {
         content.setLayout(contentOuterlayout);
 
         final Label toggleView = this.widgetFactory.imageButton(
-                IconButtonType.MAXIMIZE,
+                ImageIcon.MAXIMIZE,
                 content,
                 new LocTextKey("sebserver.mainpage.maximize.tooltip"),
                 event -> {
@@ -92,7 +92,7 @@ public class SEBMainPage implements TemplateComposer {
                     if ((Boolean) ib.getData("fullScreen")) {
                         mainSash.setWeights(DEFAULT_SASH_WEIGHTS);
                         ib.setData("fullScreen", false);
-                        ib.setImage(WidgetFactory.IconButtonType.MAXIMIZE.getImage(ib.getDisplay()));
+                        ib.setImage(WidgetFactory.ImageIcon.MAXIMIZE.getImage(ib.getDisplay()));
                         this.widgetFactory.injectI18n(
                                 ib,
                                 null,
@@ -100,7 +100,7 @@ public class SEBMainPage implements TemplateComposer {
                     } else {
                         mainSash.setWeights(OPENED_SASH_WEIGHTS);
                         ib.setData("fullScreen", true);
-                        ib.setImage(WidgetFactory.IconButtonType.MINIMIZE.getImage(ib.getDisplay()));
+                        ib.setImage(WidgetFactory.ImageIcon.MINIMIZE.getImage(ib.getDisplay()));
                         this.widgetFactory.injectI18n(
                                 ib,
                                 null,

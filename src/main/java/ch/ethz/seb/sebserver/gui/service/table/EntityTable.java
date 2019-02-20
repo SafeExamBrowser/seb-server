@@ -8,10 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.table;
 
+import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
@@ -22,6 +26,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,21 +36,23 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.ImageIcon;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
 public class EntityTable<ROW extends Entity> extends Composite {
 
-    private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
-
     private static final long serialVersionUID = -4931198225547108993L;
 
-    public static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
+    private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
-    private transient final WidgetFactory widgetFactory;
+    static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
+    static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
 
-    private transient final RestCall<Page<ROW>> restCall;
-    private transient final List<ColumnDefinition<ROW>> columns;
-    private transient final List<TableRowAction> actions;
+    transient final WidgetFactory widgetFactory;
+
+    transient final RestCall<Page<ROW>> restCall;
+    transient final List<ColumnDefinition<ROW>> columns;
+    transient final List<TableRowAction> actions;
 
     private transient final TableFilter<ROW> filter;
     private transient final Table table;
@@ -65,8 +72,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
             final WidgetFactory widgetFactory,
             final List<ColumnDefinition<ROW>> columns,
             final List<TableRowAction> actions,
-            final int pageSize,
-            final boolean withFilter) {
+            final int pageSize) {
 
         super(parent, type);
         this.widgetFactory = widgetFactory;
@@ -75,22 +81,34 @@ public class EntityTable<ROW extends Entity> extends Composite {
         this.actions = Utils.immutableListOf(actions);
 
         super.setLayout(new GridLayout());
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
 
         gridData.heightHint = (pageSize + 1) * 40;
         super.setLayoutData(gridData);
 
         this.pageSize = pageSize;
-        this.filter = (withFilter) ? new TableFilter<>(this) : null;
+        this.filter = columns
+                .stream()
+                .map(column -> column.filterAttribute)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .isPresent() ? new TableFilter<>(this) : null;
 
         this.table = widgetFactory.tableLocalized(this);
-        this.table.setLayout(new GridLayout(columns.size(), true));
+        final GridLayout gridLayout = new GridLayout(columns.size(), true);
+        this.table.setLayout(gridLayout);
         gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        gridData.heightHint = (pageSize + 1) * 25;
+        gridData.heightHint = (pageSize + 1) * 27;
         this.table.setLayoutData(gridData);
         this.table.addListener(SWT.Resize, this::adaptColumnWidth);
+        @SuppressWarnings("unchecked")
+        final Consumer<Table> locFunction = (Consumer<Table>) this.table.getData(POLYGLOT_WIDGET_FUNCTION_KEY);
+        final Consumer<Table> newLocFunction = t -> {
+            updateValues();
+            locFunction.accept(t);
+        };
+        this.table.setData(POLYGLOT_WIDGET_FUNCTION_KEY, newLocFunction);
 
-        //this.table.setLayoutData(new GridData(GridData.FILL_BOTH));
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
 
@@ -128,7 +146,11 @@ public class EntityTable<ROW extends Entity> extends Composite {
     }
 
     public void applyFilter() {
-        // TODO remove all rows, set current page to 0, call rest to get entities and build rows and navigation again
+        updateTableRows(
+                this.pageNumber,
+                this.pageSize,
+                this.sortColumn,
+                this.sortOrder);
     }
 
     public void applySort(final String columnName) {
@@ -173,6 +195,9 @@ public class EntityTable<ROW extends Entity> extends Composite {
                     column.displayName,
                     column.tooltip);
 
+            tableColumn.addListener(SWT.Resize, this::adaptColumnWidthChange);
+            tableColumn.setData(COLUMN_DEFINITION, column);
+
             if (column.sortable) {
                 tableColumn.addListener(SWT.Selection, event -> {
                     if (!column.columnName.equals(this.sortColumn)) {
@@ -206,7 +231,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
         this.restCall.newBuilder()
                 .withPaging(pageNumber, pageSize)
                 .withSorting(sortColumn, sortOrder)
-                .withFilterAttributes(this.filter)
+                .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
                 .call()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
@@ -214,7 +239,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
                     // TODO error handling
                 });
 
-        this.layout();
+        this.layout(true, true);
     }
 
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {
@@ -223,31 +248,55 @@ public class EntityTable<ROW extends Entity> extends Composite {
             item.setData(TABLE_ROW_DATA, row);
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
-                final Object value = column.valueSupplier.apply(row);
-                if (value instanceof Boolean) {
-                    // TODO set an image or HTML with checkbox
-                    item.setText(index, String.valueOf(value));
-                } else {
-                    if (value != null) {
-                        item.setText(index, String.valueOf(value));
-                    } else {
-                        item.setText(index, Constants.EMPTY_NOTE);
-                    }
-                }
+                setValueToCell(item, index, column.valueSupplier.apply(row));
                 index++;
             }
             if (this.actions != null) {
-                // TODO
+                // TODO??
             }
         }
 
         return page;
     }
 
+    private void updateValues() {
+        final TableItem[] items = this.table.getItems();
+        final TableColumn[] columns = this.table.getColumns();
+        for (int i = 0; i < columns.length; i++) {
+            final ColumnDefinition<ROW> columnDefinition = this.columns.get(i);
+            if (columnDefinition.localized) {
+                for (int j = 0; j < items.length; j++) {
+                    @SuppressWarnings("unchecked")
+                    final ROW rowData = (ROW) items[j].getData(TABLE_ROW_DATA);
+                    setValueToCell(items[j], i, columnDefinition.valueSupplier.apply(rowData));
+                }
+            }
+        }
+    }
+
+    private void setValueToCell(final TableItem item, final int index, final Object value) {
+        if (value instanceof Boolean) {
+            addBooleanCell(item, index, value);
+        } else {
+            if (value != null) {
+                item.setText(index, String.valueOf(value));
+            } else {
+                item.setText(index, Constants.EMPTY_NOTE);
+            }
+        }
+    }
+
+    private void addBooleanCell(final TableItem item, final int index, final Object value) {
+        if ((Boolean) value) {
+            item.setImage(index, ImageIcon.ACTIVE.getImage(item.getDisplay()));
+        } else {
+            item.setImage(index, ImageIcon.INACTIVE.getImage(item.getDisplay()));
+        }
+    }
+
     private void adaptColumnWidth(final Event event) {
         try {
             final int currentTableWidth = this.table.getParent().getClientArea().width;
-
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
 
@@ -256,13 +305,34 @@ public class EntityTable<ROW extends Entity> extends Composite {
                         : column.widthPercent;
 
                 final TableColumn tableColumn = this.table.getColumn(index);
-                tableColumn.setWidth(currentTableWidth / 100 * percentage);
+                final int newWidth = currentTableWidth / 100 * percentage;
+                tableColumn.setWidth(newWidth);
+                if (this.filter != null) {
+                    this.filter.adaptColumnWidth(this.table.indexOf(tableColumn), newWidth);
+                }
 
                 index++;
             }
 
+            // NOTE this.layout() triggers the navigation to disappear unexpectedly!?
+            this.table.layout(true, true);
+
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
+        }
+    }
+
+    private void adaptColumnWidthChange(final Event event) {
+        final Widget widget = event.widget;
+        if (widget instanceof TableColumn) {
+            final TableColumn tableColumn = ((TableColumn) widget);
+            if (this.filter != null &&
+                    this.filter.adaptColumnWidth(
+                            this.table.indexOf(tableColumn),
+                            tableColumn.getWidth())) {
+
+                this.layout(true, true);
+            }
         }
     }
 

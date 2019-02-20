@@ -28,15 +28,15 @@ public final class MainPageState {
                     .getUISession()
                     .getHttpSession();
 
-            MainPageState mainPageState = (MainPageState) httpSession.getAttribute(SEBMainPage.ATTR_MAIN_PAGE_STATE);
+            MainPageState mainPageState = (MainPageState) httpSession.getAttribute(MainPage.ATTR_MAIN_PAGE_STATE);
             if (mainPageState == null) {
                 mainPageState = new MainPageState();
-                httpSession.setAttribute(SEBMainPage.ATTR_MAIN_PAGE_STATE, mainPageState);
+                httpSession.setAttribute(MainPage.ATTR_MAIN_PAGE_STATE, mainPageState);
             }
 
             return mainPageState;
         } catch (final Exception e) {
-            SEBMainPage.log.error("Unexpected error while trying to get MainPageState from user-session");
+            MainPage.log.error("Unexpected error while trying to get MainPageState from user-session");
         }
 
         return null;

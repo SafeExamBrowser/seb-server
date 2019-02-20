@@ -22,14 +22,14 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 /** <code>
  *  new TableBuilder<T>(RestCall)
  *      .withPaging(pageSize)
+ *      .withFilterAttribute(attribute.TableFilterAttribute)
  *      .withColumn(new ColumnDefinition(
  *          columnName:String,
  *          displayName:LocTextKey,
  *          tooltip:LocTextKey,
  *          width:int,
  *          valueSupplier:Function<ROW, String>,
- *          sortable:boolean,
- *          columnFilter:TableColumnFilter))
+ *          sortable:boolean
  *      .withAction(action:TableRowAction)
  *      .withSelectableRows(boolean)
  *      .compose(parent:Composit, group:Composite);
@@ -38,6 +38,7 @@ public class TableBuilder<ROW extends Entity> {
 
     private final WidgetFactory widgetFactory;
     final RestCall<Page<ROW>> restCall;
+//    final List<TableFilterAttribute> filter = new ArrayList<>();
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     final List<TableRowAction> actions = new ArrayList<>();
 
@@ -57,8 +58,8 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
-    public TableBuilder<ROW> withColumn(final ColumnDefinition<ROW> columnDef) {
-        this.columns.add(columnDef);
+    public TableBuilder<ROW> withColumn(final ColumnDefinition<ROW> columnDefinition) {
+        this.columns.add(columnDefinition);
         return this;
     }
 
@@ -73,12 +74,6 @@ public class TableBuilder<ROW extends Entity> {
     }
 
     public EntityTable<ROW> compose(final Composite parent) {
-        final boolean withFilter = this.columns
-                .stream()
-                .filter(c -> c.filter != null)
-                .findFirst()
-                .isPresent();
-
         return new EntityTable<>(
                 this.type,
                 parent,
@@ -86,8 +81,7 @@ public class TableBuilder<ROW extends Entity> {
                 this.widgetFactory,
                 this.columns,
                 this.actions,
-                this.pageSize,
-                withFilter);
+                this.pageSize);
     }
 
 }

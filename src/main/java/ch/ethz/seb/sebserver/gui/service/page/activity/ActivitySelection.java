@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionList;
+import ch.ethz.seb.sebserver.gui.service.page.content.UserAccountList;
 import ch.ethz.seb.sebserver.gui.service.page.impl.TODOTemplate;
 
 public class ActivitySelection {
@@ -35,15 +36,25 @@ public class ActivitySelection {
 
     public enum Activity {
         NONE(TODOTemplate.class, TODOTemplate.class),
-        INSTITUTION_ROOT(
+        INSTITUTION_LIST(
                 InstitutionList.class,
                 ActionPane.class,
-                new LocTextKey("sebserver.activities.inst")),
-        INSTITUTION_NODE(
+                new LocTextKey("sebserver.activities.institution")),
+        INSTITUTION_FORM(
                 InstitutionForm.class,
                 ActionPane.class,
-                new LocTextKey("sebserver.activities.inst")),
-//
+                new LocTextKey("sebserver.activities.institution")),
+
+        USER_ACCOUNT_LIST(
+                UserAccountList.class,
+                ActionPane.class,
+                new LocTextKey("sebserver.activities.useraccount")),
+
+        USER_ACCOUNT_FORM(
+                UserAccountList.class,
+                ActionPane.class,
+                new LocTextKey("sebserver.activities.useraccount")),
+
 //        USERS(UserAccountsForm.class, ActionPane.class),
 //
 //        EXAMS(ExamsListPage.class, ActionPane.class),

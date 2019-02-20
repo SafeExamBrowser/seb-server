@@ -171,6 +171,13 @@ public abstract class RestCall<T> {
             return this;
         }
 
+        public RestCallBuilder withQueryParams(final MultiValueMap<String, String> params) {
+            if (params != null) {
+                this.queryParams.putAll(params);
+            }
+            return this;
+        }
+
         public RestCallBuilder withPaging(final int pageNumber, final int pageSize) {
             this.queryParams.put(Page.ATTR_PAGE_NUMBER, Arrays.asList(String.valueOf(pageNumber)));
             this.queryParams.put(Page.ATTR_PAGE_SIZE, Arrays.asList(String.valueOf(pageSize)));
@@ -180,13 +187,6 @@ public abstract class RestCall<T> {
         public RestCallBuilder withSorting(final String column, final SortOrder order) {
             if (column != null) {
                 this.queryParams.put(Page.ATTR_SORT, Arrays.asList(order.encode(column)));
-            }
-            return this;
-        }
-
-        public RestCallBuilder withFilterAttributes(final FilterAttributeSupplier filterAttributes) {
-            if (filterAttributes != null) {
-                this.queryParams.putAll(filterAttributes.getAttributes());
             }
             return this;
         }
