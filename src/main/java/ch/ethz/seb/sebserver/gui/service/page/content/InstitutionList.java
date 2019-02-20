@@ -8,13 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.content;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -25,6 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.action.InstitutionActions;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutions;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.service.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
@@ -34,28 +36,31 @@ import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
 @GuiProfile
 public class InstitutionList implements TemplateComposer {
 
+    private static final Logger log = LoggerFactory.getLogger(InstitutionList.class);
+
     private final WidgetFactory widgetFactory;
     private final RestService restService;
+    private final CurrentUser currentUser;
 
     protected InstitutionList(
             final WidgetFactory widgetFactory,
-            final RestService restService) {
+            final RestService restService,
+            final CurrentUser currentUser) {
 
         this.widgetFactory = widgetFactory;
         this.restService = restService;
+        this.currentUser = currentUser;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
-        final Composite content = new Composite(pageContext.getParent(), SWT.NONE);
-        final GridLayout contentLayout = new GridLayout();
-        contentLayout.marginLeft = 10;
-        content.setLayout(contentLayout);
-        content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        // title
-        this.widgetFactory.labelLocalizedTitle(
-                content,
+        if (log.isDebugEnabled()) {
+            log.debug("Compose Institutoion list within PageContext: {}", pageContext);
+        }
+
+        final Composite content = this.widgetFactory.defaultPageLayout(
+                pageContext.getParent(),
                 new LocTextKey("sebserver.institution.list.title"));
 
         // table
@@ -82,15 +87,15 @@ public class InstitutionList implements TemplateComposer {
         // propagate content actions to action-pane
         pageContext.createAction(ActionDefinition.INSTITUTION_NEW)
                 .withExec(InstitutionActions::newInstitution)
-                .publish()
-                .createAction(ActionDefinition.INSTITUTION_VIEW)
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION))
+                .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(InstitutionActions::viewInstitution)
                 .publish()
-                .createAction(ActionDefinition.INSTITUTION_MODIFY)
+                .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM__LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(InstitutionActions::editInstitutionFromList)
-                .publish();
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
 
     }
 

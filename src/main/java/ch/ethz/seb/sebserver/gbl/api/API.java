@@ -57,6 +57,8 @@ public final class API {
 
     public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";
 
+    public static final String PASSWORD_PATH_SEGMENT = "/password";
+
     public static final String PATH_VAR_ACTIVE = MODEL_ID_VAR_PATH_SEGMENT + ACTIVE_PATH_SEGMENT;
     public static final String PATH_VAR_INACTIVE = MODEL_ID_VAR_PATH_SEGMENT + INACTIVE_PATH_SEGMENT;
 

@@ -68,7 +68,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.LMS_SETUP_ENDPOINT + "/" + lmsSetup.id)
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.PUT)
                 .withBodyJson(modified)
                 .withExpectedStatus(HttpStatus.OK)

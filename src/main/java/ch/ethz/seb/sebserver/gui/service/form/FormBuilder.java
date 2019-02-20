@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.form;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -182,6 +183,19 @@ public class FormBuilder {
         }
         if (StringUtils.isNoneBlank(group)) {
             this.form.addToGroup(group, name);
+        }
+        return this;
+    }
+
+    public FormBuilder addImageUploadIf(
+            final BooleanSupplier condition,
+            final String name,
+            final String label,
+            final String value,
+            final int span) {
+
+        if (condition != null && condition.getAsBoolean()) {
+            return addImageUpload(name, label, value, span);
         }
         return this;
     }

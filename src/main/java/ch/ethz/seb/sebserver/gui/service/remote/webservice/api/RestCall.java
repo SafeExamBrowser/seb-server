@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
@@ -123,14 +124,14 @@ public abstract class RestCall<T> {
         return new RestCallBuilder();
     }
 
-    public final class RestCallBuilder {
+    public class RestCallBuilder {
 
         private final HttpHeaders httpHeaders = new HttpHeaders();
         private String body = null;
         private final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         private final Map<String, String> uriVariables = new HashMap<>();
 
-        RestCallBuilder() {
+        protected RestCallBuilder() {
             this.httpHeaders.set(
                     HttpHeaders.CONTENT_TYPE,
                     RestCall.this.contentType.toString());
@@ -192,8 +193,13 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withFormBinding(final FormBinding formBinding) {
-            return withURIVariable(API.PARAM_MODEL_ID, formBinding.entityKey().modelId)
-                    .withBody(formBinding.getFormAsJson());
+            final EntityKey entityKey = formBinding.entityKey();
+            if (entityKey != null) {
+                return withURIVariable(API.PARAM_MODEL_ID, formBinding.entityKey().modelId)
+                        .withBody(formBinding.getFormAsJson());
+            } else {
+                return withQueryParams(formBinding.getFormAsQueryAttributes());
+            }
         }
 
         public RestCallBuilder onlyActive(final boolean active) {
@@ -205,14 +211,14 @@ public abstract class RestCall<T> {
             return RestCall.this.exchange(this);
         }
 
-        String buildURI() {
+        protected String buildURI() {
             return RestCall.this.restService.getWebserviceURIBuilder()
                     .path(RestCall.this.path)
                     .queryParams(this.queryParams)
                     .toUriString();
         }
 
-        HttpEntity<?> buildRequestEntity() {
+        protected HttpEntity<?> buildRequestEntity() {
             if (this.body != null) {
                 return new HttpEntity<>(this.body, this.httpHeaders);
             } else {

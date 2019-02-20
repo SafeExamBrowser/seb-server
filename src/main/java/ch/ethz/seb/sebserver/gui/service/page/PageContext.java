@@ -36,7 +36,6 @@ public interface PageContext {
         public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
         public static final String READ_ONLY = "READ_ONLY";
-        public static final String CREATE_NEW = "CREATE_NEW";
 
         public static final String ENTITY_ID = "ENTITY_ID";
         public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
@@ -105,6 +104,8 @@ public interface PageContext {
     String getAttribute(String name);
 
     String getAttribute(String name, String def);
+
+    boolean isReadonly();
 
     EntityKey getEntityKey();
 

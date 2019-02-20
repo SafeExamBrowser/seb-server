@@ -12,10 +12,15 @@ import java.io.Serializable;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,7 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
-public final class UserInfo implements GrantEntity, Activatable, Serializable {
+public final class UserInfo implements UserAccount, GrantEntity, Activatable, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 
@@ -45,30 +50,39 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
+    @NotNull
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
     /** Full name of the user */
+    @NotNull(message = "user:name:notNull")
+    @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** The internal user name */
+    @NotNull(message = "user:username:notNull")
+    @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
 
     /** E-mail address of the user */
+    @Email(message = "user:email:email:_:_:${validatedValue}")
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
 
     /** Indicates whether this user is still active or not */
+    @NotNull
     @JsonProperty(USER.ATTR_ACTIVE)
     public final Boolean active;
 
     /** The users locale */
+    @NotNull(message = "user:locale:notNull")
     @JsonProperty(USER.ATTR_LOCALE)
     public final Locale locale;
 
     /** The users time zone */
+    @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
@@ -129,14 +143,17 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         return this.name;
     }
 
+    @Override
     public String getUsername() {
         return this.username;
     }
 
+    @Override
     public String getEmail() {
         return this.email;
     }
 
+    @Override
     public Boolean getActive() {
         return this.active;
     }
@@ -146,14 +163,17 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
         return this.active;
     }
 
+    @Override
     public Locale getLocale() {
         return this.locale;
     }
 
+    @Override
     public DateTimeZone getTimeZone() {
         return this.timeZone;
     }
 
+    @Override
     public Set<String> getRoles() {
         return this.roles;
     }
@@ -163,6 +183,18 @@ public final class UserInfo implements GrantEntity, Activatable, Serializable {
             return false;
         }
         return this.roles.contains(userRole.name());
+    }
+
+    @JsonIgnore
+    @Override
+    public String getNewPassword() {
+        return null;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getRetypedNewPassword() {
+        return null;
     }
 
     @Override

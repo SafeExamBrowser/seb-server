@@ -169,7 +169,7 @@ Text.error {
     color: #4a4a4a;
     background-repeat: repeat;
     background-position: left top;
-    background-color: #A8322D;
+    background-color: #82BE1E;
     background-image: none;
     text-shadow: none;
     box-shadow: none;
@@ -247,7 +247,7 @@ Shell-Titlebar.message {
   background-color: #1f407a;
   background-gradient-color: #1f407a;
   color: white;
-  background-image: gradient( linear, left top, left bottom, from( #0069B4 ), to( #0069B4 ) );
+  background-image: gradient( linear, left top, left bottom, from( #1f407a ), to( #1f407a ) );
   padding: 2px 5px 2px;
   margin: 0px;
   height: 22px;

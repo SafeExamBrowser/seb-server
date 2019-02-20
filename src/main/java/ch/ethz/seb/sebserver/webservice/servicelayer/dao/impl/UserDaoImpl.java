@@ -32,9 +32,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -180,7 +180,7 @@ public class UserDaoImpl implements UserDAO {
         return Result.tryCatch(() -> {
 
             if (!userMod.newPasswordMatch()) {
-                throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
+                throw new APIMessageException(ErrorMessage.PASSWORD_MISMATCH);
             }
 
             final UserRecord recordToSave = new UserRecord(
@@ -209,28 +209,46 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> save(final String modelId, final UserMod userMod) {
+    public Result<UserInfo> changePassword(final String modelId, final String newPassword) {
         return recordByUUID(modelId)
                 .map(record -> {
-                    final boolean changePWD = userMod.passwordChangeRequest();
-                    if (changePWD && !userMod.newPasswordMatch()) {
-                        throw new APIMessageException(ErrorMessage.PASSWORD_MISSMATCH);
-                    }
-
                     final UserRecord newRecord = new UserRecord(
                             record.getId(),
                             null,
                             null,
-                            userMod.name,
-                            userMod.username,
-                            (changePWD) ? this.userPasswordEncoder.encode(userMod.getNewPassword()) : null,
-                            userMod.email,
-                            userMod.locale.toLanguageTag(),
-                            userMod.timeZone.getID(),
+                            null,
+                            null,
+                            this.userPasswordEncoder.encode(newPassword),
+                            null,
+                            null,
+                            null,
+                            null);
+                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    return this.userRecordMapper.selectByPrimaryKey(record.getId());
+                })
+                .flatMap(this::toDomainModel)
+                .onErrorDo(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<UserInfo> save(final UserInfo userInfo) {
+        return recordByUUID(userInfo.uuid)
+                .map(record -> {
+                    final UserRecord newRecord = new UserRecord(
+                            record.getId(),
+                            null,
+                            null,
+                            userInfo.name,
+                            userInfo.username,
+                            null,
+                            userInfo.email,
+                            userInfo.locale.toLanguageTag(),
+                            userInfo.timeZone.getID(),
                             null);
 
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    updateRolesForUser(record.getId(), userMod.roles);
+                    updateRolesForUser(record.getId(), userInfo.roles);
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)

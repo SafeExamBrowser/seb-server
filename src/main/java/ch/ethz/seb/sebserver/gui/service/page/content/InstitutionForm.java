@@ -9,10 +9,8 @@
 package ch.ethz.seb.sebserver.gui.service.page.content;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,6 @@ import ch.ethz.seb.sebserver.gui.service.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.action.InstitutionActions;
@@ -68,44 +65,45 @@ public class InstitutionForm implements TemplateComposer {
     public void compose(final PageContext pageContext) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Compose Institutoion Form");
+            log.debug("Compose Institutoion Form within PageContext: {}", pageContext);
         }
 
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
-        final boolean readonly = BooleanUtils.toBoolean(
-                pageContext.getAttribute(AttributeKeys.READ_ONLY, "true"));
-        final boolean createNew = BooleanUtils.toBoolean(
-                pageContext.getAttribute(AttributeKeys.CREATE_NEW, "false"));
+        final EntityKey entityKey = pageContext.getEntityKey();
 
         // get data or create new and handle error
-        Institution institution = null;
-        PageContext formContext = pageContext;
-
-        if (createNew) {
-            institution = this.restService
-                    .getBuilder(NewInstitution.class)
-                    .withQueryParam(Domain.INSTITUTION.ATTR_NAME, "[NEW-" + UUID.randomUUID() + "]")
-                    .call()
-                    .get(pageContext::notifyError);
-            formContext = pageContext.withEntityKey(institution.getEntityKey());
-        } else {
-            final String instId = pageContext.getAttribute(AttributeKeys.ENTITY_ID);
-            institution = this.restService
-                    .getBuilder(GetInstitution.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, instId)
-                    .call()
-                    .get(pageContext::notifyError);
-        }
+        final Institution institution = (entityKey == null)
+                ? new Institution(null, null, null, null, false)
+                : this.restService
+                        .getBuilder(GetInstitution.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .call()
+                        .get(pageContext::notifyError);
 
         if (institution == null) {
-            // TODO should here be a forward to institution list page for SEB Admin?
+            log.error("Failed to get Institution. "
+                    + "Error was notified to the User. "
+                    + "See previous logs for more infomation");
             return;
         }
 
+        // new PageContext with actual EntityKey
+        final PageContext formContext = pageContext;
+        pageContext.withEntityKey(institution.getEntityKey());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Institution Form for Institution {}", institution.name);
+        }
+
         // the default page layout with interactive title
+        final LocTextKey titleKey = new LocTextKey(
+                (entityKey != null)
+                        ? "sebserver.institution.form.title"
+                        : "sebserver.institution.form.title.new",
+                institution.name);
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
-                new LocTextKey("sebserver.institution.form.title", institution.name),
+                titleKey,
                 ActionDefinition.INSTITUTION_SAVE,
                 title -> event -> {
                     final Entity entity = (Entity) event.source;
@@ -118,7 +116,7 @@ public class InstitutionForm implements TemplateComposer {
         // The Institution form
         final FormHandle<Institution> formHandle = this.pageFormService.getBuilder(
                 formContext.copyOf(content), 4)
-                .readonly(readonly)
+                .readonly(pageContext.isReadonly())
                 .putStaticValue("id", institution.getModelId())
                 .addTextField(
                         Domain.INSTITUTION.ATTR_NAME,
@@ -130,36 +128,37 @@ public class InstitutionForm implements TemplateComposer {
                         "sebserver.institution.form.urlSuffix",
                         institution.urlSuffix, 2)
                 .addEmptyCell()
-                .addImageUpload(
+                .addImageUploadIf(() -> entityKey != null,
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         "sebserver.institution.form.logoImage",
                         institution.logoImage, 2)
-                .buildFor(
-                        this.restService.getRestCall(SaveInstitution.class),
+                .buildFor((entityKey == null)
+                        ? this.restService.getRestCall(NewInstitution.class)
+                        : this.restService.getRestCall(SaveInstitution.class),
                         InstitutionActions.postSaveAdapter(pageContext));
 
         // propagate content actions to action-pane
-        if (readonly) {
-            if (this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution)) {
-                formContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                        .withExec(InstitutionActions::newInstitution)
-                        .publish();
+        final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
+        final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
+        if (pageContext.isReadonly()) {
+            formContext.createAction(ActionDefinition.INSTITUTION_NEW)
+                    .withExec(InstitutionActions::newInstitution)
+                    .publishIf(() -> writeGrant);
+            formContext.createAction(ActionDefinition.INSTITUTION_MODIFY)
+                    .withExec(InstitutionActions::editInstitution)
+                    .publishIf(() -> modifyGrant);
+
+            if (!institution.isActive()) {
+                formContext.createAction(ActionDefinition.INSTITUTION_ACTIVATE)
+                        .withExec(InstitutionActions::activateInstitution)
+                        .publishIf(() -> modifyGrant);
+            } else {
+                formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
+                        .withExec(InstitutionActions::deactivateInstitution)
+                        .withConfirm(confirmDeactivation(institution))
+                        .publishIf(() -> modifyGrant);
             }
-            if (this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution)) {
-                formContext.createAction(ActionDefinition.INSTITUTION_MODIFY)
-                        .withExec(InstitutionActions::editInstitution)
-                        .publish();
-                if (!institution.isActive()) {
-                    formContext.createAction(ActionDefinition.INSTITUTION_ACTIVATE)
-                            .withExec(InstitutionActions::activateInstitution)
-                            .publish();
-                } else {
-                    formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
-                            .withExec(InstitutionActions::deactivateInstitution)
-                            .withConfirm(confirmDeactivation(institution))
-                            .publish();
-                }
-            }
+
         } else {
             formContext.createAction(ActionDefinition.INSTITUTION_SAVE)
                     .withExec(formHandle::postChanges)

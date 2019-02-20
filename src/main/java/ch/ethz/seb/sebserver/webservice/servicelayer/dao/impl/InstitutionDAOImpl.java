@@ -26,8 +26,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -129,7 +129,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional
-    public Result<Institution> save(final String modelId, final Institution institution) {
+    public Result<Institution> save(final Institution institution) {
         return Result.tryCatch(() -> {
 
             final Long count = this.institutionRecordMapper.countByExample()
@@ -142,16 +142,15 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 throw new FieldValidationException("name", "institution:name:exists");
             }
 
-            final Long pk = Long.parseLong(modelId);
             final InstitutionRecord newRecord = new InstitutionRecord(
-                    pk,
+                    institution.id,
                     institution.name,
                     institution.urlSuffix,
                     null,
                     institution.logoImage);
 
             this.institutionRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.institutionRecordMapper.selectByPrimaryKey(pk);
+            return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
         })
                 .flatMap(InstitutionDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);

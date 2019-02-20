@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -91,6 +92,7 @@ public class ActivitiesPane implements TemplateComposer {
         navigation.setLayoutData(navigationGridData);
 
         // Institution
+        // If current user has SEB Server Admin role, show the Institution list
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
@@ -99,7 +101,7 @@ public class ActivitiesPane implements TemplateComposer {
             injectActivitySelection(institutions, Activity.INSTITUTION_LIST.createSelection());
 
         } else {
-            // institution node as none root
+            // otherwise show the form of the institution for current user
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
                     Activity.INSTITUTION_FORM.title);
@@ -111,10 +113,23 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // User Account
-        final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                navigation,
-                Activity.USER_ACCOUNT_LIST.title);
-        injectActivitySelection(userAccounts, Activity.USER_ACCOUNT_LIST.createSelection());
+        // if current user has base read privilege for User Account, show list
+        if (this.currentUser.hasPrivilege(PrivilegeType.READ_ONLY, EntityType.USER)) {
+            final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    Activity.USER_ACCOUNT_LIST.title);
+            injectActivitySelection(userAccounts, Activity.USER_ACCOUNT_LIST.createSelection());
+        } else {
+            // otherwise show the user account form for current user
+            final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    Activity.USER_ACCOUNT_FORM.title);
+            injectActivitySelection(
+                    userAccounts,
+                    Activity.USER_ACCOUNT_FORM.createSelection()
+                            .withEntity(this.currentUser.get().getEntityKey())
+                            .withAttribute(AttributeKeys.READ_ONLY, "true"));
+        }
 //
 //        final TreeItem configs = this.widgetFactory.treeItemLocalized(
 //                navigation,

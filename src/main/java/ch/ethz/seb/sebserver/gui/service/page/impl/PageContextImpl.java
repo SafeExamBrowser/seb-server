@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -169,6 +170,11 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public boolean isReadonly() {
+        return BooleanUtils.toBoolean(getAttribute(AttributeKeys.READ_ONLY, "true"));
+    }
+
+    @Override
     public EntityKey getEntityKey() {
         if (hasAttribute(AttributeKeys.ENTITY_ID) && hasAttribute(AttributeKeys.ENTITY_TYPE)) {
             return new EntityKey(
@@ -192,6 +198,9 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public PageContext withEntityKey(final EntityKey entityKey) {
+        if (entityKey == null) {
+            return this;
+        }
         return withAttribute(AttributeKeys.ENTITY_ID, entityKey.modelId)
                 .withAttribute(AttributeKeys.ENTITY_TYPE, entityKey.entityType.name());
     }
@@ -254,7 +263,7 @@ public class PageContextImpl implements PageContext {
     public void applyConfirmDialog(final LocTextKey confirmMessage, final Runnable onOK) {
         final Message messageBox = new Message(
                 this.root.getShell(),
-                this.i18nSupport.getText("org.sebserver.dialog.confirm.title"),
+                this.i18nSupport.getText("sebserver.dialog.confirm.title"),
                 this.i18nSupport.getText(confirmMessage),
                 SWT.OK | SWT.CANCEL);
         messageBox.setMarkupEnabled(true);

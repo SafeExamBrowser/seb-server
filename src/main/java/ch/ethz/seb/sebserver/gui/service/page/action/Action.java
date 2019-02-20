@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page.action;
 
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -110,6 +111,14 @@ public final class Action implements Runnable {
 
     public PageContext publish() {
         this.pageContext.publishPageEvent(new ActionPublishEvent(this));
+        return this.pageContext;
+    }
+
+    public PageContext publishIf(final BooleanSupplier condition) {
+        if (condition.getAsBoolean()) {
+            publish();
+        }
+
         return this.pageContext;
     }
 

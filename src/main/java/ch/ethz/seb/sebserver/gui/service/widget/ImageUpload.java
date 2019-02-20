@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.fileupload.FileDetails;
 import org.eclipse.rap.fileupload.FileUploadHandler;
 import org.eclipse.rap.fileupload.FileUploadReceiver;
@@ -29,7 +31,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
@@ -68,7 +69,7 @@ public class ImageUpload extends Composite {
                         final String contentType = details.getContentType();
                         if (contentType != null && contentType.startsWith("image")) {
                             ImageUpload.this.imageBase64 = Base64.getEncoder()
-                                    .encodeToString(StreamUtils.copyToByteArray(stream));
+                                    .encodeToString(IOUtils.toByteArray(stream));
                         }
                     } catch (final Exception e) {
                         log.error("Error while trying to upload image", e);
@@ -116,7 +117,7 @@ public class ImageUpload extends Composite {
     }
 
     public void setImageBase64(final String imageBase64) {
-        if (imageBase64 == null) {
+        if (StringUtils.isBlank(imageBase64)) {
             return;
         }
 

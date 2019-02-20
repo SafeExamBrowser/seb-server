@@ -187,7 +187,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(errorMessage);
         assertTrue(errorMessage.size() > 0);
-        assertEquals("1010", errorMessage.get(0).messageCode);
+        assertEquals("1200", errorMessage.get(0).messageCode);
 
         // and predefined id should be ignored
         institution = new RestAPITestHelper()
@@ -241,10 +241,9 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
         // modify
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
-                .withPath(API.INSTITUTION_ENDPOINT).withPath("/")
-                .withPath(String.valueOf(institution.id))
+                .withPath(API.INSTITUTION_ENDPOINT)
                 .withMethod(HttpMethod.PUT)
-                .withBodyJson(new Institution(null, "testInstitution", "testSuffix", null, null))
+                .withBodyJson(new Institution(institution.id, "testInstitution", "testSuffix", null, null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
                 });

@@ -73,11 +73,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
 
     @Override
     protected Institution createNew(final POSTMapper postParams) {
-        final Institution institution = new Institution(null, postParams);
-        if (this.institutionDAO.exists(institution.name)) {
-            throw new IllegalAPIArgumentException("institution:name:unique:" + institution.name);
-        }
-        return institution;
+        return new Institution(null, postParams);
     }
 
 }

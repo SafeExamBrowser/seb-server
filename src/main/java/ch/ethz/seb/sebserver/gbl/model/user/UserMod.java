@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
-public final class UserMod implements GrantEntity {
+public final class UserMod implements UserAccount, GrantEntity {
 
     public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
     public static final String ATTR_NAME_RETYPED_NEW_PASSWORD = "retypedNewPassword";
@@ -88,7 +88,6 @@ public final class UserMod implements GrantEntity {
             @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
             @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
-            @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
             @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles) {
@@ -133,6 +132,19 @@ public final class UserMod implements GrantEntity {
         this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
     }
 
+    public UserMod(final String modelId, final Long institutionId) {
+        this.uuid = modelId;
+        this.institutionId = institutionId;
+        this.newPassword = null;
+        this.retypedNewPassword = null;
+        this.name = null;
+        this.username = null;
+        this.email = null;
+        this.locale = null;
+        this.timeZone = null;
+        this.roles = null;
+    }
+
     @Override
     public String getModelId() {
         return this.uuid;
@@ -153,6 +165,7 @@ public final class UserMod implements GrantEntity {
         return this.uuid;
     }
 
+    @Override
     public String getNewPassword() {
         return this.newPassword;
     }
@@ -162,26 +175,32 @@ public final class UserMod implements GrantEntity {
         return this.name;
     }
 
+    @Override
     public String getUsername() {
         return this.username;
     }
 
+    @Override
     public String getEmail() {
         return this.email;
     }
 
+    @Override
     public Locale getLocale() {
         return this.locale;
     }
 
+    @Override
     public DateTimeZone getTimeZone() {
         return this.timeZone;
     }
 
+    @Override
     public Set<String> getRoles() {
         return this.roles;
     }
 
+    @Override
     public String getRetypedNewPassword() {
         return this.retypedNewPassword;
     }
@@ -192,6 +211,16 @@ public final class UserMod implements GrantEntity {
 
     public boolean newPasswordMatch() {
         return passwordChangeRequest() && this.newPassword.equals(this.retypedNewPassword);
+    }
+
+    @Override
+    public Boolean getActive() {
+        return false;
+    }
+
+    @Override
+    public boolean isActive() {
+        return false;
     }
 
     @Override

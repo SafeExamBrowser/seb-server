@@ -47,7 +47,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 public abstract class EntityController<T extends GrantEntity, M extends GrantEntity> {
@@ -250,8 +249,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         return this.beanValidationService.validateBean(requestModel)
                 .flatMap(this.entityDAO::createNew)
-                .flatMap(entity -> this.userActivityLogDAO.log(ActivityType.CREATE, entity))
-                .flatMap(entity -> this.notifySaved(requestModel, entity))
+                .flatMap(this.userActivityLogDAO::logCreate)
+                .flatMap(this::notifyCreated)
                 .getOrThrow();
     }
 
@@ -260,19 +259,16 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ****************
 
     @RequestMapping(
-            path = "/{modelId}",
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public T savePut(
-            @PathVariable final String modelId,
-            @Valid @RequestBody final M modifyData) {
+    public T savePut(@Valid @RequestBody final T modifyData) {
 
-        return this.beanValidationService.validateBean(modifyData)
-                .flatMap(this.authorization::checkModify)
-                .flatMap(m -> this.entityDAO.save(modelId, m))
-                .flatMap(e -> this.userActivityLogDAO.log(ActivityType.MODIFY, e))
-                .flatMap(e -> notifySaved(modifyData, e))
+        return this.authorization.checkModify(modifyData)
+                .flatMap(this::validForSave)
+                .flatMap(this.entityDAO::save)
+                .flatMap(this.userActivityLogDAO::logModify)
+                .flatMap(this::notifySaved)
                 .getOrThrow();
     }
 
@@ -339,7 +335,19 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                 this.authorization::hasReadonlyGrant);
     }
 
-    protected Result<T> notifySaved(final M modifyData, final T entity) {
+    protected Result<T> notifyCreated(final T entity) {
+        return Result.of(entity);
+    }
+
+    protected Result<T> validForSave(final T entity) {
+        if (entity.getModelId() != null) {
+            return Result.of(entity);
+        } else {
+            return Result.ofError(new IllegalAPIArgumentException("Missing model identifier"));
+        }
+    }
+
+    protected Result<T> notifySaved(final T entity) {
         return Result.of(entity);
     }
 

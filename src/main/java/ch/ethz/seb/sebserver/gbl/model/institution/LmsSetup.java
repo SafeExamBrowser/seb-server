@@ -36,13 +36,13 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @JsonProperty(LMS_SETUP.ATTR_ID)
     public final Long id;
 
-    @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID)
     @NotNull
+    @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
-    @JsonProperty(LMS_SETUP.ATTR_NAME)
     @NotNull(message = "lmsSetup:name:notNull")
     @Size(min = 3, max = 255, message = "lmsSetup:name:size:{min}:{max}:${validatedValue}")
+    @JsonProperty(LMS_SETUP.ATTR_NAME)
     public final String name;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_TYPE)

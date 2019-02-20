@@ -27,7 +27,11 @@ public interface Entity extends ModelIdAware {
 
     @JsonIgnore
     default EntityKey getEntityKey() {
-        return new EntityKey(getModelId(), entityType());
+        final String modelId = getModelId();
+        if (modelId == null) {
+            return null;
+        }
+        return new EntityKey(modelId, entityType());
     }
 
     public static EntityName toName(final Entity entity) {

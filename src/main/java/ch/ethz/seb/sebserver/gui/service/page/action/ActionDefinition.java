@@ -16,9 +16,13 @@ public enum ActionDefinition {
             "sebserver.institution.action.new",
             ImageIcon.NEW),
 
-    INSTITUTION_VIEW(
-            "sebserver.institution.action.view",
+    INSTITUTION_VIEW_FROM_LIST(
+            "sebserver.institution.action.list.view",
             ImageIcon.SHOW),
+
+    INSTITUTION_MODIFY_FROM__LIST(
+            "sebserver.institution.action.list.modify",
+            ImageIcon.EDIT),
 
     INSTITUTION_MODIFY(
             "sebserver.institution.action.modify",
@@ -44,7 +48,38 @@ public enum ActionDefinition {
             "sebserver.institution.action.modify",
             ImageIcon.DELETE),
 
-    ;
+    USER_ACCOUNT_NEW(
+            "sebserver.useraccount.action.new",
+            ImageIcon.NEW),
+
+    USER_ACCOUNT_VIEW(
+            "sebserver.useraccount.action.view",
+            ImageIcon.SHOW),
+
+    USER_ACCOUNT_MODIFY(
+            "sebserver.useraccount.action.modify",
+            ImageIcon.EDIT),
+
+    USER_ACCOUNT_CANCEL_MODIFY(
+            "sebserver.overall.action.modify.cancel",
+            ImageIcon.CANCEL),
+
+    USER_ACCOUNT_SAVE(
+            "sebserver.useraccount.action.save",
+            ImageIcon.SAVE),
+
+    USER_ACCOUNT_ACTIVATE(
+            "sebserver.useraccount.action.activate",
+            ImageIcon.INACTIVE),
+
+    USER_ACCOUNT_DEACTIVATE(
+            "sebserver.useraccount.action.deactivate",
+            ImageIcon.ACTIVE),
+
+    USER_ACCOUNT_DELETE(
+            "sebserver.useraccount.action.modify",
+            ImageIcon.DELETE),
+            ;
 
     public final String name;
     public final ImageIcon icon;

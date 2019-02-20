@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -572,8 +573,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
 
         // change userName, email and roles
-        final UserMod modifyUser = new UserMod(new UserInfo(
-                null,
+        final UserInfo modifyUser = new UserInfo(
+                user.uuid,
                 user.getInstitutionId(),
                 user.getName(),
                 "newUser1",
@@ -581,17 +582,14 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 user.getActive(),
                 user.getLocale(),
                 user.getTimeZone(),
-                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet())),
-                null, null);
+                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet()));
         final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
 
         UserInfo modifiedUserResult = this.jsonMapper.readValue(
-                this.mockMvc
-                        .perform(
-                                put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + user.getUuid())
-                                        .header("Authorization", "Bearer " + token)
-                                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                        .content(modifyUserJson))
+                this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(modifyUserJson))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<UserInfo>() {
@@ -668,10 +666,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 new TypeReference<UserInfo>() {
                 });
 
-        final UserMod modifiedUser = new UserMod(examAdmin, null, null);
-        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+        final String modifiedUserJson = this.jsonMapper.writeValueAsString(examAdmin);
 
-        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + modifiedUser.uuid)
+        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + examAdminToken1)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(modifiedUserJson))
@@ -694,12 +691,11 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andReturn().getResponse().getContentAsString();
 
         final UserInfo userInfo = new UserInfo(
-                null, 2L, "NewTestUser", "NewTestUser",
+                "NewTestUser", 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
-        final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
-        final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
-        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/NewTestUser")
+        final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
+        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newUserJson))
@@ -722,12 +718,12 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andReturn().getResponse().getContentAsString();
 
         final UserInfo userInfo = new UserInfo(
-                null, 2L, "NewTestUser", "NewTestUser",
+                "NewTestUser", 2L, "NewTestUser", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
-        final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
-        final String newUserJson = this.jsonMapper.writeValueAsString(newUser);
-        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/NewTestUser")
+        //final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
+        final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
+        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newUserJson))
@@ -751,16 +747,16 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 new TypeReference<UserInfo>() {
                 });
 
-        final UserMod modifiedUser = new UserMod(
-                UserInfo.of(examAdmin1),
+        final PasswordChange passwordChange = new PasswordChange(
                 "newPassword",
                 "newPassword");
-        final String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+        final String modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
-        this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + modifiedUser.uuid)
-                .header("Authorization", "Bearer " + sebAdminToken)
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(modifiedUserJson))
+        this.mockMvc.perform(
+                put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid + API.PASSWORD_PATH_SEGMENT)
+                        .header("Authorization", "Bearer " + sebAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .content(modifiedUserJson))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -799,18 +795,18 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         // must be longer then 8 chars
-        UserMod modifiedUser = new UserMod(
-                UserInfo.of(examAdmin1),
+        PasswordChange passwordChange = new PasswordChange(
                 "new",
                 "new");
-        String modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+        String modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
         List<APIMessage> messages = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + modifiedUser.uuid)
-                                .header("Authorization", "Bearer " + sebAdminToken)
-                                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                .content(modifiedUserJson))
+                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid
+                                + API.PASSWORD_PATH_SEGMENT)
+                                        .header("Authorization", "Bearer " + sebAdminToken)
+                                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                        .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<APIMessage>>() {
@@ -822,18 +818,18 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("[user, password, size, 8, 255, new]", String.valueOf(messages.get(0).getAttributes()));
 
         // wrong password retype
-        modifiedUser = new UserMod(
-                UserInfo.of(examAdmin1),
+        passwordChange = new PasswordChange(
                 "12345678",
                 "87654321");
-        modifiedUserJson = this.jsonMapper.writeValueAsString(modifiedUser);
+        modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
         messages = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + modifiedUser.uuid)
-                                .header("Authorization", "Bearer " + sebAdminToken)
-                                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                .content(modifiedUserJson))
+                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid
+                                + API.PASSWORD_PATH_SEGMENT)
+                                        .header("Authorization", "Bearer " + sebAdminToken)
+                                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                        .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<APIMessage>>() {

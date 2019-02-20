@@ -134,12 +134,11 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional
-    public Result<LmsSetup> save(final String modelId, final LmsSetup lmsSetup) {
+    public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
-            final Long pk = Long.parseLong(modelId);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
-                    pk,
+                    lmsSetup.id,
                     lmsSetup.institutionId,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
@@ -156,7 +155,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.lmsSetupRecordMapper.selectByPrimaryKey(pk);
+            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
         })
                 .flatMap(LmsSetupDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);

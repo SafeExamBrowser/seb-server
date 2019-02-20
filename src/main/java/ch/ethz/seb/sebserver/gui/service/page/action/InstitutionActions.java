@@ -40,11 +40,11 @@ public final class InstitutionActions {
     }
 
     public static Result<?> viewInstitution(final Action action) {
-        return fromInstitution(action, false);
+        return fromSelection(action, false);
     }
 
     public static Result<?> editInstitutionFromList(final Action action) {
-        return fromInstitution(action, true);
+        return fromSelection(action, true);
     }
 
     public static Result<?> editInstitution(final Action action) {
@@ -55,10 +55,16 @@ public final class InstitutionActions {
     }
 
     public static Result<?> cancelEditInstitution(final Action action) {
-        return Result.of(goToInstitution(
-                action.pageContext,
-                action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
-                false));
+        if (action.pageContext.getEntityKey() == null) {
+            final ActivitySelection toList = Activity.INSTITUTION_LIST.createSelection();
+            action.pageContext.publishPageEvent(new ActivitySelectionEvent(toList));
+            return Result.of(toList);
+        } else {
+            return Result.of(goToInstitution(
+                    action.pageContext,
+                    action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
+                    false));
+        }
     }
 
     public static Result<?> activateInstitution(final Action action) {
@@ -81,7 +87,7 @@ public final class InstitutionActions {
                 .map(report -> goToInstitution(action.pageContext, report.getSingleSource().modelId, false));
     }
 
-    private static Result<?> fromInstitution(final Action action, final boolean edit) {
+    private static Result<?> fromSelection(final Action action, final boolean edit) {
         final Collection<String> selection = action.selectionSupplier.get();
         if (selection.isEmpty()) {
             return Result.ofError(new PageMessageException("sebserver.institution.info.pleaseSelect"));
@@ -90,13 +96,19 @@ public final class InstitutionActions {
         return Result.of(goToInstitution(action.pageContext, selection.iterator().next(), edit));
     }
 
-    private static ActivitySelection goToInstitution(final PageContext pageContext, final String modelId,
+    private static ActivitySelection goToInstitution(
+            final PageContext pageContext,
+            final String modelId,
             final boolean edit) {
+
         final ActivitySelection activitySelection = Activity.INSTITUTION_FORM
                 .createSelection()
-                .withEntity(new EntityKey(modelId, EntityType.INSTITUTION))
-                .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit))
-                .withAttribute(AttributeKeys.CREATE_NEW, (modelId != null) ? "false" : "true");
+                .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit));
+
+        if (modelId != null) {
+            activitySelection.withEntity(new EntityKey(modelId, EntityType.INSTITUTION));
+        }
+
         pageContext.publishPageEvent(new ActivitySelectionEvent(activitySelection));
         return activitySelection;
     }

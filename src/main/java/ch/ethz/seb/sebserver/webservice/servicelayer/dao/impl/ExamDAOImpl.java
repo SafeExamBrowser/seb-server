@@ -157,12 +157,11 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
-    public Result<Exam> save(final String modelId, final Exam exam) {
+    public Result<Exam> save(final Exam exam) {
         return Result.tryCatch(() -> {
 
-            final Long pk = Long.parseLong(modelId);
             final ExamRecord examRecord = new ExamRecord(
-                    pk,
+                    exam.id,
                     null, null, null, null,
                     (exam.supporter != null)
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
@@ -173,7 +172,7 @@ public class ExamDAOImpl implements ExamDAO {
                     BooleanUtils.toIntegerObject(exam.active));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(pk);
+            return this.examRecordMapper.selectByPrimaryKey(exam.id);
         })
                 .flatMap(this::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);

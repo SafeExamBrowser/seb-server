@@ -112,7 +112,6 @@ public class ActivitySelection {
         }
 
         return this;
-
     }
 
     public ActivitySelection withParentEntity(final EntityKey parentEntityKey) {

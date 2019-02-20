@@ -30,7 +30,7 @@
     <profile>
       <id>Demo</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
         <java.version>1.8</java.version>
@@ -58,7 +58,7 @@
     <profile>
       <id>Java 11</id>
       <activation>
-        <activeByDefault>false</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
         <java.version>11</java.version>

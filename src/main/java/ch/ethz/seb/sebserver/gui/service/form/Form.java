@@ -17,11 +17,14 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,6 +66,19 @@ public final class Form implements FormBinding {
         } catch (final Exception e) {
             throw new RuntimeException("Unexpected error while trying to create json form Form post: ", e);
         }
+    }
+
+    @Override
+    public MultiValueMap<String, String> getFormAsQueryAttributes() {
+        final LinkedMultiValueMap<String, String> result = new LinkedMultiValueMap<>();
+        for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
+            final String value = entry.getValue().getValue();
+            if (StringUtils.isNoneBlank(value)) {
+                result.add(entry.getKey(), value);
+            }
+        }
+
+        return result;
     }
 
     public String getValue(final String name) {
@@ -155,7 +171,7 @@ public final class Form implements FormBinding {
                 .forEach(processor);
     }
 
-    public void flush() {
+    private void flush() {
         for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
             final FormFieldAccessor accessor = entry.getValue();
             if (accessor.control.isVisible()) {

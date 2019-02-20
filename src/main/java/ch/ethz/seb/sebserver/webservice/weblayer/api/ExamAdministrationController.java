@@ -223,7 +223,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                 .getOrThrow();
 
         return this.indicatorDAO
-                .save(id, indicator)
+                .save(indicator)
                 .getOrThrow();
     }
 

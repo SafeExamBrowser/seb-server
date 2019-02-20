@@ -67,6 +67,42 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
+    public <E extends Entity> Result<E> logCreate(final E entity) {
+        return log(ActivityType.CREATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logImport(final E entity) {
+        return log(ActivityType.IMPORT, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logModify(final E entity) {
+        return log(ActivityType.MODIFY, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logActivate(final E entity) {
+        return log(ActivityType.ACTIVATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logDeactivate(final E entity) {
+        return log(ActivityType.DEACTIVATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logDelete(final E entity) {
+        return log(ActivityType.DELETE, entity);
+    }
+
+    @Override
+    @Transactional
     public <E extends Entity> Result<E> log(
             final ActivityType activityType,
             final E entity,
@@ -288,7 +324,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public Result<UserActivityLog> save(final String modelId, final UserActivityLog modified) {
+    public Result<UserActivityLog> save(final UserActivityLog modified) {
         // TODO Auto-generated method stub
         return Result.ofTODO();
     }
