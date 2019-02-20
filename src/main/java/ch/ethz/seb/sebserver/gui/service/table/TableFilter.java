@@ -131,7 +131,7 @@ public class TableFilter<ROW extends Entity> extends Composite {
 
         static final int CELL_WIDTH_ADJUSTMENT = -30;
 
-        protected RowData rowData;
+        protected final RowData rowData = new RowData();
         final TableFilterAttribute attribute;
 
         FilterComponent(final TableFilterAttribute attribute) {
@@ -176,7 +176,6 @@ public class TableFilter<ROW extends Entity> extends Composite {
         @Override
         FilterComponent build(final Composite parent) {
             this.label = new Label(parent, SWT.NONE);
-            this.rowData = new RowData();
             this.label.setLayoutData(this.rowData);
             return this;
         }
@@ -207,21 +206,26 @@ public class TableFilter<ROW extends Entity> extends Composite {
 
         @Override
         FilterComponent reset() {
-            this.textInput.setText(super.attribute.initValue);
+            if (this.textInput != null) {
+                this.textInput.setText(super.attribute.initValue);
+            }
             return this;
         }
 
         @Override
         FilterComponent build(final Composite parent) {
             this.textInput = new Text(parent, SWT.LEFT | SWT.BORDER);
-            this.rowData = new RowData();
             this.textInput.setLayoutData(this.rowData);
             return this;
         }
 
         @Override
         String getValue() {
-            return this.textInput.getText();
+            if (this.textInput != null) {
+                return this.textInput.getText();
+            }
+
+            return null;
         }
 
     }
@@ -237,21 +241,26 @@ public class TableFilter<ROW extends Entity> extends Composite {
         @Override
         FilterComponent build(final Composite parent) {
             this.selector = TableFilter.this.entityTable.widgetFactory.countrySelector(parent);
-            this.rowData = new RowData();
             this.selector.setLayoutData(this.rowData);
             return this;
         }
 
         @Override
         FilterComponent reset() {
-            this.selector.clear();
-            this.selector.layout();
+            if (this.selector != null) {
+                this.selector.clear();
+                this.selector.layout();
+            }
             return this;
         }
 
         @Override
         String getValue() {
-            return this.selector.getSelectionValue();
+            if (this.selector != null) {
+                return this.selector.getSelectionValue();
+            }
+
+            return null;
         }
     }
 }
