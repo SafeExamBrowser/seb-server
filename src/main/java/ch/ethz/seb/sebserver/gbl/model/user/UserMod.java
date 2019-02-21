@@ -16,9 +16,11 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,9 +28,9 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
-public final class UserMod implements UserAccount, GrantEntity {
+public final class UserMod implements UserAccount {
 
     public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
     public static final String ATTR_NAME_RETYPED_NEW_PASSWORD = "retypedNewPassword";
@@ -71,10 +73,12 @@ public final class UserMod implements UserAccount, GrantEntity {
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
+    @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:password:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
+    @NotNull(message = "user:retypedNewPassword:notNull")
     @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD)
     private final String retypedNewPassword;
 
@@ -140,9 +144,9 @@ public final class UserMod implements UserAccount, GrantEntity {
         this.name = null;
         this.username = null;
         this.email = null;
-        this.locale = null;
-        this.timeZone = null;
-        this.roles = null;
+        this.locale = Locale.ENGLISH;
+        this.timeZone = DateTimeZone.UTC;
+        this.roles = Collections.emptySet();
     }
 
     @Override
@@ -221,6 +225,15 @@ public final class UserMod implements UserAccount, GrantEntity {
     @Override
     public boolean isActive() {
         return false;
+    }
+
+    @JsonIgnore
+    @Override
+    public EntityKey getEntityKey() {
+        if (StringUtils.isBlank(this.uuid)) {
+            return null;
+        }
+        return new EntityKey(this.uuid, entityType());
     }
 
     @Override

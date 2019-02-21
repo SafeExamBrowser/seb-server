@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 
 public final class Action implements Runnable {
@@ -73,6 +74,16 @@ public final class Action implements Runnable {
 
         } catch (final PageMessageException pme) {
             Action.this.pageContext.publishPageMessage(pme);
+
+        } catch (final RestCallError restCallError) {
+            if (restCallError.isFieldValidationError()) {
+                Action.this.pageContext.publishPageMessage(
+                        new LocTextKey("sebserver.form.validation.error.title"),
+                        new LocTextKey("sebserver.form.validation.error.message"));
+            } else {
+                log.error("Failed to execute action: {}", Action.this, restCallError);
+                Action.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
+            }
         } catch (final Throwable t) {
             log.error("Failed to execute action: {}", Action.this, t);
             Action.this.pageContext.notifyError("action.error.unexpected.message", t);

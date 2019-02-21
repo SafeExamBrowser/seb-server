@@ -33,6 +33,7 @@ public class SingleSelection extends Combo {
     }
 
     protected void applyNewMapping(final List<Tuple<String>> mapping) {
+        final String selectionValue = getSelectionValue();
         this.valueMapping.clear();
         this.keyMapping.clear();
         this.valueMapping.addAll(mapping.stream()
@@ -42,6 +43,7 @@ public class SingleSelection extends Combo {
                 .map(t -> t._1)
                 .collect(Collectors.toList()));
         super.setItems(this.valueMapping.toArray(new String[mapping.size()]));
+        select(selectionValue);
     }
 
     public void select(final String key) {
@@ -60,6 +62,11 @@ public class SingleSelection extends Combo {
         }
 
         return this.keyMapping.get(selectionindex);
+    }
+
+    public void clear() {
+        super.clearSelection();
+        super.setItems(this.valueMapping.toArray(new String[this.valueMapping.size()]));
     }
 
 }

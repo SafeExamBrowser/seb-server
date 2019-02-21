@@ -54,6 +54,10 @@ public class APIMessage implements Serializable {
             this.systemMessage = systemMessage;
         }
 
+        public boolean isOf(final APIMessage message) {
+            return message != null && this.messageCode.equals(message.messageCode);
+        }
+
         public APIMessage of() {
             return new APIMessage(this.messageCode, this.systemMessage);
         }

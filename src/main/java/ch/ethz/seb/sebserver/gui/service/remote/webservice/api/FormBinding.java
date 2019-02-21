@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
-import org.springframework.util.MultiValueMap;
-
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
 public interface FormBinding {
@@ -18,6 +16,6 @@ public interface FormBinding {
 
     String getFormAsJson();
 
-    MultiValueMap<String, String> getFormAsQueryAttributes();
+    String getFormUrlEncoded();
 
 }

@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.service.page.content.InstitutionList;
+import ch.ethz.seb.sebserver.gui.service.page.content.UserAccountForm;
 import ch.ethz.seb.sebserver.gui.service.page.content.UserAccountList;
 import ch.ethz.seb.sebserver.gui.service.page.impl.TODOTemplate;
 
@@ -51,7 +52,7 @@ public class ActivitySelection {
                 new LocTextKey("sebserver.activities.useraccount")),
 
         USER_ACCOUNT_FORM(
-                UserAccountList.class,
+                UserAccountForm.class,
                 ActionPane.class,
                 new LocTextKey("sebserver.activities.useraccount")),
 

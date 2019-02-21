@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gbl.model;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -24,20 +23,21 @@ public class EntityKey {
     @JsonProperty(value = "entityType", required = true)
     @NotNull
     public final EntityType entityType;
-    @JsonIgnore
-    public final boolean isIdPK;
 
     @JsonCreator
     public EntityKey(
             @JsonProperty(value = "modelId", required = true) final String modelId,
             @JsonProperty(value = "entityType", required = true) final EntityType entityType) {
 
-        assert (modelId != null) : "modelId has null reference";
-        assert (entityType != null) : "entityType has null reference";
+        if (modelId == null) {
+            throw new IllegalArgumentException("modelId has null reference");
+        }
+        if (entityType == null) {
+            throw new IllegalArgumentException("entityType has null reference");
+        }
 
         this.modelId = modelId;
         this.entityType = entityType;
-        this.isIdPK = entityType != EntityType.USER;
     }
 
     public EntityKey(
@@ -46,7 +46,6 @@ public class EntityKey {
 
         this.modelId = String.valueOf(pk);
         this.entityType = entityType;
-        this.isIdPK = true;
     }
 
     public String getModelId() {

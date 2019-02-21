@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -28,8 +29,8 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 /** The user info domain model contains primary user information
  *
@@ -37,7 +38,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
-public final class UserInfo implements UserAccount, GrantEntity, Activatable, Serializable {
+public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 
@@ -195,6 +196,15 @@ public final class UserInfo implements UserAccount, GrantEntity, Activatable, Se
     @Override
     public String getRetypedNewPassword() {
         return null;
+    }
+
+    @JsonIgnore
+    @Override
+    public EntityKey getEntityKey() {
+        if (StringUtils.isBlank(this.uuid)) {
+            return null;
+        }
+        return new EntityKey(this.uuid, entityType());
     }
 
     @Override

@@ -13,12 +13,18 @@ import java.util.Set;
 
 import org.joda.time.DateTimeZone;
 
-public interface UserAccount {
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+public interface UserAccount extends GrantEntity {
+
+    @Override
     String getModelId();
 
+    @Override
     Long getInstitutionId();
 
+    @Override
     String getName();
 
     String getUsername();
@@ -38,5 +44,8 @@ public interface UserAccount {
     String getNewPassword();
 
     String getRetypedNewPassword();
+
+    @Override
+    EntityKey getEntityKey();
 
 }

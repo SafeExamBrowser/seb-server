@@ -154,6 +154,8 @@ public interface PageContext {
 
     <T> T logoutOnError(Throwable error);
 
+    void publishPageMessage(LocTextKey title, LocTextKey message);
+
     void publishPageMessage(PageMessageException pme);
 
 }

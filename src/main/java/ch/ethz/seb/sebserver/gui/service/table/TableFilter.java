@@ -26,7 +26,7 @@ import org.springframework.util.MultiValueMap;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.table.ColumnDefinition.TableFilterAttribute;
-import ch.ethz.seb.sebserver.gui.service.widget.LanguageSelector;
+import ch.ethz.seb.sebserver.gui.service.widget.SingleSelection;
 import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.ImageIcon;
 
 public class TableFilter<ROW extends Entity> extends Composite {
@@ -232,7 +232,7 @@ public class TableFilter<ROW extends Entity> extends Composite {
 
     private class LanguageFilter extends FilterComponent {
 
-        private LanguageSelector selector;
+        private SingleSelection selector;
 
         LanguageFilter(final TableFilterAttribute attribute) {
             super(attribute);
@@ -240,7 +240,12 @@ public class TableFilter<ROW extends Entity> extends Composite {
 
         @Override
         FilterComponent build(final Composite parent) {
-            this.selector = TableFilter.this.entityTable.widgetFactory.countrySelector(parent);
+            this.selector = TableFilter.this.entityTable.widgetFactory
+                    .singleSelectionLocalizedSupplier(
+                            parent,
+                            () -> TableFilter.this.entityTable.widgetFactory
+                                    .getI18nSupport()
+                                    .getLanguageResources());
             this.selector.setLayoutData(this.rowData);
             return this;
         }
@@ -249,7 +254,6 @@ public class TableFilter<ROW extends Entity> extends Composite {
         FilterComponent reset() {
             if (this.selector != null) {
                 this.selector.clear();
-                this.selector.layout();
             }
             return this;
         }

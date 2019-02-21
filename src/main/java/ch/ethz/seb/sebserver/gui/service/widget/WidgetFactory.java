@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -34,7 +34,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -311,68 +309,6 @@ public class WidgetFactory {
         return imageButton;
     }
 
-    public Label formLabelLocalized(final Composite parent, final String locTextKey) {
-        final Label label = labelLocalized(parent, locTextKey);
-        final GridData gridData = new GridData(SWT.RIGHT, SWT.CENTER, true, false);
-        label.setLayoutData(gridData);
-        return label;
-    }
-
-    public Label formValueLabel(final Composite parent, final String value, final int span) {
-        final Label label = new Label(parent, SWT.NONE);
-        label.setText((StringUtils.isNoneBlank(value)) ? value : Constants.EMPTY_NOTE);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, span, 1);
-        label.setLayoutData(gridData);
-        return label;
-    }
-
-    public Text formTextInput(final Composite parent, final String value) {
-        return formTextInput(parent, value, 1, 1);
-    }
-
-    public Text formTextInput(final Composite parent, final String value, final int hspan, final int vspan) {
-        final Text textInput = new Text(parent, SWT.LEFT | SWT.BORDER);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan);
-        gridData.heightHint = 15;
-        textInput.setLayoutData(gridData);
-        if (value != null) {
-            textInput.setText(value);
-        }
-        return textInput;
-    }
-
-    public Combo formSingleSelectionLocalized(
-            final Composite parent,
-            final String selection,
-            final List<Tuple<String>> items) {
-
-        return formSingleSelectionLocalized(parent, selection, items, 1, 1);
-    }
-
-    public Combo formSingleSelectionLocalized(
-            final Composite parent,
-            final String selection,
-            final List<Tuple<String>> items,
-            final int hspan, final int vspan) {
-
-        final SingleSelection combo = singleSelectionLocalized(parent, items);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan);
-        gridData.heightHint = 25;
-        combo.setLayoutData(gridData);
-        combo.select(selection);
-        return combo;
-    }
-
-    public void formEmpty(final Composite parent) {
-        formEmpty(parent, 1, 1);
-    }
-
-    public void formEmpty(final Composite parent, final int hspan, final int vspan) {
-        final Label empty = new Label(parent, SWT.LEFT);
-        empty.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan));
-        empty.setText("");
-    }
-
     public SingleSelection singleSelectionLocalized(
             final Composite parent,
             final List<Tuple<String>> items) {
@@ -382,9 +318,24 @@ public class WidgetFactory {
         return combo;
     }
 
-    public LanguageSelector countrySelector(final Composite parent) {
-        return new LanguageSelector(parent, this.i18nSupport);
+    public SingleSelection singleSelectionLocalizedSupplier(
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier) {
+
+        final Consumer<SingleSelection> updateFunction =
+                selection -> selection.applyNewMapping(itemsSupplier.get());
+        final SingleSelection selection = new SingleSelection(parent, itemsSupplier.get());
+        selection.setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
+        return selection;
     }
+
+//    public SingleSelection languageSelector(final Composite parent) {
+//        final Consumer<SingleSelection> updateFunction =
+//                selection -> selection.applyNewMapping(this.i18nSupport.getLanguageResources());
+//        final SingleSelection selection = new SingleSelection(parent, this.i18nSupport.getLanguageResources());
+//        selection.setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
+//        return selection;
+//    }
 
     public ImageUpload formImageUpload(
             final Composite parent,

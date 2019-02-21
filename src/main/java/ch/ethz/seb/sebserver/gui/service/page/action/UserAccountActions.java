@@ -9,9 +9,12 @@
 package ch.ethz.seb.sebserver.gui.service.page.action;
 
 import java.util.Collection;
+import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
@@ -19,8 +22,17 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection.Activity;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeactivateUserAccount;
 
 public final class UserAccountActions {
+
+    public static Function<UserInfo, UserInfo> postSaveAdapter(final PageContext pageContext) {
+        return userAccount -> {
+            goToUserAccount(pageContext, userAccount.getModelId(), false);
+            return userAccount;
+        };
+    }
 
     public static Result<?> newUserAccount(final Action action) {
         return Result.of(goToUserAccount(action.pageContext, null, true));
@@ -32,6 +44,46 @@ public final class UserAccountActions {
 
     public static Result<?> editUserAccountFromList(final Action action) {
         return fromSelection(action, true);
+    }
+
+    public static Result<?> editUserAccount(final Action action) {
+        return Result.of(goToUserAccount(
+                action.pageContext,
+                action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
+                true));
+    }
+
+    public static Result<?> cancelEditUserAccount(final Action action) {
+        if (action.pageContext.getEntityKey() == null) {
+            final ActivitySelection toList = Activity.USER_ACCOUNT_LIST.createSelection();
+            action.pageContext.publishPageEvent(new ActivitySelectionEvent(toList));
+            return Result.of(toList);
+        } else {
+            return Result.of(goToUserAccount(
+                    action.pageContext,
+                    action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
+                    false));
+        }
+    }
+
+    public static Result<?> activateUserAccount(final Action action) {
+        return action.restService
+                .getBuilder(ActivateUserAccount.class)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
+                .call()
+                .map(report -> goToUserAccount(action.pageContext, report.getSingleSource().modelId, false));
+    }
+
+    public static Result<?> deactivateUserAccount(final Action action) {
+        return action.restService
+                .getBuilder(DeactivateUserAccount.class)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
+                .call()
+                .map(report -> goToUserAccount(action.pageContext, report.getSingleSource().modelId, false));
     }
 
     private static Result<?> fromSelection(final Action action, final boolean edit) {
@@ -50,7 +102,6 @@ public final class UserAccountActions {
 
         final ActivitySelection activitySelection = Activity.USER_ACCOUNT_FORM
                 .createSelection()
-                .withEntity(new EntityKey(modelId, EntityType.USER))
                 .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit));
 
         if (modelId != null) {

@@ -333,7 +333,7 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     public List<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
-        if (keys == null || keys.isEmpty() || keys.iterator().next().isIdPK) {
+        if (keys == null || keys.isEmpty() || keys.iterator().next().entityType != EntityType.USER) {
             return UserDAO.super.extractPKsFromKeys(keys);
         } else {
             final List<String> uuids = keys.stream()

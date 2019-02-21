@@ -113,6 +113,7 @@ public abstract class RestCall<T> {
                         }));
             } catch (final Exception e) {
                 log.error("Unexpected error-response while webservice API call for: {}", builder, e);
+                log.error("Unexpected error-response cause: ", t);
                 restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
             }
 
@@ -144,6 +145,11 @@ public abstract class RestCall<T> {
 
         public RestCallBuilder withHeader(final String name, final String value) {
             this.httpHeaders.set(name, value);
+            return this;
+        }
+
+        public RestCallBuilder withHeaders(final MultiValueMap<String, String> params) {
+            this.httpHeaders.addAll(params);
             return this;
         }
 
@@ -198,7 +204,9 @@ public abstract class RestCall<T> {
                 return withURIVariable(API.PARAM_MODEL_ID, formBinding.entityKey().modelId)
                         .withBody(formBinding.getFormAsJson());
             } else {
-                return withQueryParams(formBinding.getFormAsQueryAttributes());
+                this.body = formBinding.getFormUrlEncoded();
+                return this;
+                //return withHeaders(formBinding.getFormAsQueryAttributes());
             }
         }
 

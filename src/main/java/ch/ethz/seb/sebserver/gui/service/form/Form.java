@@ -23,12 +23,11 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
@@ -40,6 +39,7 @@ public final class Form implements FormBinding {
     private final JSONMapper jsonMapper;
     private final ObjectNode objectRoot;
 
+    private final Map<String, String> staticValues = new LinkedHashMap<>();
     private final Map<String, FormFieldAccessor> formFields = new LinkedHashMap<>();
     private final Map<String, Form> subForms = new LinkedHashMap<>();
     private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
@@ -69,16 +69,17 @@ public final class Form implements FormBinding {
     }
 
     @Override
-    public MultiValueMap<String, String> getFormAsQueryAttributes() {
-        final LinkedMultiValueMap<String, String> result = new LinkedMultiValueMap<>();
-        for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
-            final String value = entry.getValue().getValue();
-            if (StringUtils.isNoneBlank(value)) {
-                result.add(entry.getKey(), value);
-            }
+    public String getFormUrlEncoded() {
+        final StringBuffer buffer = new StringBuffer();
+        for (final Map.Entry<String, String> entry : this.staticValues.entrySet()) {
+            appendFormUrlEncoded(buffer, entry.getKey(), entry.getValue());
         }
 
-        return result;
+        for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
+            appendFormUrlEncoded(buffer, entry.getKey(), entry.getValue().getValue());
+        }
+
+        return buffer.toString();
     }
 
     public String getValue(final String name) {
@@ -91,7 +92,9 @@ public final class Form implements FormBinding {
     }
 
     public void putStatic(final String name, final String value) {
-        this.objectRoot.put(name, value);
+        if (StringUtils.isNoneBlank(value)) {
+            this.staticValues.put(name, value);
+        }
     }
 
     public void addToGroup(final String groupName, final String fieldName) {
@@ -99,6 +102,10 @@ public final class Form implements FormBinding {
             this.groups.computeIfAbsent(groupName, k -> new HashSet<>())
                     .add(fieldName);
         }
+    }
+
+    public boolean hasFields() {
+        return !this.formFields.isEmpty();
     }
 
     public Form putField(final String name, final Label label, final Label field) {
@@ -172,6 +179,10 @@ public final class Form implements FormBinding {
     }
 
     private void flush() {
+        for (final Map.Entry<String, String> entry : this.staticValues.entrySet()) {
+            this.objectRoot.put(entry.getKey(), entry.getValue());
+        }
+
         for (final Map.Entry<String, FormFieldAccessor> entry : this.formFields.entrySet()) {
             final FormFieldAccessor accessor = entry.getValue();
             if (accessor.control.isVisible()) {
@@ -228,6 +239,17 @@ public final class Form implements FormBinding {
         };
     }
     //@formatter:on
+
+    private void appendFormUrlEncoded(final StringBuffer buffer, final String name, final String value) {
+        if (StringUtils.isNoneBlank(value)) {
+            if (buffer.length() > 0) {
+                buffer.append(Constants.FORM_URL_ENCODED_SEPARATOR);
+            }
+            buffer.append(name)
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(value);
+        }
+    }
 
     public static abstract class FormFieldAccessor {
 

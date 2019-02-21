@@ -68,21 +68,24 @@ public class FormHandle<T> {
                 .map(result -> {
                     this.pageContext.publishPageEvent(new ActionEvent(action, result));
                     return result;
-                }).onErrorDo(error -> {
-                    if (error instanceof RestCallError) {
-                        ((RestCallError) error)
-                                .getErrorMessages()
-                                .stream()
-                                .map(FieldValidationError::new)
-                                .forEach(fve -> this.form.process(
-                                        name -> name.equals(fve.fieldName),
-                                        fieldAccessor -> showValidationError(fieldAccessor, fve)));
-                    } else {
-                        log.error("Unexpected error while trying to post form: ", error);
-                        this.pageContext.notifyError(error);
-                    }
                 })
+                .onErrorDo(this::handleError)
                 .map(this.postPostHandle);
+    }
+
+    private void handleError(final Throwable error) {
+        if (error instanceof RestCallError) {
+            ((RestCallError) error)
+                    .getErrorMessages()
+                    .stream()
+                    .map(FieldValidationError::new)
+                    .forEach(fve -> this.form.process(
+                            name -> name.equals(fve.fieldName),
+                            fieldAccessor -> showValidationError(fieldAccessor, fve)));
+        } else {
+            log.error("Unexpected error while trying to post form: ", error);
+            this.pageContext.notifyError(error);
+        }
     }
 
     private final void showValidationError(

@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.content;
 
-import java.util.Set;
-import java.util.function.Supplier;
-
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,23 +15,22 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.service.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.action.InstitutionActions;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionDependency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.SaveInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -71,7 +67,7 @@ public class InstitutionForm implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
 
-        // get data or create new and handle error
+        // get data or create new. Handle error if happen
         final Institution institution = (entityKey == null)
                 ? new Institution(null, null, null, null, false)
                 : this.restService
@@ -103,35 +99,28 @@ public class InstitutionForm implements TemplateComposer {
                 institution.name);
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
-                titleKey,
-                ActionDefinition.INSTITUTION_SAVE,
-                title -> event -> {
-                    final Entity entity = (Entity) event.source;
-                    widgetFactory.injectI18n(title, new LocTextKey(
-                            "sebserver.institution.form.title",
-                            entity.getName()));
-                    title.getParent().layout();
-                });
+                titleKey);
 
         // The Institution form
         final FormHandle<Institution> formHandle = this.pageFormService.getBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(pageContext.isReadonly())
-                .putStaticValue("id", institution.getModelId())
-                .addTextField(
+                .putStaticValueIf(() -> entityKey != null,
+                        Domain.INSTITUTION.ATTR_ID,
+                        institution.getModelId())
+                .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_NAME,
                         "sebserver.institution.form.name",
-                        institution.name, 2)
-                .addEmptyCell()
-                .addTextField(
+                        institution.name))
+                .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_URL_SUFFIX,
                         "sebserver.institution.form.urlSuffix",
-                        institution.urlSuffix, 2)
-                .addEmptyCell()
-                .addImageUploadIf(() -> entityKey != null,
+                        institution.urlSuffix))
+                .addField(FormBuilder.imageUpload(
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         "sebserver.institution.form.logoImage",
-                        institution.logoImage, 2)
+                        institution.logoImage)
+                        .withCondition(() -> entityKey != null))
                 .buildFor((entityKey == null)
                         ? this.restService.getRestCall(NewInstitution.class)
                         : this.restService.getRestCall(SaveInstitution.class),
@@ -155,7 +144,7 @@ public class InstitutionForm implements TemplateComposer {
             } else {
                 formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                         .withExec(InstitutionActions::deactivateInstitution)
-                        .withConfirm(confirmDeactivation(institution))
+                        .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
                         .publishIf(() -> modifyGrant);
             }
 
@@ -168,27 +157,6 @@ public class InstitutionForm implements TemplateComposer {
                     .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                     .publish();
         }
-    }
-
-    private Supplier<LocTextKey> confirmDeactivation(final Institution institution) {
-        return () -> {
-            try {
-                final Set<EntityKey> dependencies = this.restService.getBuilder(GetInstitutionDependency.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(institution.id))
-                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
-                        .call()
-                        .getOrThrow();
-                final int size = dependencies.size();
-                if (size > 0) {
-                    return new LocTextKey("sebserver.institution.form.confirm.deactivation", String.valueOf(size));
-                } else {
-                    return new LocTextKey("sebserver.institution.form.confirm.deactivation.noDependencies");
-                }
-            } catch (final Exception e) {
-                log.error("Failed to get dependencyies for Institution: {}", institution, e);
-                return new LocTextKey("sebserver.institution.form.confirm.deactivation", "");
-            }
-        };
     }
 
 }

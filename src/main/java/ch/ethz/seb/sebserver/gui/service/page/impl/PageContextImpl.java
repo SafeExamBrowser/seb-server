@@ -312,6 +312,17 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public void publishPageMessage(final LocTextKey title, final LocTextKey message) {
+        final MessageBox messageBox = new Message(
+                getShell(),
+                this.i18nSupport.getText(title),
+                this.i18nSupport.getText(message),
+                SWT.NONE);
+        messageBox.setMarkupEnabled(true);
+        messageBox.open(null);
+    }
+
+    @Override
     public void publishPageMessage(final PageMessageException pme) {
         final MessageBox messageBox = new Message(
                 getShell(),

@@ -37,6 +37,14 @@ public class RestCallError extends RuntimeException implements APIMessageError {
         return !this.errors.isEmpty();
     }
 
+    public boolean isFieldValidationError() {
+        return this.errors
+                .stream()
+                .filter(error -> APIMessage.ErrorMessage.FIELD_VALIDATION.isOf(error))
+                .findFirst()
+                .isPresent();
+    }
+
     @Override
     public String toString() {
         return "RestCallError [errors=" + this.errors + "]";
