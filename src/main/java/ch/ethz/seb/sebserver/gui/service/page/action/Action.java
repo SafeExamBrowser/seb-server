@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
@@ -29,15 +30,16 @@ public final class Action implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(Action.class);
 
+    public final RestService restService;
+    public final PageContext pageContext;
     public final ActionDefinition definition;
     Supplier<LocTextKey> confirm;
     LocTextKey successMessage;
     boolean updateOnSelection;
 
-    final RestService restService;
-    final PageContext pageContext;
-    Function<Action, Result<?>> exec;
     Supplier<Set<String>> selectionSupplier;
+
+    private Function<Action, Result<?>> exec;
 
     public Action(
             final ActionDefinition definition,
@@ -88,6 +90,10 @@ public final class Action implements Runnable {
             log.error("Failed to execute action: {}", Action.this, t);
             Action.this.pageContext.notifyError("action.error.unexpected.message", t);
         }
+    }
+
+    public Supplier<Set<String>> getSelectionSupplier() {
+        return this.selectionSupplier;
     }
 
     public Action withExec(final Function<Action, Result<?>> exec) {

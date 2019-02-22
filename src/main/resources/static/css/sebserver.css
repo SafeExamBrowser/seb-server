@@ -62,16 +62,27 @@ Label.h3 {
     color: #1f407a;
 }
 
-/*
-Label:hover.imageButton {
-    background-color: #82BE1E;
-    background-gradient-color: #82BE1E;
-    background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
-}*/
-
 Label:hover.imageButton {
     background-color: transparent;
     background-repeat: no-repeat;
+}
+
+Label.selection {
+    padding: 4px 6px 3px 6px;
+}
+
+Label:hover.selection {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    padding: 4px 6px 3px 6px;
+}
+
+Label.selected {
+    color: #4a4a4a;
+    background-color: #b5b5b5;
+    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    padding: 4px 6px 3px 6px;
 }
 
 Composite.bordered {
@@ -391,12 +402,12 @@ Tree-RowOverlay:hover {
 }
 
 Tree-RowOverlay:selected {
-    background-color: #D3D9DB;
+    background-color: #b5b5b5;
     color: #1F407A;
 }
 
 Tree-RowOverlay:selected:unfocused {
-    background-color: #D3D9DB;
+    background-color: #b5b5b5;
     color: #1f407a;
 }
 

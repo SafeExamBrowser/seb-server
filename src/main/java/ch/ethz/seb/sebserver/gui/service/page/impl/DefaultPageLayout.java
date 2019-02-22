@@ -36,9 +36,9 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
-import ch.ethz.seb.sebserver.gui.service.widget.Message;
-import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.service.widget.WidgetFactory.CustomVariant;
+import ch.ethz.seb.sebserver.gui.widget.Message;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component

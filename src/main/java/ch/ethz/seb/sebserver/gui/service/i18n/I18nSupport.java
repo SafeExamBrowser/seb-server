@@ -8,15 +8,19 @@
 
 package ch.ethz.seb.sebserver.gui.service.i18n;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface I18nSupport {
@@ -78,13 +82,29 @@ public interface I18nSupport {
      * @return the text in current language parsed from localized text */
     String getText(String key, Locale locale, String def, Object... args);
 
-    default List<Tuple<String>> getLanguageResources() {
-        return getLanguageResources(this);
+    default Supplier<List<Tuple<String>>> localizedResourceSupplier(final List<Tuple<String>> source) {
+        return () -> source.stream()
+                .map(tuple -> new Tuple<>(tuple._1, getText(tuple._2)))
+                .collect(Collectors.toList());
     }
 
-    default List<Tuple<String>> getTimeZoneResources() {
-        return getTimeZoneResources(this);
+    default Supplier<List<Tuple<String>>> localizedLanguageResources() {
+        return () -> getLanguageResources(this);
     }
+
+    default Supplier<List<Tuple<String>>> localizedTimeZoneResources() {
+        return () -> getTimeZoneResources(this);
+    }
+
+    default Supplier<List<Tuple<String>>> localizedUserRoleResources() {
+        return localizedResourceSupplier(USER_ROLE_RESOURCES);
+    }
+
+    final List<Tuple<String>> USER_ROLE_RESOURCES = Collections.unmodifiableList(
+            Arrays.asList(UserRole.values())
+                    .stream()
+                    .map(ur -> new Tuple<>(ur.name(), "sebserver.useraccount.role." + ur.name()))
+                    .collect(Collectors.toList()));
 
     /** Get a list of language key/name tuples for all supported languages in the
      * language of the current users locale.

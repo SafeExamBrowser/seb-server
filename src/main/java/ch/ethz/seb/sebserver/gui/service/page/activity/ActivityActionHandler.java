@@ -10,8 +10,8 @@ package ch.ethz.seb.sebserver.gui.service.page.activity;
 
 import org.eclipse.swt.widgets.Tree;
 
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 
 public interface ActivityActionHandler {
