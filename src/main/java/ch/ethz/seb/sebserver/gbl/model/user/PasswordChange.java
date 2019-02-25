@@ -28,15 +28,16 @@ public class PasswordChange implements Entity {
     @JsonProperty(USER.ATTR_UUID)
     public final String userId;
 
-    @NotNull(message = "user:password:notNull")
+    @NotNull(message = "user:oldPassword:notNull")
     @JsonProperty(ATTR_NAME_OLD_PASSWORD)
     private final String oldPassword;
 
-    @NotNull(message = "user:password:notNull")
+    @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
+    @NotNull(message = "user:retypedNewPassword:notNull")
     @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD)
     private final String retypedNewPassword;
 

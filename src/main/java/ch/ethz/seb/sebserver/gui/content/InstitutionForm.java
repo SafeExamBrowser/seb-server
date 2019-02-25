@@ -29,7 +29,6 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -65,7 +64,7 @@ public class InstitutionForm implements TemplateComposer {
 
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
-
+        final boolean isNew = entityKey == null;
         // get data or create new. Handle error if happen
         final Institution institution = (entityKey == null)
                 ? new Institution(null, null, null, null, false)
@@ -82,6 +81,11 @@ public class InstitutionForm implements TemplateComposer {
             return;
         }
 
+        final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
+        final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
+        final boolean userWriteGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER);
+        final boolean isReadonly = pageContext.isReadonly();
+
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext;
         pageContext.withEntityKey(institution.getEntityKey());
@@ -92,9 +96,9 @@ public class InstitutionForm implements TemplateComposer {
 
         // the default page layout with interactive title
         final LocTextKey titleKey = new LocTextKey(
-                (entityKey != null)
-                        ? "sebserver.institution.form.title"
-                        : "sebserver.institution.form.title.new",
+                (isNew)
+                        ? "sebserver.institution.form.title.new"
+                        : "sebserver.institution.form.title",
                 institution.name);
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
@@ -103,8 +107,8 @@ public class InstitutionForm implements TemplateComposer {
         // The Institution form
         final FormHandle<Institution> formHandle = this.pageFormService.getBuilder(
                 formContext.copyOf(content), 4)
-                .readonly(pageContext.isReadonly())
-                .putStaticValueIf(() -> entityKey != null,
+                .readonly(formContext.isReadonly())
+                .putStaticValueIf(() -> !isNew,
                         Domain.INSTITUTION.ATTR_ID,
                         institution.getModelId())
                 .addField(FormBuilder.text(
@@ -119,47 +123,42 @@ public class InstitutionForm implements TemplateComposer {
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         "sebserver.institution.form.logoImage",
                         institution.logoImage)
-                        .withCondition(() -> entityKey != null))
-                .buildFor((entityKey == null)
+                        .withCondition(() -> !isNew && modifyGrant))
+                .buildFor((isNew)
                         ? this.restService.getRestCall(NewInstitution.class)
                         : this.restService.getRestCall(SaveInstitution.class));
 
         // propagate content actions to action-pane
-        final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
-        final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
-        if (pageContext.isReadonly()) {
-            formContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                    .withAttribute(AttributeKeys.READ_ONLY, "false")
-                    .publishIf(() -> writeGrant);
-            formContext.createAction(ActionDefinition.INSTITUTION_MODIFY)
-                    .withExec(InstitutionActions::editInstitution)
-                    .publishIf(() -> modifyGrant);
+        formContext.createAction(ActionDefinition.INSTITUTION_NEW)
+                .readonly(false)
+                .publishIf(() -> writeGrant && isReadonly)
 
-            if (!institution.isActive()) {
-                formContext.createAction(ActionDefinition.INSTITUTION_ACTIVATE)
-                        .withExec(InstitutionActions::activateInstitution)
-                        .publishIf(() -> modifyGrant);
-            } else {
-                formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
-                        .withExec(InstitutionActions::deactivateInstitution)
-                        .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
-                        .publishIf(() -> modifyGrant)
-                        .withParentEntityKey(entityKey)
-                        .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                        .withExec(UserAccountActions::newUserAccount)
-                        .withParentEntity(institution.getEntityKey())
-                        .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER));
-            }
+                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .withExec(UserAccountActions::newUserAccount)
+                .resetEntity()
+                .withParentEntity(entityKey)
+                .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
 
-        } else {
-            formContext.createAction(ActionDefinition.INSTITUTION_SAVE)
-                    .withExec(formHandle::postChanges)
-                    .publish()
-                    .createAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
-                    .withExec(InstitutionActions::cancelEditInstitution)
-                    .withConfirm("sebserver.overall.action.modify.cancel.confirm")
-                    .publish();
-        }
+                .createAction(ActionDefinition.INSTITUTION_MODIFY)
+                .withExec(InstitutionActions::editInstitution)
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
+                .withExec(InstitutionActions::deactivateInstitution)
+                .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
+                .publishIf(() -> writeGrant && isReadonly && institution.isActive())
+
+                .createAction(ActionDefinition.INSTITUTION_ACTIVATE)
+                .withExec(InstitutionActions::activateInstitution)
+                .publishIf(() -> writeGrant && isReadonly && !institution.isActive())
+
+                .createAction(ActionDefinition.INSTITUTION_SAVE)
+                .withExec(formHandle::postChanges)
+                .publishIf(() -> !isReadonly)
+                .createAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
+                .withExec(InstitutionActions::cancelEditInstitution)
+                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .publishIf(() -> !isReadonly);
     }
 
 }

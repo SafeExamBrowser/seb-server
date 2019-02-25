@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -44,7 +45,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     public static final String FILTER_ATTR_USER_NAME = "username";
     public static final String FILTER_ATTR_EMAIL = "email";
-    public static final String FILTER_ATTR_LOCALE = "locale";
+    public static final String FILTER_ATTR_LANGUAGE = "language";
 
     /** The user's UUID */
     @JsonProperty(USER.ATTR_UUID)
@@ -78,9 +79,9 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public final Boolean active;
 
     /** The users locale */
-    @NotNull(message = "user:locale:notNull")
-    @JsonProperty(USER.ATTR_LOCALE)
-    public final Locale locale;
+    @NotNull(message = "user:language:notNull")
+    @JsonProperty(USER.ATTR_LANGUAGE)
+    public final Locale language;
 
     /** The users time zone */
     @NotNull(message = "user:timeZone:notNull")
@@ -88,6 +89,8 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public final DateTimeZone timeZone;
 
     /** The users roles in a unmodifiable set. Is never null */
+    @NotNull(message = "user:userRoles:notNull")
+    @NotEmpty(message = "user:userRoles:notNull")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
@@ -100,7 +103,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
             @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
-            @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
+            @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
             @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles) {
 
@@ -110,7 +113,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
         this.username = username;
         this.email = email;
         this.active = BooleanUtils.isTrue(active);
-        this.locale = locale;
+        this.language = language;
         this.timeZone = timeZone;
         this.roles = Utils.immutableSetOf(roles);
     }
@@ -165,8 +168,8 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     }
 
     @Override
-    public Locale getLocale() {
-        return this.locale;
+    public Locale getLanguage() {
+        return this.language;
     }
 
     @Override
@@ -241,7 +244,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public String toString() {
         return "UserInfo [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
                 + ", username="
-                + this.username + ", email=" + this.email + ", active=" + this.active + ", locale=" + this.locale
+                + this.username + ", email=" + this.email + ", active=" + this.active + ", language=" + this.language
                 + ", timeZone=" + this.timeZone
                 + ", roles=" + this.roles + "]";
     }
@@ -258,7 +261,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
                 userInfo.getUsername(),
                 userInfo.getEmail(),
                 userInfo.getActive(),
-                userInfo.getLocale(),
+                userInfo.getLanguage(),
                 userInfo.getTimeZone(),
                 userInfo.roles);
     }

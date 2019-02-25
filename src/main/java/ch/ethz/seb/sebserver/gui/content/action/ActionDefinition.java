@@ -84,7 +84,7 @@ public enum ActionDefinition {
             UserAccountList.class),
     USER_ACCOUNT_VIEW_FORM(
             new LocTextKey("sebserver.useraccount.action.form"),
-            InstitutionForm.class,
+            UserAccountForm.class,
             USER_ACCOUNT_VIEW_LIST),
     USER_ACCOUNT_NEW(
             new LocTextKey("sebserver.useraccount.action.new"),

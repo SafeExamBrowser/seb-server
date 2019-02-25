@@ -36,7 +36,7 @@ public class BeanValidationService {
         this.validator = validator;
         this.activatableDAOs = activatableDAOs
                 .stream()
-                .collect(Collectors.toUnmodifiableMap(
+                .collect(Collectors.toMap(
                         dao -> dao.entityType(),
                         dao -> dao));
     }

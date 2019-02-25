@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.service.page;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -18,6 +20,8 @@ import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
 public interface PageContext {
+
+    Logger log = LoggerFactory.getLogger(PageContext.class);
 
     public static final class PageAttr {
 
@@ -40,23 +44,6 @@ public interface PageContext {
         public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
         public static final String ENTITY_TYPE = "ENTITY_TYPE";
         public static final String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
-
-//        public static final String USER_NAME = "USER_NAME";
-//        public static final String PASSWORD = "PASSWORD";
-//
-
-//
-//        public static final String CONFIG_ID = "CONFIG_ID";
-//        public static final String CONFIG_VIEW_NAME = "CONFIG_VIEW_NAME";
-//        public static final String CONFIG_ATTRIBUTE_SAVE_TYPE = "CONFIG_ATTRIBUTE_SAVE_TYPE";
-//        public static final String CONFIG_ATTRIBUTE_VALUE = "CONFIG_ATTRIBUTE_VALUE";
-//
-//        public static final String EXAM_ID = "EXAM_ID";
-//        public static final String STATE_NAME = "STATE_NAME";
-//
-//        public static final String AUTHORIZATION_CONTEXT = "AUTHORIZATION_CONTEXT";
-//        public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
-//        public static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
 
     }
 
@@ -95,12 +82,6 @@ public interface PageContext {
      * @param value the value of the attribute
      * @return this PageContext instance (builder pattern) */
     PageContext withAttribute(String key, String value);
-
-//    default PageContext withSelection(final ActivitySelection selection) {
-//        return withSelection(selection, true);
-//    }
-//
-//    PageContext withSelection(ActivitySelection selection, boolean clearAttributes);
 
     String getAttribute(String name);
 
@@ -144,6 +125,8 @@ public interface PageContext {
 
     void forwardToLoginPage(PageContext pageContext);
 
+    void logout();
+
     /** Notify an error dialog to the user with specified error message and
      * optional exception instance
      *
@@ -153,7 +136,11 @@ public interface PageContext {
 
     <T> T notifyError(Throwable error);
 
-    <T> T logoutOnError(Throwable error);
+    default <T> T logoutOnError(final Throwable t) {
+        log.error("Unexpected, Current User related error.Automatically logout and cleanup current user session. ", t);
+        logout();
+        return null;
+    }
 
     void publishPageMessage(LocTextKey title, LocTextKey message);
 

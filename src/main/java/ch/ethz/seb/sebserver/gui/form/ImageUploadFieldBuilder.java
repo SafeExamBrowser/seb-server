@@ -32,6 +32,7 @@ public final class ImageUploadFieldBuilder extends FieldBuilder {
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);
         builder.form.putField(this.name, lab, imageUpload);
+        builder.setFieldVisible(this.visible, this.name);
     }
 
 }

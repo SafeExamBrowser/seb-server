@@ -82,6 +82,11 @@ public class FormBuilder {
         return this;
     }
 
+    public void setFieldVisible(final boolean visible, final String fieldName) {
+        this.form.setFieldVisible(visible, fieldName);
+
+    }
+
     public FormBuilder setControl(final TabItem instTab) {
         instTab.setControl(this.formParent);
         return this;

@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MessageBox;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -23,12 +25,15 @@ import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.widget.Message;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -38,13 +43,19 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
 
     private final PageFormService pageFormService;
     private final RestService restService;
+    private final CurrentUser currentUser;
+    private final I18nSupport i18nSupport;
 
     protected UserAccountChangePasswordForm(
             final PageFormService pageFormService,
-            final RestService restService) {
+            final RestService restService,
+            final CurrentUser currentUser,
+            final I18nSupport i18nSupport) {
 
         this.pageFormService = pageFormService;
         this.restService = restService;
+        this.currentUser = currentUser;
+        this.i18nSupport = i18nSupport;
     }
 
     @Override
@@ -66,9 +77,9 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
         // The Password Change form
         final FormHandle<UserInfo> formHandle = this.pageFormService.getBuilder(
                 pageContext.copyOf(content), 4)
-                .readonly(pageContext.isReadonly())
+                .readonly(false)
                 .putStaticValueIf(() -> entityKey != null,
-                        Domain.USER.ATTR_ID,
+                        Domain.USER.ATTR_UUID,
                         entityKey.getModelId())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_OLD_PASSWORD,
@@ -86,7 +97,22 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                 .buildFor(this.restService.getRestCall(ChangePassword.class));
 
         pageContext.createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
-                .withExec(formHandle::postChanges)
+                .withExec(action -> {
+                    formHandle.postChanges(action);
+                    if (this.currentUser.get().uuid.equals(entityKey.getModelId())) {
+                        // NOTE: in this case the user changed the password of the own account
+                        //       this should cause an logout with specified message that password change
+                        //       was successful and the pointing the need of re login with the new password
+                        pageContext.logout();
+                        final MessageBox error = new Message(
+                                pageContext.getShell(),
+                                this.i18nSupport.getText("sebserver.login.password.change"),
+                                this.i18nSupport.getText("sebserver.login.password.change.success"),
+                                SWT.ERROR);
+                        error.open(null);
+                    }
+                    return null;
+                })
                 .publish()
                 .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
                 .withExec(UserAccountActions::cancelEditUserAccount)

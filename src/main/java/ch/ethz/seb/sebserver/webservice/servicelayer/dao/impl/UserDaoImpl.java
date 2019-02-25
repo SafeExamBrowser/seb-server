@@ -34,10 +34,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -165,8 +168,8 @@ public class UserDaoImpl implements UserDAO {
                         UserRecordDynamicSqlSupport.email,
                         isLikeWhenPresent(filterMap.getUserEmail()))
                 .and(
-                        UserRecordDynamicSqlSupport.locale,
-                        isLikeWhenPresent(filterMap.getUserLocale()))
+                        UserRecordDynamicSqlSupport.language,
+                        isLikeWhenPresent(filterMap.getUserLanguage()))
                 .build()
                 .execute()
                 .stream()
@@ -185,6 +188,8 @@ public class UserDaoImpl implements UserDAO {
                 throw new APIMessageException(ErrorMessage.PASSWORD_MISMATCH);
             }
 
+            checkUniqueUsername(userMod);
+
             final UserRecord recordToSave = new UserRecord(
                     null,
                     userMod.institutionId,
@@ -193,7 +198,7 @@ public class UserDaoImpl implements UserDAO {
                     userMod.username,
                     this.userPasswordEncoder.encode(userMod.getNewPassword()),
                     userMod.email,
-                    userMod.locale.toLanguageTag(),
+                    userMod.language.toLanguageTag(),
                     userMod.timeZone.getID(),
                     BooleanUtils.toInteger(false));
 
@@ -237,6 +242,9 @@ public class UserDaoImpl implements UserDAO {
     public Result<UserInfo> save(final UserInfo userInfo) {
         return recordByUUID(userInfo.uuid)
                 .map(record -> {
+
+                    checkUniqueUsername(userInfo);
+
                     final UserRecord newRecord = new UserRecord(
                             record.getId(),
                             null,
@@ -245,7 +253,7 @@ public class UserDaoImpl implements UserDAO {
                             userInfo.username,
                             null,
                             userInfo.email,
-                            userInfo.locale.toLanguageTag(),
+                            userInfo.language.toLanguageTag(),
                             userInfo.timeZone.getID(),
                             null);
 
@@ -452,7 +460,7 @@ public class UserDaoImpl implements UserDAO {
                     record.getUsername(),
                     record.getEmail(),
                     BooleanUtils.toBooleanObject(record.getActive()),
-                    Locale.forLanguageTag(record.getLocale()),
+                    Locale.forLanguageTag(record.getLanguage()),
                     DateTimeZone.forID(record.getTimezone()),
                     userRoles);
         });
@@ -464,6 +472,22 @@ public class UserDaoImpl implements UserDAO {
                         record.getId(),
                         userInfo,
                         record.getPassword()));
+    }
+
+    private void checkUniqueUsername(final UserAccount userAccount) {
+        // check same username already exists
+        final Long otherUsersWithSameName = this.userRecordMapper
+                .countByExample()
+                .where(UserRecordDynamicSqlSupport.username, isEqualTo(userAccount.getUsername()))
+                .and(UserRecordDynamicSqlSupport.uuid, isNotEqualToWhenPresent(userAccount.getModelId()))
+                .build()
+                .execute();
+
+        if (otherUsersWithSameName != null && otherUsersWithSameName.longValue() > 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    Domain.USER.ATTR_USERNAME,
+                    "user:username:username.notunique"));
+        }
     }
 
 }

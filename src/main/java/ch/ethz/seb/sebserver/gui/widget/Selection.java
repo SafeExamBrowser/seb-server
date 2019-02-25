@@ -22,4 +22,6 @@ public interface Selection {
 
     void clear();
 
+    void setVisible(boolean visible);
+
 }

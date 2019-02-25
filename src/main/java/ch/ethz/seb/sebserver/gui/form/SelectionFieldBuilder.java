@@ -84,6 +84,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
                 this.selectionListener.accept(builder.form);
             });
         }
+        builder.setFieldVisible(this.visible, this.name);
     }
 
     /* Build the read-only representation of the selection field */
@@ -106,7 +107,6 @@ public final class SelectionFieldBuilder extends FieldBuilder {
                         .map(tuple -> tuple._2)
                         .forEach(v -> createMuliSelectionReadonlyLabel(composite, v));
             }
-
         } else {
             builder.form.putField(
                     this.name, lab,
@@ -118,6 +118,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
                                     .map(tuple -> tuple._2)
                                     .orElse(null),
                             this.spanInput));
+            builder.setFieldVisible(this.visible, this.name);
         }
     }
 

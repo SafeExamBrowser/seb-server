@@ -96,7 +96,7 @@ public class LoginPage implements TemplateComposer {
                     this.i18nSupport.setSessionLocale(
                             authorizationContext
                                     .getLoggedInUser()
-                                    .get(pageContext::logoutOnError).locale);
+                                    .getOrThrow().language);
 
                     pageContext.forwardToMainPage(pageContext);
 
@@ -125,13 +125,13 @@ public class LoginPage implements TemplateComposer {
             final PageContext pageContext,
             final String message) {
 
+        pageContext.logout();
         final MessageBox error = new Message(
                 pageContext.getShell(),
                 this.i18nSupport.getText("sebserver.login.failed.title"),
                 this.i18nSupport.getText(message, message),
                 SWT.ERROR);
         error.open(null);
-        pageContext.logoutOnError(new RuntimeException(message));
     }
 
 }

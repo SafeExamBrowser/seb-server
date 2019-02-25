@@ -105,6 +105,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 throw new IllegalAPIArgumentException(
                         "User within an inactive institution cannot be created nor modified");
             }
+
             return userInfo;
         });
     }
@@ -118,7 +119,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
         final String modelId = passwordChange.getModelId();
         return this.userDAO.byModelId(modelId)
-                .flatMap(this.authorization::checkWrite)
+                .flatMap(this.authorization::checkModify)
                 .map(ui -> checkPasswordChange(ui, passwordChange))
                 .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
                 .flatMap(this::revokeAccessToken)
@@ -135,7 +136,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     new FieldError(
                             "passwordChange",
                             PasswordChange.ATTR_NAME_OLD_PASSWORD,
-                            "old password is wrong")));
+                            "user:oldPassword:password.wrong")));
         }
 
         if (!passwordChange.newPasswordMatch()) {
@@ -144,7 +145,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     new FieldError(
                             "passwordChange",
                             PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD,
-                            "old password is wrong")));
+                            "user:retypedNewPassword:password.mismatch")));
         }
 
         return info;

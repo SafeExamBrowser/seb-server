@@ -65,7 +65,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
-                        + "\"locale\":\"en\","
+                        + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"SEB_SERVER_ADMIN\"]}",
                 contentAsString);
@@ -83,7 +83,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
-                        + "\"locale\":\"en\","
+                        + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"INSTITUTIONAL_ADMIN\"]}",
                 contentAsString);
@@ -106,7 +106,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
-                        + "\"locale\":\"en\","
+                        + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"INSTITUTIONAL_ADMIN\"]}",
                 contentAsString);
@@ -448,8 +448,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param(Domain.USER.ATTR_NAME, "NewTestUser")
                         .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
-                        .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
+                        .param(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.toLanguageTag())
                         .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                        .param(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_ADMIN.name())
                         .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
                         .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isOk())
@@ -581,7 +582,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "newUser1",
                 "newUser@nomail.nomail",
                 user.getActive(),
-                user.getLocale(),
+                user.getLanguage(),
                 user.getTimeZone(),
                 Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet()));
         final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
@@ -648,8 +649,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .param(Domain.USER.ATTR_INSTITUTION_ID, String.valueOf(institution.id))
                         .param(Domain.USER.ATTR_NAME, "NewTestUser")
                         .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
-                        .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
+                        .param(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.toLanguageTag())
                         .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                        .param(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_ADMIN.name())
                         .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
                         .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isBadRequest())

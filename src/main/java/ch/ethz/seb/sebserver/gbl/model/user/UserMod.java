@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -57,9 +58,9 @@ public final class UserMod implements UserAccount {
     public final String email;
 
     /** The users locale */
-    @NotNull(message = "user:locale:notNull")
-    @JsonProperty(USER.ATTR_LOCALE)
-    public final Locale locale;
+    @NotNull(message = "user:language:notNull")
+    @JsonProperty(USER.ATTR_LANGUAGE)
+    public final Locale language;
 
     /** The users time zone */
     @NotNull(message = "user:timeZone:notNull")
@@ -67,6 +68,8 @@ public final class UserMod implements UserAccount {
     public final DateTimeZone timeZone;
 
     /** The users roles in a unmodifiable set */
+    @NotNull(message = "user:userRoles:notNull")
+    @NotEmpty(message = "user:userRoles:notNull")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
@@ -89,7 +92,7 @@ public final class UserMod implements UserAccount {
             @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final String newPassword,
             @JsonProperty(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
-            @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
+            @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
             @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles) {
 
@@ -100,7 +103,7 @@ public final class UserMod implements UserAccount {
         this.name = name;
         this.username = username;
         this.email = email;
-        this.locale = (locale != null) ? locale : Locale.ROOT;
+        this.language = (language != null) ? language : Locale.ENGLISH;
         this.timeZone = (timeZone != null) ? timeZone : DateTimeZone.UTC;
         this.roles = (roles != null)
                 ? Collections.unmodifiableSet(roles)
@@ -115,7 +118,7 @@ public final class UserMod implements UserAccount {
         this.name = userInfo.name;
         this.username = userInfo.username;
         this.email = userInfo.email;
-        this.locale = userInfo.locale;
+        this.language = userInfo.language;
         this.timeZone = userInfo.timeZone;
         this.roles = userInfo.roles;
     }
@@ -128,7 +131,7 @@ public final class UserMod implements UserAccount {
         this.name = postAttrMapper.getString(USER.ATTR_NAME);
         this.username = postAttrMapper.getString(USER.ATTR_USERNAME);
         this.email = postAttrMapper.getString(USER.ATTR_EMAIL);
-        this.locale = postAttrMapper.getLocale(USER.ATTR_LOCALE);
+        this.language = postAttrMapper.getLocale(USER.ATTR_LANGUAGE);
         this.timeZone = postAttrMapper.getDateTimeZone(USER.ATTR_TIMEZONE);
         this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
     }
@@ -141,7 +144,7 @@ public final class UserMod implements UserAccount {
         this.name = null;
         this.username = null;
         this.email = null;
-        this.locale = Locale.ENGLISH;
+        this.language = Locale.ENGLISH;
         this.timeZone = DateTimeZone.UTC;
         this.roles = Collections.emptySet();
     }
@@ -187,8 +190,8 @@ public final class UserMod implements UserAccount {
     }
 
     @Override
-    public Locale getLocale() {
-        return this.locale;
+    public Locale getLanguage() {
+        return this.language;
     }
 
     @Override
@@ -237,7 +240,8 @@ public final class UserMod implements UserAccount {
     public String toString() {
         return "UserMod [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
                 + ", username="
-                + this.username + ", email=" + this.email + ", locale=" + this.locale + ", timeZone=" + this.timeZone
+                + this.username + ", email=" + this.email + ", language=" + this.language + ", timeZone="
+                + this.timeZone
                 + ", roles=" + this.roles
                 + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.retypedNewPassword + "]";
     }

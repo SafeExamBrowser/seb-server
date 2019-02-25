@@ -80,6 +80,9 @@ public class InstitutionList implements TemplateComposer {
         pageContext.createAction(ActionDefinition.INSTITUTION_NEW)
                 .readonly(false)
                 .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION))
+                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .withExec(UserAccountActions::newUserAccount)
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER))
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(InstitutionActions::viewInstitutionFromList)
@@ -88,10 +91,7 @@ public class InstitutionList implements TemplateComposer {
                 .withSelectionSupplier(table::getSelection)
                 .withExec(InstitutionActions::editInstitutionFromList)
                 .readonly(false)
-                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION))
-                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .withExec(UserAccountActions::newUserAccount)
-                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER));
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
         ;
 
     }

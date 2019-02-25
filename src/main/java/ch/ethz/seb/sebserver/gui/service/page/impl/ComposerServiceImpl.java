@@ -103,6 +103,11 @@ public class ComposerServiceImpl implements ComposerService {
             final String name,
             final PageContext pageContext) {
 
+        // Check first if there is still a valid authorization context
+        if (!this.authorizationContextHolder.getAuthorizationContext().isValid()) {
+            return;
+        }
+
         if (!this.composer.containsKey(name)) {
             log.error("No TemplateComposer with name: " + name + " found. Check Spring confiuration and beans");
             return;

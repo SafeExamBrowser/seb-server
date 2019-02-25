@@ -36,6 +36,7 @@ public final class TextFieldBuilder extends FieldBuilder {
         if (builder.readonly || this.readonly) {
             builder.form.putField(this.name, lab,
                     builder.valueLabel(builder.formParent, this.value, this.spanInput));
+            builder.setFieldVisible(this.visible, this.name);
         } else {
             final Text textInput = new Text(builder.formParent, (this.isPassword)
                     ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
@@ -47,6 +48,7 @@ public final class TextFieldBuilder extends FieldBuilder {
                 textInput.setText(this.value);
             }
             builder.form.putField(this.name, lab, textInput);
+            builder.setFieldVisible(this.visible, this.name);
         }
     }
 }

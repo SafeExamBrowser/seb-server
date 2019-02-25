@@ -19,34 +19,33 @@ import org.eclipse.swt.widgets.Label;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
-public class TableNavigator extends Composite {
+public class TableNavigator {
 
-    private static final long serialVersionUID = -7349918232061226192L;
-
+    private final Composite composite;
     private final int pageNavSize = 3;
     private final EntityTable<?> entityTable;
 
     TableNavigator(final EntityTable<?> entityTable) {
-        super(entityTable, SWT.NONE);
-        super.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        this.composite = new Composite(entityTable.composite, SWT.NONE);
+        this.composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         final GridLayout layout = new GridLayout(3, true);
         layout.marginLeft = 20;
-        super.setLayout(layout);
+        this.composite.setLayout(layout);
 
         this.entityTable = entityTable;
     }
 
     public Page<?> update(final Page<?> pageData) {
         // clear all
-        WidgetFactory.clearComposite(this);
+        WidgetFactory.clearComposite(this.composite);
 
         final int pageNumber = pageData.getPageNumber();
         final int numberOfPages = pageData.getNumberOfPages();
 
         createPagingHeader(pageNumber, numberOfPages);
 
-        final Composite numNav = new Composite(this, SWT.NONE);
+        final Composite numNav = new Composite(this.composite, SWT.NONE);
         numNav.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         final RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
         rowLayout.spacing = 5;
@@ -72,7 +71,7 @@ public class TableNavigator extends Composite {
     }
 
     private void createPagingHeader(final int page, final int of) {
-        final Label pageHeader = new Label(this, SWT.NONE);
+        final Label pageHeader = new Label(this.composite, SWT.NONE);
         pageHeader.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         pageHeader.setText("Page " + page + "/" + of);
     }

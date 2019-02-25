@@ -18,6 +18,7 @@ public abstract class FieldBuilder {
     String group = null;
     BooleanSupplier condition = null;
     boolean readonly = false;
+    boolean visible = true;
 
     final String name;
     final String label;
@@ -61,6 +62,11 @@ public abstract class FieldBuilder {
 
     public FieldBuilder readonly(final boolean readonly) {
         this.readonly = readonly;
+        return this;
+    }
+
+    public FieldBuilder visibleIf(final boolean visible) {
+        this.visible = visible;
         return this;
     }
 

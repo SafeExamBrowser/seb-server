@@ -29,9 +29,7 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
-public class TableFilter<ROW extends Entity> extends Composite {
-
-    private static final long serialVersionUID = -2460403977147440766L;
+public class TableFilter<ROW extends Entity> {
 
     public static enum CriteriaType {
         TEXT,
@@ -40,17 +38,18 @@ public class TableFilter<ROW extends Entity> extends Composite {
         DATE
     }
 
+    private final Composite composite;
     private final EntityTable<ROW> entityTable;
     private final List<FilterComponent> components;
 
     TableFilter(final EntityTable<ROW> entityTable) {
-        super(entityTable, SWT.NONE);
+        this.composite = new Composite(entityTable.composite, SWT.NONE);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        super.setLayoutData(gridData);
+        this.composite.setLayoutData(gridData);
         final RowLayout layout = new RowLayout(SWT.HORIZONTAL);
         layout.spacing = 5;
         layout.wrap = false;
-        super.setLayout(layout);
+        this.composite.setLayout(layout);
 
         this.entityTable = entityTable;
         this.components = entityTable.columns
@@ -58,7 +57,7 @@ public class TableFilter<ROW extends Entity> extends Composite {
                 .map(column -> column.filterAttribute)
                 //.filter(Objects::nonNull)
                 .map(this::createFilterComponent)
-                .map(comp -> comp.build(this))
+                .map(comp -> comp.build(this.composite))
                 .map(comp -> comp.reset())
                 .collect(Collectors.toList());
 
@@ -113,14 +112,14 @@ public class TableFilter<ROW extends Entity> extends Composite {
     private void addActions() {
         this.entityTable.widgetFactory.imageButton(
                 ImageIcon.SEARCH,
-                this,
+                this.composite,
                 new LocTextKey("sebserver.overall.action.filter"),
                 event -> {
                     this.entityTable.applyFilter();
                 });
         this.entityTable.widgetFactory.imageButton(
                 ImageIcon.CANCEL,
-                this,
+                this.composite,
                 new LocTextKey("sebserver.overall.action.filter.clear"),
                 event -> {
                     reset();

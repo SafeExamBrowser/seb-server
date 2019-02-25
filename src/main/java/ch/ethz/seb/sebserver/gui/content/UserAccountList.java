@@ -84,10 +84,10 @@ public class UserAccountList implements TemplateComposer {
                                 new TableFilterAttribute(CriteriaType.TEXT, Domain.USER.ATTR_EMAIL),
                                 true))
                         .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_LOCALE,
+                                Domain.USER.ATTR_LANGUAGE,
                                 new LocTextKey("sebserver.useraccount.list.column.language"),
                                 this::getLocaleDisplayText,
-                                new TableFilterAttribute(CriteriaType.COUNTRY_SELECTION, Domain.USER.ATTR_LOCALE),
+                                new TableFilterAttribute(CriteriaType.COUNTRY_SELECTION, Domain.USER.ATTR_LANGUAGE),
                                 true, true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.USER.ATTR_ACTIVE,
@@ -111,8 +111,8 @@ public class UserAccountList implements TemplateComposer {
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {
-        return (userInfo.locale != null)
-                ? userInfo.locale.getDisplayLanguage(this.widgetFactory.getI18nSupport().getCurrentLocale())
+        return (userInfo.language != null)
+                ? userInfo.language.getDisplayLanguage(this.widgetFactory.getI18nSupport().getCurrentLocale())
                 : null;
     }
 

@@ -44,8 +44,8 @@ public class FilterMap extends POSTMapper {
         return getSQLWildcard(UserInfo.FILTER_ATTR_EMAIL);
     }
 
-    public String getUserLocale() {
-        return getString(UserInfo.FILTER_ATTR_LOCALE);
+    public String getUserLanguage() {
+        return getString(UserInfo.FILTER_ATTR_LANGUAGE);
     }
 
     public String getLmsSetupName() {

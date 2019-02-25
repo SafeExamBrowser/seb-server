@@ -152,6 +152,11 @@ Composite.login {
     border-radius: 2px;
 }
 
+Composite.error {
+    background-color: #82BE1E;
+    margin: 0 0 0 0;
+}
+
 *.header {
     font: bold 12px Arial, Helvetica, sans-serif;
     color: #FFFFFF;

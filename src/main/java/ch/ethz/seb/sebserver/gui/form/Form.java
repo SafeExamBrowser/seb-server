@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -85,17 +84,6 @@ public final class Form implements FormBinding {
         }
 
         return buffer.toString();
-    }
-
-    public List<String> getValue(final String name) {
-        if (this.formFields.containsKey(name)) {
-            return this.formFields
-                    .get(name)
-                    .stream()
-                    .map(ffa -> ffa.getValue())
-                    .collect(Collectors.toList());
-        }
-        return null;
     }
 
     public void putStatic(final String name, final String value) {
@@ -176,6 +164,13 @@ public final class Form implements FormBinding {
                 ffa -> ffa.setVisible(visible));
     }
 
+    public void setFieldVisible(final boolean visible, final String fieldName) {
+        final List<FormFieldAccessor> list = this.formFields.get(fieldName);
+        if (list != null) {
+            list.stream().forEach(ffa -> ffa.setVisible(visible));
+        }
+    }
+
     public void process(
             final Predicate<String> nameFilter,
             final Consumer<FormFieldAccessor> processor) {
@@ -189,13 +184,17 @@ public final class Form implements FormBinding {
 
     private void flush() {
         for (final Map.Entry<String, String> entry : this.staticValues.entrySet()) {
-            this.objectRoot.put(entry.getKey(), entry.getValue());
+            final String value = entry.getValue();
+            if (StringUtils.isNoneBlank(value)) {
+                this.objectRoot.put(entry.getKey(), value);
+            }
         }
 
         for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
             entry.getValue()
                     .stream()
-                    .forEach(ffa -> this.objectRoot.put(entry.getKey(), ffa.getValue()));
+                    .filter(ffa -> StringUtils.isNoneBlank(ffa.getValue()))
+                    .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
 
         for (final Map.Entry<String, Form> entry : this.subForms.entrySet()) {
@@ -220,7 +219,7 @@ public final class Form implements FormBinding {
     //@formatter:off
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
         return  new FormFieldAccessor(label, field) {
-            @Override public String getValue() { return field.getText(); }
+            @Override public String getValue() { return null; }
             @Override public void setValue(final String value) { field.setText(value); }
         };
     }
@@ -246,6 +245,17 @@ public final class Form implements FormBinding {
         return new FormFieldAccessor(label, multiSelection) {
             @Override public String getValue() { return multiSelection.getSelectionValue(); }
             @Override public void setValue(final String value) { multiSelection.select(value); }
+            @Override
+            public void putJsonValue(final String key, final ObjectNode objectRoot) {
+                final String value = getValue();
+                if (StringUtils.isNoneBlank(value)) {
+                    final ArrayNode arrayNode = objectRoot.putArray(key);
+                    final String[] split = StringUtils.split(value, Constants.LIST_SEPARATOR);
+                    for (int i = 0; i < split.length; i++) {
+                    arrayNode.add(split[i]);
+                    }
+                }
+            }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload) {
@@ -295,6 +305,13 @@ public final class Form implements FormBinding {
         public void setVisible(final boolean visible) {
             this.label.setVisible(visible);
             this.control.setVisible(visible);
+        }
+
+        public void putJsonValue(final String key, final ObjectNode objectRoot) {
+            final String value = getValue();
+            if (StringUtils.isNoneBlank(value)) {
+                objectRoot.put(key, value);
+            }
         }
 
         public void setError(final String errorTooltip) {

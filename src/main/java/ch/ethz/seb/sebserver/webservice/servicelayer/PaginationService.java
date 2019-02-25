@@ -213,7 +213,7 @@ public class PaginationService {
         userTableMap.put(Domain.USER.ATTR_NAME, UserRecordDynamicSqlSupport.name.name());
         userTableMap.put(Domain.USER.ATTR_USERNAME, UserRecordDynamicSqlSupport.username.name());
         userTableMap.put(Domain.USER.ATTR_EMAIL, UserRecordDynamicSqlSupport.email.name());
-        userTableMap.put(Domain.USER.ATTR_LOCALE, UserRecordDynamicSqlSupport.locale.name());
+        userTableMap.put(Domain.USER.ATTR_LANGUAGE, UserRecordDynamicSqlSupport.language.name());
         this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.name(), userTableMap);
         this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.name(), Domain.USER.ATTR_ID);
 

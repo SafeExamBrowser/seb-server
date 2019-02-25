@@ -35,7 +35,7 @@ public interface UserAccount extends GrantEntity {
 
     boolean isActive();
 
-    Locale getLocale();
+    Locale getLanguage();
 
     DateTimeZone getTimeZone();
 

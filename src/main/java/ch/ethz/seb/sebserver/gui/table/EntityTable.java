@@ -39,21 +39,20 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
-public class EntityTable<ROW extends Entity> extends Composite {
-
-    private static final long serialVersionUID = -4931198225547108993L;
+public class EntityTable<ROW extends Entity> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
     static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
     static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
 
-    transient final WidgetFactory widgetFactory;
-    transient final RestCall<Page<ROW>> restCall;
+    final WidgetFactory widgetFactory;
+    final RestCall<Page<ROW>> restCall;
 
-    transient final List<ColumnDefinition<ROW>> columns;
-    transient final List<TableRowAction> actions;
+    final List<ColumnDefinition<ROW>> columns;
+    final List<TableRowAction> actions;
 
+    final Composite composite;
     private final TableFilter<ROW> filter;
     private final Table table;
     private final TableNavigator navigator;
@@ -62,7 +61,6 @@ public class EntityTable<ROW extends Entity> extends Composite {
     private int pageSize;
     private String sortColumn = null;
     private SortOrder sortOrder = SortOrder.ASCENDING;
-
     private boolean columnsWithSameWidth = true;
 
     EntityTable(
@@ -74,17 +72,17 @@ public class EntityTable<ROW extends Entity> extends Composite {
             final List<TableRowAction> actions,
             final int pageSize) {
 
-        super(parent, type);
+        this.composite = new Composite(parent, type);
         this.widgetFactory = widgetFactory;
         this.restCall = restCall;
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
 
-        super.setLayout(new GridLayout());
+        this.composite.setLayout(new GridLayout());
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
 
         gridData.heightHint = (pageSize + 1) * 40;
-        super.setLayoutData(gridData);
+        this.composite.setLayoutData(gridData);
 
         this.pageSize = pageSize;
         this.filter = columns
@@ -94,7 +92,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
                 .findFirst()
                 .isPresent() ? new TableFilter<>(this) : null;
 
-        this.table = widgetFactory.tableLocalized(this);
+        this.table = widgetFactory.tableLocalized(this.composite);
         final GridLayout gridLayout = new GridLayout(columns.size(), true);
         this.table.setLayout(gridLayout);
         gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -248,7 +246,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
                     // TODO error handling
                 });
 
-        this.layout(true, true);
+        this.composite.layout(true, true);
     }
 
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {
@@ -340,7 +338,7 @@ public class EntityTable<ROW extends Entity> extends Composite {
                             this.table.indexOf(tableColumn),
                             tableColumn.getWidth())) {
 
-                this.layout(true, true);
+                this.composite.layout(true, true);
             }
         }
     }

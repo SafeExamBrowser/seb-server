@@ -88,7 +88,7 @@ public class I18nSupportImpl implements I18nSupport {
 
         // second user-locale if available
         if (this.currentUser.isAvailable()) {
-            return this.currentUser.get().locale;
+            return this.currentUser.get().language;
         }
 
         // last the default locale

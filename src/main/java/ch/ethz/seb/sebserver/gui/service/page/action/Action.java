@@ -40,6 +40,7 @@ public final class Action implements Runnable {
 
     Supplier<Set<String>> selectionSupplier;
 
+    private final PageContext originalPageContext;
     private PageContext pageContext;
     private Function<Action, Action> exec = Function.identity();
 
@@ -49,6 +50,7 @@ public final class Action implements Runnable {
             final RestService restService) {
 
         this.definition = definition;
+        this.originalPageContext = pageContext;
         this.pageContext = pageContext;
         this.restService = restService;
     }
@@ -69,14 +71,6 @@ public final class Action implements Runnable {
         try {
 
             this.pageContext.publishPageEvent(new ActionEvent(this.exec.apply(this), false));
-
-//            this.exec.apply(this)
-//                    .map(action -> {
-//                        this.pageContext.publishPageEvent(
-//                                new ActionEvent(action, false));
-//                        return action;
-//                    })
-//                    .getOrThrow();
 
         } catch (final PageMessageException pme) {
             Action.this.pageContext.publishPageMessage(pme);
@@ -130,6 +124,24 @@ public final class Action implements Runnable {
         return this;
     }
 
+    public Action resetEntity() {
+        this.pageContext = this.pageContext.withEntityKey(null);
+        return this;
+    }
+
+    public Action resetParentEntity() {
+        this.pageContext = this.pageContext.withParentEntityKey(null);
+        return this;
+    }
+
+    public EntityKey getEntityKey() {
+        return this.pageContext.getEntityKey();
+    }
+
+    public PageContext pageContext() {
+        return this.pageContext;
+    }
+
     public Action withEntity(final EntityKey entityKey) {
         this.pageContext = this.pageContext.withEntityKey(entityKey);
         return this;
@@ -164,7 +176,7 @@ public final class Action implements Runnable {
 
     public PageContext publish() {
         this.pageContext.publishPageEvent(new ActionPublishEvent(this));
-        return this.pageContext;
+        return this.originalPageContext;
     }
 
     public PageContext publishIf(final BooleanSupplier condition) {
@@ -172,15 +184,7 @@ public final class Action implements Runnable {
             publish();
         }
 
-        return this.pageContext;
-    }
-
-    public EntityKey getEntityKey() {
-        return this.pageContext.getEntityKey();
-    }
-
-    public PageContext pageContext() {
-        return this.pageContext;
+        return this.originalPageContext;
     }
 
     public Action readonly(final boolean b) {

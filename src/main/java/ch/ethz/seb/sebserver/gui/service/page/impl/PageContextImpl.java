@@ -203,7 +203,8 @@ public class PageContextImpl implements PageContext {
     @Override
     public PageContext withEntityKey(final EntityKey entityKey) {
         if (entityKey == null) {
-            return this;
+            return removeAttribute(AttributeKeys.ENTITY_ID)
+                    .removeAttribute(AttributeKeys.ENTITY_TYPE);
         }
         return withAttribute(AttributeKeys.ENTITY_ID, entityKey.modelId)
                 .withAttribute(AttributeKeys.ENTITY_TYPE, entityKey.entityType.name());
@@ -211,6 +212,10 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public PageContext withParentEntityKey(final EntityKey entityKey) {
+        if (entityKey == null) {
+            return removeAttribute(AttributeKeys.PARENT_ENTITY_ID)
+                    .removeAttribute(AttributeKeys.PARENT_ENTITY_TYPE);
+        }
         return withAttribute(AttributeKeys.PARENT_ENTITY_ID, entityKey.modelId)
                 .withAttribute(AttributeKeys.PARENT_ENTITY_TYPE, entityKey.entityType.name());
     }
@@ -366,7 +371,7 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public <T> T logoutOnError(final Throwable error) {
+    public void logout() {
         // just to be sure we leave a clean and proper authorizationContext
         try {
             ((ComposerServiceImpl) this.composerService).authorizationContextHolder
@@ -378,8 +383,6 @@ public class PageContextImpl implements PageContext {
 
         MainPageState.clear();
         forwardToLoginPage(this);
-
-        return null;
     }
 
     @Override
