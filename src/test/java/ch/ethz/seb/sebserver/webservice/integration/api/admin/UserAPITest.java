@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -39,10 +40,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
@@ -449,8 +450,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
                         .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
                         .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
-                        .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
-                        .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                        .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                        .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<UserInfo>() {
@@ -621,6 +622,51 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("[EXAM_ADMIN, EXAM_SUPPORTER]", String.valueOf(modifiedUserResult.roles));
     }
 
+    @Test
+    public void testModifyUserOnInactiveInstitutionNotAllowed() throws Exception {
+        // create new institution with seb-admin that is not active
+        final Institution institution = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.INSTITUTION_ENDPOINT)
+                .withMethod(HttpMethod.POST)
+                .withAttribute("name", "new institution")
+                .withAttribute("urlSuffix", "new_inst")
+                .withAttribute("active", "false")
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Institution>() {
+                });
+
+        assertNotNull(institution);
+        assertNotNull(institution.id);
+        assertEquals("new institution", institution.name);
+
+        // try to create a user for this institution should not be possible
+        final Collection<APIMessage> errors = this.jsonMapper.readValue(
+                this.mockMvc.perform(post(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
+                        .header("Authorization", "Bearer " + getSebAdminAccess())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param(Domain.USER.ATTR_INSTITUTION_ID, String.valueOf(institution.id))
+                        .param(Domain.USER.ATTR_NAME, "NewTestUser")
+                        .param(Domain.USER.ATTR_USERNAME, "NewTestUser")
+                        .param(Domain.USER.ATTR_LOCALE, Locale.ENGLISH.toLanguageTag())
+                        .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                        .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                        .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                        .andExpect(status().isBadRequest())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Collection<APIMessage>>() {
+                });
+
+        assertNotNull(errors);
+        assertTrue(errors.size() == 1);
+        assertEquals(
+                "Illegal API request argument",
+                errors.iterator().next().systemMessage);
+        assertEquals(
+                "User within an inactive institution cannot be created nor modified",
+                errors.iterator().next().details);
+    }
+
 //    @Test
 //    public void modifyUserWithPOSTMethod() throws Exception {
 //        final String token = getSebAdminAccess();
@@ -685,8 +731,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
                 .param(Domain.USER.ATTR_NAME, "NewTestUser")
-                .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
@@ -712,8 +758,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
                 .param(Domain.USER.ATTR_NAME, "NewTestUser")
-                .param(UserMod.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .param(UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
@@ -748,12 +794,14 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         final PasswordChange passwordChange = new PasswordChange(
+                examAdmin1.uuid,
+                "admin",
                 "newPassword",
                 "newPassword");
         final String modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
         this.mockMvc.perform(
-                put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid + API.PASSWORD_PATH_SEGMENT)
+                put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
                         .header("Authorization", "Bearer " + sebAdminToken)
                         .contentType(MediaType.APPLICATION_JSON_UTF8)
                         .content(modifiedUserJson))
@@ -796,17 +844,18 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         // must be longer then 8 chars
         PasswordChange passwordChange = new PasswordChange(
+                examAdmin1.uuid,
+                "admin",
                 "new",
                 "new");
         String modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
         List<APIMessage> messages = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid
-                                + API.PASSWORD_PATH_SEGMENT)
-                                        .header("Authorization", "Bearer " + sebAdminToken)
-                                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                        .content(modifiedUserJson))
+                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
+                                .header("Authorization", "Bearer " + sebAdminToken)
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<APIMessage>>() {
@@ -815,21 +864,22 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(messages);
         assertTrue(1 == messages.size());
         assertEquals("1200", messages.get(0).messageCode);
-        assertEquals("[user, password, size, 8, 255, new]", String.valueOf(messages.get(0).getAttributes()));
+        assertEquals("[user, newPassword, size, 8, 255, new]", String.valueOf(messages.get(0).getAttributes()));
 
         // wrong password retype
         passwordChange = new PasswordChange(
+                examAdmin1.uuid,
+                "admin",
                 "12345678",
                 "87654321");
         modifiedUserJson = this.jsonMapper.writeValueAsString(passwordChange);
 
         messages = this.jsonMapper.readValue(
                 this.mockMvc.perform(
-                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + examAdmin1.uuid
-                                + API.PASSWORD_PATH_SEGMENT)
-                                        .header("Authorization", "Bearer " + sebAdminToken)
-                                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                                        .content(modifiedUserJson))
+                        put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
+                                .header("Authorization", "Bearer " + sebAdminToken)
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<List<APIMessage>>() {
@@ -837,7 +887,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(messages);
         assertTrue(1 == messages.size());
-        assertEquals("1300", messages.get(0).messageCode);
+        assertEquals("1200", messages.get(0).messageCode);
     }
 
     @Test

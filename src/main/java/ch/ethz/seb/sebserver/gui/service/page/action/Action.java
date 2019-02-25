@@ -16,10 +16,12 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
@@ -31,7 +33,6 @@ public final class Action implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Action.class);
 
     public final RestService restService;
-    public final PageContext pageContext;
     public final ActionDefinition definition;
     Supplier<LocTextKey> confirm;
     LocTextKey successMessage;
@@ -39,7 +40,8 @@ public final class Action implements Runnable {
 
     Supplier<Set<String>> selectionSupplier;
 
-    private Function<Action, Result<?>> exec;
+    private PageContext pageContext;
+    private Function<Action, Action> exec = Function.identity();
 
     public Action(
             final ActionDefinition definition,
@@ -66,13 +68,15 @@ public final class Action implements Runnable {
     private void exec() {
         try {
 
-            this.exec.apply(this)
-                    .map(value -> {
-                        this.pageContext.publishPageEvent(
-                                new ActionEvent(this.definition, value));
-                        return value;
-                    })
-                    .getOrThrow();
+            this.pageContext.publishPageEvent(new ActionEvent(this.exec.apply(this), false));
+
+//            this.exec.apply(this)
+//                    .map(action -> {
+//                        this.pageContext.publishPageEvent(
+//                                new ActionEvent(action, false));
+//                        return action;
+//                    })
+//                    .getOrThrow();
 
         } catch (final PageMessageException pme) {
             Action.this.pageContext.publishPageMessage(pme);
@@ -96,7 +100,7 @@ public final class Action implements Runnable {
         return this.selectionSupplier;
     }
 
-    public Action withExec(final Function<Action, Result<?>> exec) {
+    public Action withExec(final Function<Action, Action> exec) {
         this.exec = exec;
         return this;
     }
@@ -126,6 +130,38 @@ public final class Action implements Runnable {
         return this;
     }
 
+    public Action withEntity(final EntityKey entityKey) {
+        this.pageContext = this.pageContext.withEntityKey(entityKey);
+        return this;
+    }
+
+    public Action withEntity(final Long modelId, final EntityType entityType) {
+        if (modelId != null) {
+            return withEntity(String.valueOf(modelId), entityType);
+        }
+
+        return this;
+    }
+
+    public Action withEntity(final String modelId, final EntityType entityType) {
+        if (modelId == null || entityType == null) {
+            return this;
+        }
+
+        this.pageContext = this.pageContext.withEntityKey(new EntityKey(modelId, entityType));
+        return this;
+    }
+
+    public Action withParentEntity(final EntityKey entityKey) {
+        this.pageContext = this.pageContext.withParentEntityKey(entityKey);
+        return this;
+    }
+
+    public Action withAttribute(final String name, final String value) {
+        this.pageContext = this.pageContext.withAttribute(name, value);
+        return this;
+    }
+
     public PageContext publish() {
         this.pageContext.publishPageEvent(new ActionPublishEvent(this));
         return this.pageContext;
@@ -137,6 +173,18 @@ public final class Action implements Runnable {
         }
 
         return this.pageContext;
+    }
+
+    public EntityKey getEntityKey() {
+        return this.pageContext.getEntityKey();
+    }
+
+    public PageContext pageContext() {
+        return this.pageContext;
+    }
+
+    public Action readonly(final boolean b) {
+        return this.withAttribute(AttributeKeys.READ_ONLY, "false");
     }
 
 }

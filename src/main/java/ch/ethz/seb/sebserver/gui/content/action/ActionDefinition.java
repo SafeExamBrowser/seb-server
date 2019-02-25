@@ -8,85 +8,205 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
+import ch.ethz.seb.sebserver.gui.content.InstitutionForm;
+import ch.ethz.seb.sebserver.gui.content.InstitutionList;
+import ch.ethz.seb.sebserver.gui.content.UserAccountChangePasswordForm;
+import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
+import ch.ethz.seb.sebserver.gui.content.UserAccountList;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public enum ActionDefinition {
 
+    INSTITUTION_VIEW_LIST(
+            new LocTextKey("sebserver.institution.action.list"),
+            InstitutionList.class),
+    INSTITUTION_VIEW_FORM(
+            new LocTextKey("sebserver.institution.action.form"),
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
     INSTITUTION_NEW(
-            "sebserver.institution.action.new",
-            ImageIcon.NEW),
-
+            new LocTextKey("sebserver.institution.action.new"),
+            ImageIcon.NEW,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
     INSTITUTION_VIEW_FROM_LIST(
-            "sebserver.institution.action.list.view",
-            ImageIcon.SHOW),
+            new LocTextKey("sebserver.institution.action.list.view"),
+            ImageIcon.SHOW,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
-    INSTITUTION_MODIFY_FROM__LIST(
-            "sebserver.institution.action.list.modify",
-            ImageIcon.EDIT),
+    INSTITUTION_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.institution.action.list.modify"),
+            ImageIcon.EDIT,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_MODIFY(
-            "sebserver.institution.action.modify",
-            ImageIcon.EDIT),
+            new LocTextKey("sebserver.institution.action.modify"),
+            ImageIcon.EDIT,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_CANCEL_MODIFY(
-            "sebserver.overall.action.modify.cancel",
-            ImageIcon.CANCEL),
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_SAVE(
-            "sebserver.institution.action.save",
-            ImageIcon.SAVE),
+            new LocTextKey("sebserver.institution.action.save"),
+            ImageIcon.SAVE,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_ACTIVATE(
-            "sebserver.institution.action.activate",
-            ImageIcon.INACTIVE),
+            new LocTextKey("sebserver.institution.action.activate"),
+            ImageIcon.INACTIVE,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_DEACTIVATE(
-            "sebserver.institution.action.deactivate",
-            ImageIcon.ACTIVE),
+            new LocTextKey("sebserver.institution.action.deactivate"),
+            ImageIcon.ACTIVE,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     INSTITUTION_DELETE(
-            "sebserver.institution.action.modify",
-            ImageIcon.DELETE),
+            new LocTextKey("sebserver.institution.action.modify"),
+            ImageIcon.DELETE,
+            InstitutionList.class,
+            INSTITUTION_VIEW_LIST),
 
+    USER_ACCOUNT_VIEW_LIST(
+            new LocTextKey("sebserver.useraccount.action.list"),
+            UserAccountList.class),
+    USER_ACCOUNT_VIEW_FORM(
+            new LocTextKey("sebserver.useraccount.action.form"),
+            InstitutionForm.class,
+            USER_ACCOUNT_VIEW_LIST),
     USER_ACCOUNT_NEW(
-            "sebserver.useraccount.action.new",
-            ImageIcon.NEW),
+            new LocTextKey("sebserver.useraccount.action.new"),
+            ImageIcon.NEW,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_VIEW(
-            "sebserver.useraccount.action.view",
-            ImageIcon.SHOW),
+            new LocTextKey("sebserver.useraccount.action.view"),
+            ImageIcon.SHOW,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
+
+    USER_ACCOUNT_MODIFY_FROM__LIST(
+            new LocTextKey("sebserver.useraccount.action.list.modify"),
+            ImageIcon.EDIT,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_MODIFY(
-            "sebserver.useraccount.action.modify",
-            ImageIcon.EDIT),
+            new LocTextKey("sebserver.useraccount.action.modify"),
+            ImageIcon.EDIT,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_CANCEL_MODIFY(
-            "sebserver.overall.action.modify.cancel",
-            ImageIcon.CANCEL),
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_SAVE(
-            "sebserver.useraccount.action.save",
-            ImageIcon.SAVE),
+            new LocTextKey("sebserver.useraccount.action.save"),
+            ImageIcon.SAVE,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_ACTIVATE(
-            "sebserver.useraccount.action.activate",
-            ImageIcon.INACTIVE),
+            new LocTextKey("sebserver.useraccount.action.activate"),
+            ImageIcon.INACTIVE,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_DEACTIVATE(
-            "sebserver.useraccount.action.deactivate",
-            ImageIcon.ACTIVE),
+            new LocTextKey("sebserver.useraccount.action.deactivate"),
+            ImageIcon.ACTIVE,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
 
     USER_ACCOUNT_DELETE(
-            "sebserver.useraccount.action.modify",
-            ImageIcon.DELETE),
-            ;
+            new LocTextKey("sebserver.useraccount.action.modify"),
+            ImageIcon.DELETE,
+            UserAccountList.class,
+            USER_ACCOUNT_VIEW_LIST),
 
-    public final String name;
+    USER_ACCOUNT_CHANGE_PASSOWRD(
+            new LocTextKey("sebserver.useraccount.action.change.password"),
+            ImageIcon.EDIT,
+            UserAccountChangePasswordForm.class,
+            USER_ACCOUNT_VIEW_LIST),
+    USER_ACCOUNT_CHANGE_PASSOWRD_SAVE(
+            new LocTextKey("sebserver.useraccount.action.change.password.save"),
+            ImageIcon.SAVE,
+            UserAccountForm.class,
+            USER_ACCOUNT_VIEW_LIST),
+
+    ;
+
+    public final LocTextKey title;
     public final ImageIcon icon;
+    public final Class<? extends TemplateComposer> contentPaneComposer;
+    public final Class<? extends TemplateComposer> actionPaneComposer;
+    public final ActionDefinition activityAlias;
 
-    private ActionDefinition(final String name, final ImageIcon icon) {
-        this.name = name;
+    private ActionDefinition(
+            final LocTextKey title,
+            final Class<? extends TemplateComposer> contentPaneComposer) {
+
+        this.title = title;
+        this.icon = null;
+        this.contentPaneComposer = contentPaneComposer;
+        this.actionPaneComposer = ActionPane.class;
+        this.activityAlias = null;
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final Class<? extends TemplateComposer> contentPaneComposer,
+            final ActionDefinition activityAlias) {
+
+        this.title = title;
+        this.icon = null;
+        this.contentPaneComposer = contentPaneComposer;
+        this.actionPaneComposer = ActionPane.class;
+        this.activityAlias = activityAlias;
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final Class<? extends TemplateComposer> contentPaneComposer,
+            final ActionDefinition activityAlias) {
+
+        this.title = title;
         this.icon = icon;
+        this.contentPaneComposer = contentPaneComposer;
+        this.actionPaneComposer = ActionPane.class;
+        this.activityAlias = activityAlias;
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final Class<? extends TemplateComposer> contentPaneComposer,
+            final Class<? extends TemplateComposer> actionPaneComposer,
+            final ActionDefinition activityAlias) {
+
+        this.title = title;
+        this.icon = icon;
+        this.contentPaneComposer = contentPaneComposer;
+        this.actionPaneComposer = actionPaneComposer;
+        this.activityAlias = activityAlias;
     }
 
 }

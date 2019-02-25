@@ -32,9 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
 public final class UserMod implements UserAccount {
 
-    public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
-    public static final String ATTR_NAME_RETYPED_NEW_PASSWORD = "retypedNewPassword";
-
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
@@ -75,11 +72,11 @@ public final class UserMod implements UserAccount {
 
     @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:password:size:{min}:{max}:${validatedValue}")
-    @JsonProperty(ATTR_NAME_NEW_PASSWORD)
+    @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
     @NotNull(message = "user:retypedNewPassword:notNull")
-    @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD)
+    @JsonProperty(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD)
     private final String retypedNewPassword;
 
     @JsonCreator
@@ -89,8 +86,8 @@ public final class UserMod implements UserAccount {
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
-            @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
-            @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
+            @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final String newPassword,
+            @JsonProperty(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_LOCALE) final Locale locale,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
@@ -126,8 +123,8 @@ public final class UserMod implements UserAccount {
     public UserMod(final String modelId, final POSTMapper postAttrMapper) {
         this.uuid = modelId;
         this.institutionId = postAttrMapper.getLong(USER.ATTR_INSTITUTION_ID);
-        this.newPassword = postAttrMapper.getString(ATTR_NAME_NEW_PASSWORD);
-        this.retypedNewPassword = postAttrMapper.getString(ATTR_NAME_RETYPED_NEW_PASSWORD);
+        this.newPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_NEW_PASSWORD);
+        this.retypedNewPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD);
         this.name = postAttrMapper.getString(USER.ATTR_NAME);
         this.username = postAttrMapper.getString(USER.ATTR_USERNAME);
         this.email = postAttrMapper.getString(USER.ATTR_EMAIL);

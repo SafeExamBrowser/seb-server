@@ -8,10 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Event;
@@ -30,15 +26,12 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivityActionHandler;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.impl.MainPageState;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
@@ -50,26 +43,14 @@ public class ActivitiesPane implements TemplateComposer {
     private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
 
     private final WidgetFactory widgetFactory;
-    private final RestService restService;
     private final CurrentUser currentUser;
-
-    // TODO are those really needed?
-    private final Map<ActionDefinition, ActivityActionHandler> activityActionHandler =
-            new EnumMap<>(ActionDefinition.class);
 
     public ActivitiesPane(
             final WidgetFactory widgetFactory,
-            final RestService restService,
-            final CurrentUser currentUser,
-            final Collection<ActivityActionHandler> activityActionHandler) {
+            final CurrentUser currentUser) {
 
         this.widgetFactory = widgetFactory;
-        this.restService = restService;
         this.currentUser = currentUser;
-
-        for (final ActivityActionHandler aah : activityActionHandler) {
-            this.activityActionHandler.put(aah.handlesAction(), aah);
-        }
     }
 
     @Override
@@ -89,7 +70,7 @@ public class ActivitiesPane implements TemplateComposer {
                 pageContext.getParent(),
                 SWT.SINGLE | SWT.FULL_SELECTION);
         final GridData navigationGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        navigationGridData.horizontalIndent = 10;
+        //navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
 
         // Institution
@@ -98,18 +79,20 @@ public class ActivitiesPane implements TemplateComposer {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.INSTITUTION_LIST.title);
-            injectActivitySelection(institutions, Activity.INSTITUTION_LIST.createSelection());
+                    ActionDefinition.INSTITUTION_VIEW_LIST.title);
+            injectActivitySelection(
+                    institutions,
+                    pageContext.createAction(ActionDefinition.INSTITUTION_VIEW_LIST));
 
         } else {
             // otherwise show the form of the institution for current user
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.INSTITUTION_FORM.title);
+                    ActionDefinition.INSTITUTION_VIEW_FORM.title);
             injectActivitySelection(
                     institutions,
-                    Activity.INSTITUTION_FORM.createSelection()
-                            .withEntity(new EntityKey(userInfo.institutionId, EntityType.INSTITUTION))
+                    pageContext.createAction(ActionDefinition.INSTITUTION_VIEW_FORM)
+                            .withEntity(userInfo.institutionId, EntityType.INSTITUTION)
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 
@@ -118,73 +101,40 @@ public class ActivitiesPane implements TemplateComposer {
         if (this.currentUser.hasPrivilege(PrivilegeType.READ_ONLY, EntityType.USER)) {
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.USER_ACCOUNT_LIST.title);
-            injectActivitySelection(userAccounts, Activity.USER_ACCOUNT_LIST.createSelection());
+                    ActionDefinition.USER_ACCOUNT_VIEW_LIST.title);
+            injectActivitySelection(
+                    userAccounts,
+                    pageContext.createAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST));
         } else {
             // otherwise show the user account form for current user
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    Activity.USER_ACCOUNT_FORM.title);
+                    ActionDefinition.USER_ACCOUNT_VIEW_FORM.title);
             injectActivitySelection(
                     userAccounts,
-                    Activity.USER_ACCOUNT_FORM.createSelection()
+                    pageContext.createAction(ActionDefinition.USER_ACCOUNT_VIEW_FORM)
                             .withEntity(this.currentUser.get().getEntityKey())
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
-//
-//        final TreeItem configs = this.widgetFactory.treeItemLocalized(
-//                navigation,
-//                "org.sebserver.activities.sebconfigs");
-//        ActivitySelection.set(configs, Activity.SEB_CONFIGS.createSelection());
-//
-//        final TreeItem config = this.widgetFactory.treeItemLocalized(
-//                configs,
-//                "org.sebserver.activities.sebconfig");
-//        ActivitySelection.set(config, Activity.SEB_CONFIG.createSelection());
-//
-//        final TreeItem configTemplates = this.widgetFactory.treeItemLocalized(
-//                configs,
-//                "org.sebserver.activities.sebconfig.templates");
-//        ActivitySelection.set(configTemplates, Activity.SEB_CONFIG_TEMPLATES.createSelection());
-//
-//        final TreeItem exams = this.widgetFactory.treeItemLocalized(
-//                navigation,
-//                "org.sebserver.activities.exam");
-//        ActivitySelection.set(exams, Activity.EXAMS.createSelection());
-//
-//        final TreeItem monitoring = this.widgetFactory.treeItemLocalized(
-//                navigation,
-//                "org.sebserver.activities.monitoring");
-//        ActivitySelection.set(monitoring, Activity.MONITORING.createSelection());
-//
-//        final TreeItem runningExams = this.widgetFactory.treeItemLocalized(
-//                monitoring,
-//                "org.sebserver.activities.runningExams");
-//        ActivitySelection.set(runningExams, Activity.RUNNING_EXAMS.createSelection()
-//                .withExpandFunction(this::runningExamExpand));
-//        runningExams.setItemCount(1);
-//
-//        final TreeItem logs = this.widgetFactory.treeItemLocalized(
-//                monitoring,
-//                "org.sebserver.activities.logs");
-//        ActivitySelection.set(logs, Activity.LOGS.createSelection());
 
-        navigation.addListener(SWT.Expand, this::handleExpand);
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ActionEventListener() {
                     @Override
                     public void notify(final ActionEvent event) {
-//                        final ActivityActionHandler aah =
-//                                ActivitiesPane.this.activityActionHandler.get(event.actionDefinition);
-//                        if (aah != null) {
-//                            aah.notifyAction(event, navigation, pageContext);
-//                        }
-                        // on case of an Action with ActivitySelection, reset the MainPageState
-                        if (event.source instanceof ActivitySelection) {
-                            final MainPageState mainPageState = MainPageState.get();
-                            mainPageState.activitySelection = (ActivitySelection) event.source;
+                        final MainPageState mainPageState = MainPageState.get();
+                        mainPageState.action = event.action;
+                        if (!event.activity) {
+                            final EntityKey entityKey = event.action.getEntityKey();
+                            final String modelId = (entityKey != null) ? entityKey.modelId : null;
+                            final TreeItem item = findItemByActionDefinition(
+                                    navigation.getItems(),
+                                    event.action.definition,
+                                    modelId);
+                            if (item != null) {
+                                navigation.select(item);
+                            }
                         }
                     }
                 });
@@ -192,42 +142,12 @@ public class ActivitiesPane implements TemplateComposer {
         // page-selection on (re)load
         final MainPageState mainPageState = MainPageState.get();
 
-        if (mainPageState.activitySelection == null ||
-                mainPageState.activitySelection.activity == Activity.NONE) {
-            mainPageState.activitySelection = getActivitySelection(navigation.getItem(0));
+        if (mainPageState.action == null) {
+            mainPageState.action = getActivitySelection(navigation.getItem(0));
         }
         pageContext.publishPageEvent(
-                new ActivitySelectionEvent(mainPageState.activitySelection));
+                new ActionEvent(mainPageState.action, false));
         navigation.select(navigation.getItem(0));
-    }
-
-//    private void runningExamExpand(final TreeItem item) {
-//        item.removeAll();
-//        final List<EntityName> runningExamNames = this.restService
-//                .sebServerCall(GetRunningExamNames.class)
-//                .onError(t -> {
-//                    throw new RuntimeException(t);
-//                });
-//
-//        if (runningExamNames != null) {
-//            for (final EntityName runningExamName : runningExamNames) {
-//                final TreeItem runningExams = this.widgetFactory.treeItemLocalized(
-//                        item,
-//                        runningExamName.name);
-//                ActivitySelection.set(runningExams, Activity.RUNNING_EXAM.createSelection(runningExamName));
-//            }
-//        }
-//    }
-
-    private void handleExpand(final Event event) {
-        final TreeItem treeItem = (TreeItem) event.item;
-
-        System.out.println("opened: " + treeItem);
-
-        final ActivitySelection activity = getActivitySelection(treeItem);
-        if (activity != null) {
-            activity.processExpand(treeItem);
-        }
     }
 
     private void handleSelection(final PageContext composerCtx, final Event event) {
@@ -236,35 +156,33 @@ public class ActivitiesPane implements TemplateComposer {
         System.out.println("selected: " + treeItem);
 
         final MainPageState mainPageState = MainPageState.get();
-        final ActivitySelection activitySelection = getActivitySelection(treeItem);
-        if (mainPageState.activitySelection == null) {
-            mainPageState.activitySelection = Activity.NONE.createSelection();
-        }
-        if (!mainPageState.activitySelection.equals(activitySelection)) {
-            mainPageState.activitySelection = activitySelection;
+        final Action action = getActivitySelection(treeItem);
+        if (mainPageState.action.definition != action.definition) {
+            mainPageState.action = action;
             composerCtx.publishPageEvent(
-                    new ActivitySelectionEvent(mainPageState.activitySelection));
+                    new ActionEvent(action, true));
         }
     }
 
-    static final TreeItem findItemByActivity(
+    static final TreeItem findItemByActionDefinition(
             final TreeItem[] items,
-            final Activity activity,
-            final String objectId) {
+            final ActionDefinition actionDefinition,
+            final String modelId) {
 
         if (items == null) {
             return null;
         }
 
         for (final TreeItem item : items) {
-            final ActivitySelection activitySelection = getActivitySelection(item);
-            final String id = activitySelection.getEntityId();
-            if (activitySelection != null && activitySelection.activity == activity &&
-                    (id == null || (objectId != null && objectId.equals(id)))) {
+            final Action action = getActivitySelection(item);
+            final EntityKey entityKey = action.getEntityKey();
+            if (action != null
+                    && (action.definition == actionDefinition || action.definition == actionDefinition.activityAlias) &&
+                    (entityKey == null || (modelId != null && modelId.equals(entityKey.modelId)))) {
                 return item;
             }
 
-            final TreeItem _item = findItemByActivity(item.getItems(), activity, objectId);
+            final TreeItem _item = findItemByActionDefinition(item.getItems(), actionDefinition, modelId);
             if (_item != null) {
                 return _item;
             }
@@ -273,8 +191,8 @@ public class ActivitiesPane implements TemplateComposer {
         return null;
     }
 
-    static final TreeItem findItemByActivity(final TreeItem[] items, final Activity activity) {
-        return findItemByActivity(items, activity, null);
+    static final TreeItem findItemByActionDefinition(final TreeItem[] items, final ActionDefinition actionDefinition) {
+        return findItemByActionDefinition(items, actionDefinition, null);
     }
 
     static final void expand(final TreeItem item) {
@@ -286,12 +204,12 @@ public class ActivitiesPane implements TemplateComposer {
         expand(item.getParentItem());
     }
 
-    public static ActivitySelection getActivitySelection(final TreeItem item) {
-        return (ActivitySelection) item.getData(ATTR_ACTIVITY_SELECTION);
+    public static Action getActivitySelection(final TreeItem item) {
+        return (Action) item.getData(ATTR_ACTIVITY_SELECTION);
     }
 
-    public static void injectActivitySelection(final TreeItem item, final ActivitySelection selection) {
-        item.setData(ATTR_ACTIVITY_SELECTION, selection);
+    public static void injectActivitySelection(final TreeItem item, final Action action) {
+        item.setData(ATTR_ACTIVITY_SELECTION, action);
     }
 
 }

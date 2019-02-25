@@ -176,6 +176,15 @@ public class EntityTable<ROW extends Entity> extends Composite {
                 this.sortOrder);
     }
 
+    public String getSingleSelection() {
+        final TableItem[] selection = this.table.getSelection();
+        if (selection == null || selection.length == 0) {
+            return null;
+        }
+
+        return getRowDataId(selection[0]);
+    }
+
     public Set<String> getSelection() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null) {

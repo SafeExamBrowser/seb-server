@@ -208,6 +208,21 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean isActive(final String modelId) {
+        if (StringUtils.isBlank(modelId)) {
+            return false;
+        }
+
+        return this.lmsSetupRecordMapper.countByExample()
+                .where(LmsSetupRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
+                .and(LmsSetupRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .longValue() > 0;
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {

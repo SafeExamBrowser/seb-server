@@ -206,7 +206,6 @@ public abstract class RestCall<T> {
             } else {
                 this.body = formBinding.getFormUrlEncoded();
                 return this;
-                //return withHeaders(formBinding.getFormAsQueryAttributes());
             }
         }
 

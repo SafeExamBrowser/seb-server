@@ -43,6 +43,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
     Result<UserInfo> changePassword(String modelId, String newPassword);
 
     /** Use this to get the SEBServerUser principal for a given username.
+     * This should be used for internal authorization and consider only active user accounts
      *
      * @param username The username of the user to get SEBServerUser from
      * @return a Result of SEBServerUser for specified username. Or an exception result on error case */

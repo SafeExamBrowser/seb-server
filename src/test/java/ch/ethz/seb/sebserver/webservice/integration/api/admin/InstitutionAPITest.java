@@ -417,9 +417,9 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(dependencies);
         assertTrue(dependencies.size() == 3);
-        assertTrue(dependencies.contains(new EntityKey("1", EntityType.USER)));
-        assertTrue(dependencies.contains(new EntityKey("2", EntityType.USER)));
-        assertTrue(dependencies.contains(new EntityKey("5", EntityType.USER)));
+        assertTrue(dependencies.contains(new EntityKey("user1", EntityType.USER)));
+        assertTrue(dependencies.contains(new EntityKey("user2", EntityType.USER)));
+        assertTrue(dependencies.contains(new EntityKey("user5", EntityType.USER)));
     }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {

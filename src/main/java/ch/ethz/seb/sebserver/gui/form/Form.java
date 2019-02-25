@@ -44,7 +44,6 @@ public final class Form implements FormBinding {
 
     private final Map<String, String> staticValues = new LinkedHashMap<>();
     private final MultiValueMap<String, FormFieldAccessor> formFields = new LinkedMultiValueMap<>();
-    //private final Map<String, List<FormFieldAccessor>> formFields = new LinkedHashMap<>();
     private final Map<String, Form> subForms = new LinkedHashMap<>();
     private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();

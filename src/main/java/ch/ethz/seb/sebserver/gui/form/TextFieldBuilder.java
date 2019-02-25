@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,7 +33,7 @@ public final class TextFieldBuilder extends FieldBuilder {
         }
 
         final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
-        if (builder.readonly) {
+        if (builder.readonly || this.readonly) {
             builder.form.putField(this.name, lab,
                     builder.valueLabel(builder.formParent, this.value, this.spanInput));
         } else {

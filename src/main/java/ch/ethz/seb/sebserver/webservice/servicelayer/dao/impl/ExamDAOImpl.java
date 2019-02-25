@@ -236,6 +236,21 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean isActive(final String modelId) {
+        if (StringUtils.isBlank(modelId)) {
+            return false;
+        }
+
+        return this.examRecordMapper.countByExample()
+                .where(ExamRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
+                .and(ExamRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .longValue() > 0;
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {

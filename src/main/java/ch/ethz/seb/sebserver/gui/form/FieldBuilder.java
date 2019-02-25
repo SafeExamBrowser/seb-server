@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,13 +10,14 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.BooleanSupplier;
 
-abstract class FieldBuilder {
+public abstract class FieldBuilder {
     int spanLabel = -1;
     int spanInput = -1;
     int spanEmptyCell = -1;
     boolean autoEmptyCellSeparation = false;
     String group = null;
     BooleanSupplier condition = null;
+    boolean readonly = false;
 
     final String name;
     final String label;
@@ -55,6 +56,16 @@ abstract class FieldBuilder {
 
     public FieldBuilder withCondition(final BooleanSupplier condition) {
         this.condition = condition;
+        return this;
+    }
+
+    public FieldBuilder readonly(final boolean readonly) {
+        this.readonly = readonly;
+        return this;
+    }
+
+    public FieldBuilder readonlyIf(final BooleanSupplier readonly) {
+        this.readonly = readonly != null && readonly.getAsBoolean();
         return this;
     }
 

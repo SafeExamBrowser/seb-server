@@ -8,13 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import org.eclipse.swt.widgets.Widget;
-
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-
 public interface ActionEventListener extends PageEventListener<ActionEvent> {
 
     @Override
@@ -32,42 +25,42 @@ public interface ActionEventListener extends PageEventListener<ActionEvent> {
 //    }
 //
 
-    static ActionEventListener of(
-            final Predicate<ActionEvent> predicate,
-            final Consumer<ActionEvent> eventConsumer) {
+//    static ActionEventListener of(
+//            final Predicate<ActionEvent> predicate,
+//            final Consumer<ActionEvent> eventConsumer) {
+//
+//        return new ActionEventListener() {
+//            @Override
+//            public void notify(final ActionEvent event) {
+//                if (predicate.test(event)) {
+//                    eventConsumer.accept(event);
+//                }
+//            }
+//        };
+//    }
 
-        return new ActionEventListener() {
-            @Override
-            public void notify(final ActionEvent event) {
-                if (predicate.test(event)) {
-                    eventConsumer.accept(event);
-                }
-            }
-        };
-    }
-
-    static ActionEventListener of(
-            final ActionDefinition actionDefinition,
-            final Consumer<ActionEvent> eventConsumer) {
-
-        return new ActionEventListener() {
-            @Override
-            public void notify(final ActionEvent event) {
-                if (event.actionDefinition == actionDefinition) {
-                    eventConsumer.accept(event);
-                }
-            }
-        };
-    }
-
-    static void injectListener(
-            final Widget widget,
-            final ActionDefinition actionDefinition,
-            final Consumer<ActionEvent> eventConsumer) {
-
-        widget.setData(
-                PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                of(actionDefinition, eventConsumer));
-    }
+//    static ActionEventListener of(
+//            final ActionDefinition actionDefinition,
+//            final Consumer<ActionEvent> eventConsumer) {
+//
+//        return new ActionEventListener() {
+//            @Override
+//            public void notify(final ActionEvent event) {
+//                if (event.actionDefinition == actionDefinition) {
+//                    eventConsumer.accept(event);
+//                }
+//            }
+//        };
+//    }
+//
+//    static void injectListener(
+//            final Widget widget,
+//            final ActionDefinition actionDefinition,
+//            final Consumer<ActionEvent> eventConsumer) {
+//
+//        widget.setData(
+//                PageEventListener.LISTENER_ATTRIBUTE_KEY,
+//                of(actionDefinition, eventConsumer));
+//    }
 
 }

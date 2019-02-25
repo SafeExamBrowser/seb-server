@@ -28,6 +28,7 @@ public class WebServiceUserDetails implements UserDetailsService {
         this.userDAO = userDAO;
     }
 
+    // TODO do we need an institution id here? otherwise username must be unique thought all institutions!
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         return this.userDAO.sebServerUserByUsername(username)

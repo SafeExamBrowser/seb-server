@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,7 @@ public final class ImageUploadFieldBuilder extends FieldBuilder {
         final ImageUpload imageUpload = builder.widgetFactory.imageUploadLocalized(
                 builder.formParent,
                 new LocTextKey("sebserver.overall.upload"),
-                builder.readonly);
+                builder.readonly || this.readonly);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);

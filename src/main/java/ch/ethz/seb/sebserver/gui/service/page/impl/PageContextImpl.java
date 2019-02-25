@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -96,6 +95,11 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public PageContext copy() {
+        return copyOf(this.parent);
+    }
+
+    @Override
     public PageContext copyOf(final Composite parent) {
         return new PageContextImpl(
                 this.restService,
@@ -134,26 +138,26 @@ public class PageContextImpl implements PageContext {
                 attrs);
     }
 
-    @Override
-    public PageContext withSelection(final ActivitySelection selection, final boolean clearAttributes) {
-        if (selection == null) {
-            return this;
-        }
-
-        final Map<String, String> attrs = new HashMap<>();
-        if (!clearAttributes) {
-            attrs.putAll(this.attributes);
-        }
-        attrs.putAll(selection.getAttributes());
-
-        return new PageContextImpl(
-                this.restService,
-                this.i18nSupport,
-                this.composerService,
-                this.root,
-                this.parent,
-                attrs);
-    }
+//    @Override
+//    public PageContext withSelection(final ActivitySelection selection, final boolean clearAttributes) {
+//        if (selection == null) {
+//            return this;
+//        }
+//
+//        final Map<String, String> attrs = new HashMap<>();
+//        if (!clearAttributes) {
+//            attrs.putAll(this.attributes);
+//        }
+//        attrs.putAll(selection.getAttributes());
+//
+//        return new PageContextImpl(
+//                this.restService,
+//                this.i18nSupport,
+//                this.composerService,
+//                this.root,
+//                this.parent,
+//                attrs);
+//    }
 
     @Override
     public String getAttribute(final String name) {

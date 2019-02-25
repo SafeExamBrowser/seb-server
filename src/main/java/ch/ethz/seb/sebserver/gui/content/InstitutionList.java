@@ -9,8 +9,6 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.action.InstitutionActions;
+import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -35,8 +34,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class InstitutionList implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(InstitutionList.class);
 
     private final WidgetFactory widgetFactory;
     private final RestService restService;
@@ -54,11 +51,6 @@ public class InstitutionList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Compose Institutoion list within PageContext: {}", pageContext);
-        }
-
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 new LocTextKey("sebserver.institution.list.title"));
@@ -86,16 +78,21 @@ public class InstitutionList implements TemplateComposer {
 
         // propagate content actions to action-pane
         pageContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                .withExec(InstitutionActions::newInstitution)
+                .readonly(false)
                 .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION))
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelectionSupplier(table::getSelection)
-                .withExec(InstitutionActions::viewInstitution)
+                .withExec(InstitutionActions::viewInstitutionFromList)
                 .publish()
-                .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM__LIST)
+                .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(InstitutionActions::editInstitutionFromList)
-                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
+                .readonly(false)
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION))
+                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .withExec(UserAccountActions::newUserAccount)
+                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER));
+        ;
 
     }
 

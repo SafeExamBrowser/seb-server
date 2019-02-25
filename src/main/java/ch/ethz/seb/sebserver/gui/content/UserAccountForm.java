@@ -20,10 +20,13 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -39,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
@@ -69,12 +73,9 @@ public class UserAccountForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Compose User Account Form within PageContext: {}", pageContext);
-        }
-
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
+        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final BooleanSupplier isSEBAdmin = () -> this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
@@ -126,9 +127,12 @@ public class UserAccountForm implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_INSTITUTION_ID,
                         "sebserver.useraccount.form.institution",
-                        String.valueOf(userAccount.getInstitutionId()),
+                        (parentEntityKey != null && parentEntityKey.entityType == EntityType.INSTITUTION)
+                                ? parentEntityKey.modelId
+                                : String.valueOf(userAccount.getInstitutionId()),
                         () -> PageUtils.getInstitutionSelectionResource(this.restService))
-                        .withCondition(isSEBAdmin))
+                        .withCondition(isSEBAdmin)
+                        .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
                         "sebserver.useraccount.form.name",
@@ -157,44 +161,53 @@ public class UserAccountForm implements TemplateComposer {
                         StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
                         widgetFactory.getI18nSupport().localizedUserRoleResources()))
                 .addField(FormBuilder.text(
-                        UserMod.ATTR_NAME_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password",
-                        null)
+                        PasswordChange.ATTR_NAME_NEW_PASSWORD,
+                        "sebserver.useraccount.form.password")
                         .asPasswordField()
                         .withCondition(isNew))
                 .addField(FormBuilder.text(
-                        UserMod.ATTR_NAME_RETYPED_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password.retyped",
-                        null)
+                        PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD,
+                        "sebserver.useraccount.form.password.retyped")
                         .asPasswordField()
                         .withCondition(isNew))
                 .buildFor((entityKey == null)
                         ? this.restService.getRestCall(NewUserAccount.class)
-                        : this.restService.getRestCall(SaveUserAccount.class),
-                        UserAccountActions.postSaveAdapter(pageContext));
+                        : this.restService.getRestCall(SaveUserAccount.class));
 
         // propagate content actions to action-pane
         final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, userAccount);
         final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, userAccount);
         if (pageContext.isReadonly()) {
-            formContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                    .withExec(UserAccountActions::newUserAccount)
+
+            formContext.createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
+                    .withEntity(userAccount.getEntityKey())
                     .publishIf(() -> writeGrant);
-            formContext.createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
-                    .withExec(UserAccountActions::editUserAccount)
-                    .publishIf(() -> modifyGrant);
 
-            if (!userAccount.isActive()) {
-                formContext.createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
-                        .withExec(UserAccountActions::activateUserAccount)
+            // modifying an UserAccount is not possible if the root institution is inactive
+            final Institution inst = this.restService.getBuilder(GetInstitution.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
+                    .call()
+                    .getOrThrow();
+
+            if (inst.isActive()) {
+                formContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                        .withExec(UserAccountActions::newUserAccount)
+                        .publishIf(() -> writeGrant);
+                formContext.createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
+                        .withExec(UserAccountActions::editUserAccount)
                         .publishIf(() -> modifyGrant);
-            } else {
-                formContext.createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
-                        .withExec(UserAccountActions::deactivateUserAccount)
-                        .withConfirm(PageUtils.confirmDeactivation(userAccount, this.restService))
-                        .publishIf(() -> modifyGrant);
+
+                if (!userAccount.isActive()) {
+                    formContext.createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
+                            .withExec(UserAccountActions::activateUserAccount)
+                            .publishIf(() -> modifyGrant);
+                } else {
+                    formContext.createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
+                            .withExec(UserAccountActions::deactivateUserAccount)
+                            .withConfirm(PageUtils.confirmDeactivation(userAccount, this.restService))
+                            .publishIf(() -> modifyGrant);
+                }
             }
-
         } else {
             formContext.createAction(ActionDefinition.USER_ACCOUNT_SAVE)
                     .withExec(formHandle::postChanges)

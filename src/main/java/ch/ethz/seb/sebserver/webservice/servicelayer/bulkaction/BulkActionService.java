@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -135,7 +136,10 @@ public class BulkActionService {
                 final List<BulkActionSupportDAO<?>> dependantSupporterInHierarchicalOrder =
                         getDependantSupporterInHierarchicalOrder(action);
                 Collections.reverse(dependantSupporterInHierarchicalOrder);
-                return dependantSupporterInHierarchicalOrder;
+                return dependantSupporterInHierarchicalOrder
+                        .stream()
+                        .filter(v -> v != null)
+                        .collect(Collectors.toList());
             }
             default:
                 return getDependantSupporterInHierarchicalOrder(action);

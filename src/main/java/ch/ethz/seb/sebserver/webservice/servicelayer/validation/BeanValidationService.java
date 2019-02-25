@@ -8,21 +8,37 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.validation;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DirectFieldBindingResult;
 import org.springframework.validation.Validator;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 
 @Service
 @WebServiceProfile
 public class BeanValidationService {
 
     private final Validator validator;
+    private final Map<EntityType, ActivatableEntityDAO<?, ?>> activatableDAOs;
 
-    public BeanValidationService(final Validator validator) {
+    public BeanValidationService(
+            final Validator validator,
+            final Collection<ActivatableEntityDAO<?, ?>> activatableDAOs) {
+
         this.validator = validator;
+        this.activatableDAOs = activatableDAOs
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        dao -> dao.entityType(),
+                        dao -> dao));
     }
 
     public <T> Result<T> validateBean(final T bean) {
@@ -33,6 +49,15 @@ public class BeanValidationService {
         }
 
         return Result.of(bean);
+    }
+
+    public boolean isActive(final EntityKey entityKey) {
+        final ActivatableEntityDAO<?, ?> activatableEntityDAO = this.activatableDAOs.get(entityKey.entityType);
+        if (activatableEntityDAO == null) {
+            return false;
+        }
+
+        return activatableEntityDAO.isActive(entityKey.modelId);
     }
 
 }

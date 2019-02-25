@@ -15,7 +15,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
 public interface PageContext {
@@ -75,6 +74,8 @@ public interface PageContext {
      * @return the parent Component */
     Composite getParent();
 
+    PageContext copy();
+
     /** Create a copy of this PageContext with a new parent Composite.
      *
      * @param parent the new parent Composite
@@ -95,11 +96,11 @@ public interface PageContext {
      * @return this PageContext instance (builder pattern) */
     PageContext withAttribute(String key, String value);
 
-    default PageContext withSelection(final ActivitySelection selection) {
-        return withSelection(selection, true);
-    }
-
-    PageContext withSelection(ActivitySelection selection, boolean clearAttributes);
+//    default PageContext withSelection(final ActivitySelection selection) {
+//        return withSelection(selection, true);
+//    }
+//
+//    PageContext withSelection(ActivitySelection selection, boolean clearAttributes);
 
     String getAttribute(String name);
 
@@ -157,5 +158,4 @@ public interface PageContext {
     void publishPageMessage(LocTextKey title, LocTextKey message);
 
     void publishPageMessage(PageMessageException pme);
-
 }

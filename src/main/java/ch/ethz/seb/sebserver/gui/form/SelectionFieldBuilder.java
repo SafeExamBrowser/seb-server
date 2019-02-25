@@ -13,11 +13,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
@@ -26,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.widget.MultiSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class SelectionFieldBuilder extends FieldBuilder {
 
@@ -56,7 +59,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
     @Override
     void build(final FormBuilder builder) {
         final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
-        if (builder.readonly) {
+        if (builder.readonly || this.readonly) {
             buildReadOnly(builder, lab);
         } else {
             buildInput(builder, lab);
@@ -85,38 +88,45 @@ public final class SelectionFieldBuilder extends FieldBuilder {
 
     /* Build the read-only representation of the selection field */
     private void buildReadOnly(final FormBuilder builder, final Label lab) {
-        builder.form.putField(
-                this.name, lab,
-                builder.valueLabel(
-                        builder.formParent,
-                        getSelectionValue(this.value, this.multi),
-                        this.spanInput));
-    }
+        if (this.multi) {
+            final Composite composite = new Composite(builder.formParent, SWT.NONE);
+            final GridLayout gridLayout = new GridLayout(1, true);
+            gridLayout.verticalSpacing = 1;
+            gridLayout.marginLeft = 0;
+            gridLayout.marginHeight = 0;
+            gridLayout.marginWidth = 0;
+            composite.setLayout(gridLayout);
+            if (StringUtils.isBlank(this.value)) {
+                createMuliSelectionReadonlyLabel(composite, Constants.EMPTY_NOTE);
+            } else {
+                final Collection<String> keys = Arrays.asList(StringUtils.split(this.value, Constants.LIST_SEPARATOR));
+                this.itemsSupplier.get()
+                        .stream()
+                        .filter(tuple -> keys.contains(tuple._1))
+                        .map(tuple -> tuple._2)
+                        .forEach(v -> createMuliSelectionReadonlyLabel(composite, v));
+            }
 
-    /*
-     * For Single selection just the selected value, for multi selection a comma
-     * separated list of values within a String value.
-     *
-     * @param key the key or keys, in case of multi selection a comma separated String of keys
-     *
-     * @param multi indicates multi seleciton
-     *
-     * @return selected value or comma separated String list of selected values
-     */
-    private String getSelectionValue(final String key, final boolean multi) {
-        if (multi) {
-            final Collection<String> keys = Arrays.asList(StringUtils.split(key, Constants.LIST_SEPARATOR));
-            return StringUtils.join(this.itemsSupplier.get().stream()
-                    .filter(tuple -> keys.contains(tuple._1))
-                    .map(tuple -> tuple._2)
-                    .collect(Collectors.toList()),
-                    Constants.LIST_SEPARATOR);
         } else {
-            return this.itemsSupplier.get().stream()
-                    .filter(tuple -> key.equals(tuple._1))
-                    .findFirst()
-                    .map(tuple -> tuple._2)
-                    .orElse(null);
+            builder.form.putField(
+                    this.name, lab,
+                    builder.valueLabel(
+                            builder.formParent,
+                            this.itemsSupplier.get().stream()
+                                    .filter(tuple -> this.value.equals(tuple._1))
+                                    .findFirst()
+                                    .map(tuple -> tuple._2)
+                                    .orElse(null),
+                            this.spanInput));
         }
     }
+
+    private void createMuliSelectionReadonlyLabel(final Composite composite, final String value) {
+        final Label label = new Label(composite, SWT.NONE);
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        label.setLayoutData(gridData);
+        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
+        label.setText(value);
+    }
+
 }

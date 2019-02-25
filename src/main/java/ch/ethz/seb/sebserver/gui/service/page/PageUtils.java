@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -57,6 +58,7 @@ public final class PageUtils {
 
     public static List<Tuple<String>> getInstitutionSelectionResource(final RestService restService) {
         return restService.getBuilder(GetInstitutionNames.class)
+                .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()

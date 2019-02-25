@@ -26,6 +26,7 @@ public interface UserActivityLogDAO extends
         CREATE,
         IMPORT,
         MODIFY,
+        PASSWORD_CHANGE,
         DEACTIVATE,
         ACTIVATE,
         DELETE

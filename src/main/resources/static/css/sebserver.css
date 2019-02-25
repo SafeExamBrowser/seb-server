@@ -26,6 +26,10 @@ Label {
     text-shadow: none;
 }
 
+Label.head {
+    font: bold 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+}
+
 Label.action {
     font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
     color: #82BE1E;
@@ -71,6 +75,10 @@ Label.selection {
     padding: 4px 6px 3px 6px;
 }
 
+Label.selectionReadonly {
+    padding: 4px 6px 3px 6px;
+}
+
 Label:hover.selection {
     color: #4a4a4a;
     background-color: #b5b5b5;
@@ -80,8 +88,8 @@ Label:hover.selection {
 
 Label.selected {
     color: #4a4a4a;
-    background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    background-color: #c5c5c5;
+    background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
     padding: 4px 6px 3px 6px;
 }
 
@@ -368,7 +376,7 @@ Tree {
     border: none;
     color: #1f407a;
     margin: 0px 0px 0px 0px;
-    padding: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 40px;
 }
 
 Tree[BORDER] {
@@ -383,12 +391,13 @@ TreeItem {
     text-shadow: none;
     background-image: none;
     margin: 20px 20px 20px 20px;
-    padding: 20px 20px 20px 20px;
+    padding: 20px 20px 20px 40px;
 }
 
 TreeItem:linesvisible:even {
     background-color: #f3f3f4;
 }
+
 
 Tree-RowOverlay {
     background-color: transparent;
@@ -402,12 +411,12 @@ Tree-RowOverlay:hover {
 }
 
 Tree-RowOverlay:selected {
-    background-color: #b5b5b5;
+    background-color: #82be1e;
     color: #1F407A;
 }
 
 Tree-RowOverlay:selected:unfocused {
-    background-color: #b5b5b5;
+    background-color: #82be1e;
     color: #1f407a;
 }
 
@@ -438,6 +447,7 @@ TreeItem.actions {
     margin: 0 0 0 0;
 }
 
+
 Tree-RowOverlay:hover.actions {
     background-color: #82be1e;
     color: #4a4a4a;
@@ -446,6 +456,31 @@ Tree-RowOverlay:hover.actions {
 Tree-RowOverlay:selected.actions {
     background-color: #595959;
     color: #4a4a4a;
+}
+
+Tree-Indent {
+    width: 16px;
+    background-image: none;
+}
+
+Tree-Indent:collapsed {
+    background-image: none;
+}
+
+Tree-Indent:collapsed:hover {
+    background-image: none;
+}
+
+Tree-Indent:expanded {
+    background-image: none;
+}
+
+Tree-Indent:expanded:hover {
+    background-image: none;
+}
+
+Tree-Indent:line {
+    background-image: none;
 }
 
 /* TabFolder default theme */
@@ -665,14 +700,14 @@ Table-RowOverlay:hover {
 
 Table-RowOverlay:selected {
     color: #4a4a4a;
-    background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    background-color: #c5c5c5;
+    background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
 }
 
 Table-RowOverlay:selected:unfocused {
     color: #4a4a4a;
-    background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    background-color: #c5c5c5;
+    background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
 }
 
 Table-RowOverlay:linesvisible:even:hover {
@@ -683,13 +718,13 @@ Table-RowOverlay:linesvisible:even:hover {
 
 Table-RowOverlay:linesvisible:even:selected {
     color: #4a4a4a;
-    background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    background-color: #c5c5c5;
+    background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
 }
 
 Table-RowOverlay:linesvisible:even:selected:unfocused {
-    background-color: #b5b5b5;
-    background-image: gradient(linear, left top, left bottom, from(#b5b5b5),to(#b5b5b5));
+    background-color: #c5c5c5;
+    background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
     color: #4a4a4a;
 }
 

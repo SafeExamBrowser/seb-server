@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class MultiSelection extends Composite implements Selection {
 
@@ -37,6 +38,8 @@ public class MultiSelection extends Composite implements Selection {
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
         gridLayout.marginLeft = 0;
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
         setLayout(gridLayout);
     }
 
@@ -44,25 +47,29 @@ public class MultiSelection extends Composite implements Selection {
     public void applyNewMapping(final List<Tuple<String>> mapping) {
         final String selectionValue = getSelectionValue();
         this.selected.clear();
+        this.labels.clear();
         for (final Tuple<String> tuple : mapping) {
             final Label label = new Label(this, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
             label.setLayoutData(gridData);
             label.setData(OPTION_VALUE, tuple._1);
-            label.setData(RWT.CUSTOM_VARIANT, "selection");
-            label.setText(" " + tuple._2);
+            label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION.key);
+            label.setText(tuple._2);
             label.addListener(SWT.MouseDown, event -> {
                 final Label l = (Label) event.widget;
                 if (this.selected.contains(l)) {
-                    l.setData(RWT.CUSTOM_VARIANT, "selection");
+                    l.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION.key);
                     this.selected.remove(l);
                 } else {
-                    l.setData(RWT.CUSTOM_VARIANT, "selected");
+                    l.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTED.key);
                     this.selected.add(l);
                 }
             });
+            this.labels.add(label);
         }
-        select(selectionValue);
+        if (StringUtils.isNoneBlank(selectionValue)) {
+            select(selectionValue);
+        }
     }
 
     public void selectOne(final String key) {
@@ -70,7 +77,7 @@ public class MultiSelection extends Composite implements Selection {
                 .filter(label -> key.equals(label.getData(OPTION_VALUE)))
                 .findFirst()
                 .ifPresent(label -> {
-                    label.setData(RWT.CUSTOM_VARIANT, "selected");
+                    label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTED.key);
                     this.selected.add(label);
                 });
     }
@@ -80,14 +87,14 @@ public class MultiSelection extends Composite implements Selection {
                 .filter(label -> key.equals(label.getData(OPTION_VALUE)))
                 .findFirst()
                 .ifPresent(label -> {
-                    label.setData(RWT.CUSTOM_VARIANT, "selection");
+                    label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION.key);
                     this.selected.remove(label);
                 });
     }
 
     public void deselectAll() {
         for (final Label label : this.selected) {
-            label.setData(RWT.CUSTOM_VARIANT, "selection");
+            label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION.key);
         }
         this.selected.clear();
     }
@@ -96,10 +103,10 @@ public class MultiSelection extends Composite implements Selection {
     public void select(final String keys) {
         this.selected.clear();
         if (StringUtils.isNotBlank(keys)) {
-            final List<String> split = Arrays.asList(keys.split(keys, Constants.LIST_SEPARATOR_CHAR));
+            final List<String> split = Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR));
             for (final Label label : this.labels) {
                 if (split.contains(label.getData(OPTION_VALUE))) {
-                    label.setData(RWT.CUSTOM_VARIANT, "selected");
+                    label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTED.key);
                     this.selected.add(label);
                 }
             }

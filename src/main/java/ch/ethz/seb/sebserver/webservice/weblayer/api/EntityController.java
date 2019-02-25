@@ -249,6 +249,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         return this.beanValidationService.validateBean(requestModel)
                 .flatMap(this.entityDAO::createNew)
+                .flatMap(this::validForSave)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .flatMap(this::notifyCreated)
                 .getOrThrow();

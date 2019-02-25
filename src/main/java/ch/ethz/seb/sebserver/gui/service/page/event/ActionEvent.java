@@ -8,21 +8,19 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 
 /** This Event is used to propagate a user-action to the GUI system.
  * Potentially every component can listen to an Event and react on the user-action */
 public final class ActionEvent implements PageEvent {
 
-    public final ActionDefinition actionDefinition;
-    public final Object source;
+    public final Action action;
+    public final boolean activity;
 
-    public ActionEvent(
-            final ActionDefinition actionDefinition,
-            final Object source) {
-
-        this.actionDefinition = actionDefinition;
-        this.source = source;
+    public ActionEvent(final Action action, final boolean activity) {
+        super();
+        this.action = action;
+        this.activity = activity;
     }
 
 }

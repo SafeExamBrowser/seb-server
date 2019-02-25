@@ -9,110 +9,87 @@
 package ch.ethz.seb.sebserver.gui.content.action;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.content.activity.Activity;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeactivateUserAccount;
 
 public final class UserAccountActions {
 
-    public static Function<UserInfo, UserInfo> postSaveAdapter(final PageContext pageContext) {
-        return userAccount -> {
-            goToUserAccount(pageContext, userAccount.getModelId(), false);
-            return userAccount;
-        };
+    public static Action newUserAccount(final Action action) {
+        return goToUserAccount(action, null, true);
     }
 
-    public static Result<?> newUserAccount(final Action action) {
-        return Result.of(goToUserAccount(action.pageContext, null, true));
-    }
-
-    public static Result<?> viewUserAccountFromList(final Action action) {
+    public static Action viewUserAccountFromList(final Action action) {
         return fromSelection(action, false);
     }
 
-    public static Result<?> editUserAccountFromList(final Action action) {
+    public static Action editUserAccountFromList(final Action action) {
         return fromSelection(action, true);
     }
 
-    public static Result<?> editUserAccount(final Action action) {
-        return Result.of(goToUserAccount(
-                action.pageContext,
-                action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
-                true));
+    public static Action editUserAccount(final Action action) {
+        return goToUserAccount(action, null, true);
     }
 
-    public static Result<?> cancelEditUserAccount(final Action action) {
-        if (action.pageContext.getEntityKey() == null) {
-            final ActivitySelection toList = Activity.USER_ACCOUNT_LIST.createSelection();
-            action.pageContext.publishPageEvent(new ActivitySelectionEvent(toList));
-            return Result.of(toList);
+    public static Action cancelEditUserAccount(final Action action) {
+        if (action.pageContext().getEntityKey() == null) {
+            final Action toList = action.pageContext().createAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST);
+            action.pageContext().publishPageEvent(new ActionEvent(toList, false));
+            return toList;
         } else {
-            return Result.of(goToUserAccount(
-                    action.pageContext,
-                    action.pageContext.getAttribute(AttributeKeys.ENTITY_ID),
-                    false));
+            return goToUserAccount(action, null, false);
         }
     }
 
-    public static Result<?> activateUserAccount(final Action action) {
+    public static Action activateUserAccount(final Action action) {
         return action.restService
                 .getBuilder(ActivateUserAccount.class)
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
-                        action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
                 .call()
-                .map(report -> goToUserAccount(action.pageContext, report.getSingleSource().modelId, false));
+                .map(report -> goToUserAccount(action, report.getSingleSource().modelId, false))
+                .getOrThrow();
     }
 
-    public static Result<?> deactivateUserAccount(final Action action) {
+    public static Action deactivateUserAccount(final Action action) {
         return action.restService
                 .getBuilder(DeactivateUserAccount.class)
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
-                        action.pageContext.getAttribute(AttributeKeys.ENTITY_ID))
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
                 .call()
-                .map(report -> goToUserAccount(action.pageContext, report.getSingleSource().modelId, false));
+                .map(report -> goToUserAccount(action, report.getSingleSource().modelId, false))
+                .getOrThrow();
     }
 
-    private static Result<?> fromSelection(final Action action, final boolean edit) {
-        return Result.tryCatch(() -> {
-            final Collection<String> selection = action.getSelectionSupplier().get();
-            if (selection.isEmpty()) {
-                throw new PageMessageException("sebserver.useraccount.info.pleaseSelect");
-            }
+    private static Action fromSelection(final Action action, final boolean edit) {
+        final Collection<String> selection = action.getSelectionSupplier().get();
+        if (selection.isEmpty()) {
+            throw new PageMessageException("sebserver.useraccount.info.pleaseSelect");
+        }
 
-            return goToUserAccount(action.pageContext, selection.iterator().next(), edit);
-        });
+        return goToUserAccount(action, selection.iterator().next(), edit);
     }
 
-    private static ActivitySelection goToUserAccount(
-            final PageContext pageContext,
+    private static Action goToUserAccount(
+            final Action action,
             final String modelId,
             final boolean edit) {
 
-        final ActivitySelection activitySelection = Activity.USER_ACCOUNT_FORM
-                .createSelection()
-                .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit));
-
+        action.withAttribute(AttributeKeys.READ_ONLY, String.valueOf(!edit));
         if (modelId != null) {
-            activitySelection.withEntity(new EntityKey(modelId, EntityType.USER));
+            action.withEntity(new EntityKey(modelId, EntityType.USER));
         }
 
-        pageContext.publishPageEvent(new ActivitySelectionEvent(activitySelection));
-        return activitySelection;
+        return action;
     }
 
 }

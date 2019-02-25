@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -121,15 +121,16 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 .getOrThrow();
     }
 
-    private Result<EntityProcessingReport> setActive(final String id, final boolean active) {
+    private Result<EntityProcessingReport> setActive(final String modelId, final boolean active) {
         final EntityType entityType = this.entityDAO.entityType();
         final BulkAction bulkAction = new BulkAction(
                 (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
                 entityType,
-                new EntityKey(id, entityType));
+                new EntityKey(modelId, entityType));
 
-        return this.entityDAO.byModelId(id)
+        return this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
+                .flatMap(this::validForSave)
                 .flatMap(entity -> this.bulkActionService.createReport(bulkAction));
     }
 

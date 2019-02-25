@@ -39,4 +39,10 @@ public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> 
      * @return The Collection of Results refer to the EntityKey instance or refer to an error if happened */
     Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
 
+    /** Indicates if the activatable entity with specified model identifier is currently active
+     *
+     * @param modelId the model identifier of the entity
+     * @return true if the entity is active, false otherwise */
+    boolean isActive(String modelId);
+
 }

@@ -9,8 +9,6 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,8 +27,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccounts;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
-import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -38,8 +36,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class UserAccountList implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(UserAccountList.class);
 
     private final WidgetFactory widgetFactory;
     private final RestService restService;
@@ -60,11 +56,6 @@ public class UserAccountList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Compose User Account list within PageContext: {}", pageContext);
-        }
-
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -113,7 +104,7 @@ public class UserAccountList implements TemplateComposer {
                 .withSelectionSupplier(table::getSelection)
                 .withExec(UserAccountActions::viewUserAccountFromList)
                 .publish()
-                .createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
+                .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM__LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(UserAccountActions::editUserAccountFromList)
                 .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.USER));

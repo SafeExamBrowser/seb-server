@@ -49,7 +49,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
@@ -105,6 +104,10 @@ public class WidgetFactory {
         IMAGE_BUTTON("imageButton"),
         TEXT_ACTION("action"),
 
+        SELECTION("selection"),
+        SELECTED("selected"),
+        SELECTION_READONLY("selectionReadonly"),
+
         FOOTER("footer"),
 
         ;
@@ -158,10 +161,10 @@ public class WidgetFactory {
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
         labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
-        ActionEventListener.injectListener(
-                labelLocalizedTitle,
-                actionDefinition,
-                eventFunction.apply(labelLocalizedTitle));
+//        ActionEventListener.injectListener(
+//                labelLocalizedTitle,
+//                actionDefinition,
+//                eventFunction.apply(labelLocalizedTitle));
         return defaultPageLayout;
     }
 

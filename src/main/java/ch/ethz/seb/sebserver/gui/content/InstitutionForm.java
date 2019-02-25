@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -22,11 +23,13 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.action.InstitutionActions;
+import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -59,10 +62,6 @@ public class InstitutionForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Compose Institutoion Form within PageContext: {}", pageContext);
-        }
 
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -123,15 +122,14 @@ public class InstitutionForm implements TemplateComposer {
                         .withCondition(() -> entityKey != null))
                 .buildFor((entityKey == null)
                         ? this.restService.getRestCall(NewInstitution.class)
-                        : this.restService.getRestCall(SaveInstitution.class),
-                        InstitutionActions.postSaveAdapter(pageContext));
+                        : this.restService.getRestCall(SaveInstitution.class));
 
         // propagate content actions to action-pane
         final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
         final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
         if (pageContext.isReadonly()) {
             formContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                    .withExec(InstitutionActions::newInstitution)
+                    .withAttribute(AttributeKeys.READ_ONLY, "false")
                     .publishIf(() -> writeGrant);
             formContext.createAction(ActionDefinition.INSTITUTION_MODIFY)
                     .withExec(InstitutionActions::editInstitution)
@@ -145,7 +143,12 @@ public class InstitutionForm implements TemplateComposer {
                 formContext.createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                         .withExec(InstitutionActions::deactivateInstitution)
                         .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
-                        .publishIf(() -> modifyGrant);
+                        .publishIf(() -> modifyGrant)
+                        .withParentEntityKey(entityKey)
+                        .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                        .withExec(UserAccountActions::newUserAccount)
+                        .withParentEntity(institution.getEntityKey())
+                        .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER));
             }
 
         } else {

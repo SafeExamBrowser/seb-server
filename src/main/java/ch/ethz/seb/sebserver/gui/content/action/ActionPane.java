@@ -90,7 +90,7 @@ public class ActionPane implements TemplateComposer {
 
                         final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                                 actions,
-                                event.action.definition.name);
+                                event.action.definition.title);
 
                         actionItem.setImage(event.action.definition.icon.getImage(
                                 pageContext.getParent().getDisplay()));

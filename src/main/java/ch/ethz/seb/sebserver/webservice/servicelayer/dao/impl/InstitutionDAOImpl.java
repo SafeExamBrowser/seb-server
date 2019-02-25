@@ -205,6 +205,21 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean isActive(final String modelId) {
+        if (StringUtils.isBlank(modelId)) {
+            return false;
+        }
+
+        return this.institutionRecordMapper.countByExample()
+                .where(InstitutionRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
+                .and(InstitutionRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .longValue() > 0;
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -266,5 +281,4 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 record.getLogoImage(),
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
-
 }

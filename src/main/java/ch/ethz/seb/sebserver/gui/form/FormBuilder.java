@@ -10,10 +10,10 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -159,15 +160,13 @@ public class FormBuilder {
         return this;
     }
 
-    public <T> FormHandle<T> buildFor(
-            final RestCall<T> post,
-            final Function<T, T> postPostHandle) {
+    public <T extends Entity> FormHandle<T> buildFor(
+            final RestCall<T> post) {
 
         return new FormHandle<>(
                 this.pageContext,
                 this.form,
                 post,
-                (postPostHandle == null) ? Function.identity() : postPostHandle,
                 this.polyglotPageService.getI18nSupport());
     }
 
@@ -175,6 +174,10 @@ public class FormBuilder {
         final Label empty = new Label(parent, SWT.LEFT);
         empty.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan));
         empty.setText("");
+    }
+
+    public static TextFieldBuilder text(final String name, final String label) {
+        return new TextFieldBuilder(name, label, null);
     }
 
     public static TextFieldBuilder text(final String name, final String label, final String value) {
@@ -207,8 +210,9 @@ public class FormBuilder {
     Label labelLocalized(final Composite parent, final String locTextKey, final int hspan) {
         final Label label = this.widgetFactory.labelLocalized(parent, locTextKey);
         final GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false, hspan, 1);
-        gridData.verticalIndent = 5;
+        gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
+        label.setData(RWT.CUSTOM_VARIANT, "head");
         return label;
     }
 
@@ -216,6 +220,7 @@ public class FormBuilder {
         final Label label = new Label(parent, SWT.NONE);
         label.setText((StringUtils.isNoneBlank(value)) ? value : Constants.EMPTY_NOTE);
         final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, hspan, 1);
+        gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
         return label;
     }

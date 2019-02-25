@@ -25,8 +25,8 @@ import ch.ethz.seb.sebserver.gui.content.activity.ActivitiesPane;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionEvent;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActivitySelectionListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.impl.MainPageState;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -119,19 +119,17 @@ public class MainPage implements TemplateComposer {
         contentObjectslayout.marginWidth = 0;
         contentObjects.setLayout(contentObjectslayout);
         contentObjects.setData(PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActivitySelectionListener() {
+                new ActionEventListener() {
                     @Override
                     public int priority() {
                         return 2;
                     }
 
                     @Override
-                    public void notify(final ActivitySelectionEvent event) {
+                    public void notify(final ActionEvent event) {
                         pageContext.composerService().compose(
-                                event.selection.activity.contentPaneComposer,
-                                pageContext
-                                        .copyOf(contentObjects)
-                                        .withSelection(event.selection));
+                                event.action.definition.contentPaneComposer,
+                                event.action.pageContext().copyOf(contentObjects));
                     }
                 });
 
@@ -141,19 +139,17 @@ public class MainPage implements TemplateComposer {
         actionPane.setLayout(actionPaneGrid);
         actionPane.setData(RWT.CUSTOM_VARIANT, "actionPane");
         actionPane.setData(PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActivitySelectionListener() {
+                new ActionEventListener() {
                     @Override
                     public int priority() {
                         return 1;
                     }
 
                     @Override
-                    public void notify(final ActivitySelectionEvent event) {
+                    public void notify(final ActionEvent event) {
                         pageContext.composerService().compose(
-                                event.selection.activity.actionPaneComposer,
-                                pageContext
-                                        .copyOf(actionPane)
-                                        .withSelection(event.selection));
+                                event.action.definition.actionPaneComposer,
+                                event.action.pageContext().copyOf(actionPane));
                     }
                 });
 

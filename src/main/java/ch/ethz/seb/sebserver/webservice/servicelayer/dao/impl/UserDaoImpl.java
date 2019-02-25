@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -277,6 +279,21 @@ public class UserDaoImpl implements UserDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean isActive(final String modelId) {
+        if (StringUtils.isBlank(modelId)) {
+            return false;
+        }
+
+        return this.userRecordMapper.countByExample()
+                .where(UserRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
+                .and(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .longValue() > 0;
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -307,7 +324,9 @@ public class UserDaoImpl implements UserDAO {
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
         // all of institution
-        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+        if (bulkAction.sourceType == EntityType.INSTITUTION &&
+                (bulkAction.type == BulkActionType.DEACTIVATE || bulkAction.type == BulkActionType.HARD_DELETE)) {
+
             return getDependencies(bulkAction, this::allIdsOfInstitution);
         }
 
@@ -356,13 +375,13 @@ public class UserDaoImpl implements UserDAO {
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> {
-            return this.userRecordMapper.selectIdsByExample()
+            return this.userRecordMapper.selectByExample()
                     .where(UserRecordDynamicSqlSupport.institutionId,
                             isEqualTo(Long.valueOf(institutionKey.modelId)))
                     .build()
                     .execute()
                     .stream()
-                    .map(id -> new EntityKey(id, EntityType.USER))
+                    .map(rec -> new EntityKey(rec.getUuid(), EntityType.USER))
                     .collect(Collectors.toList());
         });
     }
@@ -390,7 +409,7 @@ public class UserDaoImpl implements UserDAO {
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.username, isEqualTo(username))
                         .and(UserRecordDynamicSqlSupport.active,
-                                isEqualToWhenPresent(BooleanUtils.toInteger(true)))
+                                isEqualTo(BooleanUtils.toInteger(true)))
                         .build()
                         .execute());
     }

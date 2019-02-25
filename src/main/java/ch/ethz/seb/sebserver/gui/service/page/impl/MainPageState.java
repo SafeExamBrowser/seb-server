@@ -15,14 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gui.content.MainPage;
-import ch.ethz.seb.sebserver.gui.content.activity.Activity;
-import ch.ethz.seb.sebserver.gui.service.page.activity.ActivitySelection;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 
 public final class MainPageState {
 
     private static final Logger log = LoggerFactory.getLogger(MainPageState.class);
 
-    public ActivitySelection activitySelection = Activity.NONE.createSelection();
+    public Action action = null;
 
     private MainPageState() {
     }
@@ -49,6 +48,6 @@ public final class MainPageState {
 
     public static void clear() {
         final MainPageState mainPageState = get();
-        mainPageState.activitySelection = Activity.NONE.createSelection();
+        mainPageState.action = null;
     }
 }
