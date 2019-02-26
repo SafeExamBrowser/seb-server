@@ -37,8 +37,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
         extends EntityController<T, M> {
 
-    private final ActivatableEntityDAO<T, M> activatableEntityDAO;
-
     public ActivatableEntityController(
             final AuthorizationService authorizationGrantService,
             final BulkActionService bulkActionService,
@@ -53,7 +51,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
-        this.activatableEntityDAO = entityDAO;
     }
 
     // TODO use also the getAll method
