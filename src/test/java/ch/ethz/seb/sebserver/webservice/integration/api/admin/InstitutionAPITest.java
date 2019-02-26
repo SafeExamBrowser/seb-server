@@ -386,11 +386,11 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(institutions);
-        assertEquals("[1]", getOrderedUUIDs(institutions.content));
+        assertEquals("[1, 2]", getOrderedUUIDs(institutions.content));
 
         // all inactive of the own institution
         institutions = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/inactive")
+                this.mockMvc.perform(get(this.endpoint + API.INSTITUTION_ENDPOINT + "/inactive")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -399,8 +399,8 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(institutions);
-        assertTrue(institutions.pageSize == 0);
-        assertEquals("[]", getOrderedUUIDs(institutions.content));
+        assertTrue(institutions.pageSize == 1);
+        assertEquals("[3]", getOrderedUUIDs(institutions.content));
     }
 
     @Test

@@ -8,6 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 
 import org.mybatis.dynamic.sql.SqlTable;
@@ -31,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -38,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
@@ -98,12 +105,52 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
+    protected Result<Collection<UserInfo>> getAll(final FilterMap filterMap) {
+        return super.getAll(filterMap)
+                .map(result -> result
+                        .stream()
+                        .filter(this.authorization::hasRoleBasedUserAccountViewGrant)
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
     protected Result<UserInfo> validForSave(final UserInfo userInfo) {
         return Result.tryCatch(() -> {
+            final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+            final EnumSet<UserRole> rolesOfCurrentUser = currentUser.getUserRoles();
+            final EnumSet<UserRole> userRolesOfAccount = userInfo.getUserRoles();
+
             // check of institution of UserInfo is active. Otherwise save is not valid
             if (!this.beanValidationService.isActive(new EntityKey(userInfo.institutionId, EntityType.INSTITUTION))) {
                 throw new IllegalAPIArgumentException(
                         "User within an inactive institution cannot be created nor modified");
+            }
+
+            // check if the current User has the role based right to save the User Account
+            // role based right in this context means that for example a Institutional Administrator that
+            // has normally the right to edit a User Account of his own institution, don't has the right
+            // to edit a User Account of his own institution with a higher role based rank, for example a
+            // SEB Server Admin of the same Institution
+            if (userRolesOfAccount.contains(UserRole.SEB_SERVER_ADMIN) &&
+                    !rolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
+
+                throw new IllegalAPIArgumentException(
+                        "The current user cannot edit a User-Account of heigher role pased rank: "
+                                + UserRole.SEB_SERVER_ADMIN);
+            }
+
+            // check if there are only public UserRole set for current User
+            final List<UserRole> publicRolesFor = UserRole.publicRolesForUser(currentUser.getUserInfo());
+            final UserRole nonePublicRole = userRolesOfAccount
+                    .stream()
+                    .filter(role -> !publicRolesFor.contains(role))
+                    .findFirst()
+                    .orElse(null);
+
+            if (nonePublicRole != null) {
+                throw new IllegalAPIArgumentException(
+                        "The current user has not the privilege to create a User-Account with none public role: "
+                                + nonePublicRole);
             }
 
             return userInfo;
@@ -144,7 +191,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             "passwordChange",
-                            PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD,
+                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                             "user:retypedNewPassword:password.mismatch")));
         }
 

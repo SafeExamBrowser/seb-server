@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -158,7 +159,7 @@ public interface AuthorizationService {
 
     /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny.
-     * 
+     *
      * @param privilegeType the privilege type to check
      * @param entityType the type of the entity to check the given privilege type on */
     default void check(final PrivilegeType privilegeType, final EntityType entityType) {
@@ -167,7 +168,7 @@ public interface AuthorizationService {
 
     /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny.
-     * 
+     *
      * @param privilegeType the privilege type to check
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
@@ -183,7 +184,7 @@ public interface AuthorizationService {
     /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or return the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
-     * 
+     *
      * @param privilegeType the privilege type to check
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
@@ -201,7 +202,7 @@ public interface AuthorizationService {
     /** Check read-only grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
-     * 
+     *
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
     default <E extends GrantEntity> Result<E> checkReadonly(final E grantEntity) {
@@ -211,7 +212,7 @@ public interface AuthorizationService {
     /** Check modify grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
-     * 
+     *
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
     default <E extends GrantEntity> Result<E> checkModify(final E grantEntity) {
@@ -221,11 +222,28 @@ public interface AuthorizationService {
     /** Check write grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
-     * 
+     *
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
     default <E extends GrantEntity> Result<E> checkWrite(final E grantEntity) {
         return check(PrivilegeType.WRITE, grantEntity);
+    }
+
+    default boolean hasRoleBasedUserAccountViewGrant(final UserInfo userAccount) {
+        final EnumSet<UserRole> userRolesOfUserAccount = userAccount.getUserRoles();
+        final SEBServerUser currentUser = getUserService().getCurrentUser();
+        final EnumSet<UserRole> userRolesOfCurrentUser = currentUser.getUserRoles();
+        if (userRolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
+            return true;
+        }
+        if (userRolesOfCurrentUser.contains(UserRole.INSTITUTIONAL_ADMIN)) {
+            return !userRolesOfUserAccount.contains(UserRole.SEB_SERVER_ADMIN);
+        }
+        if (currentUser.uuid().equals(userAccount.uuid)) {
+            return true;
+        }
+
+        return false;
     }
 
 }

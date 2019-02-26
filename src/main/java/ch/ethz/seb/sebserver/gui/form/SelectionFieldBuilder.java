@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.widget.MultiSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
@@ -104,22 +105,36 @@ public final class SelectionFieldBuilder extends FieldBuilder {
                 this.itemsSupplier.get()
                         .stream()
                         .filter(tuple -> keys.contains(tuple._1))
-                        .map(tuple -> tuple._2)
-                        .forEach(v -> createMuliSelectionReadonlyLabel(composite, v));
+                        .map(tuple -> tuple._1)
+                        .forEach(v -> buildReadonlyLabel(composite, v, 0));
             }
         } else {
             builder.form.putField(
-                    this.name, lab,
-                    builder.valueLabel(
-                            builder.formParent,
-                            this.itemsSupplier.get().stream()
-                                    .filter(tuple -> this.value.equals(tuple._1))
-                                    .findFirst()
-                                    .map(tuple -> tuple._2)
-                                    .orElse(null),
-                            this.spanInput));
+                    this.name,
+                    lab,
+                    buildReadonlyLabel(builder.formParent, this.value, this.spanInput));
             builder.setFieldVisible(this.visible, this.name);
         }
+    }
+
+    private Label buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
+        final Label label = new Label(composite, SWT.NONE);
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false, hspan, 1);
+        gridData.verticalIndent = 0;
+        gridData.horizontalIndent = 0;
+        label.setLayoutData(gridData);
+        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
+
+        final Supplier<String> valueSupplier = () -> this.itemsSupplier.get().stream()
+                .filter(tuple -> valueKey.equals(tuple._1))
+                .findFirst()
+                .map(tuple -> tuple._2)
+                .orElse(Constants.EMPTY_NOTE);
+        final Consumer<Label> updateFunction = l -> l.setText(valueSupplier.get());
+
+        label.setText(valueSupplier.get());
+        label.setData(PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
+        return label;
     }
 
     private void createMuliSelectionReadonlyLabel(final Composite composite, final String value) {

@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.io.Serializable;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -180,6 +182,15 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     @Override
     public Set<String> getRoles() {
         return this.roles;
+    }
+
+    @Override
+    @JsonIgnore
+    public EnumSet<UserRole> getUserRoles() {
+        return EnumSet.copyOf(
+                getRoles().stream()
+                        .map(r -> UserRole.valueOf(r))
+                        .collect(Collectors.toList()));
     }
 
     public boolean hasRole(final UserRole userRole) {

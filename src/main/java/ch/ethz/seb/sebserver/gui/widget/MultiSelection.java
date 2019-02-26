@@ -48,6 +48,7 @@ public class MultiSelection extends Composite implements Selection {
         final String selectionValue = getSelectionValue();
         this.selected.clear();
         this.labels.clear();
+        WidgetFactory.clearComposite(this);
         for (final Tuple<String> tuple : mapping) {
             final Label label = new Label(this, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);

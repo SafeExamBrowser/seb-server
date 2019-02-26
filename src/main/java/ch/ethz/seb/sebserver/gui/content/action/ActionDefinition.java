@@ -98,7 +98,7 @@ public enum ActionDefinition {
             UserAccountForm.class,
             USER_ACCOUNT_VIEW_LIST),
 
-    USER_ACCOUNT_MODIFY_FROM__LIST(
+    USER_ACCOUNT_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.useraccount.action.list.modify"),
             ImageIcon.EDIT,
             UserAccountForm.class,

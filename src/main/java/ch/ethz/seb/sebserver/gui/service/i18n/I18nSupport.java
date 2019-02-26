@@ -8,9 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.i18n;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -20,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface I18nSupport {
@@ -96,15 +93,7 @@ public interface I18nSupport {
         return () -> getTimeZoneResources(this);
     }
 
-    default Supplier<List<Tuple<String>>> localizedUserRoleResources() {
-        return localizedResourceSupplier(USER_ROLE_RESOURCES);
-    }
-
-    final List<Tuple<String>> USER_ROLE_RESOURCES = Collections.unmodifiableList(
-            Arrays.asList(UserRole.values())
-                    .stream()
-                    .map(ur -> new Tuple<>(ur.name(), "sebserver.useraccount.role." + ur.name()))
-                    .collect(Collectors.toList()));
+    Supplier<List<Tuple<String>>> localizedUserRoleResources();
 
     /** Get a list of language key/name tuples for all supported languages in the
      * language of the current users locale.

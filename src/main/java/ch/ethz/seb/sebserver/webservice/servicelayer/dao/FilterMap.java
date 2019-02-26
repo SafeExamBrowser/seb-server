@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import org.joda.time.DateTime;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -19,6 +20,10 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
 
 public class FilterMap extends POSTMapper {
+
+    public FilterMap() {
+        super(new LinkedMultiValueMap<>());
+    }
 
     public FilterMap(final MultiValueMap<String, String> params) {
         super(params);

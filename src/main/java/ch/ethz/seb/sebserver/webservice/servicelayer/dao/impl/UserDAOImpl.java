@@ -60,15 +60,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
-public class UserDaoImpl implements UserDAO {
+public class UserDAOImpl implements UserDAO {
 
-    private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(UserDAOImpl.class);
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
     private final PasswordEncoder userPasswordEncoder;
 
-    public UserDaoImpl(
+    public UserDAOImpl(
             final UserRecordMapper userRecordMapper,
             final RoleRecordMapper roleRecordMapper,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {

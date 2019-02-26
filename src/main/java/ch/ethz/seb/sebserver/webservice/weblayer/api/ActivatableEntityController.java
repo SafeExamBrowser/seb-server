@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -55,6 +56,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
         this.activatableEntityDAO = entityDAO;
     }
 
+    // TODO use also the getAll method
     @RequestMapping(
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -70,12 +72,17 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap()
+                .putIfAbsent(Entity.FILTER_ATTR_ACTIVE, "true")
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
                 sort,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> this.activatableEntityDAO.all(institutionId, true)).getOrThrow();
+                () -> getAll(filterMap)).getOrThrow();
     }
 
     @RequestMapping(
@@ -93,12 +100,17 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap()
+                .putIfAbsent(Entity.FILTER_ATTR_ACTIVE, "false")
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
         return this.paginationService.getPage(
                 pageNumber,
                 pageSize,
                 sort,
                 UserRecordDynamicSqlSupport.userRecord,
-                () -> this.activatableEntityDAO.all(institutionId, false)).getOrThrow();
+                () -> getAll(filterMap)).getOrThrow();
     }
 
     @RequestMapping(

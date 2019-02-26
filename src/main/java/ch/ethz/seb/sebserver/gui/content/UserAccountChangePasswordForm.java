@@ -83,15 +83,15 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         entityKey.getModelId())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_OLD_PASSWORD,
-                        "sebserver.useraccount.form.institution.password.old")
+                        "sebserver.useraccount.form.password.old")
                         .asPasswordField())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
-                        "sebserver.useraccount.form.institution.password.new")
+                        "sebserver.useraccount.form.password.new")
                         .asPasswordField())
                 .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD,
-                        "sebserver.useraccount.form.institution.password.retyped")
+                        PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                        "sebserver.useraccount.form.password.new.confirm")
                         .asPasswordField()
                         .withCondition(() -> entityKey != null))
                 .buildFor(this.restService.getRestCall(ChangePassword.class));

@@ -452,7 +452,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
                         .param(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_ADMIN.name())
                         .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
-                        .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                        .param(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<UserInfo>() {
@@ -653,7 +653,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .param(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
                         .param(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_ADMIN.name())
                         .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
-                        .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                        .param(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678"))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Collection<APIMessage>>() {
@@ -734,7 +734,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
                 .param(Domain.USER.ATTR_NAME, "NewTestUser")
                 .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                .param(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678"))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
@@ -761,7 +761,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .param(Domain.USER.ATTR_INSTITUTION_ID, "2")
                 .param(Domain.USER.ATTR_NAME, "NewTestUser")
                 .param(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .param(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD, "12345678"))
+                .param(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678"))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 

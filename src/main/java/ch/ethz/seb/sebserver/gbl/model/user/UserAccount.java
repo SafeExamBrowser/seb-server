@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -40,6 +41,8 @@ public interface UserAccount extends GrantEntity {
     DateTimeZone getTimeZone();
 
     Set<String> getRoles();
+
+    EnumSet<UserRole> getUserRoles();
 
     String getNewPassword();
 

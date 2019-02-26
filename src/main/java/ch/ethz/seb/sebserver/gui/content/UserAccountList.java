@@ -99,15 +99,15 @@ public class UserAccountList implements TemplateComposer {
         // propagate content actions to action-pane
         pageContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .withExec(UserAccountActions::newUserAccount)
-                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER))
+                .publishIf(() -> this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.USER))
                 .createAction(ActionDefinition.USER_ACCOUNT_VIEW)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(UserAccountActions::viewUserAccountFromList)
                 .publish()
-                .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM__LIST)
+                .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
                 .withSelectionSupplier(table::getSelection)
                 .withExec(UserAccountActions::editUserAccountFromList)
-                .publishIf(() -> this.currentUser.hasPrivilege(PrivilegeType.MODIFY, EntityType.USER));
+                .publishIf(() -> this.currentUser.hasInstitutionalPrivilege(PrivilegeType.MODIFY, EntityType.USER));
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {

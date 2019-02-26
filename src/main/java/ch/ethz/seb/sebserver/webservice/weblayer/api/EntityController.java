@@ -104,7 +104,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         final FilterMap filterMap = new FilterMap(allRequestParams);
 
-        // if current user has no read access for specified entity type within other institution then its own institution,
+        // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
         if (!this.authorization.hasGrant(PrivilegeType.READ_ONLY, this.entityDAO.entityType())) {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));

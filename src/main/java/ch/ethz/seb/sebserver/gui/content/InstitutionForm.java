@@ -83,7 +83,7 @@ public class InstitutionForm implements TemplateComposer {
 
         final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
         final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
-        final boolean userWriteGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, EntityType.USER);
+        final boolean userWriteGrant = this.currentUser.hasBasePrivilege(PrivilegeType.WRITE, EntityType.USER);
         final boolean isReadonly = pageContext.isReadonly();
 
         // new PageContext with actual EntityKey

@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -71,12 +72,13 @@ public class UserAccountForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
+        final UserInfo currentUser = this.currentUser.get();
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
-        final BooleanSupplier isSEBAdmin = () -> this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final BooleanSupplier isSEBAdmin = () -> currentUser.hasRole(UserRole.SEB_SERVER_ADMIN);
         final boolean readonly = pageContext.isReadonly();
         // get data or create new. handle error if happen
         final UserAccount userAccount = isNew.getAsBoolean()
@@ -84,7 +86,7 @@ public class UserAccountForm implements TemplateComposer {
                         UUID.randomUUID().toString(),
                         (parentEntityKey != null)
                                 ? Long.valueOf(parentEntityKey.modelId)
-                                : this.currentUser.get().institutionId)
+                                : currentUser.institutionId)
                 : this.restService
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -99,6 +101,7 @@ public class UserAccountForm implements TemplateComposer {
             return;
         }
 
+        final boolean ownAccount = currentUser.uuid.equals(userAccount.getModelId());
         final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, userAccount);
         final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, userAccount);
         // modifying an UserAccount is not possible if the root institution is inactive
@@ -178,8 +181,8 @@ public class UserAccountForm implements TemplateComposer {
                         .asPasswordField()
                         .withCondition(isNew))
                 .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password.retyped")
+                        PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                        "sebserver.useraccount.form.password.confirm")
                         .asPasswordField()
                         .withCondition(isNew))
                 .buildFor((entityKey == null)
@@ -189,6 +192,7 @@ public class UserAccountForm implements TemplateComposer {
         // propagate content actions to action-pane
 
         formContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .resetEntity()
                 .withExec(UserAccountActions::newUserAccount)
                 .publishIf(() -> writeGrant && readonly && istitutionActive)
 
@@ -210,7 +214,14 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && readonly && istitutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
-                .withExec(formHandle::postChanges)
+                .withExec(action -> {
+                    final Action postChanges = formHandle.postChanges(action);
+                    if (ownAccount) {
+                        this.currentUser.refresh();
+                        pageContext.forwardToMainPage(pageContext);
+                    }
+                    return postChanges;
+                })
                 .publishIf(() -> !readonly)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)

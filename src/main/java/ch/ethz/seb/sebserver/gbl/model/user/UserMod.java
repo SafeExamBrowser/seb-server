@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -79,8 +81,8 @@ public final class UserMod implements UserAccount {
     private final String newPassword;
 
     @NotNull(message = "user:retypedNewPassword:notNull")
-    @JsonProperty(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD)
-    private final String retypedNewPassword;
+    @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
+    private final String confirmNewPassword;
 
     @JsonCreator
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -90,7 +92,7 @@ public final class UserMod implements UserAccount {
             @JsonProperty(USER.ATTR_NAME) final String name,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final String newPassword,
-            @JsonProperty(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword,
+            @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD) final String confirmNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
@@ -99,7 +101,7 @@ public final class UserMod implements UserAccount {
         this.uuid = uuid;
         this.institutionId = institutionId;
         this.newPassword = newPassword;
-        this.retypedNewPassword = retypedNewPassword;
+        this.confirmNewPassword = confirmNewPassword;
         this.name = name;
         this.username = username;
         this.email = email;
@@ -110,11 +112,11 @@ public final class UserMod implements UserAccount {
                 : Collections.emptySet();
     }
 
-    public UserMod(final UserInfo userInfo, final String newPassword, final String retypedNewPassword) {
+    public UserMod(final UserInfo userInfo, final String newPassword, final String confirmNewPassword) {
         this.uuid = userInfo.uuid;
         this.institutionId = userInfo.institutionId;
         this.newPassword = newPassword;
-        this.retypedNewPassword = retypedNewPassword;
+        this.confirmNewPassword = confirmNewPassword;
         this.name = userInfo.name;
         this.username = userInfo.username;
         this.email = userInfo.email;
@@ -127,7 +129,7 @@ public final class UserMod implements UserAccount {
         this.uuid = modelId;
         this.institutionId = postAttrMapper.getLong(USER.ATTR_INSTITUTION_ID);
         this.newPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_NEW_PASSWORD);
-        this.retypedNewPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_RETYPED_NEW_PASSWORD);
+        this.confirmNewPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD);
         this.name = postAttrMapper.getString(USER.ATTR_NAME);
         this.username = postAttrMapper.getString(USER.ATTR_USERNAME);
         this.email = postAttrMapper.getString(USER.ATTR_EMAIL);
@@ -140,7 +142,7 @@ public final class UserMod implements UserAccount {
         this.uuid = modelId;
         this.institutionId = institutionId;
         this.newPassword = null;
-        this.retypedNewPassword = null;
+        this.confirmNewPassword = null;
         this.name = null;
         this.username = null;
         this.email = null;
@@ -205,8 +207,17 @@ public final class UserMod implements UserAccount {
     }
 
     @Override
+    @JsonIgnore
+    public EnumSet<UserRole> getUserRoles() {
+        return EnumSet.copyOf(
+                getRoles().stream()
+                        .map(r -> UserRole.valueOf(r))
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
     public String getRetypedNewPassword() {
-        return this.retypedNewPassword;
+        return this.confirmNewPassword;
     }
 
     public boolean passwordChangeRequest() {
@@ -214,7 +225,7 @@ public final class UserMod implements UserAccount {
     }
 
     public boolean newPasswordMatch() {
-        return passwordChangeRequest() && this.newPassword.equals(this.retypedNewPassword);
+        return passwordChangeRequest() && this.newPassword.equals(this.confirmNewPassword);
     }
 
     @Override
@@ -243,7 +254,7 @@ public final class UserMod implements UserAccount {
                 + this.username + ", email=" + this.email + ", language=" + this.language + ", timeZone="
                 + this.timeZone
                 + ", roles=" + this.roles
-                + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.retypedNewPassword + "]";
+                + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.confirmNewPassword + "]";
     }
 
 }

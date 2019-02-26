@@ -22,7 +22,7 @@ public class PasswordChange implements Entity {
 
     public static final String ATTR_NAME_OLD_PASSWORD = "oldPassword";
     public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
-    public static final String ATTR_NAME_RETYPED_NEW_PASSWORD = "retypedNewPassword";
+    public static final String ATTR_NAME_CONFIRM_NEW_PASSWORD = "confirmNewPassword";
 
     @NotNull
     @JsonProperty(USER.ATTR_UUID)
@@ -37,21 +37,21 @@ public class PasswordChange implements Entity {
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
-    @NotNull(message = "user:retypedNewPassword:notNull")
-    @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD)
-    private final String retypedNewPassword;
+    @NotNull(message = "user:confirmNewPassword:notNull")
+    @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD)
+    private final String confirmNewPassword;
 
     @JsonCreator
     public PasswordChange(
             @JsonProperty(USER.ATTR_UUID) final String userId,
             @JsonProperty(ATTR_NAME_OLD_PASSWORD) final String oldPassword,
             @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
-            @JsonProperty(ATTR_NAME_RETYPED_NEW_PASSWORD) final String retypedNewPassword) {
+            @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD) final String confirmNewPassword) {
 
         this.userId = userId;
         this.oldPassword = oldPassword;
         this.newPassword = newPassword;
-        this.retypedNewPassword = retypedNewPassword;
+        this.confirmNewPassword = confirmNewPassword;
     }
 
     public String getOldPassword() {
@@ -62,12 +62,12 @@ public class PasswordChange implements Entity {
         return this.newPassword;
     }
 
-    public String getRetypedNewPassword() {
-        return this.retypedNewPassword;
+    public String getConfirmNewPassword() {
+        return this.confirmNewPassword;
     }
 
     public boolean newPasswordMatch() {
-        return this.newPassword.equals(this.retypedNewPassword);
+        return this.newPassword.equals(this.confirmNewPassword);
     }
 
     @Override

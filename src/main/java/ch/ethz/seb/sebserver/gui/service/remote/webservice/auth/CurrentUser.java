@@ -74,7 +74,20 @@ public class CurrentUser {
         return null;
     }
 
-    public boolean hasPrivilege(final PrivilegeType privilegeType, final EntityType entityType) {
+    public boolean hasBasePrivilege(final PrivilegeType privilegeType, final EntityType entityType) {
+        return hasPrivilege(privilegeType, entityType, null, null);
+    }
+
+    public boolean hasInstitutionalPrivilege(final PrivilegeType privilegeType, final EntityType entityType) {
+        final UserInfo userInfo = get();
+        return hasPrivilege(privilegeType, entityType, userInfo.institutionId, null);
+    }
+
+    public boolean hasPrivilege(
+            final PrivilegeType privilegeType,
+            final EntityType entityType,
+            final Long institutionId,
+            final String ownerId) {
         if (loadPrivileges()) {
             try {
                 final UserInfo userInfo = get();
@@ -87,7 +100,8 @@ public class CurrentUser {
                                 userInfo.uuid,
                                 userInfo.institutionId,
                                 privilegeType,
-                                null, null))
+                                institutionId,
+                                ownerId))
                         .findFirst()
                         .isPresent();
             } catch (final Exception e) {
@@ -132,6 +146,10 @@ public class CurrentUser {
     public boolean isAvailable() {
         updateContext();
         return this.authContext != null && this.authContext.isLoggedIn();
+    }
+
+    public void refresh() {
+        this.authContext.refreshUser();
     }
 
     private void updateContext() {
