@@ -19,21 +19,12 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
+/** Holds a page-context and defines some convenient functionality for page handling */
 public interface PageContext {
 
     Logger log = LoggerFactory.getLogger(PageContext.class);
 
-    public static final class PageAttr {
-
-        public final String name;
-        public final String value;
-
-        public PageAttr(final String name, final String value) {
-            this.name = name;
-            this.value = value;
-        }
-    }
-
+    /** Defines attribute keys that can be used to store attribute values within the page context state */
     public interface AttributeKeys {
 
         public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
@@ -47,8 +38,14 @@ public interface PageContext {
 
     }
 
+    /** Use this to get the ComposerService used by this PageContext
+     *
+     * @return the ComposerService used by this PageContext */
     ComposerService composerService();
 
+    /** Get the RWT Shell that is bound within this PageContext
+     *
+     * @return the RWT Shell that is bound within this PageContext */
     Shell getShell();
 
     /** Get the page root Component.
@@ -61,9 +58,14 @@ public interface PageContext {
      * @return the parent Component */
     Composite getParent();
 
+    /** Get a copy of this PageContext.
+     *
+     * @return */
     PageContext copy();
 
     /** Create a copy of this PageContext with a new parent Composite.
+     * The implementation should take care of the imutability of PageContext and return a copy with the new parent
+     * by leave this PageContext as is.
      *
      * @param parent the new parent Composite
      * @return a copy of this PageContext with a new parent Composite. */
@@ -71,34 +73,74 @@ public interface PageContext {
 
     /** Create a copy of this PageContext with and additionally page context attributes.
      * The additionally page context attributes will get merged with them already defined
+     * The implementation should take care of the imutability of PageContext and return a copy with the merge
+     * by leave this and the given PageContext as is.
      *
      * @param attributes additionally page context attributes.
      * @return a copy of this PageContext with with and additionally page context attributes. */
     PageContext copyOfAttributes(PageContext otherContext);
 
     /** Adds the specified attribute to the existing page context attributes.
+     * The implementation should take care of the imutability of PageContext and return a copy
+     * by leave this PageContext as is.
      *
      * @param key the key of the attribute
      * @param value the value of the attribute
      * @return this PageContext instance (builder pattern) */
     PageContext withAttribute(String key, String value);
 
+    /** Get the attribute value that is mapped to the given name or null of no mapping exists
+     *
+     * @param name the attribute name
+     * @return the attribute value that is mapped to the given name or null if no mapping exists */
     String getAttribute(String name);
 
+    /** Get the attribute value that is mapped to the given name or a default value if no mapping exists
+     *
+     * @param name the attribute name
+     * @param def the default value
+     * @return the attribute value that is mapped to the given name or null of no mapping exists */
     String getAttribute(String name, String def);
 
+    /** Indicates if the attribute with the key READ_ONLY is set to true within this PageContext
+     *
+     * @return true if the attribute with the key READ_ONLY is set to true */
     boolean isReadonly();
 
+    /** Gets an EntityKey for the base Entity that is associated within this PageContext by using
+     * the attribute keys ENTITY_ID and ENTITY_TYPE to fetch the attribute values for an EntityKey
+     *
+     * @return the EntityKey of the base Entity that is associated within this PageContext */
     EntityKey getEntityKey();
 
+    /** Gets an EntityKey for the parent Entity that is associated within this PageContext by using
+     * the attribute keys PARENT_ENTITY_ID and PARENT_ENTITY_TYPE to fetch the attribute values for an EntityKey
+     *
+     * @return the EntityKey of the parent Entity that is associated within this PageContext */
     EntityKey getParentEntityKey();
 
+    /** Adds a given EntityKey as base Entity key to a new PageContext that is returned as a copy of this PageContext.
+     *
+     * @param entityKey the EntityKey to add as base Entity key
+     * @return the new PageContext with the EntityKey added */
     PageContext withEntityKey(EntityKey entityKey);
 
+    /** Adds a given EntityKey as parent Entity key to a new PageContext that is returned as a copy of this PageContext.
+     *
+     * @param entityKey the EntityKey to add as parent Entity key
+     * @return the new PageContext with the EntityKey added */
     PageContext withParentEntityKey(EntityKey entityKey);
 
+    /** Indicates if an attribute with the specified name exists within this PageContext
+     *
+     * @param name the name of the attribute
+     * @return true if the attribute with the specified name exists within this PageContext */
     boolean hasAttribute(String name);
 
+    /** Returns a new PageContext with the removed attribute by name
+     *
+     * @param name the name of the attribute to remove
+     * @return a copy of this PageContext with the removed attribute */
     PageContext removeAttribute(String name);
 
     /** Publishes a given PageEvent to the current page tree
@@ -117,14 +159,19 @@ public interface PageContext {
      * @param onOK callback code block that will be executed on users OK selection */
     void applyConfirmDialog(LocTextKey confirmMessage, Runnable onOK);
 
-    void forwardToPage(
-            PageDefinition pageDefinition,
-            PageContext pageContext);
+    /** This can be used to forward to a defined page.
+     *
+     * @param pageDefinition the defined page */
+    void forwardToPage(PageDefinition pageDefinition);
 
-    void forwardToMainPage(PageContext pageContext);
+    /** Forward to main page */
+    void forwardToMainPage();
 
-    void forwardToLoginPage(PageContext pageContext);
+    /** Forward to login page */
+    void forwardToLoginPage();
 
+    /** This triggers a logout on the current authorization context to logout the current user
+     * and forward to the login page with showing a successful logout message to the user. */
     void logout();
 
     /** Notify an error dialog to the user with specified error message and
@@ -134,6 +181,11 @@ public interface PageContext {
      * @param error the error as Throwable */
     void notifyError(String errorMessage, Throwable error);
 
+    /** Shows an error message to the user with the message of the given Throwable.
+     * This mainly is used for debugging so far
+     *
+     * @param error the Throwable to display
+     * @return adaption to be used with functional approaches */
     <T> T notifyError(Throwable error);
 
     default <T> T logoutOnError(final Throwable t) {
@@ -142,7 +194,15 @@ public interface PageContext {
         return null;
     }
 
+    /** Publish and shows a message to the user with the given localized title and
+     * localized message. The message text can also be HTML text as far as RWT supports it.
+     *
+     * @param title the localized text key of the title message
+     * @param message the localized text key of the message */
     void publishPageMessage(LocTextKey title, LocTextKey message);
 
+    /** Publish and shows a formatted PageMessageException to the user.
+     *
+     * @param pme the PageMessageException */
     void publishPageMessage(PageMessageException pme);
 }

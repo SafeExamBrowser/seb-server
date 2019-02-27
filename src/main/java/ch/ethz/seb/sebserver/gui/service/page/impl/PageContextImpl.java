@@ -258,23 +258,21 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public void forwardToPage(
-            final PageDefinition pageDefinition,
-            final PageContext pageContext) {
+    public void forwardToPage(final PageDefinition pageDefinition) {
 
         this.composerService.compose(
                 pageDefinition.composer(),
-                pageDefinition.applyPageContext(pageContext.copyOf(pageContext.getRoot())));
+                pageDefinition.applyPageContext(copyOf(this.root)));
     }
 
     @Override
-    public void forwardToMainPage(final PageContext pageContext) {
-        forwardToPage(this.composerService.mainPage(), pageContext);
+    public void forwardToMainPage() {
+        forwardToPage(this.composerService.mainPage());
     }
 
     @Override
-    public void forwardToLoginPage(final PageContext pageContext) {
-        forwardToPage(this.composerService.loginPage(), pageContext);
+    public void forwardToLoginPage() {
+        forwardToPage(this.composerService.loginPage());
     }
 
     @Override
@@ -339,7 +337,7 @@ public class PageContextImpl implements PageContext {
         }
 
         MainPageState.clear();
-        forwardToLoginPage(this);
+        forwardToLoginPage();
     }
 
     @Override
@@ -350,7 +348,7 @@ public class PageContextImpl implements PageContext {
 
     private final class ConfirmDialogCallback implements DialogCallback {
         private static final long serialVersionUID = 1491270214433492441L;
-        private final Runnable onOK;
+        private transient final Runnable onOK;
 
         private ConfirmDialogCallback(final Runnable onOK) {
             this.onOK = onOK;

@@ -217,7 +217,7 @@ public class UserAccountForm implements TemplateComposer {
                     final Action postChanges = formHandle.postChanges(action);
                     if (ownAccount) {
                         this.currentUser.refresh();
-                        pageContext.forwardToMainPage(pageContext);
+                        pageContext.forwardToMainPage();
                     }
                     return postChanges;
                 })

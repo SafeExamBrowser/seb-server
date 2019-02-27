@@ -98,7 +98,7 @@ public class LoginPage implements TemplateComposer {
                                     .getLoggedInUser()
                                     .getOrThrow().language);
 
-                    pageContext.forwardToMainPage(pageContext);
+                    pageContext.forwardToMainPage();
 
                 } else {
                     loginError(pageContext, "sebserver.login.failed.message");

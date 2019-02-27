@@ -135,7 +135,7 @@ public class DefaultPageLayout implements TemplateComposer {
                 MainPageState.clear();
 
                 // forward to login page with success message
-                pageContext.forwardToLoginPage(pageContext);
+                pageContext.forwardToLoginPage();
 
                 // show successful logout message
                 final MessageBox logoutSuccess = new Message(
