@@ -24,4 +24,6 @@ public interface Selection {
 
     void setVisible(boolean visible);
 
+    <T extends Selection> T getTypeInstance();
+
 }

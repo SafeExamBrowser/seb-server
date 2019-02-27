@@ -28,6 +28,7 @@ public final class MainPageState {
 
     public static MainPageState get() {
         try {
+
             final HttpSession httpSession = RWT
                     .getUISession()
                     .getHttpSession();
@@ -39,6 +40,9 @@ public final class MainPageState {
             }
 
             return mainPageState;
+
+        } catch (final RuntimeException re) {
+            throw re;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get MainPageState from user-session");
         }

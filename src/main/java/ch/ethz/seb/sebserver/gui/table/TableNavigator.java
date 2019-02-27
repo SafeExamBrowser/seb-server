@@ -21,8 +21,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public class TableNavigator {
 
+    private final static int PAGE_NAV_SIZE = 3;
+
     private final Composite composite;
-    private final int pageNavSize = 3;
     private final EntityTable<?> entityTable;
 
     TableNavigator(final EntityTable<?> entityTable) {
@@ -56,7 +57,7 @@ public class TableNavigator {
                 createRewardLabel(pageNumber, numNav);
             }
 
-            for (int i = pageNumber - this.pageNavSize; i < pageNumber + this.pageNavSize; i++) {
+            for (int i = pageNumber - PAGE_NAV_SIZE; i < pageNumber + PAGE_NAV_SIZE; i++) {
                 if (i >= 1 && i <= numberOfPages) {
                     createPageNumberLabel(i, i != pageNumber, numNav);
                 }

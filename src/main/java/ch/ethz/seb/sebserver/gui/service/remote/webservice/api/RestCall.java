@@ -91,6 +91,7 @@ public abstract class RestCall<T> {
 
                 final RestCallError restCallError =
                         new RestCallError("Response Entity: " + responseEntity.toString());
+
                 restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
                         responseEntity.getBody(),
                         new TypeReference<List<APIMessage>>() {
@@ -106,14 +107,25 @@ public abstract class RestCall<T> {
         } catch (final Throwable t) {
             final RestCallError restCallError = new RestCallError("Unexpected error while rest call", t);
             try {
+
                 final String responseBody = ((RestClientResponseException) t).getResponseBodyAsString();
+
                 restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
                         responseBody,
                         new TypeReference<List<APIMessage>>() {
                         }));
-            } catch (final Exception e) {
-                log.error("Unexpected error-response while webservice API call for: {}", builder, e);
+
+            } catch (final ClassCastException cce) {
+                log.error("Unexpected error-response while webservice API call for: {}", builder, cce);
                 log.error("Unexpected error-response cause: ", t);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(cce));
+            } catch (final RuntimeException re) {
+                log.error("Unexpected runtime error while webservice API call for: {}", builder, re);
+                log.error("Unexpected runtime error cause: ", t);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(re));
+            } catch (final Exception e) {
+                log.error("Unexpected error while webservice API call for: {}", builder, e);
+                log.error("Unexpected error cause: ", t);
                 restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
             }
 

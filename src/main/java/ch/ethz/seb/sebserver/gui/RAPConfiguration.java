@@ -36,16 +36,19 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
     @Override
     public void configure(final Application application) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(WebClient.PAGE_TITLE, "SEB Server");
-        properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
-//        properties.put(WebClient.FAVICON, "icons/favicon.png");
-
-        application.addEntryPoint("/gui", RAPSpringEntryPointFactory, properties);
-
         try {
+            final Map<String, String> properties = new HashMap<>();
+            properties.put(WebClient.PAGE_TITLE, "SEB Server");
+            properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
+            //        properties.put(WebClient.FAVICON, "icons/favicon.png");
+
+            application.addEntryPoint("/gui", RAPSpringEntryPointFactory, properties);
+
             // TODO get file path from properties
             application.addStyleSheet(RWT.DEFAULT_THEME_ID, "static/css/sebserver.css");
+
+        } catch (final RuntimeException re) {
+            throw re;
         } catch (final Exception e) {
             log.error("Error during CSS parsing. Please check the custom CSS files for errors.", e);
         }

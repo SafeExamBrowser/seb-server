@@ -32,15 +32,7 @@ public class RAPSpringConfig {
 
     @Bean
     public ServletContextInitializer initializer() {
-        return new ServletContextInitializer() {
-
-            @Override
-            public void onStartup(final ServletContext servletContext) throws ServletException {
-                servletContext.setInitParameter(
-                        "org.eclipse.rap.applicationConfiguration",
-                        RAPConfiguration.class.getName());
-            }
-        };
+        return new RAPServletContextInitializer();
     }
 
     @Bean
@@ -54,6 +46,15 @@ public class RAPSpringConfig {
     @Bean
     public ServletRegistrationBean<RWTServlet> servletRegistrationBean() {
         return new ServletRegistrationBean<>(new RWTServlet(), this.entrypoint + "/*");
+    }
+
+    private static class RAPServletContextInitializer implements ServletContextInitializer {
+        @Override
+        public void onStartup(final ServletContext servletContext) throws ServletException {
+            servletContext.setInitParameter(
+                    "org.eclipse.rap.applicationConfiguration",
+                    RAPConfiguration.class.getName());
+        }
     }
 
 }

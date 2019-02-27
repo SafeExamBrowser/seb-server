@@ -255,6 +255,12 @@ public class PaginationService {
         examTableMap.put(
                 Domain.EXAM.ATTR_STATUS,
                 ExamRecordDynamicSqlSupport.status.name());
+        this.sortColumnMapping.put(
+                ExamRecordDynamicSqlSupport.examRecord.name(),
+                examTableMap);
+        this.defaultSortColumn.put(
+                ExamRecordDynamicSqlSupport.examRecord.name(),
+                Domain.EXAM.ATTR_ID);
 
     }
 

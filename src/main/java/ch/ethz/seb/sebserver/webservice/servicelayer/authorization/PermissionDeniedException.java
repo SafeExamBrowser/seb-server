@@ -16,8 +16,7 @@ public class PermissionDeniedException extends RuntimeException {
     private static final long serialVersionUID = 5333137812363042580L;
 
     public final EntityType entityType;
-    public final GrantEntity entity;
-    public final PrivilegeType grantType;
+    public final PrivilegeType privilegeType;
     public final String userId;
 
     public PermissionDeniedException(
@@ -27,8 +26,7 @@ public class PermissionDeniedException extends RuntimeException {
 
         super("No grant: " + grantType + " on type: " + entityType + " for user: " + userId);
         this.entityType = entityType;
-        this.entity = null;
-        this.grantType = grantType;
+        this.privilegeType = grantType;
         this.userId = userId;
     }
 
@@ -43,8 +41,7 @@ public class PermissionDeniedException extends RuntimeException {
                 " entity owner: " + entity.getOwnerId() +
                 " for user: " + userId);
         this.entityType = entity.entityType();
-        this.entity = entity;
-        this.grantType = grantType;
+        this.privilegeType = grantType;
         this.userId = userId;
     }
 

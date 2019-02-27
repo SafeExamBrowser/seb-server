@@ -112,8 +112,7 @@ public class UserAccountForm implements TemplateComposer {
                 .getOr(false);
 
         // new PageContext with actual EntityKey
-        final PageContext formContext = pageContext;
-        pageContext.withEntityKey(userAccount.getEntityKey());
+        final PageContext formContext = pageContext.withEntityKey(userAccount.getEntityKey());
 
         if (log.isDebugEnabled()) {
             log.debug("UserAccount Form for user {}", userAccount.getName());

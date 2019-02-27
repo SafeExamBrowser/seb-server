@@ -72,4 +72,10 @@ public class SingleSelection extends Combo implements Selection {
         super.setItems(this.valueMapping.toArray(new String[this.valueMapping.size()]));
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public SingleSelection getTypeInstance() {
+        return this;
+    }
+
 }

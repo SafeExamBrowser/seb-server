@@ -120,24 +120,7 @@ public class ActivitiesPane implements TemplateComposer {
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionEventListener() {
-                    @Override
-                    public void notify(final ActionEvent event) {
-                        final MainPageState mainPageState = MainPageState.get();
-                        mainPageState.action = event.action;
-                        if (!event.activity) {
-                            final EntityKey entityKey = event.action.getEntityKey();
-                            final String modelId = (entityKey != null) ? entityKey.modelId : null;
-                            final TreeItem item = findItemByActionDefinition(
-                                    navigation.getItems(),
-                                    event.action.definition,
-                                    modelId);
-                            if (item != null) {
-                                navigation.select(item);
-                            }
-                        }
-                    }
-                });
+                new ActivitiesActionEventListener(navigation));
 
         // page-selection on (re)load
         final MainPageState mainPageState = MainPageState.get();
@@ -175,9 +158,12 @@ public class ActivitiesPane implements TemplateComposer {
 
         for (final TreeItem item : items) {
             final Action action = getActivitySelection(item);
+            if (action == null) {
+                continue;
+            }
+
             final EntityKey entityKey = action.getEntityKey();
-            if (action != null
-                    && (action.definition == actionDefinition || action.definition == actionDefinition.activityAlias) &&
+            if ((action.definition == actionDefinition || action.definition == actionDefinition.activityAlias) &&
                     (entityKey == null || (modelId != null && modelId.equals(entityKey.modelId)))) {
                 return item;
             }
@@ -210,6 +196,31 @@ public class ActivitiesPane implements TemplateComposer {
 
     public static void injectActivitySelection(final TreeItem item, final Action action) {
         item.setData(ATTR_ACTIVITY_SELECTION, action);
+    }
+
+    private final class ActivitiesActionEventListener implements ActionEventListener {
+        private final Tree navigation;
+
+        private ActivitiesActionEventListener(final Tree navigation) {
+            this.navigation = navigation;
+        }
+
+        @Override
+        public void notify(final ActionEvent event) {
+            final MainPageState mainPageState = MainPageState.get();
+            mainPageState.action = event.action;
+            if (!event.activity) {
+                final EntityKey entityKey = event.action.getEntityKey();
+                final String modelId = (entityKey != null) ? entityKey.modelId : null;
+                final TreeItem item = findItemByActionDefinition(
+                        this.navigation.getItems(),
+                        event.action.definition,
+                        modelId);
+                if (item != null) {
+                    this.navigation.select(item);
+                }
+            }
+        }
     }
 
 }

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.Consumer;
+
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -118,46 +120,49 @@ public class MainPage implements TemplateComposer {
         contentObjectslayout.marginHeight = 0;
         contentObjectslayout.marginWidth = 0;
         contentObjects.setLayout(contentObjectslayout);
-        contentObjects.setData(PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionEventListener() {
-                    @Override
-                    public int priority() {
-                        return 2;
-                    }
-
-                    @Override
-                    public void notify(final ActionEvent event) {
-                        pageContext.composerService().compose(
-                                event.action.definition.contentPaneComposer,
-                                event.action.pageContext().copyOf(contentObjects));
-                    }
-                });
+        contentObjects.setData(
+                PageEventListener.LISTENER_ATTRIBUTE_KEY,
+                new ContentActionEventListener(event -> pageContext.composerService().compose(
+                        event.action.definition.contentPaneComposer,
+                        event.action.pageContext().copyOf(contentObjects)), 2));
 
         final Composite actionPane = new Composite(mainSash, SWT.NONE);
         actionPane.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         final GridLayout actionPaneGrid = new GridLayout();
         actionPane.setLayout(actionPaneGrid);
         actionPane.setData(RWT.CUSTOM_VARIANT, "actionPane");
-        actionPane.setData(PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionEventListener() {
-                    @Override
-                    public int priority() {
-                        return 1;
-                    }
-
-                    @Override
-                    public void notify(final ActionEvent event) {
-                        pageContext.composerService().compose(
-                                event.action.definition.actionPaneComposer,
-                                event.action.pageContext().copyOf(actionPane));
-                    }
-                });
+        actionPane.setData(
+                PageEventListener.LISTENER_ATTRIBUTE_KEY,
+                new ContentActionEventListener(event -> pageContext.composerService().compose(
+                        event.action.definition.actionPaneComposer,
+                        event.action.pageContext().copyOf(actionPane)), 1));
 
         pageContext.composerService().compose(
                 ActivitiesPane.class,
                 pageContext.copyOf(nav));
 
         mainSash.setWeights(DEFAULT_SASH_WEIGHTS);
+    }
+
+    private static final class ContentActionEventListener implements ActionEventListener {
+
+        private final int priority;
+        private final Consumer<ActionEvent> apply;
+
+        protected ContentActionEventListener(final Consumer<ActionEvent> apply, final int priority) {
+            this.apply = apply;
+            this.priority = priority;
+        }
+
+        @Override
+        public int priority() {
+            return this.priority;
+        }
+
+        @Override
+        public void notify(final ActionEvent event) {
+            this.apply.accept(event);
+        }
     }
 
 }

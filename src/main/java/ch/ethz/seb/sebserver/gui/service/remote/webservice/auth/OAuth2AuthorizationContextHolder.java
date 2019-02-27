@@ -170,14 +170,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
             this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
             this.restTemplate.setRequestFactory(clientHttpRequestFactory);
-            this.restTemplate.setErrorHandler(new OAuth2ErrorHandler(this.resource) {
-                @Override
-                public boolean hasError(final ClientHttpResponse response) throws IOException {
-                    final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
-                    return (statusCode != null && statusCode.series() == HttpStatus.Series.SERVER_ERROR);
-                }
-
-            });
+            this.restTemplate.setErrorHandler(new ErrorHandler(this.resource));
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
@@ -295,6 +288,18 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             return getLoggedInUser()
                     .getOrThrow().roles
                             .contains(role.name());
+        }
+
+        private final class ErrorHandler extends OAuth2ErrorHandler {
+            private ErrorHandler(final OAuth2ProtectedResourceDetails resource) {
+                super(resource);
+            }
+
+            @Override
+            public boolean hasError(final ClientHttpResponse response) throws IOException {
+                final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
+                return (statusCode != null && statusCode.series() == HttpStatus.Series.SERVER_ERROR);
+            }
         }
 
     }

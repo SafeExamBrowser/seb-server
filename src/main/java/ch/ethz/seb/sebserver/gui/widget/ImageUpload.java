@@ -41,7 +41,7 @@ public class ImageUpload extends Composite {
 
     private static final Logger log = LoggerFactory.getLogger(ImageUpload.class);
 
-    private final ServerPushService serverPushService;
+    private transient final ServerPushService serverPushService;
 
     private final Composite imageCanvas;
     private final FileUpload fileUpload;
@@ -136,8 +136,10 @@ public class ImageUpload extends Composite {
     private static final void wait(final ServerPushContext context) {
         try {
             Thread.sleep(200);
-        } catch (final Exception e) {
+        } catch (final InterruptedException e) {
+            log.info("InterruptedException while wait for image uplaod. Just ignore it");
         }
+
     }
 
     private static final void update(final ServerPushContext context) {
@@ -145,6 +147,7 @@ public class ImageUpload extends Composite {
         if (imageUpload.imageBase64 != null
                 && imageUpload.loadNewImage
                 && imageUpload.imageLoaded) {
+
             final Base64InputStream input = new Base64InputStream(
                     new ByteArrayInputStream(
                             imageUpload.imageBase64.getBytes(StandardCharsets.UTF_8)),

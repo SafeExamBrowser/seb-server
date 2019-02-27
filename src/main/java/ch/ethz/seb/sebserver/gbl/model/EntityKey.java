@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import java.io.Serializable;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -15,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
-public class EntityKey {
+public class EntityKey implements Serializable {
+
+    private static final long serialVersionUID = -2368065921846821061L;
 
     @JsonProperty(value = "modelId", required = true)
     @NotNull

@@ -138,27 +138,6 @@ public class PageContextImpl implements PageContext {
                 attrs);
     }
 
-//    @Override
-//    public PageContext withSelection(final ActivitySelection selection, final boolean clearAttributes) {
-//        if (selection == null) {
-//            return this;
-//        }
-//
-//        final Map<String, String> attrs = new HashMap<>();
-//        if (!clearAttributes) {
-//            attrs.putAll(this.attributes);
-//        }
-//        attrs.putAll(selection.getAttributes());
-//
-//        return new PageContextImpl(
-//                this.restService,
-//                this.i18nSupport,
-//                this.composerService,
-//                this.root,
-//                this.parent,
-//                attrs);
-//    }
-
     @Override
     public String getAttribute(final String name) {
         return this.attributes.get(name);
@@ -268,7 +247,6 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    @SuppressWarnings("serial")
     public void applyConfirmDialog(final LocTextKey confirmMessage, final Runnable onOK) {
         final Message messageBox = new Message(
                 this.root.getShell(),
@@ -276,29 +254,8 @@ public class PageContextImpl implements PageContext {
                 this.i18nSupport.getText(confirmMessage),
                 SWT.OK | SWT.CANCEL);
         messageBox.setMarkupEnabled(true);
-        messageBox.open(new DialogCallback() {
-            @Override
-            public void dialogClosed(final int returnCode) {
-                if (returnCode == SWT.OK) {
-                    try {
-                        onOK.run();
-                    } catch (final Throwable t) {
-                        log.error(
-                                "Unexpected on confirm callback execution. This should not happen, plase secure the given onOK Runnable",
-                                t);
-                    }
-                }
-            }
-        });
+        messageBox.open(new ConfirmDialogCallback(onOK));
     }
-
-//    public void applyValidationErrorDialog(final Collection<FieldValidationError> validationErrors) {
-//        final Message messageBox = new Message(
-//                this.root.getShell(),
-//                this.i18nSupport.getText("org.sebserver.dialog.validationErrors.title"),
-//                this.i18nSupport.getText(confirmMessage),
-//                SWT.OK);
-//    }
 
     @Override
     public void forwardToPage(
@@ -389,6 +346,28 @@ public class PageContextImpl implements PageContext {
     public String toString() {
         return "PageContextImpl [root=" + this.root + ", parent=" + this.parent + ", attributes=" + this.attributes
                 + "]";
+    }
+
+    private final class ConfirmDialogCallback implements DialogCallback {
+        private static final long serialVersionUID = 1491270214433492441L;
+        private final Runnable onOK;
+
+        private ConfirmDialogCallback(final Runnable onOK) {
+            this.onOK = onOK;
+        }
+
+        @Override
+        public void dialogClosed(final int returnCode) {
+            if (returnCode == SWT.OK) {
+                try {
+                    this.onOK.run();
+                } catch (final Throwable t) {
+                    log.error(
+                            "Unexpected on confirm callback execution. This should not happen, plase secure the given onOK Runnable",
+                            t);
+                }
+            }
+        }
     }
 
     private static final class ListenerComparator implements Comparator<PageEventListener<?>> {

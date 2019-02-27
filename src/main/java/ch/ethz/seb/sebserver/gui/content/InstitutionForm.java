@@ -87,8 +87,7 @@ public class InstitutionForm implements TemplateComposer {
         final boolean isReadonly = pageContext.isReadonly();
 
         // new PageContext with actual EntityKey
-        final PageContext formContext = pageContext;
-        pageContext.withEntityKey(institution.getEntityKey());
+        final PageContext formContext = pageContext.withEntityKey(institution.getEntityKey());
 
         if (log.isDebugEnabled()) {
             log.debug("Institution Form for Institution {}", institution.name);

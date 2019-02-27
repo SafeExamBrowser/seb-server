@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -22,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +59,8 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @RestController
 @Order(6)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Value("${sebserver.webservice.api.admin.endpoint}")
     private String adminEndpoint;
@@ -106,16 +111,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     @DevGuiProfile
     @DevWebServiceProfile
     public ClientHttpRequestFactory clientHttpRequestFactory() {
-        // TODO set connection and read timeout!? configurable!?
-        return new SimpleClientHttpRequestFactory() {
-
-            @Override
-            protected void prepareConnection(final HttpURLConnection connection, final String httpMethod)
-                    throws IOException {
-                super.prepareConnection(connection, httpMethod);
-                connection.setInstanceFollowRedirects(false);
-            }
-        };
+        log.info("Initialize with insecure ClientHttpRequestFactory for development");
+        return new DevClientHttpRequestFactory();
     }
 
     /** A ClientHttpRequestFactory used in production with TSL SSL configuration.
@@ -139,15 +136,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     public ClientHttpRequestFactory clientHttpRequestFactoryTLS(final Environment env) throws KeyManagementException,
             NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
 
+        log.info("Initialize with secure ClientHttpRequestFactory for production");
+
         final char[] password = env
-                .getProperty("sebserver.gui.truststore.pwd")
+                .getProperty("sebserver.gui.truststore.pwd", "")
                 .toCharArray();
+
+        if (password.length < 3) {
+            log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
+            throw new IllegalArgumentException("Missing or incorrect trust-store password");
+        }
+
+        final File trustStoreFile = ResourceUtils.getFile("classpath:truststore.jks");
 
         final SSLContext sslContext = SSLContextBuilder
                 .create()
-                .loadTrustMaterial(ResourceUtils.getFile(
-                        "classpath:truststore.jks"),
-                        password)
+                .loadTrustMaterial(trustStoreFile, password)
                 .build();
 
         final HttpClient client = HttpClients.custom()
@@ -156,6 +160,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
         // TODO set connection and read timeout!? configurable!?
         return new HttpComponentsClientHttpRequestFactory(client);
+    }
+
+    // TODO set connection and read timeout!? configurable!?
+    private static class DevClientHttpRequestFactory extends SimpleClientHttpRequestFactory {
+
+        @Override
+        protected void prepareConnection(
+                final HttpURLConnection connection,
+                final String httpMethod) throws IOException {
+
+            super.prepareConnection(connection, httpMethod);
+            connection.setInstanceFollowRedirects(false);
+        }
     }
 
 }

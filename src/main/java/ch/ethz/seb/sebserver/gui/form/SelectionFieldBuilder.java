@@ -76,9 +76,9 @@ public final class SelectionFieldBuilder extends FieldBuilder {
         ((Control) selection).setLayoutData(gridData);
         selection.select(this.value);
         if (this.multi) {
-            builder.form.putField(this.name, lab, (MultiSelection) selection);
+            builder.form.putField(this.name, lab, selection.<MultiSelection> getTypeInstance());
         } else {
-            builder.form.putField(this.name, lab, (SingleSelection) selection);
+            builder.form.putField(this.name, lab, selection.<SingleSelection> getTypeInstance());
         }
         if (this.selectionListener != null) {
             ((Control) selection).addListener(SWT.Selection, e -> {

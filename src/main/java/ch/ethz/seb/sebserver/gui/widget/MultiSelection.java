@@ -133,4 +133,10 @@ public class MultiSelection extends Composite implements Selection {
         deselectAll();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public MultiSelection getTypeInstance() {
+        return this;
+    }
+
 }
