@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -50,7 +49,6 @@ public class FormBuilder {
     private boolean emptyCellSeparation = true;
 
     FormBuilder(
-            final EntityKey entityKey,
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
@@ -60,7 +58,7 @@ public class FormBuilder {
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.pageContext = pageContext;
-        this.form = new Form(jsonMapper, entityKey);
+        this.form = new Form(jsonMapper);
 
         this.formParent = new Composite(pageContext.getParent(), SWT.NONE);
         final GridLayout layout = new GridLayout(rows, true);

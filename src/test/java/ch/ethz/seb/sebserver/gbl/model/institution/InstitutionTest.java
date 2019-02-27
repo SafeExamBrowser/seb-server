@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.institution;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.junit.Test;
@@ -21,10 +24,13 @@ public class InstitutionTest {
 
     @Test
     public void test() throws JsonParseException, JsonMappingException, IOException {
-        final String testJson = "{\"id\":\"1\",\"name\":\"ETH Zürichrgerg\",\"urlSuffix\":\"\"}";
+        final String testJson = "{\"id\":\"1\",\"name\":\"ETH Zürich\",\"urlSuffix\":\"\"}";
 
         final JSONMapper mapper = new JSONMapper();
         final Institution inst = mapper.readValue(testJson, Institution.class);
+        assertTrue(inst.id != null);
+        assertTrue(inst.id.longValue() == 1);
+        assertEquals("ETH Zürich", inst.name);
     }
 
 }

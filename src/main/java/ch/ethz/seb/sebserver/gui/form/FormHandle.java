@@ -97,7 +97,7 @@ public class FormHandle<T extends Entity> {
 
         fieldAccessor.setError(this.i18nSupport.getText(new LocTextKey(
                 FIELD_VALIDATION_LOCTEXT_PREFIX + valError.errorType,
-                (Object[]) valError.attributes)));
+                (Object[]) valError.getAttributes())));
     }
 
     public FormHandle<T> process(final Consumer<Form> consumer) {

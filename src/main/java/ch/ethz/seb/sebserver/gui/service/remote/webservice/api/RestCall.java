@@ -28,11 +28,9 @@ import org.springframework.web.client.RestClientResponseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
@@ -72,7 +70,7 @@ public abstract class RestCall<T> {
         log.debug("Call webservice API on {} for {}", this.path, builder);
 
         try {
-            final ResponseEntity<String> responseEntity = RestCall.this.restService
+            final ResponseEntity<String> responseEntity = this.restService
                     .getWebserviceAPIRestTemplate()
                     .exchange(
                             builder.buildURI(),
@@ -211,10 +209,8 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withFormBinding(final FormBinding formBinding) {
-            final EntityKey entityKey = formBinding.entityKey();
-            if (entityKey != null) {
-                return withURIVariable(API.PARAM_MODEL_ID, formBinding.entityKey().modelId)
-                        .withBody(formBinding.getFormAsJson());
+            if (RestCall.this.httpMethod == HttpMethod.PUT) {
+                return withBody(formBinding.getFormAsJson());
             } else {
                 this.body = formBinding.getFormUrlEncoded();
                 return this;

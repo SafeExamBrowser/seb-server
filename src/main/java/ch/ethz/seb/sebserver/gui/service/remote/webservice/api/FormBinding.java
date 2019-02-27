@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-
 public interface FormBinding {
-
-    EntityKey entityKey();
 
     String getFormAsJson();
 

@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.widget.MultiSelection;
@@ -47,17 +46,9 @@ public final class Form implements FormBinding {
     private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
 
-    private final EntityKey entityKey;
-
-    Form(final JSONMapper jsonMapper, final EntityKey entityKey) {
+    Form(final JSONMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
         this.objectRoot = this.jsonMapper.createObjectNode();
-        this.entityKey = entityKey;
-    }
-
-    @Override
-    public EntityKey entityKey() {
-        return this.entityKey;
     }
 
     @Override

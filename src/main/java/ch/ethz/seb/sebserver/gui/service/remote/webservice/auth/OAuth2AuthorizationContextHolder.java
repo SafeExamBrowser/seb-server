@@ -98,6 +98,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                     this.guiClientSecret,
                     this.webserviceURIService,
                     this.clientHttpRequestFactory);
+
             session.setAttribute(CONTEXT_HOLDER_ATTRIBUTE, context);
         }
 
