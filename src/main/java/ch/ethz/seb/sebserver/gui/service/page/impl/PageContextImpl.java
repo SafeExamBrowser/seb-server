@@ -38,7 +38,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 public class PageContextImpl implements PageContext {
@@ -47,7 +46,6 @@ public class PageContextImpl implements PageContext {
 
     private static final ListenerComparator LIST_COMPARATOR = new ListenerComparator();
 
-    private final RestService restService;
     private final I18nSupport i18nSupport;
     private final ComposerService composerService;
     private final Composite root;
@@ -55,14 +53,12 @@ public class PageContextImpl implements PageContext {
     private final Map<String, String> attributes;
 
     PageContextImpl(
-            final RestService restService,
             final I18nSupport i18nSupport,
             final ComposerService composerService,
             final Composite root,
             final Composite parent,
             final Map<String, String> attributes) {
 
-        this.restService = restService;
         this.i18nSupport = i18nSupport;
         this.composerService = composerService;
         this.root = root;
@@ -102,7 +98,6 @@ public class PageContextImpl implements PageContext {
     @Override
     public PageContext copyOf(final Composite parent) {
         return new PageContextImpl(
-                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -116,7 +111,6 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.putAll(((PageContextImpl) otherContext).attributes);
         return new PageContextImpl(
-                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -130,7 +124,6 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.put(key, value);
         return new PageContextImpl(
-                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -200,6 +193,12 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public PageContext clearEntityKeys() {
+        return withEntityKey(null)
+                .withParentEntityKey(null);
+    }
+
+    @Override
     public boolean hasAttribute(final String name) {
         return this.attributes.containsKey(name);
     }
@@ -210,7 +209,6 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.remove(name);
         return new PageContextImpl(
-                this.restService,
                 this.i18nSupport,
                 this.composerService,
                 this.root,
@@ -243,7 +241,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public Action createAction(final ActionDefinition actionDefinition) {
-        return new Action(actionDefinition, this, this.restService);
+        return new Action(actionDefinition, this);
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -31,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
@@ -46,6 +44,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -72,13 +71,13 @@ public class UserAccountForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        final UserInfo currentUser = this.currentUser.get();
+        final UserInfo user = this.currentUser.get();
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
-        final BooleanSupplier isSEBAdmin = () -> currentUser.hasRole(UserRole.SEB_SERVER_ADMIN);
+        final BooleanSupplier isSEBAdmin = () -> user.hasRole(UserRole.SEB_SERVER_ADMIN);
         final boolean readonly = pageContext.isReadonly();
         // get data or create new. handle error if happen
         final UserAccount userAccount = isNew.getAsBoolean()
@@ -86,7 +85,7 @@ public class UserAccountForm implements TemplateComposer {
                         UUID.randomUUID().toString(),
                         (parentEntityKey != null)
                                 ? Long.valueOf(parentEntityKey.modelId)
-                                : currentUser.institutionId)
+                                : user.institutionId)
                 : this.restService
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -101,9 +100,10 @@ public class UserAccountForm implements TemplateComposer {
             return;
         }
 
-        final boolean ownAccount = currentUser.uuid.equals(userAccount.getModelId());
-        final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, userAccount);
-        final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, userAccount);
+        final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
+        final EntityGrantCheck userGrantCheck = this.currentUser.entityGrantCheck(userAccount);
+        final boolean writeGrant = userGrantCheck.w();
+        final boolean modifyGrant = userGrantCheck.m();
         // modifying an UserAccount is not possible if the root institution is inactive
         final boolean istitutionActive = this.restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
@@ -190,26 +190,26 @@ public class UserAccountForm implements TemplateComposer {
 
         // propagate content actions to action-pane
 
-        formContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .resetEntity()
-                .withExec(UserAccountActions::newUserAccount)
+        formContext.clearEntityKeys()
+
+                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .publishIf(() -> writeGrant && readonly && istitutionActive)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
-                .withExec(UserAccountActions::editUserAccount)
+                .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && istitutionActive)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
-                .withEntity(userAccount.getEntityKey())
+                .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
-                .withExec(UserAccountActions::deactivateUserAccount)
+                .withExec(Action.activation(this.restService, false))
                 .withConfirm(PageUtils.confirmDeactivation(userAccount, this.restService))
                 .publishIf(() -> writeGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
-                .withExec(UserAccountActions::activateUserAccount)
+                .withExec(Action.activation(this.restService, true))
                 .publishIf(() -> writeGrant && readonly && istitutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
@@ -224,7 +224,7 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> !readonly)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
-                .withExec(UserAccountActions::cancelEditUserAccount)
+                .withExec(Action::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
     }

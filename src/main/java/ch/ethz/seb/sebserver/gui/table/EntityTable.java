@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -174,7 +175,7 @@ public class EntityTable<ROW extends Entity> {
                 this.sortOrder);
     }
 
-    public String getSingleSelection() {
+    public EntityKey getSingleSelection() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
             return null;
@@ -183,7 +184,7 @@ public class EntityTable<ROW extends Entity> {
         return getRowDataId(selection[0]);
     }
 
-    public Set<String> getSelection() {
+    public Set<EntityKey> getSelection() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null) {
             return Collections.emptySet();
@@ -348,8 +349,8 @@ public class EntityTable<ROW extends Entity> {
         return (ROW) item.getData(TABLE_ROW_DATA);
     }
 
-    private String getRowDataId(final TableItem item) {
-        return getRowData(item).getModelId();
+    private EntityKey getRowDataId(final TableItem item) {
+        return getRowData(item).getEntityKey();
     }
 
 }

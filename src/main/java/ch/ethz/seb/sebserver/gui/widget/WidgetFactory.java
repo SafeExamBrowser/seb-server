@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
@@ -48,7 +47,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
@@ -155,16 +153,11 @@ public class WidgetFactory {
     public Composite defaultPageLayout(
             final Composite parent,
             final LocTextKey title,
-            final ActionDefinition actionDefinition,
-            final Function<Label, Consumer<ActionEvent>> eventFunction) {
+            final ActionDefinition actionDefinition) {
 
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
         labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
-//        ActionEventListener.injectListener(
-//                labelLocalizedTitle,
-//                actionDefinition,
-//                eventFunction.apply(labelLocalizedTitle));
         return defaultPageLayout;
     }
 

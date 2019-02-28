@@ -38,7 +38,6 @@ public class TableBuilder<ROW extends Entity> {
 
     private final WidgetFactory widgetFactory;
     final RestCall<Page<ROW>> restCall;
-//    final List<TableFilterAttribute> filter = new ArrayList<>();
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     final List<TableRowAction> actions = new ArrayList<>();
 

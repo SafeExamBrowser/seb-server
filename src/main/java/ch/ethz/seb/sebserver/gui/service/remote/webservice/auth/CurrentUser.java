@@ -74,6 +74,14 @@ public class CurrentUser {
         return null;
     }
 
+    public GrantCheck grantCheck(final EntityType entityType) {
+        return new GrantCheck(entityType);
+    }
+
+    public EntityGrantCheck entityGrantCheck(final GrantEntity grantEntity) {
+        return new EntityGrantCheck(grantEntity);
+    }
+
     public boolean hasBasePrivilege(final PrivilegeType privilegeType, final EntityType entityType) {
         return hasPrivilege(privilegeType, entityType, null, null);
     }
@@ -203,6 +211,87 @@ public class CurrentUser {
         } else {
             log.error("Failed to get Privileges from webservice API. No AuthorizationContext available");
             return false;
+        }
+    }
+
+    /** Wrapper can be used for base and institutional grant checks for a specified EntityType */
+    public class GrantCheck {
+        private final EntityType entityType;
+
+        protected GrantCheck(final EntityType entityType) {
+            this.entityType = entityType;
+        }
+
+        /** Checks the base read-only privilege grant
+         * 
+         * @return true on read-only privilege grant on wrapped EntityType */
+        public boolean r() {
+            return hasBasePrivilege(PrivilegeType.READ_ONLY, this.entityType);
+        }
+
+        /** Checks the base modify privilege grant
+         * 
+         * @return true on modify privilege grant on wrapped EntityType */
+        public boolean m() {
+            return hasBasePrivilege(PrivilegeType.MODIFY, this.entityType);
+        }
+
+        /** Checks the base write privilege grant
+         * 
+         * @return true on write privilege grant on wrapped EntityType */
+        public boolean w() {
+            return hasBasePrivilege(PrivilegeType.WRITE, this.entityType);
+        }
+
+        /** Checks the institutional read-only privilege grant
+         * 
+         * @return true institutional read-only privilege grant on wrapped EntityType */
+        public boolean ir() {
+            return hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, this.entityType);
+        }
+
+        /** Checks the institutional modify privilege grant
+         * 
+         * @return true institutional modify privilege grant on wrapped EntityType */
+        public boolean im() {
+            return hasInstitutionalPrivilege(PrivilegeType.MODIFY, this.entityType);
+        }
+
+        /** Checks the institutional write privilege grant
+         * 
+         * @return true institutional write privilege grant on wrapped EntityType */
+        public boolean iw() {
+            return hasInstitutionalPrivilege(PrivilegeType.WRITE, this.entityType);
+        }
+    }
+
+    /** Wrapper can be used for Entity based grant checks */
+    public class EntityGrantCheck {
+        private final GrantEntity grantEntity;
+
+        protected EntityGrantCheck(final GrantEntity grantEntity) {
+            this.grantEntity = grantEntity;
+        }
+
+        /** Checks the read-only privilege grant for wrapped grantEntity
+         * 
+         * @return true on read-only privilege grant for wrapped grantEntity */
+        public boolean r() {
+            return hasPrivilege(PrivilegeType.READ_ONLY, this.grantEntity);
+        }
+
+        /** Checks the modify privilege grant for wrapped grantEntity
+         * 
+         * @return true on modify privilege grant for wrapped grantEntity */
+        public boolean m() {
+            return hasPrivilege(PrivilegeType.MODIFY, this.grantEntity);
+        }
+
+        /** Checks the write privilege grant for wrapped grantEntity
+         * 
+         * @return true on write privilege grant for wrapped grantEntity */
+        public boolean w() {
+            return hasPrivilege(PrivilegeType.WRITE, this.grantEntity);
         }
     }
 

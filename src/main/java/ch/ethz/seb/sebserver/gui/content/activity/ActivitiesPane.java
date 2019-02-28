@@ -92,7 +92,7 @@ public class ActivitiesPane implements TemplateComposer {
             injectActivitySelection(
                     institutions,
                     pageContext.createAction(ActionDefinition.INSTITUTION_VIEW_FORM)
-                            .withEntity(userInfo.institutionId, EntityType.INSTITUTION)
+                            .withEntityKey(userInfo.institutionId, EntityType.INSTITUTION)
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 
@@ -113,7 +113,7 @@ public class ActivitiesPane implements TemplateComposer {
             injectActivitySelection(
                     userAccounts,
                     pageContext.createAction(ActionDefinition.USER_ACCOUNT_VIEW_FORM)
-                            .withEntity(this.currentUser.get().getEntityKey())
+                            .withEntityKey(this.currentUser.get().getEntityKey())
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 

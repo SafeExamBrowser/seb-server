@@ -30,7 +30,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.institution.action.new"),
             ImageIcon.NEW,
             InstitutionForm.class,
-            INSTITUTION_VIEW_LIST),
+            INSTITUTION_VIEW_LIST, false),
     INSTITUTION_VIEW_FROM_LIST(
             new LocTextKey("sebserver.institution.action.list.view"),
             ImageIcon.SHOW,
@@ -41,13 +41,13 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.institution.action.list.modify"),
             ImageIcon.EDIT,
             InstitutionForm.class,
-            INSTITUTION_VIEW_LIST),
+            INSTITUTION_VIEW_LIST, false),
 
     INSTITUTION_MODIFY(
             new LocTextKey("sebserver.institution.action.modify"),
             ImageIcon.EDIT,
             InstitutionForm.class,
-            INSTITUTION_VIEW_LIST),
+            INSTITUTION_VIEW_LIST, false),
 
     INSTITUTION_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
@@ -90,7 +90,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.useraccount.action.new"),
             ImageIcon.NEW,
             UserAccountForm.class,
-            USER_ACCOUNT_VIEW_LIST),
+            USER_ACCOUNT_VIEW_LIST, false),
 
     USER_ACCOUNT_VIEW(
             new LocTextKey("sebserver.useraccount.action.view"),
@@ -102,13 +102,13 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.useraccount.action.list.modify"),
             ImageIcon.EDIT,
             UserAccountForm.class,
-            USER_ACCOUNT_VIEW_LIST),
+            USER_ACCOUNT_VIEW_LIST, false),
 
     USER_ACCOUNT_MODIFY(
             new LocTextKey("sebserver.useraccount.action.modify"),
             ImageIcon.EDIT,
             UserAccountForm.class,
-            USER_ACCOUNT_VIEW_LIST),
+            USER_ACCOUNT_VIEW_LIST, false),
 
     USER_ACCOUNT_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
@@ -144,7 +144,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.useraccount.action.change.password"),
             ImageIcon.EDIT,
             UserAccountChangePasswordForm.class,
-            USER_ACCOUNT_VIEW_LIST),
+            USER_ACCOUNT_VIEW_LIST, false),
     USER_ACCOUNT_CHANGE_PASSOWRD_SAVE(
             new LocTextKey("sebserver.useraccount.action.change.password.save"),
             ImageIcon.SAVE,
@@ -158,6 +158,7 @@ public enum ActionDefinition {
     public final Class<? extends TemplateComposer> contentPaneComposer;
     public final Class<? extends TemplateComposer> actionPaneComposer;
     public final ActionDefinition activityAlias;
+    public final boolean readonly;
 
     private ActionDefinition(
             final LocTextKey title,
@@ -168,6 +169,7 @@ public enum ActionDefinition {
         this.contentPaneComposer = contentPaneComposer;
         this.actionPaneComposer = ActionPane.class;
         this.activityAlias = null;
+        this.readonly = true;
     }
 
     private ActionDefinition(
@@ -180,6 +182,7 @@ public enum ActionDefinition {
         this.contentPaneComposer = contentPaneComposer;
         this.actionPaneComposer = ActionPane.class;
         this.activityAlias = activityAlias;
+        this.readonly = true;
     }
 
     private ActionDefinition(
@@ -193,20 +196,22 @@ public enum ActionDefinition {
         this.contentPaneComposer = contentPaneComposer;
         this.actionPaneComposer = ActionPane.class;
         this.activityAlias = activityAlias;
+        this.readonly = true;
     }
 
     private ActionDefinition(
             final LocTextKey title,
             final ImageIcon icon,
             final Class<? extends TemplateComposer> contentPaneComposer,
-            final Class<? extends TemplateComposer> actionPaneComposer,
-            final ActionDefinition activityAlias) {
+            final ActionDefinition activityAlias,
+            final boolean readonly) {
 
         this.title = title;
         this.icon = icon;
         this.contentPaneComposer = contentPaneComposer;
-        this.actionPaneComposer = actionPaneComposer;
+        this.actionPaneComposer = ActionPane.class;
         this.activityAlias = activityAlias;
+        this.readonly = readonly;
     }
 
 }

@@ -13,9 +13,11 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -27,18 +29,19 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
 
 public final class Action implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(Action.class);
 
-    public final RestService restService;
     public final ActionDefinition definition;
     Supplier<LocTextKey> confirm;
     LocTextKey successMessage;
     boolean updateOnSelection;
 
-    Supplier<Set<String>> selectionSupplier;
+    Supplier<Set<EntityKey>> selectionSupplier;
 
     private final PageContext originalPageContext;
     private PageContext pageContext;
@@ -46,13 +49,13 @@ public final class Action implements Runnable {
 
     public Action(
             final ActionDefinition definition,
-            final PageContext pageContext,
-            final RestService restService) {
+            final PageContext pageContext) {
 
         this.definition = definition;
         this.originalPageContext = pageContext;
-        this.pageContext = pageContext;
-        this.restService = restService;
+        this.pageContext = pageContext.withAttribute(
+                AttributeKeys.READ_ONLY,
+                String.valueOf(definition.readonly));
     }
 
     @Override
@@ -70,7 +73,8 @@ public final class Action implements Runnable {
     private void exec() {
         try {
 
-            this.pageContext.publishPageEvent(new ActionEvent(this.exec.apply(this), false));
+            final Action executedAction = this.exec.apply(this);
+            this.pageContext.publishPageEvent(new ActionEvent(executedAction, false));
 
         } catch (final PageMessageException pme) {
             Action.this.pageContext.publishPageMessage(pme);
@@ -90,17 +94,19 @@ public final class Action implements Runnable {
         }
     }
 
-    public Supplier<Set<String>> getSelectionSupplier() {
-        return this.selectionSupplier;
-    }
-
     public Action withExec(final Function<Action, Action> exec) {
         this.exec = exec;
         return this;
     }
 
-    public Action withSelectionSupplier(final Supplier<Set<String>> selectionSupplier) {
+    public Action withSelectionSupplier(final Supplier<Set<EntityKey>> selectionSupplier) {
         this.selectionSupplier = selectionSupplier;
+        return this;
+    }
+
+    public Action withSelect(final Supplier<Set<EntityKey>> selectionSupplier, final Function<Action, Action> exec) {
+        this.selectionSupplier = selectionSupplier;
+        this.exec = exec;
         return this;
     }
 
@@ -124,12 +130,12 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action resetEntity() {
+    public Action resetEntityKey() {
         this.pageContext = this.pageContext.withEntityKey(null);
         return this;
     }
 
-    public Action resetParentEntity() {
+    public Action resetParentEntityKey() {
         this.pageContext = this.pageContext.withParentEntityKey(null);
         return this;
     }
@@ -142,20 +148,20 @@ public final class Action implements Runnable {
         return this.pageContext;
     }
 
-    public Action withEntity(final EntityKey entityKey) {
+    public Action withEntityKey(final EntityKey entityKey) {
         this.pageContext = this.pageContext.withEntityKey(entityKey);
         return this;
     }
 
-    public Action withEntity(final Long modelId, final EntityType entityType) {
+    public Action withEntityKey(final Long modelId, final EntityType entityType) {
         if (modelId != null) {
-            return withEntity(String.valueOf(modelId), entityType);
+            return withEntityKey(String.valueOf(modelId), entityType);
         }
 
         return this;
     }
 
-    public Action withEntity(final String modelId, final EntityType entityType) {
+    public Action withEntityKey(final String modelId, final EntityType entityType) {
         if (modelId == null || entityType == null) {
             return this;
         }
@@ -164,7 +170,7 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action withParentEntity(final EntityKey entityKey) {
+    public Action withParentEntityKey(final EntityKey entityKey) {
         this.pageContext = this.pageContext.withParentEntityKey(entityKey);
         return this;
     }
@@ -187,8 +193,60 @@ public final class Action implements Runnable {
         return this.originalPageContext;
     }
 
-    public Action readonly(final boolean b) {
-        return this.withAttribute(AttributeKeys.READ_ONLY, "false");
+    public EntityKey getSingleSelection(final String messageOnEmptySelection) {
+        final Set<EntityKey> selection = getMultiSelection(messageOnEmptySelection);
+        if (selection != null) {
+            return selection.iterator().next();
+        }
+
+        return null;
+    }
+
+    public Set<EntityKey> getMultiSelection(final String messageOnEmptySelection) {
+        if (this.selectionSupplier != null) {
+            final Set<EntityKey> selection = this.selectionSupplier.get();
+            if (selection.isEmpty()) {
+                if (StringUtils.isNoneBlank(messageOnEmptySelection)) {
+                    throw new PageMessageException(messageOnEmptySelection);
+                }
+
+                return null;
+            }
+
+            return selection;
+        }
+
+        if (StringUtils.isNoneBlank(messageOnEmptySelection)) {
+            throw new PageMessageException(messageOnEmptySelection);
+        }
+
+        return null;
+    }
+
+    public static Function<Action, Action> applySingleSelection(final String messageOnEmptySelection) {
+        return action -> action.withEntityKey(action.getSingleSelection(messageOnEmptySelection));
+    }
+
+    public static Function<Action, Action> activation(final RestService restService, final boolean activate) {
+        return action -> restService
+                .getBuilder((activate) ? ActivateInstitution.class : DeactivateInstitution.class)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
+                .call()
+                .map(report -> action)
+                .getOrThrow();
+    }
+
+    public static Action onEmptyEntityKeyGoToActivityHome(final Action action) {
+        if (action.getEntityKey() == null) {
+            final PageContext pageContext = action.pageContext();
+            final Action activityHomeAction = pageContext.createAction(action.definition.activityAlias);
+            action.pageContext.publishPageEvent(new ActionEvent(activityHomeAction, false));
+            return activityHomeAction;
+        }
+
+        return action;
     }
 
 }

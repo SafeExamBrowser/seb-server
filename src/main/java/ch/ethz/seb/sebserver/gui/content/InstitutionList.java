@@ -13,19 +13,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.action.InstitutionActions;
-import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutions;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -77,21 +76,23 @@ public class InstitutionList implements TemplateComposer {
                         .compose(content);
 
         // propagate content actions to action-pane
-        pageContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                .readonly(false)
-                .publishIf(() -> this.currentUser.hasBasePrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION))
+        final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);
+        final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
+        pageContext.clearEntityKeys()
+
+                .createAction(ActionDefinition.INSTITUTION_NEW)
+                .publishIf(instGrant::w)
+
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .withExec(UserAccountActions::newUserAccount)
-                .publishIf(() -> this.currentUser.hasBasePrivilege(PrivilegeType.WRITE, EntityType.USER))
+                .publishIf(userGrant::w)
+
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
-                .withSelectionSupplier(table::getSelection)
-                .withExec(InstitutionActions::viewInstitutionFromList)
+                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
                 .publish()
+
                 .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
-                .withSelectionSupplier(table::getSelection)
-                .withExec(InstitutionActions::editInstitutionFromList)
-                .readonly(false)
-                .publishIf(() -> this.currentUser.hasBasePrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));
+                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
+                .publishIf(instGrant::m);
         ;
 
     }

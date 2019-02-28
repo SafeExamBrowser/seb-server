@@ -14,18 +14,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccounts;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -97,17 +97,19 @@ public class UserAccountList implements TemplateComposer {
                         .compose(content);
 
         // propagate content actions to action-pane
-        pageContext.createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .withExec(UserAccountActions::newUserAccount)
-                .publishIf(() -> this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.USER))
+        final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
+        pageContext.clearEntityKeys()
+
+                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .publishIf(userGrant::w)
+
                 .createAction(ActionDefinition.USER_ACCOUNT_VIEW)
-                .withSelectionSupplier(table::getSelection)
-                .withExec(UserAccountActions::viewUserAccountFromList)
+                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.useraccount.info.pleaseSelect"))
                 .publish()
+
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
-                .withSelectionSupplier(table::getSelection)
-                .withExec(UserAccountActions::editUserAccountFromList)
-                .publishIf(() -> this.currentUser.hasInstitutionalPrivilege(PrivilegeType.MODIFY, EntityType.USER));
+                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.useraccount.info.pleaseSelect"))
+                .publishIf(userGrant::m);
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {

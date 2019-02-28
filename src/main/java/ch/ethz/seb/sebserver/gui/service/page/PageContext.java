@@ -131,6 +131,11 @@ public interface PageContext {
      * @return the new PageContext with the EntityKey added */
     PageContext withParentEntityKey(EntityKey entityKey);
 
+    /** Create a copy of this PageContext and resets both entity keys attributes, the base and the parent EntityKey
+     *
+     * @return copy of this PageContext with reseted EntityKey attributes (base and parent) */
+    PageContext clearEntityKeys();
+
     /** Indicates if an attribute with the specified name exists within this PageContext
      *
      * @param name the name of the attribute
@@ -205,4 +210,5 @@ public interface PageContext {
      *
      * @param pme the PageMessageException */
     void publishPageMessage(PageMessageException pme);
+
 }

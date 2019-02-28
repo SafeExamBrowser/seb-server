@@ -16,14 +16,11 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.action.InstitutionActions;
-import ch.ethz.seb.sebserver.gui.content.action.UserAccountActions;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
@@ -31,11 +28,13 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.SaveInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -81,9 +80,10 @@ public class InstitutionForm implements TemplateComposer {
             return;
         }
 
-        final boolean writeGrant = this.currentUser.hasPrivilege(PrivilegeType.WRITE, institution);
-        final boolean modifyGrant = this.currentUser.hasPrivilege(PrivilegeType.MODIFY, institution);
-        final boolean userWriteGrant = this.currentUser.hasBasePrivilege(PrivilegeType.WRITE, EntityType.USER);
+        final EntityGrantCheck instGrant = this.currentUser.entityGrantCheck(institution);
+        final boolean writeGrant = instGrant.w();
+        final boolean modifyGrant = instGrant.m();
+        final boolean userWriteGrant = this.currentUser.grantCheck(EntityType.USER).w();
         final boolean isReadonly = pageContext.isReadonly();
 
         // new PageContext with actual EntityKey
@@ -128,34 +128,37 @@ public class InstitutionForm implements TemplateComposer {
                         : this.restService.getRestCall(SaveInstitution.class));
 
         // propagate content actions to action-pane
-        formContext.createAction(ActionDefinition.INSTITUTION_NEW)
-                .readonly(false)
+        formContext.clearEntityKeys()
+
+                .createAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .withExec(UserAccountActions::newUserAccount)
-                .resetEntity()
-                .withParentEntity(entityKey)
+                .withParentEntityKey(entityKey)
                 .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_MODIFY)
-                .withExec(InstitutionActions::editInstitution)
+                .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
                 .createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
-                .withExec(InstitutionActions::deactivateInstitution)
+                .withEntityKey(entityKey)
+                .withExec(Action.activation(this.restService, false))
                 .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
                 .publishIf(() -> writeGrant && isReadonly && institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_ACTIVATE)
-                .withExec(InstitutionActions::activateInstitution)
+                .withEntityKey(entityKey)
+                .withExec(Action.activation(this.restService, true))
                 .publishIf(() -> writeGrant && isReadonly && !institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_SAVE)
                 .withExec(formHandle::postChanges)
                 .publishIf(() -> !isReadonly)
+
                 .createAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
-                .withExec(InstitutionActions::cancelEditInstitution)
+                .withEntityKey(entityKey)
+                .withExec(Action::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !isReadonly);
     }

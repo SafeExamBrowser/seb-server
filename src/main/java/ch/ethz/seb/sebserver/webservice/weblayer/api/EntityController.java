@@ -88,7 +88,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Page<T> getAll(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -126,7 +126,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -160,7 +160,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<EntityKey> getDependencies(
             @PathVariable final String modelId,
             @RequestParam(API.PARAM_BULK_ACTION_TYPE) final BulkActionType bulkActionType) {
@@ -186,7 +186,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public T getBy(@PathVariable final String modelId) {
 
         return this.entityDAO
@@ -203,7 +203,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<T> getForIds(@RequestParam(name = "ids", required = true) final String ids) {
 
         return Result.tryCatch(() -> {
@@ -228,7 +228,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public T create(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
@@ -261,8 +261,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
     @RequestMapping(
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public T savePut(@Valid @RequestBody final T modifyData) {
 
         return this.authorization.checkModify(modifyData)
@@ -309,7 +309,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     @RequestMapping(
             path = "/{modelId}",
             method = RequestMethod.DELETE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
         final EntityType entityType = this.entityDAO.entityType();
         final BulkAction bulkAction = new BulkAction(

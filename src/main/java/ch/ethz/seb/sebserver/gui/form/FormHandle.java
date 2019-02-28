@@ -67,7 +67,7 @@ public class FormHandle<T extends Entity> {
                 .map(result -> {
                     final Action action = this.pageContext.createAction(actionDefinition)
                             .withAttribute(AttributeKeys.READ_ONLY, "true")
-                            .withEntity(result.getEntityKey());
+                            .withEntityKey(result.getEntityKey());
                     this.pageContext.publishPageEvent(new ActionEvent(action, false));
                     return action;
                 })
