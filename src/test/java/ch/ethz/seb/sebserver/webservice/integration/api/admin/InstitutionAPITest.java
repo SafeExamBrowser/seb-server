@@ -269,6 +269,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 + "dependencies=[], "
                 + "errors=[]]",
                 report.toString());
+
         // get
         institution = new RestAPITestHelper()
                 .withAccessToken(sebAdminAccess)
@@ -349,7 +350,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.INSTITUTION_ENDPOINT)
                 .withPath(API.LIST_PATH_SEGMENT)
-                .withAttribute("ids", "1,2,3")
+                .withAttribute(API.PARAM_MODEL_ID_LIST, "1,2,3")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<Institution>>() {
                 });

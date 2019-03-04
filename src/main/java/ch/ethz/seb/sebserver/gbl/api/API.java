@@ -19,6 +19,7 @@ public final class API {
     public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
     public static final String PARAM_INSTITUTION_ID = "institutionId";
     public static final String PARAM_MODEL_ID = "modelId";
+    public static final String PARAM_MODEL_ID_LIST = "modelIds";
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
 

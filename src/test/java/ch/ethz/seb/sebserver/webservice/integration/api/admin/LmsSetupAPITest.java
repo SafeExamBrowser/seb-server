@@ -224,7 +224,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(API.LIST_PATH_SEGMENT)
-                .withAttribute("ids", lmsSetup1.id + "," + lmsSetup2.id)
+                .withAttribute(API.PARAM_MODEL_ID_LIST, lmsSetup1.id + "," + lmsSetup2.id)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Collection<LmsSetup>>() {
                 });

@@ -63,7 +63,7 @@ public final class Institution implements GrantEntity, Activatable {
         this.name = mapper.getString(INSTITUTION.ATTR_NAME);
         this.urlSuffix = mapper.getString(INSTITUTION.ATTR_URL_SUFFIX);
         this.logoImage = mapper.getString(INSTITUTION.ATTR_LOGO_IMAGE);
-        this.active = mapper.getBooleanObject(INSTITUTION.ATTR_ACTIVE);
+        this.active = false;
     }
 
     @Override

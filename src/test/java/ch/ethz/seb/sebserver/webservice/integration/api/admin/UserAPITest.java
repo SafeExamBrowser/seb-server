@@ -1090,7 +1090,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACCOUNT_ENDPOINT
-                                        + "/list?ids=user1,user2,user6,user7")
+                                        + "/list?modelIds=user1,user2,user6,user7")
                                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                                 .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
@@ -1108,7 +1108,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACCOUNT_ENDPOINT
-                                        + "/list?ids=user1,user2,user6,user7")
+                                        + "/list?modelIds=user1,user2,user6,user7")
                                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                                                 .header("Authorization", "Bearer " + instAdminToken))
                         .andExpect(status().isOk())

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -163,7 +164,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<EntityKey> getDependencies(
             @PathVariable final String modelId,
-            @RequestParam(API.PARAM_BULK_ACTION_TYPE) final BulkActionType bulkActionType) {
+            @RequestParam(name = API.PARAM_BULK_ACTION_TYPE, required = true) final BulkActionType bulkActionType) {
 
         this.entityDAO
                 .byModelId(modelId)
@@ -204,11 +205,11 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<T> getForIds(@RequestParam(name = "ids", required = true) final String ids) {
+    public List<T> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String modelIds) {
 
         return Result.tryCatch(() -> {
 
-            return Arrays.asList(StringUtils.split(ids, Constants.LIST_SEPARATOR_CHAR))
+            return Arrays.asList(StringUtils.split(modelIds, Constants.LIST_SEPARATOR_CHAR))
                     .stream()
                     .map(modelId -> new EntityKey(modelId, this.entityDAO.entityType()))
                     .collect(Collectors.toList());
@@ -307,7 +308,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     // ******************
 
     @RequestMapping(
-            path = "/{modelId}",
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
