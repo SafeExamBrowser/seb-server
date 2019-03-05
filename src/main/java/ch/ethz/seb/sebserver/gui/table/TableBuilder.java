@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -40,6 +42,7 @@ public class TableBuilder<ROW extends Entity> {
     final RestCall<Page<ROW>> restCall;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     final List<TableRowAction> actions = new ArrayList<>();
+    LocTextKey emptyMessage;
 
     private int pageSize = -1;
     private int type = SWT.NONE;
@@ -52,6 +55,11 @@ public class TableBuilder<ROW extends Entity> {
         this.restCall = restCall;
     }
 
+    public TableBuilder<ROW> withEmptyMessage(final LocTextKey emptyMessage) {
+        this.emptyMessage = emptyMessage;
+        return this;
+    }
+
     public TableBuilder<ROW> withPaging(final int pageSize) {
         this.pageSize = pageSize;
         return this;
@@ -59,6 +67,16 @@ public class TableBuilder<ROW extends Entity> {
 
     public TableBuilder<ROW> withColumn(final ColumnDefinition<ROW> columnDefinition) {
         this.columns.add(columnDefinition);
+        return this;
+    }
+
+    public TableBuilder<ROW> withColumnIf(
+            final BooleanSupplier condition,
+            final ColumnDefinition<ROW> columnDefinition) {
+
+        if (condition != null && condition.getAsBoolean()) {
+            this.columns.add(columnDefinition);
+        }
         return this;
     }
 
@@ -80,7 +98,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.widgetFactory,
                 this.columns,
                 this.actions,
-                this.pageSize);
+                this.pageSize,
+                this.emptyMessage);
     }
 
 }

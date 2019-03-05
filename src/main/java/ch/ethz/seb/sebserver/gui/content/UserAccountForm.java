@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
@@ -55,24 +56,24 @@ public class UserAccountForm implements TemplateComposer {
     private static final Logger log = LoggerFactory.getLogger(UserAccountForm.class);
 
     private final PageFormService pageFormService;
-    private final RestService restService;
-    private final CurrentUser currentUser;
+    private final ResourceService resourceService;
 
     protected UserAccountForm(
             final PageFormService pageFormService,
-            final RestService restService,
-            final CurrentUser currentUser) {
+            final ResourceService resourceService) {
 
         this.pageFormService = pageFormService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.resourceService = resourceService;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
-
-        final UserInfo user = this.currentUser.get();
+        final CurrentUser currentUser = this.resourceService.getCurrentUser();
+        final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+
+        final UserInfo user = currentUser.get();
+
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final BooleanSupplier isNew = () -> entityKey == null;
@@ -86,7 +87,7 @@ public class UserAccountForm implements TemplateComposer {
                         (parentEntityKey != null)
                                 ? Long.valueOf(parentEntityKey.modelId)
                                 : user.institutionId)
-                : this.restService
+                : restService
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
@@ -101,11 +102,11 @@ public class UserAccountForm implements TemplateComposer {
         }
 
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
-        final EntityGrantCheck userGrantCheck = this.currentUser.entityGrantCheck(userAccount);
+        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
         final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
         // modifying an UserAccount is not possible if the root institution is inactive
-        final boolean istitutionActive = this.restService.getBuilder(GetInstitution.class)
+        final boolean istitutionActive = restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
                 .call()
                 .map(inst -> inst.active)
@@ -142,7 +143,7 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_INSTITUTION_ID,
                         "sebserver.useraccount.form.institution",
                         String.valueOf(userAccount.getInstitutionId()),
-                        () -> PageUtils.getInstitutionSelectionResource(this.restService))
+                        () -> this.resourceService.institutionResource())
                         .withCondition(isSEBAdmin)
                         .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
@@ -161,17 +162,17 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_LANGUAGE,
                         "sebserver.useraccount.form.language",
                         userAccount.getLanguage().getLanguage(),
-                        widgetFactory.getI18nSupport().localizedLanguageResources()))
+                        this.resourceService::languageResources))
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
                         "sebserver.useraccount.form.timezone",
                         userAccount.getTimeZone().getID(),
-                        widgetFactory.getI18nSupport().localizedTimeZoneResources()))
+                        this.resourceService::timeZoneResources))
                 .addField(FormBuilder.multiSelection(
                         USER_ROLE.REFERENCE_NAME,
                         "sebserver.useraccount.form.roles",
                         StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
-                        widgetFactory.getI18nSupport().localizedUserRoleResources())
+                        this.resourceService::userRoleResources)
                         .withCondition(() -> modifyGrant)
                         .visibleIf(writeGrant))
                 .addField(FormBuilder.text(
@@ -185,8 +186,8 @@ public class UserAccountForm implements TemplateComposer {
                         .asPasswordField()
                         .withCondition(isNew))
                 .buildFor((entityKey == null)
-                        ? this.restService.getRestCall(NewUserAccount.class)
-                        : this.restService.getRestCall(SaveUserAccount.class));
+                        ? restService.getRestCall(NewUserAccount.class)
+                        : restService.getRestCall(SaveUserAccount.class));
 
         // propagate content actions to action-pane
 
@@ -204,19 +205,19 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> modifyGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
-                .withExec(Action.activation(this.restService, false))
-                .withConfirm(PageUtils.confirmDeactivation(userAccount, this.restService))
+                .withExec(Action.activation(restService, false))
+                .withConfirm(PageUtils.confirmDeactivation(userAccount, restService))
                 .publishIf(() -> writeGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
-                .withExec(Action.activation(this.restService, true))
+                .withExec(Action.activation(restService, true))
                 .publishIf(() -> writeGrant && readonly && istitutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withExec(action -> {
                     final Action postChanges = formHandle.postChanges(action);
                     if (ownAccount) {
-                        this.currentUser.refresh();
+                        currentUser.refresh();
                         pageContext.forwardToMainPage();
                     }
                     return postChanges;

@@ -10,10 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.i18n.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.eclipse.rap.rwt.RWT;
 import org.joda.time.DateTime;
@@ -26,8 +23,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -131,15 +126,6 @@ public class I18nSupportImpl implements I18nSupport {
     @Override
     public String getText(final String key, final Locale locale, final String def, final Object... args) {
         return this.messageSource.getMessage(key, args, def, locale);
-    }
-
-    @Override
-    public Supplier<List<Tuple<String>>> localizedUserRoleResources() {
-        final List<Tuple<String>> roles = UserRole.publicRolesForUser(this.currentUser.get())
-                .stream()
-                .map(ur -> new Tuple<>(ur.name(), "sebserver.useraccount.role." + ur.name()))
-                .collect(Collectors.toList());
-        return localizedResourceSupplier(roles);
     }
 
 }

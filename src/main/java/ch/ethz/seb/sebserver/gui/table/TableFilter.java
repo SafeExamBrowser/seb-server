@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.table;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,13 +35,12 @@ public class TableFilter<ROW extends Entity> {
     public static enum CriteriaType {
         TEXT,
         SINGLE_SELECTION,
-        COUNTRY_SELECTION,
         DATE
     }
 
     private final Composite composite;
     private final EntityTable<ROW> entityTable;
-    private final List<FilterComponent> components;
+    private final List<FilterComponent> components = new ArrayList<>();
 
     TableFilter(final EntityTable<ROW> entityTable) {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
@@ -51,22 +51,11 @@ public class TableFilter<ROW extends Entity> {
         layout.wrap = false;
         this.composite.setLayout(layout);
 
+// TODO just for debugging, remove when tested
+//        this.composite.setBackground(new Color(entityTable.composite.getDisplay(), new RGB(0, 0, 200)));
+
         this.entityTable = entityTable;
-        this.components = entityTable.columns
-                .stream()
-                .map(column -> column.filterAttribute)
-                //.filter(Objects::nonNull)
-                .map(this::createFilterComponent)
-                .map(comp -> comp.build(this.composite))
-                .map(comp -> comp.reset())
-                .collect(Collectors.toList());
-
-        final FilterComponent lastComp = this.components.get(this.components.size() - 1);
-        if (lastComp instanceof TableFilter.NullFilter) {
-            this.components.remove(lastComp);
-        }
-
-        addActions();
+        buildComponents();
     }
 
     public MultiValueMap<String, String> getFilterParameter() {
@@ -86,6 +75,24 @@ public class TableFilter<ROW extends Entity> {
                 .forEach(comp -> comp.reset());
     }
 
+    private void buildComponents() {
+        this.components.clear();
+        this.components.addAll(this.entityTable.columns
+                .stream()
+                .map(column -> column.filterAttribute)
+                .map(this::createFilterComponent)
+                .map(comp -> comp.build(this.composite))
+                .map(comp -> comp.reset())
+                .collect(Collectors.toList()));
+
+        final FilterComponent lastComp = this.components.get(this.components.size() - 1);
+        if (lastComp instanceof TableFilter.NullFilter) {
+            this.components.remove(lastComp);
+        }
+
+        addActions();
+    }
+
     private FilterComponent createFilterComponent(final TableFilterAttribute attribute) {
         if (attribute == null) {
             return new NullFilter();
@@ -94,8 +101,8 @@ public class TableFilter<ROW extends Entity> {
         switch (attribute.type) {
             case TEXT:
                 return new TextFilter(attribute);
-            case COUNTRY_SELECTION:
-                return new LanguageFilter(attribute);
+            case SINGLE_SELECTION:
+                return new Selection(attribute);
             default:
                 throw new IllegalArgumentException("Unsupported FilterAttributeType: " + attribute.type);
         }
@@ -103,7 +110,11 @@ public class TableFilter<ROW extends Entity> {
 
     boolean adaptColumnWidth(final int columnIndex, final int width) {
         if (columnIndex < this.components.size()) {
-            return this.components.get(columnIndex).adaptWidth(width);
+            final boolean adaptWidth = this.components.get(columnIndex).adaptWidth(width);
+            if (adaptWidth) {
+                this.composite.layout();
+            }
+            return adaptWidth;
         }
 
         return false;
@@ -229,11 +240,11 @@ public class TableFilter<ROW extends Entity> {
 
     }
 
-    private class LanguageFilter extends FilterComponent {
+    private class Selection extends FilterComponent {
 
-        private SingleSelection selector;
+        protected SingleSelection selector;
 
-        LanguageFilter(final TableFilterAttribute attribute) {
+        Selection(final TableFilterAttribute attribute) {
             super(attribute);
         }
 
@@ -242,9 +253,7 @@ public class TableFilter<ROW extends Entity> {
             this.selector = TableFilter.this.entityTable.widgetFactory
                     .singleSelectionLocalized(
                             parent,
-                            TableFilter.this.entityTable.widgetFactory
-                                    .getI18nSupport()
-                                    .localizedLanguageResources());
+                            this.attribute.resourceSupplier);
             this.selector.setLayoutData(this.rowData);
             return this;
         }
@@ -265,5 +274,13 @@ public class TableFilter<ROW extends Entity> {
 
             return null;
         }
+
+        @Override
+        boolean adaptWidth(final int width) {
+            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
+            //       this is to adjust selection filter criteria to the list column width
+            return super.adaptWidth(width + 25);
+        }
     }
+
 }

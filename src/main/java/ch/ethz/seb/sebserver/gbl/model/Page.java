@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -65,6 +66,11 @@ public final class Page<T> {
 
     public Collection<T> getContent() {
         return this.content;
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return this.content == null || this.content.isEmpty();
     }
 
     @Override

@@ -117,6 +117,14 @@ public class ActivitiesPane implements TemplateComposer {
                             .withAttribute(AttributeKeys.READ_ONLY, "true"));
         }
 
+        // LMS Setup
+        final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
+                navigation,
+                ActionDefinition.LMS_SETUP_VIEW_LIST.title);
+        injectActivitySelection(
+                userAccounts,
+                pageContext.createAction(ActionDefinition.LMS_SETUP_VIEW_LIST));
+
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,

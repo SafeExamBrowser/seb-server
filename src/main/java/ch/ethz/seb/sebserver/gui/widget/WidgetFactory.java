@@ -25,7 +25,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
@@ -428,16 +427,6 @@ public class WidgetFactory {
             languageSelection.addListener(SWT.MouseDown, event -> {
                 this.polyglotPageService.setPageLocale(composerCtx.getRoot(), locale);
             });
-        }
-    }
-
-    public static void clearComposite(final Composite parent) {
-        if (parent == null) {
-            return;
-        }
-
-        for (final Control control : parent.getChildren()) {
-            control.dispose();
         }
     }
 

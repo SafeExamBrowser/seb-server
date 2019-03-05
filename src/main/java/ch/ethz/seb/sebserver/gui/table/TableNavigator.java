@@ -17,7 +17,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class TableNavigator {
 
@@ -28,7 +29,10 @@ public class TableNavigator {
 
     TableNavigator(final EntityTable<?> entityTable) {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
-        this.composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        this.composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+
+// TODO just for debugging, remove when tested
+//        this.composite.setBackground(new Color(entityTable.composite.getDisplay(), new RGB(200, 0, 0)));
 
         final GridLayout layout = new GridLayout(3, true);
         layout.marginLeft = 20;
@@ -39,7 +43,18 @@ public class TableNavigator {
 
     public Page<?> update(final Page<?> pageData) {
         // clear all
-        WidgetFactory.clearComposite(this.composite);
+        PageUtils.clearComposite(this.composite);
+
+        if (pageData.isEmpty()) {
+            // show empty message
+            if (this.entityTable.emptyMessage != null) {
+                this.entityTable.widgetFactory.labelLocalized(
+                        this.composite,
+                        CustomVariant.TEXT_H3,
+                        this.entityTable.emptyMessage);
+            }
+            return pageData;
+        }
 
         final int pageNumber = pageData.getPageNumber();
         final int numberOfPages = pageData.getNumberOfPages();
@@ -47,15 +62,14 @@ public class TableNavigator {
         createPagingHeader(pageNumber, numberOfPages);
 
         final Composite numNav = new Composite(this.composite, SWT.NONE);
-        numNav.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        final GridData gridData = new GridData(SWT.CENTER, SWT.TOP, true, false);
+        numNav.setLayoutData(gridData);
         final RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-        rowLayout.spacing = 5;
+
         numNav.setLayout(rowLayout);
 
         if (numberOfPages > 1) {
-            if (pageNumber > 1) {
-                createRewardLabel(pageNumber, numNav);
-            }
+            createBackwardLabel(pageNumber > 1, pageNumber, numNav);
 
             for (int i = pageNumber - PAGE_NAV_SIZE; i < pageNumber + PAGE_NAV_SIZE; i++) {
                 if (i >= 1 && i <= numberOfPages) {
@@ -63,9 +77,7 @@ public class TableNavigator {
                 }
             }
 
-            if (pageNumber < numberOfPages) {
-                createForwardLabel(pageNumber, numNav);
-            }
+            createForwardLabel(pageNumber < numberOfPages, pageNumber, numNav);
         }
 
         return pageData;
@@ -89,7 +101,11 @@ public class TableNavigator {
         }
     }
 
-    private void createForwardLabel(final int pageNumber, final Composite parent) {
+    private void createForwardLabel(
+            final boolean visible,
+            final int pageNumber,
+            final Composite parent) {
+
         final Label forward = new Label(parent, SWT.NONE);
         forward.setText(">");
         forward.setData(RWT.CUSTOM_VARIANT, "action");
@@ -98,13 +114,21 @@ public class TableNavigator {
         });
     }
 
-    private void createRewardLabel(final int pageNumber, final Composite parent) {
-        final Label reward = new Label(parent, SWT.NONE);
-        reward.setText("<");
-        reward.setData(RWT.CUSTOM_VARIANT, "action");
-        reward.addListener(SWT.MouseDown, event -> {
-            this.entityTable.selectPage(pageNumber - 1);
-        });
+    private void createBackwardLabel(
+            final boolean visible,
+            final int pageNumber,
+            final Composite parent) {
+
+        final Label backward = new Label(parent, SWT.NONE);
+        backward.setText("<");
+        backward.setData(RWT.CUSTOM_VARIANT, "action");
+        if (visible) {
+            backward.addListener(SWT.MouseDown, event -> {
+                this.entityTable.selectPage(pageNumber - 1);
+            });
+        } else {
+            backward.setVisible(false);
+        }
     }
 
 }

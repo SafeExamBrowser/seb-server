@@ -57,6 +57,7 @@ public class InstitutionList implements TemplateComposer {
         // table
         final EntityTable<Institution> table =
                 this.widgetFactory.entityTableBuilder(this.restService.getRestCall(GetInstitutions.class))
+                        .withEmptyMessage(new LocTextKey("sebserver.institution.list.empty"))
                         .withPaging(3)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_NAME,
@@ -88,11 +89,11 @@ public class InstitutionList implements TemplateComposer {
 
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
-                .publish()
+                .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
-                .publishIf(instGrant::m);
+                .publishIf(() -> instGrant.m() && table.hasAnyContent());
         ;
 
     }

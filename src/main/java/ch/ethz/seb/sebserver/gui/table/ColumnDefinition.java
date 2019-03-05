@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -22,7 +23,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     final LocTextKey displayName;
     final LocTextKey tooltip;
     final int widthPercent;
-    final Function<ROW, Object> valueSupplier;
+    final Function<ROW, ?> valueSupplier;
     final boolean sortable;
     final TableFilterAttribute filterAttribute;
     final boolean localized;
@@ -51,7 +52,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     public ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
-            final Function<ROW, Object> valueSupplier,
+            final Function<ROW, ?> valueSupplier,
             final boolean sortable) {
 
         this(columnName, displayName, null, -1, valueSupplier, null, sortable, false);
@@ -60,7 +61,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     public ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
-            final Function<ROW, Object> valueSupplier,
+            final Function<ROW, ?> valueSupplier,
             final boolean sortable,
             final boolean localized) {
 
@@ -70,7 +71,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     public ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
-            final Function<ROW, Object> valueSupplier,
+            final Function<ROW, ?> valueSupplier,
             final TableFilterAttribute tableFilterAttribute,
             final boolean sortable) {
 
@@ -80,7 +81,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     public ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
-            final Function<ROW, Object> valueSupplier,
+            final Function<ROW, ?> valueSupplier,
             final TableFilterAttribute tableFilterAttribute,
             final boolean sortable,
             final boolean localized) {
@@ -93,7 +94,7 @@ public final class ColumnDefinition<ROW extends Entity> {
             final LocTextKey displayName,
             final LocTextKey tooltip,
             final int widthPercent,
-            final Function<ROW, Object> valueSupplier,
+            final Function<ROW, ?> valueSupplier,
             final TableFilterAttribute filterAttribute,
             final boolean sortable,
             final boolean localized) {
@@ -113,28 +114,30 @@ public final class ColumnDefinition<ROW extends Entity> {
         public final CriteriaType type;
         public final String columnName;
         public final String initValue;
-        public final List<Tuple<String>> selectionResource;
+        public final Supplier<List<Tuple<String>>> resourceSupplier;
+
+        public TableFilterAttribute(final CriteriaType type, final String columnName) {
+            this(type, columnName, "", null);
+        }
 
         public TableFilterAttribute(
                 final CriteriaType type,
-                final String columnName) {
+                final String columnName,
+                final Supplier<List<Tuple<String>>> resourceSupplier) {
 
-            this.type = type;
-            this.columnName = columnName;
-            this.initValue = "";
-            this.selectionResource = null;
+            this(type, columnName, "", resourceSupplier);
         }
 
         public TableFilterAttribute(
                 final CriteriaType type,
                 final String columnName,
                 final String initValue,
-                final List<Tuple<String>> selectionResource) {
+                final Supplier<List<Tuple<String>>> resourceSupplier) {
 
             this.type = type;
             this.columnName = columnName;
             this.initValue = initValue;
-            this.selectionResource = selectionResource;
+            this.resourceSupplier = resourceSupplier;
         }
 
     }

@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class MultiSelection extends Composite implements Selection {
@@ -48,7 +49,7 @@ public class MultiSelection extends Composite implements Selection {
         final String selectionValue = getSelectionValue();
         this.selected.clear();
         this.labels.clear();
-        WidgetFactory.clearComposite(this);
+        PageUtils.clearComposite(this);
         for (final Tuple<String> tuple : mapping) {
             final Label label = new Label(this, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);

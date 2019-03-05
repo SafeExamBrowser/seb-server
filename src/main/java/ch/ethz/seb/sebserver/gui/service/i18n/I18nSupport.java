@@ -9,16 +9,9 @@
 package ch.ethz.seb.sebserver.gui.service.i18n;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface I18nSupport {
 
@@ -78,47 +71,5 @@ public interface I18nSupport {
      * @param args additional arguments to parse the localized text
      * @return the text in current language parsed from localized text */
     String getText(String key, Locale locale, String def, Object... args);
-
-    default Supplier<List<Tuple<String>>> localizedResourceSupplier(final List<Tuple<String>> source) {
-        return () -> source.stream()
-                .map(tuple -> new Tuple<>(tuple._1, getText(tuple._2)))
-                .collect(Collectors.toList());
-    }
-
-    default Supplier<List<Tuple<String>>> localizedLanguageResources() {
-        return () -> getLanguageResources(this);
-    }
-
-    default Supplier<List<Tuple<String>>> localizedTimeZoneResources() {
-        return () -> getTimeZoneResources(this);
-    }
-
-    Supplier<List<Tuple<String>>> localizedUserRoleResources();
-
-    /** Get a list of language key/name tuples for all supported languages in the
-     * language of the current users locale.
-     *
-     * @param i18nSupport I18nSupport to get the actual current users locale
-     * @return list of language key/name tuples for all supported languages in the language of the current users
-     *         locale */
-    static List<Tuple<String>> getLanguageResources(final I18nSupport i18nSupport) {
-        final Locale currentLocale = i18nSupport.getCurrentLocale();
-        return i18nSupport.supportedLanguages()
-                .stream()
-                .map(locale -> new Tuple<>(locale.toLanguageTag(), locale.getDisplayLanguage(currentLocale)))
-                .filter(tuple -> StringUtils.isNoneBlank(tuple._2))
-                .sorted((t1, t2) -> t1._2.compareTo(t2._2))
-                .collect(Collectors.toList());
-    }
-
-    static List<Tuple<String>> getTimeZoneResources(final I18nSupport i18nSupport) {
-        final Locale currentLocale = i18nSupport.getCurrentLocale();
-        return DateTimeZone
-                .getAvailableIDs()
-                .stream()
-                .map(id -> new Tuple<>(id, DateTimeZone.forID(id).getName(0, currentLocale) + " (" + id + ")"))
-                .sorted((t1, t2) -> t1._2.compareTo(t2._2))
-                .collect(Collectors.toList());
-    }
 
 }
