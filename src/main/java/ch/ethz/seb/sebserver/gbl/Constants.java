@@ -20,6 +20,8 @@ public final class Constants {
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
 
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
     public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
             .forPattern("yyyy-MM-dd HH:mm:ss")

@@ -33,14 +33,15 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
 public abstract class RestCall<T> {
 
     private static final Logger log = LoggerFactory.getLogger(RestCall.class);
 
-    private RestService restService;
-    private JSONMapper jsonMapper;
+    protected RestService restService;
+    protected JSONMapper jsonMapper;
     protected final TypeReference<T> typeRef;
     protected final HttpMethod httpMethod;
     protected final MediaType contentType;
@@ -226,19 +227,23 @@ public abstract class RestCall<T> {
             return RestCall.this.exchange(this);
         }
 
-        protected String buildURI() {
+        public String buildURI() {
             return RestCall.this.restService.getWebserviceURIBuilder()
                     .path(RestCall.this.path)
                     .queryParams(this.queryParams)
                     .toUriString();
         }
 
-        protected HttpEntity<?> buildRequestEntity() {
+        public HttpEntity<?> buildRequestEntity() {
             if (this.body != null) {
                 return new HttpEntity<>(this.body, this.httpHeaders);
             } else {
                 return new HttpEntity<>(this.httpHeaders);
             }
+        }
+
+        public Map<String, String> getURIVariables() {
+            return Utils.immutableMapOf(this.uriVariables);
         }
 
         @Override

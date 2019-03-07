@@ -117,4 +117,8 @@ public final class Institution implements GrantEntity, Activatable {
                 + ", active=" + this.active + "]";
     }
 
+    public static Institution createNew() {
+        return new Institution(null, null, null, null, false);
+    }
+
 }

@@ -79,6 +79,7 @@ public class InstitutionList implements TemplateComposer {
         // propagate content actions to action-pane
         final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);
         final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
+        final LocTextKey emptySelectionText = new LocTextKey("sebserver.institution.info.pleaseSelect");
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.INSTITUTION_NEW)
@@ -88,11 +89,11 @@ public class InstitutionList implements TemplateComposer {
                 .publishIf(userGrant::w)
 
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
                 .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.institution.info.pleaseSelect"))
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
         ;
 

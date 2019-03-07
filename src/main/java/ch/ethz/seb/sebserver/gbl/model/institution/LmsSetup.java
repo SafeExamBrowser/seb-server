@@ -50,11 +50,11 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final LmsType lmsType;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTNAME)
-    @Size(min = 3, max = 255, message = "lmsSetup:lmsAuthName:size:{min}:{max}:${validatedValue}")
+    @Size(min = 3, max = 255, message = "lmsSetup:lmsClientname:size:{min}:{max}:${validatedValue}")
     public final String lmsAuthName;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTSECRET)
-    @Size(min = 8, max = 255, message = "lmsSetup:lmsAuthSecret:size:{min}:{max}:${validatedValue}")
+    @Size(min = 8, max = 255, message = "lmsSetup:lmsClientsecret:size:{min}:{max}:${validatedValue}")
     public final String lmsAuthSecret;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_URL)
@@ -64,11 +64,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final String lmsRestApiToken;
 
     @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTNAME)
-    @Size(min = 3, max = 255, message = "lmsSetup:sebAuthName:size:{min}:{max}:${validatedValue}")
     public final String sebAuthName;
 
     @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTSECRET)
-    @Size(min = 8, max = 255, message = "lmsSetup:sebAuthSecret:size:{min}:{max}:${validatedValue}")
     public final String sebAuthSecret;
 
     /** Indicates whether this LmsSetup is active or not */
@@ -201,6 +199,10 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 EntityType.LMS_SETUP,
                 String.valueOf(lmsSetup.id),
                 lmsSetup.name);
+    }
+
+    public static LmsSetup createNew(final Long institutionId) {
+        return new LmsSetup(null, institutionId, null, null, null, null, null, null, null, null, false);
     }
 
 }

@@ -106,6 +106,7 @@ public class WidgetFactory {
         SELECTION_READONLY("selectionReadonly"),
 
         FOOTER("footer"),
+        TITLE_LABEL("head")
 
         ;
 

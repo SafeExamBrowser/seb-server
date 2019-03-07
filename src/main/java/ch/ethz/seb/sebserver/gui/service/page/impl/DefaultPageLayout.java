@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -25,8 +26,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -50,17 +51,19 @@ public class DefaultPageLayout implements TemplateComposer {
     private final PolyglotPageService polyglotPageService;
     private final AuthorizationContextHolder authorizationContextHolder;
     private final String sebServerVersion;
+    private final boolean multilingual;
 
     public DefaultPageLayout(
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final AuthorizationContextHolder authorizationContextHolder,
-            @Value("${sebserver.version}") final String sebServerVersion) {
+            final Environment environment) {
 
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.authorizationContextHolder = authorizationContextHolder;
-        this.sebServerVersion = sebServerVersion;
+        this.sebServerVersion = environment.getProperty("sebserver.version", "--");
+        this.multilingual = BooleanUtils.toBoolean(environment.getProperty("sebserver.gui.multilingual", "false"));
     }
 
     @Override
@@ -182,7 +185,9 @@ public class DefaultPageLayout implements TemplateComposer {
         rowLayout.marginRight = 70;
         langSupport.setLayout(rowLayout);
 
-        this.widgetFactory.createLanguageSelector(pageContext.copyOf(langSupport));
+        if (this.multilingual) {
+            this.widgetFactory.createLanguageSelector(pageContext.copyOf(langSupport));
+        }
     }
 
     private void composeContent(final PageContext pageContext) {

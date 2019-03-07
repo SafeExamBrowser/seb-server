@@ -119,17 +119,18 @@ public class UserAccountList implements TemplateComposer {
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.USER);
+        final LocTextKey emptySelectionText = new LocTextKey("sebserver.useraccount.info.pleaseSelect");
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .publishIf(userGrant::w)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.useraccount.info.pleaseSelect"))
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
                 .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action.applySingleSelection("sebserver.useraccount.info.pleaseSelect"))
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
                 .publishIf(() -> userGrant.m() && table.hasAnyContent());
     }
 

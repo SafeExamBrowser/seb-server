@@ -16,18 +16,21 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -57,7 +60,6 @@ public class LmsSetupList implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
 
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
@@ -106,6 +108,22 @@ public class LmsSetupList implements TemplateComposer {
                                 entity -> entity.active,
                                 true))
                         .compose(content);
+
+        // propagate content actions to action-pane
+        final GrantCheck userGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
+        final LocTextKey emptySelectionText = new LocTextKey("sebserver.lmssetup.info.pleaseSelect");
+        pageContext.clearEntityKeys()
+
+                .createAction(ActionDefinition.LMS_SETUP_NEW)
+                .publishIf(userGrant::w)
+
+                .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .publishIf(() -> table.hasAnyContent())
+
+                .createAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
+                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .publishIf(() -> userGrant.m() && table.hasAnyContent());
 
     }
 

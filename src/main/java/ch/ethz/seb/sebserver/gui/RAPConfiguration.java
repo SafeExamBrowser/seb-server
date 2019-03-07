@@ -21,12 +21,14 @@ import org.eclipse.rap.rwt.application.ApplicationConfiguration;
 import org.eclipse.rap.rwt.application.EntryPoint;
 import org.eclipse.rap.rwt.application.EntryPointFactory;
 import org.eclipse.rap.rwt.client.WebClient;
+import org.eclipse.rap.rwt.service.ServiceManager;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import ch.ethz.seb.sebserver.gui.service.remote.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 
@@ -63,6 +65,8 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
     private static final EntryPointFactory RAPSpringEntryPointFactory = new EntryPointFactory() {
 
+        private boolean serviceInistialized = false;
+
         @Override
         public EntryPoint create() {
             return new AbstractEntryPoint() {
@@ -83,6 +87,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
                     }
 
                     final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
+                    initSpringBasedRAPServices(webApplicationContext);
 
                     final EntryPointService entryPointService = webApplicationContext
                             .getBean(EntryPointService.class);
@@ -93,7 +98,17 @@ public class RAPConfiguration implements ApplicationConfiguration {
                         entryPointService.loadLoginPage(parent);
                     }
                 }
+
             };
+        }
+
+        private void initSpringBasedRAPServices(final WebApplicationContext webApplicationContext) {
+            if (!this.serviceInistialized) {
+                final ServiceManager manager = RWT.getServiceManager();
+                final DownloadService downloadService = webApplicationContext.getBean(DownloadService.class);
+                manager.registerServiceHandler(DownloadService.DOWNLOAD_SERVICE_NAME, downloadService);
+                this.serviceInistialized = true;
+            }
         }
 
         private boolean isAuthenticated(

@@ -109,9 +109,13 @@ public class TableNavigator {
         final Label forward = new Label(parent, SWT.NONE);
         forward.setText(">");
         forward.setData(RWT.CUSTOM_VARIANT, "action");
-        forward.addListener(SWT.MouseDown, event -> {
-            this.entityTable.selectPage(pageNumber + 1);
-        });
+        if (visible) {
+            forward.addListener(SWT.MouseDown, event -> {
+                this.entityTable.selectPage(pageNumber + 1);
+            });
+        } else {
+            forward.setVisible(false);
+        }
     }
 
     private void createBackwardLabel(

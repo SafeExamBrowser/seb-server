@@ -93,7 +93,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
         if (this.multi) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
-            gridLayout.verticalSpacing = 1;
+            gridLayout.horizontalSpacing = 0;
             gridLayout.marginLeft = 0;
             gridLayout.marginHeight = 0;
             gridLayout.marginWidth = 0;
@@ -119,7 +119,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
 
     private Label buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
         final Label label = new Label(composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, hspan, 1);
         gridData.verticalIndent = 0;
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);

@@ -148,10 +148,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
                             : null,
                     lmsSetup.lmsRestApiToken,
-                    lmsSetup.sebAuthName,
-                    (StringUtils.isNotBlank(lmsSetup.sebAuthSecret))
-                            ? this.clientPasswordEncoder.encode(lmsSetup.sebAuthSecret)
-                            : null,
+                    null,
+                    null,
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -173,10 +171,14 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
                     lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
+                    (StringUtils.isNotBlank(lmsSetup.lmsAuthSecret))
+                            ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
+                            : null,
                     lmsSetup.lmsRestApiToken,
                     lmsSetup.sebAuthName,
-                    lmsSetup.sebAuthSecret,
+                    (StringUtils.isNotBlank(lmsSetup.sebAuthSecret))
+                            ? this.internalEncryptionService.encrypt(lmsSetup.sebAuthSecret)
+                            : null,
                     BooleanUtils.toInteger(false));
 
             this.lmsSetupRecordMapper.insert(newRecord);

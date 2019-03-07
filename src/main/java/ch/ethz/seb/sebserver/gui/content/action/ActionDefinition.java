@@ -17,6 +17,13 @@ import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountList;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.DeactivateLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeactivateUserAccount;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 /** Enumeration of static action data for each action within the SEB Server GUI */
@@ -64,11 +71,13 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.institution.action.activate"),
             ImageIcon.INACTIVE,
             InstitutionForm.class,
+            ActivateInstitution.class,
             INSTITUTION_VIEW_LIST),
     INSTITUTION_DEACTIVATE(
             new LocTextKey("sebserver.institution.action.deactivate"),
             ImageIcon.ACTIVE,
             InstitutionForm.class,
+            DeactivateInstitution.class,
             INSTITUTION_VIEW_LIST),
     INSTITUTION_DELETE(
             new LocTextKey("sebserver.institution.action.modify"),
@@ -117,11 +126,13 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.useraccount.action.activate"),
             ImageIcon.INACTIVE,
             UserAccountForm.class,
+            ActivateUserAccount.class,
             USER_ACCOUNT_VIEW_LIST),
     USER_ACCOUNT_DEACTIVATE(
             new LocTextKey("sebserver.useraccount.action.deactivate"),
             ImageIcon.ACTIVE,
             UserAccountForm.class,
+            DeactivateUserAccount.class,
             USER_ACCOUNT_VIEW_LIST),
     USER_ACCOUNT_DELETE(
             new LocTextKey("sebserver.useraccount.action.modify"),
@@ -140,18 +151,66 @@ public enum ActionDefinition {
             USER_ACCOUNT_VIEW_LIST),
 
     LMS_SETUP_VIEW_LIST(
-            new LocTextKey("sebserver.lmssetup.list.title"),
+            new LocTextKey("sebserver.lmssetup.action.list"),
             LmsSetupList.class),
     LMS_SETUP_VIEW_FORM(
-            new LocTextKey("sebserver.useraccount.action.form"),
+            new LocTextKey("sebserver.lmssetup.action.form"),
             LmsSetupForm.class,
-            USER_ACCOUNT_VIEW_LIST),
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_NEW(
+            new LocTextKey("sebserver.lmssetup.action.new"),
+            ImageIcon.NEW,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST, false),
+    LMS_SETUP_VIEW_FROM_LIST(
+            new LocTextKey("sebserver.lmssetup.action.list.view"),
+            ImageIcon.SHOW,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.lmssetup.action.list.modify"),
+            ImageIcon.EDIT,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST, false),
+    LMS_SETUP_MODIFY(
+            new LocTextKey("sebserver.lmssetup.action.modify"),
+            ImageIcon.EDIT,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST, false),
+    LMS_SETUP_EXPORT_SEB_CONFIG(
+            new LocTextKey("sebserver.lmssetup.action.export.sebconfig"),
+            ImageIcon.SAVE,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_SAVE(
+            new LocTextKey("sebserver.lmssetup.action.save"),
+            ImageIcon.SAVE,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_ACTIVATE(
+            new LocTextKey("sebserver.lmssetup.action.activate"),
+            ImageIcon.INACTIVE,
+            LmsSetupForm.class,
+            ActivateLmsSetup.class,
+            LMS_SETUP_VIEW_LIST),
+    LMS_SETUP_DEACTIVATE(
+            new LocTextKey("sebserver.lmssetup.action.deactivate"),
+            ImageIcon.ACTIVE,
+            LmsSetupForm.class,
+            DeactivateLmsSetup.class,
+            LMS_SETUP_VIEW_LIST),
             ;
 
     public final LocTextKey title;
     public final ImageIcon icon;
     public final Class<? extends TemplateComposer> contentPaneComposer;
     public final Class<? extends TemplateComposer> actionPaneComposer;
+    public final Class<? extends RestCall<?>> restCallType;
     public final ActionDefinition activityAlias;
     public final String category;
     public final boolean readonly;
@@ -160,13 +219,7 @@ public enum ActionDefinition {
             final LocTextKey title,
             final Class<? extends TemplateComposer> contentPaneComposer) {
 
-        this.title = title;
-        this.icon = null;
-        this.contentPaneComposer = contentPaneComposer;
-        this.actionPaneComposer = ActionPane.class;
-        this.activityAlias = null;
-        this.category = null;
-        this.readonly = true;
+        this(title, null, contentPaneComposer, ActionPane.class, null, null, null, true);
     }
 
     private ActionDefinition(
@@ -174,13 +227,7 @@ public enum ActionDefinition {
             final Class<? extends TemplateComposer> contentPaneComposer,
             final ActionDefinition activityAlias) {
 
-        this.title = title;
-        this.icon = null;
-        this.contentPaneComposer = contentPaneComposer;
-        this.actionPaneComposer = ActionPane.class;
-        this.activityAlias = activityAlias;
-        this.category = null;
-        this.readonly = true;
+        this(title, null, contentPaneComposer, ActionPane.class, null, activityAlias, null, true);
     }
 
     private ActionDefinition(
@@ -189,13 +236,17 @@ public enum ActionDefinition {
             final Class<? extends TemplateComposer> contentPaneComposer,
             final ActionDefinition activityAlias) {
 
-        this.title = title;
-        this.icon = icon;
-        this.contentPaneComposer = contentPaneComposer;
-        this.actionPaneComposer = ActionPane.class;
-        this.activityAlias = activityAlias;
-        this.category = null;
-        this.readonly = true;
+        this(title, icon, contentPaneComposer, ActionPane.class, null, activityAlias, null, true);
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final Class<? extends TemplateComposer> contentPaneComposer,
+            final Class<? extends RestCall<?>> restCallType,
+            final ActionDefinition activityAlias) {
+
+        this(title, icon, contentPaneComposer, ActionPane.class, restCallType, activityAlias, null, true);
     }
 
     private ActionDefinition(
@@ -205,12 +256,26 @@ public enum ActionDefinition {
             final ActionDefinition activityAlias,
             final boolean readonly) {
 
+        this(title, icon, contentPaneComposer, ActionPane.class, null, activityAlias, null, readonly);
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final Class<? extends TemplateComposer> contentPaneComposer,
+            final Class<? extends TemplateComposer> actionPaneComposer,
+            final Class<? extends RestCall<?>> restCallType,
+            final ActionDefinition activityAlias,
+            final String category,
+            final boolean readonly) {
+
         this.title = title;
         this.icon = icon;
         this.contentPaneComposer = contentPaneComposer;
-        this.actionPaneComposer = ActionPane.class;
+        this.actionPaneComposer = actionPaneComposer;
+        this.restCallType = restCallType;
         this.activityAlias = activityAlias;
-        this.category = null;
+        this.category = category;
         this.readonly = readonly;
     }
 

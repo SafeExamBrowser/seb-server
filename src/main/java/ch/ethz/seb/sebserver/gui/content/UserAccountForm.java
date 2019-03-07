@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import org.apache.tomcat.util.buf.StringUtils;
@@ -73,20 +72,19 @@ public class UserAccountForm implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
 
         final UserInfo user = currentUser.get();
-
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
+        final boolean readonly = pageContext.isReadonly();
+
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final BooleanSupplier isSEBAdmin = () -> user.hasRole(UserRole.SEB_SERVER_ADMIN);
-        final boolean readonly = pageContext.isReadonly();
+
         // get data or create new. handle error if happen
         final UserAccount userAccount = isNew.getAsBoolean()
-                ? new UserMod(
-                        UUID.randomUUID().toString(),
-                        (parentEntityKey != null)
-                                ? Long.valueOf(parentEntityKey.modelId)
-                                : user.institutionId)
+                ? UserMod.createNew((parentEntityKey != null)
+                        ? Long.valueOf(parentEntityKey.modelId)
+                        : user.institutionId)
                 : restService
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -101,19 +99,18 @@ public class UserAccountForm implements TemplateComposer {
             return;
         }
 
+        // new PageContext with actual EntityKey
+        final PageContext formContext = pageContext.withEntityKey(userAccount.getEntityKey());
+
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
         final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
-        // modifying an UserAccount is not possible if the root institution is inactive
         final boolean istitutionActive = restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
                 .call()
                 .map(inst -> inst.active)
                 .getOr(false);
-
-        // new PageContext with actual EntityKey
-        final PageContext formContext = pageContext.withEntityKey(userAccount.getEntityKey());
 
         if (log.isDebugEnabled()) {
             log.debug("UserAccount Form for user {}", userAccount.getName());
@@ -190,7 +187,6 @@ public class UserAccountForm implements TemplateComposer {
                         : restService.getRestCall(SaveUserAccount.class));
 
         // propagate content actions to action-pane
-
         formContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
@@ -205,12 +201,14 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> modifyGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
-                .withExec(Action.activation(restService, false))
+                .withEntityKey(entityKey)
+                .withExec(restService::activation)
                 .withConfirm(PageUtils.confirmDeactivation(userAccount, restService))
                 .publishIf(() -> writeGrant && readonly && istitutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
-                .withExec(Action.activation(restService, true))
+                .withEntityKey(entityKey)
+                .withExec(restService::activation)
                 .publishIf(() -> writeGrant && readonly && istitutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
@@ -225,6 +223,7 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> !readonly)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
+                .withEntityKey(entityKey)
                 .withExec(Action::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);

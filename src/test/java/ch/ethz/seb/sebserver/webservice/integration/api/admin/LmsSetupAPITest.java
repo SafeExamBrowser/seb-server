@@ -38,9 +38,11 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
-                .withAttribute("name", "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_NAME, "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb1Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 });
@@ -53,7 +55,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertFalse(lmsSetup.active);
 
         // set lms server and credentials
-        final LmsSetup modified = new LmsSetup(
+        LmsSetup modified = new LmsSetup(
                 lmsSetup.id,
                 lmsSetup.institutionId,
                 lmsSetup.name,
@@ -62,8 +64,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "lms1Secret",
                 "https://www.lms1.com",
                 null,
-                "seb1Name",
-                "seb1Secret",
+                null,
+                null,
                 null);
 
         lmsSetup = new RestAPITestHelper()
@@ -86,6 +88,34 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertEquals(null, lmsSetup.lmsAuthSecret);
         assertEquals(null, lmsSetup.sebAuthSecret);
         assertFalse(lmsSetup.active);
+
+        // trying to rest seb-client credentials should not be possible
+        modified = new LmsSetup(
+                lmsSetup.id,
+                lmsSetup.institutionId,
+                lmsSetup.name,
+                lmsSetup.lmsType,
+                "lms1Name",
+                "lms1Secret",
+                "https://www.lms1.com",
+                null,
+                "seb2Name",
+                "shouldNotBePossible",
+                null);
+
+        final List<APIMessage> errors = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.PUT)
+                .withBodyJson(modified)
+                .withExpectedStatus(HttpStatus.BAD_REQUEST)
+                .getAsObject(new TypeReference<List<APIMessage>>() {
+                });
+
+        assertNotNull(errors);
+        assertTrue(errors.size() == 1);
+        assertEquals("SEB Client Authentication cannot be changed after creation",
+                errors.get(0).details);
 
         // activate
         EntityProcessingReport report = new RestAPITestHelper()
@@ -180,20 +210,20 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void testValidationOnCreate() throws Exception {
-        // create new institution with seb-admin
+        // create new LmsSetup with seb-admin
         final List<APIMessage> errors = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
-                .withAttribute("name", "new LmsSetup 1")
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_NAME, "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
                 .getAsObject(new TypeReference<List<APIMessage>>() {
                 });
 
         assertNotNull(errors);
-        assertTrue(errors.size() == 1);
+        assertTrue(errors.size() == 2);
         assertEquals("Field validation error", errors.get(0).systemMessage);
-        assertEquals("[lmsSetup, lmsType, notNull]", String.valueOf(errors.get(0).attributes));
     }
 
     @Test
@@ -205,7 +235,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb1Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 });
@@ -215,7 +246,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb2Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 });
@@ -242,7 +274,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb2Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 });
@@ -252,7 +285,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb2Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 });
@@ -275,9 +309,11 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
+                .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "1")
                 .withAttribute("name", "new LmsSetup 1")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb2Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 }).id;
@@ -286,10 +322,11 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
-                .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "2")
+                .withAttribute("name", "new LmsSetup 2")
                 .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
-                .withAttribute("active", "false")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME, "seb2Name")
+                .withAttribute(Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET, "12345678")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<LmsSetup>() {
                 }).id;
@@ -305,7 +342,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(lmsSetup);
         assertTrue(lmsSetup.id.longValue() == id1.longValue());
 
-        // a seb-admin is also able to get an institution that is not the one he self belongs to
+        // a seb-admin is also able to get lms setup that is not the own institution
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
@@ -317,7 +354,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(lmsSetup);
         assertTrue(lmsSetup.id.longValue() == id2.longValue());
 
-        // but a institutional-admin is not able to get an institution that is not the one he self belongs to
+        // but a institutional-admin is not able to get lms setup that is on another institution
         new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)

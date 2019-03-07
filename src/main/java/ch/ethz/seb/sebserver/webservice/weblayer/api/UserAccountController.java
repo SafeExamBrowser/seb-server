@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -113,15 +114,53 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                         .collect(Collectors.toList()));
     }
 
+    private UserInfo checkPasswordChange(final UserInfo info, final PasswordChange passwordChange) {
+        final SEBServerUser authUser = this.userDAO.sebServerUserByUsername(info.username)
+                .getOrThrow();
+
+        if (!this.userPasswordEncoder.matches(passwordChange.getOldPassword(), authUser.getPassword())) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            "passwordChange",
+                            PasswordChange.ATTR_NAME_OLD_PASSWORD,
+                            "user:oldPassword:password.wrong")));
+        }
+
+        if (!passwordChange.newPasswordMatch()) {
+
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            "passwordChange",
+                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                            "user:retypedNewPassword:password.mismatch")));
+        }
+
+        return info;
+
+    }
+
+    @Override
+    protected Result<UserMod> validForCreate(final UserMod userInfo) {
+        return super.validForCreate(userInfo)
+                .flatMap(this::additionalConsistencyChecks);
+    }
+
     @Override
     protected Result<UserInfo> validForSave(final UserInfo userInfo) {
+        return super.validForSave(userInfo)
+                .flatMap(this::additionalConsistencyChecks);
+    }
+
+    /** Additional consistency checks that has to be checked before create and save actions */
+    private <T extends UserAccount> Result<T> additionalConsistencyChecks(final T userInfo) {
         return Result.tryCatch(() -> {
             final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
             final EnumSet<UserRole> rolesOfCurrentUser = currentUser.getUserRoles();
             final EnumSet<UserRole> userRolesOfAccount = userInfo.getUserRoles();
 
             // check of institution of UserInfo is active. Otherwise save is not valid
-            if (!this.beanValidationService.isActive(new EntityKey(userInfo.institutionId, EntityType.INSTITUTION))) {
+            if (!this.beanValidationService
+                    .isActive(new EntityKey(userInfo.getInstitutionId(), EntityType.INSTITUTION))) {
                 throw new IllegalAPIArgumentException(
                         "User within an inactive institution cannot be created nor modified");
             }
@@ -172,31 +211,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(ActivityType.PASSWORD_CHANGE, e))
                 .getOrThrow();
-    }
-
-    private UserInfo checkPasswordChange(final UserInfo info, final PasswordChange passwordChange) {
-        final SEBServerUser authUser = this.userDAO.sebServerUserByUsername(info.username)
-                .getOrThrow();
-
-        if (!this.userPasswordEncoder.matches(passwordChange.getOldPassword(), authUser.getPassword())) {
-            throw new APIMessageException(APIMessage.fieldValidationError(
-                    new FieldError(
-                            "passwordChange",
-                            PasswordChange.ATTR_NAME_OLD_PASSWORD,
-                            "user:oldPassword:password.wrong")));
-        }
-
-        if (!passwordChange.newPasswordMatch()) {
-
-            throw new APIMessageException(APIMessage.fieldValidationError(
-                    new FieldError(
-                            "passwordChange",
-                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                            "user:retypedNewPassword:password.mismatch")));
-        }
-
-        return info;
-
     }
 
     private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {

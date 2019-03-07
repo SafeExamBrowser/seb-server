@@ -75,7 +75,7 @@ public class WebClientDetailsService implements ClientDetailsService {
         if ("test".equals(clientId)) {
             final BaseClientDetails baseClientDetails = new BaseClientDetails(
                     clientId,
-                    WebResourceServerConfiguration.EXAM_API_RESOURCE_ID,
+                    WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
                     null,
                     "client_credentials,refresh_token",
                     "");

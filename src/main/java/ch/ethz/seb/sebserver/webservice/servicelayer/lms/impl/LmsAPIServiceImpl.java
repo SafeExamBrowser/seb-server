@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,7 +99,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         // To Clarify : How the file should be encrypted (use case) maybe we need another encryption-secret for this that can be given by
         //              an administrator on SEB start configuration creation time
 
-        return Result.ofTODO();
+        return Result.tryCatch(() -> {
+            try {
+                return new ByteArrayInputStream("TODO".getBytes("UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                throw new RuntimeException("cause: ", e);
+            }
+        });
     }
 
 }

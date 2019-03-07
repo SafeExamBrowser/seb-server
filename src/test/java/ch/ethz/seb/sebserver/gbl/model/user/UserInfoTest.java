@@ -17,8 +17,6 @@ import java.util.Locale;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 
@@ -35,45 +33,11 @@ public class UserInfoTest {
                         new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())))));
 
         final JSONMapper jsonMapper = new JSONMapper();
-        final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();
-        final String json = writerWithDefaultPrettyPrinter.writeValueAsString(page);
-        assertEquals("{\r\n" +
-                "  \"number_of_pages\" : 2,\r\n" +
-                "  \"page_number\" : 1,\r\n" +
-                "  \"sort\" : \"name\",\r\n" +
-                "  \"content\" : [ {\r\n" +
-                "    \"uuid\" : \"id1\",\r\n" +
-                "    \"institutionId\" : 1,\r\n" +
-                "    \"name\" : \"user1\",\r\n" +
-                "    \"username\" : \"user1\",\r\n" +
-                "    \"email\" : \"user1@inst2.none\",\r\n" +
-                "    \"active\" : true,\r\n" +
-                "    \"language\" : \"en\",\r\n" +
-                "    \"timezone\" : \"UTC\",\r\n" +
-                "    \"userRoles\" : [ \"EXAM_ADMIN\" ]\r\n" +
-                "  }, {\r\n" +
-                "    \"uuid\" : \"id2\",\r\n" +
-                "    \"institutionId\" : 3,\r\n" +
-                "    \"name\" : \"user2\",\r\n" +
-                "    \"username\" : \"user2\",\r\n" +
-                "    \"email\" : \"user2@inst2.none\",\r\n" +
-                "    \"active\" : true,\r\n" +
-                "    \"language\" : \"en\",\r\n" +
-                "    \"timezone\" : \"UTC\",\r\n" +
-                "    \"userRoles\" : [ \"EXAM_ADMIN\" ]\r\n" +
-                "  }, {\r\n" +
-                "    \"uuid\" : \"id3\",\r\n" +
-                "    \"institutionId\" : 4,\r\n" +
-                "    \"name\" : \"user3\",\r\n" +
-                "    \"username\" : \"user3\",\r\n" +
-                "    \"email\" : \"user3@inst2.none\",\r\n" +
-                "    \"active\" : false,\r\n" +
-                "    \"language\" : \"de\",\r\n" +
-                "    \"timezone\" : \"UTC\",\r\n" +
-                "    \"userRoles\" : [ \"EXAM_ADMIN\" ]\r\n" +
-                "  } ],\r\n" +
-                "  \"page_size\" : 3\r\n" +
-                "}", json);
+        //final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();
+        final String json = jsonMapper.writeValueAsString(page);
+        assertEquals(
+                "{\"number_of_pages\":2,\"page_number\":1,\"sort\":\"name\",\"content\":[{\"uuid\":\"id1\",\"institutionId\":1,\"name\":\"user1\",\"username\":\"user1\",\"email\":\"user1@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id2\",\"institutionId\":3,\"name\":\"user2\",\"username\":\"user2\",\"email\":\"user2@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id3\",\"institutionId\":4,\"name\":\"user3\",\"username\":\"user3\",\"email\":\"user3@inst2.none\",\"active\":false,\"language\":\"de\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]}],\"page_size\":3}",
+                json);
 
     }
 

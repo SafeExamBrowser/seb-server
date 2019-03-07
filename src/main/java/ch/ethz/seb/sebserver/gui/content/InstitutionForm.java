@@ -66,7 +66,7 @@ public class InstitutionForm implements TemplateComposer {
         final boolean isNew = entityKey == null;
         // get data or create new. Handle error if happen
         final Institution institution = (entityKey == null)
-                ? new Institution(null, null, null, null, false)
+                ? Institution.createNew()
                 : this.restService
                         .getBuilder(GetInstitution.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -143,13 +143,13 @@ public class InstitutionForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(Action.activation(this.restService, false))
+                .withExec(this.restService::activation)
                 .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
                 .publishIf(() -> writeGrant && isReadonly && institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(Action.activation(this.restService, true))
+                .withExec(this.restService::activation)
                 .publishIf(() -> writeGrant && isReadonly && !institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_SAVE)

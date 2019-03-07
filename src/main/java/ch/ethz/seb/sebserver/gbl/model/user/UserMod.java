@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
@@ -112,19 +113,6 @@ public final class UserMod implements UserAccount {
                 : Collections.emptySet();
     }
 
-    public UserMod(final UserInfo userInfo, final String newPassword, final String confirmNewPassword) {
-        this.uuid = userInfo.uuid;
-        this.institutionId = userInfo.institutionId;
-        this.newPassword = newPassword;
-        this.confirmNewPassword = confirmNewPassword;
-        this.name = userInfo.name;
-        this.username = userInfo.username;
-        this.email = userInfo.email;
-        this.language = userInfo.language;
-        this.timeZone = userInfo.timeZone;
-        this.roles = userInfo.roles;
-    }
-
     public UserMod(final String modelId, final POSTMapper postAttrMapper) {
         this.uuid = modelId;
         this.institutionId = postAttrMapper.getLong(USER.ATTR_INSTITUTION_ID);
@@ -136,19 +124,6 @@ public final class UserMod implements UserAccount {
         this.language = postAttrMapper.getLocale(USER.ATTR_LANGUAGE);
         this.timeZone = postAttrMapper.getDateTimeZone(USER.ATTR_TIMEZONE);
         this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
-    }
-
-    public UserMod(final String modelId, final Long institutionId) {
-        this.uuid = modelId;
-        this.institutionId = institutionId;
-        this.newPassword = null;
-        this.confirmNewPassword = null;
-        this.name = null;
-        this.username = null;
-        this.email = null;
-        this.language = Locale.ENGLISH;
-        this.timeZone = DateTimeZone.UTC;
-        this.roles = Collections.emptySet();
     }
 
     @Override
@@ -255,6 +230,13 @@ public final class UserMod implements UserAccount {
                 + this.timeZone
                 + ", roles=" + this.roles
                 + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.confirmNewPassword + "]";
+    }
+
+    public static UserMod createNew(final Long institutionId) {
+        return new UserMod(
+                UUID.randomUUID().toString(),
+                institutionId,
+                null, null, null, null, null, null, null, null);
     }
 
 }

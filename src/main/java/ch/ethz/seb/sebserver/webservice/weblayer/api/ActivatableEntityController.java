@@ -139,8 +139,12 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
-                .flatMap(this::validForSave)
+                .flatMap(this::validForActivation)
                 .flatMap(entity -> this.bulkActionService.createReport(bulkAction));
+    }
+
+    protected Result<T> validForActivation(final T entity) {
+        return Result.of(entity);
     }
 
 }

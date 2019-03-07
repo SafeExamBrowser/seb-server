@@ -13,11 +13,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -28,9 +26,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
 
 public final class Action implements Runnable {
 
@@ -39,9 +34,9 @@ public final class Action implements Runnable {
     public final ActionDefinition definition;
     Supplier<LocTextKey> confirm;
     LocTextKey successMessage;
-    boolean updateOnSelection;
 
     Supplier<Set<EntityKey>> selectionSupplier;
+    LocTextKey noSelectionMessage;
 
     private final PageContext originalPageContext;
     private PageContext pageContext;
@@ -104,9 +99,14 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action withSelect(final Supplier<Set<EntityKey>> selectionSupplier, final Function<Action, Action> exec) {
+    public Action withSelect(
+            final Supplier<Set<EntityKey>> selectionSupplier,
+            final Function<Action, Action> exec,
+            final LocTextKey noSelectionMessage) {
+
         this.selectionSupplier = selectionSupplier;
         this.exec = exec;
+        this.noSelectionMessage = noSelectionMessage;
         return this;
     }
 
@@ -122,11 +122,6 @@ public final class Action implements Runnable {
 
     public Action withSuccess(final String successMessageKey) {
         this.successMessage = new LocTextKey(successMessageKey);
-        return this;
-    }
-
-    public Action withUpdateOnSelection() {
-        this.updateOnSelection = true;
         return this;
     }
 
@@ -193,8 +188,8 @@ public final class Action implements Runnable {
         return this.originalPageContext;
     }
 
-    public EntityKey getSingleSelection(final String messageOnEmptySelection) {
-        final Set<EntityKey> selection = getMultiSelection(messageOnEmptySelection);
+    public EntityKey getSingleSelection() {
+        final Set<EntityKey> selection = getMultiSelection();
         if (selection != null) {
             return selection.iterator().next();
         }
@@ -202,12 +197,12 @@ public final class Action implements Runnable {
         return null;
     }
 
-    public Set<EntityKey> getMultiSelection(final String messageOnEmptySelection) {
+    public Set<EntityKey> getMultiSelection() {
         if (this.selectionSupplier != null) {
             final Set<EntityKey> selection = this.selectionSupplier.get();
             if (selection.isEmpty()) {
-                if (StringUtils.isNoneBlank(messageOnEmptySelection)) {
-                    throw new PageMessageException(messageOnEmptySelection);
+                if (this.noSelectionMessage != null) {
+                    throw new PageMessageException(this.noSelectionMessage);
                 }
 
                 return null;
@@ -216,26 +211,15 @@ public final class Action implements Runnable {
             return selection;
         }
 
-        if (StringUtils.isNoneBlank(messageOnEmptySelection)) {
-            throw new PageMessageException(messageOnEmptySelection);
+        if (this.noSelectionMessage != null) {
+            throw new PageMessageException(this.noSelectionMessage);
         }
 
         return null;
     }
 
-    public static Function<Action, Action> applySingleSelection(final String messageOnEmptySelection) {
-        return action -> action.withEntityKey(action.getSingleSelection(messageOnEmptySelection));
-    }
-
-    public static Function<Action, Action> activation(final RestService restService, final boolean activate) {
-        return action -> restService
-                .getBuilder((activate) ? ActivateInstitution.class : DeactivateInstitution.class)
-                .withURIVariable(
-                        API.PARAM_MODEL_ID,
-                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
-                .call()
-                .map(report -> action)
-                .getOrThrow();
+    public static Action applySingleSelection(final Action action) {
+        return action.withEntityKey(action.getSingleSelection());
     }
 
     public static Action onEmptyEntityKeyGoToActivityHome(final Action action) {

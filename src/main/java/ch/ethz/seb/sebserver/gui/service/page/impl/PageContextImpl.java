@@ -289,7 +289,7 @@ public class PageContextImpl implements PageContext {
         final MessageBox messageBox = new Message(
                 getShell(),
                 this.i18nSupport.getText("sebserver.page.message"),
-                this.i18nSupport.getText(pme.getMessage()),
+                this.i18nSupport.getText(pme.getMessageKey()),
                 SWT.NONE);
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);

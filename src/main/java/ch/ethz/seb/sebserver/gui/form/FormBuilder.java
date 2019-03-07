@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class FormBuilder {
 
@@ -212,10 +213,10 @@ public class FormBuilder {
 
     Label labelLocalized(final Composite parent, final String locTextKey, final int hspan) {
         final Label label = this.widgetFactory.labelLocalized(parent, locTextKey);
-        final GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
         gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
-        label.setData(RWT.CUSTOM_VARIANT, "head");
+        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
         return label;
     }
 

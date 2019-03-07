@@ -28,7 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -46,7 +45,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebResourceServerConfiguration;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 /** This is the main web-security Spring configuration for SEB-Server webservice API
  *
@@ -65,13 +64,13 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebResourceServerConfigur
  * and is by default set to "/exam-api/**" */
 @WebServiceProfile
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @Order(5)
 @Import(DataSourceAutoConfiguration.class)
-public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final Logger log = LoggerFactory.getLogger(ClientSessionWebSecurityConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(WebServiceSecurityConfig.class);
 
     /** Spring bean name of single AuthenticationManager bean */
     public static final String AUTHENTICATION_MANAGER = "AUTHENTICATION_MANAGER";
@@ -157,7 +156,7 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
 
     // NOTE: We need two different class types here to support Spring configuration for different
     //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
-    private static final class AdminAPIResourceServerConfiguration extends WebResourceServerConfiguration {
+    private static final class AdminAPIResourceServerConfiguration extends WebserviceResourceConfiguration {
 
         public AdminAPIResourceServerConfiguration(
                 final TokenStore tokenStore,
@@ -180,7 +179,7 @@ public class ClientSessionWebSecurityConfig extends WebSecurityConfigurerAdapter
 
     // NOTE: We need two different class types here to support Spring configuration for different
     //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
-    private static final class ExamAPIClientResourceServerConfiguration extends WebResourceServerConfiguration {
+    private static final class ExamAPIClientResourceServerConfiguration extends WebserviceResourceConfiguration {
 
         public ExamAPIClientResourceServerConfiguration(
                 final TokenStore tokenStore,

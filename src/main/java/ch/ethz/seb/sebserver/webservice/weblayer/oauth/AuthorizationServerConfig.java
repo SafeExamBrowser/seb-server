@@ -25,7 +25,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.weblayer.ClientSessionWebSecurityConfig;
+import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceSecurityConfig;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 
 /** This is the main Spring configuration of OAuth2 Authorization Server.
@@ -52,7 +52,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
     @Autowired
-    @Qualifier(ClientSessionWebSecurityConfig.AUTHENTICATION_MANAGER)
+    @Qualifier(WebServiceSecurityConfig.AUTHENTICATION_MANAGER)
     private AuthenticationManager authenticationManager;
 
     @Override

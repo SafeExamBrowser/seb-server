@@ -248,9 +248,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         final M requestModel = this.createNew(postMap);
 
-        return this.beanValidationService.validateBean(requestModel)
+        return this.validForCreate(requestModel)
                 .flatMap(this.entityDAO::createNew)
-                .flatMap(this::validForSave)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .flatMap(this::notifyCreated)
                 .getOrThrow();
@@ -339,6 +338,15 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
     protected Result<T> notifyCreated(final T entity) {
         return Result.of(entity);
+    }
+
+    protected Result<M> validForCreate(final M entity) {
+        if (entity.getModelId() == null) {
+            return this.beanValidationService.validateBean(entity);
+        } else {
+            return Result.ofError(
+                    new IllegalAPIArgumentException("Model identifier already defined: " + entity.getModelId()));
+        }
     }
 
     protected Result<T> validForSave(final T entity) {

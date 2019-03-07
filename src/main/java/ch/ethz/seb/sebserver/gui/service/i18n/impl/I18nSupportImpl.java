@@ -11,18 +11,23 @@ package ch.ethz.seb.sebserver.gui.service.i18n.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -40,24 +45,44 @@ public class I18nSupportImpl implements I18nSupport {
     private final CurrentUser currentUser;
     private final MessageSource messageSource;
     private final Locale defaultLocale = Locale.ENGLISH;
+    private final Collection<Locale> supportedLanguages;
 
     public I18nSupportImpl(
             final CurrentUser currentUser,
             final MessageSource messageSource,
-            @Value("${sebserver.gui.date.displayformat}") final String displayDateFormat) {
+            final Environment environment) {
 
         this.currentUser = currentUser;
         this.messageSource = messageSource;
         this.displayDateFormatter = DateTimeFormat
-                .forPattern(displayDateFormat)
+                .forPattern(environment.getProperty(
+                        "sebserver.gui.date.displayformat",
+                        Constants.DEFAULT_DATE_FORMAT))
                 .withZoneUTC();
-    }
 
-    private static final Collection<Locale> SUPPORTED_LANGUAGES = Arrays.asList(Locale.ENGLISH, Locale.GERMAN);
+        final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.gui.multilingual",
+                "false"));
+        if (multilingual) {
+            final String languagesString = environment.getProperty(
+                    "sebserver.gui.languages",
+                    Locale.ENGLISH.getLanguage());
+
+            this.supportedLanguages = Utils.immutableCollectionOf(
+                    Arrays.asList(StringUtils.split(languagesString, Constants.LIST_SEPARATOR))
+                            .stream()
+                            .map(s -> Locale.forLanguageTag(s))
+                            .collect(Collectors.toList()));
+
+        } else {
+            this.supportedLanguages = Utils.immutableCollectionOf(Locale.ENGLISH);
+        }
+
+    }
 
     @Override
     public Collection<Locale> supportedLanguages() {
-        return SUPPORTED_LANGUAGES;
+        return this.supportedLanguages;
     }
 
     @Override

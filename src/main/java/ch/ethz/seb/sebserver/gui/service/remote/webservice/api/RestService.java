@@ -17,8 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
@@ -70,6 +73,20 @@ public class RestService {
         }
 
         return restCall.newBuilder();
+    }
+
+    public Action activation(final Action action) {
+        if (action.definition.restCallType == null) {
+            throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
+        }
+
+        return this.getBuilder(action.definition.restCallType)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
+                .call()
+                .map(report -> action)
+                .getOrThrow();
     }
 
 }

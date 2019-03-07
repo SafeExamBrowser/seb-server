@@ -24,14 +24,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 /** Abstract Spring ResourceServerConfiguration to configure different resource services
  * for different API's. */
-public abstract class WebResourceServerConfiguration extends ResourceServerConfiguration {
+public abstract class WebserviceResourceConfiguration extends ResourceServerConfiguration {
 
     /** The resource identifier of Administration API resources */
     public static final String ADMIN_API_RESOURCE_ID = "seb-server-administration-api";
     /** The resource identifier of the Exam API resources */
     public static final String EXAM_API_RESOURCE_ID = "seb-server-exam-api";
 
-    public WebResourceServerConfiguration(
+    public WebserviceResourceConfiguration(
             final TokenStore tokenStore,
             final WebClientDetailsService webServiceClientDetails,
             final AuthenticationManager authenticationManager,

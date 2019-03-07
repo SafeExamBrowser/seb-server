@@ -8,16 +8,36 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+
 public class PageMessageException extends RuntimeException {
 
     private static final long serialVersionUID = -6967378384991469166L;
 
+    private final LocTextKey textKey;
+
     public PageMessageException(final String message, final Throwable cause) {
         super(message, cause);
+        this.textKey = new LocTextKey(message);
     }
 
     public PageMessageException(final String message) {
         super(message);
+        this.textKey = new LocTextKey(message);
+    }
+
+    public PageMessageException(final LocTextKey message, final Throwable cause) {
+        super(message.name, cause);
+        this.textKey = message;
+    }
+
+    public PageMessageException(final LocTextKey message) {
+        super(message.name);
+        this.textKey = message;
+    }
+
+    public LocTextKey getMessageKey() {
+        return this.textKey;
     }
 
 }

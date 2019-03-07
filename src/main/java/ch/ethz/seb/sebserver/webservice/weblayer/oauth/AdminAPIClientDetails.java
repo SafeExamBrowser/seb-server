@@ -33,7 +33,7 @@ public final class AdminAPIClientDetails extends BaseClientDetails {
 
         super(
                 clientId,
-                WebResourceServerConfiguration.ADMIN_API_RESOURCE_ID,
+                WebserviceResourceConfiguration.ADMIN_API_RESOURCE_ID,
                 "read,write",
                 "password,refresh_token",
                 null);
