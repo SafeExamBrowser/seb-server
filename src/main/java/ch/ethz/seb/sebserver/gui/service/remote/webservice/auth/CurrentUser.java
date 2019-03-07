@@ -166,6 +166,10 @@ public class CurrentUser {
         }
     }
 
+    private static final ParameterizedTypeReference<Collection<Privilege>> PRIVILEGE_LIST_TYPE_REF =
+            new ParameterizedTypeReference<>() {
+            };
+
     private boolean loadPrivileges() {
         if (this.privileges != null) {
             return true;
@@ -183,8 +187,7 @@ public class CurrentUser {
                                         .toUriString(),
                                 HttpMethod.GET,
                                 HttpEntity.EMPTY,
-                                new ParameterizedTypeReference<Collection<Privilege>>() {
-                                });
+                                PRIVILEGE_LIST_TYPE_REF);
 
                 if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                     this.privileges = exchange.getBody().stream()
@@ -223,42 +226,42 @@ public class CurrentUser {
         }
 
         /** Checks the base read-only privilege grant
-         * 
+         *
          * @return true on read-only privilege grant on wrapped EntityType */
         public boolean r() {
             return hasBasePrivilege(PrivilegeType.READ_ONLY, this.entityType);
         }
 
         /** Checks the base modify privilege grant
-         * 
+         *
          * @return true on modify privilege grant on wrapped EntityType */
         public boolean m() {
             return hasBasePrivilege(PrivilegeType.MODIFY, this.entityType);
         }
 
         /** Checks the base write privilege grant
-         * 
+         *
          * @return true on write privilege grant on wrapped EntityType */
         public boolean w() {
             return hasBasePrivilege(PrivilegeType.WRITE, this.entityType);
         }
 
         /** Checks the institutional read-only privilege grant
-         * 
+         *
          * @return true institutional read-only privilege grant on wrapped EntityType */
         public boolean ir() {
             return hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, this.entityType);
         }
 
         /** Checks the institutional modify privilege grant
-         * 
+         *
          * @return true institutional modify privilege grant on wrapped EntityType */
         public boolean im() {
             return hasInstitutionalPrivilege(PrivilegeType.MODIFY, this.entityType);
         }
 
         /** Checks the institutional write privilege grant
-         * 
+         *
          * @return true institutional write privilege grant on wrapped EntityType */
         public boolean iw() {
             return hasInstitutionalPrivilege(PrivilegeType.WRITE, this.entityType);
@@ -274,21 +277,21 @@ public class CurrentUser {
         }
 
         /** Checks the read-only privilege grant for wrapped grantEntity
-         * 
+         *
          * @return true on read-only privilege grant for wrapped grantEntity */
         public boolean r() {
             return hasPrivilege(PrivilegeType.READ_ONLY, this.grantEntity);
         }
 
         /** Checks the modify privilege grant for wrapped grantEntity
-         * 
+         *
          * @return true on modify privilege grant for wrapped grantEntity */
         public boolean m() {
             return hasPrivilege(PrivilegeType.MODIFY, this.grantEntity);
         }
 
         /** Checks the write privilege grant for wrapped grantEntity
-         * 
+         *
          * @return true on write privilege grant for wrapped grantEntity */
         public boolean w() {
             return hasPrivilege(PrivilegeType.WRITE, this.grantEntity);

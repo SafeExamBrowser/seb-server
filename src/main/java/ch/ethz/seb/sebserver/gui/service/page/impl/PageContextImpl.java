@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -344,9 +345,9 @@ public class PageContextImpl implements PageContext {
                 + "]";
     }
 
-    private final class ConfirmDialogCallback implements DialogCallback {
+    private static final class ConfirmDialogCallback implements DialogCallback {
         private static final long serialVersionUID = 1491270214433492441L;
-        private transient final Runnable onOK;
+        private final Runnable onOK;
 
         private ConfirmDialogCallback(final Runnable onOK) {
             this.onOK = onOK;
@@ -366,7 +367,10 @@ public class PageContextImpl implements PageContext {
         }
     }
 
-    private static final class ListenerComparator implements Comparator<PageEventListener<?>> {
+    private static final class ListenerComparator implements Comparator<PageEventListener<?>>, Serializable {
+
+        private static final long serialVersionUID = 2571739214439340404L;
+
         @Override
         public int compare(final PageEventListener<?> o1, final PageEventListener<?> o2) {
             final int x = o1.priority();
