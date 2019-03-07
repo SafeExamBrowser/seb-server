@@ -14,12 +14,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -40,7 +37,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -118,50 +114,50 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return new LmsSetup(null, postParams);
     }
 
-    @Override
-    protected Result<LmsSetup> validForCreate(final LmsSetup entity) {
-
-        final SEBClientAuth clientAuth = new SEBClientAuth(entity.sebAuthName, entity.sebAuthSecret);
-
-        final Result<LmsSetup> result = super.validForCreate(entity);
-        if (result.hasError()) {
-            final Throwable error = result.getError();
-            if (error instanceof BeanValidationException) {
-                final BeanValidationException beanValidationException = (BeanValidationException) error;
-                final Result<SEBClientAuth> validateSebAuth = this.beanValidationService.validateBean(clientAuth);
-                if (validateSebAuth.hasError()) {
-                    final Throwable sebAuthError = validateSebAuth.getError();
-                    if (sebAuthError instanceof BeanValidationException) {
-                        final BindingResult bindingResult = beanValidationException.getBindingResult();
-                        bindingResult.addAllErrors(((BeanValidationException) sebAuthError).getBindingResult());
-                        return Result.ofError(new BeanValidationException(bindingResult));
-                    } else {
-                        return validateSebAuth
-                                .map(ce -> entity);
-                    }
-                }
-            }
-            return result;
-        } else {
-            return this.beanValidationService.validateBean(clientAuth)
-                    .map(ca -> entity);
-        }
-    }
-
-    @Override
-    protected Result<LmsSetup> validForSave(final LmsSetup entity) {
-        return super.validForSave(entity)
-                .map(setup -> {
-
-                    if (StringUtils.isNoneBlank(entity.sebAuthName)
-                            || StringUtils.isNoneBlank(entity.sebAuthSecret)) {
-
-                        throw new IllegalAPIArgumentException(
-                                "SEB Client Authentication cannot be changed after creation");
-                    }
-                    return setup;
-                });
-    }
+//    @Override
+//    protected Result<LmsSetup> validForCreate(final LmsSetup entity) {
+//
+//        final SEBClientAuth clientAuth = new SEBClientAuth(entity.sebAuthName, entity.sebAuthSecret);
+//
+//        final Result<LmsSetup> result = super.validForCreate(entity);
+//        if (result.hasError()) {
+//            final Throwable error = result.getError();
+//            if (error instanceof BeanValidationException) {
+//                final BeanValidationException beanValidationException = (BeanValidationException) error;
+//                final Result<SEBClientAuth> validateSebAuth = this.beanValidationService.validateBean(clientAuth);
+//                if (validateSebAuth.hasError()) {
+//                    final Throwable sebAuthError = validateSebAuth.getError();
+//                    if (sebAuthError instanceof BeanValidationException) {
+//                        final BindingResult bindingResult = beanValidationException.getBindingResult();
+//                        bindingResult.addAllErrors(((BeanValidationException) sebAuthError).getBindingResult());
+//                        return Result.ofError(new BeanValidationException(bindingResult));
+//                    } else {
+//                        return validateSebAuth
+//                                .map(ce -> entity);
+//                    }
+//                }
+//            }
+//            return result;
+//        } else {
+//            return this.beanValidationService.validateBean(clientAuth)
+//                    .map(ca -> entity);
+//        }
+//    }
+//
+//    @Override
+//    protected Result<LmsSetup> validForSave(final LmsSetup entity) {
+//        return super.validForSave(entity)
+//                .map(setup -> {
+//
+//                    if (StringUtils.isNoneBlank(entity.sebAuthName)
+//                            || StringUtils.isNoneBlank(entity.sebAuthSecret)) {
+//
+//                        throw new IllegalAPIArgumentException(
+//                                "SEB Client Authentication cannot be changed after creation");
+//                    }
+//                    return setup;
+//                });
+//    }
 
     public static final class SEBClientAuth {
 
@@ -174,6 +170,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         public final String sebAuthSecret;
 
         protected SEBClientAuth(final String authName, final String authSecret) {
+
             this.sebAuthName = authName;
             this.sebAuthSecret = authSecret;
         }

@@ -21,13 +21,10 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -50,16 +47,13 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
     private final InternalEncryptionService internalEncryptionService;
-    private final PasswordEncoder clientPasswordEncoder;
 
     protected LmsSetupDAOImpl(
             final LmsSetupRecordMapper lmsSetupRecordMapper,
-            final InternalEncryptionService internalEncryptionService,
-            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder) {
+            final InternalEncryptionService internalEncryptionService) {
 
         this.lmsSetupRecordMapper = lmsSetupRecordMapper;
         this.internalEncryptionService = internalEncryptionService;
-        this.clientPasswordEncoder = clientPasswordEncoder;
     }
 
     @Override
@@ -148,8 +142,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
                             : null,
                     lmsSetup.lmsRestApiToken,
-                    null,
-                    null,
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -175,10 +167,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
                             : null,
                     lmsSetup.lmsRestApiToken,
-                    lmsSetup.sebAuthName,
-                    (StringUtils.isNotBlank(lmsSetup.sebAuthSecret))
-                            ? this.internalEncryptionService.encrypt(lmsSetup.sebAuthSecret)
-                            : null,
                     BooleanUtils.toInteger(false));
 
             this.lmsSetupRecordMapper.insert(newRecord);
@@ -195,7 +183,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             final List<Long> ids = extractPKsFromKeys(all);
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
-                    null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
 
             this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
@@ -284,20 +272,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         });
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Result<Credentials> getSEBClientCredentials(final String lmsSetupId) {
-        return Result.tryCatch(() -> {
-            final LmsSetupRecord record = this.lmsSetupRecordMapper
-                    .selectByPrimaryKey(Long.parseLong(lmsSetupId));
-
-            return new Credentials(
-                    record.getSebClientname(),
-                    record.getSebClientsecret(),
-                    null);
-        });
-    }
-
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> {
             return this.lmsSetupRecordMapper.selectIdsByExample()
@@ -333,8 +307,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 null,
                 record.getLmsUrl(),
                 record.getLmsRestApiToken(),
-                record.getSebClientname(),
-                null,
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 

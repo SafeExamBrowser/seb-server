@@ -149,16 +149,6 @@ public class LmsSetupForm implements TemplateComposer {
                         (lmsType != null) ? lmsType.name() : null,
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_SEB_CLIENTNAME,
-                        "sebserver.lmssetup.form.clientname.seb",
-                        lmsSetup.getSebAuthName())
-                        .readonlyIf(isNotNew))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_SEB_CLIENTSECRET,
-                        "sebserver.lmssetup.form.secret.seb")
-                        .asPasswordField()
-                        .withCondition(isNew))
 
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_URL,

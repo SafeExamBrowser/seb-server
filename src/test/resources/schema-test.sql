@@ -1,6 +1,6 @@
 
 -- -----------------------------------------------------
--- Schema SEBServerDemo
+-- Schema SEBServer
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `institution` (
   `name` VARCHAR(255) NOT NULL,
   `url_suffix` VARCHAR(45) NULL,
   `logo_image` MEDIUMTEXT NULL,
+  `theme_name` VARCHAR(45) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
@@ -33,8 +34,6 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `lms_clientname` VARCHAR(255) NULL,
   `lms_clientsecret` VARCHAR(255) NULL,
   `lms_rest_api_token` VARCHAR(4000) NULL,
-  `seb_clientname` VARCHAR(255) NOT NULL,
-  `seb_clientsecret` VARCHAR(255) NOT NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
@@ -301,7 +300,7 @@ DROP TABLE IF EXISTS `user` ;
 
 CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `institution_id` BIGINT UNSIGNED NULL,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `uuid` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `username` VARCHAR(255) NOT NULL,
@@ -312,7 +311,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `institutionRef_idx` (`institution_id` ASC),
-  CONSTRAINT `institutionRef`
+  CONSTRAINT `userInstitutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
@@ -416,5 +415,28 @@ CREATE TABLE IF NOT EXISTS `additional_attributes` (
   `name` VARCHAR(255) NOT NULL,
   `value` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`))
+;
+
+
+-- -----------------------------------------------------
+-- Table `seb_client_credentials`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `seb_client_credentials` ;
+
+CREATE TABLE IF NOT EXISTS `seb_client_credentials` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `date` DATETIME NOT NULL,
+  `client_name` VARCHAR(45) NOT NULL,
+  `client_secret` VARCHAR(45) NOT NULL,
+  `active` INT(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
+  CONSTRAINT `sebClientCredentialsInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ;
 

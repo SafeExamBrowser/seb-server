@@ -146,6 +146,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     institution.id,
                     institution.name,
                     institution.urlSuffix,
+                    institution.themeName,
                     null,
                     institution.logoImage);
 
@@ -174,6 +175,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     null,
                     institution.name,
                     institution.urlSuffix,
+                    institution.themeName,
                     BooleanUtils.toInteger(false),
                     institution.logoImage);
 
@@ -191,7 +193,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
             final List<Long> ids = extractPKsFromKeys(all);
             final InstitutionRecord institutionRecord = new InstitutionRecord(
-                    null, null, null, BooleanUtils.toInteger(active), null);
+                    null, null, null, null, BooleanUtils.toInteger(active), null);
 
             this.institutionRecordMapper.updateByExampleSelective(institutionRecord)
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -279,6 +281,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 record.getName(),
                 record.getUrlSuffix(),
                 record.getLogoImage(),
+                record.getThemeName(),
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 }

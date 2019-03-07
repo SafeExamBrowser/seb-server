@@ -243,7 +243,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(sebAdminAccess)
                 .withPath(API.INSTITUTION_ENDPOINT)
                 .withMethod(HttpMethod.PUT)
-                .withBodyJson(new Institution(institution.id, "testInstitution", "testSuffix", null, null))
+                .withBodyJson(new Institution(institution.id, "testInstitution", "testSuffix", null, null, null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
                 });

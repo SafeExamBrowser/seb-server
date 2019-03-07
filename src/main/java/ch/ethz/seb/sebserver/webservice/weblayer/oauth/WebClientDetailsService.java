@@ -71,13 +71,13 @@ public class WebClientDetailsService implements ClientDetailsService {
     }
 
     private ClientDetails getForExamClientAPI(final String clientId) {
-        // TODO create ClientDetails from matching LMSSetup
+        // TODO create ClientDetails from matching Institution
         if ("test".equals(clientId)) {
             final BaseClientDetails baseClientDetails = new BaseClientDetails(
                     clientId,
                     WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
                     null,
-                    "client_credentials,refresh_token",
+                    "client_credentials",
                     "");
             baseClientDetails.setScope(Collections.emptySet());
             baseClientDetails.setClientSecret(this.clientPasswordEncoder.encode("test"));

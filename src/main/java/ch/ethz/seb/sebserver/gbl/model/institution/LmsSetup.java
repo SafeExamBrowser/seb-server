@@ -13,6 +13,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -63,17 +64,12 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN)
     public final String lmsRestApiToken;
 
-    @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTNAME)
-    public final String sebAuthName;
-
-    @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTSECRET)
-    public final String sebAuthSecret;
-
     /** Indicates whether this LmsSetup is active or not */
     @JsonProperty(LMS_SETUP.ATTR_ACTIVE)
     public final Boolean active;
 
     @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public LmsSetup(
             @JsonProperty(LMS_SETUP.ATTR_ID) final Long id,
             @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -83,8 +79,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
             @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTSECRET) final String lmsAuthSecret,
             @JsonProperty(LMS_SETUP.ATTR_LMS_URL) final String lmsApiUrl,
             @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN) final String lmsRestApiToken,
-            @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTNAME) final String sebAuthName,
-            @JsonProperty(LMS_SETUP.ATTR_SEB_CLIENTSECRET) final String sebAuthSecret,
             @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
@@ -95,8 +89,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.lmsAuthSecret = lmsAuthSecret;
         this.lmsApiUrl = lmsApiUrl;
         this.lmsRestApiToken = lmsRestApiToken;
-        this.sebAuthName = sebAuthName;
-        this.sebAuthSecret = sebAuthSecret;
         this.active = (active != null) ? active : Boolean.FALSE;
     }
 
@@ -109,8 +101,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.lmsAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_CLIENTSECRET);
         this.lmsApiUrl = mapper.getString(LMS_SETUP.ATTR_LMS_URL);
         this.lmsRestApiToken = mapper.getString(LMS_SETUP.ATTR_LMS_REST_API_TOKEN);
-        this.sebAuthName = mapper.getString(LMS_SETUP.ATTR_SEB_CLIENTNAME);
-        this.sebAuthSecret = mapper.getString(LMS_SETUP.ATTR_SEB_CLIENTSECRET);
         this.active = mapper.getBooleanObject(LMS_SETUP.ATTR_ACTIVE);
     }
 
@@ -172,14 +162,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
         return this.lmsRestApiToken;
     }
 
-    public String getSebAuthName() {
-        return this.sebAuthName;
-    }
-
-    public String getSebAuthSecret() {
-        return this.sebAuthSecret;
-    }
-
     public Boolean getActive() {
         return this.active;
     }
@@ -190,8 +172,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 + ", lmsType=" + this.lmsType
                 + ", lmsAuthName=" + this.lmsAuthName + ", lmsAuthSecret=" + this.lmsAuthSecret + ", lmsApiUrl="
                 + this.lmsApiUrl
-                + ", lmsRestApiToken=" + this.lmsRestApiToken + ", sebAuthName=" + this.sebAuthName + ", sebAuthSecret="
-                + this.sebAuthSecret + ", active=" + this.active + "]";
+                + ", lmsRestApiToken=" + this.lmsRestApiToken + ", active=" + this.active + "]";
     }
 
     public static EntityName toName(final LmsSetup lmsSetup) {
@@ -202,7 +183,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
     }
 
     public static LmsSetup createNew(final Long institutionId) {
-        return new LmsSetup(null, institutionId, null, null, null, null, null, null, null, null, false);
+        return new LmsSetup(null, institutionId, null, null, null, null, null, null, false);
     }
 
 }

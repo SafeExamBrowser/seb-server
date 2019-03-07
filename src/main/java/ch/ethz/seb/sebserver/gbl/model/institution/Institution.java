@@ -40,6 +40,9 @@ public final class Institution implements GrantEntity, Activatable {
     @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE)
     public final String logoImage;
 
+    @JsonProperty(INSTITUTION.ATTR_THEME_NAME)
+    public final String themeName;
+
     @JsonProperty(INSTITUTION.ATTR_ACTIVE)
     public final Boolean active;
 
@@ -49,12 +52,14 @@ public final class Institution implements GrantEntity, Activatable {
             @JsonProperty(INSTITUTION.ATTR_NAME) final String name,
             @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX) final String urlSuffix,
             @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE) final String logoImage,
+            @JsonProperty(INSTITUTION.ATTR_THEME_NAME) final String themeName,
             @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.name = name;
         this.urlSuffix = urlSuffix;
         this.logoImage = logoImage;
+        this.themeName = themeName;
         this.active = active;
     }
 
@@ -63,6 +68,7 @@ public final class Institution implements GrantEntity, Activatable {
         this.name = mapper.getString(INSTITUTION.ATTR_NAME);
         this.urlSuffix = mapper.getString(INSTITUTION.ATTR_URL_SUFFIX);
         this.logoImage = mapper.getString(INSTITUTION.ATTR_LOGO_IMAGE);
+        this.themeName = mapper.getString(INSTITUTION.ATTR_THEME_NAME);
         this.active = false;
     }
 
@@ -106,6 +112,10 @@ public final class Institution implements GrantEntity, Activatable {
         return this.logoImage;
     }
 
+    public String getThemeName() {
+        return this.themeName;
+    }
+
     public Boolean getActive() {
         return this.active;
     }
@@ -114,11 +124,11 @@ public final class Institution implements GrantEntity, Activatable {
     public String toString() {
         return "Institution [id=" + this.id + ", name=" + this.name + ", urlSuffix=" + this.urlSuffix + ", logoImage="
                 + this.logoImage
-                + ", active=" + this.active + "]";
+                + ", themeName=" + this.themeName + ", active=" + this.active + "]";
     }
 
     public static Institution createNew() {
-        return new Institution(null, null, null, null, false);
+        return new Institution(null, null, null, null, null, false);
     }
 
 }

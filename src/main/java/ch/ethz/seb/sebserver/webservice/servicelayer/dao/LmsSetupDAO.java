@@ -16,8 +16,6 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
 
     Result<Credentials> getLmsAPIAccessCredentials(String lmsSetupId);
 
-    Result<Credentials> getSEBClientCredentials(String lmsSetupId);
-
     final class Credentials {
         public final String clientId;
         public final String secret;

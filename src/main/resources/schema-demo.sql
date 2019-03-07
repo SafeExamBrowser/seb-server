@@ -1,18 +1,18 @@
 
 -- -----------------------------------------------------
--- Schema SEBServerDemo
+-- Schema SEBServer
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `institution` ;
 
 CREATE TABLE IF NOT EXISTS `institution` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `url_suffix` VARCHAR(45) NULL,
   `logo_image` MEDIUMTEXT NULL,
+  `theme_name` VARCHAR(45) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS `institution` (
 -- -----------------------------------------------------
 -- Table `lms_setup`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `lms_setup` ;
 
 CREATE TABLE IF NOT EXISTS `lms_setup` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -33,8 +32,6 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `lms_clientname` VARCHAR(255) NULL,
   `lms_clientsecret` VARCHAR(255) NULL,
   `lms_rest_api_token` VARCHAR(4000) NULL,
-  `seb_clientname` VARCHAR(255) NOT NULL,
-  `seb_clientsecret` VARCHAR(255) NOT NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
@@ -49,7 +46,6 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
 -- -----------------------------------------------------
 -- Table `exam`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `exam` ;
 
 CREATE TABLE IF NOT EXISTS `exam` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -81,7 +77,6 @@ CREATE TABLE IF NOT EXISTS `exam` (
 -- -----------------------------------------------------
 -- Table `client_connection`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `client_connection` ;
 
 CREATE TABLE IF NOT EXISTS `client_connection` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -105,7 +100,6 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
 -- -----------------------------------------------------
 -- Table `client_event`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `client_event` ;
 
 CREATE TABLE IF NOT EXISTS `client_event` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -128,7 +122,6 @@ CREATE TABLE IF NOT EXISTS `client_event` (
 -- -----------------------------------------------------
 -- Table `indicator`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `indicator` ;
 
 CREATE TABLE IF NOT EXISTS `indicator` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -149,7 +142,6 @@ CREATE TABLE IF NOT EXISTS `indicator` (
 -- -----------------------------------------------------
 -- Table `configuration_node`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `configuration_node` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_node` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -173,7 +165,6 @@ CREATE TABLE IF NOT EXISTS `configuration_node` (
 -- -----------------------------------------------------
 -- Table `configuration`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `configuration` ;
 
 CREATE TABLE IF NOT EXISTS `configuration` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -194,7 +185,6 @@ CREATE TABLE IF NOT EXISTS `configuration` (
 -- -----------------------------------------------------
 -- Table `configuration_attribute`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `configuration_attribute` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_attribute` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -218,7 +208,6 @@ CREATE TABLE IF NOT EXISTS `configuration_attribute` (
 -- -----------------------------------------------------
 -- Table `configuration_value`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `configuration_value` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_value` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -246,7 +235,6 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
 -- -----------------------------------------------------
 -- Table `orientation`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `orientation` ;
 
 CREATE TABLE IF NOT EXISTS `orientation` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -271,7 +259,6 @@ CREATE TABLE IF NOT EXISTS `orientation` (
 -- -----------------------------------------------------
 -- Table `exam_configuration_map`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `exam_configuration_map` ;
 
 CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -297,11 +284,10 @@ CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `user` ;
 
 CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `institution_id` BIGINT UNSIGNED NULL,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `uuid` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `username` VARCHAR(255) NOT NULL,
@@ -312,7 +298,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `institutionRef_idx` (`institution_id` ASC),
-  CONSTRAINT `institutionRef`
+  CONSTRAINT `userInstitutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
@@ -323,7 +309,6 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- -----------------------------------------------------
 -- Table `user_role`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `user_role` ;
 
 CREATE TABLE IF NOT EXISTS `user_role` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -342,7 +327,6 @@ CREATE TABLE IF NOT EXISTS `user_role` (
 -- -----------------------------------------------------
 -- Table `oauth_access_token`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `oauth_access_token` ;
 
 CREATE TABLE IF NOT EXISTS `oauth_access_token` (
   `token_id` VARCHAR(255) NULL,
@@ -358,7 +342,6 @@ CREATE TABLE IF NOT EXISTS `oauth_access_token` (
 -- -----------------------------------------------------
 -- Table `oauth_refresh_token`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `oauth_refresh_token` ;
 
 CREATE TABLE IF NOT EXISTS `oauth_refresh_token` (
   `token_id` VARCHAR(255) NULL,
@@ -370,7 +353,6 @@ CREATE TABLE IF NOT EXISTS `oauth_refresh_token` (
 -- -----------------------------------------------------
 -- Table `threshold`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `threshold` ;
 
 CREATE TABLE IF NOT EXISTS `threshold` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -390,7 +372,6 @@ CREATE TABLE IF NOT EXISTS `threshold` (
 -- -----------------------------------------------------
 -- Table `user_activity_log`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `user_activity_log` ;
 
 CREATE TABLE IF NOT EXISTS `user_activity_log` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -407,7 +388,6 @@ CREATE TABLE IF NOT EXISTS `user_activity_log` (
 -- -----------------------------------------------------
 -- Table `additional_attributes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `additional_attributes` ;
 
 CREATE TABLE IF NOT EXISTS `additional_attributes` (
   `id` BIGINT UNSIGNED NOT NULL,
@@ -416,5 +396,27 @@ CREATE TABLE IF NOT EXISTS `additional_attributes` (
   `name` VARCHAR(255) NOT NULL,
   `value` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`))
+;
+
+
+-- -----------------------------------------------------
+-- Table `seb_client_credentials`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `seb_client_credentials` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `date` DATETIME NOT NULL,
+  `client_name` VARCHAR(45) NOT NULL,
+  `client_secret` VARCHAR(45) NOT NULL,
+  `active` INT(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
+  CONSTRAINT `sebClientCredentialsInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ;
 
