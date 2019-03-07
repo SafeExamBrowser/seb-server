@@ -75,19 +75,23 @@ public class RestService {
         return restCall.newBuilder();
     }
 
-    public Action activation(final Action action) {
+    public <T> Action activation(final Action action) {
         if (action.definition.restCallType == null) {
             throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
         }
 
-        final RestCall<?>.RestCallBuilder builder = this.getBuilder(action.definition.restCallType);
-        return builder
+        @SuppressWarnings("unchecked")
+        final Class<? extends RestCall<T>> restCallType =
+                (Class<? extends RestCall<T>>) action.definition.restCallType;
+
+        this.getBuilder(restCallType)
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
                         action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
                 .call()
-                .map(report -> action)
-                .getOrThrow();
+                .onErrorDo(t -> action.pageContext().notifyError(t));
+
+        return action;
     }
 
 }
