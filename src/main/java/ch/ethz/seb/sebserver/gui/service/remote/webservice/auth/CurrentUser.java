@@ -166,10 +166,6 @@ public class CurrentUser {
         }
     }
 
-    private static final ParameterizedTypeReference<Collection<Privilege>> PRIVILEGE_LIST_TYPE_REF =
-            new ParameterizedTypeReference<>() {
-            };
-
     private boolean loadPrivileges() {
         if (this.privileges != null) {
             return true;
@@ -187,7 +183,8 @@ public class CurrentUser {
                                         .toUriString(),
                                 HttpMethod.GET,
                                 HttpEntity.EMPTY,
-                                PRIVILEGE_LIST_TYPE_REF);
+                                new ParameterizedTypeReference<Collection<Privilege>>() {
+                                });
 
                 if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                     this.privileges = exchange.getBody().stream()
