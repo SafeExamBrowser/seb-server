@@ -80,7 +80,8 @@ public class RestService {
             throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
         }
 
-        return this.getBuilder(action.definition.restCallType)
+        final RestCall<?>.RestCallBuilder builder = this.getBuilder(action.definition.restCallType);
+        return builder
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
                         action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
