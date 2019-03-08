@@ -20,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 public class PasswordChange implements Entity {
 
-    public static final String ATTR_NAME_OLD_PASSWORD = "oldPassword";
+    public static final String ATTR_NAME_PASSWORD = "password";
     public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
     public static final String ATTR_NAME_CONFIRM_NEW_PASSWORD = "confirmNewPassword";
 
@@ -28,9 +28,9 @@ public class PasswordChange implements Entity {
     @JsonProperty(USER.ATTR_UUID)
     public final String userId;
 
-    @NotNull(message = "user:oldPassword:notNull")
-    @JsonProperty(ATTR_NAME_OLD_PASSWORD)
-    private final String oldPassword;
+    @NotNull(message = "user:password:notNull")
+    @JsonProperty(ATTR_NAME_PASSWORD)
+    private final String password;
 
     @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
@@ -44,18 +44,18 @@ public class PasswordChange implements Entity {
     @JsonCreator
     public PasswordChange(
             @JsonProperty(USER.ATTR_UUID) final String userId,
-            @JsonProperty(ATTR_NAME_OLD_PASSWORD) final String oldPassword,
+            @JsonProperty(ATTR_NAME_PASSWORD) final String password,
             @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
             @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD) final String confirmNewPassword) {
 
         this.userId = userId;
-        this.oldPassword = oldPassword;
+        this.password = password;
         this.newPassword = newPassword;
         this.confirmNewPassword = confirmNewPassword;
     }
 
-    public String getOldPassword() {
-        return this.oldPassword;
+    public String getPassword() {
+        return this.password;
     }
 
     public String getNewPassword() {

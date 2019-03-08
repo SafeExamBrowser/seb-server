@@ -115,14 +115,17 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     private UserInfo checkPasswordChange(final UserInfo info, final PasswordChange passwordChange) {
-        final SEBServerUser authUser = this.userDAO.sebServerUserByUsername(info.username)
+        final SEBServerUser currentUser = this.userDAO.sebServerUserByUsername(this.authorization
+                .getUserService()
+                .getCurrentUser().getUsername())
                 .getOrThrow();
 
-        if (!this.userPasswordEncoder.matches(passwordChange.getOldPassword(), authUser.getPassword())) {
+        if (!this.userPasswordEncoder.matches(passwordChange.getPassword(), currentUser.getPassword())) {
+
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             "passwordChange",
-                            PasswordChange.ATTR_NAME_OLD_PASSWORD,
+                            PasswordChange.ATTR_NAME_PASSWORD,
                             "user:oldPassword:password.wrong")));
         }
 

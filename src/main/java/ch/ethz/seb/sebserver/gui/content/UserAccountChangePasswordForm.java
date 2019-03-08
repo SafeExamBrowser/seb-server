@@ -39,6 +39,11 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
+/** The form to change an User-Account password.
+ * If the current user is the owner of the User-Account the password is required and must
+ * match the users current password.
+ * If the current user is an administrator that has to reset another users password the
+ * password that is also required must match the administrators current password. */
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
     private final PageFormService pageFormService;
@@ -74,6 +79,8 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                 pageContext.getParent(),
                 new LocTextKey("sebserver.useraccount.form.pwchange.title", userInfo.username));
 
+        final boolean ownAccount = this.currentUser.get().uuid.equals(entityKey.getModelId());
+
         // The Password Change form
         final FormHandle<UserInfo> formHandle = this.pageFormService.getBuilder(
                 pageContext.copyOf(content), 4)
@@ -82,8 +89,8 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         Domain.USER.ATTR_UUID,
                         entityKey.getModelId())
                 .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_OLD_PASSWORD,
-                        "sebserver.useraccount.form.password.old")
+                        PasswordChange.ATTR_NAME_PASSWORD,
+                        "sebserver.useraccount.form.password")
                         .asPasswordField())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
@@ -99,7 +106,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
         pageContext.createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
                 .withExec(action -> {
                     formHandle.postChanges(action);
-                    if (this.currentUser.get().uuid.equals(entityKey.getModelId())) {
+                    if (ownAccount) {
                         // NOTE: in this case the user changed the password of the own account
                         //       this should cause an logout with specified message that password change
                         //       was successful and the pointing the need of re login with the new password
