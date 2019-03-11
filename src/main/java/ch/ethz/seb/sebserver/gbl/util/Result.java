@@ -254,6 +254,14 @@ public final class Result<T> {
         }
     }
 
+    public static <T> Result<T> tryCatchOf(final Supplier<Result<T>> supplier) {
+        try {
+            return supplier.get();
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
     public static <T> Stream<T> skipOnError(final Result<T> result) {
         if (result.error != null) {
             return Stream.empty();

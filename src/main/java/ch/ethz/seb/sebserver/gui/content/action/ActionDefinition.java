@@ -84,6 +84,11 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             InstitutionList.class,
             INSTITUTION_VIEW_LIST),
+    INSTITUTION_EXPORT_SEB_CONFIG(
+            new LocTextKey("sebserver.institution.action.export.sebconfig"),
+            ImageIcon.SAVE,
+            InstitutionForm.class,
+            INSTITUTION_VIEW_LIST),
 
     USER_ACCOUNT_VIEW_LIST(
             new LocTextKey("sebserver.useraccount.action.list"),
@@ -177,11 +182,6 @@ public enum ActionDefinition {
             ImageIcon.EDIT,
             LmsSetupForm.class,
             LMS_SETUP_VIEW_LIST, false),
-    LMS_SETUP_EXPORT_SEB_CONFIG(
-            new LocTextKey("sebserver.lmssetup.action.export.sebconfig"),
-            ImageIcon.SAVE,
-            LmsSetupForm.class,
-            LMS_SETUP_VIEW_LIST),
     LMS_SETUP_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
             ImageIcon.CANCEL,

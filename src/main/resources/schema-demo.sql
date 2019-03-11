@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `name` VARCHAR(255) NOT NULL,
   `lms_type` VARCHAR(45) NOT NULL,
   `lms_url` VARCHAR(255) NULL,
-  `lms_clientname` VARCHAR(255) NULL,
-  `lms_clientsecret` VARCHAR(255) NULL,
+  `lms_clientname` VARCHAR(4000) NULL,
+  `lms_clientsecret` VARCHAR(4000) NULL,
   `lms_rest_api_token` VARCHAR(4000) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
@@ -400,20 +400,21 @@ CREATE TABLE IF NOT EXISTS `additional_attributes` (
 
 
 -- -----------------------------------------------------
--- Table `seb_client_credentials`
+-- Table `seb_client_configuration`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `seb_client_configuration` ;
 
-CREATE TABLE IF NOT EXISTS `seb_client_credentials` (
+CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `date` DATETIME NOT NULL,
-  `client_name` VARCHAR(45) NOT NULL,
-  `client_secret` VARCHAR(45) NOT NULL,
+  `client_name` VARCHAR(4000) NOT NULL,
+  `client_secret` VARCHAR(4000) NOT NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
-  CONSTRAINT `sebClientCredentialsInstitutionRef`
+  CONSTRAINT `sebClientConfigInstitutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION

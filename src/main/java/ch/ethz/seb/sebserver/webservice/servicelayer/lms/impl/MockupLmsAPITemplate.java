@@ -24,8 +24,9 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
@@ -34,20 +35,20 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     public static final String MOCKUP_LMS_CLIENT_NAME = "mockupLmsClientName";
     public static final String MOCKUP_LMS_CLIENT_SECRET = "mockupLmsClientSecret";
 
-    private final InternalEncryptionService internalEncryptionService;
+    private final ClientCredentialService clientCredentialService;
     private final LmsSetupDAO lmsSetupDao;
     private final LmsSetup setup;
 
-    private LmsSetupDAO.Credentials credentials = null;
+    private ClientCredentials credentials = null;
     private final Collection<QuizData> mockups;
 
     MockupLmsAPITemplate(
             final LmsSetupDAO lmsSetupDao,
             final LmsSetup setup,
-            final InternalEncryptionService internalEncryptionService) {
+            final ClientCredentialService clientCredentialService) {
 
         this.lmsSetupDao = lmsSetupDao;
-        this.internalEncryptionService = internalEncryptionService;
+        this.clientCredentialService = clientCredentialService;
         if (!setup.isActive() || setup.lmsType != LmsType.MOCKUP) {
             throw new IllegalArgumentException();
         }
@@ -191,9 +192,15 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                     .getLmsAPIAccessCredentials(this.setup.getModelId())
                     .getOrThrow();
 
-            assert (this.credentials.clientId.equals("lmsMockupClientId")) : "wrong clientId";
-            assert (this.internalEncryptionService.decrypt(this.credentials.clientId)
-                    .equals("lmsMockupSecret")) : "wrong clientId";
+            final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(this.credentials);
+            if (!"lmsMockupClientId".equals(plainClientId)) {
+                throw new IllegalAccessError();
+            }
+
+            final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(this.credentials);
+            if (!"lmsMockupSecret".equals(plainClientSecret)) {
+                throw new IllegalAccessError();
+            }
         } catch (final Exception e) {
             this.credentials = null;
         }

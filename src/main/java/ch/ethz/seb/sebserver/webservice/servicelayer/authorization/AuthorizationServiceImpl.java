@@ -65,6 +65,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
+        // grants for seb client config
+        addPrivilege(EntityType.SEB_CLIENT_CONFIGURATION)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .create();
+
         // grants for lms setup
         addPrivilege(EntityType.LMS_SETUP)
                 .forRole(UserRole.SEB_SERVER_ADMIN)

@@ -33,8 +33,9 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
@@ -46,11 +47,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
-    private final InternalEncryptionService internalEncryptionService;
+    private final ClientCredentialService internalEncryptionService;
 
     protected LmsSetupDAOImpl(
             final LmsSetupRecordMapper lmsSetupRecordMapper,
-            final InternalEncryptionService internalEncryptionService) {
+            final ClientCredentialService internalEncryptionService) {
 
         this.lmsSetupRecordMapper = lmsSetupRecordMapper;
         this.internalEncryptionService = internalEncryptionService;
@@ -65,7 +66,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Transactional(readOnly = true)
     public Result<LmsSetup> byPK(final Long id) {
         return recordById(id)
-                .flatMap(LmsSetupDAOImpl::toDomainModel);
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     : example.build().execute();
 
             return records.stream()
-                    .map(LmsSetupDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
@@ -119,7 +120,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(LmsSetupDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .filter(predicate)
                     .collect(Collectors.toList());
@@ -131,23 +132,27 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
+            final ClientCredentials lmsCredentials = this.internalEncryptionService.encryptedClientCredentials(
+                    new ClientCredentials(
+                            lmsSetup.lmsAuthName,
+                            lmsSetup.lmsAuthSecret,
+                            lmsSetup.lmsRestApiToken));
+
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
                     lmsSetup.institutionId,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    (StringUtils.isNotBlank(lmsSetup.lmsAuthSecret))
-                            ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
-                            : null,
-                    lmsSetup.lmsRestApiToken,
+                    lmsCredentials.clientId,
+                    lmsCredentials.secret,
+                    lmsCredentials.accessToken,
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
         })
-                .flatMap(LmsSetupDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
     }
 
@@ -156,23 +161,27 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> createNew(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
+            final ClientCredentials lmsCredentials = this.internalEncryptionService.encryptedClientCredentials(
+                    new ClientCredentials(
+                            lmsSetup.lmsAuthName,
+                            lmsSetup.lmsAuthSecret,
+                            lmsSetup.lmsRestApiToken));
+
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     null,
                     lmsSetup.institutionId,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    (StringUtils.isNotBlank(lmsSetup.lmsAuthSecret))
-                            ? this.internalEncryptionService.encrypt(lmsSetup.lmsAuthSecret)
-                            : null,
-                    lmsSetup.lmsRestApiToken,
+                    lmsCredentials.clientId,
+                    lmsCredentials.secret,
+                    lmsCredentials.accessToken,
                     BooleanUtils.toInteger(false));
 
             this.lmsSetupRecordMapper.insert(newRecord);
             return newRecord;
         })
-                .flatMap(LmsSetupDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
     }
 
@@ -252,7 +261,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(LmsSetupDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
@@ -260,12 +269,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Credentials> getLmsAPIAccessCredentials(final String lmsSetupId) {
+    public Result<ClientCredentials> getLmsAPIAccessCredentials(final String lmsSetupId) {
         return Result.tryCatch(() -> {
             final LmsSetupRecord record = this.lmsSetupRecordMapper
                     .selectByPrimaryKey(Long.parseLong(lmsSetupId));
 
-            return new Credentials(
+            return new ClientCredentials(
                     record.getLmsClientname(),
                     record.getLmsClientsecret(),
                     record.getLmsRestApiToken());
@@ -297,16 +306,25 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         });
     }
 
-    private static Result<LmsSetup> toDomainModel(final LmsSetupRecord record) {
+    private Result<LmsSetup> toDomainModel(final LmsSetupRecord record) {
+
+        final ClientCredentials clientCredentials = new ClientCredentials(
+                record.getLmsClientname(),
+                record.getLmsClientsecret(),
+                record.getLmsRestApiToken());
+
+        final CharSequence plainClientId = this.internalEncryptionService.getPlainClientId(clientCredentials);
+        final CharSequence plainAccessToken = this.internalEncryptionService.getPlainAccessToken(clientCredentials);
+
         return Result.tryCatch(() -> new LmsSetup(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
-                record.getLmsClientname(),
+                (plainClientId != null) ? plainClientId.toString() : null,
                 null,
                 record.getLmsUrl(),
-                record.getLmsRestApiToken(),
+                (plainAccessToken != null) ? plainAccessToken.toString() : null,
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 

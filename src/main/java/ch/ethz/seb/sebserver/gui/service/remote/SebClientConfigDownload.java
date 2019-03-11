@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ExportSEBConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ExportSEBConfig;
 
 @Lazy
 @Component
@@ -53,9 +53,10 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
 
             log.debug("download requested... trying to get needed parameter from request");
 
-            final String modelId = request.getParameter(API.PARAM_MODEL_ID);
+            final String modelId = request.getParameter(API.PARAM_INSTITUTION_ID);
             if (StringUtils.isBlank(modelId)) {
-                log.error("No needed modelId parameter found within HttpServletRequest. Download request is ignored");
+                log.error(
+                        "Mandatory modelId parameter not found within HttpServletRequest. Download request is ignored");
                 return;
             }
 
@@ -63,7 +64,7 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
                     SEB_CLIENT_CONFIG_FILE_NAME);
 
             final byte[] configFile = this.restService.getBuilder(ExportSEBConfig.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, modelId)
+                    .withURIVariable(API.PARAM_INSTITUTION_ID, modelId)
                     .call()
                     .getOrThrow();
 
@@ -96,7 +97,7 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
                 .append(RWT.getServiceManager()
                         .getServiceHandlerUrl(DownloadService.DOWNLOAD_SERVICE_NAME))
                 .append(Constants.FORM_URL_ENCODED_SEPARATOR)
-                .append(API.PARAM_MODEL_ID)
+                .append(API.PARAM_INSTITUTION_ID)
                 .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
                 .append(modelId)
                 .append(Constants.FORM_URL_ENCODED_SEPARATOR)

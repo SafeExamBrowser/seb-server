@@ -8,10 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -21,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -31,7 +27,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 public class LmsAPIServiceImpl implements LmsAPIService {
 
     private final LmsSetupDAO lmsSetupDAO;
-    private final InternalEncryptionService internalEncryptionService;
+    private final ClientCredentialService internalEncryptionService;
     private final ClientHttpRequestFactory clientHttpRequestFactory;
     private final String[] openEdxAlternativeTokenRequestPaths;
 
@@ -39,7 +35,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     public LmsAPIServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
-            final InternalEncryptionService internalEncryptionService,
+            final ClientCredentialService internalEncryptionService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
             @Value("${sebserver.lms.openedix.api.token.request.paths}") final String alternativeTokenRequestPaths) {
 
@@ -81,31 +77,31 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     }
 
-    @Override
-    public Result<InputStream> createSEBStartConfiguration(final Long lmsSetupId) {
-        return this.lmsSetupDAO
-                .byPK(lmsSetupId)
-                .flatMap(this::createSEBStartConfiguration);
-    }
-
-    @Override
-    public Result<InputStream> createSEBStartConfiguration(final LmsSetup lmsSetup) {
-
-        // TODO implementation of creation of SEB start configuration for specified LmsSetup
-        // A SEB start configuration should at least contain the SEB-Client-Credentials to access the SEB Server API
-        // and the SEB Server URL
-        //
-        // To Clarify : The format of a SEB start configuration
-        // To Clarify : How the file should be encrypted (use case) maybe we need another encryption-secret for this that can be given by
-        //              an administrator on SEB start configuration creation time
-
-        return Result.tryCatch(() -> {
-            try {
-                return new ByteArrayInputStream("TODO".getBytes("UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException("cause: ", e);
-            }
-        });
-    }
+//    @Override
+//    public Result<InputStream> createSEBStartConfiguration(final Long lmsSetupId) {
+//        return this.lmsSetupDAO
+//                .byPK(lmsSetupId)
+//                .flatMap(this::createSEBStartConfiguration);
+//    }
+//
+//    @Override
+//    public Result<InputStream> createSEBStartConfiguration(final LmsSetup lmsSetup) {
+//
+//        // TODO implementation of creation of SEB start configuration for specified LmsSetup
+//        // A SEB start configuration should at least contain the SEB-Client-Credentials to access the SEB Server API
+//        // and the SEB Server URL
+//        //
+//        // To Clarify : The format of a SEB start configuration
+//        // To Clarify : How the file should be encrypted (use case) maybe we need another encryption-secret for this that can be given by
+//        //              an administrator on SEB start configuration creation time
+//
+//        return Result.tryCatch(() -> {
+//            try {
+//                return new ByteArrayInputStream("TODO".getBytes("UTF-8"));
+//            } catch (final UnsupportedEncodingException e) {
+//                throw new RuntimeException("cause: ", e);
+//            }
+//        });
+//    }
 
 }

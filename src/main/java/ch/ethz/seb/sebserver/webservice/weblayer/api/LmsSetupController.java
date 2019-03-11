@@ -8,15 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.io.InputStream;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -76,27 +68,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @RequestMapping(
-            path = API.SEB_CONFIG_EXPORT_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE) // TODO check if this is the right format
-    public void downloadSEBConfig(
-            @PathVariable final Long modelId,
-            final HttpServletResponse response) throws Exception {
-
-        this.authorization.check(PrivilegeType.WRITE, EntityType.LMS_SETUP);
-
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.setStatus(HttpStatus.OK.value());
-
-        final InputStream sebConfigFileIn = this.lmsAPIService
-                .createSEBStartConfiguration(modelId)
-                .getOrThrow();
-
-        IOUtils.copyLarge(sebConfigFileIn, response.getOutputStream());
-        response.flushBuffer();
-    }
-
-    @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -112,68 +83,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @Override
     protected LmsSetup createNew(final POSTMapper postParams) {
         return new LmsSetup(null, postParams);
-    }
-
-//    @Override
-//    protected Result<LmsSetup> validForCreate(final LmsSetup entity) {
-//
-//        final SEBClientAuth clientAuth = new SEBClientAuth(entity.sebAuthName, entity.sebAuthSecret);
-//
-//        final Result<LmsSetup> result = super.validForCreate(entity);
-//        if (result.hasError()) {
-//            final Throwable error = result.getError();
-//            if (error instanceof BeanValidationException) {
-//                final BeanValidationException beanValidationException = (BeanValidationException) error;
-//                final Result<SEBClientAuth> validateSebAuth = this.beanValidationService.validateBean(clientAuth);
-//                if (validateSebAuth.hasError()) {
-//                    final Throwable sebAuthError = validateSebAuth.getError();
-//                    if (sebAuthError instanceof BeanValidationException) {
-//                        final BindingResult bindingResult = beanValidationException.getBindingResult();
-//                        bindingResult.addAllErrors(((BeanValidationException) sebAuthError).getBindingResult());
-//                        return Result.ofError(new BeanValidationException(bindingResult));
-//                    } else {
-//                        return validateSebAuth
-//                                .map(ce -> entity);
-//                    }
-//                }
-//            }
-//            return result;
-//        } else {
-//            return this.beanValidationService.validateBean(clientAuth)
-//                    .map(ca -> entity);
-//        }
-//    }
-//
-//    @Override
-//    protected Result<LmsSetup> validForSave(final LmsSetup entity) {
-//        return super.validForSave(entity)
-//                .map(setup -> {
-//
-//                    if (StringUtils.isNoneBlank(entity.sebAuthName)
-//                            || StringUtils.isNoneBlank(entity.sebAuthSecret)) {
-//
-//                        throw new IllegalAPIArgumentException(
-//                                "SEB Client Authentication cannot be changed after creation");
-//                    }
-//                    return setup;
-//                });
-//    }
-
-    public static final class SEBClientAuth {
-
-        @NotNull(message = "lmsSetup:sebClientname:notNull")
-        @Size(min = 3, max = 255, message = "lmsSetup:sebClientname:size:{min}:{max}:${validatedValue}")
-        public final String sebAuthName;
-
-        @NotNull(message = "lmsSetup:sebClientsecret:notNull")
-        @Size(min = 8, max = 255, message = "lmsSetup:sebClientsecret:size:{min}:{max}:${validatedValue}")
-        public final String sebAuthSecret;
-
-        protected SEBClientAuth(final String authName, final String authSecret) {
-
-            this.sebAuthName = authName;
-            this.sebAuthSecret = authSecret;
-        }
     }
 
 }

@@ -36,9 +36,9 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.InternalEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO.Credentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
@@ -52,7 +52,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private final String lmsSetupId;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientHttpRequestFactory clientHttpRequestFactory;
-    private final InternalEncryptionService internalEncryptionService;
+    private final ClientCredentialService clientCredentialService;
     private final Set<String> knownTokenAccessPaths;
 
     private OAuth2RestTemplate restTemplate = null;
@@ -60,14 +60,14 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     OpenEdxLmsAPITemplate(
             final String lmsSetupId,
             final LmsSetupDAO lmsSetupDAO,
-            final InternalEncryptionService internalEncryptionService,
+            final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
             final String[] alternativeTokenRequestPaths) {
 
         this.lmsSetupId = lmsSetupId;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientHttpRequestFactory = clientHttpRequestFactory;
-        this.internalEncryptionService = internalEncryptionService;
+        this.clientCredentialService = clientCredentialService;
 
         this.knownTokenAccessPaths = new HashSet<>();
         this.knownTokenAccessPaths.add(OPEN_EDX_DEFAULT_TOKEN_REQUEST_PATH);
@@ -194,7 +194,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                 }
             }
 
-            final Credentials credentials = this.lmsSetupDAO
+            final ClientCredentials credentials = this.lmsSetupDAO
                     .getLmsAPIAccessCredentials(this.lmsSetupId)
                     .getOrThrow();
 
@@ -225,15 +225,16 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private OAuth2RestTemplate createRestTemplate(
             final LmsSetup lmsSetup,
-            final LmsSetupDAO.Credentials credentials,
+            final ClientCredentials credentials,
             final String accessTokenRequestPath) {
 
-        final String lmsAuthSecret = this.internalEncryptionService.decrypt(credentials.secret);
+        final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(credentials);
+        final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
 
         final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
         details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);
-        details.setClientId(credentials.clientId);
-        details.setClientSecret(lmsAuthSecret);
+        details.setClientId(plainClientId.toString());
+        details.setClientSecret(plainClientSecret.toString());
         details.setGrantType("client_credentials");
 
         // TODO: accordingly to the documentation (https://course-catalog-api-guide.readthedocs.io/en/latest/authentication/#create-an-account-on-edx-org-for-api-access)

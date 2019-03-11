@@ -10,8 +10,6 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.BooleanSupplier;
 
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
-import ch.ethz.seb.sebserver.gui.service.remote.SebClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
@@ -55,16 +52,13 @@ public class LmsSetupForm implements TemplateComposer {
 
     private final PageFormService pageFormService;
     private final ResourceService resourceService;
-    private final SebClientConfigDownload sebClientConfigDownload;
 
     protected LmsSetupForm(
             final PageFormService pageFormService,
-            final ResourceService resourceService,
-            final SebClientConfigDownload sebClientConfigDownload) {
+            final ResourceService resourceService) {
 
         this.pageFormService = pageFormService;
         this.resourceService = resourceService;
-        this.sebClientConfigDownload = sebClientConfigDownload;
     }
 
     @Override
@@ -173,7 +167,6 @@ public class LmsSetupForm implements TemplateComposer {
         ;
 
         // propagate content actions to action-pane
-        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         formContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.LMS_SETUP_NEW)
@@ -182,16 +175,6 @@ public class LmsSetupForm implements TemplateComposer {
                 .createAction(ActionDefinition.LMS_SETUP_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && istitutionActive)
-
-                .createAction(ActionDefinition.LMS_SETUP_EXPORT_SEB_CONFIG)
-                .withEntityKey(entityKey)
-                .withExec(action -> {
-                    final String downloadURL = this.sebClientConfigDownload.downloadSEBClientConfigURL(
-                            entityKey.modelId);
-                    urlLauncher.openURL(downloadURL);
-                    return action;
-                })
-                .publishIf(() -> writeGrant && readonly && lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)

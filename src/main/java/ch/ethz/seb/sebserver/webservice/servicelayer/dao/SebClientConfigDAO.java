@@ -8,12 +8,15 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 
-public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, BulkActionSupportDAO<LmsSetup> {
+public interface SebClientConfigDAO extends
+        ActivatableEntityDAO<SebClientConfig, SebClientConfig>,
+        BulkActionSupportDAO<SebClientConfig> {
 
-    Result<ClientCredentials> getLmsAPIAccessCredentials(String lmsSetupId);
+    Result<ClientCredentials> getSebClientCredentials(String modelId);
+
 }

@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
 
@@ -63,6 +64,10 @@ public class FilterMap extends POSTMapper {
 
     public DateTime getExamFromTime() {
         return JodaTimeTypeResolver.getDateTime(getString(Exam.FILTER_ATTR_FROM));
+    }
+
+    public DateTime getSebClientConfigFromTime() {
+        return JodaTimeTypeResolver.getDateTime(getString(SebClientConfig.FILTER_ATTR_FROM));
     }
 
     public String getExamQuizId() {

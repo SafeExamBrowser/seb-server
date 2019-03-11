@@ -3,28 +3,28 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class UserActivityLogRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.user_uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.user_uuid")
     private String userUuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.timestamp")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.timestamp")
     private Long timestamp;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.activity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.activity_type")
     private String activityType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.entity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.entity_type")
     private String entityType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.entity_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.entity_id")
     private String entityId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.message")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.message")
     private String message;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source Table: user_activity_log")
     public UserActivityLogRecord(Long id, String userUuid, Long timestamp, String activityType, String entityType, String entityId, String message) {
         this.id = id;
         this.userUuid = userUuid;
@@ -35,37 +35,37 @@ public class UserActivityLogRecord {
         this.message = message;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.user_uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.user_uuid")
     public String getUserUuid() {
         return userUuid;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.timestamp")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.timestamp")
     public Long getTimestamp() {
         return timestamp;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.activity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.726+01:00", comments="Source field: user_activity_log.activity_type")
     public String getActivityType() {
         return activityType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.entity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.entity_type")
     public String getEntityType() {
         return entityType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.entity_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.entity_id")
     public String getEntityId() {
         return entityId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-07T15:53:05.842+01:00", comments="Source field: user_activity_log.message")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-03-11T09:59:52.727+01:00", comments="Source field: user_activity_log.message")
     public String getMessage() {
         return message;
     }
@@ -74,7 +74,7 @@ public class UserActivityLogRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table user_activity_log
      *
-     * @mbg.generated Thu Mar 07 15:53:05 CET 2019
+     * @mbg.generated Mon Mar 11 09:59:52 CET 2019
      */
     @Override
     public String toString() {
@@ -97,7 +97,7 @@ public class UserActivityLogRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table user_activity_log
      *
-     * @mbg.generated Thu Mar 07 15:53:05 CET 2019
+     * @mbg.generated Mon Mar 11 09:59:52 CET 2019
      */
     @Override
     public boolean equals(Object that) {
@@ -124,7 +124,7 @@ public class UserActivityLogRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table user_activity_log
      *
-     * @mbg.generated Thu Mar 07 15:53:05 CET 2019
+     * @mbg.generated Mon Mar 11 09:59:52 CET 2019
      */
     @Override
     public int hashCode() {
