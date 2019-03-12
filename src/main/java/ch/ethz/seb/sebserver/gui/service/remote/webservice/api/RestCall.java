@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -40,20 +41,32 @@ public abstract class RestCall<T> {
 
     private static final Logger log = LoggerFactory.getLogger(RestCall.class);
 
+    public enum CallType {
+        UNDEFINED,
+        GET_SINGLE,
+        GET_PAGE,
+        GET_NAMES,
+        GET_DEPENDENCIES,
+        NEW,
+        SAVE,
+        ACTIVATION_ACTIVATE,
+        ACTIVATION_DEACTIVATE
+    }
+
     protected RestService restService;
     protected JSONMapper jsonMapper;
-    protected final TypeReference<T> typeRef;
+    protected TypeKey<T> typeKey;
     protected final HttpMethod httpMethod;
     protected final MediaType contentType;
     protected final String path;
 
     protected RestCall(
-            final TypeReference<T> typeRef,
+            final TypeKey<T> typeKey,
             final HttpMethod httpMethod,
             final MediaType contentType,
             final String path) {
 
-        this.typeRef = typeRef;
+        this.typeKey = typeKey;
         this.httpMethod = httpMethod;
         this.contentType = contentType;
         this.path = path;
@@ -84,7 +97,7 @@ public abstract class RestCall<T> {
 
                 return Result.of(RestCall.this.jsonMapper.readValue(
                         responseEntity.getBody(),
-                        RestCall.this.typeRef));
+                        RestCall.this.typeKey.typeRef));
 
             } else {
 
@@ -253,6 +266,47 @@ public abstract class RestCall<T> {
                     + ", uriVariables=" + this.uriVariables + "]";
         }
 
+    }
+
+    public static final class TypeKey<T> {
+        final CallType callType;
+        final EntityType entityType;
+        private final TypeReference<T> typeRef;
+
+        public TypeKey(
+                final CallType callType,
+                final EntityType entityType,
+                final TypeReference<T> typeRef) {
+
+            this.callType = callType;
+            this.entityType = entityType;
+            this.typeRef = typeRef;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((this.callType == null) ? 0 : this.callType.hashCode());
+            result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final TypeKey<?> other = (TypeKey<?>) obj;
+            if (this.callType != other.callType)
+                return false;
+            if (this.entityType != other.entityType)
+                return false;
+            return true;
+        }
     }
 
 }

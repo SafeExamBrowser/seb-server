@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -27,9 +28,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class GetLmsSetups extends RestCall<Page<LmsSetup>> {
 
     protected GetLmsSetups() {
-        super(
+        super(new TypeKey<>(
+                CallType.GET_PAGE,
+                EntityType.LMS_SETUP,
                 new TypeReference<Page<LmsSetup>>() {
-                },
+                }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.LMS_SETUP_ENDPOINT);

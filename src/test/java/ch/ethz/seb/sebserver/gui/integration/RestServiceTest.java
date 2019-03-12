@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -50,9 +51,11 @@ public class RestServiceTest extends GuiIntegrationTest {
     public static class GetInstitution extends RestCall<Institution> {
 
         public GetInstitution() {
-            super(
+            super(new TypeKey<>(
+                    CallType.GET_SINGLE,
+                    EntityType.INSTITUTION,
                     new TypeReference<Institution>() {
-                    },
+                    }),
                     HttpMethod.GET,
                     MediaType.APPLICATION_FORM_URLENCODED,
                     API.INSTITUTION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -28,9 +29,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class GetInstitutionDependency extends RestCall<Set<EntityKey>> {
 
     protected GetInstitutionDependency() {
-        super(
+        super(new TypeKey<>(
+                CallType.GET_DEPENDENCIES,
+                EntityType.INSTITUTION,
                 new TypeReference<Set<EntityKey>>() {
-                },
+                }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.INSTITUTION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT);

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -28,9 +29,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class ExportSEBConfig extends RestCall<byte[]> {
 
     protected ExportSEBConfig() {
-        super(
+        super(new TypeKey<>(
+                CallType.UNDEFINED,
+                EntityType.INSTITUTION,
                 new TypeReference<byte[]>() {
-                },
+                }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.SEB_CONFIG_EXPORT_ENDPOINT);

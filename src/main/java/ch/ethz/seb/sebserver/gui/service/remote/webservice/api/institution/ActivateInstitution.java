@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -26,9 +27,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class ActivateInstitution extends RestCall<EntityProcessingReport> {
 
     protected ActivateInstitution() {
-        super(
+        super(new TypeKey<>(
+                CallType.ACTIVATION_ACTIVATE,
+                EntityType.INSTITUTION,
                 new TypeReference<EntityProcessingReport>() {
-                },
+                }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.INSTITUTION_ENDPOINT + API.PATH_VAR_ACTIVE);

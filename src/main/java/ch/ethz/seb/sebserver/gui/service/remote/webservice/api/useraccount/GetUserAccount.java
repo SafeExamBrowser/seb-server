@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -26,9 +27,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class GetUserAccount extends RestCall<UserInfo> {
 
     protected GetUserAccount() {
-        super(
+        super(new TypeKey<>(
+                CallType.GET_SINGLE,
+                EntityType.USER,
                 new TypeReference<UserInfo>() {
-                },
+                }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.USER_ACCOUNT_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);

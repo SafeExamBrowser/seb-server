@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -26,9 +27,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class SaveInstitution extends RestCall<Institution> {
 
     protected SaveInstitution() {
-        super(
+        super(new TypeKey<>(
+                CallType.SAVE,
+                EntityType.INSTITUTION,
                 new TypeReference<Institution>() {
-                },
+                }),
                 HttpMethod.PUT,
                 MediaType.APPLICATION_JSON_UTF8,
                 API.INSTITUTION_ENDPOINT);

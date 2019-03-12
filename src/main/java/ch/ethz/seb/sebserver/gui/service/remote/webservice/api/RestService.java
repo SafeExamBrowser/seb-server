@@ -18,10 +18,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
@@ -65,9 +67,30 @@ public class RestService {
         return (RestCall<T>) this.calls.get(type.getName());
     }
 
+    @SuppressWarnings("unchecked")
+    public final <T> RestCall<T> getRestCall(final EntityType entityType, final CallType callType) {
+        return (RestCall<T>) this.calls.values()
+                .stream()
+                .filter(call -> call.typeKey.callType == callType && call.typeKey.entityType == entityType)
+                .findFirst()
+                .orElse(null);
+    }
+
     public final <T> RestCall<T>.RestCallBuilder getBuilder(final Class<? extends RestCall<T>> type) {
         @SuppressWarnings("unchecked")
         final RestCall<T> restCall = (RestCall<T>) this.calls.get(type.getName());
+        if (restCall == null) {
+            return null;
+        }
+
+        return restCall.newBuilder();
+    }
+
+    public final <T> RestCall<T>.RestCallBuilder getBuilder(
+            final EntityType entityType,
+            final CallType callType) {
+
+        final RestCall<T> restCall = getRestCall(entityType, callType);
         if (restCall == null) {
             return null;
         }

@@ -21,8 +21,8 @@ import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionDependency;
 
 public final class PageUtils {
 
@@ -44,11 +44,13 @@ public final class PageUtils {
 
         return () -> {
             try {
-                final Set<EntityKey> dependencies = restService.getBuilder(GetInstitutionDependency.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
-                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
-                        .call()
-                        .getOrThrow();
+
+                final Set<EntityKey> dependencies =
+                        restService.<Set<EntityKey>> getBuilder(entity.entityType(), CallType.GET_DEPENDENCIES)
+                                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
+                                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
+                                .call()
+                                .getOrThrow();
                 final int size = dependencies.size();
                 if (size > 0) {
                     return new LocTextKey("sebserver.dialog.confirm.deactivation", String.valueOf(size));

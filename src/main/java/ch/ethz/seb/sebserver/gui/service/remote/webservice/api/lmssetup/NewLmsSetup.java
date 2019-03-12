@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -26,9 +27,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 public class NewLmsSetup extends RestCall<LmsSetup> {
 
     protected NewLmsSetup() {
-        super(
+        super(new TypeKey<>(
+                CallType.NEW,
+                EntityType.LMS_SETUP,
                 new TypeReference<LmsSetup>() {
-                },
+                }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.LMS_SETUP_ENDPOINT);

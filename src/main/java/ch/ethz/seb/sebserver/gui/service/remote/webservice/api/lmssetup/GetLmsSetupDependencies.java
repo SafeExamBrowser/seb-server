@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup;
 
+import java.util.Set;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -17,24 +19,23 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class DeactivateLmsSetup extends RestCall<EntityProcessingReport> {
+public class GetLmsSetupDependencies extends RestCall<Set<EntityKey>> {
 
-    protected DeactivateLmsSetup() {
+    protected GetLmsSetupDependencies() {
         super(new TypeKey<>(
-                CallType.ACTIVATION_DEACTIVATE,
+                CallType.GET_DEPENDENCIES,
                 EntityType.LMS_SETUP,
-                new TypeReference<EntityProcessingReport>() {
+                new TypeReference<Set<EntityKey>>() {
                 }),
-                HttpMethod.POST,
+                HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.LMS_SETUP_ENDPOINT + API.PATH_VAR_INACTIVE);
+                API.LMS_SETUP_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT);
     }
-
 }
