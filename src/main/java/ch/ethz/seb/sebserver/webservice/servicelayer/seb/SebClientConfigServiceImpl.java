@@ -11,8 +11,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.seb;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -85,14 +87,19 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
     @Override
     public Result<InputStream> exportSebClientConfigurationOfInstitution(final Long institutionId) {
-        return this.sebClientConfigDAO.all(institutionId, true)
-                .flatMap(l -> l.stream()
-                        .sorted((sc1, sc2) -> sc1.date.compareTo(sc2.date))
-                        .findFirst()
-                        .or(() -> Optional.of(
-                                autoCreateSebClientConfigurationForIntitution(institutionId).getOrThrow()))
-                        .map(this::createExport)
-                        .get());
+        return Result.tryCatchOf(() -> {
+            final List<SebClientConfig> sebConfigs = new ArrayList<>(this.sebClientConfigDAO
+                    .all(institutionId, true)
+                    .getOrThrow());
+
+            if (sebConfigs.isEmpty()) {
+                return autoCreateSebClientConfigurationForIntitution(institutionId)
+                        .flatMap(this::createExport);
+            }
+
+            Collections.sort(sebConfigs, (sc1, sc2) -> sc1.date.compareTo(sc2.date));
+            return this.createExport(sebConfigs.get(0));
+        });
     }
 
     private final static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
