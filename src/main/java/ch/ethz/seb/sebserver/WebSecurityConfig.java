@@ -26,6 +26,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +43,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.DevGuiProfile;
@@ -71,6 +73,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
     /** Spring bean name of client (application) password encoder */
     public static final String CLIENT_PASSWORD_ENCODER_BEAN_NAME = "clientPasswordEncoder";
+
+    @Bean
+    public FilterRegistrationBean<CharacterEncodingFilter> filterRegistrationBean() {
+        final FilterRegistrationBean<CharacterEncodingFilter> registrationBean = new FilterRegistrationBean<>();
+        final CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+        characterEncodingFilter.setForceEncoding(true);
+        characterEncodingFilter.setEncoding("UTF-8");
+        registrationBean.setFilter(characterEncodingFilter);
+        return registrationBean;
+    }
 
     /** Password encoder used for user passwords (stronger protection) */
     @Bean(USER_PASSWORD_ENCODER_BEAN_NAME)

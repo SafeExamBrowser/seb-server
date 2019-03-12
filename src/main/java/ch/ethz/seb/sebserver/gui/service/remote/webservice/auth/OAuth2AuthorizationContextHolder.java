@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -172,6 +174,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
             this.restTemplate.setRequestFactory(clientHttpRequestFactory);
             this.restTemplate.setErrorHandler(new ErrorHandler(this.resource));
+            this.restTemplate
+                    .getMessageConverters()
+                    .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
