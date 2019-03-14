@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
+/** Concrete EntityDAO interface of UserActivityLog entities */
 public interface UserActivityLogDAO extends
         EntityDAO<UserActivityLog, UserActivityLog>,
         UserRelatedEntityDAO<UserActivityLog> {

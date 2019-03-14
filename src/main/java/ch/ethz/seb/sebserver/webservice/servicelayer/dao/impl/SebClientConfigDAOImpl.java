@@ -223,7 +223,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<SebClientConfig>> loadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<SebClientConfig>> byEntityKeys(final Set<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

@@ -22,6 +22,12 @@ import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
 
+/** A Map containing various filter criteria from a certain API request.
+ * This is used as a data object that can be used to collect API request parameter
+ * data on one side and supply filter criteria based access to concrete Entity filtering
+ * on the other side.
+ * 
+ * All text based filter criteria are used as SQL wildcard's */
 public class FilterMap extends POSTMapper {
 
     public FilterMap() {

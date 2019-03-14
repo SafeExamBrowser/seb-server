@@ -11,10 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
+/** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
-
-//    Result<Exam> importFromQuizData(Long institutionId, Long lmsSetupId, QuizData quizData);
-//
-//    Result<Exam> byQuizId(String quizId);
-
 }

@@ -17,16 +17,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
+/** A EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
+ * A EntityKey consists of the model identifier of a domain entity and the type of the entity. */
 public class EntityKey implements Serializable {
 
     private static final long serialVersionUID = -2368065921846821061L;
 
+    /** The model identifier of the entity */
     @JsonProperty(value = "modelId", required = true)
     @NotNull
     public final String modelId;
+
+    /** The type of the entity */
     @JsonProperty(value = "entityType", required = true)
     @NotNull
     public final EntityType entityType;
+
+    /** pre-calculated hash value. Since EntityKey is fully immutable this is a valid optimization */
+    private final int hash;
 
     @JsonCreator
     public EntityKey(
@@ -42,31 +50,41 @@ public class EntityKey implements Serializable {
 
         this.modelId = modelId;
         this.entityType = entityType;
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
+        result = prime * result + ((this.modelId == null) ? 0 : this.modelId.hashCode());
+        this.hash = result;
     }
 
     public EntityKey(
             final Long pk,
             final EntityType entityType) {
 
-        this.modelId = String.valueOf(pk);
-        this.entityType = entityType;
+        this(String.valueOf(pk), entityType);
+        if (pk == null) {
+            throw new IllegalArgumentException("modelId has null reference");
+        }
     }
 
+    /** Get the model identifier of this EntityKey
+     *
+     * @return the model identifier of this EntityKey */
     public String getModelId() {
         return this.modelId;
     }
 
+    /** Get the entity type EntityKey
+     *
+     * @return the model identifier of this EntityKey */
     public EntityType getEntityType() {
         return this.entityType;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
-        result = prime * result + ((this.modelId == null) ? 0 : this.modelId.hashCode());
-        return result;
+        return this.hash;
     }
 
     @Override

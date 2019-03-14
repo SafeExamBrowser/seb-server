@@ -24,6 +24,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Defines generic interface for all Entity based Data Access Objects
+ *
+ * @param <T> The specific type of the Entity domain model
+ * @param <M> The specific type of the Entity domain model to create a new Entity */
 public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     /** Get the entity type for a concrete EntityDAO implementation.
@@ -34,7 +38,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     /** Use this to get an Entity instance of concrete type by database identifier/primary-key (PK)
      *
      * @param id the data base identifier of the entity
-     * @return Result refer the Entity instance with the specified database identifier or refer to an error if
+     * @return Result referring the Entity instance with the specified database identifier or refer to an error if
      *         happened */
     Result<T> byPK(Long id);
 
@@ -44,7 +48,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * but usually they are the same.
      *
      * @param id the model identifier
-     * @return Result refer the Entity instance with the specified model identifier or refer to an error if
+     * @return Result referring the Entity instance with the specified model identifier or refer to an error if
      *         happened */
     @Transactional(readOnly = true)
     default Result<T> byModelId(final String id) {
@@ -53,12 +57,20 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         }).flatMap(this::byPK);
     }
 
-    Result<Collection<T>> loadEntities(Collection<EntityKey> keys);
+    /** Get a collection of all entities for the given Set of entity keys.
+     *
+     * @param keys the Set of EntityKey to get the Entity's for
+     * @return Result referring the collection or an error if happened */
+    Result<Collection<T>> byEntityKeys(Set<EntityKey> keys);
 
+    /** Get a collection of all EntityName for the given Set of EntityKey.
+     *
+     * @param keys the Set of EntityKey to get the EntityName's for
+     * @return Result referring the collection or an error if happened */
     @Transactional(readOnly = true)
-    default Result<Collection<EntityName>> loadEntityNames(final Collection<EntityKey> keys) {
+    default Result<Collection<EntityName>> getEntityNames(final Set<EntityKey> keys) {
         return Result.tryCatch(() -> {
-            return loadEntities(keys)
+            return byEntityKeys(keys)
                     .getOrThrow()
                     .stream()
                     .map(entity -> new EntityName(
@@ -69,27 +81,56 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         });
     }
 
+    /** Create a new Entity from the given entity domain model data.
+     *
+     * @param data The entity domain model data
+     * @return Result referring to the newly created Entity or an error if happened */
     Result<T> createNew(M data);
 
     /** Use this to save/modify an entity.
      *
      * @param data entity instance containing all data that should be saved
-     * @return A Result of the entity instance where the successfully saved/modified entity data is available or a
+     * @return A Result referring the entity instance where the successfully saved/modified entity data is available or
+     *         a
      *         reported exception on error case */
     Result<T> save(T data);
 
     /** Use this to delete a set Entity by a Collection of EntityKey
      *
      * @param all The Collection of EntityKey to delete
-     * @return Result of a collection of all entities that has been deleted or refer to an error if
+     * @return Result referring a collection of all entities that has been deleted or refer to an error if
      *         happened */
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
+    /** Get a (unordered) collection of all Entities that matches the given filter criteria.
+     * The possible filter criteria for a specific Entity type is defined by the entity type.
+     * 
+     * This adds filtering in SQL level by creating the select where clause from related
+     * filter criteria of the specific Entity type. If the filterMap contains a value for
+     * a particular filter criteria the value is extracted from the map and added to the where
+     * clause of the SQL select statement.
+     * 
+     * @param filterMap FilterMap instance containing all the relevant filter criteria
+     * @return Result referring to collection of all matching entities or an error if happened */
     @Transactional(readOnly = true)
     default Result<Collection<T>> allMatching(final FilterMap filterMap) {
         return allMatching(filterMap, e -> true);
     }
 
+    /** Get a (unordered) collection of all Entities that matches a given filter criteria
+     * and a given predicate.
+     * 
+     * The possible filter criteria for a specific Entity type is defined by the entity type.
+     * This adds filtering in SQL level by creating the select where clause from related
+     * filter criteria of the specific Entity type. If the filterMap contains a value for
+     * a particular filter criteria the value is extracted from the map and added to the where
+     * clause of the SQL select statement.
+     * 
+     * The predicate is applied after the SQL query by filtering the resulting list with the
+     * predicate after on the SQL query result, before returning.
+     * 
+     * @param filterMap FilterMap instance containing all the relevant filter criteria
+     * @return Result referring to collection of all matching entities or an error if happened */
     Result<Collection<T>> allMatching(FilterMap filterMap, Predicate<T> predicate);
 
     /** Context based utility method to extract an expected single resource entry form a Collection of specified type.

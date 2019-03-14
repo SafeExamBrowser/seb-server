@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
+/** Defines some static Spring based transaction handling functionality for rollback handling */
 public interface TransactionHandler {
 
     /** Use this to mark the current transaction within the calling thread as "to rollback".

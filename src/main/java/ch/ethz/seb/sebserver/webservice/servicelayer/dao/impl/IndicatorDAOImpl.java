@@ -105,7 +105,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Indicator>> loadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<Indicator>> byEntityKeys(final Set<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

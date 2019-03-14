@@ -15,8 +15,11 @@ public class PermissionDeniedException extends RuntimeException {
 
     private static final long serialVersionUID = 5333137812363042580L;
 
+    /** The EntityType of the denied permission check */
     public final EntityType entityType;
+    /** The PrivilegeType of the denied permission check */
     public final PrivilegeType privilegeType;
+    /** The user identifier of the denied permission check */
     public final String userId;
 
     public PermissionDeniedException(

@@ -13,8 +13,7 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** Interface for a DAo handling an Entity with relations to an user (account)
- *
+/** Interface for all Data Access Objects handling an Entity with relations to an user (account)
  *
  * @param <T> the concrete type of the Entity */
 public interface UserRelatedEntityDAO<T extends Entity> {

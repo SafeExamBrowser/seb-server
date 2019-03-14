@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
+/** Spring MVC controller that defines a revoke token endpoint */
 @Controller
 @WebServiceProfile
 public class RevokeTokenEndpoint {

@@ -16,7 +16,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** Interface of a DAO for an Entity that has activation feature.
+/** Interface of a Data Access Object for an Entity that has activation feature.
  *
  * @param <T> the type of Entity */
 public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> extends EntityDAO<T, M> {

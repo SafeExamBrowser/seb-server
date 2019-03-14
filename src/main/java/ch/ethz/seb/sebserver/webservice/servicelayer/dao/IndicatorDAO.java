@@ -14,8 +14,13 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
+/** Concrete EntityDAO interface of Indicator entities */
 public interface IndicatorDAO extends EntityDAO<Indicator, Indicator>, BulkActionSupportDAO<Indicator> {
 
+    /** Get a collection of all Indicator entities for a specified exam.
+     *
+     * @param examId the Exam identifier to get the Indicators for
+     * @return Result referring to the collection of Indicators of an Exam or to an error if happened */
     Result<Collection<Indicator>> allForExam(Long examId);
 
 }

@@ -58,21 +58,6 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean exists(final String name) {
-        if (StringUtils.isBlank(name)) {
-            return false;
-        }
-
-        final Long count = this.institutionRecordMapper.countByExample()
-                .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(name))
-                .build()
-                .execute();
-
-        return count != null && count.longValue() > 0;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Institution> byPK(final Long id) {
         return recordById(id)
                 .flatMap(InstitutionDAOImpl::toDomainModel);
@@ -248,7 +233,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> loadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<Institution>> byEntityKeys(final Set<EntityKey> keys) {
         return Result.tryCatch(() -> {
             final List<Long> ids = extractPKsFromKeys(keys);
 

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
+/** Thrown by Data Access Object if an requested Entity or other requested resource wasn't found */
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public final class ResourceNotFoundException extends RuntimeException {
 

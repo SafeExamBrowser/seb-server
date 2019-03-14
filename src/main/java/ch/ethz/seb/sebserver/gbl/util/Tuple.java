@@ -8,9 +8,12 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+/** A tuple of two elements of the same type */
 public class Tuple<T> {
 
+    /** The first element of the tuple */
     public final T _1;
+    /** The second element of the tuple */
     public final T _2;
 
     public Tuple(final T _1, final T _2) {

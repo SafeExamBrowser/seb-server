@@ -29,12 +29,20 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
 
+    /** Get an immutable List from a Collection of elements
+     *
+     * @param collection Collection of elements
+     * @return immutable List */
     public static <T> List<T> immutableListOf(final Collection<T> collection) {
         return (collection != null)
                 ? Collections.unmodifiableList(new ArrayList<>(collection))
                 : Collections.emptyList();
     }
 
+    /** Get a immutable Collection from a Collection of elements
+     *
+     * @param collection Collection of elements
+     * @return immutable Collection */
     public static <T> Collection<T> immutableCollectionOf(final Collection<T> collection) {
         return (collection != null)
                 ? Collections.unmodifiableCollection(collection)
@@ -53,10 +61,18 @@ public final class Utils {
         return Collections.unmodifiableCollection(Arrays.asList(values));
     }
 
+    /** Get a immutable Set from a Collection of elements
+     *
+     * @param collection Collection of elements
+     * @return immutable Set */
     public static <T> Set<T> immutableSetOf(final Collection<T> collection) {
         return immutableSetOf(new HashSet<>(collection));
     }
 
+    /** Get a immutable Set from a Set of elements
+     *
+     * @param set Set of elements
+     * @return immutable Set */
     public static <T> Set<T> immutableSetOf(final Set<T> set) {
         return (set != null)
                 ? Collections.unmodifiableSet(set)

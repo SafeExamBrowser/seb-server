@@ -240,10 +240,10 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
             return Arrays.asList(StringUtils.split(modelIds, Constants.LIST_SEPARATOR_CHAR))
                     .stream()
                     .map(modelId -> new EntityKey(modelId, this.entityDAO.entityType()))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
 
         })
-                .flatMap(this.entityDAO::loadEntities)
+                .flatMap(this.entityDAO::byEntityKeys)
                 .getOrThrow()
                 .stream()
                 .filter(this.authorization::hasReadonlyGrant)

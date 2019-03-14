@@ -84,6 +84,12 @@ public final class Result<T> {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
     }
 
+    /** Use this to get the referenced result element or on error case, use the given error handler
+     * to handle the error and use a given supplier to get an alternative element for further processing
+     *
+     * @param errorHandler the error handler to handle an error if happened
+     * @param supplier supplies an alternative result element on error case
+     * @return returns the referenced result element or the alternative element given by the supplier on error */
     public T get(final Consumer<Throwable> errorHandler, final Supplier<T> supplier) {
         if (this.error != null) {
             errorHandler.accept(this.error);
@@ -93,6 +99,9 @@ public final class Result<T> {
         }
     }
 
+    /** Apply a given error handler that consumes the error if there is one.
+     *
+     * @param errorHandler the error handler */
     public void handleError(final Consumer<Throwable> errorHandler) {
         if (this.error != null) {
             errorHandler.accept(this.error);
@@ -120,6 +129,9 @@ public final class Result<T> {
         return this.value;
     }
 
+    /** Get the referenced result element or in error case, throws the referenced error
+     *
+     * @return the referenced result element */
     public T getOrThrow() {
         if (this.error != null) {
             if (this.error instanceof RuntimeException) {
@@ -145,6 +157,9 @@ public final class Result<T> {
         return this.error;
     }
 
+    /** Indicates whether this Result refers to an error or not.
+     *
+     * @return true if this Result refers to an error */
     public boolean hasError() {
         return this.error != null;
     }
@@ -210,9 +225,14 @@ public final class Result<T> {
         }
     }
 
-    public Result<T> onErrorDo(final Consumer<Throwable> block) {
+    /** Uses a given error handler to apply an error if there is one and returning itself again
+     * for further processing.
+     * 
+     * @param errorHandler the error handler
+     * @return self reference */
+    public Result<T> onErrorDo(final Consumer<Throwable> errorHandler) {
         if (this.error != null) {
-            block.accept(this.error);
+            errorHandler.accept(this.error);
         }
         return this;
     }

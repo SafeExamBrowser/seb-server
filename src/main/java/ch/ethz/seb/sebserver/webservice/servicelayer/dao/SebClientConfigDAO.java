@@ -13,10 +13,16 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 
+/** Concrete EntityDAO interface of SebClientConfig entities */
 public interface SebClientConfigDAO extends
         ActivatableEntityDAO<SebClientConfig, SebClientConfig>,
         BulkActionSupportDAO<SebClientConfig> {
 
+    /** Get the configured ClientCredentials for a given SebClientConfig.
+     * The ClientCredentials are still encoded as they are on DB storage
+     *
+     * @param modelId the model identifier of the SebClientConfig to get the ClientCredentials for
+     * @return the configured ClientCredentials for a given SebClientConfig */
     Result<ClientCredentials> getSebClientCredentials(String modelId);
 
 }

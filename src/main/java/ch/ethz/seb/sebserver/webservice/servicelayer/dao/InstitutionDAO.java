@@ -11,9 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface InstitutionDAO
-        extends ActivatableEntityDAO<Institution, Institution>, BulkActionSupportDAO<Institution> {
-
-    boolean exists(String name);
-
+/** Concrete EntityDAO interface of Institution entities */
+public interface InstitutionDAO extends
+        ActivatableEntityDAO<Institution, Institution>,
+        BulkActionSupportDAO<Institution> {
 }

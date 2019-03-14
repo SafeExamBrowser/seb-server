@@ -10,8 +10,12 @@ package ch.ethz.seb.sebserver.gbl.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/** Interface for all domain model objects that has a model identifier */
 public interface ModelIdAware {
 
+    /** Get the model identifier of the domain model object
+     *
+     * @return the model identifier of the domain model object */
     @JsonIgnore
     String getModelId();
 

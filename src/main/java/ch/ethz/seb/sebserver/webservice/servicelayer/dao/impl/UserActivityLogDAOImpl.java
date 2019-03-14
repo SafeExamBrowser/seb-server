@@ -317,7 +317,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> loadEntities(final Collection<EntityKey> keys) {
+    public Result<Collection<UserActivityLog>> byEntityKeys(final Set<EntityKey> keys) {
         // TODO Auto-generated method stub
         return Result.ofTODO();
     }
