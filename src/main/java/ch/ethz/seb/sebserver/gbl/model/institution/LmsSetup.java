@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.URL;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -26,11 +28,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class LmsSetup implements GrantEntity, Activatable {
 
+    public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
 
     public enum LmsType {
         MOCKUP,
-        MOODLE,
         OPEN_EDX
     }
 
@@ -51,14 +53,13 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final LmsType lmsType;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTNAME)
-    @Size(min = 3, max = 255, message = "lmsSetup:lmsClientname:size:{min}:{max}:${validatedValue}")
     public final String lmsAuthName;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTSECRET)
-    @Size(min = 8, max = 255, message = "lmsSetup:lmsClientsecret:size:{min}:{max}:${validatedValue}")
     public final String lmsAuthSecret;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_URL)
+    @URL(message = "lmsSetup:lmsUrl:invalidURL")
     public final String lmsApiUrl;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN)

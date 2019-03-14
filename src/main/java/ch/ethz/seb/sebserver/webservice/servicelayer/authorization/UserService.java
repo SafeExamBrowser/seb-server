@@ -50,6 +50,10 @@ public interface UserService {
      * @return an overall super user with all rights */
     SEBServerUser getSuperUser();
 
+    /** Binds the current users institution identifier as default value to a
+     * 
+     * @RequestParam of type API.PARAM_INSTITUTION_ID if needed. See EntityController class for example
+     * @param binder Springs WebDataBinder is injected on controller side */
     void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder);
 
 }

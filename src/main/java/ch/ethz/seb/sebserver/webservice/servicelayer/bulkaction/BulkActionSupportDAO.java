@@ -25,6 +25,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 
+/** Defines overall DAO support for bulk-actions like activate, deactivate, delete...
+ *
+ *
+ * @param <T> The type of the Entity of a concrete BulkActionSupportDAO */
 public interface BulkActionSupportDAO<T extends Entity> {
 
     /** Get the entity type for a concrete EntityDAO implementation.
@@ -32,8 +36,21 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * @return The EntityType for a concrete EntityDAO implementation */
     EntityType entityType();
 
+    /** Gets a Set of EntityKey for all dependent entities for a given BulkAction
+     * and the type of this BulkActionSupportDAO.
+     *
+     * @param bulkAction the BulkAction to get keys of dependencies for the concrete type of this BulkActionSupportDAO
+     * @return */
     Set<EntityKey> getDependencies(BulkAction bulkAction);
 
+    /** This processed a given BulkAction for all entities of the concrete type of this BulkActionSupportDAO
+     * that are defined by this given BulkAction.
+     * 
+     * This returns a Collection of EntityKey results of each Entity that has been processed.
+     * If there was an error for a particular Entity, the Result will have an error reference.
+     * 
+     * @param bulkAction the BulkAction containing the source entity and all dependencies
+     * @return a Collection of EntityKey results of each Entity that has been processed. */
     @Transactional
     default Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
         final Set<EntityKey> all = bulkAction.extractKeys(entityType());

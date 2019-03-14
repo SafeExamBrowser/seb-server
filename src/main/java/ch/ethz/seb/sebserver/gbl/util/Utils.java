@@ -155,4 +155,10 @@ public final class Utils {
         }
     }
 
+    public static final String formatHTMLLines(final String message) {
+        return (message != null)
+                ? message.replace("\n", "<br/>")
+                : null;
+    }
+
 }

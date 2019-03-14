@@ -253,7 +253,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         final String quizId = postParams.getString(QuizData.QUIZ_ATTR_ID);
 
         final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
-                .createLmsAPITemplate(lmsSetupId)
+                .getLmsAPITemplate(lmsSetupId)
                 .getOrThrow();
 
         final QuizData quiz = lmsAPITemplate.getQuizzes(new HashSet<>(Arrays.asList(quizId)))

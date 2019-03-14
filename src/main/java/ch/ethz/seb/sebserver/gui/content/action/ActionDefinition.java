@@ -182,6 +182,11 @@ public enum ActionDefinition {
             ImageIcon.EDIT,
             LmsSetupForm.class,
             LMS_SETUP_VIEW_LIST, false),
+    LMS_SETUP_TEST(
+            new LocTextKey("sebserver.lmssetup.action.test"),
+            ImageIcon.TEST,
+            LmsSetupForm.class,
+            LMS_SETUP_VIEW_LIST),
     LMS_SETUP_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
             ImageIcon.CANCEL,
@@ -213,13 +218,13 @@ public enum ActionDefinition {
     public final Class<? extends RestCall<?>> restCallType;
     public final ActionDefinition activityAlias;
     public final String category;
-    public final boolean readonly;
+    public final Boolean readonly;
 
     private ActionDefinition(
             final LocTextKey title,
             final Class<? extends TemplateComposer> contentPaneComposer) {
 
-        this(title, null, contentPaneComposer, ActionPane.class, null, null, null, true);
+        this(title, null, contentPaneComposer, ActionPane.class, null, null, null, null);
     }
 
     private ActionDefinition(
@@ -227,7 +232,7 @@ public enum ActionDefinition {
             final Class<? extends TemplateComposer> contentPaneComposer,
             final ActionDefinition activityAlias) {
 
-        this(title, null, contentPaneComposer, ActionPane.class, null, activityAlias, null, true);
+        this(title, null, contentPaneComposer, ActionPane.class, null, activityAlias, null, null);
     }
 
     private ActionDefinition(
@@ -236,7 +241,7 @@ public enum ActionDefinition {
             final Class<? extends TemplateComposer> contentPaneComposer,
             final ActionDefinition activityAlias) {
 
-        this(title, icon, contentPaneComposer, ActionPane.class, null, activityAlias, null, true);
+        this(title, icon, contentPaneComposer, ActionPane.class, null, activityAlias, null, null);
     }
 
     private ActionDefinition(
@@ -246,7 +251,7 @@ public enum ActionDefinition {
             final Class<? extends RestCall<?>> restCallType,
             final ActionDefinition activityAlias) {
 
-        this(title, icon, contentPaneComposer, ActionPane.class, restCallType, activityAlias, null, true);
+        this(title, icon, contentPaneComposer, ActionPane.class, restCallType, activityAlias, null, null);
     }
 
     private ActionDefinition(
@@ -267,7 +272,7 @@ public enum ActionDefinition {
             final Class<? extends RestCall<?>> restCallType,
             final ActionDefinition activityAlias,
             final String category,
-            final boolean readonly) {
+            final Boolean readonly) {
 
         this.title = title;
         this.icon = icon;

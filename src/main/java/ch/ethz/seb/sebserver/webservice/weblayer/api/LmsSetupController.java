@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
@@ -75,9 +76,15 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         this.authorization.check(PrivilegeType.MODIFY, EntityType.LMS_SETUP);
 
-        return this.lmsAPIService.createLmsAPITemplate(modelId)
+        final LmsSetupTestResult result = this.lmsAPIService.getLmsAPITemplate(modelId)
                 .map(template -> template.testLmsSetup())
                 .getOrThrow();
+
+        if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
+            throw new APIMessageException(result.missingLMSSetupAttribute);
+        }
+
+        return result;
     }
 
     @Override

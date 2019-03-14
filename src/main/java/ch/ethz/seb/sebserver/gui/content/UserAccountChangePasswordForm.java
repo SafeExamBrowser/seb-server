@@ -105,7 +105,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
 
         pageContext.createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
                 .withExec(action -> {
-                    formHandle.postChanges(action);
+                    formHandle.processFormSave(action);
                     if (ownAccount) {
                         // NOTE: in this case the user changed the password of the own account
                         //       this should cause an logout with specified message that password change

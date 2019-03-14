@@ -206,6 +206,14 @@ public interface PageContext {
      * @param message the localized text key of the message */
     void publishPageMessage(LocTextKey title, LocTextKey message);
 
+    /** Publish an information message to the user with the given localized message.
+     * The message text can also be HTML text as far as RWT supports it
+     * 
+     * @param message the localized text key of the message */
+    default void publishInfo(final LocTextKey message) {
+        publishPageMessage(new LocTextKey("sebserver.page.message"), message);
+    }
+
     /** Publish and shows a formatted PageMessageException to the user.
      *
      * @param pme the PageMessageException */

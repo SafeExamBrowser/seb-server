@@ -23,16 +23,29 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
+/** The MyBatis - Spring configuration
+ *
+ * All mapper- and model-classes in the specified sub-packages
+ * are auto-generated from DB schema by an external generator
+ *
+ * MyBatis is used on the lowest data - layer as an OR-Mapper with great flexibility and a good
+ * SQL builder interface.
+ *
+ * The Datasource is auto-configured by Spring and depends on the Spring property configuration so far */
 @Configuration
 @MapperScan(basePackages = "ch.ethz.seb.sebserver.webservice.datalayer.batis")
 @WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class BatisConfig {
 
+    /** Name of the transaction manager bean for MyBatis based Spring controlled transactions */
     public static final String TRANSACTION_MANAGER = "transactionManager";
+    /** Name of the sql session template bean of MyBatis */
     public static final String SQL_SESSION_TEMPLATE = "sqlSessionTemplate";
+    /** Name of the sql session factory bean of MyBatis */
     public static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
+    /** Transaction manager bean for MyBatis based Spring controlled transactions */
     @Lazy
     @Bean(name = SQL_SESSION_FACTORY)
     public SqlSessionFactory sqlSessionFactory(final DataSource dataSource) throws Exception {
@@ -41,6 +54,7 @@ public class BatisConfig {
         return factoryBean.getObject();
     }
 
+    /** SQL session template bean of MyBatis */
     @Lazy
     @Bean(name = SQL_SESSION_TEMPLATE)
     public SqlSessionTemplate sqlSessionTemplate(final DataSource dataSource) throws Exception {
@@ -48,6 +62,7 @@ public class BatisConfig {
         return sqlSessionTemplate;
     }
 
+    /** SQL session factory bean of MyBatis */
     @Lazy
     @Bean(name = TRANSACTION_MANAGER)
     public DataSourceTransactionManager transactionManager(final DataSource dataSource) {

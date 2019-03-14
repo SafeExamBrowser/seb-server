@@ -13,8 +13,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -39,7 +41,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public String getName() {
-        return getSQLWildcard(UserInfo.FILTER_ATTR_NAME);
+        return getSQLWildcard(Entity.FILTER_ATTR_NAME);
     }
 
     public String getUserUsername() {
@@ -54,12 +56,12 @@ public class FilterMap extends POSTMapper {
         return getString(UserInfo.FILTER_ATTR_LANGUAGE);
     }
 
-    public String getLmsSetupName() {
-        return getSQLWildcard(LmsSetup.FILTER_ATTR_NAME);
-    }
-
     public String getLmsSetupType() {
         return getString(LmsSetup.FILTER_ATTR_LMS_TYPE);
+    }
+
+    public DateTime getQuizFromTime() {
+        return JodaTimeTypeResolver.getDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
     }
 
     public DateTime getExamFromTime() {
@@ -74,8 +76,8 @@ public class FilterMap extends POSTMapper {
         return getString(Exam.FILTER_ATTR_QUIZ_ID);
     }
 
-    public Long getExamLmsSetupId() {
-        return getLong(Exam.FILTER_ATTR_LMS_SETUP);
+    public Long getLmsSetupId() {
+        return getLong(LmsSetup.FILTER_ATTR_LMS_SETUP);
     }
 
     public String getExamStatus() {

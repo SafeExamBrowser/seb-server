@@ -137,7 +137,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final WebRequest request) {
 
         return new ResponseEntity<>(
-                Arrays.asList(ex.getAPIMessage()),
+                ex.getAPIMessages(),
                 HttpStatus.BAD_REQUEST);
     }
 

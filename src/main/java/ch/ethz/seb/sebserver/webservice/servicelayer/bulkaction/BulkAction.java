@@ -16,22 +16,30 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
+/** Defines a bulk action with its type, source entities (and source-type) and dependent entities.
+ * A BulkAction acts as a collector for entities (keys) that depends on the Bulk Action during the
+ * dependency collection phase.
+ * A BulkAction also acts as a result collector during the bulk-action process phase. */
 public final class BulkAction {
 
+    /** Defines the type of the BulkAction */
     public final BulkActionType type;
+    /** Defines the EntityType of the source entities of the BulkAction */
     public final EntityType sourceType;
+    /** A Set of EntityKey defining all source-entities of the BulkAction */
     public final Set<EntityKey> sources;
-
+    /** A Set of EntityKey containing collected depending entities during dependency collection and processing phase */
     final Set<EntityKey> dependencies;
+    /** A Set of EntityKey containing collected bulk action processing results during processing phase */
     final Set<Result<EntityKey>> result;
-
+    /** Indicates if this BulkAction has already been processed and is not valid anymore */
     boolean alreadyProcessed = false;
 
     public BulkAction(

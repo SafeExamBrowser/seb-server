@@ -110,7 +110,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.name,
-                            isLikeWhenPresent(filterMap.getLmsSetupName()))
+                            isLikeWhenPresent(filterMap.getName()))
                     .and(
                             LmsSetupRecordDynamicSqlSupport.lmsType,
                             isEqualToWhenPresent(filterMap.getLmsSetupType()))

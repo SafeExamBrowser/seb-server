@@ -14,6 +14,11 @@ import org.joda.time.format.DateTimeFormatter;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final long SECOND_IN_MILLIS = 1000;
+    public static final long MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS;
+    public static final long HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;
+    public static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
+
     public static final Character LIST_SEPARATOR_CHAR = ',';
     public static final String LIST_SEPARATOR = ",";
     public static final String EMPTY_NOTE = "--";

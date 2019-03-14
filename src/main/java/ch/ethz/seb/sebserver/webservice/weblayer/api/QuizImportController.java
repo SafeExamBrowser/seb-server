@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,16 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 @WebServiceProfile
 @RestController
@@ -57,26 +56,20 @@ public class QuizImportController {
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = LMS_SETUP.ATTR_ID, required = true) final Long lmsSetupId,
-            @RequestParam(name = QuizData.FILTER_ATTR_NAME, required = false) final String nameLike,
-            @RequestParam(name = QuizData.FILTER_ATTR_START_TIME, required = false) final String startTime,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
-
-        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
-                .createLmsAPITemplate(lmsSetupId)
-                .getOrThrow();
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         this.authorization.check(
                 PrivilegeType.READ_ONLY,
                 EntityType.EXAM,
                 institutionId);
 
-        return lmsAPITemplate.getQuizzes(
-                nameLike,
-                Utils.dateTimeStringToTimestamp(startTime, null),
-                sort,
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
+
+        return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)
                         ? pageNumber
                         : 1,
@@ -84,7 +77,9 @@ public class QuizImportController {
                         ? (pageSize <= this.maxPageSize)
                                 ? pageSize
                                 : this.maxPageSize
-                        : this.defaultPageSize)
+                        : this.defaultPageSize,
+                sort,
+                filterMap)
                 .getOrThrow();
     }
 

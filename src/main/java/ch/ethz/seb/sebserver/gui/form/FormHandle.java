@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form.FormFieldAccessor;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -50,12 +50,24 @@ public class FormHandle<T extends Entity> {
         this.i18nSupport = i18nSupport;
     }
 
-    public final Action postChanges(final Action action) {
-        return doAPIPost(action.definition)
-                .getOrThrow();
+    /** Process an API post request to send and save the form field values
+     * to the webservice and publishes a page event to return to read-only-view
+     * to indicate that the data was successfully saved or process an validation
+     * error indication if there are some validation errors.
+     *
+     * @param action the save action context
+     * @return the new Action context for read-only-view */
+    public final Action processFormSave(final Action action) {
+        return handleFormPost(doAPIPost(), action);
     }
 
-    public Result<Action> doAPIPost(final ActionDefinition actionDefinition) {
+    /** process a form post by first resetting all field validation errors (if there are some)
+     * then collecting all input data from the form by form-binding to a either a JSON string in
+     * HTTP PUT case or to an form-URL-encoded string on HTTP POST case. And PUT or POST the data
+     * to the webservice by using the defined RestCall and return the response result of the RestCall.
+     *
+     * @return the response result of the post (or put) RestCall */
+    public Result<T> doAPIPost() {
         this.form.process(
                 name -> true,
                 fieldAccessor -> fieldAccessor.resetError());
@@ -63,32 +75,50 @@ public class FormHandle<T extends Entity> {
         return this.post
                 .newBuilder()
                 .withFormBinding(this.form)
-                .call()
-                .map(result -> {
-                    final Action action = this.pageContext.createAction(actionDefinition)
-                            .withAttribute(AttributeKeys.READ_ONLY, "true")
-                            .withEntityKey(result.getEntityKey());
-                    this.pageContext.publishPageEvent(new ActionEvent(action, false));
-                    return action;
-                })
-                .onErrorDo(this::handleError)
-        //.map(this.postPostHandle)
-        ;
+                .call();
     }
 
-    private void handleError(final Throwable error) {
+    /** Uses the result of a form post to either create and publish a new Action to
+     * go to the read-only-view of the specified form to indicate a successful form post
+     * or stay within the edit-mode of the form and indicate errors or field validation messages
+     * to the user on error case.
+     * 
+     * @param postResult The form post result
+     * @param action the action that was applied with the form post
+     * @return the new Action that was used to stay on page or go the read-only-view of the form */
+    public Action handleFormPost(final Result<T> postResult, final Action action) {
+        return postResult
+                .map(result -> {
+                    final Action resultAction = action.createNew()
+                            .withAttribute(AttributeKeys.READ_ONLY, "true")
+                            .withEntityKey(result.getEntityKey());
+                    action.pageContext().publishPageEvent(new ActionEvent(resultAction, false));
+                    return resultAction;
+                })
+                .onErrorDo(this::handleError)
+                .getOrThrow();
+    }
+
+    public boolean handleError(final Throwable error) {
         if (error instanceof RestCallError) {
             ((RestCallError) error)
                     .getErrorMessages()
                     .stream()
+                    .filter(APIMessage.ErrorMessage.FIELD_VALIDATION::isOf)
                     .map(FieldValidationError::new)
                     .forEach(fve -> this.form.process(
                             name -> name.equals(fve.fieldName),
                             fieldAccessor -> showValidationError(fieldAccessor, fve)));
+            return true;
         } else {
             log.error("Unexpected error while trying to post form: ", error);
             this.pageContext.notifyError(error);
+            return false;
         }
+    }
+
+    public boolean hasAnyError() {
+        return this.form.hasAnyError();
     }
 
     private final void showValidationError(

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Adds some static logging support for DAO's */
 public final class DAOLoggingSupport {
 
     public static final Logger log = LoggerFactory.getLogger(DAOLoggingSupport.class);

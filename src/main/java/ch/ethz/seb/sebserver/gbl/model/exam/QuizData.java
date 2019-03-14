@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.Comparator;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -16,10 +18,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
-public final class QuizData {
+public final class QuizData implements Entity {
 
-    public static final String FILTER_ATTR_NAME = "name_like";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
 
     public static final String QUIZ_ATTR_ID = "quiz_id";
@@ -84,10 +88,25 @@ public final class QuizData {
         this.startURL = startURL;
     }
 
+    @Override
+    public String getModelId() {
+        if (this.id == null) {
+            return null;
+        }
+
+        return String.valueOf(this.id);
+    }
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.EXAM;
+    }
+
     public String geId() {
         return this.id;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
@@ -138,6 +157,64 @@ public final class QuizData {
         return "QuizData [id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", startTime="
                 + this.startTime
                 + ", endTime=" + this.endTime + ", startURL=" + this.startURL + "]";
+    }
+
+    public static Comparator<QuizData> getIdComparator(final boolean descending) {
+        return (qd1, qd2) -> ((qd1 == qd2)
+                ? 0
+                : (qd1 == null || qd1.id == null)
+                        ? 1
+                        : (qd2 == null || qd2.id == null)
+                                ? -1
+                                : qd1.id.compareTo(qd2.id))
+                * ((descending) ? -1 : 1);
+    }
+
+    public static Comparator<QuizData> getNameComparator(final boolean descending) {
+        return (qd1, qd2) -> ((qd1 == qd2)
+                ? 0
+                : (qd1 == null || qd1.name == null)
+                        ? 1
+                        : (qd2 == null || qd2.name == null)
+                                ? -1
+                                : qd1.name.compareTo(qd2.name))
+                * ((descending) ? -1 : 1);
+    }
+
+    public static Comparator<QuizData> getStartTimeComparator(final boolean descending) {
+        return (qd1, qd2) -> ((qd1 == qd2)
+                ? 0
+                : (qd1 == null || qd1.startTime == null)
+                        ? 1
+                        : (qd2 == null || qd2.startTime == null)
+                                ? -1
+                                : qd1.startTime.compareTo(qd2.startTime))
+                * ((descending) ? -1 : 1);
+    }
+
+    public static Comparator<QuizData> getEndTimeComparator(final boolean descending) {
+        return (qd1, qd2) -> ((qd1 == qd2)
+                ? 0
+                : (qd1 == null || qd1.endTime == null)
+                        ? 1
+                        : (qd2 == null || qd2.endTime == null)
+                                ? -1
+                                : qd1.endTime.compareTo(qd2.endTime))
+                * ((descending) ? -1 : 1);
+    }
+
+    public static Comparator<QuizData> getComparator(final String sort) {
+        final boolean descending = SortOrder.getSortOrder(sort) == SortOrder.DESCENDING;
+        final String sortParam = SortOrder.decode(sort);
+        if (QUIZ_ATTR_NAME.equals(sortParam)) {
+            return getNameComparator(descending);
+        } else if (QUIZ_ATTR_START_TIME.equals(sortParam)) {
+            return getStartTimeComparator(descending);
+        } else if (QUIZ_ATTR_END_TIME.equals(sortParam)) {
+            return getEndTimeComparator(descending);
+        }
+
+        return getIdComparator(descending);
     }
 
 }

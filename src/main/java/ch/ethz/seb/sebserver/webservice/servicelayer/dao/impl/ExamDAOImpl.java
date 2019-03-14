@@ -134,7 +134,7 @@ public class ExamDAOImpl implements ExamDAO {
                             isEqualToWhenPresent(filterMap.getExamQuizId()))
                     .and(
                             ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualToWhenPresent(filterMap.getExamLmsSetupId()))
+                            isEqualToWhenPresent(filterMap.getLmsSetupId()))
                     .and(
                             ExamRecordDynamicSqlSupport.status,
                             isEqualToWhenPresent(filterMap.getExamStatus()))
@@ -366,7 +366,7 @@ public class ExamDAOImpl implements ExamDAO {
                             (map1, map2) -> Utils.mapPutAll(map1, map2));
 
             return this.lmsAPIService
-                    .createLmsAPITemplate(lmsSetupId)
+                    .getLmsAPITemplate(lmsSetupId)
                     .map(template -> template.getQuizzes(recordMapping.keySet()))
                     .getOrThrow()
                     .stream()

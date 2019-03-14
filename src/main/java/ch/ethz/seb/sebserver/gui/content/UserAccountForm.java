@@ -213,7 +213,7 @@ public class UserAccountForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withExec(action -> {
-                    final Action postChanges = formHandle.postChanges(action);
+                    final Action postChanges = formHandle.processFormSave(action);
                     if (ownAccount) {
                         currentUser.refresh();
                         pageContext.forwardToMainPage();

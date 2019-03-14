@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.BooleanSupplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +22,11 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -31,6 +34,7 @@ import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
@@ -39,6 +43,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetIn
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -126,6 +131,9 @@ public class LmsSetupForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                         String.valueOf(lmsSetup.getInstitutionId()))
+                .putStaticValueIf(isNotNew,
+                        Domain.LMS_SETUP.ATTR_LMS_TYPE,
+                        String.valueOf(lmsSetup.getLmsType()))
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                         "sebserver.lmssetup.form.institution",
@@ -143,22 +151,21 @@ public class LmsSetupForm implements TemplateComposer {
                         (lmsType != null) ? lmsType.name() : null,
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
-
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_URL,
                         "sebserver.lmssetup.form.url",
                         lmsSetup.getLmsApiUrl())
-                        .withCondition(() -> isNotNew.getAsBoolean() && lmsType != LmsType.MOCKUP))
+                        .withCondition(() -> isNotNew.getAsBoolean()))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
                         "sebserver.lmssetup.form.clientname.lms",
                         lmsSetup.getLmsAuthName())
-                        .withCondition(() -> isNotNew.getAsBoolean() && lmsType != LmsType.MOCKUP))
+                        .withCondition(() -> isNotNew.getAsBoolean()))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                         "sebserver.lmssetup.form.secret.lms")
                         .asPasswordField()
-                        .withCondition(() -> isNotNew.getAsBoolean() && lmsType != LmsType.MOCKUP))
+                        .withCondition(() -> isNotNew.getAsBoolean()))
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)
@@ -176,6 +183,11 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && istitutionActive)
 
+                .createAction(ActionDefinition.LMS_SETUP_TEST)
+                .withEntityKey(entityKey)
+                .withExec(action -> this.testLmsSetup(action, formHandle))
+                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && istitutionActive)
+
                 .createAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(restService::activation)
@@ -188,7 +200,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && readonly && istitutionActive && !lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_SAVE)
-                .withExec(formHandle::postChanges)
+                .withExec(formHandle::processFormSave)
                 .publishIf(() -> !readonly)
 
                 .createAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
@@ -197,6 +209,52 @@ public class LmsSetupForm implements TemplateComposer {
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
 
+    }
+
+    /** LmsSetup test action implementation */
+    private Action testLmsSetup(final Action action, final FormHandle<LmsSetup> formHandle) {
+        // If we are in edit-mode we have to save the form before testing
+        if (!action.pageContext().isReadonly()) {
+            final Result<LmsSetup> postResult = formHandle.doAPIPost();
+            if (postResult.hasError()) {
+                formHandle.handleError(postResult.getError());
+                postResult.getOrThrow();
+            }
+        }
+
+        // Call the testing endpoint with the specified data to test
+        final EntityKey entityKey = action.getEntityKey();
+        final RestService restService = this.resourceService.getRestService();
+        final Result<LmsSetupTestResult> result = restService.getBuilder(TestLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.getModelId())
+                .call();
+
+        // ... and handle the response
+        if (result.hasError()) {
+            if (formHandle.handleError(result.getError())) {
+                throw new PageMessageException(
+                        new LocTextKey("sebserver.lmssetup.action.test.missingParameter"));
+            }
+        }
+
+        final LmsSetupTestResult testResult = result.getOrThrow();
+
+        if (testResult.isOk()) {
+            action.pageContext().publishInfo(
+                    new LocTextKey("sebserver.lmssetup.action.test.ok"));
+
+            return action;
+        } else if (StringUtils.isNoneBlank(testResult.tokenRequestError)) {
+            throw new PageMessageException(
+                    new LocTextKey("sebserver.lmssetup.action.test.tokenRequestError",
+                            testResult.tokenRequestError));
+        } else if (StringUtils.isNoneBlank(testResult.quizRequestError)) {
+            throw new PageMessageException(
+                    new LocTextKey("sebserver.lmssetup.action.test.quizRequestError", testResult.quizRequestError));
+        } else {
+            throw new PageMessageException(
+                    new LocTextKey("sebserver.lmssetup.action.test.unknownError", testResult));
+        }
     }
 
 }

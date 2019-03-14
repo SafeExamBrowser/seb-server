@@ -169,25 +169,30 @@ public class APIMessage implements Serializable {
 
         private static final long serialVersionUID = 1453431210820677296L;
 
-        private final APIMessage apiMessage;
+        private final Collection<APIMessage> apiMessages;
+
+        public APIMessageException(final Collection<APIMessage> apiMessages) {
+            super();
+            this.apiMessages = apiMessages;
+        }
 
         public APIMessageException(final APIMessage apiMessage) {
             super();
-            this.apiMessage = apiMessage;
+            this.apiMessages = Arrays.asList(apiMessage);
         }
 
         public APIMessageException(final ErrorMessage errorMessage) {
             super();
-            this.apiMessage = errorMessage.of();
+            this.apiMessages = Arrays.asList(errorMessage.of());
         }
 
         public APIMessageException(final ErrorMessage errorMessage, final String detail, final String... attributes) {
             super();
-            this.apiMessage = errorMessage.of(detail, attributes);
+            this.apiMessages = Arrays.asList(errorMessage.of(detail, attributes));
         }
 
-        public APIMessage getAPIMessage() {
-            return this.apiMessage;
+        public Collection<APIMessage> getAPIMessages() {
+            return this.apiMessages;
         }
     }
 

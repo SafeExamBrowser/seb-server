@@ -13,6 +13,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** A result of a computation that can either be the resulting value of the computation
  * or an error if an exception/error has been thrown during the computation.
  *
@@ -48,6 +51,8 @@ import java.util.stream.Stream;
  *
  * @param <T> The type of the result value */
 public final class Result<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(Result.class);
 
     /** The resulting value. May be null if an error occurred */
     private final T value;
@@ -264,6 +269,15 @@ public final class Result<T> {
 
     public static <T> Stream<T> skipOnError(final Result<T> result) {
         if (result.error != null) {
+            return Stream.empty();
+        } else {
+            return Stream.of(result.value);
+        }
+    }
+
+    public static <T> Stream<T> onErrorLogAndSkip(final Result<T> result) {
+        if (result.error != null) {
+            log.error("Unexpected error on result. Cause: ", result.error);
             return Stream.empty();
         } else {
             return Stream.of(result.value);

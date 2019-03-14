@@ -162,6 +162,15 @@ public final class Form implements FormBinding {
         }
     }
 
+    public boolean hasAnyError() {
+        return this.formFields.entrySet()
+                .stream()
+                .flatMap(entity -> entity.getValue().stream())
+                .filter(a -> a.hasError)
+                .findFirst()
+                .isPresent();
+    }
+
     public void process(
             final Predicate<String> nameFilter,
             final Consumer<FormFieldAccessor> processor) {

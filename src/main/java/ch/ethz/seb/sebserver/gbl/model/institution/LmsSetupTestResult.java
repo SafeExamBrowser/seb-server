@@ -11,12 +11,14 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class LmsSetupTestResult {
@@ -31,32 +33,37 @@ public final class LmsSetupTestResult {
     public final Boolean okStatus;
 
     @JsonProperty(ATTR_MISSING_ATTRIBUTE)
-    public final Set<String> missingLMSSetupAttribute;
+    public final List<APIMessage> missingLMSSetupAttribute;
 
-    @JsonProperty(ATTR_MISSING_ATTRIBUTE)
+    @JsonProperty(ATTR_ERROR_TOKEN_REQUEST)
     public final String tokenRequestError;
 
-    @JsonProperty(ATTR_MISSING_ATTRIBUTE)
+    @JsonProperty(ATTR_ERROR_QUIZ_REQUEST)
     public final String quizRequestError;
 
     public LmsSetupTestResult(
             @JsonProperty(value = ATTR_OK_STATUS, required = true) final Boolean ok,
-            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<String> missingLMSSetupAttribute,
-            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final String tokenRequestError,
-            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final String quizRequestError) {
+            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<APIMessage> missingLMSSetupAttribute,
+            @JsonProperty(ATTR_ERROR_TOKEN_REQUEST) final String tokenRequestError,
+            @JsonProperty(ATTR_ERROR_QUIZ_REQUEST) final String quizRequestError) {
 
         this.okStatus = ok;
         // TODO
-        this.missingLMSSetupAttribute = Utils.immutableSetOf(missingLMSSetupAttribute);
+        this.missingLMSSetupAttribute = Utils.immutableListOf(missingLMSSetupAttribute);
         this.tokenRequestError = tokenRequestError;
         this.quizRequestError = quizRequestError;
+    }
+
+    @JsonIgnore
+    public boolean isOk() {
+        return this.okStatus != null && this.okStatus.booleanValue();
     }
 
     public Boolean getOkStatus() {
         return this.okStatus;
     }
 
-    public Set<String> getMissingLMSSetupAttribute() {
+    public List<APIMessage> getMissingLMSSetupAttribute() {
         return this.missingLMSSetupAttribute;
     }
 
@@ -79,11 +86,11 @@ public final class LmsSetupTestResult {
         return new LmsSetupTestResult(true, Collections.emptyList(), null, null);
     }
 
-    public static final LmsSetupTestResult ofMissingAttributes(final Collection<String> attrs) {
+    public static final LmsSetupTestResult ofMissingAttributes(final Collection<APIMessage> attrs) {
         return new LmsSetupTestResult(false, attrs, null, null);
     }
 
-    public static final LmsSetupTestResult ofMissingAttributes(final String... attrs) {
+    public static final LmsSetupTestResult ofMissingAttributes(final APIMessage... attrs) {
         if (attrs == null) {
             return new LmsSetupTestResult(false, Collections.emptyList(), null, null);
         }

@@ -10,50 +10,46 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
-import ch.ethz.seb.sebserver.gbl.model.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 final class MockupLmsAPITemplate implements LmsAPITemplate {
+
+    private static final Logger log = LoggerFactory.getLogger(MockupLmsAPITemplate.class);
 
     public static final String MOCKUP_LMS_CLIENT_NAME = "mockupLmsClientName";
     public static final String MOCKUP_LMS_CLIENT_SECRET = "mockupLmsClientSecret";
 
     private final ClientCredentialService clientCredentialService;
-    private final LmsSetupDAO lmsSetupDao;
-    private final LmsSetup setup;
-
-    private ClientCredentials credentials = null;
+    private final LmsSetup lmsSetup;
+    private final ClientCredentials credentials;
     private final Collection<QuizData> mockups;
 
     MockupLmsAPITemplate(
-            final LmsSetupDAO lmsSetupDao,
-            final LmsSetup setup,
+            final LmsSetup lmsSetup,
+            final ClientCredentials credentials,
             final ClientCredentialService clientCredentialService) {
 
-        this.lmsSetupDao = lmsSetupDao;
+        this.lmsSetup = lmsSetup;
         this.clientCredentialService = clientCredentialService;
-        if (!setup.isActive() || setup.lmsType != LmsType.MOCKUP) {
-            throw new IllegalArgumentException();
-        }
+        this.credentials = credentials;
 
-        this.setup = setup;
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
                 "quiz1", "Demo Quiz 1", "Demo Quit Mockup",
@@ -79,88 +75,45 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<LmsSetup> lmsSetup() {
-        return Result.of(this.setup);
+    public LmsSetup lmsSetup() {
+        return this.lmsSetup;
     }
 
     @Override
     public LmsSetupTestResult testLmsSetup() {
-        if (this.setup.lmsType != LmsType.MOCKUP) {
-            return LmsSetupTestResult.ofMissingAttributes(LMS_SETUP.ATTR_LMS_TYPE);
+
+        log.info("Test Lms Binding for Mockup and LmsSetup: {}", this.lmsSetup);
+
+        final List<APIMessage> missingAttrs = attributeValidation(this.credentials);
+        if (!missingAttrs.isEmpty()) {
+            return LmsSetupTestResult.ofMissingAttributes(missingAttrs);
         }
-        initCredentials();
-        if (this.credentials != null) {
+
+        if (authenticate()) {
             return LmsSetupTestResult.ofOkay();
         } else {
-            return LmsSetupTestResult.ofMissingAttributes(
-                    LMS_SETUP.ATTR_LMS_URL,
-                    LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                    LMS_SETUP.ATTR_LMS_CLIENTSECRET);
+            return LmsSetupTestResult.ofTokenRequestError("Illegal access");
         }
-    }
-
-    public Collection<QuizData> getQuizzes(
-            final String name,
-            final Long from,
-            final String sort) {
-
-        final int orderFactor = (SortOrder.getSortOrder(sort) == SortOrder.DESCENDING)
-                ? -1
-                : 1;
-
-        final String _sort = SortOrder.decode(sort);
-        final Comparator<QuizData> comp = (_sort != null)
-                ? (_sort.equals(QuizData.FILTER_ATTR_START_TIME))
-                        ? (q1, q2) -> q1.startTime.compareTo(q2.startTime) * orderFactor
-                        : (q1, q2) -> q1.name.compareTo(q2.name) * orderFactor
-                : (q1, q2) -> q1.name.compareTo(q2.name) * orderFactor;
-
-        return this.mockups.stream()
-                .filter(mockup -> (name != null)
-                        ? mockup.name.contains(name)
-                        : true && (from != null)
-                                ? mockup.startTime.getMillis() >= from
-                                : true)
-                .sorted(comp)
-                .collect(Collectors.toList());
     }
 
     @Override
-    public Result<Page<QuizData>> getQuizzes(
-            final String name,
-            final Long from,
-            final String sort,
-            final int pageNumber,
-            final int pageSize) {
+    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
 
         return Result.tryCatch(() -> {
-            initCredentials();
+            authenticate();
             if (this.credentials == null) {
                 throw new IllegalArgumentException("Wrong clientId or secret");
             }
 
-            final int startIndex = pageNumber * pageSize;
-            final int endIndex = startIndex + pageSize;
-            int index = 0;
-            final Collection<QuizData> quizzes = getQuizzes(name, from, sort);
-            final int numberOfPages = quizzes.size() / pageSize;
-            final Iterator<QuizData> iterator = quizzes.iterator();
-            final List<QuizData> pageContent = new ArrayList<>();
-            while (iterator.hasNext() && index < endIndex) {
-                final QuizData next = iterator.next();
-                if (index >= startIndex) {
-                    pageContent.add(next);
-                }
-                index++;
-            }
-
-            return new Page<>(numberOfPages, pageNumber, sort, pageContent);
+            return this.mockups.stream()
+                    .filter(LmsAPIService.quizzeFilterFunction(filterMap))
+                    .collect(Collectors.toList());
         });
     }
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        initCredentials();
+        authenticate();
         if (this.credentials == null) {
             throw new IllegalArgumentException("Wrong clientId or secret");
         }
@@ -173,7 +126,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
-        initCredentials();
+        authenticate();
         if (this.credentials == null) {
             throw new IllegalArgumentException("Wrong clientId or secret");
         }
@@ -181,28 +134,23 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         return Result.of(new ExamineeAccountDetails(examineeUserId, "mockup", "mockup", "mockup"));
     }
 
-    @Override
-    public void reset() {
-        this.credentials = null;
-    }
-
-    private void initCredentials() {
+    private boolean authenticate() {
         try {
-            this.credentials = this.lmsSetupDao
-                    .getLmsAPIAccessCredentials(this.setup.getModelId())
-                    .getOrThrow();
 
             final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(this.credentials);
             if (!"lmsMockupClientId".equals(plainClientId)) {
-                throw new IllegalAccessError();
+                throw new IllegalAccessException("Wrong client credential");
             }
 
             final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(this.credentials);
             if (!"lmsMockupSecret".equals(plainClientSecret)) {
-                throw new IllegalAccessError();
+                throw new IllegalAccessException("Wrong client credential");
             }
+
+            return true;
         } catch (final Exception e) {
-            this.credentials = null;
+            log.info("Authentication failed: ", e);
+            return false;
         }
     }
 

@@ -48,9 +48,12 @@ public final class Action implements Runnable {
 
         this.definition = definition;
         this.originalPageContext = pageContext;
+        final String readonly = pageContext.getAttribute(AttributeKeys.READ_ONLY, "true");
         this.pageContext = pageContext.withAttribute(
                 AttributeKeys.READ_ONLY,
-                String.valueOf(definition.readonly));
+                definition.readonly != null
+                        ? String.valueOf(definition.readonly)
+                        : readonly);
     }
 
     @Override
@@ -87,6 +90,10 @@ public final class Action implements Runnable {
             log.error("Failed to execute action: {}", Action.this, t);
             Action.this.pageContext.notifyError("action.error.unexpected.message", t);
         }
+    }
+
+    public Action createNew() {
+        return this.pageContext.createAction(this.definition);
     }
 
     public Action withExec(final Function<Action, Action> exec) {

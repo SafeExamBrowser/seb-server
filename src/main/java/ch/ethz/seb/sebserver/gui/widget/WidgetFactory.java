@@ -61,6 +61,7 @@ public class WidgetFactory {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
         EDIT("edit.png"),
+        TEST("test.png"),
         CANCEL("cancel.png"),
         CANCEL_EDIT("cancelEdit.png"),
         SHOW("show.png"),
