@@ -48,7 +48,7 @@ public final class API {
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
 
-    public static final String QUIZ_IMPORT_ENDPOINT = "/quiz";
+    public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
 

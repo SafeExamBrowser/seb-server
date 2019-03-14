@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,7 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_IMPORT_ENDPOINT)
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
 public class QuizImportController {
 
     private final int defaultPageSize;
@@ -50,8 +51,11 @@ public class QuizImportController {
         this.authorization = authorization;
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public Page<QuizData> search(
+    @RequestMapping(
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Page<QuizData> getQuizPage(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,

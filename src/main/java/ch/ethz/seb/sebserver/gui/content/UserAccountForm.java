@@ -106,7 +106,7 @@ public class UserAccountForm implements TemplateComposer {
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
         final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
-        final boolean istitutionActive = restService.getBuilder(GetInstitution.class)
+        final boolean institutionActive = restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
                 .call()
                 .map(inst -> inst.active)
@@ -190,26 +190,26 @@ public class UserAccountForm implements TemplateComposer {
         formContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .publishIf(() -> writeGrant && readonly && istitutionActive)
+                .publishIf(() -> writeGrant && readonly && institutionActive)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && istitutionActive)
+                .publishIf(() -> modifyGrant && readonly && institutionActive)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && istitutionActive && userAccount.isActive())
+                .publishIf(() -> modifyGrant && readonly && institutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(restService::activation)
                 .withConfirm(PageUtils.confirmDeactivation(userAccount, restService))
-                .publishIf(() -> writeGrant && readonly && istitutionActive && userAccount.isActive())
+                .publishIf(() -> writeGrant && readonly && institutionActive && userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(restService::activation)
-                .publishIf(() -> writeGrant && readonly && istitutionActive && !userAccount.isActive())
+                .publishIf(() -> writeGrant && readonly && institutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withExec(action -> {

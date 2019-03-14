@@ -91,11 +91,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
-    protected Class<UserMod> modifiedDataType() {
-        return UserMod.class;
-    }
-
-    @Override
     protected SqlTable getSQLTableOfEntity() {
         return UserRecordDynamicSqlSupport.userRecord;
     }

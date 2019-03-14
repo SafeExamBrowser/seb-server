@@ -50,6 +50,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+/** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
+ * by all entity types.
+ *
+ * @param <T> The concrete Entity domain-model type used on all GET, PUT
+ * @param <M> The concrete Entity domain-model type used for POST methods (new) */
 public abstract class EntityController<T extends GrantEntity, M extends GrantEntity> {
 
     protected final AuthorizationService authorization;
@@ -75,6 +80,11 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
         this.beanValidationService = beanValidationService;
     }
 
+    /** This is called by Spring to initialize the WebDataBinder and is used here to
+     * initialize the default value binding for the institutionId request-parameter
+     * that has the current users insitutionId as default.
+     *
+     * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) throws Exception {
         this.authorization
@@ -83,14 +93,32 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     }
 
     // ******************
-    // * GET (all)
+    // * GET (getAll)
     // ******************
 
+    /** The get-all or get-page rest endpoint for all types of Entity and returns a Page of
+     * entities of specific type.
+     *
+     * GET /{api}/{entity-type-endpoint-name}
+     *
+     * GET /admin-api/v1/exam
+     * GET /admin-api/v1/exam?page_number=2&page_size=10&sort=-name
+     * GET /admin-api/v1/exam?name=seb&active=true
+     *
+     * @param institutionId The institution identifier of the request.
+     *            Default is the institution identifier of the institution of the current user
+     * @param pageNumber the number of the page that is requested
+     * @param pageSize the size of the page that is requested
+     * @param sort the sort parameter to sort the list of entities before paging
+     *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     *            descending sort order
+     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
+     * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Page<T> getAll(
+    public Page<T> getPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -362,8 +390,6 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     }
 
     protected abstract M createNew(POSTMapper postParams);
-
-    protected abstract Class<M> modifiedDataType();
 
     protected abstract SqlTable getSQLTableOfEntity();
 

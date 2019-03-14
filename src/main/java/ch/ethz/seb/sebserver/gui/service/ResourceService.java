@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
 @Lazy
@@ -101,6 +102,35 @@ public class ResourceService {
     public Function<String, String> getInstitutionNameFunction() {
 
         final Map<String, String> idNameMap = this.restService.getBuilder(GetInstitutionNames.class)
+                .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .collect(Collectors.toMap(e -> e.modelId, e -> e.name));
+
+        return id -> {
+            if (!idNameMap.containsKey(id)) {
+                return Constants.EMPTY_NOTE;
+            }
+            return idNameMap.get(id);
+        };
+    }
+
+    public List<Tuple<String>> lmsSetupResource(final Long institutionId) {
+        return this.restService.getBuilder(GetLmsSetupNames.class)
+                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, String.valueOf(institutionId))
+                .withQueryParam(Domain.LMS_SETUP.ATTR_ACTIVE, "true")
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .collect(Collectors.toList());
+    }
+
+    public Function<String, String> getLmsSetupNameFunction(final Long institutionId) {
+
+        final Map<String, String> idNameMap = this.restService.getBuilder(GetLmsSetupNames.class)
+                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, String.valueOf(institutionId))
                 .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
                 .call()
                 .getOr(Collections.emptyList())

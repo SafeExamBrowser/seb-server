@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -31,7 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
  *
  * A LmsAPITemplate defines at least the core API access to query courses and quizzes from the LMS
  * Later a concrete LmsAPITemplate may also implement some special features regarding to the type
- * of LMS */
+ * of the LMS */
 public interface LmsAPITemplate {
 
     /** Get the underling LMSSetup configuration for this LmsAPITemplate
@@ -54,9 +53,17 @@ public interface LmsAPITemplate {
      *         or refer to an error when happened */
     Result<List<QuizData>> getQuizzes(FilterMap filterMap);
 
+    /** Get all QuizData for the set of QuizData identifiers from LMS API in a collection
+     * of Result. If particular Quiz cannot be loaded because of errors or deletion,
+     * the Result will have an error reference.
+     *
+     * @param ids the Set of Quiz identifiers to get the QuizData for
+     * @return Collection of all QuizData from the given id set */
     Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
-    Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+    // TODO this can be used in a future release to resolve examinee's account detail information by an
+    //      examinee identifier received by on SEB-Client connection.
+    //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
 
     default List<APIMessage> attributeValidation(final ClientCredentials credentials) {
 

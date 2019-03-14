@@ -216,6 +216,7 @@ public final class Form implements FormBinding {
         }
     }
 
+    // following are FormFieldAccessor implementations for all field types
     //@formatter:off
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
         return  new FormFieldAccessor(label, field) {
@@ -229,24 +230,17 @@ public final class Form implements FormBinding {
             @Override public void setValue(final String value) { text.setText(value); }
         };
     }
-    private FormFieldAccessor createAccessor(
-            final Label label,
-            final SingleSelection singleSelection) {
-
+    private FormFieldAccessor createAccessor(final Label label, final SingleSelection singleSelection) {
         return new FormFieldAccessor(label, singleSelection) {
             @Override public String getValue() { return singleSelection.getSelectionValue(); }
             @Override public void setValue(final String value) { singleSelection.select(value); }
         };
     }
-    private FormFieldAccessor createAccessor(
-            final Label label,
-            final MultiSelection multiSelection) {
-
+    private FormFieldAccessor createAccessor(final Label label,final MultiSelection multiSelection) {
         return new FormFieldAccessor(label, multiSelection) {
             @Override public String getValue() { return multiSelection.getSelectionValue(); }
             @Override public void setValue(final String value) { multiSelection.select(value); }
-            @Override
-            public void putJsonValue(final String key, final ObjectNode objectRoot) {
+            @Override public void putJsonValue(final String key, final ObjectNode objectRoot) {
                 final String value = getValue();
                 if (StringUtils.isNoneBlank(value)) {
                     final ArrayNode arrayNode = objectRoot.putArray(key);

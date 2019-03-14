@@ -59,11 +59,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @Override
-    protected Class<LmsSetup> modifiedDataType() {
-        return LmsSetup.class;
-    }
-
-    @Override
     protected SqlTable getSQLTableOfEntity() {
         return LmsSetupRecordDynamicSqlSupport.lmsSetupRecord;
     }

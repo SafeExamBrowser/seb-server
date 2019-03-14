@@ -34,6 +34,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+/** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
+ * by all entity types that has activation feature and can be activated or deactivated.
+ *
+ * @param <T> The concrete Entity domain-model type used on all GET, PUT
+ * @param <M> The concrete Entity domain-model type used for POST methods (new) */
 public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
         extends EntityController<T, M> {
 

@@ -66,11 +66,6 @@ public class InstitutionController extends ActivatableEntityController<Instituti
     }
 
     @Override
-    protected Class<Institution> modifiedDataType() {
-        return Institution.class;
-    }
-
-    @Override
     protected SqlTable getSQLTableOfEntity() {
         return InstitutionRecordDynamicSqlSupport.institutionRecord;
     }

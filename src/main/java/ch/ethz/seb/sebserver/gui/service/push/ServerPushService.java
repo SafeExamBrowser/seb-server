@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+/** Puts RAP's server-push functionality in a well defined service by using a context
+ * as state holder and the possibility to split the server-push process into two
+ * separated processes, a business-process to get and update business data and the
+ * an update-process to update the UI after according to updated data */
 @Lazy
 @Service
 public class ServerPushService {

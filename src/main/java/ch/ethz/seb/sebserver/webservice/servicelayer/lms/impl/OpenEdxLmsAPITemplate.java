@@ -41,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.SupplierWithCircuitBreaker;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
@@ -132,12 +131,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -247,6 +240,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         final String startURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX + courseData.id;
         return new QuizData(
                 courseData.id,
+                lmsSetup.getModelId(),
                 courseData.name,
                 courseData.short_description,
                 courseData.start,

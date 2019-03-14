@@ -88,11 +88,6 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     }
 
     @Override
-    protected Class<Exam> modifiedDataType() {
-        return Exam.class;
-    }
-
-    @Override
     protected SqlTable getSQLTableOfEntity() {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
@@ -102,7 +97,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @Override
-    public Page<Exam> getAll(
+    public Page<Exam> getPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -120,7 +115,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         if (StringUtils.isBlank(sort) ||
                 this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort)) {
 
-            return super.getAll(institutionId, pageNumber, pageSize, sort, allRequestParams);
+            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams);
 
         } else {
 

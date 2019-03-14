@@ -114,7 +114,7 @@ public class LmsSetupForm implements TemplateComposer {
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(lmsSetup);
         final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
-        final boolean istitutionActive = restService.getBuilder(GetInstitution.class)
+        final boolean institutionActive = restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(lmsSetup.getInstitutionId()))
                 .call()
                 .map(inst -> inst.active)
@@ -177,27 +177,27 @@ public class LmsSetupForm implements TemplateComposer {
         formContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.LMS_SETUP_NEW)
-                .publishIf(() -> writeGrant && readonly && istitutionActive)
+                .publishIf(() -> writeGrant && readonly && institutionActive)
 
                 .createAction(ActionDefinition.LMS_SETUP_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && istitutionActive)
+                .publishIf(() -> modifyGrant && readonly && institutionActive)
 
                 .createAction(ActionDefinition.LMS_SETUP_TEST)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.testLmsSetup(action, formHandle))
-                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && istitutionActive)
+                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && institutionActive)
 
                 .createAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(restService::activation)
                 .withConfirm(PageUtils.confirmDeactivation(lmsSetup, restService))
-                .publishIf(() -> writeGrant && readonly && istitutionActive && lmsSetup.isActive())
+                .publishIf(() -> writeGrant && readonly && institutionActive && lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_ACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(restService::activation)
-                .publishIf(() -> writeGrant && readonly && istitutionActive && !lmsSetup.isActive())
+                .publishIf(() -> writeGrant && readonly && institutionActive && !lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_SAVE)
                 .withExec(formHandle::processFormSave)
@@ -208,7 +208,6 @@ public class LmsSetupForm implements TemplateComposer {
                 .withExec(Action::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
-
     }
 
     /** LmsSetup test action implementation */

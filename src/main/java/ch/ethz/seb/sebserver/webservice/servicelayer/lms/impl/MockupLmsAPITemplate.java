@@ -21,7 +21,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
@@ -50,27 +49,28 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         this.clientCredentialService = clientCredentialService;
         this.credentials = credentials;
 
+        final String lmsSetupId = lmsSetup.getModelId();
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
-                "quiz1", "Demo Quiz 1", "Demo Quit Mockup",
+                "quiz1", lmsSetupId, "Demo Quiz 1", "Demo Quit Mockup",
                 "2020-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz2", "Demo Quiz 2", "Demo Quit Mockup",
+                "quiz2", lmsSetupId, "Demo Quiz 2", "Demo Quit Mockup",
                 "2020-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz3", "Demo Quiz 3", "Demo Quit Mockup",
+                "quiz3", lmsSetupId, "Demo Quiz 3", "Demo Quit Mockup",
                 "2018-07-30 09:00:00", "2018-08-01 00:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz4", "Demo Quiz 4", "Demo Quit Mockup",
+                "quiz4", lmsSetupId, "Demo Quiz 4", "Demo Quit Mockup",
                 "2018-01-01 00:00:00", "2019-01-01 00:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz5", "Demo Quiz 5", "Demo Quit Mockup",
+                "quiz5", lmsSetupId, "Demo Quiz 5", "Demo Quit Mockup",
                 "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz6", "Demo Quiz 6", "Demo Quit Mockup",
+                "quiz6", lmsSetupId, "Demo Quiz 6", "Demo Quit Mockup",
                 "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz7", "Demo Quiz 7", "Demo Quit Mockup",
+                "quiz7", lmsSetupId, "Demo Quiz 7", "Demo Quit Mockup",
                 "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
     }
 
@@ -122,16 +122,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
-        authenticate();
-        if (this.credentials == null) {
-            throw new IllegalArgumentException("Wrong clientId or secret");
-        }
-
-        return Result.of(new ExamineeAccountDetails(examineeUserId, "mockup", "mockup", "mockup"));
     }
 
     private boolean authenticate() {

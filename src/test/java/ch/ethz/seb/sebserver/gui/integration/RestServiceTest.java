@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
 
 public class RestServiceTest extends GuiIntegrationTest {
@@ -36,7 +36,7 @@ public class RestServiceTest extends GuiIntegrationTest {
         final Collection<RestCall<?>> calls = new ArrayList<>();
         calls.add(new RestServiceTest.GetInstitution());
 
-        final RestService restService = new RestService(authorizationContextHolder, new JSONMapper(), calls);
+        final RestServiceImpl restService = new RestServiceImpl(authorizationContextHolder, new JSONMapper(), calls);
 
         final Result<Institution> call = restService.getBuilder(RestServiceTest.GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, "2")

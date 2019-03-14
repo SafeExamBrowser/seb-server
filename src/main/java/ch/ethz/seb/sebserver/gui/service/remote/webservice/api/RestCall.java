@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +26,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -100,20 +103,7 @@ public abstract class RestCall<T> {
                         RestCall.this.typeKey.typeRef));
 
             } else {
-
-                final RestCallError restCallError =
-                        new RestCallError("Response Entity: " + responseEntity.toString());
-
-                restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
-                        responseEntity.getBody(),
-                        new TypeReference<List<APIMessage>>() {
-                        }));
-
-                log.debug(
-                        "Webservice answered with well defined error- or validation-failure-response: ",
-                        restCallError);
-
-                return Result.ofError(restCallError);
+                return handleRestCallError(responseEntity);
             }
 
         } catch (final Throwable t) {
@@ -147,6 +137,24 @@ public abstract class RestCall<T> {
 
     public RestCallBuilder newBuilder() {
         return new RestCallBuilder();
+    }
+
+    private Result<T> handleRestCallError(final ResponseEntity<String> responseEntity)
+            throws IOException, JsonParseException, JsonMappingException {
+
+        final RestCallError restCallError =
+                new RestCallError("Response Entity: " + responseEntity.toString());
+
+        restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
+                responseEntity.getBody(),
+                new TypeReference<List<APIMessage>>() {
+                }));
+
+        log.debug(
+                "Webservice answered with well defined error- or validation-failure-response: ",
+                restCallError);
+
+        return Result.ofError(restCallError);
     }
 
     public class RestCallBuilder {
