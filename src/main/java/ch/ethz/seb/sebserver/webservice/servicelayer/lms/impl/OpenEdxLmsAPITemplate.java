@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,11 +39,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.SupplierWithCircuitBreaker;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -67,9 +69,10 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private final Set<String> knownTokenAccessPaths;
 
     private OAuth2RestTemplate restTemplate = null;
-    private SupplierWithCircuitBreaker<List<QuizData>> allQuizzesSupplier = null;
+    private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesSupplier;
 
     OpenEdxLmsAPITemplate(
+            final AsyncService asyncService,
             final LmsSetup lmsSetup,
             final ClientCredentials credentials,
             final ClientCredentialService clientCredentialService,
@@ -85,6 +88,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         if (alternativeTokenRequestPaths != null) {
             this.knownTokenAccessPaths.addAll(Arrays.asList(alternativeTokenRequestPaths));
         }
+
+        this.allQuizzesSupplier = asyncService.createCircuitBreaker(allQuizzesSupplier(lmsSetup));
     }
 
     @Override
@@ -115,18 +120,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.initRestTemplateAndRequestAccessToken()
-                .flatMap(this::getAllQuizes)
+        return this.allQuizzesSupplier.get()
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
-    }
-
-    public ResponseEntity<EdXPage> getEdxPage(final String pageURI) {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        return this.restTemplate.exchange(
-                pageURI,
-                HttpMethod.GET,
-                new HttpEntity<>(httpHeaders),
-                EdXPage.class);
     }
 
     @Override
@@ -197,26 +192,49 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         return template;
     }
 
-    private Result<List<QuizData>> getAllQuizes(final LmsSetup lmsSetup) {
-        if (this.allQuizzesSupplier == null) {
-            this.allQuizzesSupplier = new SupplierWithCircuitBreaker<>(
-                    () -> collectAllCourses(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT)
-                            .stream()
-                            .reduce(
-                                    new ArrayList<QuizData>(),
-                                    (list, courseData) -> {
-                                        list.add(quizDataOf(lmsSetup, courseData));
-                                        return list;
-                                    },
-                                    (list1, list2) -> {
-                                        list1.addAll(list2);
-                                        return list1;
-                                    }),
-                    5, 1000L); // TODO specify better CircuitBreaker params
-        }
+//    private Result<List<QuizData>> getAllQuizes(final LmsSetup lmsSetup) {
+//        if (this.allQuizzesSupplier == null) {
+//            this.allQuizzesSupplier = new CircuitBreaker<>(
+//                    () -> collectAllCourses(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT)
+//                            .stream()
+//                            .reduce(
+//                                    new ArrayList<QuizData>(),
+//                                    (list, courseData) -> {
+//                                        list.add(quizDataOf(lmsSetup, courseData));
+//                                        return list;
+//                                    },
+//                                    (list1, list2) -> {
+//                                        list1.addAll(list2);
+//                                        return list1;
+//                                    }),
+//                    5, 1000L); // TODO specify better CircuitBreaker params
+//        }
+//
+//        return this.allQuizzesSupplier.get();
+//
+//    }
 
-        return this.allQuizzesSupplier.get();
+    private Supplier<List<QuizData>> allQuizzesSupplier(final LmsSetup lmsSetup) {
+        return () -> {
+            return initRestTemplateAndRequestAccessToken()
+                    .map(this::collectAllQuizzes)
+                    .getOrThrow();
+        };
+    }
 
+    private ArrayList<QuizData> collectAllQuizzes(final LmsSetup lmsSetup) {
+        return collectAllCourses(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT)
+                .stream()
+                .reduce(
+                        new ArrayList<QuizData>(),
+                        (list, courseData) -> {
+                            list.add(quizDataOf(lmsSetup, courseData));
+                            return list;
+                        },
+                        (list1, list2) -> {
+                            list1.addAll(list2);
+                            return list1;
+                        });
     }
 
     private List<CourseData> collectAllCourses(final String pageURI) {
@@ -233,7 +251,16 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         return collector;
     }
 
-    private QuizData quizDataOf(
+    private ResponseEntity<EdXPage> getEdxPage(final String pageURI) {
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        return this.restTemplate.exchange(
+                pageURI,
+                HttpMethod.GET,
+                new HttpEntity<>(httpHeaders),
+                EdXPage.class);
+    }
+
+    private static QuizData quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData) {
 

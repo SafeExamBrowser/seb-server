@@ -24,6 +24,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -44,6 +45,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPIServiceImpl.class);
 
+    private final AsyncService asyncService;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactory clientHttpRequestFactory;
@@ -52,11 +54,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
+            final AsyncService asyncService,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
             @Value("${sebserver.lms.openedix.api.token.request.paths}") final String alternativeTokenRequestPaths) {
 
+        this.asyncService = asyncService;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactory = clientHttpRequestFactory;
@@ -102,6 +106,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
 
         return Result.tryCatch(() -> {
+            // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
             final Long lmsSetupId = filterMap.getLmsSetupId();
             if (lmsSetupId != null) {
                 return getLmsAPITemplate(lmsSetupId)
@@ -110,6 +115,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         .getOrThrow();
             }
 
+            // case 2. get quizzes from all LmsSetups of specified institution
             final Long institutionId = filterMap.getInstitutionId();
             if (institutionId == null) {
                 throw new IllegalAPIArgumentException("Missing institution identifier");
@@ -182,6 +188,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         this.clientCredentialService);
             case OPEN_EDX:
                 return new OpenEdxLmsAPITemplate(
+                        this.asyncService,
                         lmsSetup,
                         credentials,
                         this.clientCredentialService,
