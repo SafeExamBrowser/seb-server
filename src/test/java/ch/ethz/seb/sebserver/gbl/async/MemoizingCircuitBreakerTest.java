@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker.State;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreakerSupplier.State;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @RunWith(SpringRunner.class)
@@ -41,8 +41,8 @@ public class MemoizingCircuitBreakerTest {
 
     @Test
     public void roundtrip1() throws InterruptedException {
-        final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createCircuitBreaker(
-                tester(100, 5, 15), 3, 500, 1000);
+        final CircuitBreakerSupplier<String> circuitBreaker = this.asyncService.createCircuitBreaker(
+                tester(100, 5, 10), 3, 500, 1000, true);
 
         assertNull(circuitBreaker.getChached());
 
@@ -62,30 +62,22 @@ public class MemoizingCircuitBreakerTest {
         assertEquals("Hello", circuitBreaker.getChached());
         assertEquals(State.CLOSED, circuitBreaker.getState());
 
-        result = circuitBreaker.get(); // 6. call... after the 5. call the tester is unavailable until the 15. call.. 3 try calls
+        result = circuitBreaker.get(); // 6. call... after the 5. call the tester is unavailable until the 10. call...
         assertFalse(result.hasError());
         assertEquals("Hello", result.get());
         assertEquals("Hello", circuitBreaker.getChached());
         assertEquals(State.HALF_OPEN, circuitBreaker.getState());
 
-        circuitBreaker.get(); // 9. call... 1. call in HalfOpen state
-        circuitBreaker.get(); // 10. call... 2. call in HalfOpen state
-        result = circuitBreaker.get(); // 11. call... 3. call in HalfOpen state.. still available in Half Open state
-        assertEquals(State.HALF_OPEN, circuitBreaker.getState());
-
-        result = circuitBreaker.get(); // 12. call... 4. is changing to Open state
+        result = circuitBreaker.get(); // 9. call... after fail again, go to OPEN state
         assertEquals(State.OPEN, circuitBreaker.getState());
 
         // now the time to recover comes into play
         Thread.sleep(1100);
-        result = circuitBreaker.get(); // 13. call... 1. call in Open state... after time to recover ended get back to Half Open
+        result = circuitBreaker.get(); // 10. call...
         assertEquals(State.HALF_OPEN, circuitBreaker.getState());
         assertEquals("Hello", result.get());
 
-        result = circuitBreaker.get(); // 14. call... 1. call in Half Open state...
-        assertEquals(State.HALF_OPEN, circuitBreaker.getState());
-        assertEquals("Hello", result.get());
-
+        // back again
         result = circuitBreaker.get(); // 15. call... 2. call in Half Open state...
         assertEquals(State.CLOSED, circuitBreaker.getState());
         assertEquals("Hello back again", result.get());
@@ -113,5 +105,7 @@ public class MemoizingCircuitBreakerTest {
             return (wasUnavailable.get()) ? "Hello back again" : "Hello";
         };
     }
+
+    // TODO timeout test: test also the behavior on timeout, is the thread being interrupted and released or not (should!)
 
 }

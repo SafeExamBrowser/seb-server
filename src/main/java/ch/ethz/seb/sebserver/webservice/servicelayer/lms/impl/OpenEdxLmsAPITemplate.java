@@ -40,7 +40,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreakerSupplier;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -69,7 +69,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private final Set<String> knownTokenAccessPaths;
 
     private OAuth2RestTemplate restTemplate = null;
-    private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesSupplier;
+    private final CircuitBreakerSupplier<List<QuizData>> allQuizzesSupplier;
 
     OpenEdxLmsAPITemplate(
             final AsyncService asyncService,
@@ -89,7 +89,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             this.knownTokenAccessPaths.addAll(Arrays.asList(alternativeTokenRequestPaths));
         }
 
-        this.allQuizzesSupplier = asyncService.createCircuitBreaker(allQuizzesSupplier(lmsSetup));
+        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(allQuizzesSupplier(lmsSetup));
     }
 
     @Override

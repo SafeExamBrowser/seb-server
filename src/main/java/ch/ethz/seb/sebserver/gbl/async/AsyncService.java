@@ -23,34 +23,45 @@ public class AsyncService {
         this.asyncRunner = asyncRunner;
     }
 
-    public <T> MemoizingCircuitBreaker<T> createCircuitBreaker(final Supplier<T> blockingSupplier) {
-        return new MemoizingCircuitBreaker<>(this.asyncRunner, blockingSupplier);
+    public <T> CircuitBreakerSupplier<T> createMemoizingCircuitBreaker(
+            final Supplier<T> blockingSupplier) {
+        return new CircuitBreakerSupplier<>(this.asyncRunner, blockingSupplier, true);
     }
 
-    public <T> MemoizingCircuitBreaker<T> createCircuitBreaker(
+    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
             final Supplier<T> blockingSupplier,
-            final long maxBlockingTime) {
+            final boolean momoized) {
+        return new CircuitBreakerSupplier<>(this.asyncRunner, blockingSupplier, momoized);
+    }
 
-        return new MemoizingCircuitBreaker<>(
+    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
+            final Supplier<T> blockingSupplier,
+            final long maxBlockingTime,
+            final boolean momoized) {
+
+        return new CircuitBreakerSupplier<>(
                 this.asyncRunner,
                 blockingSupplier,
-                MemoizingCircuitBreaker.DEFAULT_MAX_FAILING_ATTEMPTS,
+                CircuitBreakerSupplier.DEFAULT_MAX_FAILING_ATTEMPTS,
                 maxBlockingTime,
-                MemoizingCircuitBreaker.DEFAULT_TIME_TO_RECOVER);
+                CircuitBreakerSupplier.DEFAULT_TIME_TO_RECOVER,
+                momoized);
     }
 
-    public <T> MemoizingCircuitBreaker<T> createCircuitBreaker(
+    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
             final Supplier<T> blockingSupplier,
             final int maxFailingAttempts,
             final long maxBlockingTime,
-            final long timeToRecover) {
+            final long timeToRecover,
+            final boolean momoized) {
 
-        return new MemoizingCircuitBreaker<>(
+        return new CircuitBreakerSupplier<>(
                 this.asyncRunner,
                 blockingSupplier,
                 maxFailingAttempts,
                 maxBlockingTime,
-                timeToRecover);
+                timeToRecover,
+                momoized);
     }
 
 }
