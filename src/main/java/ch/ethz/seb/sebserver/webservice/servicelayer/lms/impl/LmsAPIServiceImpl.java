@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.weblayer.api.IllegalAPIArgumentException;
 
 @Lazy
 @Service
@@ -110,18 +109,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final Long lmsSetupId = filterMap.getLmsSetupId();
             if (lmsSetupId != null) {
                 return getLmsAPITemplate(lmsSetupId)
-                        .getOrThrow()
-                        .getQuizzes(filterMap)
+                        .flatMap(template -> template.getQuizzes(filterMap))
                         .getOrThrow();
             }
 
             // case 2. get quizzes from all LmsSetups of specified institution
             final Long institutionId = filterMap.getInstitutionId();
-            if (institutionId == null) {
-                throw new IllegalAPIArgumentException("Missing institution identifier");
-            }
-
-            return this.lmsSetupDAO.all(institutionId, true)
+            return new ArrayList<>(this.lmsSetupDAO.all(institutionId, true)
                     .getOrThrow()
                     .stream()
                     .map(this::getLmsAPITemplate)
@@ -129,7 +123,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                     .map(template -> template.getQuizzes(filterMap))
                     .flatMap(Result::onErrorLogAndSkip)
                     .flatMap(List::stream)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet()));
         });
     }
 
@@ -150,13 +144,15 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         return Result.tryCatch(() -> {
             LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetup);
             if (lmsAPITemplate == null) {
+
+                lmsAPITemplate = createLmsSetupTemplate(lmsSetup);
+                this.cache.put(new CacheKey(lmsSetup.getModelId(), System.currentTimeMillis()), lmsAPITemplate);
+                return lmsAPITemplate;
+
+            } else {
                 log.debug("Get cached LmsAPITemplate with id: {}", lmsSetup.getModelId());
                 return lmsAPITemplate;
             }
-
-            lmsAPITemplate = createLmsSetupTemplate(lmsSetup);
-            this.cache.put(new CacheKey(lmsSetup.getModelId(), System.currentTimeMillis()), lmsAPITemplate);
-            return lmsAPITemplate;
         });
     }
 

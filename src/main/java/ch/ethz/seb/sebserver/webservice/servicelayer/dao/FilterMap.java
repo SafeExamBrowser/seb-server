@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,7 +27,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
  * This is used as a data object that can be used to collect API request parameter
  * data on one side and supply filter criteria based access to concrete Entity filtering
  * on the other side.
- * 
+ *
  * All text based filter criteria are used as SQL wildcard's */
 public class FilterMap extends POSTMapper {
 
@@ -50,6 +51,10 @@ public class FilterMap extends POSTMapper {
         return getSQLWildcard(Entity.FILTER_ATTR_NAME);
     }
 
+    public String getQuizName() {
+        return getString(Entity.FILTER_ATTR_NAME);
+    }
+
     public String getUserUsername() {
         return getSQLWildcard(UserInfo.FILTER_ATTR_USER_NAME);
     }
@@ -67,35 +72,35 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getQuizFromTime() {
-        return JodaTimeTypeResolver.getDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+        final String value = getString(QuizData.FILTER_ATTR_START_TIME);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return JodaTimeTypeResolver.getDateTime(value);
     }
 
     public DateTime getExamFromTime() {
-        return JodaTimeTypeResolver.getDateTime(getString(Exam.FILTER_ATTR_FROM));
+        final String value = getString(Exam.FILTER_ATTR_FROM);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return JodaTimeTypeResolver.getDateTime(value);
     }
 
     public DateTime getSebClientConfigFromTime() {
-        return JodaTimeTypeResolver.getDateTime(getString(SebClientConfig.FILTER_ATTR_FROM));
-    }
-
-    public String getExamQuizId() {
-        return getString(Exam.FILTER_ATTR_QUIZ_ID);
+        final String value = getString(SebClientConfig.FILTER_ATTR_FROM);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return JodaTimeTypeResolver.getDateTime(value);
     }
 
     public Long getLmsSetupId() {
         return getLong(LmsSetup.FILTER_ATTR_LMS_SETUP);
     }
 
-    public String getExamStatus() {
-        return getString(Exam.FILTER_ATTR_STATUS);
-    }
-
     public String getExamType() {
         return getString(Exam.FILTER_ATTR_TYPE);
-    }
-
-    public String getExamOwner() {
-        return getString(Exam.FILTER_ATTR_OWNER);
     }
 
     public Long getIndicatorExamId() {

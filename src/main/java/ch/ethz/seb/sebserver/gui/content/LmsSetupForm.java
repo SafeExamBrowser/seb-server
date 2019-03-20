@@ -120,7 +120,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .map(inst -> inst.active)
                 .getOr(false);
 
-        // The UserAccount form
+        // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
         final FormHandle<LmsSetup> formHandle = this.pageFormService.getBuilder(
                 formContext.copyOf(content), 4)

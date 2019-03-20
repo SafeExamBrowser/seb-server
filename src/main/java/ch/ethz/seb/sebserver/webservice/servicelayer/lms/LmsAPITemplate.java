@@ -9,13 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -23,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 
 /** Defines the interface to an LMS within a specified LMSSetup configuration.
  * There is one concrete implementations for every supported type of LMS like
@@ -60,6 +64,17 @@ public interface LmsAPITemplate {
      * @param ids the Set of Quiz identifiers to get the QuizData for
      * @return Collection of all QuizData from the given id set */
     Collection<Result<QuizData>> getQuizzes(Set<String> ids);
+
+    default Result<QuizData> getQuiz(final String id) {
+        if (StringUtils.isBlank(id)) {
+            return Result.ofError(new RuntimeException("missing model id"));
+        }
+
+        return getQuizzes(new HashSet<>(Arrays.asList(id)))
+                .stream()
+                .findFirst()
+                .orElse(Result.ofError(new ResourceNotFoundException(EntityType.EXAM, id)));
+    }
 
     // TODO this can be used in a future release to resolve examinee's account detail information by an
     //      examinee identifier received by on SEB-Client connection.

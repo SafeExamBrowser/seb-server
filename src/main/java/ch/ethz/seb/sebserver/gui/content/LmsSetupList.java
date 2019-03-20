@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -80,7 +81,7 @@ public class LmsSetupList implements TemplateComposer {
                                         lmsSetupInstitutionNameFunction(this.resourceService),
                                         new TableFilterAttribute(
                                                 CriteriaType.SINGLE_SELECTION,
-                                                Domain.USER.ATTR_INSTITUTION_ID,
+                                                Entity.FILTER_ATTR_INSTITUTION,
                                                 this.resourceService::institutionResource),
                                         false))
                         .withColumn(new ColumnDefinition<>(
@@ -88,7 +89,7 @@ public class LmsSetupList implements TemplateComposer {
                                 new LocTextKey("sebserver.lmssetup.list.column.name"),
                                 entity -> entity.name,
                                 (isSEBAdmin)
-                                        ? new TableFilterAttribute(CriteriaType.TEXT, Domain.LMS_SETUP.ATTR_NAME)
+                                        ? new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME)
                                         : null,
                                 true))
                         .withColumn(new ColumnDefinition<>(
@@ -115,7 +116,7 @@ public class LmsSetupList implements TemplateComposer {
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.LMS_SETUP_NEW)
-                .publishIf(userGrant::w)
+                .publishIf(userGrant::iw)
 
                 .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
@@ -123,7 +124,7 @@ public class LmsSetupList implements TemplateComposer {
 
                 .createAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
-                .publishIf(() -> userGrant.m() && table.hasAnyContent());
+                .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }
 
@@ -137,8 +138,8 @@ public class LmsSetupList implements TemplateComposer {
     }
 
     private static Function<LmsSetup, String> lmsSetupInstitutionNameFunction(final ResourceService resourceService) {
-        final Function<String, String> institutionNameFunction = resourceService.getInstitutionNameFunction();
-        return lmsSetup -> institutionNameFunction.apply(String.valueOf(lmsSetup.institutionId));
+        return lmsSetup -> resourceService.getInstitutionNameFunction()
+                .apply(String.valueOf(lmsSetup.institutionId));
     }
 
 }

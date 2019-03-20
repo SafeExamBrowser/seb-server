@@ -25,7 +25,8 @@ public final class Constants {
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
 
-    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_DISPLAY_DATE_FORMAT = "MM-dd-yyy HH:mm";
+    public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";
 
     /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
     public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat

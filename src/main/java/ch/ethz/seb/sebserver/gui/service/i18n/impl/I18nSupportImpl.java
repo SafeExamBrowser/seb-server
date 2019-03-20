@@ -17,6 +17,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -41,6 +43,7 @@ public class I18nSupportImpl implements I18nSupport {
     public static final String EMPTY_DISPLAY_VALUE = "--";
     private static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
 
+    private final DateTimeFormatter timeZoneFormatter;
     private final DateTimeFormatter displayDateFormatter;
     private final CurrentUser currentUser;
     private final MessageSource messageSource;
@@ -57,8 +60,12 @@ public class I18nSupportImpl implements I18nSupport {
         this.displayDateFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
                         "sebserver.gui.date.displayformat",
-                        Constants.DEFAULT_DATE_FORMAT))
+                        Constants.DEFAULT_DISPLAY_DATE_FORMAT))
                 .withZoneUTC();
+        this.timeZoneFormatter = DateTimeFormat
+                .forPattern(environment.getProperty(
+                        "sebserver.gui.date.displayformat.timezone",
+                        Constants.TIME_ZONE_OFFSET_TAIL_FORMAT));
 
         final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.gui.multilingual",
@@ -125,7 +132,32 @@ public class I18nSupportImpl implements I18nSupport {
         if (date == null) {
             return EMPTY_DISPLAY_VALUE;
         }
-        return date.toString(this.displayDateFormatter);
+
+        final String dateTimeStringUTC = date
+                .toLocalDateTime()
+                .toString(this.displayDateFormatter);
+
+        final UserInfo userInfo = this.currentUser.get();
+        if (userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
+            if (userInfo != null && userInfo.timeZone != null) {
+                return dateTimeStringUTC + date
+                        .withZone(userInfo.timeZone)
+                        .toString(this.timeZoneFormatter);
+            }
+            return dateTimeStringUTC;
+        } else {
+            return dateTimeStringUTC;
+        }
+    }
+
+    @Override
+    public String getUsersTimeZoneTitleSuffix() {
+        final UserInfo userInfo = this.currentUser.get();
+        if (userInfo.timeZone == null || userInfo.timeZone.equals(DateTimeZone.UTC)) {
+            return "";
+        } else {
+            return "(UTC|" + this.currentUser.get().timeZone.getID() + ")";
+        }
     }
 
     @Override

@@ -27,18 +27,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Exam implements GrantEntity, Activatable {
 
-    public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_FROM = "from";
-    public static final String FILTER_ATTR_OWNER = "owner";
-    public static final String FILTER_ATTR_QUIZ_ID = "quiz";
 
-    public enum ExamStatus {
-        ON_CREATION,
-        READY,
-        RUNNING,
-        FINISHED
-    }
+//    public enum ExamStatus {
+//        ON_CREATION,
+//        READY,
+//        RUNNING,
+//        FINISHED
+//    }
 
     public enum ExamType {
         UNDEFINED,
@@ -67,10 +64,6 @@ public final class Exam implements GrantEntity, Activatable {
 
     @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
     public final String description;
-
-    @JsonProperty(EXAM.ATTR_STATUS)
-    @NotNull
-    public final ExamStatus status;
 
     @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
     public final DateTime startTime;
@@ -107,7 +100,6 @@ public final class Exam implements GrantEntity, Activatable {
             @JsonProperty(EXAM.ATTR_EXTERNAL_ID) final String externalId,
             @JsonProperty(QuizData.QUIZ_ATTR_NAME) final String name,
             @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION) final String description,
-            @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
             @JsonProperty(QuizData.QUIZ_ATTR_START_TIME) final DateTime startTime,
             @JsonProperty(QuizData.QUIZ_ATTR_END_TIME) final DateTime endTime,
             @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
@@ -123,7 +115,6 @@ public final class Exam implements GrantEntity, Activatable {
         this.externalId = externalId;
         this.name = name;
         this.description = description;
-        this.status = status;
         this.startTime = startTime;
         this.endTime = endTime;
         this.startURL = startURL;
@@ -140,20 +131,23 @@ public final class Exam implements GrantEntity, Activatable {
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
         this.id = (modelId != null) ? Long.parseLong(modelId) : null;
-        this.institutionId = mapper.getLong(EXAM.ATTR_INSTITUTION_ID);
-        this.lmsSetupId = mapper.getLong(EXAM.ATTR_LMS_SETUP_ID);
-        this.externalId = mapper.getString(EXAM.ATTR_EXTERNAL_ID);
+        this.institutionId = quizData.institutionId;
+        this.lmsSetupId = quizData.lmsSetupId;
+        this.externalId = quizData.id;
         this.name = quizData.name;
         this.description = quizData.description;
-        this.status = mapper.getEnum(EXAM.ATTR_STATUS, ExamStatus.class);
         this.startTime = quizData.startTime;
         this.endTime = quizData.endTime;
-        this.startURL = mapper.getString(EXAM.ATTR_INSTITUTION_ID);
-        this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class);
+        this.startURL = quizData.startURL;
+        this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
-        this.active = mapper.getBooleanObject(EXAM.ATTR_ACTIVE);
+        this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
+    }
+
+    public Exam(final QuizData quizzData) {
+        this(null, quizzData, POSTMapper.EMPTY_MAP);
     }
 
     @Override
@@ -211,10 +205,6 @@ public final class Exam implements GrantEntity, Activatable {
         return this.description;
     }
 
-    public ExamStatus getStatus() {
-        return this.status;
-    }
-
     public DateTime getStartTime() {
         return this.startTime;
     }
@@ -265,11 +255,12 @@ public final class Exam implements GrantEntity, Activatable {
     public String toString() {
         return "Exam [id=" + this.id + ", institutionId=" + this.institutionId + ", lmsSetupId=" + this.lmsSetupId
                 + ", externalId="
-                + this.externalId + ", name=" + this.name + ", description=" + this.description + ", status="
-                + this.status + ", startTime="
-                + this.startTime + ", endTime=" + this.endTime + ", startURL=" + this.startURL + ", type=" + this.type
-                + ", owner=" + this.owner
-                + ", supporter=" + this.supporter + ", active=" + this.active + "]";
+                + this.externalId + ", name=" + this.name + ", description=" + this.description + ", startTime="
+                + this.startTime
+                + ", endTime=" + this.endTime + ", startURL=" + this.startURL + ", type=" + this.type
+                + ", quitPassword="
+                + this.quitPassword + ", owner=" + this.owner + ", supporter=" + this.supporter + ", active="
+                + this.active + "]";
     }
 
 }

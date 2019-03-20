@@ -48,14 +48,14 @@ Label.action {
 Label.h1 {
     font: 25px Arial, Helvetica, sans-serif;
     height: 28px;
-    padding: 0px 12px 12px 12px;
+    padding: 0px 12px 6px 12px;
     color: #1f407a;
 }
 
 Label.h2 {
     font: 19px Arial, Helvetica, sans-serif;
     height: 22px;
-    padding: 0 0 10px 0;
+    padding: 0 0 6px 0;
     color: #1f407a;
 }
 
@@ -92,6 +92,15 @@ Label.selected {
     background-image: gradient(linear, left top, left bottom, from(#c5c5c5),to(#c5c5c5));
     padding: 4px 6px 3px 6px;
 }
+
+Label-SeparatorLine {
+    background-image: none;
+    background-color: transparent;
+    border: 1px solid #595959;
+    border-radius: 0px;
+    height: 1px;
+}
+
 
 Composite.bordered {
     border: 2px;
@@ -243,7 +252,7 @@ Combo-Button {
 }
 
 Combo-Field {
-  padding: 3px 10px 3px 10px;
+  padding: 3px 10px 1px 10px;
 }
 
 Combo.error {
@@ -253,6 +262,55 @@ Combo.error {
     background-image: none;
 }
 
+/* DateTime default theme */
+DateTime, DateTime[BORDER] {
+    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: #ffffff;
+    border: 1px solid #aaaaaa;
+    border-radius: 0 2px 2px 0;
+    background-image: none;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+DateTime, DateTime[BORDER]:focused {
+    text-shadow: none;
+    box-shadow: none;
+}
+
+DateTime-Field, DateTime-Field[BORDER] {
+  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  color: #4a4a4a;
+  background-color: #ffffff;
+  padding: 3px 10px 2px 10px;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+DateTime-UpButton {
+    cursor: default;
+    background-color: #ffffff;
+    background-image: gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff));
+    border: none;
+    width: 30px;
+}
+
+DateTime-DownButton {
+    cursor: default;
+    background-color: #ffffff;
+    background-image: gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff));
+    border: none;
+    width: 30px;
+}
+
+DateTime-DropDownButton {
+    cursor: default;
+    background-color: #ffffff;
+    background-image: gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff));
+    border: none;
+    width: 30px;
+}
 
 /* Message titlebar */
 Shell.message {

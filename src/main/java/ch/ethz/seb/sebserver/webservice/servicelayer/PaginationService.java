@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 
@@ -217,6 +218,13 @@ public class PaginationService {
         this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.name(), userTableMap);
         this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.name(), Domain.USER.ATTR_ID);
 
+        // LMS Setup Table
+        final Map<String, String> lmsSetupTableMap = new HashMap<>();
+        lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_NAME, LmsSetupRecordDynamicSqlSupport.name.name());
+        lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsSetupRecordDynamicSqlSupport.lmsType.name());
+        this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), lmsSetupTableMap);
+        this.defaultSortColumn.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), Domain.LMS_SETUP.ATTR_ID);
+
         // User Activity Log Table
         final Map<String, String> userActivityLogTableMap = new HashMap<>();
         userActivityLogTableMap.put(
@@ -252,9 +260,6 @@ public class PaginationService {
         examTableMap.put(
                 Domain.EXAM.ATTR_TYPE,
                 ExamRecordDynamicSqlSupport.type.name());
-        examTableMap.put(
-                Domain.EXAM.ATTR_STATUS,
-                ExamRecordDynamicSqlSupport.status.name());
         this.sortColumnMapping.put(
                 ExamRecordDynamicSqlSupport.examRecord.name(),
                 examTableMap);

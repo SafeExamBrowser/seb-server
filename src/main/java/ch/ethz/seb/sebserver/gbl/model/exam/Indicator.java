@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -17,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INDICATOR;
 import ch.ethz.seb.sebserver.gbl.model.Domain.THRESHOLD;
@@ -28,7 +32,6 @@ public final class Indicator implements GrantEntity {
     public static final String FILTER_ATTR_EXAM = "exam";
 
     public enum IndicatorType {
-        UNDEFINED,
         LAST_PING,
         ERROR_COUNT
     }
@@ -39,9 +42,6 @@ public final class Indicator implements GrantEntity {
     @JsonProperty(EXAM.ATTR_INSTITUTION_ID)
     @NotNull
     public final Long institutionId;
-
-    @JsonProperty(EXAM.ATTR_OWNER)
-    public final String owner;
 
     @JsonProperty(INDICATOR.ATTR_EXAM_ID)
     @NotNull
@@ -60,7 +60,7 @@ public final class Indicator implements GrantEntity {
     public final String defaultColor;
 
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
-    public final Collection<Threshold> thresholds;
+    public final List<Threshold> thresholds;
 
     @JsonCreator
     public Indicator(
@@ -75,12 +75,21 @@ public final class Indicator implements GrantEntity {
 
         this.id = id;
         this.institutionId = institutionId;
-        this.owner = owner;
         this.examId = examId;
         this.name = name;
         this.type = type;
         this.defaultColor = defaultColor;
-        this.thresholds = Utils.immutableCollectionOf(thresholds);
+        this.thresholds = Utils.immutableListOf(thresholds);
+    }
+
+    public Indicator(final Exam exam, final POSTMapper postParams) {
+        this.id = null;
+        this.institutionId = exam.institutionId;
+        this.examId = exam.id;
+        this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
+        this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
+        this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
+        this.thresholds = Collections.emptyList();
     }
 
     @Override
@@ -105,13 +114,11 @@ public final class Indicator implements GrantEntity {
     @Override
 
     public Long getInstitutionId() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.institutionId;
     }
 
     @Override
     public String getOwnerId() {
-        // TODO Auto-generated method stub
         return null;
     }
 

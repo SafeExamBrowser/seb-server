@@ -274,7 +274,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 }).id;
 
         final Long id2 = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution2Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withMethod(HttpMethod.POST)
                 .withAttribute(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, "2")

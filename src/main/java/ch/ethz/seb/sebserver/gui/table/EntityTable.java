@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -50,6 +52,7 @@ public class EntityTable<ROW extends Entity> {
 
     final WidgetFactory widgetFactory;
     final RestCall<Page<ROW>> restCall;
+    final I18nSupport i18nSupport;
 
     final List<ColumnDefinition<ROW>> columns;
     final List<TableRowAction> actions;
@@ -78,6 +81,7 @@ public class EntityTable<ROW extends Entity> {
 
         this.composite = new Composite(parent, type);
         this.widgetFactory = widgetFactory;
+        this.i18nSupport = widgetFactory.getI18nSupport();
         this.restCall = restCall;
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
@@ -195,6 +199,15 @@ public class EntityTable<ROW extends Entity> {
         }
 
         return getRowDataId(selection[0]);
+    }
+
+    public ROW getSelectedROWData() {
+        final TableItem[] selection = this.table.getSelection();
+        if (selection == null || selection.length == 0) {
+            return null;
+        }
+
+        return getRowData(selection[0]);
     }
 
     public Set<EntityKey> getSelection() {
@@ -344,7 +357,7 @@ public class EntityTable<ROW extends Entity> {
         return getRowData(item).getEntityKey();
     }
 
-    private static <ROW extends Entity> void updateValues(final EntityTable<ROW> table) {
+    private void updateValues(final EntityTable<ROW> table) {
         final TableItem[] items = table.table.getItems();
         final TableColumn[] columns = table.table.getColumns();
         for (int i = 0; i < columns.length; i++) {
@@ -359,9 +372,11 @@ public class EntityTable<ROW extends Entity> {
         }
     }
 
-    private static void setValueToCell(final TableItem item, final int index, final Object value) {
+    private void setValueToCell(final TableItem item, final int index, final Object value) {
         if (value instanceof Boolean) {
             addBooleanCell(item, index, value);
+        } else if (value instanceof DateTime) {
+            item.setText(index, this.i18nSupport.formatDisplayDate((DateTime) value));
         } else {
             if (value != null) {
                 item.setText(index, String.valueOf(value));

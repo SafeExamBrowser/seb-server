@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
-import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,12 +70,10 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> all(final Long institutionId, final Boolean active) {
-        return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<LmsSetupRecord>>> example =
-                    this.lmsSetupRecordMapper.selectByExample();
 
+        return Result.tryCatch(() -> {
             final List<LmsSetupRecord> records = (active != null)
-                    ? example
+                    ? this.lmsSetupRecordMapper.selectByExample()
                             .where(
                                     LmsSetupRecordDynamicSqlSupport.institutionId,
                                     isEqualToWhenPresent(institutionId))
@@ -86,7 +82,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
                             .build()
                             .execute()
-                    : example.build().execute();
+                    : this.lmsSetupRecordMapper.selectByExample()
+                            .build()
+                            .execute();
 
             return records.stream()
                     .map(this::toDomainModel)

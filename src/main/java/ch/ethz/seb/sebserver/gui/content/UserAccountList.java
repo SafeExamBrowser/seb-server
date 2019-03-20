@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -80,26 +81,26 @@ public class UserAccountList implements TemplateComposer {
                                         userInstitutionNameFunction(this.resourceService),
                                         new TableFilterAttribute(
                                                 CriteriaType.SINGLE_SELECTION,
-                                                Domain.USER.ATTR_INSTITUTION_ID,
+                                                Entity.FILTER_ATTR_INSTITUTION,
                                                 this.resourceService::institutionResource),
                                         false))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.USER.ATTR_NAME,
                                 new LocTextKey("sebserver.useraccount.list.column.name"),
                                 entity -> entity.name,
-                                new TableFilterAttribute(CriteriaType.TEXT, Domain.USER.ATTR_NAME),
+                                new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME),
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.USER.ATTR_USERNAME,
                                 new LocTextKey("sebserver.useraccount.list.column.username"),
                                 entity -> entity.username,
-                                new TableFilterAttribute(CriteriaType.TEXT, Domain.USER.ATTR_USERNAME),
+                                new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_USER_NAME),
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.USER.ATTR_EMAIL,
                                 new LocTextKey("sebserver.useraccount.list.column.email"),
                                 entity -> entity.email,
-                                new TableFilterAttribute(CriteriaType.TEXT, Domain.USER.ATTR_EMAIL),
+                                new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_EMAIL),
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.USER.ATTR_LANGUAGE,
@@ -107,7 +108,7 @@ public class UserAccountList implements TemplateComposer {
                                 this::getLocaleDisplayText,
                                 new TableFilterAttribute(
                                         CriteriaType.SINGLE_SELECTION,
-                                        Domain.USER.ATTR_LANGUAGE,
+                                        UserInfo.FILTER_ATTR_LANGUAGE,
                                         this.resourceService::languageResources),
                                 true, true))
                         .withColumn(new ColumnDefinition<>(
@@ -123,7 +124,7 @@ public class UserAccountList implements TemplateComposer {
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .publishIf(userGrant::w)
+                .publishIf(userGrant::iw)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
@@ -131,7 +132,7 @@ public class UserAccountList implements TemplateComposer {
 
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
-                .publishIf(() -> userGrant.m() && table.hasAnyContent());
+                .publishIf(() -> userGrant.im() && table.hasAnyContent());
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {

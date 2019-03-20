@@ -34,7 +34,7 @@ public interface Entity extends ModelIdAware {
 
     /** Get an unique EntityKey for the entity consisting of the model identifier of the entity
      * and the type of the entity.
-     * 
+     *
      * @return unique EntityKey for the entity */
     @JsonIgnore
     default EntityKey getEntityKey() {
@@ -45,15 +45,14 @@ public interface Entity extends ModelIdAware {
         return new EntityKey(modelId, entityType());
     }
 
-    /** Creates an EntityName instance from a given Entity.
+    /** Creates an EntityName instance from this Entity instance.
      *
-     * @param entity The Entity instance
      * @return EntityName instance created form given Entity */
-    public static EntityName toName(final Entity entity) {
+    default EntityName toName() {
         return new EntityName(
-                entity.entityType(),
-                entity.getModelId(),
-                entity.getName());
+                this.entityType(),
+                this.getModelId(),
+                this.getName());
     }
 
 }

@@ -11,6 +11,9 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,6 +54,18 @@ public class QuizImportController {
         this.authorization = authorization;
     }
 
+    /** This is called by Spring to initialize the WebDataBinder and is used here to
+     * initialize the default value binding for the institutionId request-parameter
+     * that has the current users insitutionId as default.
+     *
+     * See also UserService.addUsersInstitutionDefaultPropertySupport */
+    @InitBinder
+    public void initBinder(final WebDataBinder binder) throws Exception {
+        this.authorization
+                .getUserService()
+                .addUsersInstitutionDefaultPropertySupport(binder);
+    }
+
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -71,8 +86,6 @@ public class QuizImportController {
                 institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams);
-        filterMap.putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
-
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)
                         ? pageNumber
@@ -84,6 +97,23 @@ public class QuizImportController {
                         : this.defaultPageSize,
                 sort,
                 filterMap)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public QuizData getQuiz(
+            @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_LMS_SETUP_ID, required = true) final Long lmsSetupId) {
+
+        return this.lmsAPIService
+                .getLmsAPITemplate(lmsSetupId)
+                .getOrThrow()
+                .getQuiz(modelId)
+                .flatMap(this.authorization::checkReadonly)
                 .getOrThrow();
     }
 

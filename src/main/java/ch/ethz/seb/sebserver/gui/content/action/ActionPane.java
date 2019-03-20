@@ -8,12 +8,19 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.template.ImageCell;
 import org.eclipse.rap.rwt.template.Template;
 import org.eclipse.rap.rwt.template.TextCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -38,6 +45,8 @@ public class ActionPane implements TemplateComposer {
 
     private final WidgetFactory widgetFactory;
 
+    private final Map<String, Tree> actionTrees = new HashMap<>();
+
     public ActionPane(final WidgetFactory widgetFactory) {
         super();
         this.widgetFactory = widgetFactory;
@@ -56,18 +65,95 @@ public class ActionPane implements TemplateComposer {
         titleLayout.horizontalIndent = 10;
         label.setLayoutData(titleLayout);
 
+        label.setData(
+                PageEventListener.LISTENER_ATTRIBUTE_KEY,
+                new ActionPublishEventListener() {
+                    @Override
+                    public void notify(final ActionPublishEvent event) {
+                        final Composite parent = pageContext.getParent();
+
+                        final Tree treeForGroup = getTreeForGroup(parent, event.action.definition);
+
+                        final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
+                                treeForGroup,
+                                event.action.definition.title);
+
+                        actionItem.setImage(event.action.definition.icon.getImage(
+                                pageContext.getParent().getDisplay()));
+
+                        actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
+                        parent.layout();
+                    }
+                });
+    }
+
+    private Tree getTreeForGroup(final Composite parent, final ActionDefinition actionDefinition) {
+        clearDisposedTrees();
+
+        final ActionCategory category = actionDefinition.category;
+        if (!this.actionTrees.containsKey(category.name())) {
+            final Tree actionTree = createActionTree(parent, actionDefinition.category);
+            this.actionTrees.put(category.name(), actionTree);
+        }
+
+        return this.actionTrees.get(category.name());
+    }
+
+    private Tree createActionTree(final Composite parent, final ActionCategory category) {
+
+        final Composite composite = new Composite(parent, SWT.NONE);
+        final GridData layout = new GridData(SWT.FILL, SWT.TOP, true, false);
+        composite.setLayoutData(layout);
+        composite.setLayout(new GridLayout());
+        composite.setData(RWT.CUSTOM_VARIANT, "actionPane");
+        composite.setData("CATEGORY", category);
+
+        final Control[] children = parent.getChildren();
+        for (final Control child : children) {
+            final ActionCategory c = (ActionCategory) child.getData("CATEGORY");
+            if (c != null && c.slotPosition > category.slotPosition) {
+                composite.moveAbove(child);
+                break;
+            }
+        }
+
+        final Label labelSeparator = this.widgetFactory.labelSeparator(composite);
+        final GridData separatorLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
+        labelSeparator.setLayoutData(separatorLayout);
+
+        // title
+        if (category.title != null) {
+            final Label actionsTitle = this.widgetFactory.labelLocalized(
+                    composite,
+                    CustomVariant.TEXT_H3,
+                    category.title);
+            final GridData titleLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
+            titleLayout.horizontalIndent = 10;
+            titleLayout.verticalIndent = 10;
+            actionsTitle.setLayoutData(titleLayout);
+        }
+
+        // action tree
         final Tree actions = this.widgetFactory.treeLocalized(
-                pageContext.getParent(),
+                composite,
                 SWT.SINGLE | SWT.FULL_SELECTION);
         actions.setData(RWT.CUSTOM_VARIANT, "actions");
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         actions.setLayoutData(gridData);
         final Template template = new Template();
         final ImageCell imageCell = new ImageCell(template);
-        imageCell.setLeft(0, 0).setWidth(40).setTop(0).setBottom(0, 0).setHorizontalAlignment(SWT.LEFT);
+        imageCell.setLeft(0, 0)
+                .setWidth(40)
+                .setTop(0)
+                .setBottom(0, 0)
+                .setHorizontalAlignment(SWT.LEFT);
         imageCell.setBindingIndex(0);
         final TextCell textCell = new TextCell(template);
-        textCell.setLeft(0, 30).setWidth(150).setTop(7).setBottom(0, 0).setHorizontalAlignment(SWT.LEFT);
+        textCell.setLeft(0, 30)
+                .setWidth(150)
+                .setTop(7)
+                .setBottom(0, 0)
+                .setHorizontalAlignment(SWT.LEFT);
         textCell.setBindingIndex(0);
         actions.setData(RWT.ROW_TEMPLATE, template);
 
@@ -82,24 +168,17 @@ public class ActionPane implements TemplateComposer {
             }
         });
 
-        actions.setData(
-                PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionPublishEventListener() {
-                    @Override
-                    public void notify(final ActionPublishEvent event) {
+        return actions;
+    }
 
-                        final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
-                                actions,
-                                event.action.definition.title);
-
-                        actionItem.setImage(event.action.definition.icon.getImage(
-                                pageContext.getParent().getDisplay()));
-
-                        actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
-
+    private void clearDisposedTrees() {
+        new ArrayList<>(this.actionTrees.entrySet())
+                .stream()
+                .forEach(entry -> {
+                    if (entry.getValue().isDisposed()) {
+                        this.actionTrees.remove(entry.getKey());
                     }
                 });
-
     }
 
 }

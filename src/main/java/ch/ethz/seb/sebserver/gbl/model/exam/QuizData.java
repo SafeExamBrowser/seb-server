@@ -19,15 +19,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
-public final class QuizData implements Entity {
+public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
 
     public static final String QUIZ_ATTR_ID = "quiz_id";
+    public static final String QUIZ_ATTR_INSTITUION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
     public static final String QUIZ_ATTR_LMS_SETUP_ID = "lms_setup_id";
+    public static final String QUIZ_ATTR_LMS_TYPE = "lms_setup_type";
     public static final String QUIZ_ATTR_NAME = "quiz_name";
     public static final String QUIZ_ATTR_DESCRIPTION = "quiz_description";
     public static final String QUIZ_ATTR_START_TIME = "quiz_start_time";
@@ -37,8 +41,14 @@ public final class QuizData implements Entity {
     @JsonProperty(QUIZ_ATTR_ID)
     public final String id;
 
+    @JsonProperty(QUIZ_ATTR_INSTITUION_ID)
+    public final Long institutionId;
+
     @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID)
-    public final String lmsSetupId;
+    public final Long lmsSetupId;
+
+    @JsonProperty(QUIZ_ATTR_LMS_TYPE)
+    public final LmsType lmsType;
 
     @JsonProperty(QUIZ_ATTR_NAME)
     public final String name;
@@ -58,7 +68,9 @@ public final class QuizData implements Entity {
     @JsonCreator
     public QuizData(
             @JsonProperty(QUIZ_ATTR_ID) final String id,
-            @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID) final String lmsSetupId,
+            @JsonProperty(QUIZ_ATTR_INSTITUION_ID) final Long institutionId,
+            @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID) final Long lmsSetupId,
+            @JsonProperty(QUIZ_ATTR_LMS_TYPE) final LmsType lmsType,
             @JsonProperty(QUIZ_ATTR_NAME) final String name,
             @JsonProperty(QUIZ_ATTR_DESCRIPTION) final String description,
             @JsonProperty(QUIZ_ATTR_START_TIME) final DateTime startTime,
@@ -66,7 +78,9 @@ public final class QuizData implements Entity {
             @JsonProperty(QUIZ_ATTR_START_URL) final String startURL) {
 
         this.id = id;
+        this.institutionId = institutionId;
         this.lmsSetupId = lmsSetupId;
+        this.lmsType = lmsType;
         this.name = name;
         this.description = description;
         this.startTime = startTime;
@@ -76,7 +90,9 @@ public final class QuizData implements Entity {
 
     public QuizData(
             final String id,
-            final String lmsSetupId,
+            final Long institutionId,
+            final Long lmsSetupId,
+            final LmsType lmsType,
             final String name,
             final String description,
             final String startTime,
@@ -84,7 +100,9 @@ public final class QuizData implements Entity {
             final String startURL) {
 
         this.id = id;
+        this.institutionId = institutionId;
         this.lmsSetupId = lmsSetupId;
+        this.lmsType = lmsType;
         this.name = name;
         this.description = description;
         this.startTime = LocalDateTime
@@ -114,8 +132,22 @@ public final class QuizData implements Entity {
         return this.id;
     }
 
-    public String getLmsSetupId() {
+    @Override
+    public Long getInstitutionId() {
+        return this.institutionId;
+    }
+
+    public Long getLmsSetupId() {
         return this.lmsSetupId;
+    }
+
+    public LmsType getLmsType() {
+        return this.lmsType;
+    }
+
+    @Override
+    public String getOwnerId() {
+        return null;
     }
 
     @Override
@@ -144,6 +176,7 @@ public final class QuizData implements Entity {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.institutionId == null) ? 0 : this.institutionId.hashCode());
         return result;
     }
 
@@ -161,14 +194,21 @@ public final class QuizData implements Entity {
                 return false;
         } else if (!this.id.equals(other.id))
             return false;
+        if (this.institutionId == null) {
+            if (other.institutionId != null)
+                return false;
+        } else if (!this.institutionId.equals(other.institutionId))
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "QuizData [id=" + this.id + ", lmsSetupId=" + this.lmsSetupId + ", name=" + this.name + ", description="
-                + this.description
-                + ", startTime=" + this.startTime + ", endTime=" + this.endTime + ", startURL=" + this.startURL + "]";
+        return "QuizData [id=" + this.id + ", institutionId=" + this.institutionId + ", lmsSetupId=" + this.lmsSetupId
+                + ", lmsType="
+                + this.lmsType + ", name=" + this.name + ", description=" + this.description + ", startTime="
+                + this.startTime
+                + ", endTime=" + this.endTime + ", startURL=" + this.startURL + "]";
     }
 
     public static Comparator<QuizData> getIdComparator(final boolean descending) {

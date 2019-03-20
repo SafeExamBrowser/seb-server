@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
@@ -27,6 +28,8 @@ import org.springframework.util.MultiValueMap;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class POSTMapper {
+
+    public static final POSTMapper EMPTY_MAP = new POSTMapper(null);
 
     protected final MultiValueMap<String, String> params;
 
@@ -57,7 +60,7 @@ public class POSTMapper {
 
     public Long getLong(final String name) {
         final String value = this.params.getFirst(name);
-        if (value == null) {
+        if (StringUtils.isBlank(value)) {
             return null;
         }
 
@@ -116,6 +119,15 @@ public class POSTMapper {
             return Collections.emptySet();
         }
         return Utils.immutableSetOf(list);
+    }
+
+    public <T extends Enum<T>> T getEnum(final String name, final Class<T> type, final T defaultValue) {
+        final T result = getEnum(name, type);
+        if (result == null) {
+            return defaultValue;
+        }
+
+        return result;
     }
 
     public <T extends Enum<T>> T getEnum(final String name, final Class<T> type) {

@@ -31,8 +31,15 @@ public interface I18nSupport {
     /** Format a DateTime to a text format to display.
      *
      * @param date
+     * @param addTimeZone indicates whether the time zone shall be added or not
      * @return */
     String formatDisplayDate(DateTime date);
+
+    /** If the current user has another time zone then UTC this will return a tile suffix that describes
+     * a date/time column title with adding (UTC|{usersTimeZone}) that can be added to the title.
+     *
+     * @return date/time column title suffix for current user */
+    String getUsersTimeZoneTitleSuffix();
 
     /** Get localized text of specified key for currently set Locale.
      *

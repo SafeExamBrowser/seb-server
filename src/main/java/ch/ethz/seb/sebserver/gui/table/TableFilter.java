@@ -19,11 +19,14 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
@@ -103,6 +106,8 @@ public class TableFilter<ROW extends Entity> {
                 return new TextFilter(attribute);
             case SINGLE_SELECTION:
                 return new Selection(attribute);
+            case DATE:
+                return new Date(attribute);
             default:
                 throw new IllegalArgumentException("Unsupported FilterAttributeType: " + attribute.type);
         }
@@ -281,6 +286,44 @@ public class TableFilter<ROW extends Entity> {
             //       this is to adjust selection filter criteria to the list column width
             return super.adaptWidth(width + 25);
         }
+    }
+
+    private class Date extends FilterComponent {
+
+        private DateTime selector;
+
+        Date(final TableFilterAttribute attribute) {
+            super(attribute);
+        }
+
+        @Override
+        FilterComponent build(final Composite parent) {
+            this.selector = new DateTime(parent, SWT.DATE | SWT.BORDER);
+            this.selector.setLayoutData(this.rowData);
+            return this;
+        }
+
+        @Override
+        FilterComponent reset() {
+            final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
+            this.selector.setDate(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth());
+            return this;
+        }
+
+        @Override
+        String getValue() {
+            if (this.selector != null) {
+                final org.joda.time.DateTime date = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                        .withYear(this.selector.getYear())
+                        .withMonthOfYear(this.selector.getMonth())
+                        .withDayOfMonth(this.selector.getDay());
+
+                return date.toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+            } else {
+                return null;
+            }
+        }
+
     }
 
 }

@@ -31,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -39,7 +38,6 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -53,16 +51,13 @@ public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final LmsAPIService lmsAPIService;
-    private final UserService userService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
-            final LmsAPIService lmsAPIService,
-            final UserService userService) {
+            final LmsAPIService lmsAPIService) {
 
         this.examRecordMapper = examRecordMapper;
         this.lmsAPIService = lmsAPIService;
-        this.userService = userService;
     }
 
     @Override
@@ -130,20 +125,11 @@ public class ExamDAOImpl implements ExamDAO {
                             ExamRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
                     .and(
-                            ExamRecordDynamicSqlSupport.externalId,
-                            isEqualToWhenPresent(filterMap.getExamQuizId()))
-                    .and(
                             ExamRecordDynamicSqlSupport.lmsSetupId,
                             isEqualToWhenPresent(filterMap.getLmsSetupId()))
                     .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualToWhenPresent(filterMap.getExamStatus()))
-                    .and(
                             ExamRecordDynamicSqlSupport.type,
                             isEqualToWhenPresent(filterMap.getExamType()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.owner,
-                            isEqualToWhenPresent(filterMap.getExamOwner()))
                     .build()
                     .execute();
 
@@ -166,8 +152,7 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.supporter != null)
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    (exam.type != null) ? exam.type.name() : null,
-                    (exam.status != null) ? exam.status.name() : null,
+                    (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     exam.quitPassword,
                     BooleanUtils.toIntegerObject(exam.active));
 
@@ -190,9 +175,19 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
-            // if there is already an existing imported exam for the quiz, this is returned
+            // if there is already an existing imported exam for the quiz, this is
+            // used to save instead of create a new one
             if (records != null && records.size() > 0) {
-                return records.get(0);
+                final ExamRecord examRecord = records.get(0);
+                final ExamRecord newRecord = new ExamRecord(
+                        examRecord.getId(),
+                        null, null, null, null, null,
+                        (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
+                        null,
+                        BooleanUtils.toIntegerObject(exam.active));
+
+                this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
+                return this.examRecordMapper.selectByPrimaryKey(exam.id);
             }
 
             final ExamRecord examRecord = new ExamRecord(
@@ -200,15 +195,14 @@ public class ExamDAOImpl implements ExamDAO {
                     exam.institutionId,
                     exam.lmsSetupId,
                     exam.externalId,
-                    this.userService.getCurrentUser().uuid(),
+                    exam.owner,
                     null,
-                    null,
-                    null,
+                    (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     null,
                     BooleanUtils.toInteger(false));
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(exam.id);
+            this.examRecordMapper.insert(examRecord);
+            return examRecord;
         })
                 .flatMap(this::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
@@ -221,7 +215,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractPKsFromKeys(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -393,7 +387,6 @@ public class ExamDAOImpl implements ExamDAO {
                     quizData.id,
                     quizData.name,
                     quizData.description,
-                    ExamStatus.valueOf(record.getStatus()),
                     quizData.startTime,
                     quizData.endTime,
                     quizData.startURL,

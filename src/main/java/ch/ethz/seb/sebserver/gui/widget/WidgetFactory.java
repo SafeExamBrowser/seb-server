@@ -62,6 +62,7 @@ public class WidgetFactory {
         MINIMIZE("minimize.png"),
         EDIT("edit.png"),
         TEST("test.png"),
+        IMPORT("import.png"),
         CANCEL("cancel.png"),
         CANCEL_EDIT("cancelEdit.png"),
         SHOW("show.png"),
@@ -140,14 +141,16 @@ public class WidgetFactory {
         final GridLayout contentLayout = new GridLayout();
         contentLayout.marginLeft = 10;
         content.setLayout(contentLayout);
-        content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        content.setLayoutData(gridData);
         return content;
     }
 
     public Composite defaultPageLayout(final Composite parent, final LocTextKey title) {
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
-        labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.LEFT, true, false));
+        final GridData gridData = new GridData(SWT.TOP, SWT.LEFT, true, false);
+        labelLocalizedTitle.setLayoutData(gridData);
         return defaultPageLayout;
     }
 
@@ -285,7 +288,7 @@ public class WidgetFactory {
     }
 
     public Label labelSeparator(final Composite parent) {
-        final Label label = new Label(parent, SWT.SEPARATOR);
+        final Label label = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
         return label;
     }
 

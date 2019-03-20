@@ -28,6 +28,18 @@ public final class PageUtils {
 
     private static final Logger log = LoggerFactory.getLogger(PageUtils.class);
 
+    enum CommonTextKeys {
+
+        ;
+
+        public LocTextKey textKey;
+
+        private CommonTextKeys(final LocTextKey textKey) {
+            this.textKey = textKey;
+        }
+
+    }
+
     public static void clearComposite(final Composite parent) {
         if (parent == null) {
             return;

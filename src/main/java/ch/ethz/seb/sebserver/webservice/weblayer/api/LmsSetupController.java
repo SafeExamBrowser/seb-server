@@ -9,10 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -20,16 +22,20 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -38,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
 
     private final LmsAPIService lmsAPIService;
+    final ApplicationEventPublisher applicationEventPublisher;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -46,7 +53,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final BulkActionService bulkActionService,
             final LmsAPIService lmsAPIService,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
                 bulkActionService,
@@ -56,6 +64,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 beanValidationService);
 
         this.lmsAPIService = lmsAPIService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -67,9 +76,17 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public LmsSetupTestResult connectionReport(@PathVariable final Long modelId) {
+    public LmsSetupTestResult connectionReport(
+            @RequestParam(
+                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
 
-        this.authorization.check(PrivilegeType.MODIFY, EntityType.LMS_SETUP);
+        this.authorization.check(
+                PrivilegeType.MODIFY,
+                EntityType.LMS_SETUP,
+                institutionId);
 
         final LmsSetupTestResult result = this.lmsAPIService.getLmsAPITemplate(modelId)
                 .map(template -> template.testLmsSetup())
@@ -85,6 +102,12 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @Override
     protected LmsSetup createNew(final POSTMapper postParams) {
         return new LmsSetup(null, postParams);
+    }
+
+    @Override
+    protected Result<LmsSetup> notifySaved(final LmsSetup entity) {
+        this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity));
+        return super.notifySaved(entity);
     }
 
 }

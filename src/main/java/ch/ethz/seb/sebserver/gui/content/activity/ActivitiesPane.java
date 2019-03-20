@@ -118,13 +118,39 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // LMS Setup
-        final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                navigation,
-                ActionDefinition.LMS_SETUP_VIEW_LIST.title);
-        injectActivitySelection(
-                userAccounts,
-                pageContext.createAction(ActionDefinition.LMS_SETUP_VIEW_LIST));
+        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, EntityType.LMS_SETUP)) {
+            final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActionDefinition.LMS_SETUP_VIEW_LIST.title);
+            injectActivitySelection(
+                    lmsSetup,
+                    pageContext.createAction(ActionDefinition.LMS_SETUP_VIEW_LIST));
+        }
 
+        // Exam (Quiz Discovery)
+        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, EntityType.EXAM)) {
+
+            // Quiz Discovery
+            // TODO discussion if this should be visible on Activity Pane or just over the Exam activity and Import action
+            final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST.title);
+            injectActivitySelection(
+                    quizDiscovery,
+                    pageContext.createAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST));
+
+            // Exam
+            final TreeItem exam = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActionDefinition.EXAM_VIEW_LIST.title);
+            injectActivitySelection(
+                    exam,
+                    pageContext.createAction(ActionDefinition.EXAM_VIEW_LIST));
+        }
+
+        // TODO other activities
+
+        // register page listener and initialize navigation data
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
@@ -139,6 +165,7 @@ public class ActivitiesPane implements TemplateComposer {
         pageContext.publishPageEvent(
                 new ActionEvent(mainPageState.action, false));
         navigation.select(navigation.getItem(0));
+
     }
 
     private void handleSelection(final PageContext composerCtx, final Event event) {

@@ -67,7 +67,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"active\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
-                        + "\"userRoles\":[\"SEB_SERVER_ADMIN\"]}",
+                        + "\"userRoles\":[\"EXAM_ADMIN\",\"EXAM_SUPPORTER\",\"SEB_SERVER_ADMIN\",\"INSTITUTIONAL_ADMIN\"]}",
                 contentAsString);
 
         contentAsString = new RestAPITestHelper()

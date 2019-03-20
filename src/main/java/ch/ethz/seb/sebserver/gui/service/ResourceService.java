@@ -24,7 +24,10 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -32,6 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
 @Lazy
@@ -80,6 +84,15 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> indicatorTypeResources() {
+        return Arrays.asList(IndicatorType.values())
+                .stream()
+                .map(type -> new Tuple<>(
+                        type.name(),
+                        this.i18nSupport.getText("sebserver.exam.indicator.type." + type.name())))
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> userRoleResources() {
         return UserRole.publicRolesForUser(this.currentUser.get())
                 .stream()
@@ -116,9 +129,11 @@ public class ResourceService {
         };
     }
 
-    public List<Tuple<String>> lmsSetupResource(final Long institutionId) {
+    public List<Tuple<String>> lmsSetupResource() {
+        final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
         return this.restService.getBuilder(GetLmsSetupNames.class)
-                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, String.valueOf(institutionId))
+                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionId)
                 .withQueryParam(Domain.LMS_SETUP.ATTR_ACTIVE, "true")
                 .call()
                 .getOr(Collections.emptyList())
@@ -127,10 +142,11 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    public Function<String, String> getLmsSetupNameFunction(final Long institutionId) {
-
+    public Function<String, String> getLmsSetupNameFunction() {
+        final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
         final Map<String, String> idNameMap = this.restService.getBuilder(GetLmsSetupNames.class)
-                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, String.valueOf(institutionId))
+                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionId)
                 .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
                 .call()
                 .getOr(Collections.emptyList())
@@ -168,6 +184,27 @@ public class ResourceService {
                 .stream()
                 .map(id -> new Tuple<>(id, DateTimeZone.forID(id).getName(0, currentLocale) + " (" + id + ")"))
                 .sorted((t1, t2) -> t1._2.compareTo(t2._2))
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examTypeResources() {
+        return Arrays.asList(ExamType.values())
+                .stream()
+                .map(type -> new Tuple<>(
+                        type.name(),
+                        this.i18nSupport.getText("sebserver.exam.type." + type.name())))
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> userResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetUserAccountNames.class)
+                .withQueryParam(Domain.USER.ATTR_INSTITUTION_ID, String.valueOf(userInfo.institutionId))
+                .withQueryParam(Domain.USER.ATTR_ACTIVE, "true")
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .collect(Collectors.toList());
     }
 

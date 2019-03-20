@@ -265,9 +265,9 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
-        // check write privilege for requested institution and concrete entityType
+        // check modify privilege for requested institution and concrete entityType
         this.authorization.check(
-                PrivilegeType.WRITE,
+                PrivilegeType.MODIFY,
                 this.entityDAO.entityType(),
                 institutionId);
 
@@ -276,7 +276,8 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
 
         final M requestModel = this.createNew(postMap);
 
-        return this.validForCreate(requestModel)
+        return this.authorization.checkWrite(requestModel)
+                .flatMap(this::validForCreate)
                 .flatMap(this.entityDAO::createNew)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .flatMap(this::notifyCreated)

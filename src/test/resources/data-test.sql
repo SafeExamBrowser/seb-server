@@ -16,12 +16,16 @@ INSERT INTO user VALUES
     
 INSERT INTO user_role VALUES
     (1, 1, 'SEB_SERVER_ADMIN'),
-    (2, 2, 'INSTITUTIONAL_ADMIN'),
-    (3, 3, 'INSTITUTIONAL_ADMIN'),
-    (4, 4, 'EXAM_ADMIN'),
-    (5, 5, 'EXAM_SUPPORTER'),
-    (6, 6, 'EXAM_SUPPORTER'),
-    (7, 7, 'EXAM_SUPPORTER')
+    (2, 1, 'INSTITUTIONAL_ADMIN'),
+    (3, 1, 'EXAM_ADMIN'),
+    (4, 1, 'EXAM_SUPPORTER'),
+    
+    (5, 2, 'INSTITUTIONAL_ADMIN'),
+    (6, 3, 'INSTITUTIONAL_ADMIN'),
+    (7, 4, 'EXAM_ADMIN'),
+    (8, 5, 'EXAM_SUPPORTER'),
+    (9, 6, 'EXAM_SUPPORTER'),
+    (10, 7, 'EXAM_SUPPORTER')
     ;
     
 INSERT INTO user_activity_log VALUES

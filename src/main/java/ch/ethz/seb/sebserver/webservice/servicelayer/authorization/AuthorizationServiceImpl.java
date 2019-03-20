@@ -65,26 +65,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
-        // grants for seb client config
-        addPrivilege(EntityType.SEB_CLIENT_CONFIGURATION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.WRITE)
-                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(PrivilegeType.WRITE)
-                .create();
-
-        // grants for lms setup
-        addPrivilege(EntityType.LMS_SETUP)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.WRITE)
-                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(PrivilegeType.WRITE)
-                .andForRole(UserRole.EXAM_ADMIN)
-                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
-                .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
-                .create();
-
         // grants for user account
         addPrivilege(EntityType.USER)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
@@ -97,11 +77,23 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
-        // grants for user activity logs
-        addPrivilege(EntityType.USER_ACTIVITY_LOG)
+        // grants for seb client config
+        addPrivilege(EntityType.SEB_CLIENT_CONFIGURATION)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .create();
+
+        // grants for lms setup
+        addPrivilege(EntityType.LMS_SETUP)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
                 .withBasePrivilege(PrivilegeType.READ_ONLY)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
@@ -112,13 +104,34 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .withOwnerPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .create();
+
+        // grants for indicators
+        addPrivilege(EntityType.INDICATOR)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ_ONLY)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .withOwnerPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
         // TODO other entities
+
+        // grants for user activity logs
+        addPrivilege(EntityType.USER_ACTIVITY_LOG)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ_ONLY)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
+                .create();
     }
 
     @Override

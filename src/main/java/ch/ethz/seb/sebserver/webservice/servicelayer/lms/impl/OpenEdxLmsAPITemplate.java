@@ -267,7 +267,9 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         final String startURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX + courseData.id;
         return new QuizData(
                 courseData.id,
-                lmsSetup.getModelId(),
+                lmsSetup.getInstitutionId(),
+                lmsSetup.id,
+                lmsSetup.getLmsType(),
                 courseData.name,
                 courseData.short_description,
                 courseData.start,

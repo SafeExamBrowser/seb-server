@@ -36,6 +36,8 @@ public interface PageContext {
         public static final String ENTITY_TYPE = "ENTITY_TYPE";
         public static final String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
 
+        public static final String IMPORT_FROM_QUIZZ_DATA = "IMPORT_FROM_QUIZZ_DATA";
+
     }
 
     /** Use this to get the ComposerService used by this PageContext
@@ -208,7 +210,7 @@ public interface PageContext {
 
     /** Publish an information message to the user with the given localized message.
      * The message text can also be HTML text as far as RWT supports it
-     * 
+     *
      * @param message the localized text key of the message */
     default void publishInfo(final LocTextKey message) {
         publishPageMessage(new LocTextKey("sebserver.page.message"), message);
