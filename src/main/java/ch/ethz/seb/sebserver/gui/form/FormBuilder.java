@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -194,7 +195,7 @@ public class FormBuilder {
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
-        return new SelectionFieldBuilder(name, label, value, itemsSupplier);
+        return new SelectionFieldBuilder(Selection.Type.SINGLE, name, label, value, itemsSupplier);
     }
 
     public static SelectionFieldBuilder multiSelection(
@@ -203,8 +204,16 @@ public class FormBuilder {
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
-        return new SelectionFieldBuilder(name, label, value, itemsSupplier)
-                .asMultiSelection();
+        return new SelectionFieldBuilder(Selection.Type.MULTI, name, label, value, itemsSupplier);
+    }
+
+    public static SelectionFieldBuilder multiComboSelection(
+            final String name,
+            final String label,
+            final String value,
+            final Supplier<List<Tuple<String>>> itemsSupplier) {
+
+        return new SelectionFieldBuilder(Selection.Type.MULTI_COMBO, name, label, value, itemsSupplier);
     }
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final String label, final String value) {

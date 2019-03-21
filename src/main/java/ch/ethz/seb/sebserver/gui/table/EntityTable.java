@@ -325,10 +325,6 @@ public class EntityTable<ROW extends Entity> {
 
                 index++;
             }
-
-            // NOTE this.layout() triggers the navigation to disappear unexpectedly!?
-            //this.table.layout(true, true);
-            //this.composite.layout(true, true);
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }

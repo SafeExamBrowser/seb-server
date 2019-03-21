@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -104,7 +104,7 @@ public class ResourceService {
 
     public List<Tuple<String>> institutionResource() {
         return this.restService.getBuilder(GetInstitutionNames.class)
-                .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
@@ -115,7 +115,7 @@ public class ResourceService {
     public Function<String, String> getInstitutionNameFunction() {
 
         final Map<String, String> idNameMap = this.restService.getBuilder(GetInstitutionNames.class)
-                .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
@@ -133,8 +133,8 @@ public class ResourceService {
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
         final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
         return this.restService.getBuilder(GetLmsSetupNames.class)
-                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionId)
-                .withQueryParam(Domain.LMS_SETUP.ATTR_ACTIVE, "true")
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, institutionId)
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
@@ -146,8 +146,8 @@ public class ResourceService {
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
         final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
         final Map<String, String> idNameMap = this.restService.getBuilder(GetLmsSetupNames.class)
-                .withQueryParam(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionId)
-                .withQueryParam(Domain.INSTITUTION.ATTR_ACTIVE, "true")
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, institutionId)
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
@@ -196,11 +196,24 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> examSupporterResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetUserAccountNames.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.institutionId))
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                .withQueryParam(UserInfo.FILTER_ATTR_ROLE, UserRole.EXAM_SUPPORTER.name())
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> userResources() {
         final UserInfo userInfo = this.currentUser.get();
         return this.restService.getBuilder(GetUserAccountNames.class)
-                .withQueryParam(Domain.USER.ATTR_INSTITUTION_ID, String.valueOf(userInfo.institutionId))
-                .withQueryParam(Domain.USER.ATTR_ACTIVE, "true")
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.institutionId))
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()

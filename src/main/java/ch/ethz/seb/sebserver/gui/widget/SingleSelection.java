@@ -25,7 +25,7 @@ public class SingleSelection extends Combo implements Selection {
     final List<String> valueMapping;
     final List<String> keyMapping;
 
-    public SingleSelection(final Composite parent) {
+    SingleSelection(final Composite parent) {
         super(parent, SWT.READ_ONLY);
         this.valueMapping = new ArrayList<>();
         this.keyMapping = new ArrayList<>();
@@ -72,10 +72,9 @@ public class SingleSelection extends Combo implements Selection {
         super.setItems(this.valueMapping.toArray(new String[this.valueMapping.size()]));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public SingleSelection getTypeInstance() {
-        return this;
+    public Type type() {
+        return Type.SINGLE;
     }
 
 }

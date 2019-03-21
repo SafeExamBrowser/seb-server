@@ -10,9 +10,19 @@ package ch.ethz.seb.sebserver.gui.widget;
 
 import java.util.List;
 
+import org.eclipse.swt.widgets.Control;
+
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface Selection {
+
+    enum Type {
+        SINGLE,
+        MULTI,
+        MULTI_COMBO
+    }
+
+    Type type();
 
     void applyNewMapping(final List<Tuple<String>> mapping);
 
@@ -24,6 +34,10 @@ public interface Selection {
 
     void setVisible(boolean visible);
 
-    <T extends Selection> T getTypeInstance();
+    default Control adaptToControl() {
+        return (Control) this;
+    }
+
+    //<T extends Selection> T getTypeInstance();
 
 }

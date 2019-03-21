@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
-import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class TableFilter<ROW extends Entity> {
@@ -105,7 +105,7 @@ public class TableFilter<ROW extends Entity> {
             case TEXT:
                 return new TextFilter(attribute);
             case SINGLE_SELECTION:
-                return new Selection(attribute);
+                return new SelectionFilter(attribute);
             case DATE:
                 return new Date(attribute);
             default:
@@ -245,21 +245,24 @@ public class TableFilter<ROW extends Entity> {
 
     }
 
-    private class Selection extends FilterComponent {
+    private class SelectionFilter extends FilterComponent {
 
-        protected SingleSelection selector;
+        protected Selection selector;
 
-        Selection(final TableFilterAttribute attribute) {
+        SelectionFilter(final TableFilterAttribute attribute) {
             super(attribute);
         }
 
         @Override
         FilterComponent build(final Composite parent) {
             this.selector = TableFilter.this.entityTable.widgetFactory
-                    .singleSelectionLocalized(
+                    .selectionLocalized(
+                            ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             parent,
                             this.attribute.resourceSupplier);
-            this.selector.setLayoutData(this.rowData);
+            this.selector
+                    .adaptToControl()
+                    .setLayoutData(this.rowData);
             return this;
         }
 

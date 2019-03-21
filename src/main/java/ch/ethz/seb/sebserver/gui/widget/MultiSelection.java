@@ -34,7 +34,7 @@ public class MultiSelection extends Composite implements Selection {
     private final List<Label> labels = new ArrayList<>();
     private final List<Label> selected = new ArrayList<>();
 
-    public MultiSelection(final Composite parent) {
+    MultiSelection(final Composite parent) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
@@ -42,6 +42,11 @@ public class MultiSelection extends Composite implements Selection {
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+    }
+
+    @Override
+    public Type type() {
+        return Type.MULTI;
     }
 
     @Override
@@ -132,12 +137,6 @@ public class MultiSelection extends Composite implements Selection {
     @Override
     public void clear() {
         deselectAll();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public MultiSelection getTypeInstance() {
-        return this;
     }
 
 }

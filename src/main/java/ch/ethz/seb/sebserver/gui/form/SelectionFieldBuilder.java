@@ -26,34 +26,30 @@ import org.eclipse.swt.widgets.Label;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
-import ch.ethz.seb.sebserver.gui.widget.MultiSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
-import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
+import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class SelectionFieldBuilder extends FieldBuilder {
 
     final Supplier<List<Tuple<String>>> itemsSupplier;
     Consumer<Form> selectionListener = null;
-    boolean multi = false;
+    final Selection.Type type;
 
     SelectionFieldBuilder(
+            final Selection.Type type,
             final String name,
             final String label,
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
         super(name, label, value);
+        this.type = type;
         this.itemsSupplier = itemsSupplier;
     }
 
     public SelectionFieldBuilder withSelectionListener(final Consumer<Form> selectionListener) {
         this.selectionListener = selectionListener;
-        return this;
-    }
-
-    public SelectionFieldBuilder asMultiSelection() {
-        this.multi = true;
         return this;
     }
 
@@ -68,29 +64,29 @@ public final class SelectionFieldBuilder extends FieldBuilder {
     }
 
     private void buildInput(final FormBuilder builder, final Label lab) {
-        final Selection selection = (this.multi)
-                ? builder.widgetFactory.multiSelectionLocalized(builder.formParent, this.itemsSupplier)
-                : builder.widgetFactory.singleSelectionLocalized(builder.formParent, this.itemsSupplier);
+
+        final Selection selection = builder.widgetFactory.selectionLocalized(
+                this.type,
+                builder.formParent,
+                this.itemsSupplier);
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
         ((Control) selection).setLayoutData(gridData);
         selection.select(this.value);
-        if (this.multi) {
-            builder.form.putField(this.name, lab, selection.<MultiSelection> getTypeInstance());
-        } else {
-            builder.form.putField(this.name, lab, selection.<SingleSelection> getTypeInstance());
-        }
+        builder.form.putField(this.name, lab, selection);
+
         if (this.selectionListener != null) {
             ((Control) selection).addListener(SWT.Selection, e -> {
                 this.selectionListener.accept(builder.form);
             });
         }
+
         builder.setFieldVisible(this.visible, this.name);
     }
 
     /* Build the read-only representation of the selection field */
     private void buildReadOnly(final FormBuilder builder, final Label lab) {
-        if (this.multi) {
+        if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
             gridLayout.horizontalSpacing = 0;
@@ -99,7 +95,11 @@ public final class SelectionFieldBuilder extends FieldBuilder {
             gridLayout.marginWidth = 0;
             composite.setLayout(gridLayout);
             if (StringUtils.isBlank(this.value)) {
-                createMuliSelectionReadonlyLabel(composite, Constants.EMPTY_NOTE);
+                final Label label = new Label(composite, SWT.NONE);
+                final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+                label.setLayoutData(gridData);
+                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
+                label.setText(this.value);
             } else {
                 final Collection<String> keys = Arrays.asList(StringUtils.split(this.value, Constants.LIST_SEPARATOR));
                 this.itemsSupplier.get()
@@ -135,14 +135,6 @@ public final class SelectionFieldBuilder extends FieldBuilder {
         label.setText(valueSupplier.get());
         label.setData(PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
         return label;
-    }
-
-    private void createMuliSelectionReadonlyLabel(final Composite composite, final String value) {
-        final Label label = new Label(composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
-        label.setLayoutData(gridData);
-        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
-        label.setText(value);
     }
 
 }

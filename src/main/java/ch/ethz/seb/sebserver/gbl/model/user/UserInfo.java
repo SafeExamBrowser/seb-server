@@ -48,6 +48,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public static final String FILTER_ATTR_USER_NAME = "username";
     public static final String FILTER_ATTR_EMAIL = "email";
     public static final String FILTER_ATTR_LANGUAGE = "language";
+    public static final String FILTER_ATTR_ROLE = "role";
 
     /** The user's UUID */
     @JsonProperty(USER.ATTR_UUID)

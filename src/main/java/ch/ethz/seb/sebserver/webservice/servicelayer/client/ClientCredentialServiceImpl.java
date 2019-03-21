@@ -170,7 +170,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     private final static char[] possibleCharacters = (new String(
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-_=+[{]}?"))
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"))
                     .toCharArray();
 
     private CharSequence getSalt(final CharSequence saltPlain) throws UnsupportedEncodingException {

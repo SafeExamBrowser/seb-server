@@ -67,6 +67,10 @@ public class FilterMap extends POSTMapper {
         return getString(UserInfo.FILTER_ATTR_LANGUAGE);
     }
 
+    public String getUserRole() {
+        return getString(UserInfo.FILTER_ATTR_ROLE);
+    }
+
     public String getLmsSetupType() {
         return getString(LmsSetup.FILTER_ATTR_LMS_TYPE);
     }

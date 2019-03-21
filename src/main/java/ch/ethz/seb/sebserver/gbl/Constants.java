@@ -14,6 +14,9 @@ import org.joda.time.format.DateTimeFormatter;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final String TRUE_STRING = Boolean.TRUE.toString();
+    public static final String FALSE_STRING = Boolean.FALSE.toString();
+
     public static final long SECOND_IN_MILLIS = 1000;
     public static final long MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS;
     public static final long HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;

@@ -96,7 +96,7 @@ Label.selected {
 Label-SeparatorLine {
     background-image: none;
     background-color: transparent;
-    border: 1px solid #595959;
+    border: 1px solid #bdbdbd;
     border-radius: 0px;
     height: 1px;
 }

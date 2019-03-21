@@ -319,7 +319,7 @@ public enum ActionDefinition {
     EXAM_INDICATOR_NEW(
             new LocTextKey("sebserver.exam.indicator.action.list.new"),
             ImageIcon.NEW,
-            LmsSetupForm.class,
+            IndicatorForm.class,
             EXAM_VIEW_FROM_LIST,
             ActionCategory.FORM,
             false),
@@ -350,6 +350,12 @@ public enum ActionDefinition {
             EXAM_VIEW_FROM_LIST,
             ActionCategory.FORM,
             true),
+    TEST_ACTION(
+            new LocTextKey("TEST"),
+            ImageIcon.TEST,
+            ExamList.class,
+            EXAM_VIEW_LIST,
+            ActionCategory.FORM),
 
     ;
 

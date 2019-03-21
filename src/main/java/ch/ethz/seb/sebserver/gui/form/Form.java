@@ -8,12 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -30,10 +30,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
-import ch.ethz.seb.sebserver.gui.widget.MultiSelection;
-import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 
 public final class Form implements FormBinding {
 
@@ -42,8 +42,6 @@ public final class Form implements FormBinding {
 
     private final Map<String, String> staticValues = new LinkedHashMap<>();
     private final MultiValueMap<String, FormFieldAccessor> formFields = new LinkedMultiValueMap<>();
-    private final Map<String, Form> subForms = new LinkedHashMap<>();
-    private final Map<String, List<Form>> subLists = new LinkedHashMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
 
     Form(final JSONMapper jsonMapper) {
@@ -104,38 +102,21 @@ public final class Form implements FormBinding {
         return this;
     }
 
-    public void putField(final String name, final Label label, final SingleSelection field) {
+    public void putField(final String name, final Label label, final Selection field) {
         this.formFields.add(name, createAccessor(label, field));
     }
 
-    public void putField(final String name, final Label label, final MultiSelection field) {
-        this.formFields.add(name, createAccessor(label, field));
+    public void putField(
+            final String name,
+            final Label label,
+            final Selection field,
+            final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
+
+        this.formFields.add(name, createAccessor(label, field, jsonValueAdapter));
     }
 
     public void putField(final String name, final Label label, final ImageUpload imageUpload) {
         this.formFields.add(name, createAccessor(label, imageUpload));
-    }
-
-    public void putSubForm(final String name, final Form form) {
-        this.subForms.put(name, form);
-    }
-
-    public Form getSubForm(final String name) {
-        return this.subForms.get(name);
-    }
-
-    public void addSubForm(final String arrayName, final Form form) {
-        final List<Form> array = this.subLists.computeIfAbsent(arrayName, k -> new ArrayList<>());
-        array.add(form);
-    }
-
-    public Form getSubForm(final String arrayName, final int index) {
-        final List<Form> array = this.subLists.get(arrayName);
-        if (array == null) {
-            return null;
-        }
-
-        return array.get(index);
     }
 
     public void allVisible() {
@@ -196,30 +177,12 @@ public final class Form implements FormBinding {
                     .filter(ffa -> StringUtils.isNoneBlank(ffa.getValue()))
                     .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
-
-        for (final Map.Entry<String, Form> entry : this.subForms.entrySet()) {
-            final Form subForm = entry.getValue();
-            subForm.flush();
-            final ObjectNode objectNode = this.jsonMapper.createObjectNode();
-            this.objectRoot.set(entry.getKey(), objectNode);
-        }
-
-        for (final Map.Entry<String, List<Form>> entry : this.subLists.entrySet()) {
-            final List<Form> value = entry.getValue();
-            final ArrayNode arrayNode = this.jsonMapper.createArrayNode();
-            final int index = 0;
-            for (final Form arrayForm : value) {
-                arrayForm.flush();
-                arrayNode.insert(index, arrayForm.objectRoot);
-            }
-            this.objectRoot.set(entry.getKey(), arrayNode);
-        }
     }
 
     // following are FormFieldAccessor implementations for all field types
     //@formatter:off
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
-        return  new FormFieldAccessor(label, field) {
+        return new FormFieldAccessor(label, field) {
             @Override public String getValue() { return null; }
             @Override public void setValue(final String value) { field.setText(value); }
         };
@@ -230,26 +193,20 @@ public final class Form implements FormBinding {
             @Override public void setValue(final String value) { text.setText(value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final SingleSelection singleSelection) {
-        return new FormFieldAccessor(label, singleSelection) {
-            @Override public String getValue() { return singleSelection.getSelectionValue(); }
-            @Override public void setValue(final String value) { singleSelection.select(value); }
-        };
+    private FormFieldAccessor createAccessor(final Label label, final Selection selection) {
+        switch (selection.type()) {
+            case MULTI : return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray);
+            default : return createAccessor(label, selection, null);
+        }
     }
-    private FormFieldAccessor createAccessor(final Label label,final MultiSelection multiSelection) {
-        return new FormFieldAccessor(label, multiSelection) {
-            @Override public String getValue() { return multiSelection.getSelectionValue(); }
-            @Override public void setValue(final String value) { multiSelection.select(value); }
-            @Override public void putJsonValue(final String key, final ObjectNode objectRoot) {
-                final String value = getValue();
-                if (StringUtils.isNoneBlank(value)) {
-                    final ArrayNode arrayNode = objectRoot.putArray(key);
-                    final String[] split = StringUtils.split(value, Constants.LIST_SEPARATOR);
-                    for (int i = 0; i < split.length; i++) {
-                    arrayNode.add(split[i]);
-                    }
-                }
-            }
+    private FormFieldAccessor createAccessor(
+            final Label label,
+            final Selection selection,
+            final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
+
+        return new FormFieldAccessor(label, selection.adaptToControl(), jsonValueAdapter) {
+            @Override public String getValue() { return selection.getSelectionValue(); }
+            @Override public void setValue(final String value) { selection.select(value); }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload) {
@@ -281,15 +238,44 @@ public final class Form implements FormBinding {
         }
     }
 
+    private static final void adaptCommaSeparatedStringToJsonArray(final Tuple<String> tuple,
+            final ObjectNode jsonNode) {
+        if (StringUtils.isNoneBlank(tuple._2)) {
+            final ArrayNode arrayNode = jsonNode.putArray(tuple._1);
+            final String[] split = StringUtils.split(tuple._2, Constants.LIST_SEPARATOR);
+            for (int i = 0; i < split.length; i++) {
+                arrayNode.add(split[i]);
+            }
+        }
+    }
+
     public static abstract class FormFieldAccessor {
 
         public final Label label;
         public final Control control;
+        private final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter;
         private boolean hasError;
 
-        public FormFieldAccessor(final Label label, final Control control) {
+        FormFieldAccessor(final Label label, final Control control) {
+            this(label, control, null);
+        }
+
+        FormFieldAccessor(
+                final Label label,
+                final Control control,
+                final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
+
             this.label = label;
             this.control = control;
+            if (jsonValueAdapter != null) {
+                this.jsonValueAdapter = jsonValueAdapter;
+            } else {
+                this.jsonValueAdapter = (tuple, jsonObject) -> {
+                    if (StringUtils.isNoneBlank(tuple._2)) {
+                        jsonObject.put(tuple._1, tuple._2);
+                    }
+                };
+            }
         }
 
         public abstract String getValue();
@@ -301,11 +287,8 @@ public final class Form implements FormBinding {
             this.control.setVisible(visible);
         }
 
-        public void putJsonValue(final String key, final ObjectNode objectRoot) {
-            final String value = getValue();
-            if (StringUtils.isNoneBlank(value)) {
-                objectRoot.put(key, value);
-            }
+        public final void putJsonValue(final String key, final ObjectNode objectRoot) {
+            this.jsonValueAdapter.accept(new Tuple<>(key, getValue()), objectRoot);
         }
 
         public void setError(final String errorTooltip) {

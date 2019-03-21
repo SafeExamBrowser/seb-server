@@ -150,33 +150,40 @@ public class UserDAOImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> allMatching(final FilterMap filterMap, final Predicate<UserInfo> predicate) {
-        return Result.tryCatch(() -> this.userRecordMapper
-                .selectByExample()
-                .where(
-                        UserRecordDynamicSqlSupport.active,
-                        isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                .and(
-                        UserRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        UserRecordDynamicSqlSupport.name,
-                        isLikeWhenPresent(filterMap.getName()))
-                .and(
-                        UserRecordDynamicSqlSupport.username,
-                        isLikeWhenPresent(filterMap.getUserUsername()))
-                .and(
-                        UserRecordDynamicSqlSupport.email,
-                        isLikeWhenPresent(filterMap.getUserEmail()))
-                .and(
-                        UserRecordDynamicSqlSupport.language,
-                        isLikeWhenPresent(filterMap.getUserLanguage()))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final String userRole = filterMap.getUserRole();
+            final Predicate<UserInfo> _predicate = (StringUtils.isNotBlank(userRole))
+                    ? predicate.and(ui -> ui.roles.contains(userRole))
+                    : predicate;
+
+            return this.userRecordMapper
+                    .selectByExample()
+                    .where(
+                            UserRecordDynamicSqlSupport.active,
+                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                    .and(
+                            UserRecordDynamicSqlSupport.institutionId,
+                            isEqualToWhenPresent(filterMap.getInstitutionId()))
+                    .and(
+                            UserRecordDynamicSqlSupport.name,
+                            isLikeWhenPresent(filterMap.getName()))
+                    .and(
+                            UserRecordDynamicSqlSupport.username,
+                            isLikeWhenPresent(filterMap.getUserUsername()))
+                    .and(
+                            UserRecordDynamicSqlSupport.email,
+                            isLikeWhenPresent(filterMap.getUserEmail()))
+                    .and(
+                            UserRecordDynamicSqlSupport.language,
+                            isLikeWhenPresent(filterMap.getUserLanguage()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .filter(_predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
