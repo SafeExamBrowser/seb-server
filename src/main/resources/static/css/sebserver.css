@@ -345,9 +345,7 @@ Button {
 
 /* Push Buttons */
 Button[PUSH],
-Button[PUSH]:default,
-FileUpload,
-FileUpload:default {
+Button[PUSH]:default {
     font: bold 12px Arial, Helvetica, sans-serif;
     background-color: #0069B4;
     background-gradient-color: #0069B4;
@@ -359,16 +357,14 @@ FileUpload:default {
     text-shadow: none;
 }
 
-Button[PUSH]:pressed,
-FileUpload:pressed {
+Button[PUSH]:pressed {
     background-color: #444;
     color: #fff;
     background-gradient-color: #444;
     background-image: gradient( linear, left top, left bottom, from( #444 ), to( #444 ) );
 }
 
-Button[PUSH]:hover,
-FileUpload:hover {
+Button[PUSH]:hover {
     background-color: #82BE1E;
     background-gradient-color: #82BE1E;
     background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
@@ -376,8 +372,7 @@ FileUpload:hover {
     cursor: pointer;
 }
 
-Button[PUSH]:disabled,
-FileUpload:disabled {
+Button[PUSH]:disabled {
     background-color: transparent;
     border: 1px solid #EAECEE;
     color: #c0c0c0;
@@ -416,6 +411,18 @@ Button[PUSH]:hover.header {
     background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
     color: #444;
     cursor: pointer;
+}
+
+FileUpload,
+FileUpload:default,
+FileUpload:hover,
+FileUpload:pressed {
+    background-color: transparent;
+    background-gradient-color: transparent;
+    background-image: gradient( linear, left top, left bottom, from( transparent ), to( transparent ) );
+    border: none;
+    border-radius: 0px;
+    text-shadow: none;
 }
 
 

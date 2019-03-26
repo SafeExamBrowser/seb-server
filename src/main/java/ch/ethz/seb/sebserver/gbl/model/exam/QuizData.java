@@ -105,12 +105,16 @@ public final class QuizData implements GrantEntity {
         this.lmsType = lmsType;
         this.name = name;
         this.description = description;
-        this.startTime = LocalDateTime
-                .parse(startTime, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS)
-                .toDateTime(DateTimeZone.UTC);
-        this.endTime = LocalDateTime
-                .parse(endTime, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS)
-                .toDateTime(DateTimeZone.UTC);
+        this.startTime = (startTime != null)
+                ? LocalDateTime
+                        .parse(startTime, Constants.STANDARD_DATE_TIME_FORMATTER)
+                        .toDateTime(DateTimeZone.UTC)
+                : null;
+        this.endTime = (endTime != null)
+                ? LocalDateTime
+                        .parse(endTime, Constants.STANDARD_DATE_TIME_FORMATTER)
+                        .toDateTime(DateTimeZone.UTC)
+                : null;
         this.startURL = startURL;
     }
 

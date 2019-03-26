@@ -195,7 +195,9 @@ public final class Form implements FormBinding {
     }
     private FormFieldAccessor createAccessor(final Label label, final Selection selection) {
         switch (selection.type()) {
-            case MULTI : return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray);
+            case MULTI:
+            case MULTI_COMBO:
+                return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray);
             default : return createAccessor(label, selection, null);
         }
     }

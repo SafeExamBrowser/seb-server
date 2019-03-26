@@ -9,18 +9,23 @@
 package ch.ethz.seb.sebserver.gui.widget;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,43 +39,40 @@ public class MultiSelectionCombo extends Composite implements Selection {
     private static final Logger log = LoggerFactory.getLogger(MultiSelectionCombo.class);
     private static final long serialVersionUID = -7787134114963647332L;
     private static final int ACTION_COLUMN_WIDTH = 20;
+    private static final String SELECTION_KEY = "SELECTION_KEY";
 
     private final WidgetFactory widgetFactory;
-    private final Table table;
     private final Combo combo;
-    private final List<String> selected = new ArrayList<>();
-    private final List<Tuple<String>> mapping = new ArrayList<>();
+
+    private final List<Tuple<Control>> selectionControls = new ArrayList<>();
+    private final List<Tuple<String>> selectedValues = new ArrayList<>();
+    private final Map<String, String> mapping = new HashMap<>();
+    //private final List<Tuple<String>> mapping = new ArrayList<>();
 
     MultiSelectionCombo(final Composite parent, final WidgetFactory widgetFactory) {
         super(parent, SWT.NONE);
         this.widgetFactory = widgetFactory;
-        final GridLayout gridLayout = new GridLayout(1, true);
+        final GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.verticalSpacing = 1;
         gridLayout.marginLeft = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
 
-        this.table = new Table(this, SWT.NONE);
+        this.addListener(SWT.Resize, this::adaptColumnWidth);
 
-        TableColumn column = new TableColumn(this.table, SWT.NONE);
-        column = new TableColumn(this.table, SWT.NONE);
-        column.setWidth(ACTION_COLUMN_WIDTH);
-        this.table.setHeaderVisible(false);
-        this.table.addListener(SWT.Resize, this::adaptColumnWidth);
+        this.combo = new Combo(this, SWT.NONE);
+        final GridData comboCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        this.combo.setLayoutData(comboCell);
 
-        final TableItem header = new TableItem(this.table, SWT.NONE);
-        final TableEditor editor = new TableEditor(this.table);
-        this.combo = new Combo(this.table, SWT.NONE);
-        editor.grabHorizontal = true;
-        editor.setEditor(this.combo, header, 0);
-
-        widgetFactory.imageButton(
-                ImageIcon.ADD,
-                this.table,
+        final Label imageButton = widgetFactory.imageButton(
+                ImageIcon.ADD_BOX,
+                this,
                 new LocTextKey("Add"),
                 this::addComboSelection);
-
+        final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        actionCell.widthHint = ACTION_COLUMN_WIDTH;
+        imageButton.setLayoutData(actionCell);
     }
 
     @Override
@@ -80,49 +82,132 @@ public class MultiSelectionCombo extends Composite implements Selection {
 
     @Override
     public void applyNewMapping(final List<Tuple<String>> mapping) {
-        this.selected.clear();
-        this.mapping.clear();
-        this.mapping.addAll(mapping);
-
+        this.mapping.putAll(mapping.stream()
+                .collect(Collectors.toMap(t -> t._1, t -> t._2)));
+        this.clear();
     }
 
     @Override
     public void select(final String keys) {
         clear();
+        if (StringUtils.isBlank(keys)) {
+            return;
+        }
 
+        Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR))
+                .stream()
+                .forEach(this::addSelection);
     }
 
     @Override
     public String getSelectionValue() {
-        if (this.selected.isEmpty()) {
+        if (this.selectedValues.isEmpty()) {
             return null;
         }
-        return this.mapping
+        return this.selectedValues
                 .stream()
-                .filter(t -> this.selected.contains(t._2))
                 .map(t -> t._1)
-                .reduce("", (s1, s2) -> s1.concat(Constants.LIST_SEPARATOR).concat(s2));
+                .reduce("", (s1, s2) -> {
+                    if (!StringUtils.isBlank(s1)) {
+                        return s1.concat(Constants.LIST_SEPARATOR).concat(s2);
+                    } else {
+                        return s1.concat(s2);
+                    }
+                });
     }
 
     @Override
     public void clear() {
-        this.selected.clear();
-        this.table.remove(1, this.table.getItemCount());
-        final List<String> names = this.mapping
+        this.selectedValues.clear();
+        this.selectionControls
                 .stream()
-                .map(t -> t._2)
-                .collect(Collectors.toList());
-        this.combo.setItems(names.toArray(new String[names.size()]));
+                .forEach(t -> {
+                    t._1.dispose();
+                    t._2.dispose();
+                });
+        this.selectionControls.clear();
+        this.combo.setItems(this.mapping.values().toArray(new String[this.mapping.size()]));
     }
 
     private void addComboSelection(final Event event) {
+        final int selectionIndex = this.combo.getSelectionIndex();
+        if (selectionIndex < 0) {
+            return;
+        }
 
+        final String itemName = this.combo.getItem(selectionIndex);
+        if (itemName == null) {
+            return;
+        }
+
+        final Optional<Entry<String, String>> findFirst = this.mapping.entrySet()
+                .stream()
+                .filter(entity -> entity.getValue().equals(itemName))
+                .findFirst();
+
+        if (!findFirst.isPresent()) {
+            return;
+        }
+
+        addSelection(findFirst.get().getKey());
+    }
+
+    private void addSelection(final String itemKey) {
+        final String itemName = this.mapping.get(itemKey);
+        if (itemName == null) {
+            return;
+        }
+
+        this.selectedValues.add(new Tuple<>(itemKey, itemName));
+        final Label label = this.widgetFactory.label(this, itemName);
+        final Label imageButton = this.widgetFactory.imageButton(
+                ImageIcon.REMOVE_BOX,
+                this,
+                new LocTextKey("Remove"),
+                this::removeComboSelection);
+        imageButton.setData(SELECTION_KEY, itemName);
+        final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        actionCell.widthHint = ACTION_COLUMN_WIDTH;
+        imageButton.setLayoutData(actionCell);
+
+        this.selectionControls.add(new Tuple<>(label, imageButton));
+
+        this.combo.remove(itemName);
+        this.getParent().layout();
+    }
+
+    private void removeComboSelection(final Event event) {
+        if (event.widget == null) {
+            return;
+        }
+
+        final String selectionKey = (String) event.widget.getData(SELECTION_KEY);
+        final Optional<Tuple<Control>> findFirst = this.selectionControls.stream()
+                .filter(t -> selectionKey.equals(t._2.getData(SELECTION_KEY)))
+                .findFirst();
+        if (!findFirst.isPresent()) {
+            return;
+        }
+
+        final Tuple<Control> tuple = findFirst.get();
+        final int indexOf = this.selectionControls.indexOf(tuple);
+        this.selectionControls.remove(tuple);
+
+        tuple._1.dispose();
+        tuple._2.dispose();
+
+        final Tuple<String> value = this.selectedValues.remove(indexOf);
+        this.combo.add(value._2, this.combo.getItemCount());
+
+        this.getParent().layout();
     }
 
     private void adaptColumnWidth(final Event event) {
         try {
-            final int currentTableWidth = this.table.getParent().getClientArea().width;
-            this.table.getColumn(0).setWidth(currentTableWidth - ACTION_COLUMN_WIDTH);
+            final int currentTableWidth = this.getClientArea().width;
+            final GridData comboCell = (GridData) this.combo.getLayoutData();
+            comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH;
+            this.layout();
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }

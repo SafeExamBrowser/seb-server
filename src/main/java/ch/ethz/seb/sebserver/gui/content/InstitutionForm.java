@@ -72,7 +72,7 @@ public class InstitutionForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final boolean isNew = entityKey == null;
         // get data or create new. Handle error if happen
-        final Institution institution = (entityKey == null)
+        final Institution institution = (isNew)
                 ? Institution.createNew()
                 : this.restService
                         .getBuilder(GetInstitution.class)
@@ -116,7 +116,7 @@ public class InstitutionForm implements TemplateComposer {
         // The Institution form
         final FormHandle<Institution> formHandle = this.pageFormService.getBuilder(
                 formContext.copyOf(content), 4)
-                .readonly(formContext.isReadonly())
+                .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.INSTITUTION.ATTR_ID,
                         institution.getModelId())

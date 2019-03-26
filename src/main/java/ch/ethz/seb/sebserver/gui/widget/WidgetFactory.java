@@ -62,6 +62,8 @@ public class WidgetFactory {
         MINIMIZE("minimize.png"),
         ADD("add.png"),
         REMOVE("remove.png"),
+        ADD_BOX("add_box.png"),
+        REMOVE_BOX("remove_box.png"),
         EDIT("edit.png"),
         TEST("test.png"),
         IMPORT("import.png"),
@@ -73,7 +75,8 @@ public class WidgetFactory {
         SAVE("save.png"),
         NEW("new.png"),
         DELETE("delete.png"),
-        SEARCH("lens.png");
+        SEARCH("lens.png"),
+        COLOR("color.png");
 
         private String fileName;
         private ImageData image = null;
@@ -325,48 +328,20 @@ public class WidgetFactory {
             case MULTI_COMBO:
                 selection = new MultiSelectionCombo(parent, this);
                 break;
+            case COLOR:
+                selection = new ColorSelection(parent, this);
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported Selection.Type: " + type);
         }
 
-        final Consumer<Selection> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
-        selection.adaptToControl().setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
-        updateFunction.accept(selection);
+        if (itemsSupplier != null) {
+            final Consumer<Selection> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
+            selection.adaptToControl().setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
+            updateFunction.accept(selection);
+        }
         return selection;
     }
-
-//    public SingleSelection singleSelectionLocalized(
-//            final Composite parent,
-//            final Supplier<List<Tuple<String>>> itemsSupplier) {
-//
-//        final SingleSelection singleSelection = new SingleSelection(parent);
-//        final Consumer<SingleSelection> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
-//        singleSelection.setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
-//        updateFunction.accept(singleSelection);
-//        return singleSelection;
-//    }
-//
-//    public MultiSelection multiSelectionLocalized(
-//            final Composite parent,
-//            final Supplier<List<Tuple<String>>> itemsSupplier) {
-//
-//        final MultiSelection multiSelection = new MultiSelection(parent);
-//        final Consumer<MultiSelection> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
-//        multiSelection.setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
-//        updateFunction.accept(multiSelection);
-//        return multiSelection;
-//    }
-//
-//    public MultiSelectionCombo multiSelectionComboLocalized(
-//            final Composite parent,
-//            final Supplier<List<Tuple<String>>> itemsSupplier) {
-//
-//        final MultiSelectionCombo multiSelection = new MultiSelectionCombo(parent, this);
-//        final Consumer<MultiSelectionCombo> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
-//        multiSelection.setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
-//        updateFunction.accept(multiSelection);
-//        return multiSelection;
-//    }
 
     public ImageUpload imageUploadLocalized(
             final Composite parent,

@@ -149,6 +149,31 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this::additionalConsistencyChecks);
     }
 
+    @RequestMapping(
+            path = API.PASSWORD_PATH_SEGMENT,
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserInfo changePassword(@Valid @RequestBody final PasswordChange passwordChange) {
+
+        final String modelId = passwordChange.getModelId();
+        return this.userDAO.byModelId(modelId)
+                .flatMap(this.authorization::checkModify)
+                .map(ui -> checkPasswordChange(ui, passwordChange))
+                .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
+                .flatMap(this::revokeAccessToken)
+                .flatMap(e -> this.userActivityLogDAO.log(ActivityType.PASSWORD_CHANGE, e))
+                .getOrThrow();
+    }
+
+    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
+        return Result.tryCatch(() -> {
+            this.applicationEventPublisher.publishEvent(
+                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
+            return userInfo;
+        });
+    }
+
     /** Additional consistency checks that has to be checked before create and save actions */
     private <T extends UserAccount> Result<T> additionalConsistencyChecks(final T userInfo) {
         return Result.tryCatch(() -> {
@@ -190,31 +215,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                                 + nonePublicRole);
             }
 
-            return userInfo;
-        });
-    }
-
-    @RequestMapping(
-            path = API.PASSWORD_PATH_SEGMENT,
-            method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserInfo changePassword(@Valid @RequestBody final PasswordChange passwordChange) {
-
-        final String modelId = passwordChange.getModelId();
-        return this.userDAO.byModelId(modelId)
-                .flatMap(this.authorization::checkModify)
-                .map(ui -> checkPasswordChange(ui, passwordChange))
-                .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
-                .flatMap(this::revokeAccessToken)
-                .flatMap(e -> this.userActivityLogDAO.log(ActivityType.PASSWORD_CHANGE, e))
-                .getOrThrow();
-    }
-
-    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
-        return Result.tryCatch(() -> {
-            this.applicationEventPublisher.publishEvent(
-                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
             return userInfo;
         });
     }

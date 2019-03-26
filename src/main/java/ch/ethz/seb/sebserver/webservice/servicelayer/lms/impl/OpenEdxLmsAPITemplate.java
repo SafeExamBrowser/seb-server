@@ -25,9 +25,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RequestAuthenticator;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.http.AccessTokenRequiredException;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.resource.UserRedirectRequiredException;
@@ -115,6 +119,19 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                             this.knownTokenAccessPaths);
         }
 
+        try {
+            this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT);
+        } catch (final Exception e) {
+            if (this.restTemplate != null) {
+                this.restTemplate.setAuthenticator(new EdxOAuth2RequestAuthenticator());
+            }
+            try {
+                this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT);
+            } catch (final Exception ee) {
+                return LmsSetupTestResult.ofQuizRequestError(ee.getMessage());
+            }
+        }
+
         return LmsSetupTestResult.ofOkay();
     }
 
@@ -191,28 +208,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         template.setAccessTokenProvider(new EdxClientCredentialsAccessTokenProvider());
         return template;
     }
-
-//    private Result<List<QuizData>> getAllQuizes(final LmsSetup lmsSetup) {
-//        if (this.allQuizzesSupplier == null) {
-//            this.allQuizzesSupplier = new CircuitBreaker<>(
-//                    () -> collectAllCourses(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT)
-//                            .stream()
-//                            .reduce(
-//                                    new ArrayList<QuizData>(),
-//                                    (list, courseData) -> {
-//                                        list.add(quizDataOf(lmsSetup, courseData));
-//                                        return list;
-//                                    },
-//                                    (list1, list2) -> {
-//                                        list1.addAll(list2);
-//                                        return list1;
-//                                    }),
-//                    5, 1000L); // TODO specify better CircuitBreaker params
-//        }
-//
-//        return this.allQuizzesSupplier.get();
-//
-//    }
 
     private Supplier<List<QuizData>> allQuizzesSupplier(final LmsSetup lmsSetup) {
         return () -> {
@@ -320,8 +315,27 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             params.add("client_id", resource.getClientId());
             params.add("client_secret", resource.getClientSecret());
 
-            return retrieveToken(request, resource, params, headers);
+            final OAuth2AccessToken retrieveToken = retrieveToken(request, resource, params, headers);
+            return retrieveToken;
         }
+    }
+
+    private class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
+
+        @Override
+        public void authenticate(
+                final OAuth2ProtectedResourceDetails resource,
+                final OAuth2ClientContext clientContext,
+                final ClientHttpRequest request) {
+
+            final OAuth2AccessToken accessToken = clientContext.getAccessToken();
+            if (accessToken == null) {
+                throw new AccessTokenRequiredException(resource);
+            }
+
+            request.getHeaders().set("Authorization", String.format("%s %s", "JWT:", accessToken.getValue()));
+        }
+
     }
 
 }

@@ -289,6 +289,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.cryptonode.jncryptor</groupId>
+      <artifactId>jncryptor</artifactId>
+      <version>1.2.0</version>
+    </dependency>
 
     <!-- Testing -->
     <dependency>

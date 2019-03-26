@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -51,14 +52,14 @@ public class ImageUpload extends Composite {
 
     ImageUpload(final Composite parent, final ServerPushService serverPushService, final boolean readonly) {
         super(parent, SWT.NONE);
-        super.setLayout(new GridLayout(2, false));
+        super.setLayout(new GridLayout(1, false));
 
         this.serverPushService = serverPushService;
 
         if (!readonly) {
             this.fileUpload = new FileUpload(this, SWT.NONE);
-            this.fileUpload.setText("Select File");
-            this.fileUpload.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+            this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
+            this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
             final FileUploadHandler uploadHandler = new FileUploadHandler(new FileUploadReceiver() {
 
@@ -108,7 +109,7 @@ public class ImageUpload extends Composite {
 
     public void setSelectionText(final String text) {
         if (this.fileUpload != null) {
-            this.fileUpload.setText(text);
+            this.fileUpload.setToolTipText(text);
         }
     }
 
@@ -124,8 +125,8 @@ public class ImageUpload extends Composite {
         this.imageBase64 = imageBase64;
         final Base64InputStream input = new Base64InputStream(
                 new ByteArrayInputStream(imageBase64.getBytes(StandardCharsets.UTF_8)), false);
-        this.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
-        this.imageCanvas.setBackgroundImage(new Image(super.getDisplay(), input));
+
+        setImage(this, input);
     }
 
     private static final boolean uploadInProgress(final ServerPushContext context) {
@@ -153,12 +154,20 @@ public class ImageUpload extends Composite {
                             imageUpload.imageBase64.getBytes(StandardCharsets.UTF_8)),
                     false);
 
-            imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
-            imageUpload.imageCanvas.setBackgroundImage(new Image(context.getDisplay(), input));
+            setImage(imageUpload, input);
             context.layout();
             imageUpload.layout();
             imageUpload.loadNewImage = false;
         }
+    }
+
+    private static void setImage(final ImageUpload imageUpload, final Base64InputStream input) {
+        imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
+
+        final Image image = new Image(imageUpload.imageCanvas.getDisplay(), input);
+        final ImageData imageData = image.getImageData().scaledTo(200, 100);
+
+        imageUpload.imageCanvas.setBackgroundImage(new Image(imageUpload.imageCanvas.getDisplay(), imageData));
     }
 
 }

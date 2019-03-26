@@ -48,12 +48,12 @@ public final class Indicator implements GrantEntity {
     public final Long examId;
 
     @JsonProperty(INDICATOR.ATTR_NAME)
-    @NotNull
+    @NotNull(message = "indicator:name:notNull")
     @Size(min = 3, max = 255, message = "indicator:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
     @JsonProperty(INDICATOR.ATTR_TYPE)
-    @NotNull
+    @NotNull(message = "indicator:type:notNull")
     public final IndicatorType type;
 
     @JsonProperty(INDICATOR.ATTR_COLOR)
@@ -62,12 +62,14 @@ public final class Indicator implements GrantEntity {
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
 
+    public final String examOwner;
+
     @JsonCreator
     public Indicator(
             @JsonProperty(INDICATOR.ATTR_ID) final Long id,
             @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
-            @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(INDICATOR.ATTR_EXAM_ID) final Long examId,
+            @JsonProperty(EXAM.ATTR_OWNER) final String examOwner,
             @JsonProperty(INDICATOR.ATTR_NAME) final String name,
             @JsonProperty(INDICATOR.ATTR_TYPE) final IndicatorType type,
             @JsonProperty(INDICATOR.ATTR_COLOR) final String defaultColor,
@@ -76,6 +78,7 @@ public final class Indicator implements GrantEntity {
         this.id = id;
         this.institutionId = institutionId;
         this.examId = examId;
+        this.examOwner = examOwner;
         this.name = name;
         this.type = type;
         this.defaultColor = defaultColor;
@@ -86,6 +89,7 @@ public final class Indicator implements GrantEntity {
         this.id = null;
         this.institutionId = exam.institutionId;
         this.examId = exam.id;
+        this.examOwner = exam.owner;
         this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
         this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
         this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
@@ -119,7 +123,7 @@ public final class Indicator implements GrantEntity {
 
     @Override
     public String getOwnerId() {
-        return null;
+        return this.examOwner;
     }
 
     public Long getExamId() {
@@ -145,14 +149,18 @@ public final class Indicator implements GrantEntity {
                 + this.defaultColor + ", thresholds=" + this.thresholds + "]";
     }
 
+    public static Indicator createNew(final Long institutionId, final Exam exam) {
+        return new Indicator(null, institutionId, exam.id, exam.owner, null, null, null, null);
+    }
+
     public static final class Threshold {
 
-        @JsonProperty(THRESHOLD.ATTR_ID)
-        public final Long id;
-
-        @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID)
-        @NotNull
-        public final Long indicatorId;
+//        @JsonProperty(THRESHOLD.ATTR_ID)
+//        public final Long id;
+//
+//        @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID)
+//        @NotNull
+//        public final Long indicatorId;
 
         @JsonProperty(THRESHOLD.ATTR_VALUE)
         @NotNull
@@ -163,24 +171,24 @@ public final class Indicator implements GrantEntity {
 
         @JsonCreator
         public Threshold(
-                @JsonProperty(THRESHOLD.ATTR_ID) final Long id,
-                @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID) final Long indicatorId,
+//                @JsonProperty(THRESHOLD.ATTR_ID) final Long id,
+//                @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID) final Long indicatorId,
                 @JsonProperty(THRESHOLD.ATTR_VALUE) final Double value,
                 @JsonProperty(THRESHOLD.ATTR_COLOR) final String color) {
 
-            this.id = id;
-            this.indicatorId = indicatorId;
+//            this.id = id;
+//            this.indicatorId = indicatorId;
             this.value = value;
             this.color = color;
         }
 
-        public Long getId() {
-            return this.id;
-        }
-
-        public Long getIndicatorId() {
-            return this.indicatorId;
-        }
+//        public Long getId() {
+//            return this.id;
+//        }
+//
+//        public Long getIndicatorId() {
+//            return this.indicatorId;
+//        }
 
         public Double getValue() {
             return this.value;
@@ -190,12 +198,12 @@ public final class Indicator implements GrantEntity {
             return this.color;
         }
 
-        @Override
-        public String toString() {
-            return "Threshold [id=" + this.id + ", indicatorId=" + this.indicatorId + ", value=" + this.value
-                    + ", color=" + this.color
-                    + "]";
-        }
+//        @Override
+//        public String toString() {
+//            return "Threshold [id=" + this.id + ", indicatorId=" + this.indicatorId + ", value=" + this.value
+//                    + ", color=" + this.color
+//                    + "]";
+//        }
 
     }
 

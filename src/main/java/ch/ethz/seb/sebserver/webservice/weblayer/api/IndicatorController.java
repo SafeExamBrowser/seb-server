@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
@@ -28,11 +29,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.EXAM_INDICATOR_ENDPOINT)
-public class ExamIndicatorController extends EntityController<Indicator, Indicator> {
+public class IndicatorController extends EntityController<Indicator, Indicator> {
 
     private final ExamDAO examDao;
 
-    protected ExamIndicatorController(
+    protected IndicatorController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final IndicatorDAO entityDAO,
@@ -53,7 +54,7 @@ public class ExamIndicatorController extends EntityController<Indicator, Indicat
 
     @Override
     protected Indicator createNew(final POSTMapper postParams) {
-        final Long examId = postParams.getLong(API.PARAM_EXAM_ID);
+        final Long examId = postParams.getLong(Domain.INDICATOR.ATTR_EXAM_ID);
 
         return this.examDao
                 .byPK(examId)

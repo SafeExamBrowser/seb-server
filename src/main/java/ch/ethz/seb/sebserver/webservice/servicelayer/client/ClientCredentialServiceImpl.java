@@ -12,6 +12,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.cryptonode.jncryptor.AES256JNCryptor;
+import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -34,6 +36,9 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     static final CharSequence DEFAULT_SALT = "b7dbe99bbfa3e21e";
 
     private final Environment environment;
+
+    // TODO try to integrate with JNCryptor since this is also used by SEB
+    private final JNCryptor cryptor = new AES256JNCryptor();
 
     protected ClientCredentialServiceImpl(final Environment environment) {
         this.environment = environment;
@@ -142,6 +147,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
 
         try {
+
             return Encryptors
                     .delux(secret, getSalt(salt))
                     .encrypt(text.toString());

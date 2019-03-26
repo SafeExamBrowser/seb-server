@@ -107,7 +107,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .withOwnerPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
         // grants for indicators
@@ -120,7 +120,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .withOwnerPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.READ_ONLY)
                 .create();
 
         // TODO other entities

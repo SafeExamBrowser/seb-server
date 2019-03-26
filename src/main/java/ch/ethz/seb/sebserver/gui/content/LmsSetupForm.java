@@ -196,7 +196,7 @@ public class LmsSetupForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.LMS_SETUP_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withExec(action -> activate(action, formHandle))
                 .publishIf(() -> writeGrant && readonly && institutionActive && !lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_SAVE)
@@ -208,6 +208,14 @@ public class LmsSetupForm implements TemplateComposer {
                 .withExec(Action::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
+    }
+
+    /** Save and test connection before activation */
+    private Action activate(final Action action, final FormHandle<LmsSetup> formHandle) {
+        final RestService restService = this.resourceService.getRestService();
+        final Action testLmsSetup = this.testLmsSetup(action, formHandle);
+        final Action activation = restService.activation(testLmsSetup);
+        return activation;
     }
 
     /** LmsSetup test action implementation */

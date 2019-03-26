@@ -89,6 +89,7 @@ public final class SelectionFieldBuilder extends FieldBuilder {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
+            gridLayout.verticalSpacing = 0;
             gridLayout.horizontalSpacing = 0;
             gridLayout.marginLeft = 0;
             gridLayout.marginHeight = 0;

@@ -10,11 +10,7 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.Function;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,7 +28,6 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
@@ -136,9 +131,9 @@ public class ExamList implements TemplateComposer {
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         pageContext.clearEntityKeys()
 
-                .createAction(ActionDefinition.TEST_ACTION)
-                .withExec(this::testModalInput)
-                .publish()
+//                .createAction(ActionDefinition.TEST_ACTION)
+//                .withExec(this::testModalInput)
+//                .publish()
 
                 .createAction(ActionDefinition.EXAM_IMPORT)
                 .publishIf(userGrant::im)
@@ -172,29 +167,29 @@ public class ExamList implements TemplateComposer {
                 .getText("sebserver.exam.type." + exam.type.name());
     }
 
-    private Action testModalInput(final Action action) {
-        final ModalInputDialog<String> dialog = new ModalInputDialog<>(
-                action.pageContext().getParent().getShell(),
-                this.widgetFactory);
-
-        dialog.open(
-                "Test Input Dialog",
-                action.pageContext(),
-                value -> {
-                    System.out.println("********************** value: " + value);
-                },
-                pc -> {
-                    final Composite parent = pc.getParent();
-                    final Label label = new Label(parent, SWT.NONE);
-                    label.setText("Please Enter:");
-                    label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-                    final Text text = new Text(parent, SWT.LEFT | SWT.BORDER);
-                    text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-                    return () -> text.getText();
-                });
-
-        return action;
-    }
+//    private Action testModalInput(final Action action) {
+//        final ModalInputDialog<String> dialog = new ModalInputDialog<>(
+//                action.pageContext().getParent().getShell(),
+//                this.widgetFactory);
+//
+//        dialog.open(
+//                "Test Input Dialog",
+//                action.pageContext(),
+//                value -> {
+//                    System.out.println("********************** value: " + value);
+//                },
+//                pc -> {
+//                    final Composite parent = pc.getParent();
+//                    final Label label = new Label(parent, SWT.NONE);
+//                    label.setText("Please Enter:");
+//                    label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//
+//                    final Text text = new Text(parent, SWT.LEFT | SWT.BORDER);
+//                    text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//                    return () -> text.getText();
+//                });
+//
+//        return action;
+//    }
 
 }

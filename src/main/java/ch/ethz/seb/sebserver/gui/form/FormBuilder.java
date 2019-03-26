@@ -216,6 +216,14 @@ public class FormBuilder {
         return new SelectionFieldBuilder(Selection.Type.MULTI_COMBO, name, label, value, itemsSupplier);
     }
 
+    public static SelectionFieldBuilder colorSelection(
+            final String name,
+            final String label,
+            final String value) {
+
+        return new SelectionFieldBuilder(Selection.Type.COLOR, name, label, value, null);
+    }
+
     public static ImageUploadFieldBuilder imageUpload(final String name, final String label, final String value) {
         return new ImageUploadFieldBuilder(name, label, value);
     }

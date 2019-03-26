@@ -95,7 +95,9 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      *         reported exception on error case */
     Result<T> save(T data);
 
-    /** Use this to delete a set Entity by a Collection of EntityKey
+    /** Use this to delete all entities defined by a set of EntityKey
+     * NOTE: the Set of EntityKey may contain EntityKey of other entity types like the concrete type of the DAO
+     * use extractPKsFromKeys to get a list of concrete primary keys for entities to delete
      *
      * @param all The Collection of EntityKey to delete
      * @return Result referring a collection of all entities that has been deleted or refer to an error if
@@ -104,12 +106,12 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     /** Get a (unordered) collection of all Entities that matches the given filter criteria.
      * The possible filter criteria for a specific Entity type is defined by the entity type.
-     * 
+     *
      * This adds filtering in SQL level by creating the select where clause from related
      * filter criteria of the specific Entity type. If the filterMap contains a value for
      * a particular filter criteria the value is extracted from the map and added to the where
      * clause of the SQL select statement.
-     * 
+     *
      * @param filterMap FilterMap instance containing all the relevant filter criteria
      * @return Result referring to collection of all matching entities or an error if happened */
     @Transactional(readOnly = true)
@@ -119,16 +121,16 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     /** Get a (unordered) collection of all Entities that matches a given filter criteria
      * and a given predicate.
-     * 
+     *
      * The possible filter criteria for a specific Entity type is defined by the entity type.
      * This adds filtering in SQL level by creating the select where clause from related
      * filter criteria of the specific Entity type. If the filterMap contains a value for
      * a particular filter criteria the value is extracted from the map and added to the where
      * clause of the SQL select statement.
-     * 
+     *
      * The predicate is applied after the SQL query by filtering the resulting list with the
      * predicate after on the SQL query result, before returning.
-     * 
+     *
      * @param filterMap FilterMap instance containing all the relevant filter criteria
      * @return Result referring to collection of all matching entities or an error if happened */
     Result<Collection<T>> allMatching(FilterMap filterMap, Predicate<T> predicate);

@@ -261,8 +261,6 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute()
                     .stream()
                     .map(tRec -> new Threshold(
-                            tRec.getId(),
-                            tRec.getIndicatorId(),
                             tRec.getValue().doubleValue(),
                             tRec.getColor()))
                     .collect(Collectors.toList());
@@ -270,8 +268,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
             return new Indicator(
                     record.getId(),
                     examRecord.getInstitutionId(),
-                    examRecord.getOwner(),
                     record.getExamId(),
+                    examRecord.getOwner(),
                     record.getName(),
                     IndicatorType.valueOf(record.getType()),
                     record.getColor(),

@@ -321,7 +321,6 @@ public enum ActionDefinition {
             ImageIcon.NEW,
             IndicatorForm.class,
             EXAM_VIEW_FROM_LIST,
-            ActionCategory.FORM,
             false),
     EXAM_INDICATOR_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.exam.indicator.action.list.modify"),
@@ -338,7 +337,7 @@ public enum ActionDefinition {
             ActionCategory.INDICATOR_LIST,
             true),
     EXAM_INDICATOR_SAVE(
-            new LocTextKey("sebserver.exam.indicator.action.list.save"),
+            new LocTextKey("sebserver.exam.indicator.action.save"),
             ImageIcon.SAVE,
             ExamForm.class,
             EXAM_VIEW_FROM_LIST,

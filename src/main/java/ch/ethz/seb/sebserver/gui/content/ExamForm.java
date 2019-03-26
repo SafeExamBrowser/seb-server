@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
@@ -43,7 +45,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -71,6 +72,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.indicator.list.column.name");
     private final static LocTextKey thresholdColumnKey =
             new LocTextKey("sebserver.exam.indicator.list.column.thresholds");
+    private final static LocTextKey emptySelectionTextKey =
+            new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
 
     protected ExamForm(
             final PageFormService pageFormService,
@@ -124,11 +127,6 @@ public class ExamForm implements TemplateComposer {
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
-        final boolean institutionActive = restService.getBuilder(GetInstitution.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.getInstitutionId()))
-                .call()
-                .map(inst -> inst.active)
-                .getOr(false);
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageFormService.getBuilder(
@@ -140,7 +138,7 @@ public class ExamForm implements TemplateComposer {
                 .putStaticValue(
                         Domain.EXAM.ATTR_INSTITUTION_ID,
                         String.valueOf(exam.getInstitutionId()))
-                .putStaticValueIf(isNew,
+                .putStaticValue(
                         Domain.EXAM.ATTR_OWNER,
                         user.uuid)
                 .putStaticValueIf(isNotNew,
@@ -192,11 +190,48 @@ public class ExamForm implements TemplateComposer {
                         "sebserver.exam.form.type",
                         String.valueOf(exam.type),
                         this.resourceService::examTypeResources))
+                .addField(FormBuilder.multiComboSelection(
+                        Domain.EXAM.ATTR_SUPPORTER,
+                        "sebserver.exam.form.supporter",
+                        StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
+                        this.resourceService::examSupporterResources)
+                        .withCondition(isNotNew))
 
                 .buildFor(importFromQuizData
                         ? restService.getRestCall(ImportAsExam.class)
                         : restService.getRestCall(SaveExam.class));
 
+        // propagate content actions to action-pane
+        formContext.clearEntityKeys()
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA)
+
+                .createAction(ActionDefinition.EXAM_MODIFY)
+                .withEntityKey(entityKey)
+                .publishIf(() -> modifyGrant && readonly)
+
+                .createAction(ActionDefinition.EXAM_SAVE)
+                .withExec(formHandle::processFormSave)
+                .publishIf(() -> !readonly && modifyGrant)
+
+                .createAction(ActionDefinition.EXAM_CANCEL_MODIFY)
+                .withEntityKey(entityKey)
+                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, String.valueOf(importFromQuizData))
+                .withExec(ExamForm::cancelModify)
+                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .publishIf(() -> !readonly)
+
+                .createAction(ActionDefinition.EXAM_DEACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(restService::activation)
+                .withConfirm(PageUtils.confirmDeactivation(exam, restService))
+                .publishIf(() -> writeGrant && readonly && exam.isActive())
+
+                .createAction(ActionDefinition.EXAM_ACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(restService::activation)
+                .publishIf(() -> writeGrant && readonly && !exam.isActive());
+
+        // additional data in read-only view
         if (readonly) {
 
             // List of Indicators
@@ -227,24 +262,25 @@ public class ExamForm implements TemplateComposer {
 
                             .compose(content);
 
+            formContext.clearEntityKeys()
+                    .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA)
+
+                    .createAction(ActionDefinition.EXAM_INDICATOR_NEW)
+                    .withParentEntityKey(entityKey)
+                    .publishIf(() -> modifyGrant)
+
+                    .createAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
+                    .withSelect(indicatorTable::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
+
+                    .createAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
+                    .withSelect(indicatorTable::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
+
             // TODO List of attached SEB Configurations
 
         }
 
-        // propagate content actions to action-pane
-        formContext.clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA)
-
-                .createAction(ActionDefinition.EXAM_SAVE)
-                .withExec(formHandle::processFormSave)
-                .publishIf(() -> !readonly && modifyGrant)
-
-                .createAction(ActionDefinition.EXAM_CANCEL_MODIFY)
-                .withEntityKey(entityKey)
-                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, String.valueOf(importFromQuizData))
-                .withExec(ExamForm::cancelModify)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
-                .publishIf(() -> !readonly);
     }
 
     private Result<Exam> getExistingExam(final EntityKey entityKey, final RestService restService) {

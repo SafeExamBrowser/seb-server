@@ -57,25 +57,25 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
                 "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1", "Demo Quit Mockup",
-                "2020-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
+                "2020-01-01T09:00:00", "2021-01-01T09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz2", institutionId, lmsSetupId, lmsType, "Demo Quiz 2", "Demo Quit Mockup",
-                "2020-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
+                "2020-01-01T09:00:00", "2021-01-01T09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz3", institutionId, lmsSetupId, lmsType, "Demo Quiz 3", "Demo Quit Mockup",
-                "2018-07-30 09:00:00", "2018-08-01 00:00:00", "http://lms.mockup.com/api/"));
+                "2018-07-30T09:00:00", "2018-08-01T00:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz4", institutionId, lmsSetupId, lmsType, "Demo Quiz 4", "Demo Quit Mockup",
-                "2018-01-01 00:00:00", "2019-01-01 00:00:00", "http://lms.mockup.com/api/"));
+                "2018-01-01T00:00:00", "2019-01-01T00:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz5", institutionId, lmsSetupId, lmsType, "Demo Quiz 5", "Demo Quit Mockup",
-                "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
+                "2018-01-01T09:00:00", "2021-01-01T09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz6", institutionId, lmsSetupId, lmsType, "Demo Quiz 6", "Demo Quit Mockup",
-                "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
+                "2018-01-01T09:00:00", "2021-01-01T09:00:00", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz7", institutionId, lmsSetupId, lmsType, "Demo Quiz 7", "Demo Quit Mockup",
-                "2018-01-01 09:00:00", "2021-01-01 09:00:00", "http://lms.mockup.com/api/"));
+                "2018-01-01T09:00:00", "2021-01-01T09:00:00", "http://lms.mockup.com/api/"));
     }
 
     @Override

@@ -19,7 +19,8 @@ public interface Selection {
     enum Type {
         SINGLE,
         MULTI,
-        MULTI_COMBO
+        MULTI_COMBO,
+        COLOR,
     }
 
     Type type();
