@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -39,6 +41,7 @@ public class FormBuilder {
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
     final WidgetFactory widgetFactory;
+    final JSONMapper jsonMapper;
     private final PolyglotPageService polyglotPageService;
     public final PageContext pageContext;
     public final Composite formParent;
@@ -58,6 +61,7 @@ public class FormBuilder {
             final int rows) {
 
         this.widgetFactory = widgetFactory;
+        this.jsonMapper = jsonMapper;
         this.polyglotPageService = polyglotPageService;
         this.pageContext = pageContext;
         this.form = new Form(jsonMapper);
@@ -145,7 +149,7 @@ public class FormBuilder {
         return this;
     }
 
-    public FormBuilder addField(final FieldBuilder template) {
+    public FormBuilder addField(final FieldBuilder<?> template) {
         if (template.condition == null || template.condition.getAsBoolean()) {
             template.spanLabel = (template.spanLabel < 0) ? this.defaultSpanLabel : template.spanLabel;
             template.spanInput = (template.spanInput < 0) ? this.defaultSpanInput : template.spanInput;
@@ -222,6 +226,14 @@ public class FormBuilder {
             final String value) {
 
         return new SelectionFieldBuilder(Selection.Type.COLOR, name, label, value, null);
+    }
+
+    public static ThresholdListBuilder thresholdList(
+            final String name,
+            final String label,
+            final Collection<Threshold> value) {
+
+        return new ThresholdListBuilder(name, label, value);
     }
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final String label, final String value) {

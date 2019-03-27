@@ -212,6 +212,7 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && readonly && institutionActive && !userAccount.isActive())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
+                .withEntityKey(entityKey)
                 .withExec(action -> {
                     final Action postChanges = formHandle.processFormSave(action);
                     if (ownAccount) {

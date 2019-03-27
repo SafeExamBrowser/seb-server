@@ -44,6 +44,7 @@ public class ColorSelection extends Composite implements Selection {
         gridLayout.marginLeft = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
+        gridLayout.horizontalSpacing = 0;
         setLayout(gridLayout);
 
         this.colorDialog = new ColorDialog(this.getShell(), SWT.NONE);

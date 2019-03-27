@@ -36,17 +36,17 @@ public final class Constants {
             .forPattern(DEFAULT_DATE_TIME_FORMAT)
             .withZoneUTC();
 
-    /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
-    // TODO check if this works with DEFAULT_DATE_TIME_FORMAT
-    @Deprecated
-    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
-            .forPattern("yyyy-MM-dd HH:mm:ss")
-            .withZoneUTC();
-
-    /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
-    @Deprecated
-    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
-            .forPattern("yyyy-MM-dd HH:mm:ss.S")
-            .withZoneUTC();
+//    /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
+//    // TODO check if this works with DEFAULT_DATE_TIME_FORMAT
+//    @Deprecated
+//    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
+//            .forPattern("yyyy-MM-dd HH:mm:ss")
+//            .withZoneUTC();
+//
+//    /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
+//    @Deprecated
+//    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
+//            .forPattern("yyyy-MM-dd HH:mm:ss.S")
+//            .withZoneUTC();
 
 }

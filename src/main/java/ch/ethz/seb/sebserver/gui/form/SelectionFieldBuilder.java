@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
-public final class SelectionFieldBuilder extends FieldBuilder {
+public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     final Supplier<List<Tuple<String>>> itemsSupplier;
     Consumer<Form> selectionListener = null;

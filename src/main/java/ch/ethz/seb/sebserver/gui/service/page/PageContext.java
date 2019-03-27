@@ -155,7 +155,7 @@ public interface PageContext {
      * the specified page event type.
      *
      * @param event the concrete PageEvent instance */
-    <T extends PageEvent> void publishPageEvent(T event);
+    <T extends PageEvent> void firePageEvent(T event);
 
     Action createAction(ActionDefinition actionDefinition);
 

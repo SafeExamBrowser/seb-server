@@ -72,7 +72,7 @@ public final class Action implements Runnable {
         try {
 
             final Action executedAction = this.exec.apply(this);
-            this.pageContext.publishPageEvent(new ActionEvent(executedAction, false));
+            this.pageContext.firePageEvent(new ActionEvent(executedAction, false));
 
         } catch (final PageMessageException pme) {
             Action.this.pageContext.publishPageMessage(pme);
@@ -183,7 +183,7 @@ public final class Action implements Runnable {
     }
 
     public PageContext publish() {
-        this.pageContext.publishPageEvent(new ActionPublishEvent(this));
+        this.pageContext.firePageEvent(new ActionPublishEvent(this));
         return this.originalPageContext;
     }
 
@@ -233,7 +233,7 @@ public final class Action implements Runnable {
         if (action.getEntityKey() == null) {
             final PageContext pageContext = action.pageContext();
             final Action activityHomeAction = pageContext.createAction(action.definition.activityAlias);
-            action.pageContext.publishPageEvent(new ActionEvent(activityHomeAction, false));
+            action.pageContext.firePageEvent(new ActionEvent(activityHomeAction, false));
             return activityHomeAction;
         }
 

@@ -19,14 +19,12 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -36,7 +34,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -45,9 +42,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class IndicatorForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(IndicatorForm.class);
-
-    private final static LocTextKey listTitleKey =
-            new LocTextKey("sebserver.exam.indicator.thresholds.list.title");
 
     private final PageFormService pageFormService;
     private final ResourceService resourceService;
@@ -62,12 +56,8 @@ public class IndicatorForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
-        final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
-
-        final UserInfo user = currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean isNew = entityKey == null;
@@ -134,9 +124,13 @@ public class IndicatorForm implements TemplateComposer {
                         (indicator.type != null) ? indicator.type.name() : null,
                         this.resourceService::indicatorTypeResources))
                 .addField(FormBuilder.colorSelection(
-                        Domain.INDICATOR.ATTR_TYPE,
+                        Domain.INDICATOR.ATTR_COLOR,
                         "sebserver.exam.indicator.form.color",
                         indicator.defaultColor))
+                .addField(FormBuilder.thresholdList(
+                        Domain.THRESHOLD.REFERENCE_NAME,
+                        "sebserver.exam.indicator.form.thresholds",
+                        indicator.getThresholds()))
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)
                         : restService.getRestCall(SaveIndicator.class));
@@ -144,7 +138,7 @@ public class IndicatorForm implements TemplateComposer {
         // propagate content actions to action-pane
         formContext.clearEntityKeys()
                 .createAction(ActionDefinition.EXAM_INDICATOR_SAVE)
-                .withParentEntityKey(parentEntityKey)
+                .withEntityKey(parentEntityKey)
                 .withExec(formHandle::processFormSave)
                 .publishIf(() -> !isReadonly)
 

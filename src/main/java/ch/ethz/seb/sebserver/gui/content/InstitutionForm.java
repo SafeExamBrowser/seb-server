@@ -174,6 +174,7 @@ public class InstitutionForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && isReadonly && !institution.isActive())
 
                 .createAction(ActionDefinition.INSTITUTION_SAVE)
+                .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .publishIf(() -> !isReadonly)
 

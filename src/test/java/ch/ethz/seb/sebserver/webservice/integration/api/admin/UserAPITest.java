@@ -894,7 +894,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void deactivateUserAccount() throws Exception {
-        final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
         this.mockMvc.perform(post(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/user4/inactive")
@@ -957,7 +957,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void activateUserAccount() throws Exception {
-        final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        final String timeNow = DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
         // only a SEB Administrator or an Institutional administrator should be able to deactivate a user-account
         final String examAdminToken = getExamAdmin1();
         this.mockMvc.perform(post(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/user6/active")

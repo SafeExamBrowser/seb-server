@@ -66,13 +66,13 @@ public class LoginPage implements TemplateComposer {
         final Label name = this.widgetFactory.labelLocalized(loginGroup, "sebserver.login.username");
         name.setLayoutData(new GridData(300, -1));
         name.setAlignment(SWT.BOTTOM);
-        final Text loginName = new Text(loginGroup, SWT.LEFT | SWT.BORDER);
+        final Text loginName = this.widgetFactory.textInput(loginGroup);
         loginName.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         final Label pwd = this.widgetFactory.labelLocalized(loginGroup, "sebserver.login.pwd");
         pwd.setLayoutData(gridData);
-        final Text loginPassword = new Text(loginGroup, SWT.LEFT | SWT.PASSWORD | SWT.BORDER);
+        final Text loginPassword = this.widgetFactory.passwordInput(loginGroup);
         loginPassword.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 
         final Button button = this.widgetFactory.buttonLocalized(loginGroup, "sebserver.login.login");

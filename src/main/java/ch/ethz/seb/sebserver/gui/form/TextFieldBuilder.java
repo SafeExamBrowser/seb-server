@@ -13,9 +13,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public final class TextFieldBuilder extends FieldBuilder {
+public final class TextFieldBuilder extends FieldBuilder<String> {
 
     boolean isPassword = false;
+    boolean isNumber = false;
 
     TextFieldBuilder(final String name, final String label, final String value) {
         super(name, label, value);
@@ -23,6 +24,11 @@ public final class TextFieldBuilder extends FieldBuilder {
 
     public TextFieldBuilder asPasswordField() {
         this.isPassword = true;
+        return this;
+    }
+
+    public TextFieldBuilder asNumber() {
+        this.isNumber = true;
         return this;
     }
 
@@ -38,11 +44,11 @@ public final class TextFieldBuilder extends FieldBuilder {
                     builder.valueLabel(builder.formParent, this.value, this.spanInput));
             builder.setFieldVisible(this.visible, this.name);
         } else {
-            final Text textInput = new Text(builder.formParent, (this.isPassword)
-                    ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
-                    : SWT.LEFT | SWT.BORDER);
+            final Text textInput = (this.isNumber)
+                    ? builder.widgetFactory.numberInput(builder.formParent, null)
+                    : builder.widgetFactory.textInput(builder.formParent, this.isPassword);
+
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
-            gridData.heightHint = 15;
             textInput.setLayoutData(gridData);
             if (this.value != null) {
                 textInput.setText(this.value);

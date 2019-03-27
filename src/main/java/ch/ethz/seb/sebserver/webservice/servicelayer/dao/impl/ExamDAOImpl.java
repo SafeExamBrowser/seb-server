@@ -187,7 +187,7 @@ public class ExamDAOImpl implements ExamDAO {
                         BooleanUtils.toIntegerObject(exam.active));
 
                 this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
-                return this.examRecordMapper.selectByPrimaryKey(exam.id);
+                return this.examRecordMapper.selectByPrimaryKey(examRecord.getId());
             }
 
             final ExamRecord examRecord = new ExamRecord(

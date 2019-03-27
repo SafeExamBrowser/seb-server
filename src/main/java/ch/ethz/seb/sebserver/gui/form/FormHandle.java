@@ -82,17 +82,19 @@ public class FormHandle<T extends Entity> {
      * go to the read-only-view of the specified form to indicate a successful form post
      * or stay within the edit-mode of the form and indicate errors or field validation messages
      * to the user on error case.
-     * 
+     *
      * @param postResult The form post result
      * @param action the action that was applied with the form post
      * @return the new Action that was used to stay on page or go the read-only-view of the form */
     public Action handleFormPost(final Result<T> postResult, final Action action) {
         return postResult
                 .map(result -> {
-                    final Action resultAction = action.createNew()
-                            .withAttribute(AttributeKeys.READ_ONLY, "true")
-                            .withEntityKey(result.getEntityKey());
-                    action.pageContext().publishPageEvent(new ActionEvent(resultAction, false));
+                    Action resultAction = action.createNew()
+                            .withAttribute(AttributeKeys.READ_ONLY, "true");
+                    if (resultAction.getEntityKey() == null) {
+                        resultAction = resultAction.withEntityKey(result.getEntityKey());
+                    }
+                    action.pageContext().firePageEvent(new ActionEvent(resultAction, false));
                     return resultAction;
                 })
                 .onErrorDo(this::handleError)

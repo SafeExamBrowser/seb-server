@@ -200,6 +200,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && readonly && institutionActive && !lmsSetup.isActive())
 
                 .createAction(ActionDefinition.LMS_SETUP_SAVE)
+                .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .publishIf(() -> !readonly)
 

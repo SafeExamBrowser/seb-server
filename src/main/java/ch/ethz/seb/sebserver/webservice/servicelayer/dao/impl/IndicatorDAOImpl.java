@@ -12,6 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
@@ -217,6 +219,10 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
+            return Collections.emptySet();
+        }
+
         final Set<EntityKey> examEntities = (bulkAction.sourceType == EntityType.EXAM)
                 ? bulkAction.sources
                 : bulkAction.extractKeys(EntityType.EXAM);

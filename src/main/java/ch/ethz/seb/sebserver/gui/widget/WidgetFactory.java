@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.*;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -30,6 +31,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -242,6 +245,35 @@ public class WidgetFactory {
         return labelLocalized;
     }
 
+    public Text textInput(final Composite content) {
+        return textInput(content, false);
+    }
+
+    public Text passwordInput(final Composite content) {
+        return textInput(content, true);
+    }
+
+    public Text textInput(final Composite content, final boolean password) {
+        return new Text(content, (password)
+                ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
+                : SWT.LEFT | SWT.BORDER);
+    }
+
+    public Text numberInput(final Composite content, final Consumer<String> numberCheck) {
+        final Text numberInput = new Text(content, SWT.RIGHT | SWT.BORDER);
+        if (numberCheck != null) {
+            numberInput.addListener(SWT.Verify, event -> {
+                final String value = event.text;
+                try {
+                    numberCheck.accept(value);
+                } catch (final Exception e) {
+                    event.doit = false;
+                }
+            });
+        }
+        return numberInput;
+    }
+
     public Tree treeLocalized(final Composite parent, final int style) {
         final Tree tree = new Tree(parent, style);
         this.injectI18n(tree);
@@ -341,6 +373,14 @@ public class WidgetFactory {
             updateFunction.accept(selection);
         }
         return selection;
+    }
+
+    public ThresholdList thresholdList(final Composite parent, final Collection<Threshold> values) {
+        final ThresholdList thresholdList = new ThresholdList(parent, this);
+        if (values != null) {
+            thresholdList.setThresholds(values);
+        }
+        return thresholdList;
     }
 
     public ImageUpload imageUploadLocalized(

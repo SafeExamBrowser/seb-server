@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,10 +31,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
+import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 
 public final class Form implements FormBinding {
 
@@ -69,7 +72,7 @@ public final class Form implements FormBinding {
         for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
             entry.getValue()
                     .stream()
-                    .forEach(ffa -> appendFormUrlEncodedValue(buffer, entry.getKey(), ffa.getValue()));
+                    .forEach(ffa -> appendFormUrlEncodedValue(buffer, entry.getKey(), ffa.getStringValue()));
         }
 
         return buffer.toString();
@@ -103,6 +106,10 @@ public final class Form implements FormBinding {
     }
 
     public void putField(final String name, final Label label, final Selection field) {
+        this.formFields.add(name, createAccessor(label, field));
+    }
+
+    public void putField(final String name, final Label label, final ThresholdList field) {
         this.formFields.add(name, createAccessor(label, field));
     }
 
@@ -174,7 +181,7 @@ public final class Form implements FormBinding {
         for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
             entry.getValue()
                     .stream()
-                    .filter(ffa -> StringUtils.isNoneBlank(ffa.getValue()))
+                    .filter(ffa -> StringUtils.isNoneBlank(ffa.getStringValue()))
                     .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
     }
@@ -183,14 +190,12 @@ public final class Form implements FormBinding {
     //@formatter:off
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
         return new FormFieldAccessor(label, field) {
-            @Override public String getValue() { return null; }
-            @Override public void setValue(final String value) { field.setText(value); }
+            @Override public String getStringValue() { return null; }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Text text) {
         return new FormFieldAccessor(label, text) {
-            @Override public String getValue() { return text.getText(); }
-            @Override public void setValue(final String value) { text.setText(value); }
+            @Override public String getStringValue() { return text.getText(); }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Selection selection) {
@@ -207,14 +212,30 @@ public final class Form implements FormBinding {
             final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
 
         return new FormFieldAccessor(label, selection.adaptToControl(), jsonValueAdapter) {
-            @Override public String getValue() { return selection.getSelectionValue(); }
-            @Override public void setValue(final String value) { selection.select(value); }
+            @Override public String getStringValue() { return selection.getSelectionValue(); }
+        };
+    }
+    private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList) {
+        return new FormFieldAccessor(label, thresholdList) {
+            @Override public String getStringValue() {
+                return ThresholdListBuilder
+                        .thresholdsToFormURLEncodedStringValue(thresholdList.getThresholds());
+            }
+            @Override
+            public void putJsonValue(final String key, final ObjectNode objectRoot) {
+                final Collection<Threshold> thresholds = thresholdList.getThresholds();
+                if (thresholds == null || thresholds.isEmpty()) {
+                    return;
+                }
+
+                final ArrayNode array = Form.this.jsonMapper.valueToTree(thresholds);
+                objectRoot.putArray(key).addAll(array);
+            }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload) {
         return new FormFieldAccessor(label, imageUpload) {
-            @Override public String getValue() { return imageUpload.getImageBase64(); }
-            @Override public void setValue(final String value) { imageUpload.setImageBase64(value); }
+            @Override public String getStringValue() { return imageUpload.getImageBase64(); }
         };
     }
     //@formatter:on
@@ -224,23 +245,38 @@ public final class Form implements FormBinding {
      * Checks first if the value String is a comma separated list. If true, splits values
      * and adds every value within the same name mapping to the string buffer
      */
-    private void appendFormUrlEncodedValue(final StringBuffer buffer, final String name, final String value) {
+    private static void appendFormUrlEncodedValue(final StringBuffer buffer, final String name, final String value) {
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
+
         final String[] split = StringUtils.split(value, Constants.LIST_SEPARATOR_CHAR);
-        if (split != null) {
-            for (int i = 0; i < split.length; i++) {
-                if (StringUtils.isNoneBlank(split[i])) {
-                    if (buffer.length() > 0) {
-                        buffer.append(Constants.FORM_URL_ENCODED_SEPARATOR);
-                    }
-                    buffer.append(name)
-                            .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                            .append(split[i]);
-                }
+        for (int i = 0; i < split.length; i++) {
+            if (StringUtils.isBlank(split[i])) {
+                continue;
+            }
+
+            if (buffer.length() > 0) {
+                buffer.append(Constants.FORM_URL_ENCODED_SEPARATOR);
+            }
+
+            // check of the string value is a name-value pair. If true, use the specified name an value
+            // otherwise use the general name given within this method call and
+            if (split[i].contains(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)) {
+                final String[] nameValue = StringUtils.split(split[i], Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+                buffer.append(nameValue[0])
+                        .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                        .append(nameValue[1]);
+            } else {
+                buffer.append(name)
+                        .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                        .append(split[i]);
             }
         }
     }
 
-    private static final void adaptCommaSeparatedStringToJsonArray(final Tuple<String> tuple,
+    private static final void adaptCommaSeparatedStringToJsonArray(
+            final Tuple<String> tuple,
             final ObjectNode jsonNode) {
         if (StringUtils.isNoneBlank(tuple._2)) {
             final ArrayNode arrayNode = jsonNode.putArray(tuple._1);
@@ -280,17 +316,15 @@ public final class Form implements FormBinding {
             }
         }
 
-        public abstract String getValue();
-
-        public abstract void setValue(String value);
+        public abstract String getStringValue();
 
         public void setVisible(final boolean visible) {
             this.label.setVisible(visible);
             this.control.setVisible(visible);
         }
 
-        public final void putJsonValue(final String key, final ObjectNode objectRoot) {
-            this.jsonValueAdapter.accept(new Tuple<>(key, getValue()), objectRoot);
+        public void putJsonValue(final String key, final ObjectNode objectRoot) {
+            this.jsonValueAdapter.accept(new Tuple<>(key, getStringValue()), objectRoot);
         }
 
         public void setError(final String errorTooltip) {

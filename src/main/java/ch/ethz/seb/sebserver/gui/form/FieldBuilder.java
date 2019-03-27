@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class FieldBuilder {
+public abstract class FieldBuilder<T> {
     int spanLabel = -1;
     int spanInput = -1;
     int spanEmptyCell = -1;
@@ -22,55 +22,55 @@ public abstract class FieldBuilder {
 
     final String name;
     final String label;
-    final String value;
+    final T value;
 
-    protected FieldBuilder(final String name, final String label, final String value) {
+    protected FieldBuilder(final String name, final String label, final T value) {
         this.name = name;
         this.label = label;
         this.value = value;
     }
 
-    public FieldBuilder withLabelSpan(final int span) {
+    public FieldBuilder<T> withLabelSpan(final int span) {
         this.spanLabel = span;
         return this;
     }
 
-    public FieldBuilder withInputSpan(final int span) {
+    public FieldBuilder<T> withInputSpan(final int span) {
         this.spanInput = span;
         return this;
     }
 
-    public FieldBuilder withEmptyCellSpan(final int span) {
+    public FieldBuilder<T> withEmptyCellSpan(final int span) {
         this.spanEmptyCell = span;
         return this;
     }
 
-    public FieldBuilder withEmptyCellSeparation(final boolean separation) {
+    public FieldBuilder<T> withEmptyCellSeparation(final boolean separation) {
         this.autoEmptyCellSeparation = separation;
         return this;
     }
 
-    public FieldBuilder withGroup(final String group) {
+    public FieldBuilder<T> withGroup(final String group) {
         this.group = group;
         return this;
     }
 
-    public FieldBuilder withCondition(final BooleanSupplier condition) {
+    public FieldBuilder<T> withCondition(final BooleanSupplier condition) {
         this.condition = condition;
         return this;
     }
 
-    public FieldBuilder readonly(final boolean readonly) {
+    public FieldBuilder<T> readonly(final boolean readonly) {
         this.readonly = readonly;
         return this;
     }
 
-    public FieldBuilder visibleIf(final boolean visible) {
+    public FieldBuilder<T> visibleIf(final boolean visible) {
         this.visible = visible;
         return this;
     }
 
-    public FieldBuilder readonlyIf(final BooleanSupplier readonly) {
+    public FieldBuilder<T> readonlyIf(final BooleanSupplier readonly) {
         this.readonly = readonly != null && readonly.getAsBoolean();
         return this;
     }

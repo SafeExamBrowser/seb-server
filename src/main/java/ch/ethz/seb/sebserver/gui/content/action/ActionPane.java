@@ -175,7 +175,15 @@ public class ActionPane implements TemplateComposer {
         new ArrayList<>(this.actionTrees.entrySet())
                 .stream()
                 .forEach(entry -> {
-                    if (entry.getValue().isDisposed()) {
+                    final Control c = entry.getValue();
+                    // of tree is already disposed.. remove it
+                    if (c.isDisposed()) {
+                        this.actionTrees.remove(entry.getKey());
+                    }
+                    // check access from current thread
+                    try {
+                        c.getBounds();
+                    } catch (final Exception e) {
                         this.actionTrees.remove(entry.getKey());
                     }
                 });

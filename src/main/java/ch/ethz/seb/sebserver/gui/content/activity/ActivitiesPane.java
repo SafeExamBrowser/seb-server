@@ -162,7 +162,7 @@ public class ActivitiesPane implements TemplateComposer {
         if (mainPageState.action == null) {
             mainPageState.action = getActivitySelection(navigation.getItem(0));
         }
-        pageContext.publishPageEvent(
+        pageContext.firePageEvent(
                 new ActionEvent(mainPageState.action, false));
         navigation.select(navigation.getItem(0));
 
@@ -177,7 +177,7 @@ public class ActivitiesPane implements TemplateComposer {
         final Action action = getActivitySelection(treeItem);
         if (mainPageState.action.definition != action.definition) {
             mainPageState.action = action;
-            composerCtx.publishPageEvent(
+            composerCtx.firePageEvent(
                     new ActionEvent(action, true));
         }
     }

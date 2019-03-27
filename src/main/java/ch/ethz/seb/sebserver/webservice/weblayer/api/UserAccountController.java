@@ -109,34 +109,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                         .collect(Collectors.toList()));
     }
 
-    private UserInfo checkPasswordChange(final UserInfo info, final PasswordChange passwordChange) {
-        final SEBServerUser currentUser = this.userDAO.sebServerUserByUsername(this.authorization
-                .getUserService()
-                .getCurrentUser().getUsername())
-                .getOrThrow();
-
-        if (!this.userPasswordEncoder.matches(passwordChange.getPassword(), currentUser.getPassword())) {
-
-            throw new APIMessageException(APIMessage.fieldValidationError(
-                    new FieldError(
-                            "passwordChange",
-                            PasswordChange.ATTR_NAME_PASSWORD,
-                            "user:oldPassword:password.wrong")));
-        }
-
-        if (!passwordChange.newPasswordMatch()) {
-
-            throw new APIMessageException(APIMessage.fieldValidationError(
-                    new FieldError(
-                            "passwordChange",
-                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                            "user:retypedNewPassword:password.mismatch")));
-        }
-
-        return info;
-
-    }
-
     @Override
     protected Result<UserMod> validForCreate(final UserMod userInfo) {
         return super.validForCreate(userInfo)
@@ -219,4 +191,31 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         });
     }
 
+    private UserInfo checkPasswordChange(final UserInfo info, final PasswordChange passwordChange) {
+        final SEBServerUser currentUser = this.userDAO.sebServerUserByUsername(this.authorization
+                .getUserService()
+                .getCurrentUser().getUsername())
+                .getOrThrow();
+
+        if (!this.userPasswordEncoder.matches(passwordChange.getPassword(), currentUser.getPassword())) {
+
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            "passwordChange",
+                            PasswordChange.ATTR_NAME_PASSWORD,
+                            "user:oldPassword:password.wrong")));
+        }
+
+        if (!passwordChange.newPasswordMatch()) {
+
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            "passwordChange",
+                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                            "user:retypedNewPassword:password.mismatch")));
+        }
+
+        return info;
+
+    }
 }

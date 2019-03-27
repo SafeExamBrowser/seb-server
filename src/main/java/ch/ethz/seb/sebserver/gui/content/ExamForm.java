@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
@@ -113,6 +114,7 @@ public class ExamForm implements TemplateComposer {
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
+
         // the default page layout with title
         final LocTextKey titleKey = new LocTextKey(
                 importFromQuizData
@@ -270,17 +272,28 @@ public class ExamForm implements TemplateComposer {
                     .publishIf(() -> modifyGrant)
 
                     .createAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
+                    .withParentEntityKey(entityKey)
                     .withSelect(indicatorTable::getSelection, Action::applySingleSelection, emptySelectionTextKey)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
 
                     .createAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
-                    .withSelect(indicatorTable::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                    .withEntityKey(entityKey)
+                    .withSelect(indicatorTable::getSelection, this::deleteSelectedIndicator, emptySelectionTextKey)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
 
             // TODO List of attached SEB Configurations
 
         }
 
+    }
+
+    private Action deleteSelectedIndicator(final Action action) {
+        final EntityKey indicatorKey = action.getSingleSelection();
+        this.resourceService.getRestService()
+                .getBuilder(DeleteIndicator.class)
+                .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
+                .call();
+        return action;
     }
 
     private Result<Exam> getExistingExam(final EntityKey entityKey, final RestService restService) {
@@ -330,7 +343,7 @@ public class ExamForm implements TemplateComposer {
         if (importFromQuizData) {
             final PageContext pageContext = action.pageContext();
             final Action activityHomeAction = pageContext.createAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST);
-            action.pageContext().publishPageEvent(new ActionEvent(activityHomeAction, false));
+            action.pageContext().firePageEvent(new ActionEvent(activityHomeAction, false));
             return activityHomeAction;
         }
 

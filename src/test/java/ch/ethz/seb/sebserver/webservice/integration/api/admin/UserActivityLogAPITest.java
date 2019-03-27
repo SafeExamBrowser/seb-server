@@ -72,12 +72,12 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void getAllAsSEBAdminInTimeRange() throws Exception {
-        final DateTime zeroDate = DateTime.parse("1970-01-01 00:00:00", Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        final DateTime zeroDate = DateTime.parse("1970-01-01T00:00:00Z", Constants.STANDARD_DATE_TIME_FORMATTER);
         assertEquals("0", String.valueOf(zeroDate.getMillis()));
-        final String sec2 = zeroDate.plus(1000).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
-        final String sec4 = zeroDate.plus(4000).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
-        final String sec5 = zeroDate.plus(5000).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
-        final String sec6 = zeroDate.plus(6000).toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+        final String sec2 = zeroDate.plus(1000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
+        final String sec4 = zeroDate.plus(4000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
+        final String sec5 = zeroDate.plus(5000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
+        final String sec6 = zeroDate.plus(6000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
 
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(

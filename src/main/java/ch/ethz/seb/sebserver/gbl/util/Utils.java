@@ -113,7 +113,7 @@ public final class Utils {
 
     public static Result<Long> dateTimeStringToTimestamp(final String startTime) {
         return Result.tryCatch(() -> {
-            return DateTime.parse(startTime, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS).getMillis();
+            return DateTime.parse(startTime, Constants.STANDARD_DATE_TIME_FORMATTER).getMillis();
         });
     }
 
@@ -143,11 +143,7 @@ public final class Utils {
             return null;
         }
 
-        if (dateString.contains(".")) {
-            return DateTime.parse(dateString, Constants.DATE_TIME_PATTERN_UTC_MILLIS);
-        } else {
-            return DateTime.parse(dateString, Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
-        }
+        return DateTime.parse(dateString, Constants.STANDARD_DATE_TIME_FORMATTER);
     }
 
     public static Long toMilliSeconds(final String dateString) {

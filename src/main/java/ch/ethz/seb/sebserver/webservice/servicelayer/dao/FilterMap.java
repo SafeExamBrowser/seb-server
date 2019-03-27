@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -21,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.JodaTimeTypeResolver;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** A Map containing various filter criteria from a certain API request.
  * This is used as a data object that can be used to collect API request parameter
@@ -76,27 +75,15 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getQuizFromTime() {
-        final String value = getString(QuizData.FILTER_ATTR_START_TIME);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return JodaTimeTypeResolver.getDateTime(value);
+        return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
     }
 
     public DateTime getExamFromTime() {
-        final String value = getString(Exam.FILTER_ATTR_FROM);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return JodaTimeTypeResolver.getDateTime(value);
+        return Utils.toDateTime(getString(Exam.FILTER_ATTR_FROM));
     }
 
     public DateTime getSebClientConfigFromTime() {
-        final String value = getString(SebClientConfig.FILTER_ATTR_FROM);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return JodaTimeTypeResolver.getDateTime(value);
+        return Utils.toDateTime(getString(SebClientConfig.FILTER_ATTR_FROM));
     }
 
     public Long getLmsSetupId() {

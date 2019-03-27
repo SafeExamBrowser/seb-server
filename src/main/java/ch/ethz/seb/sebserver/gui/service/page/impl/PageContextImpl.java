@@ -219,7 +219,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends PageEvent> void publishPageEvent(final T event) {
+    public <T extends PageEvent> void firePageEvent(final T event) {
         final Class<? extends PageEvent> typeClass = event.getClass();
         final List<PageEventListener<T>> listeners = new ArrayList<>();
         ComposerService.traversePageTree(

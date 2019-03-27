@@ -229,7 +229,7 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent build(final Composite parent) {
-            this.textInput = new Text(parent, SWT.LEFT | SWT.BORDER);
+            this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(parent, false);
             this.textInput.setLayoutData(this.rowData);
             return this;
         }
@@ -321,7 +321,7 @@ public class TableFilter<ROW extends Entity> {
                         .withMonthOfYear(this.selector.getMonth())
                         .withDayOfMonth(this.selector.getDay());
 
-                return date.toString(Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+                return date.toString(Constants.STANDARD_DATE_TIME_FORMATTER);
             } else {
                 return null;
             }

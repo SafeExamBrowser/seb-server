@@ -21,16 +21,25 @@ import org.apache.ibatis.type.JdbcType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ch.ethz.seb.sebserver.gbl.Constants;
 
 /** Joda DateTime resolver for MyBatis TIMESTAMP to DateTime conversion and vis versa. This is used to convert MyBatis
  * TIMESTAMP type to Joda-Time's DateTime
  *
  * NOTE: The TIMESTAMP is always stored and read in UTC time-zone. */
 public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
+
+    static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
+            .forPattern("yyyy-MM-dd HH:mm:ss")
+            .withZoneUTC();
+
+    /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
+    static final DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
+            .forPattern("yyyy-MM-dd HH:mm:ss.S")
+            .withZoneUTC();
 
     private static final Logger log = LoggerFactory.getLogger(JodaTimeTypeResolver.class);
 
@@ -68,7 +77,7 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
             return getDateTime(supplier.get());
         } catch (final Exception e) {
             log.error("while trying to parse LocalDateTime; value: " + dateFormattedString + " format: "
-                    + Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS, e);
+                    + DATE_TIME_PATTERN_UTC_NO_MILLIS, e);
             throw new RuntimeException("Failed to parse date-time from SQL string: " + dateFormattedString, e);
         }
     }
@@ -87,7 +96,7 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
         // NOTE: This create a DateTime in UTC time.zone with no time-zone-offset.
         final LocalDateTime localDateTime = LocalDateTime.parse(
                 dateFormattedString,
-                Constants.DATE_TIME_PATTERN_UTC_NO_MILLIS);
+                DATE_TIME_PATTERN_UTC_NO_MILLIS);
         final DateTime dateTime = localDateTime.toDateTime(DateTimeZone.UTC);
 
         return dateTime;

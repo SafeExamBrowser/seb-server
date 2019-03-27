@@ -47,7 +47,9 @@ public class MultiSelectionCombo extends Composite implements Selection {
     private final List<Tuple<Control>> selectionControls = new ArrayList<>();
     private final List<Tuple<String>> selectedValues = new ArrayList<>();
     private final Map<String, String> mapping = new HashMap<>();
-    //private final List<Tuple<String>> mapping = new ArrayList<>();
+
+    private final GridData comboCell;
+    private final GridData actionCell;
 
     MultiSelectionCombo(final Composite parent, final WidgetFactory widgetFactory) {
         super(parent, SWT.NONE);
@@ -57,22 +59,23 @@ public class MultiSelectionCombo extends Composite implements Selection {
         gridLayout.marginLeft = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
+        gridLayout.horizontalSpacing = 0;
         setLayout(gridLayout);
 
         this.addListener(SWT.Resize, this::adaptColumnWidth);
 
         this.combo = new Combo(this, SWT.NONE);
-        final GridData comboCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        this.combo.setLayoutData(comboCell);
+        this.comboCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        this.combo.setLayoutData(this.comboCell);
 
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
                 new LocTextKey("Add"),
                 this::addComboSelection);
-        final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-        actionCell.widthHint = ACTION_COLUMN_WIDTH;
-        imageButton.setLayoutData(actionCell);
+        this.actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        this.actionCell.widthHint = ACTION_COLUMN_WIDTH;
+        imageButton.setLayoutData(this.actionCell);
     }
 
     @Override
@@ -205,8 +208,7 @@ public class MultiSelectionCombo extends Composite implements Selection {
     private void adaptColumnWidth(final Event event) {
         try {
             final int currentTableWidth = this.getClientArea().width;
-            final GridData comboCell = (GridData) this.combo.getLayoutData();
-            comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH;
+            this.comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH;
             this.layout();
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
