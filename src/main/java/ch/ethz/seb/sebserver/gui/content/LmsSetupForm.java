@@ -33,11 +33,11 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
@@ -206,21 +206,21 @@ public class LmsSetupForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(Action::onEmptyEntityKeyGoToActivityHome)
+                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
     }
 
     /** Save and test connection before activation */
-    private Action activate(final Action action, final FormHandle<LmsSetup> formHandle) {
+    private PageAction activate(final PageAction action, final FormHandle<LmsSetup> formHandle) {
         final RestService restService = this.resourceService.getRestService();
-        final Action testLmsSetup = this.testLmsSetup(action, formHandle);
-        final Action activation = restService.activation(testLmsSetup);
+        final PageAction testLmsSetup = this.testLmsSetup(action, formHandle);
+        final PageAction activation = restService.activation(testLmsSetup);
         return activation;
     }
 
     /** LmsSetup test action implementation */
-    private Action testLmsSetup(final Action action, final FormHandle<LmsSetup> formHandle) {
+    private PageAction testLmsSetup(final PageAction action, final FormHandle<LmsSetup> formHandle) {
         // If we are in edit-mode we have to save the form before testing
         if (!action.pageContext().isReadonly()) {
             final Result<LmsSetup> postResult = formHandle.doAPIPost();

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -18,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -43,7 +45,7 @@ public class TableBuilder<ROW extends Entity> {
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     final List<TableRowAction> actions = new ArrayList<>();
     LocTextKey emptyMessage;
-
+    private Function<EntityTable<ROW>, PageAction> defaultActionFunction;
     private int pageSize = -1;
     private int type = SWT.NONE;
 
@@ -90,6 +92,16 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withDefaultAction(final PageAction action) {
+        this.defaultActionFunction = table -> action;
+        return this;
+    }
+
+    public TableBuilder<ROW> withDefaultAction(final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
+        this.defaultActionFunction = defaultActionFunction;
+        return this;
+    }
+
     public EntityTable<ROW> compose(final Composite parent) {
         return new EntityTable<>(
                 this.type,
@@ -99,7 +111,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.columns,
                 this.actions,
                 this.pageSize,
-                this.emptyMessage);
+                this.emptyMessage,
+                this.defaultActionFunction);
     }
 
 }

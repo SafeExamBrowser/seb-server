@@ -116,7 +116,9 @@ public class WidgetFactory {
         SELECTION_READONLY("selectionReadonly"),
 
         FOOTER("footer"),
-        TITLE_LABEL("head")
+        TITLE_LABEL("head"),
+
+        MESSAGE("message")
 
         ;
 
@@ -253,6 +255,10 @@ public class WidgetFactory {
         return textInput(content, true);
     }
 
+    public Text textAreaInput(final Composite content) {
+        return new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+    }
+
     public Text textInput(final Composite content, final boolean password) {
         return new Text(content, (password)
                 ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
@@ -326,6 +332,8 @@ public class WidgetFactory {
 
     public Label labelSeparator(final Composite parent) {
         final Label label = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+        final GridData data = new GridData(SWT.FILL, SWT.TOP, true, true);
+        label.setLayoutData(data);
         return label;
     }
 

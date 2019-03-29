@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.page.action;
+package ch.ethz.seb.sebserver.gui.service.page;
 
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -20,16 +20,14 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
-public final class Action implements Runnable {
+public final class PageAction implements Runnable {
 
-    private static final Logger log = LoggerFactory.getLogger(Action.class);
+    private static final Logger log = LoggerFactory.getLogger(PageAction.class);
 
     public final ActionDefinition definition;
     Supplier<LocTextKey> confirm;
@@ -40,9 +38,11 @@ public final class Action implements Runnable {
 
     private final PageContext originalPageContext;
     private PageContext pageContext;
-    private Function<Action, Action> exec = Function.identity();
+    private Function<PageAction, PageAction> exec = Function.identity();
 
-    public Action(
+    private boolean fireActionEvent = true;
+
+    public PageAction(
             final ActionDefinition definition,
             final PageContext pageContext) {
 
@@ -71,44 +71,46 @@ public final class Action implements Runnable {
     private void exec() {
         try {
 
-            final Action executedAction = this.exec.apply(this);
-            this.pageContext.firePageEvent(new ActionEvent(executedAction, false));
+            final PageAction executedAction = this.exec.apply(this);
+            if (this.fireActionEvent) {
+                this.pageContext.firePageEvent(new ActionEvent(executedAction, false));
+            }
 
         } catch (final PageMessageException pme) {
-            Action.this.pageContext.publishPageMessage(pme);
+            PageAction.this.pageContext.publishPageMessage(pme);
 
         } catch (final RestCallError restCallError) {
             if (restCallError.isFieldValidationError()) {
-                Action.this.pageContext.publishPageMessage(
+                PageAction.this.pageContext.publishPageMessage(
                         new LocTextKey("sebserver.form.validation.error.title"),
                         new LocTextKey("sebserver.form.validation.error.message"));
             } else {
-                log.error("Failed to execute action: {}", Action.this, restCallError);
-                Action.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
+                log.error("Failed to execute action: {}", PageAction.this, restCallError);
+                PageAction.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
             }
         } catch (final Throwable t) {
-            log.error("Failed to execute action: {}", Action.this, t);
-            Action.this.pageContext.notifyError("action.error.unexpected.message", t);
+            log.error("Failed to execute action: {}", PageAction.this, t);
+            PageAction.this.pageContext.notifyError("action.error.unexpected.message", t);
         }
     }
 
-    public Action createNew() {
+    public PageAction createNew() {
         return this.pageContext.createAction(this.definition);
     }
 
-    public Action withExec(final Function<Action, Action> exec) {
+    public PageAction withExec(final Function<PageAction, PageAction> exec) {
         this.exec = exec;
         return this;
     }
 
-    public Action withSelectionSupplier(final Supplier<Set<EntityKey>> selectionSupplier) {
+    public PageAction withSelectionSupplier(final Supplier<Set<EntityKey>> selectionSupplier) {
         this.selectionSupplier = selectionSupplier;
         return this;
     }
 
-    public Action withSelect(
+    public PageAction withSelect(
             final Supplier<Set<EntityKey>> selectionSupplier,
-            final Function<Action, Action> exec,
+            final Function<PageAction, PageAction> exec,
             final LocTextKey noSelectionMessage) {
 
         this.selectionSupplier = selectionSupplier;
@@ -117,27 +119,32 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action withConfirm(final String confirmationMessageKey) {
+    public PageAction withConfirm(final String confirmationMessageKey) {
         this.confirm = () -> new LocTextKey(confirmationMessageKey);
         return this;
     }
 
-    public Action withConfirm(final Supplier<LocTextKey> confirm) {
+    public PageAction withConfirm(final Supplier<LocTextKey> confirm) {
         this.confirm = confirm;
         return this;
     }
 
-    public Action withSuccess(final String successMessageKey) {
+    public PageAction withSuccess(final String successMessageKey) {
         this.successMessage = new LocTextKey(successMessageKey);
         return this;
     }
 
-    public Action resetEntityKey() {
+    public PageAction resetEntityKey() {
         this.pageContext = this.pageContext.withEntityKey(null);
         return this;
     }
 
-    public Action resetParentEntityKey() {
+    public PageAction noEventPropagation() {
+        this.fireActionEvent = false;
+        return this;
+    }
+
+    public PageAction resetParentEntityKey() {
         this.pageContext = this.pageContext.withParentEntityKey(null);
         return this;
     }
@@ -150,12 +157,12 @@ public final class Action implements Runnable {
         return this.pageContext;
     }
 
-    public Action withEntityKey(final EntityKey entityKey) {
+    public PageAction withEntityKey(final EntityKey entityKey) {
         this.pageContext = this.pageContext.withEntityKey(entityKey);
         return this;
     }
 
-    public Action withEntityKey(final Long modelId, final EntityType entityType) {
+    public PageAction withEntityKey(final Long modelId, final EntityType entityType) {
         if (modelId != null) {
             return withEntityKey(String.valueOf(modelId), entityType);
         }
@@ -163,7 +170,7 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action withEntityKey(final String modelId, final EntityType entityType) {
+    public PageAction withEntityKey(final String modelId, final EntityType entityType) {
         if (modelId == null || entityType == null) {
             return this;
         }
@@ -172,12 +179,12 @@ public final class Action implements Runnable {
         return this;
     }
 
-    public Action withParentEntityKey(final EntityKey entityKey) {
+    public PageAction withParentEntityKey(final EntityKey entityKey) {
         this.pageContext = this.pageContext.withParentEntityKey(entityKey);
         return this;
     }
 
-    public Action withAttribute(final String name, final String value) {
+    public PageAction withAttribute(final String name, final String value) {
         this.pageContext = this.pageContext.withAttribute(name, value);
         return this;
     }
@@ -225,14 +232,14 @@ public final class Action implements Runnable {
         return null;
     }
 
-    public static Action applySingleSelection(final Action action) {
+    public static PageAction applySingleSelection(final PageAction action) {
         return action.withEntityKey(action.getSingleSelection());
     }
 
-    public static Action onEmptyEntityKeyGoToActivityHome(final Action action) {
+    public static PageAction onEmptyEntityKeyGoToActivityHome(final PageAction action) {
         if (action.getEntityKey() == null) {
             final PageContext pageContext = action.pageContext();
-            final Action activityHomeAction = pageContext.createAction(action.definition.activityAlias);
+            final PageAction activityHomeAction = pageContext.createAction(action.definition.activityAlias);
             action.pageContext.firePageEvent(new ActionEvent(activityHomeAction, false));
             return activityHomeAction;
         }

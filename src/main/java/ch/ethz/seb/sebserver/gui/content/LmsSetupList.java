@@ -25,9 +25,9 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -43,6 +43,26 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class LmsSetupList implements TemplateComposer {
 
+    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.info.pleaseSelect");
+    private static final LocTextKey ACTIVITY_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.column.active");
+    private static final LocTextKey TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.column.type");
+    private static final LocTextKey NAME_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.column.name");
+    private static final LocTextKey INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.column.institution");
+    private static final LocTextKey EMPTY_LIST_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.empty");
+    private static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.list.title");
+
+    private final TableFilterAttribute institutionFilter;
+    private final TableFilterAttribute nameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute typeFilter;
+
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -55,6 +75,16 @@ public class LmsSetupList implements TemplateComposer {
         this.widgetFactory = widgetFactory;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
+
+        this.institutionFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
+
+        this.typeFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Domain.LMS_SETUP.ATTR_LMS_TYPE,
+                this.resourceService::lmsTypeResources);
     }
 
     @Override
@@ -65,65 +95,58 @@ public class LmsSetupList implements TemplateComposer {
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                new LocTextKey("sebserver.lmssetup.list.title"));
+                TITLE_TEXT_KEY);
 
         final boolean isSEBAdmin = currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
 
         // table
+
         final EntityTable<LmsSetup> table =
                 this.widgetFactory.entityTableBuilder(restService.getRestCall(GetLmsSetups.class))
-                        .withEmptyMessage(new LocTextKey("sebserver.lmssetup.list.empty"))
+                        .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(() -> isSEBAdmin,
                                 new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
-                                        new LocTextKey("sebserver.lmssetup.list.column.institution"),
+                                        INSTITUTION_TEXT_KEY,
                                         lmsSetupInstitutionNameFunction(this.resourceService),
-                                        new TableFilterAttribute(
-                                                CriteriaType.SINGLE_SELECTION,
-                                                Entity.FILTER_ATTR_INSTITUTION,
-                                                this.resourceService::institutionResource),
+                                        this.institutionFilter,
                                         false))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_NAME,
-                                new LocTextKey("sebserver.lmssetup.list.column.name"),
+                                NAME_TEXT_KEY,
                                 entity -> entity.name,
-                                (isSEBAdmin)
-                                        ? new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME)
-                                        : null,
+                                (isSEBAdmin) ? this.nameFilter : null,
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_LMS_TYPE,
-                                new LocTextKey("sebserver.lmssetup.list.column.type"),
+                                TYPE_TEXT_KEY,
                                 this::lmsSetupTypeName,
-                                (isSEBAdmin)
-                                        ? new TableFilterAttribute(
-                                                CriteriaType.SINGLE_SELECTION,
-                                                Domain.LMS_SETUP.ATTR_LMS_TYPE,
-                                                this.resourceService::lmsTypeResources)
-                                        : null,
+                                (isSEBAdmin) ? this.typeFilter : null,
                                 false, true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_ACTIVE,
-                                new LocTextKey("sebserver.lmssetup.list.column.active"),
+                                ACTIVITY_TEXT_KEY,
                                 entity -> entity.active,
                                 true))
+                        .withDefaultAction(pageContext
+                                .clearEntityKeys()
+                                .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST))
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
-        final LocTextKey emptySelectionText = new LocTextKey("sebserver.lmssetup.info.pleaseSelect");
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.LMS_SETUP_NEW)
                 .publishIf(userGrant::iw)
 
                 .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }

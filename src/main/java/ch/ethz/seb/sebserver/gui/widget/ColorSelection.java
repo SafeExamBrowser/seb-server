@@ -127,9 +127,9 @@ public class ColorSelection extends Composite implements Selection {
             return null;
         }
 
-        return Integer.toHexString(color.red)
-                + Integer.toHexString(color.green)
-                + Integer.toHexString(color.blue);
+        return toColorFractionString(color.red)
+                + toColorFractionString(color.green)
+                + toColorFractionString(color.blue);
     }
 
     static RGB parseRGB(final String colorString) {
@@ -142,6 +142,11 @@ public class ColorSelection extends Composite implements Selection {
         final int b = Integer.parseInt(colorString.substring(4, 6), 16);
 
         return new RGB(r, g, b);
+    }
+
+    static String toColorFractionString(final int fraction) {
+        final String hexString = Integer.toHexString(fraction);
+        return (hexString.length() < 2) ? "0" + hexString : hexString;
     }
 
 }

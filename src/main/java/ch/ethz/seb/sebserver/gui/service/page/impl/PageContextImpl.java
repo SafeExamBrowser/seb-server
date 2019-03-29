@@ -32,11 +32,11 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.widget.Message;
@@ -237,12 +237,18 @@ public class PageContextImpl implements PageContext {
 
         listeners.stream()
                 .sorted(LIST_COMPARATOR)
-                .forEach(listener -> listener.notify(event));
+                .forEach(listener -> {
+                    try {
+                        listener.notify(event);
+                    } catch (final Exception e) {
+                        log.error("Unexpected error while notify PageEventListener: ", e);
+                    }
+                });
     }
 
     @Override
-    public Action createAction(final ActionDefinition actionDefinition) {
-        return new Action(actionDefinition, this);
+    public PageAction createAction(final ActionDefinition actionDefinition) {
+        return new PageAction(actionDefinition, this);
     }
 
     @Override

@@ -26,9 +26,9 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
@@ -144,7 +144,7 @@ public class IndicatorForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)
                 .withEntityKey(parentEntityKey)
-                .withExec(Action::onEmptyEntityKeyGoToActivityHome)
+                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !isReadonly);
 

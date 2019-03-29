@@ -251,6 +251,10 @@ public enum ActionDefinition {
     QUIZ_DISCOVERY_VIEW_LIST(
             new LocTextKey("sebserver.quizdiscovery.action.list"),
             QuizDiscoveryList.class),
+    QUIZ_DISCOVERY_SHOW_DETAILS(
+            new LocTextKey("sebserver.quizdiscovery.action.details"),
+            ImageIcon.SHOW,
+            ActionCategory.QUIZ_LIST),
     QUIZ_DISCOVERY_EXAM_IMPORT(
             new LocTextKey("sebserver.quizdiscovery.action.import"),
             ImageIcon.IMPORT,
@@ -380,6 +384,14 @@ public enum ActionDefinition {
             final ActionDefinition activityAlias) {
 
         this(title, null, contentPaneComposer, ActionPane.class, null, activityAlias, null, null);
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final ActionCategory category) {
+
+        this(title, icon, null, ActionPane.class, null, null, category, null);
     }
 
     private ActionDefinition(

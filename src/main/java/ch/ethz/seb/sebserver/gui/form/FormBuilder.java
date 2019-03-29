@@ -71,7 +71,7 @@ public class FormBuilder {
         layout.horizontalSpacing = 10;
         layout.verticalSpacing = 10;
         layout.marginLeft = 10;
-        layout.marginTop = 10;
+        layout.marginTop = 0;
         this.formParent.setLayout(layout);
         this.formParent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     }
@@ -167,6 +167,10 @@ public class FormBuilder {
             }
         }
         return this;
+    }
+
+    public <T extends Entity> FormHandle<T> build() {
+        return buildFor(null);
     }
 
     public <T extends Entity> FormHandle<T> buildFor(

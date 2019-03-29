@@ -28,9 +28,9 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -59,6 +59,13 @@ public class ExamList implements TemplateComposer {
     private final static LocTextKey columnTitleTypeKey =
             new LocTextKey("sebserver.exam.list.column.type");
 
+    private final TableFilterAttribute institutionFilter;
+    private final TableFilterAttribute lmsFilter;
+    private final TableFilterAttribute nameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+    private final TableFilterAttribute startTimeFilter =
+            new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
+
     protected ExamList(
             final WidgetFactory widgetFactory,
             final ResourceService resourceService,
@@ -67,6 +74,16 @@ public class ExamList implements TemplateComposer {
         this.widgetFactory = widgetFactory;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
+
+        this.institutionFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
+
+        this.lmsFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                LmsSetup.FILTER_ATTR_LMS_SETUP,
+                this.resourceService::lmsSetupResource);
     }
 
     @Override
@@ -92,25 +109,19 @@ public class ExamList implements TemplateComposer {
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         new LocTextKey("sebserver.exam.list.column.institution"),
                                         examInstitutionNameFunction(this.resourceService),
-                                        new TableFilterAttribute(
-                                                CriteriaType.SINGLE_SELECTION,
-                                                Entity.FILTER_ATTR_INSTITUTION,
-                                                this.resourceService::institutionResource),
+                                        this.institutionFilter,
                                         false))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
                                 columnTitleLmsSetupKey,
                                 examLmsSetupNameFunction(this.resourceService),
-                                new TableFilterAttribute(
-                                        CriteriaType.SINGLE_SELECTION,
-                                        LmsSetup.FILTER_ATTR_LMS_SETUP,
-                                        this.resourceService::lmsSetupResource),
+                                this.lmsFilter,
                                 false))
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 columnTitleNameKey,
                                 Exam::getName,
-                                new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME),
+                                this.nameFilter,
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
@@ -118,32 +129,31 @@ public class ExamList implements TemplateComposer {
                                         "sebserver.exam.list.column.starttime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime,
-                                new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME),
+                                this.startTimeFilter,
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 columnTitleTypeKey,
                                 this::examTypeName,
                                 true))
+                        .withDefaultAction(pageContext
+                                .clearEntityKeys()
+                                .createAction(ActionDefinition.EXAM_VIEW_FROM_LIST))
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         pageContext.clearEntityKeys()
 
-//                .createAction(ActionDefinition.TEST_ACTION)
-//                .withExec(this::testModalInput)
-//                .publish()
-
                 .createAction(ActionDefinition.EXAM_IMPORT)
                 .publishIf(userGrant::im)
 
                 .createAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                 .publishIf(table::hasAnyContent)
 
                 .createAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }
@@ -166,30 +176,5 @@ public class ExamList implements TemplateComposer {
         return this.resourceService.getI18nSupport()
                 .getText("sebserver.exam.type." + exam.type.name());
     }
-
-//    private Action testModalInput(final Action action) {
-//        final ModalInputDialog<String> dialog = new ModalInputDialog<>(
-//                action.pageContext().getParent().getShell(),
-//                this.widgetFactory);
-//
-//        dialog.open(
-//                "Test Input Dialog",
-//                action.pageContext(),
-//                value -> {
-//                    System.out.println("********************** value: " + value);
-//                },
-//                pc -> {
-//                    final Composite parent = pc.getParent();
-//                    final Label label = new Label(parent, SWT.NONE);
-//                    label.setText("Please Enter:");
-//                    label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//
-//                    final Text text = new Text(parent, SWT.LEFT | SWT.BORDER);
-//                    text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//                    return () -> text.getText();
-//                });
-//
-//        return action;
-//    }
 
 }

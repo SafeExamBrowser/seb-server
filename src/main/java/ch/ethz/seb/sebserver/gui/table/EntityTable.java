@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
@@ -77,7 +79,8 @@ public class EntityTable<ROW extends Entity> {
             final List<ColumnDefinition<ROW>> columns,
             final List<TableRowAction> actions,
             final int pageSize,
-            final LocTextKey emptyMessage) {
+            final LocTextKey emptyMessage,
+            final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
 
         this.composite = new Composite(parent, type);
         this.widgetFactory = widgetFactory;
@@ -123,6 +126,20 @@ public class EntityTable<ROW extends Entity> {
 
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
+
+        if (defaultActionFunction != null) {
+            final PageAction defaultAction = defaultActionFunction.apply(this);
+            if (defaultAction != null) {
+                this.table.addListener(SWT.MouseDoubleClick, event -> {
+                    final EntityKey selection = getSingleSelection();
+                    if (selection != null) {
+                        defaultAction
+                                .withEntityKey(selection)
+                                .run();
+                    }
+                });
+            }
+        }
 
         this.navigator = new TableNavigator(this);
 

@@ -8,15 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 
 /** This action is used to publish an Action to the Action-Pane for a specified context.
  * The ActionPane is listening to this events and render specified actions on notify */
 public class ActionPublishEvent implements PageEvent {
 
-    public final Action action;
+    public final PageAction action;
 
-    public ActionPublishEvent(final Action action) {
+    public ActionPublishEvent(final PageAction action) {
         this.action = action;
     }
 

@@ -17,6 +17,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     boolean isPassword = false;
     boolean isNumber = false;
+    boolean isArea = false;
 
     TextFieldBuilder(final String name, final String label, final String value) {
         super(name, label, value);
@@ -29,6 +30,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     public TextFieldBuilder asNumber() {
         this.isNumber = true;
+        return this;
+    }
+
+    public TextFieldBuilder asArea() {
+        this.isArea = true;
         return this;
     }
 
@@ -46,7 +52,9 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         } else {
             final Text textInput = (this.isNumber)
                     ? builder.widgetFactory.numberInput(builder.formParent, null)
-                    : builder.widgetFactory.textInput(builder.formParent, this.isPassword);
+                    : (this.isArea)
+                            ? builder.widgetFactory.textAreaInput(builder.formParent)
+                            : builder.widgetFactory.textInput(builder.formParent, this.isPassword);
 
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
             textInput.setLayoutData(gridData);

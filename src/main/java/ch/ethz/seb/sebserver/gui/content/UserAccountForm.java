@@ -34,10 +34,10 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -214,7 +214,7 @@ public class UserAccountForm implements TemplateComposer {
                 .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
-                    final Action postChanges = formHandle.processFormSave(action);
+                    final PageAction postChanges = formHandle.processFormSave(action);
                     if (ownAccount) {
                         currentUser.refresh();
                         pageContext.forwardToMainPage();
@@ -225,7 +225,7 @@ public class UserAccountForm implements TemplateComposer {
 
                 .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(Action::onEmptyEntityKeyGoToActivityHome)
+                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
                 .withConfirm("sebserver.overall.action.modify.cancel.confirm")
                 .publishIf(() -> !readonly);
     }

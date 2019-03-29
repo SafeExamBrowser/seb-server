@@ -28,9 +28,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
@@ -160,7 +160,7 @@ public class ActionPane implements TemplateComposer {
         actions.addListener(SWT.Selection, event -> {
             final TreeItem treeItem = (TreeItem) event.item;
 
-            final Action action = (Action) treeItem.getData(ACTION_EVENT_CALL_KEY);
+            final PageAction action = (PageAction) treeItem.getData(ACTION_EVENT_CALL_KEY);
             action.run();
 
             if (!treeItem.isDisposed()) {

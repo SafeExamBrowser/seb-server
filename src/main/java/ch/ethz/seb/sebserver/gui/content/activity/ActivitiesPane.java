@@ -24,10 +24,10 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
@@ -174,7 +174,7 @@ public class ActivitiesPane implements TemplateComposer {
         System.out.println("selected: " + treeItem);
 
         final MainPageState mainPageState = MainPageState.get();
-        final Action action = getActivitySelection(treeItem);
+        final PageAction action = getActivitySelection(treeItem);
         if (mainPageState.action.definition != action.definition) {
             mainPageState.action = action;
             composerCtx.firePageEvent(
@@ -192,7 +192,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         for (final TreeItem item : items) {
-            final Action action = getActivitySelection(item);
+            final PageAction action = getActivitySelection(item);
             if (action == null) {
                 continue;
             }
@@ -225,11 +225,11 @@ public class ActivitiesPane implements TemplateComposer {
         expand(item.getParentItem());
     }
 
-    public static Action getActivitySelection(final TreeItem item) {
-        return (Action) item.getData(ATTR_ACTIVITY_SELECTION);
+    public static PageAction getActivitySelection(final TreeItem item) {
+        return (PageAction) item.getData(ATTR_ACTIVITY_SELECTION);
     }
 
-    public static void injectActivitySelection(final TreeItem item, final Action action) {
+    public static void injectActivitySelection(final TreeItem item, final PageAction action) {
         item.setData(ATTR_ACTIVITY_SELECTION, action);
     }
 

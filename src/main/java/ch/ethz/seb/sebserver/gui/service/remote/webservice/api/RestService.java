@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 
 /** Interface to SEB Server webservice API thought RestCall's
@@ -77,6 +77,6 @@ public interface RestService {
      *
      * @param action the Action that defines an entity activation
      * @return the successfully executed Action */
-    <T> Action activation(Action action);
+    <T> PageAction activation(PageAction action);
 
 }

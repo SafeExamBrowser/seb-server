@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
 /** Holds a page-context and defines some convenient functionality for page handling */
@@ -157,7 +156,7 @@ public interface PageContext {
      * @param event the concrete PageEvent instance */
     <T extends PageEvent> void firePageEvent(T event);
 
-    Action createAction(ActionDefinition actionDefinition);
+    PageAction createAction(ActionDefinition actionDefinition);
 
     /** Apply a confirm dialog with a specified confirm message and a callback code
      * block that will be executed on users OK selection.

@@ -19,10 +19,10 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.form.Form.FormFieldAccessor;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
@@ -57,7 +57,7 @@ public class FormHandle<T extends Entity> {
      *
      * @param action the save action context
      * @return the new Action context for read-only-view */
-    public final Action processFormSave(final Action action) {
+    public final PageAction processFormSave(final PageAction action) {
         return handleFormPost(doAPIPost(), action);
     }
 
@@ -86,10 +86,10 @@ public class FormHandle<T extends Entity> {
      * @param postResult The form post result
      * @param action the action that was applied with the form post
      * @return the new Action that was used to stay on page or go the read-only-view of the form */
-    public Action handleFormPost(final Result<T> postResult, final Action action) {
+    public PageAction handleFormPost(final Result<T> postResult, final PageAction action) {
         return postResult
                 .map(result -> {
-                    Action resultAction = action.createNew()
+                    PageAction resultAction = action.createNew()
                             .withAttribute(AttributeKeys.READ_ONLY, "true");
                     if (resultAction.getEntityKey() == null) {
                         resultAction = resultAction.withEntityKey(result.getEntityKey());

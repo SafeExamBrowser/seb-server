@@ -35,11 +35,11 @@ import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
@@ -176,6 +176,7 @@ public class ExamForm implements TemplateComposer {
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         "sebserver.exam.form.description",
                         exam.description)
+                        .asArea()
                         .readonly(true))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
@@ -273,7 +274,7 @@ public class ExamForm implements TemplateComposer {
 
                     .createAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
-                    .withSelect(indicatorTable::getSelection, Action::applySingleSelection, emptySelectionTextKey)
+                    .withSelect(indicatorTable::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
 
                     .createAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
@@ -287,7 +288,7 @@ public class ExamForm implements TemplateComposer {
 
     }
 
-    private Action deleteSelectedIndicator(final Action action) {
+    private PageAction deleteSelectedIndicator(final PageAction action) {
         final EntityKey indicatorKey = action.getSingleSelection();
         this.resourceService.getRestService()
                 .getBuilder(DeleteIndicator.class)
@@ -337,17 +338,17 @@ public class ExamForm implements TemplateComposer {
                 .toString();
     }
 
-    public static Action cancelModify(final Action action) {
+    public static PageAction cancelModify(final PageAction action) {
         final boolean importFromQuizData = BooleanUtils.toBoolean(
                 action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
         if (importFromQuizData) {
             final PageContext pageContext = action.pageContext();
-            final Action activityHomeAction = pageContext.createAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST);
+            final PageAction activityHomeAction = pageContext.createAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST);
             action.pageContext().firePageEvent(new ActionEvent(activityHomeAction, false));
             return activityHomeAction;
         }
 
-        return Action.onEmptyEntityKeyGoToActivityHome(action);
+        return PageAction.onEmptyEntityKeyGoToActivityHome(action);
     }
 
 }

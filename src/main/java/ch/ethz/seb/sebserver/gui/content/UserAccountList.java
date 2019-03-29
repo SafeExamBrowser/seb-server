@@ -26,9 +26,9 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccounts;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -44,6 +44,35 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class UserAccountList implements TemplateComposer {
 
+    // localized text keys
+    private static final LocTextKey INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.institution");
+    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.info.pleaseSelect");
+    private static final LocTextKey ACTIVE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.active");
+    private static final LocTextKey LANG_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.language");
+    private static final LocTextKey MAIL_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.email");
+    private static final LocTextKey USER_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.username");
+    private static final LocTextKey NAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.name");
+    private static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.title");
+
+    // filter attribute models
+    private final TableFilterAttribute institutionFilter;
+    private final TableFilterAttribute nameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute usernameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_USER_NAME);
+    private final TableFilterAttribute mailFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_EMAIL);
+    private final TableFilterAttribute languageFilter;
+
+    // dependencies
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -56,6 +85,16 @@ public class UserAccountList implements TemplateComposer {
         this.widgetFactory = widgetFactory;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
+
+        this.institutionFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
+
+        this.languageFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                UserInfo.FILTER_ATTR_LANGUAGE,
+                this.resourceService::languageResources);
     }
 
     @Override
@@ -65,73 +104,70 @@ public class UserAccountList implements TemplateComposer {
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                new LocTextKey("sebserver.useraccount.list.title"));
+                TITLE_TEXT_KEY);
 
         final BooleanSupplier isSEBAdmin = () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
 
         // table
-        final EntityTable<UserInfo> table =
-                this.widgetFactory.entityTableBuilder(restService.getRestCall(GetUserAccounts.class))
-                        .withEmptyMessage(new LocTextKey("sebserver.useraccount.list.empty"))
-                        .withPaging(this.pageSize)
-                        .withColumnIf(isSEBAdmin,
-                                new ColumnDefinition<>(
-                                        Domain.USER.ATTR_INSTITUTION_ID,
-                                        new LocTextKey("sebserver.useraccount.list.column.institution"),
-                                        userInstitutionNameFunction(this.resourceService),
-                                        new TableFilterAttribute(
-                                                CriteriaType.SINGLE_SELECTION,
-                                                Entity.FILTER_ATTR_INSTITUTION,
-                                                this.resourceService::institutionResource),
-                                        false))
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_NAME,
-                                new LocTextKey("sebserver.useraccount.list.column.name"),
-                                entity -> entity.name,
-                                new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME),
-                                true))
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_USERNAME,
-                                new LocTextKey("sebserver.useraccount.list.column.username"),
-                                entity -> entity.username,
-                                new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_USER_NAME),
-                                true))
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_EMAIL,
-                                new LocTextKey("sebserver.useraccount.list.column.email"),
-                                entity -> entity.email,
-                                new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_EMAIL),
-                                true))
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_LANGUAGE,
-                                new LocTextKey("sebserver.useraccount.list.column.language"),
-                                this::getLocaleDisplayText,
-                                new TableFilterAttribute(
-                                        CriteriaType.SINGLE_SELECTION,
-                                        UserInfo.FILTER_ATTR_LANGUAGE,
-                                        this.resourceService::languageResources),
-                                true, true))
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.USER.ATTR_ACTIVE,
-                                new LocTextKey("sebserver.useraccount.list.column.active"),
-                                entity -> entity.active,
-                                true))
-                        .compose(content);
+        final EntityTable<UserInfo> table = this.widgetFactory.entityTableBuilder(
+                restService.getRestCall(GetUserAccounts.class))
+
+                .withEmptyMessage(new LocTextKey("sebserver.useraccount.list.empty"))
+                .withPaging(this.pageSize)
+                .withColumnIf(isSEBAdmin,
+                        new ColumnDefinition<>(
+                                Domain.USER.ATTR_INSTITUTION_ID,
+                                INSTITUTION_TEXT_KEY,
+                                userInstitutionNameFunction(this.resourceService),
+                                this.institutionFilter,
+                                false))
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_NAME,
+                        NAME_TEXT_KEY,
+                        entity -> entity.name,
+                        this.nameFilter,
+                        true))
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_USERNAME,
+                        USER_NAME_TEXT_KEY,
+                        entity -> entity.username,
+                        this.usernameFilter,
+                        true))
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_EMAIL,
+                        MAIL_TEXT_KEY,
+                        entity -> entity.email,
+                        this.mailFilter,
+                        true))
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_LANGUAGE,
+                        LANG_TEXT_KEY,
+                        this::getLocaleDisplayText,
+                        this.languageFilter,
+                        true, true))
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_ACTIVE,
+                        ACTIVE_TEXT_KEY,
+                        entity -> entity.active,
+                        true))
+                .withDefaultAction(pageContext
+                        .clearEntityKeys()
+                        .createAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST))
+                .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.USER);
-        final LocTextKey emptySelectionText = new LocTextKey("sebserver.useraccount.info.pleaseSelect");
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .publishIf(userGrant::iw)
 
                 .createAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
     }
 

@@ -91,7 +91,9 @@ public class ComposerServiceImpl implements ComposerService {
             final Class<? extends TemplateComposer> composerType,
             final PageContext pageContext) {
 
-        compose(composerType.getName(), pageContext);
+        if (composerType != null && pageContext != null) {
+            compose(composerType.getName(), pageContext);
+        }
     }
 
     @Override

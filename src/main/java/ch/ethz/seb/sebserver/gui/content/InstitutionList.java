@@ -18,9 +18,9 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutions;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -33,6 +33,19 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class InstitutionList implements TemplateComposer {
+
+    private static final LocTextKey EMPTY_LIST_TEXT_KEY =
+            new LocTextKey("sebserver.institution.list.empty");
+    private static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.institution.list.title");
+    private static final LocTextKey NAME_TEXT_KEY =
+            new LocTextKey("sebserver.institution.list.column.name");
+    private static final LocTextKey URL_TEXT_KEY =
+            new LocTextKey("sebserver.institution.list.column.urlSuffix");
+    private static final LocTextKey ACTIVE_TEXT_KEY =
+            new LocTextKey("sebserver.institution.list.column.active");
+    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.institution.info.pleaseSelect");
 
     private final WidgetFactory widgetFactory;
     private final RestService restService;
@@ -52,34 +65,36 @@ public class InstitutionList implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                new LocTextKey("sebserver.institution.list.title"));
+                TITLE_TEXT_KEY);
 
         // table
         final EntityTable<Institution> table =
                 this.widgetFactory.entityTableBuilder(this.restService.getRestCall(GetInstitutions.class))
-                        .withEmptyMessage(new LocTextKey("sebserver.institution.list.empty"))
+                        .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(3)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_NAME,
-                                new LocTextKey("sebserver.institution.list.column.name"),
+                                NAME_TEXT_KEY,
                                 entity -> entity.name,
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_URL_SUFFIX,
-                                new LocTextKey("sebserver.institution.list.column.urlSuffix"),
+                                URL_TEXT_KEY,
                                 entity -> entity.urlSuffix,
                                 true))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_ACTIVE,
-                                new LocTextKey("sebserver.institution.list.column.active"),
+                                ACTIVE_TEXT_KEY,
                                 entity -> entity.active,
                                 true))
+                        .withDefaultAction(pageContext
+                                .clearEntityKeys()
+                                .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST))
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);
         final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
-        final LocTextKey emptySelectionText = new LocTextKey("sebserver.institution.info.pleaseSelect");
         pageContext.clearEntityKeys()
 
                 .createAction(ActionDefinition.INSTITUTION_NEW)
@@ -89,11 +104,11 @@ public class InstitutionList implements TemplateComposer {
                 .publishIf(userGrant::w)
 
                 .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, Action::applySingleSelection, emptySelectionText)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
         ;
 

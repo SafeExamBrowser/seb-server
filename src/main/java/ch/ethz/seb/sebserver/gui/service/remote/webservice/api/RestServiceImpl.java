@@ -21,8 +21,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.action.Action;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
@@ -114,7 +114,7 @@ public class RestServiceImpl implements RestService {
     }
 
     @Override
-    public <T> Action activation(final Action action) {
+    public <T> PageAction activation(final PageAction action) {
         if (action.definition.restCallType == null) {
             throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
         }
