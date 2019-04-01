@@ -56,6 +56,10 @@ public class TableNavigator {
             return pageData;
         }
 
+        if (this.entityTable.hideNavigation) {
+            return pageData;
+        }
+
         final int pageNumber = pageData.getPageNumber();
         final int numberOfPages = pageData.getNumberOfPages();
 

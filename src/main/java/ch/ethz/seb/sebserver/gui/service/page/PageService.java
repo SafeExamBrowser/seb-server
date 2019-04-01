@@ -59,8 +59,9 @@ public interface PageService {
      * @return the JSONMapper for parse, read and write JSON */
     JSONMapper getJSONMapper();
 
-    PageState initPageState(PageState initState);
-
+    /** Get the PageState of the current user.
+     *
+     * @return PageState of the current user. */
     PageState getCurrentState();
 
     /** Publishes a given PageEvent to the current page tree
@@ -70,24 +71,54 @@ public interface PageService {
      * @param event the concrete PageEvent instance */
     <T extends PageEvent> void firePageEvent(T event, PageContext pageContext);
 
+    /** Executes the given PageAction and if successful, propagate an ActionEvent to the current page.
+     *
+     * @param pageAction the PageAction to execute */
     default void executePageAction(final PageAction pageAction) {
         executePageAction(pageAction, result -> {
         });
     }
 
+    /** Executes the given PageAction and if successful, propagate an ActionEvent to the current page.
+     *
+     * @param pageAction the PageAction to execute
+     * @param callback a callback to react on PageAction execution. The Callback gets a Result referencing to
+     *            the executed PageAction or to an error if the PageAction has not been executed */
     void executePageAction(PageAction pageAction, Consumer<Result<PageAction>> callback);
 
+    /** Publishes a PageAction to the current page. This uses the firePageEvent form
+     * PageContext of the given PageAction and fires a ActionPublishEvent for the given PageAction
+     *
+     * All ActionPublishEventListeners that are registered within the current page will
+     * receive the ActionPublishEvent sent by this.
+     *
+     * @param pageAction the PageAction to publish */
     void publishAction(final PageAction pageAction);
 
+    /** Get a new FormBuilder for the given PageContext and with number of rows.
+     *
+     * @param pageContext the PageContext on that the FormBuilder should work
+     * @param rows the number of rows of the from
+     * @return a FormBuilder instance for the given PageContext and with number of rows */
     FormBuilder formBuilder(final PageContext pageContext, final int rows);
 
+    /** Get an new TableBuilder for specified page based RestCall.
+     *
+     * @param apiCall the SEB Server API RestCall that feeds the table with data
+     * @param <T> the type of the Entity of the table
+     * @return TableBuilder of specified type */
     <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall);
 
-    void clear();
-
+    /** Get a new PageActionBuilder for a given PageContext.
+     *
+     * @param pageContext the PageContext that is used by the new PageActionBuilder
+     * @return new PageActionBuilder to build PageAction */
     default PageActionBuilder pageActionBuilder(final PageContext pageContext) {
         return new PageActionBuilder(this, pageContext);
     }
+
+    /** Clears the PageState of the current users page */
+    void clearState();
 
     default PageAction onEmptyEntityKeyGoTo(final PageAction action, final ActionDefinition gotoActionDef) {
         if (action.getEntityKey() == null) {

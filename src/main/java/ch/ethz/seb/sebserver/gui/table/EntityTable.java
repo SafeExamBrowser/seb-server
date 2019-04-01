@@ -67,11 +67,12 @@ public class EntityTable<ROW extends Entity> {
     private final Table table;
     private final TableNavigator navigator;
 
-    private int pageNumber = 1;
-    private int pageSize;
-    private String sortColumn = null;
-    private SortOrder sortOrder = SortOrder.ASCENDING;
-    private boolean columnsWithSameWidth = true;
+    int pageNumber = 1;
+    int pageSize;
+    String sortColumn = null;
+    SortOrder sortOrder = SortOrder.ASCENDING;
+    boolean columnsWithSameWidth = true;
+    boolean hideNavigation = false;
 
     EntityTable(
             final int type,
@@ -93,6 +94,7 @@ public class EntityTable<ROW extends Entity> {
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
         this.emptyMessage = emptyMessage;
+        this.hideNavigation = hideNavigation;
 
         final GridLayout layout = new GridLayout();
         layout.horizontalSpacing = 0;
@@ -144,7 +146,7 @@ public class EntityTable<ROW extends Entity> {
             }
         }
 
-        this.navigator = (hideNavigation) ? null : new TableNavigator(this);
+        this.navigator = new TableNavigator(this);
 
         createTableColumns();
         updateTableRows(
@@ -288,9 +290,7 @@ public class EntityTable<ROW extends Entity> {
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
                 .call()
                 .map(this::createTableRowsFromPage)
-                .map(pageData -> (this.navigator != null)
-                        ? this.navigator.update(pageData)
-                        : pageData)
+                .map(this.navigator::update)
                 .onErrorDo(t -> {
                     // TODO error handling
                 });

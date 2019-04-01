@@ -190,7 +190,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(action -> this.testLmsSetup(action, formHandle))
                 .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && institutionActive)
+                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && !readonly)
 
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)

@@ -140,7 +140,7 @@ public class DefaultPageLayout implements TemplateComposer {
                     // TODO error handling
                 }
 
-                this.pageStateService.clear();
+                this.pageStateService.clearState();
 
                 // forward to login page with success message
                 pageContext.forwardToLoginPage();

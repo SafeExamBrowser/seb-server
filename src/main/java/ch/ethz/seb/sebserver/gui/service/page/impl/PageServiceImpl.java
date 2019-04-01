@@ -92,12 +92,6 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageState initPageState(final PageState initState) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public PageState getCurrentState() {
         try {
 
@@ -206,7 +200,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public void clear() {
+    public void clearState() {
         try {
 
             final HttpSession httpSession = RWT
