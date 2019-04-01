@@ -111,7 +111,11 @@ public interface LmsAPIService {
                 end = quizzes.size();
             }
 
-            return new Page<>(quizzes.size() / pageSize, pageNumber, sortAttribute, quizzes.subList(start, end));
+            return new Page<>(
+                    (quizzes.size() / pageSize) + 1,
+                    pageNumber,
+                    sortAttribute,
+                    quizzes.subList(start, end));
         };
     }
 

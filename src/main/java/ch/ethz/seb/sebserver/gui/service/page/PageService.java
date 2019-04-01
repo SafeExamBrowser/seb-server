@@ -180,9 +180,9 @@ public interface PageService {
             return this;
         }
 
-        public PageActionBuilder withSimpleRestCall(
+        public <T> PageActionBuilder withSimpleRestCall(
                 final RestService restService,
-                final Class<? extends RestCall<?>> restCallType) {
+                final Class<? extends RestCall<T>> restCallType) {
 
             this.exec = action -> {
                 restService.getBuilder(restCallType)

@@ -25,6 +25,9 @@ import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class POSTMapper {
@@ -149,6 +152,24 @@ public class POSTMapper {
         }
 
         return Utils.toDateTime(value);
+    }
+
+    public List<Threshold> getThresholds() {
+        final List<String> thresholdStrings = this.params.get(Domain.THRESHOLD.REFERENCE_NAME);
+        if (thresholdStrings == null || thresholdStrings.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return thresholdStrings.stream()
+                .map(ts -> {
+                    try {
+                        final String[] split = StringUtils.split(ts, Constants.EMBEDDED_LIST_SEPARATOR);
+                        return new Threshold(Double.parseDouble(split[0]), split[1]);
+                    } catch (final Exception e) {
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")

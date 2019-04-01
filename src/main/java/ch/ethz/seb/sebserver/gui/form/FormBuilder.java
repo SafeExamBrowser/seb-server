@@ -65,6 +65,7 @@ public class FormBuilder {
         final GridLayout layout = new GridLayout(rows, true);
         layout.horizontalSpacing = 10;
         layout.verticalSpacing = 10;
+        layout.marginBottom = 50;
         layout.marginLeft = 10;
         layout.marginTop = 0;
         this.formParent.setLayout(layout);

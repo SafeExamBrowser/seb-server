@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
@@ -93,7 +92,7 @@ public final class Indicator implements GrantEntity {
         this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
         this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
         this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
-        this.thresholds = Collections.emptyList();
+        this.thresholds = postParams.getThresholds();
     }
 
     @Override

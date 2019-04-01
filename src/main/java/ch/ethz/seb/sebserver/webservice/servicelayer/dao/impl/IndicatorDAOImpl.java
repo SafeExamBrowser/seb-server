@@ -170,6 +170,17 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     modified.defaultColor);
 
             this.indicatorRecordMapper.insert(newRecord);
+
+            // insert thresholds
+            modified.thresholds
+                    .stream()
+                    .map(threshold -> new ThresholdRecord(
+                            null,
+                            newRecord.getId(),
+                            new BigDecimal(threshold.value),
+                            threshold.color))
+                    .forEach(this.thresholdRecordMapper::insert);
+
             return newRecord;
         })
                 .flatMap(this::toDomainModel)

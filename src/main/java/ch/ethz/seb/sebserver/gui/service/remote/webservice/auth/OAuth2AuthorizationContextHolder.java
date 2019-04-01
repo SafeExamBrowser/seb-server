@@ -205,8 +205,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             log.debug("Trying to login for user: {}", username);
 
             try {
-                final OAuth2AccessToken accessToken = this.restTemplate.getAccessToken();
-                log.debug("Got token for user: {} : {}", username, "--");
+                this.restTemplate.getAccessToken();
+                log.debug("Got token for user: {}", username);
                 this.loggedInUser = getLoggedInUser();
                 return true;
             } catch (final OAuth2AccessDeniedException | AccessDeniedException e) {

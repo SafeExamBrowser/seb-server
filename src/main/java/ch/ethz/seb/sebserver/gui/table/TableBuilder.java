@@ -48,6 +48,7 @@ public class TableBuilder<ROW extends Entity> {
     private Function<EntityTable<ROW>, PageAction> defaultActionFunction;
     private int pageSize = -1;
     private int type = SWT.NONE;
+    private boolean hideNavigation = false;
 
     public TableBuilder(
             final PageService pageService,
@@ -55,6 +56,11 @@ public class TableBuilder<ROW extends Entity> {
 
         this.pageService = pageService;
         this.restCall = restCall;
+    }
+
+    public TableBuilder<ROW> hideNavigation() {
+        this.hideNavigation = true;
+        return this;
     }
 
     public TableBuilder<ROW> withEmptyMessage(final LocTextKey emptyMessage) {
@@ -112,7 +118,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.actions,
                 this.pageSize,
                 this.emptyMessage,
-                this.defaultActionFunction);
+                this.defaultActionFunction,
+                this.hideNavigation);
     }
 
 }

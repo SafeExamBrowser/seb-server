@@ -270,19 +270,14 @@ public class ActivitiesPane implements TemplateComposer {
 
         @Override
         public void notify(final ActionEvent event) {
-            // TODO
-//            final MainPageState mainPageState = MainPageState.get();
-//            mainPageState.action = event.action;
-            if (!event.activity) {
-                final EntityKey entityKey = event.action.getEntityKey();
-                final String modelId = (entityKey != null) ? entityKey.modelId : null;
-                final TreeItem item = findItemByActionDefinition(
-                        this.navigation.getItems(),
-                        event.action.definition.targetState.activityAnchor(),
-                        modelId);
-                if (item != null) {
-                    this.navigation.select(item);
-                }
+            final EntityKey entityKey = event.action.getEntityKey();
+            final String modelId = (entityKey != null) ? entityKey.modelId : null;
+            final TreeItem item = findItemByActionDefinition(
+                    this.navigation.getItems(),
+                    event.action.definition.targetState.activityAnchor(),
+                    modelId);
+            if (item != null) {
+                this.navigation.select(item);
             }
         }
     }

@@ -24,6 +24,7 @@ public final class Constants {
 
     public static final Character LIST_SEPARATOR_CHAR = ',';
     public static final String LIST_SEPARATOR = ",";
+    public static final String EMBEDDED_LIST_SEPARATOR = "|";
     public static final String EMPTY_NOTE = "--";
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";

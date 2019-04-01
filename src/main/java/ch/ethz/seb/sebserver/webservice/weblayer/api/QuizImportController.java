@@ -85,7 +85,9 @@ public class QuizImportController {
                 EntityType.EXAM,
                 institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams)
+                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
+
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)
                         ? pageNumber

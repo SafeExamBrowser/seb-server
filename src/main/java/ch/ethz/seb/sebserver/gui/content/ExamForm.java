@@ -251,7 +251,8 @@ public class ExamForm implements TemplateComposer {
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(restService.getRestCall(GetIndicators.class))
                             .withEmptyMessage(new LocTextKey("sebserver.exam.indicator.list.empty"))
-                            .withPaging(3)
+                            .withPaging(5)
+                            .hideNavigation()
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_NAME,
                                     nameColumnKey,
@@ -267,6 +268,10 @@ public class ExamForm implements TemplateComposer {
                                     thresholdColumnKey,
                                     ExamForm::thresholdsValue,
                                     false))
+                            .withDefaultAction(actionBuilder
+                                    .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
+                                    .withParentEntityKey(entityKey)
+                                    .create())
 
                             .compose(content);
 

@@ -15,20 +15,10 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 public final class ActionEvent implements PageEvent {
 
     public final PageAction action;
-    @Deprecated // use the ActionDefinition
-    public final boolean activity;
 
     public ActionEvent(final PageAction action) {
         super();
         this.action = action;
-        this.activity = false;
-    }
-
-    @Deprecated
-    public ActionEvent(final PageAction action, final boolean activity) {
-        super();
-        this.action = action;
-        this.activity = activity;
     }
 
 }

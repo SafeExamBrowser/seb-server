@@ -82,7 +82,8 @@ public class EntityTable<ROW extends Entity> {
             final List<TableRowAction> actions,
             final int pageSize,
             final LocTextKey emptyMessage,
-            final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
+            final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
+            final boolean hideNavigation) {
 
         this.composite = new Composite(parent, type);
         this.pageService = pageService;
@@ -143,7 +144,7 @@ public class EntityTable<ROW extends Entity> {
             }
         }
 
-        this.navigator = new TableNavigator(this);
+        this.navigator = (hideNavigation) ? null : new TableNavigator(this);
 
         createTableColumns();
         updateTableRows(
@@ -287,7 +288,9 @@ public class EntityTable<ROW extends Entity> {
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
                 .call()
                 .map(this::createTableRowsFromPage)
-                .map(this.navigator::update)
+                .map(pageData -> (this.navigator != null)
+                        ? this.navigator.update(pageData)
+                        : pageData)
                 .onErrorDo(t -> {
                     // TODO error handling
                 });
@@ -357,8 +360,6 @@ public class EntityTable<ROW extends Entity> {
                     this.filter.adaptColumnWidth(
                             this.table.indexOf(tableColumn),
                             tableColumn.getWidth())) {
-
-                //this.composite.layout(true, true);
             }
         }
     }

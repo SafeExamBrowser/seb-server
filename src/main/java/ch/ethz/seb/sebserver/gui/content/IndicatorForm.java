@@ -104,7 +104,7 @@ public class IndicatorForm implements TemplateComposer {
                         indicator.getModelId())
                 .putStaticValue(
                         Domain.EXAM.ATTR_INSTITUTION_ID,
-                        exam.getModelId())
+                        String.valueOf(exam.getInstitutionId()))
                 .putStaticValue(
                         Domain.INDICATOR.ATTR_EXAM_ID,
                         parentEntityKey.getModelId())
