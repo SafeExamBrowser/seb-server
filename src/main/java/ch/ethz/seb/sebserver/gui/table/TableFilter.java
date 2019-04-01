@@ -139,6 +139,7 @@ public class TableFilter<ROW extends Entity> {
                 new LocTextKey("sebserver.overall.action.filter.clear"),
                 event -> {
                     reset();
+                    this.entityTable.applyFilter();
                 });
     }
 
