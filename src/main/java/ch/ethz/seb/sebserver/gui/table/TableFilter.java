@@ -328,6 +328,13 @@ public class TableFilter<ROW extends Entity> {
             }
         }
 
+        @Override
+        boolean adaptWidth(final int width) {
+            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
+            //       this is to adjust selection filter criteria to the list column width
+            return super.adaptWidth(width + 25);
+        }
+
     }
 
 }

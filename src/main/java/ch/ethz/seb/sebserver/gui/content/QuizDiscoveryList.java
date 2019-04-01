@@ -196,7 +196,6 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private void createDetailsForm(final QuizData quizData, final PageContext pc) {
-        this.widgetFactory.labelSeparator(pc.getParent());
         this.pageService.formBuilder(pc, 4)
                 .readonly(true)
                 .addField(FormBuilder.singleSelection(
