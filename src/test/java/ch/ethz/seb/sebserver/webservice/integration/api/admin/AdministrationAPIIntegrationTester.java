@@ -112,6 +112,10 @@ public abstract class AdministrationAPIIntegrationTester {
         return obtainAccessToken("examAdmin1", "admin");
     }
 
+    protected RestAPITestHelper restAPITestHelper() {
+        return new RestAPITestHelper();
+    }
+
     protected class RestAPITestHelper {
 
         private String path = "";

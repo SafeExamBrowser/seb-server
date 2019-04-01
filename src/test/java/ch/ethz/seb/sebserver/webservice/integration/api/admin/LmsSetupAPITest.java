@@ -25,8 +25,10 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
@@ -87,7 +89,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         EntityProcessingReport report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath("/").withPath(String.valueOf(lmsSetup.id)).withPath("/active")
+                .withPath(String.valueOf(lmsSetup.id)).withPath("/active")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<EntityProcessingReport>() {
@@ -103,7 +105,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // get
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
@@ -117,7 +119,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath("/").withPath(String.valueOf(lmsSetup.id)).withPath("/inactive")
+                .withPath(String.valueOf(lmsSetup.id)).withPath("/inactive")
                 .withMethod(HttpMethod.POST)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<EntityProcessingReport>() {
@@ -132,7 +134,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
@@ -146,7 +148,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         report = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath("/").withPath(String.valueOf(lmsSetup.id))
+                .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.DELETE)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<EntityProcessingReport>() {
@@ -162,7 +164,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         // get
         final List<APIMessage> error = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.LMS_SETUP_ENDPOINT).withPath("/")
+                .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(lmsSetup.id))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.NOT_FOUND)
@@ -314,6 +316,155 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withPath(String.valueOf(id2))
                 .withExpectedStatus(HttpStatus.FORBIDDEN)
                 .getAsString();
+    }
+
+    @Test
+    public void testInstituionalView() throws Exception {
+        // create new LmsSetup Mock with seb-admin
+        final LmsSetup lmsSetup1 = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.POST)
+                .withAttribute(Domain.LMS_SETUP.ATTR_NAME, "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        // create new LmsSetup Mock with institutional 2 admin
+        final LmsSetup lmsSetup2 = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.POST)
+                .withAttribute(Domain.LMS_SETUP.ATTR_NAME, "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        // get with institutional 1 admin, expected to see only the one created by seb-admin
+        Page<LmsSetup> lmsSetups = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Page<LmsSetup>>() {
+                });
+
+        assertNotNull(lmsSetups);
+        assertNotNull(lmsSetups.content);
+        assertTrue(lmsSetups.content.size() == 1);
+        LmsSetup lmsSetup = lmsSetups.content.get(0);
+        assertEquals(lmsSetup1.id, lmsSetup.id);
+
+        // get with institutional 2 admin, expected to see only the one self created
+        lmsSetups = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Page<LmsSetup>>() {
+                });
+
+        assertNotNull(lmsSetups);
+        assertNotNull(lmsSetups.content);
+        assertTrue(lmsSetups.content.size() == 1);
+        lmsSetup = lmsSetups.content.get(0);
+        assertEquals(lmsSetup2.id, lmsSetup.id);
+    }
+
+    @Test
+    public void testLmsSetupConnectionTest() throws Exception {
+        // create new LmsSetup Mock with seb-admin
+        LmsSetup lmsSetup = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.POST)
+                .withAttribute(Domain.LMS_SETUP.ATTR_NAME, "new LmsSetup 1")
+                .withAttribute(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        // test LMS connection should fail because there is no server set yet
+        List<APIMessage> errors = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(API.LMS_SETUP_TEST_PATH_SEGMENT)
+                .withPath(lmsSetup.getModelId())
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.BAD_REQUEST)
+                .getAsObject(new TypeReference<List<APIMessage>>() {
+                });
+
+        assertNotNull(errors);
+        assertTrue(errors.size() == 3);
+
+        // save (wrong) LMS server and credentials
+        lmsSetup = new LmsSetup(
+                lmsSetup.id,
+                lmsSetup.institutionId,
+                lmsSetup.name,
+                lmsSetup.lmsType,
+                "lms1Name",
+                null, // no secret
+                "https://www.lms1.com",
+                null,
+                null);
+        lmsSetup = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.PUT)
+                .withBodyJson(lmsSetup)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        // test LMS connection again should fail because there is no secret set
+        errors = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(API.LMS_SETUP_TEST_PATH_SEGMENT)
+                .withPath(lmsSetup.getModelId())
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.BAD_REQUEST)
+                .getAsObject(new TypeReference<List<APIMessage>>() {
+                });
+
+        assertNotNull(errors);
+        assertTrue(errors.size() == 1);
+        assertEquals("[lmsSetup, lmsClientsecret, notNull]", String.valueOf(errors.get(0).attributes));
+
+        // save correct LMS server and credentials
+        lmsSetup = new LmsSetup(
+                lmsSetup.id,
+                lmsSetup.institutionId,
+                lmsSetup.name,
+                lmsSetup.lmsType,
+                "lms1Name",
+                "someSecret",
+                "https://www.lms1.com",
+                null,
+                null);
+        lmsSetup = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withMethod(HttpMethod.PUT)
+                .withBodyJson(lmsSetup)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetup>() {
+                });
+
+        final LmsSetupTestResult testResult = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(API.LMS_SETUP_TEST_PATH_SEGMENT)
+                .withPath(lmsSetup.getModelId())
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetupTestResult>() {
+                });
+
+        assertNotNull(testResult);
+        assertTrue(testResult.getOkStatus());
     }
 
 }
