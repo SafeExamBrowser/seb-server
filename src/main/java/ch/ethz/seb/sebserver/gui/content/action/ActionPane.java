@@ -28,12 +28,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -43,13 +44,14 @@ public class ActionPane implements TemplateComposer {
 
     private static final String ACTION_EVENT_CALL_KEY = "ACTION_EVENT_CALL";
 
+    private final PageService pageService;
     private final WidgetFactory widgetFactory;
 
     private final Map<String, Tree> actionTrees = new HashMap<>();
 
-    public ActionPane(final WidgetFactory widgetFactory) {
-        super();
-        this.widgetFactory = widgetFactory;
+    protected ActionPane(final PageService pageService) {
+        this.pageService = pageService;
+        this.widgetFactory = pageService.getWidgetFactory();
     }
 
     @Override
@@ -161,7 +163,7 @@ public class ActionPane implements TemplateComposer {
             final TreeItem treeItem = (TreeItem) event.item;
 
             final PageAction action = (PageAction) treeItem.getData(ACTION_EVENT_CALL_KEY);
-            action.run();
+            this.pageService.executePageAction(action);
 
             if (!treeItem.isDisposed()) {
                 treeItem.getParent().deselectAll();

@@ -31,15 +31,17 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeactivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
@@ -54,14 +56,14 @@ public class UserAccountForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountForm.class);
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final ResourceService resourceService;
 
     protected UserAccountForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final ResourceService resourceService) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.resourceService = resourceService;
     }
 
@@ -69,7 +71,7 @@ public class UserAccountForm implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
 
         final UserInfo user = currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -127,7 +129,7 @@ public class UserAccountForm implements TemplateComposer {
                 titleKey);
 
         // The UserAccount form
-        final FormHandle<UserInfo> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<UserInfo> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
@@ -187,46 +189,48 @@ public class UserAccountForm implements TemplateComposer {
                         : restService.getRestCall(SaveUserAccount.class));
 
         // propagate content actions to action-pane
-        formContext.clearEntityKeys()
+        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
-                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .publishIf(() -> writeGrant && readonly && institutionActive)
 
-                .createAction(ActionDefinition.USER_ACCOUNT_MODIFY)
+                .newAction(ActionDefinition.USER_ACCOUNT_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
-                .createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
+                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive && userAccount.isActive())
 
-                .createAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
+                .newAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withSimpleRestCall(restService, DeactivateUserAccount.class)
                 .withConfirm(PageUtils.confirmDeactivation(userAccount, restService))
                 .publishIf(() -> writeGrant && readonly && institutionActive && userAccount.isActive())
 
-                .createAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
+                .newAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withSimpleRestCall(restService, ActivateUserAccount.class)
                 .publishIf(() -> writeGrant && readonly && institutionActive && !userAccount.isActive())
 
-                .createAction(ActionDefinition.USER_ACCOUNT_SAVE)
+                .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
-                    final PageAction postChanges = formHandle.processFormSave(action);
+                    final PageAction saveAction = formHandle.processFormSave(action);
                     if (ownAccount) {
                         currentUser.refresh();
                         pageContext.forwardToMainPage();
                     }
-                    return postChanges;
+                    return saveAction;
                 })
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
 
-                .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
+                .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
+                        action,
+                        ActionDefinition.USER_ACCOUNT_VIEW_LIST))
                 .publishIf(() -> !readonly);
     }
 

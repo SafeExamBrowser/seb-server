@@ -25,12 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -40,9 +39,8 @@ public class FormBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
+    final PageService pageService;
     final WidgetFactory widgetFactory;
-    final JSONMapper jsonMapper;
-    private final PolyglotPageService polyglotPageService;
     public final PageContext pageContext;
     public final Composite formParent;
     public final Form form;
@@ -53,18 +51,15 @@ public class FormBuilder {
     private int defaultSpanEmptyCell = 1;
     private boolean emptyCellSeparation = true;
 
-    FormBuilder(
-            final JSONMapper jsonMapper,
-            final WidgetFactory widgetFactory,
-            final PolyglotPageService polyglotPageService,
+    public FormBuilder(
+            final PageService pageService,
             final PageContext pageContext,
             final int rows) {
 
-        this.widgetFactory = widgetFactory;
-        this.jsonMapper = jsonMapper;
-        this.polyglotPageService = polyglotPageService;
+        this.pageService = pageService;
+        this.widgetFactory = pageService.getWidgetFactory();
         this.pageContext = pageContext;
-        this.form = new Form(jsonMapper);
+        this.form = new Form(pageService.getJSONMapper());
 
         this.formParent = new Composite(pageContext.getParent(), SWT.NONE);
         final GridLayout layout = new GridLayout(rows, true);
@@ -173,14 +168,12 @@ public class FormBuilder {
         return buildFor(null);
     }
 
-    public <T extends Entity> FormHandle<T> buildFor(
-            final RestCall<T> post) {
-
+    public <T extends Entity> FormHandle<T> buildFor(final RestCall<T> post) {
         return new FormHandle<>(
+                this.pageService,
                 this.pageContext,
                 this.form,
-                post,
-                this.polyglotPageService.getI18nSupport());
+                post);
     }
 
     private void empty(final Composite parent, final int hspan, final int vspan) {

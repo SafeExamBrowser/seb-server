@@ -30,16 +30,19 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
-import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.DeactivateLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
@@ -55,14 +58,14 @@ public class LmsSetupForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(LmsSetupForm.class);
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final ResourceService resourceService;
 
     protected LmsSetupForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final ResourceService resourceService) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.resourceService = resourceService;
     }
 
@@ -70,7 +73,7 @@ public class LmsSetupForm implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
 
         final UserInfo user = currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -122,7 +125,7 @@ public class LmsSetupForm implements TemplateComposer {
 
         // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
-        final FormHandle<LmsSetup> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<LmsSetup> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
@@ -174,49 +177,58 @@ public class LmsSetupForm implements TemplateComposer {
         ;
 
         // propagate content actions to action-pane
-        formContext.clearEntityKeys()
+        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
-                .createAction(ActionDefinition.LMS_SETUP_NEW)
+                .newAction(ActionDefinition.LMS_SETUP_NEW)
                 .publishIf(() -> writeGrant && readonly && institutionActive)
 
-                .createAction(ActionDefinition.LMS_SETUP_MODIFY)
+                .newAction(ActionDefinition.LMS_SETUP_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
-                .createAction(ActionDefinition.LMS_SETUP_TEST)
+                .newAction(ActionDefinition.LMS_SETUP_TEST)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.testLmsSetup(action, formHandle))
                 .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && institutionActive)
 
-                .createAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
+                .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withSimpleRestCall(restService, DeactivateLmsSetup.class)
                 .withConfirm(PageUtils.confirmDeactivation(lmsSetup, restService))
                 .publishIf(() -> writeGrant && readonly && institutionActive && lmsSetup.isActive())
 
-                .createAction(ActionDefinition.LMS_SETUP_ACTIVATE)
+                .newAction(ActionDefinition.LMS_SETUP_ACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(action -> activate(action, formHandle))
                 .publishIf(() -> writeGrant && readonly && institutionActive && !lmsSetup.isActive())
 
-                .createAction(ActionDefinition.LMS_SETUP_SAVE)
+                .newAction(ActionDefinition.LMS_SETUP_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
 
-                .createAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
+                .newAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
+                        action,
+                        ActionDefinition.LMS_SETUP_VIEW_LIST))
                 .publishIf(() -> !readonly);
     }
 
     /** Save and test connection before activation */
     private PageAction activate(final PageAction action, final FormHandle<LmsSetup> formHandle) {
-        final RestService restService = this.resourceService.getRestService();
+        // first test the LMS Setup. If this fails the action execution will stops
         final PageAction testLmsSetup = this.testLmsSetup(action, formHandle);
-        final PageAction activation = restService.activation(testLmsSetup);
-        return activation;
+        // if LMS Setup test was successful, the activation action applies
+        this.resourceService.getRestService().getBuilder(ActivateLmsSetup.class)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
+                .call()
+                .onErrorDo(t -> action.pageContext().notifyError(t));
+
+        return testLmsSetup;
     }
 
     /** LmsSetup test action implementation */

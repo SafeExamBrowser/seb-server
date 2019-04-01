@@ -39,7 +39,8 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
@@ -52,6 +53,7 @@ public class EntityTable<ROW extends Entity> {
     static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
     static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
 
+    final PageService pageService;
     final WidgetFactory widgetFactory;
     final RestCall<Page<ROW>> restCall;
     final I18nSupport i18nSupport;
@@ -75,7 +77,7 @@ public class EntityTable<ROW extends Entity> {
             final int type,
             final Composite parent,
             final RestCall<Page<ROW>> restCall,
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final List<ColumnDefinition<ROW>> columns,
             final List<TableRowAction> actions,
             final int pageSize,
@@ -83,8 +85,9 @@ public class EntityTable<ROW extends Entity> {
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
 
         this.composite = new Composite(parent, type);
-        this.widgetFactory = widgetFactory;
-        this.i18nSupport = widgetFactory.getI18nSupport();
+        this.pageService = pageService;
+        this.i18nSupport = pageService.getI18nSupport();
+        this.widgetFactory = pageService.getWidgetFactory();
         this.restCall = restCall;
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
@@ -110,7 +113,7 @@ public class EntityTable<ROW extends Entity> {
                         .findFirst()
                         .isPresent() ? new TableFilter<>(this) : null;
 
-        this.table = widgetFactory.tableLocalized(this.composite);
+        this.table = this.widgetFactory.tableLocalized(this.composite);
         final GridLayout gridLayout = new GridLayout(columns.size(), true);
         this.table.setLayout(gridLayout);
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -133,9 +136,8 @@ public class EntityTable<ROW extends Entity> {
                 this.table.addListener(SWT.MouseDoubleClick, event -> {
                     final EntityKey selection = getSingleSelection();
                     if (selection != null) {
-                        defaultAction
-                                .withEntityKey(selection)
-                                .run();
+                        this.pageService.executePageAction(
+                                defaultAction.withEntityKey(selection));
                     }
                 });
             }

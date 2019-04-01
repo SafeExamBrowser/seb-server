@@ -26,11 +26,11 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.activity.ActivitiesPane;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.impl.MainPageState;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
@@ -40,8 +40,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 public class MainPage implements TemplateComposer {
 
     static final Logger log = LoggerFactory.getLogger(MainPage.class);
-
-    public static final String ATTR_MAIN_PAGE_STATE = "MAIN_PAGE_STATE";
 
     private static final int ACTIVITY_PANE_WEIGHT = 15;
     private static final int CONTENT_PANE_WEIGHT = 65;
@@ -54,14 +52,19 @@ public class MainPage implements TemplateComposer {
     private static final int[] OPENED_SASH_WEIGHTS = new int[] { 0, 100, 0 };
 
     private final WidgetFactory widgetFactory;
+    private final PageService pageStateService;
 
-    public MainPage(final WidgetFactory widgetFactory) {
+    public MainPage(
+            final WidgetFactory widgetFactory,
+            final PageService pageStateService) {
+
         this.widgetFactory = widgetFactory;
+        this.pageStateService = pageStateService;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
-        MainPageState.clear();
+        this.pageStateService.clear();
 
         final Composite parent = pageContext.getParent();
         parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -123,7 +126,7 @@ public class MainPage implements TemplateComposer {
         contentObjects.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ContentActionEventListener(event -> pageContext.composerService().compose(
-                        event.action.definition.contentPaneComposer,
+                        event.action.definition.targetState.contentPaneComposer(),
                         event.action.pageContext().copyOf(contentObjects)), 2));
 
         final Composite actionPane = new Composite(mainSash, SWT.NONE);
@@ -134,7 +137,7 @@ public class MainPage implements TemplateComposer {
         actionPane.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ContentActionEventListener(event -> pageContext.composerService().compose(
-                        event.action.definition.actionPaneComposer,
+                        event.action.definition.targetState.actionPaneComposer(),
                         event.action.pageContext().copyOf(actionPane)), 1));
 
         pageContext.composerService().compose(

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.page;
+package ch.ethz.seb.sebserver.gui.service.page.impl;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -27,18 +27,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 public final class PageUtils {
 
     private static final Logger log = LoggerFactory.getLogger(PageUtils.class);
-
-    enum CommonTextKeys {
-
-        ;
-
-        public LocTextKey textKey;
-
-        private CommonTextKeys(final LocTextKey textKey) {
-            this.textKey = textKey;
-        }
-
-    }
 
     public static void clearComposite(final Composite parent) {
         if (parent == null) {

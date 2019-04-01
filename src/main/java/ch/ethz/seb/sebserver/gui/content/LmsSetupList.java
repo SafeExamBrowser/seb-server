@@ -25,9 +25,11 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -63,16 +65,16 @@ public class LmsSetupList implements TemplateComposer {
             new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
     private final TableFilterAttribute typeFilter;
 
-    private final WidgetFactory widgetFactory;
+    private final PageService pageService;
     private final ResourceService resourceService;
     private final int pageSize;
 
     protected LmsSetupList(
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
 
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
 
@@ -89,20 +91,21 @@ public class LmsSetupList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
 
         // content page layout with title
-        final Composite content = this.widgetFactory.defaultPageLayout(
+        final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
         final boolean isSEBAdmin = currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
         // table
-
         final EntityTable<LmsSetup> table =
-                this.widgetFactory.entityTableBuilder(restService.getRestCall(GetLmsSetups.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetups.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(() -> isSEBAdmin,
@@ -129,23 +132,23 @@ public class LmsSetupList implements TemplateComposer {
                                 ACTIVITY_TEXT_KEY,
                                 entity -> entity.active,
                                 true))
-                        .withDefaultAction(pageContext
-                                .clearEntityKeys()
-                                .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST))
+                        .withDefaultAction(actionBuilder
+                                .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
+                                .create())
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
-        pageContext.clearEntityKeys()
+        actionBuilder
 
-                .createAction(ActionDefinition.LMS_SETUP_NEW)
+                .newAction(ActionDefinition.LMS_SETUP_NEW)
                 .publishIf(userGrant::iw)
 
-                .createAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
+                .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
-                .createAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
+                .newAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 

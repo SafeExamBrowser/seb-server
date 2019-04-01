@@ -19,9 +19,9 @@ import org.eclipse.swt.widgets.Composite;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 /** <code>
  *  new TableBuilder<T>(RestCall)
@@ -40,7 +40,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * </code> */
 public class TableBuilder<ROW extends Entity> {
 
-    private final WidgetFactory widgetFactory;
+    private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     final List<TableRowAction> actions = new ArrayList<>();
@@ -50,10 +50,10 @@ public class TableBuilder<ROW extends Entity> {
     private int type = SWT.NONE;
 
     public TableBuilder(
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final RestCall<Page<ROW>> restCall) {
 
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
         this.restCall = restCall;
     }
 
@@ -107,7 +107,7 @@ public class TableBuilder<ROW extends Entity> {
                 this.type,
                 parent,
                 this.restCall,
-                this.widgetFactory,
+                this.pageService,
                 this.columns,
                 this.actions,
                 this.pageSize,

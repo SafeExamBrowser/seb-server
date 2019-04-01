@@ -8,50 +8,52 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
-import javax.servlet.http.HttpSession;
-
-import org.eclipse.rap.rwt.RWT;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ch.ethz.seb.sebserver.gui.content.MainPage;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
-
 public final class MainPageState {
 
-    private static final Logger log = LoggerFactory.getLogger(MainPageState.class);
-
-    public PageAction action = null;
-
-    private MainPageState() {
-    }
-
-    public static MainPageState get() {
-        try {
-
-            final HttpSession httpSession = RWT
-                    .getUISession()
-                    .getHttpSession();
-
-            MainPageState mainPageState = (MainPageState) httpSession.getAttribute(MainPage.ATTR_MAIN_PAGE_STATE);
-            if (mainPageState == null) {
-                mainPageState = new MainPageState();
-                httpSession.setAttribute(MainPage.ATTR_MAIN_PAGE_STATE, mainPageState);
-            }
-
-            return mainPageState;
-
-        } catch (final RuntimeException re) {
-            throw re;
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to get MainPageState from user-session");
-        }
-
-        return null;
-    }
-
-    public static void clear() {
-        final MainPageState mainPageState = get();
-        mainPageState.action = null;
-    }
+//    private static final Logger log = LoggerFactory.getLogger(MainPageState.class);
+//
+//    private PageAction action = null;
+//
+//    private MainPageState() {
+//    }
+//
+//    public action
+//
+//    public boolean changeTo(final PageAction action) {
+//        if (this.action.definition != action.definition) {
+//            this.action = action;
+//            return true;
+//        }
+//
+//        return false;
+//    }
+//
+//    public static MainPageState get() {
+//        try {
+//
+//            final HttpSession httpSession = RWT
+//                    .getUISession()
+//                    .getHttpSession();
+//
+//            MainPageState mainPageState = (MainPageState) httpSession.getAttribute(MainPage.ATTR_MAIN_PAGE_STATE);
+//            if (mainPageState == null) {
+//                mainPageState = new MainPageState();
+//                httpSession.setAttribute(MainPage.ATTR_MAIN_PAGE_STATE, mainPageState);
+//            }
+//
+//            return mainPageState;
+//
+//        } catch (final RuntimeException re) {
+//            throw re;
+//        } catch (final Exception e) {
+//            log.error("Unexpected error while trying to get MainPageState from user-session");
+//        }
+//
+//        return null;
+//    }
+//
+//    public static void clear() {
+//        final MainPageState mainPageState = get();
+//        mainPageState.action = null;
+//    }
 }

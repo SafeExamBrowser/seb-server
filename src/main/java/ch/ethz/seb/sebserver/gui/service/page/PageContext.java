@@ -8,15 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
+import java.util.function.Consumer;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 
 /** Holds a page-context and defines some convenient functionality for page handling */
 public interface PageContext {
@@ -149,21 +149,12 @@ public interface PageContext {
      * @return a copy of this PageContext with the removed attribute */
     PageContext removeAttribute(String name);
 
-    /** Publishes a given PageEvent to the current page tree
-     * This goes through the page-tree and collects all listeners the are listen to
-     * the specified page event type.
-     *
-     * @param event the concrete PageEvent instance */
-    <T extends PageEvent> void firePageEvent(T event);
-
-    PageAction createAction(ActionDefinition actionDefinition);
-
     /** Apply a confirm dialog with a specified confirm message and a callback code
      * block that will be executed on users OK selection.
      *
      * @param confirmMessage the localized confirm message key
-     * @param onOK callback code block that will be executed on users OK selection */
-    void applyConfirmDialog(LocTextKey confirmMessage, Runnable onOK);
+     * @param onOK callback code block that will be called on users selection */
+    void applyConfirmDialog(LocTextKey confirmMessage, final Consumer<Boolean> callback);
 
     /** This can be used to forward to a defined page.
      *

@@ -30,10 +30,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
@@ -50,6 +52,7 @@ public class DefaultPageLayout implements TemplateComposer {
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
     private final AuthorizationContextHolder authorizationContextHolder;
+    private final PageService pageStateService;
     private final String sebServerVersion;
     private final boolean multilingual;
 
@@ -57,12 +60,14 @@ public class DefaultPageLayout implements TemplateComposer {
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final AuthorizationContextHolder authorizationContextHolder,
+            final PageService pageStateService,
             final Environment environment) {
 
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.authorizationContextHolder = authorizationContextHolder;
-        this.sebServerVersion = environment.getProperty("sebserver.version", "--");
+        this.pageStateService = pageStateService;
+        this.sebServerVersion = environment.getProperty("sebserver.version", Constants.EMPTY_NOTE);
         this.multilingual = BooleanUtils.toBoolean(environment.getProperty("sebserver.gui.multilingual", "false"));
     }
 
@@ -135,7 +140,7 @@ public class DefaultPageLayout implements TemplateComposer {
                     // TODO error handling
                 }
 
-                MainPageState.clear();
+                this.pageStateService.clear();
 
                 // forward to login page with success message
                 pageContext.forwardToLoginPage();

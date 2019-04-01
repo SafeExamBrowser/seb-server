@@ -18,16 +18,17 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutions;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
@@ -47,29 +48,32 @@ public class InstitutionList implements TemplateComposer {
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.institution.info.pleaseSelect");
 
-    private final WidgetFactory widgetFactory;
+    private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
 
     protected InstitutionList(
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser) {
 
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
-        final Composite content = this.widgetFactory.defaultPageLayout(
+        final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
+        final PageActionBuilder pageActionBuilder =
+                this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
+
         // table
         final EntityTable<Institution> table =
-                this.widgetFactory.entityTableBuilder(this.restService.getRestCall(GetInstitutions.class))
+                this.pageService.entityTableBuilder(this.restService.getRestCall(GetInstitutions.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(3)
                         .withColumn(new ColumnDefinition<>(
@@ -87,27 +91,28 @@ public class InstitutionList implements TemplateComposer {
                                 ACTIVE_TEXT_KEY,
                                 entity -> entity.active,
                                 true))
-                        .withDefaultAction(pageContext
-                                .clearEntityKeys()
-                                .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST))
+                        .withDefaultAction(pageActionBuilder
+                                .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
+                                .create())
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);
         final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
-        pageContext.clearEntityKeys()
 
-                .createAction(ActionDefinition.INSTITUTION_NEW)
+        pageActionBuilder
+
+                .newAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(instGrant::w)
 
-                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .publishIf(userGrant::w)
 
-                .createAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
+                .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
-                .createAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
+                .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
         ;

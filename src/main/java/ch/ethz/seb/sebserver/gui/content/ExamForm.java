@@ -31,17 +31,20 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
@@ -62,7 +65,7 @@ public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final ResourceService resourceService;
 
     private final static LocTextKey listTitleKey =
@@ -77,10 +80,10 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
 
     protected ExamForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final ResourceService resourceService) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.resourceService = resourceService;
     }
 
@@ -88,7 +91,7 @@ public class ExamForm implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
 
         final UserInfo user = currentUser.get();
@@ -131,7 +134,7 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = userGrantCheck.m();
 
         // The Exam form
-        final FormHandle<Exam> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<Exam> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
@@ -204,34 +207,36 @@ public class ExamForm implements TemplateComposer {
                         ? restService.getRestCall(ImportAsExam.class)
                         : restService.getRestCall(SaveExam.class));
 
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
+                .clearEntityKeys()
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
         // propagate content actions to action-pane
-        formContext.clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA)
+        actionBuilder
 
-                .createAction(ActionDefinition.EXAM_MODIFY)
+                .newAction(ActionDefinition.EXAM_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly)
 
-                .createAction(ActionDefinition.EXAM_SAVE)
+                .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(formHandle::processFormSave)
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly && modifyGrant)
 
-                .createAction(ActionDefinition.EXAM_CANCEL_MODIFY)
+                .newAction(ActionDefinition.EXAM_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, String.valueOf(importFromQuizData))
-                .withExec(ExamForm::cancelModify)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .withExec(this::cancelModify)
                 .publishIf(() -> !readonly)
 
-                .createAction(ActionDefinition.EXAM_DEACTIVATE)
+                .newAction(ActionDefinition.EXAM_DEACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withSimpleRestCall(restService, DeactivateExam.class)
                 .withConfirm(PageUtils.confirmDeactivation(exam, restService))
                 .publishIf(() -> writeGrant && readonly && exam.isActive())
 
-                .createAction(ActionDefinition.EXAM_ACTIVATE)
+                .newAction(ActionDefinition.EXAM_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(restService::activation)
+                .withSimpleRestCall(restService, ActivateExam.class)
                 .publishIf(() -> writeGrant && readonly && !exam.isActive());
 
         // additional data in read-only view
@@ -244,7 +249,7 @@ public class ExamForm implements TemplateComposer {
                     listTitleKey);
 
             final EntityTable<Indicator> indicatorTable =
-                    widgetFactory.entityTableBuilder(restService.getRestCall(GetIndicators.class))
+                    this.pageService.entityTableBuilder(restService.getRestCall(GetIndicators.class))
                             .withEmptyMessage(new LocTextKey("sebserver.exam.indicator.list.empty"))
                             .withPaging(3)
                             .withColumn(new ColumnDefinition<>(
@@ -265,19 +270,18 @@ public class ExamForm implements TemplateComposer {
 
                             .compose(content);
 
-            formContext.clearEntityKeys()
-                    .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA)
+            actionBuilder
 
-                    .createAction(ActionDefinition.EXAM_INDICATOR_NEW)
+                    .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                     .withParentEntityKey(entityKey)
                     .publishIf(() -> modifyGrant)
 
-                    .createAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
+                    .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(indicatorTable::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
 
-                    .createAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
+                    .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(indicatorTable::getSelection, this::deleteSelectedIndicator, emptySelectionTextKey)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
@@ -338,17 +342,20 @@ public class ExamForm implements TemplateComposer {
                 .toString();
     }
 
-    public static PageAction cancelModify(final PageAction action) {
+    private PageAction cancelModify(final PageAction action) {
         final boolean importFromQuizData = BooleanUtils.toBoolean(
                 action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
         if (importFromQuizData) {
-            final PageContext pageContext = action.pageContext();
-            final PageAction activityHomeAction = pageContext.createAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST);
-            action.pageContext().firePageEvent(new ActionEvent(activityHomeAction, false));
+            final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(action.pageContext());
+            final PageAction activityHomeAction = actionBuilder
+                    .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                    .create();
+            this.pageService.firePageEvent(new ActionEvent(activityHomeAction), action.pageContext());
             return activityHomeAction;
         }
 
-        return PageAction.onEmptyEntityKeyGoToActivityHome(action);
+        this.pageService.onEmptyEntityKeyGoTo(action, ActionDefinition.EXAM_VIEW_LIST);
+        return action;
     }
 
 }

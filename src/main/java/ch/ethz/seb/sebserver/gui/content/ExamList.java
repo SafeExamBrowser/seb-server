@@ -28,9 +28,11 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -46,7 +48,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class ExamList implements TemplateComposer {
 
-    private final WidgetFactory widgetFactory;
+    private final PageService pageService;
     private final ResourceService resourceService;
     private final int pageSize;
 
@@ -67,11 +69,11 @@ public class ExamList implements TemplateComposer {
             new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
 
     protected ExamList(
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
 
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
 
@@ -88,20 +90,23 @@ public class ExamList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
 
         // content page layout with title
-        final Composite content = this.widgetFactory.defaultPageLayout(
+        final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 new LocTextKey("sebserver.exam.list.title"));
 
         final boolean isSEBAdmin = currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
         // table
         final EntityTable<Exam> table =
-                this.widgetFactory.entityTableBuilder(restService.getRestCall(GetExams.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetExams.class))
                         .withEmptyMessage(new LocTextKey("sebserver.exam.list.empty"))
                         .withPaging(this.pageSize)
                         .withColumnIf(() -> isSEBAdmin,
@@ -136,23 +141,23 @@ public class ExamList implements TemplateComposer {
                                 columnTitleTypeKey,
                                 this::examTypeName,
                                 true))
-                        .withDefaultAction(pageContext
-                                .clearEntityKeys()
-                                .createAction(ActionDefinition.EXAM_VIEW_FROM_LIST))
+                        .withDefaultAction(actionBuilder
+                                .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                                .create())
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
-        pageContext.clearEntityKeys()
+        actionBuilder
 
-                .createAction(ActionDefinition.EXAM_IMPORT)
+                .newAction(ActionDefinition.EXAM_IMPORT)
                 .publishIf(userGrant::im)
 
-                .createAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                 .publishIf(table::hasAnyContent)
 
-                .createAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
+                .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 

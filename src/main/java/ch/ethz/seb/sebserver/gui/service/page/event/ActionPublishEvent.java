@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 
 /** This action is used to publish an Action to the Action-Pane for a specified context.
  * The ActionPane is listening to this events and render specified actions on notify */

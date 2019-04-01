@@ -26,14 +26,15 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.SebClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.SaveInstitution;
@@ -48,18 +49,18 @@ public class InstitutionForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(InstitutionForm.class);
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
     private final SebClientConfigDownload sebClientConfigDownload;
 
     protected InstitutionForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,
             final SebClientConfigDownload sebClientConfigDownload) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
         this.sebClientConfigDownload = sebClientConfigDownload;
@@ -68,7 +69,7 @@ public class InstitutionForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
         final boolean isNew = entityKey == null;
         // get data or create new. Handle error if happen
@@ -114,7 +115,7 @@ public class InstitutionForm implements TemplateComposer {
                 titleKey);
 
         // The Institution form
-        final FormHandle<Institution> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<Institution> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
@@ -139,20 +140,20 @@ public class InstitutionForm implements TemplateComposer {
 
         // propagate content actions to action-pane
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
-        formContext.clearEntityKeys()
+        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
-                .createAction(ActionDefinition.INSTITUTION_NEW)
+                .newAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
 
-                .createAction(ActionDefinition.USER_ACCOUNT_NEW)
+                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
                 .withParentEntityKey(entityKey)
                 .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
 
-                .createAction(ActionDefinition.INSTITUTION_MODIFY)
+                .newAction(ActionDefinition.INSTITUTION_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .createAction(ActionDefinition.INSTITUTION_EXPORT_SEB_CONFIG)
+                .newAction(ActionDefinition.INSTITUTION_EXPORT_SEB_CONFIG)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
                     final String downloadURL = this.sebClientConfigDownload.downloadSEBClientConfigURL(
@@ -162,26 +163,28 @@ public class InstitutionForm implements TemplateComposer {
                 })
                 .publishIf(() -> sebConfigWriteGrant && isReadonly && institution.isActive())
 
-                .createAction(ActionDefinition.INSTITUTION_DEACTIVATE)
+                .newAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(this.restService::activation)
+                .withSimpleRestCall(this.restService, DeactivateInstitution.class)
                 .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
                 .publishIf(() -> writeGrant && isReadonly && institution.isActive())
 
-                .createAction(ActionDefinition.INSTITUTION_ACTIVATE)
+                .newAction(ActionDefinition.INSTITUTION_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(this.restService::activation)
+                .withSimpleRestCall(this.restService, ActivateInstitution.class)
                 .publishIf(() -> writeGrant && isReadonly && !institution.isActive())
 
-                .createAction(ActionDefinition.INSTITUTION_SAVE)
+                .newAction(ActionDefinition.INSTITUTION_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
-                .createAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
+                .newAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
+                        action,
+                        ActionDefinition.INSTITUTION_VIEW_LIST))
                 .publishIf(() -> !isReadonly);
     }
 

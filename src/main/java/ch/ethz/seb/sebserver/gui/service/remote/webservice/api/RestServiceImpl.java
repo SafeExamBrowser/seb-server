@@ -17,12 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
@@ -113,24 +110,24 @@ public class RestServiceImpl implements RestService {
         return restCall.newBuilder();
     }
 
-    @Override
-    public <T> PageAction activation(final PageAction action) {
-        if (action.definition.restCallType == null) {
-            throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
-        }
-
-        @SuppressWarnings("unchecked")
-        final Class<? extends RestCall<T>> restCallType =
-                (Class<? extends RestCall<T>>) action.definition.restCallType;
-
-        this.getBuilder(restCallType)
-                .withURIVariable(
-                        API.PARAM_MODEL_ID,
-                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
-                .call()
-                .onErrorDo(t -> action.pageContext().notifyError(t));
-
-        return action;
-    }
+//    @Override
+//    public <T> PageAction activation(final PageAction action) {
+//        if (action.restCallType() == null) {
+//            throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
+//        }
+//
+//        @SuppressWarnings("unchecked")
+//        final Class<? extends RestCall<T>> restCallType =
+//                (Class<? extends RestCall<T>>) action.restCallType();
+//
+//        this.getBuilder(restCallType)
+//                .withURIVariable(
+//                        API.PARAM_MODEL_ID,
+//                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
+//                .call()
+//                .onErrorDo(t -> action.pageContext().notifyError(t));
+//
+//        return action;
+//    }
 
 }

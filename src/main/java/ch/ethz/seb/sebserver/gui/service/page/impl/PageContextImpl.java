@@ -8,12 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
@@ -29,23 +27,17 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
-import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
-import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 public class PageContextImpl implements PageContext {
 
     private static final Logger log = LoggerFactory.getLogger(PageContextImpl.class);
-
-    private static final ListenerComparator LIST_COMPARATOR = new ListenerComparator();
 
     private final I18nSupport i18nSupport;
     private final ComposerService composerService;
@@ -218,48 +210,14 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends PageEvent> void firePageEvent(final T event) {
-        final Class<? extends PageEvent> typeClass = event.getClass();
-        final List<PageEventListener<T>> listeners = new ArrayList<>();
-        ComposerService.traversePageTree(
-                this.root,
-                c -> {
-                    final PageEventListener<?> listener =
-                            (PageEventListener<?>) c.getData(PageEventListener.LISTENER_ATTRIBUTE_KEY);
-                    return listener != null && listener.match(typeClass);
-                },
-                c -> listeners.add(((PageEventListener<T>) c.getData(PageEventListener.LISTENER_ATTRIBUTE_KEY))));
-
-        if (listeners.isEmpty()) {
-            return;
-        }
-
-        listeners.stream()
-                .sorted(LIST_COMPARATOR)
-                .forEach(listener -> {
-                    try {
-                        listener.notify(event);
-                    } catch (final Exception e) {
-                        log.error("Unexpected error while notify PageEventListener: ", e);
-                    }
-                });
-    }
-
-    @Override
-    public PageAction createAction(final ActionDefinition actionDefinition) {
-        return new PageAction(actionDefinition, this);
-    }
-
-    @Override
-    public void applyConfirmDialog(final LocTextKey confirmMessage, final Runnable onOK) {
+    public void applyConfirmDialog(final LocTextKey confirmMessage, final Consumer<Boolean> callback) {
         final Message messageBox = new Message(
                 this.root.getShell(),
                 this.i18nSupport.getText("sebserver.dialog.confirm.title"),
                 this.i18nSupport.getText(confirmMessage),
                 SWT.OK | SWT.CANCEL);
         messageBox.setMarkupEnabled(true);
-        messageBox.open(new ConfirmDialogCallback(onOK));
+        messageBox.open(new ConfirmDialogCallback(callback));
     }
 
     @Override
@@ -341,7 +299,6 @@ public class PageContextImpl implements PageContext {
             log.info("Cleanup logout failed: {}", e.getMessage());
         }
 
-        MainPageState.clear();
         forwardToLoginPage();
     }
 
@@ -353,9 +310,9 @@ public class PageContextImpl implements PageContext {
 
     private static final class ConfirmDialogCallback implements DialogCallback {
         private static final long serialVersionUID = 1491270214433492441L;
-        private final Runnable onOK;
+        private final Consumer<Boolean> onOK;
 
-        private ConfirmDialogCallback(final Runnable onOK) {
+        private ConfirmDialogCallback(final Consumer<Boolean> onOK) {
             this.onOK = onOK;
         }
 
@@ -363,25 +320,15 @@ public class PageContextImpl implements PageContext {
         public void dialogClosed(final int returnCode) {
             if (returnCode == SWT.OK) {
                 try {
-                    this.onOK.run();
+                    this.onOK.accept(true);
                 } catch (final Throwable t) {
                     log.error(
                             "Unexpected on confirm callback execution. This should not happen, plase secure the given onOK Runnable",
                             t);
+                    this.onOK.accept(false);
                 }
             }
-        }
-    }
-
-    private static final class ListenerComparator implements Comparator<PageEventListener<?>>, Serializable {
-
-        private static final long serialVersionUID = 2571739214439340404L;
-
-        @Override
-        public int compare(final PageEventListener<?> o1, final PageEventListener<?> o2) {
-            final int x = o1.priority();
-            final int y = o2.priority();
-            return (x < y) ? -1 : ((x == y) ? 0 : 1);
+            this.onOK.accept(false);
         }
     }
 

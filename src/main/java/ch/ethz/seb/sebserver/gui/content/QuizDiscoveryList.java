@@ -22,15 +22,16 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialog;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizzes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -70,17 +71,16 @@ public class QuizDiscoveryList implements TemplateComposer {
     // dependencies
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final int pageSize;
 
     protected QuizDiscoveryList(
-            final PageFormService pageFormService,
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
 
-        this.pageFormService = pageFormService;
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
+        this.widgetFactory = pageService.getWidgetFactory();
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
 
@@ -101,9 +101,11 @@ public class QuizDiscoveryList implements TemplateComposer {
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
+
         // table
         final EntityTable<QuizData> table =
-                this.widgetFactory.entityTableBuilder(restService.getRestCall(GetQuizzes.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetQuizzes.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumn(new ColumnDefinition<>(
@@ -133,22 +135,22 @@ public class QuizDiscoveryList implements TemplateComposer {
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 quizData -> quizData.endTime,
                                 true))
-                        .withDefaultAction(t -> pageContext
-                                .clearEntityKeys()
-                                .createAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
+                        .withDefaultAction(t -> actionBuilder
+                                .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                                 .withExec(action -> this.showDetails(action, t.getSelectedROWData()))
-                                .noEventPropagation())
+                                .noEventPropagation()
+                                .create())
                         .compose(content);
 
         // propagate content actions to action-pane
         final GrantCheck lmsSetupGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
         final GrantCheck examGrant = currentUser.grantCheck(EntityType.EXAM);
-        pageContext.clearEntityKeys()
+        actionBuilder
 
-                .createAction(ActionDefinition.LMS_SETUP_NEW)
+                .newAction(ActionDefinition.LMS_SETUP_NEW)
                 .publishIf(lmsSetupGrant::iw)
 
-                .createAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
+                .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
                         action -> this.showDetails(action, table.getSelectedROWData()),
@@ -156,7 +158,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(table::hasAnyContent)
 
-                .createAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
+                .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
                 .withSelect(
                         table::getSelection,
                         action -> this.importQuizData(action, table),
@@ -195,7 +197,7 @@ public class QuizDiscoveryList implements TemplateComposer {
 
     private void createDetailsForm(final QuizData quizData, final PageContext pc) {
         this.widgetFactory.labelSeparator(pc.getParent());
-        this.pageFormService.getBuilder(pc, 4)
+        this.pageService.formBuilder(pc, 4)
                 .readonly(true)
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,

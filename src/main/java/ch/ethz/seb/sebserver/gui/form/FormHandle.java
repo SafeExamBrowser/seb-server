@@ -19,11 +19,10 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.form.Form.FormFieldAccessor;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
@@ -33,21 +32,23 @@ public class FormHandle<T extends Entity> {
 
     public static final String FIELD_VALIDATION_LOCTEXT_PREFIX = "sebserver.form.validation.fieldError.";
 
+    private final PageService pageService;
     private final PageContext pageContext;
     private final Form form;
     private final RestCall<T> post;
     private final I18nSupport i18nSupport;
 
     FormHandle(
+            final PageService pageService,
             final PageContext pageContext,
             final Form form,
-            final RestCall<T> post,
-            final I18nSupport i18nSupport) {
+            final RestCall<T> post) {
 
+        this.pageService = pageService;
         this.pageContext = pageContext;
         this.form = form;
         this.post = post;
-        this.i18nSupport = i18nSupport;
+        this.i18nSupport = pageService.getI18nSupport();
     }
 
     /** Process an API post request to send and save the form field values
@@ -89,12 +90,14 @@ public class FormHandle<T extends Entity> {
     public PageAction handleFormPost(final Result<T> postResult, final PageAction action) {
         return postResult
                 .map(result -> {
-                    PageAction resultAction = action.createNew()
-                            .withAttribute(AttributeKeys.READ_ONLY, "true");
+
+                    PageAction resultAction = this.pageService.pageActionBuilder(action.pageContext())
+                            .newAction(action.definition)
+                            .create();
                     if (resultAction.getEntityKey() == null) {
                         resultAction = resultAction.withEntityKey(result.getEntityKey());
                     }
-                    action.pageContext().firePageEvent(new ActionEvent(resultAction, false));
+
                     return resultAction;
                 })
                 .onErrorDo(this::handleError)

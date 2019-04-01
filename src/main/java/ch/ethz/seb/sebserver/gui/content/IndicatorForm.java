@@ -23,11 +23,10 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
@@ -43,21 +42,21 @@ public class IndicatorForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(IndicatorForm.class);
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final ResourceService resourceService;
 
     protected IndicatorForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final ResourceService resourceService) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.resourceService = resourceService;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean isNew = entityKey == null;
@@ -97,7 +96,7 @@ public class IndicatorForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
-        final FormHandle<Indicator> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<Indicator> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
@@ -136,16 +135,19 @@ public class IndicatorForm implements TemplateComposer {
                         : restService.getRestCall(SaveIndicator.class));
 
         // propagate content actions to action-pane
-        formContext.clearEntityKeys()
-                .createAction(ActionDefinition.EXAM_INDICATOR_SAVE)
+        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
+
+                .newAction(ActionDefinition.EXAM_INDICATOR_SAVE)
                 .withEntityKey(parentEntityKey)
                 .withExec(formHandle::processFormSave)
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
-                .createAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)
+                .newAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)
                 .withEntityKey(parentEntityKey)
-                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
+                        action,
+                        ActionDefinition.EXAM_VIEW_LIST))
                 .publishIf(() -> !isReadonly);
 
     }

@@ -23,12 +23,12 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.form.PageFormService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -46,27 +46,26 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * password that is also required must match the administrators current password. */
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
-    private final PageFormService pageFormService;
+    private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
     private final I18nSupport i18nSupport;
 
     protected UserAccountChangePasswordForm(
-            final PageFormService pageFormService,
+            final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser,
-            final I18nSupport i18nSupport) {
+            final CurrentUser currentUser) {
 
-        this.pageFormService = pageFormService;
+        this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
-        this.i18nSupport = i18nSupport;
+        this.i18nSupport = pageService.getI18nSupport();
     }
 
     @Override
     public void compose(final PageContext pageContext) {
 
-        final WidgetFactory widgetFactory = this.pageFormService.getWidgetFactory();
+        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
 
         final UserInfo userInfo = this.restService
@@ -82,7 +81,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
         final boolean ownAccount = this.currentUser.get().uuid.equals(entityKey.getModelId());
 
         // The Password Change form
-        final FormHandle<UserInfo> formHandle = this.pageFormService.getBuilder(
+        final FormHandle<UserInfo> formHandle = this.pageService.formBuilder(
                 pageContext.copyOf(content), 4)
                 .readonly(false)
                 .putStaticValueIf(() -> entityKey != null,
@@ -103,9 +102,11 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         .withCondition(() -> entityKey != null))
                 .buildFor(this.restService.getRestCall(ChangePassword.class));
 
-        pageContext.createAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
+        this.pageService.pageActionBuilder(pageContext)
+
+                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
                 .withExec(action -> {
-                    formHandle.processFormSave(action);
+                    final PageAction saveAction = formHandle.processFormSave(action);
                     if (ownAccount) {
                         // NOTE: in this case the user changed the password of the own account
                         //       this should cause an logout with specified message that password change
@@ -118,12 +119,15 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                                 SWT.ERROR);
                         error.open(null);
                     }
-                    return null;
+                    return saveAction;
                 })
+                .ignoreMoveAwayFromEdit()
                 .publish()
-                .createAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
-                .withExec(PageAction::onEmptyEntityKeyGoToActivityHome)
-                .withConfirm("sebserver.overall.action.modify.cancel.confirm")
+
+                .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
+                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
+                        action,
+                        ActionDefinition.USER_ACCOUNT_VIEW_LIST))
                 .publish();
     }
 
