@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -94,7 +93,6 @@ public class ExamForm implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
 
-        final UserInfo user = currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
@@ -143,9 +141,6 @@ public class ExamForm implements TemplateComposer {
                 .putStaticValue(
                         Domain.EXAM.ATTR_INSTITUTION_ID,
                         String.valueOf(exam.getInstitutionId()))
-                .putStaticValue(
-                        Domain.EXAM.ATTR_OWNER,
-                        user.uuid)
                 .putStaticValueIf(isNotNew,
                         Domain.EXAM.ATTR_LMS_SETUP_ID,
                         String.valueOf(exam.lmsSetupId))
@@ -319,7 +314,7 @@ public class ExamForm implements TemplateComposer {
 
         return restService.getBuilder(GetQuizData.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .withQueryParam(API.PARAM_LMS_SETUP_ID, parentEntityKey.modelId)
+                .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
                 .map(quizzData -> new Exam(quizzData));
     }

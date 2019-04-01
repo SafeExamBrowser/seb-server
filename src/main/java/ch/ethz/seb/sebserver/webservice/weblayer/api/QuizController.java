@@ -34,7 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
-public class QuizImportController {
+public class QuizController {
 
     private final int defaultPageSize;
     private final int maxPageSize;
@@ -42,7 +42,7 @@ public class QuizImportController {
     private final LmsAPIService lmsAPIService;
     private final AuthorizationService authorization;
 
-    public QuizImportController(
+    public QuizController(
             @Value("${sebserver.webservice.api.pagination.defaultPageSize:10}") final int defaultPageSize,
             @Value("${sebserver.webservice.api.pagination.maxPageSize:500}") final int maxPageSize,
             final LmsAPIService lmsAPIService,
@@ -109,7 +109,7 @@ public class QuizImportController {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public QuizData getQuiz(
             @PathVariable final String modelId,
-            @RequestParam(name = API.PARAM_LMS_SETUP_ID, required = true) final Long lmsSetupId) {
+            @RequestParam(name = QuizData.QUIZ_ATTR_LMS_SETUP_ID, required = true) final Long lmsSetupId) {
 
         return this.lmsAPIService
                 .getLmsAPITemplate(lmsSetupId)

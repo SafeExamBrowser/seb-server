@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -33,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamic
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -134,81 +136,13 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         }
     }
 
-//    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.GET)
-//    public Collection<Indicator> getIndicatorOfExam(@PathVariable final Long examId) {
-//        // check read-only grant on Exam
-//        this.examDAO.byPK(examId)
-//                .map(this.authorization::checkReadonly)
-//                .getOrThrow();
-//
-//        return this.indicatorDAO.allForExam(examId)
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(path = "/{examId}/indicator/{indicatorId}", method = RequestMethod.DELETE)
-//    public Collection<Indicator> deleteIndicatorOfExam(
-//            @PathVariable final Long examId,
-//            @PathVariable(required = false) final Long indicatorId) {
-//
-//        // check write grant on Exam
-//        this.examDAO.byPK(examId)
-//                .map(this.authorization::checkWrite)
-//                .getOrThrow();
-//
-//        final Set<EntityKey> toDelete = (indicatorId != null)
-//                ? this.indicatorDAO.allForExam(examId)
-//                        .getOrThrow()
-//                        .stream()
-//                        .map(ind -> new EntityKey(String.valueOf(ind.id), EntityType.INDICATOR))
-//                        .collect(Collectors.toSet())
-//                : Utils.immutableSetOf(new EntityKey(String.valueOf(indicatorId), EntityType.INDICATOR));
-//
-//        this.indicatorDAO.delete(toDelete);
-//
-//        return this.indicatorDAO.allForExam(examId)
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(path = "/{examId}/indicator", method = RequestMethod.POST)
-//    public Indicator addNewIndicatorToExam(
-//            @PathVariable final Long examId,
-//            @Valid @RequestBody final Indicator indicator) {
-//
-//        // check write grant on Exam
-//        this.examDAO.byPK(examId)
-//                .flatMap(this.authorization::checkWrite)
-//                .getOrThrow();
-//
-//        if (indicator.id != null) {
-//            return this.indicatorDAO.byPK(indicator.id)
-//                    .getOrThrow();
-//        }
-//
-//        return this.indicatorDAO
-//                .createNew(indicator)
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(path = "/{examId}/indicator/{id}", method = RequestMethod.PUT)
-//    public Indicator putIndicatorForExam(
-//            @PathVariable final String id,
-//            @Valid @RequestBody final Indicator indicator) {
-//
-//        // check modify grant on Exam
-//        this.examDAO.byPK(indicator.examId)
-//                .flatMap(this.authorization::checkModify)
-//                .getOrThrow();
-//
-//        return this.indicatorDAO
-//                .save(indicator)
-//                .getOrThrow();
-//    }
-
     @Override
     protected Exam createNew(final POSTMapper postParams) {
 
         final Long lmsSetupId = postParams.getLong(QuizData.QUIZ_ATTR_LMS_SETUP_ID);
         final String quizId = postParams.getString(QuizData.QUIZ_ATTR_ID);
+        final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+        postParams.putIfAbsent(EXAM.ATTR_OWNER, currentUser.uuid());
 
         return this.lmsAPIService
                 .getLmsAPITemplate(lmsSetupId)

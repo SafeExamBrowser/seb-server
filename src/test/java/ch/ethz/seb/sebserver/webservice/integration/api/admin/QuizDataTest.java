@@ -113,6 +113,28 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         assertTrue(quizzes.content.size() == 5);
     }
 
+    @Test
+    public void testGetQuiz() throws Exception {
+        // create new active LmsSetup Mock with seb-admin
+        final LmsSetup lmsSetup = createLmsSetupMockWith(
+                this,
+                getSebAdminAccess(),
+                "new LmsSetup 1",
+                true);
+
+        final QuizData quizData = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withPath("quiz1")
+                .withAttribute(QuizData.QUIZ_ATTR_LMS_SETUP_ID, lmsSetup.getModelId())
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<QuizData>() {
+                });
+
+        assertNotNull(quizData);
+    }
+
     public static final LmsSetup createLmsSetupMockWith(
             final AdministrationAPIIntegrationTester tester,
             final String token,
