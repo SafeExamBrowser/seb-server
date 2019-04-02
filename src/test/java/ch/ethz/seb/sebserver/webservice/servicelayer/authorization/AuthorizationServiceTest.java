@@ -32,7 +32,7 @@ public class AuthorizationServiceTest {
     public void testInstitutionGrantForSEB_SERVER_ADMIN() {
         final AuthorizationServiceImpl service = getTestServiceWithUserWithRoles(UserRole.SEB_SERVER_ADMIN);
 
-        assertTrue(service.hasGrant(PrivilegeType.READ_ONLY, EntityType.INSTITUTION));
+        assertTrue(service.hasGrant(PrivilegeType.READ, EntityType.INSTITUTION));
         assertTrue(service.hasGrant(PrivilegeType.MODIFY, EntityType.INSTITUTION));
         assertTrue(service.hasGrant(PrivilegeType.WRITE, EntityType.INSTITUTION));
 
@@ -47,7 +47,7 @@ public class AuthorizationServiceTest {
     public void testInstitutionGrantsForINSTITUTIONAL_ADMIN() {
         final AuthorizationServiceImpl service = getTestServiceWithUserWithRoles(UserRole.INSTITUTIONAL_ADMIN);
 
-        assertFalse(service.hasGrant(PrivilegeType.READ_ONLY, EntityType.INSTITUTION));
+        assertFalse(service.hasGrant(PrivilegeType.READ, EntityType.INSTITUTION));
         assertFalse(service.hasGrant(PrivilegeType.MODIFY, EntityType.INSTITUTION));
         assertFalse(service.hasGrant(PrivilegeType.WRITE, EntityType.INSTITUTION));
 

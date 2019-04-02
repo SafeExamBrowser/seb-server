@@ -12,8 +12,8 @@ package ch.ethz.seb.sebserver.gbl.authorization;
 public enum PrivilegeType {
     /** No privilege type at all (placeholder) */
     NONE,
-    /** The read-only privilege type for read access */
-    READ_ONLY,
+    /** The read privilege type for read access */
+    READ,
     /** The modify privilege type includes read-only type privilege plus privilege for editing right but without create
      * and delete
      * rights */
@@ -24,8 +24,8 @@ public enum PrivilegeType {
     /** Use this to check implicit privilege.
      *
      * Implicit in this case means: if the privilegeType is of type PrivilegeType.WRITE,
-     * PrivilegeType.MODIFY and PrivilegeType.READ_ONLY are implicitly included.
-     * If the privilegeType is of type PrivilegeType.MODIFY, the PrivilegeType.READ_ONLY are implicitly included
+     * PrivilegeType.MODIFY and PrivilegeType.READ are implicitly included.
+     * If the privilegeType is of type PrivilegeType.MODIFY, the PrivilegeType.READ are implicitly included
      * and so on.
      *
      * @param type the PrivilegeType
@@ -38,12 +38,12 @@ public enum PrivilegeType {
         switch (this) {
             case NONE:
                 return false;
-            case READ_ONLY:
-                return type == READ_ONLY;
+            case READ:
+                return type == READ;
             case MODIFY:
-                return type == READ_ONLY || type == MODIFY;
+                return type == READ || type == MODIFY;
             case WRITE:
-                return type == READ_ONLY || type == MODIFY || type == WRITE;
+                return type == READ || type == MODIFY || type == WRITE;
             default:
                 return false;
         }

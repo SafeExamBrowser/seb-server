@@ -81,7 +81,7 @@ public class QuizController {
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         this.authorization.check(
-                PrivilegeType.READ_ONLY,
+                PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
 
@@ -115,7 +115,7 @@ public class QuizController {
                 .getLmsAPITemplate(lmsSetupId)
                 .getOrThrow()
                 .getQuiz(modelId)
-                .flatMap(this.authorization::checkReadonly)
+                .flatMap(this.authorization::checkRead)
                 .getOrThrow();
     }
 

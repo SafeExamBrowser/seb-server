@@ -108,7 +108,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         // User Account
         // if current user has base or institutional read privilege for User Account, show list
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, EntityType.USER)) {
+        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.USER)) {
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.USER_ACCOUNT.displayName);
@@ -131,7 +131,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // LMS Setup
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, EntityType.LMS_SETUP)) {
+        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.LMS_SETUP)) {
             final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.LMS_SETUP.displayName);
@@ -143,7 +143,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // Exam (Quiz Discovery)
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, EntityType.EXAM)) {
+        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM)) {
 
             // Quiz Discovery
             // TODO discussion if this should be visible on Activity Pane or just over the Exam activity and Import action

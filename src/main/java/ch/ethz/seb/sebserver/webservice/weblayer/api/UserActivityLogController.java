@@ -134,7 +134,7 @@ public class UserActivityLogController {
 
     private void checkBaseReadPrivilege(final Long institutionId) {
         this.authorization.check(
-                PrivilegeType.READ_ONLY,
+                PrivilegeType.READ,
                 EntityType.USER_ACTIVITY_LOG,
                 institutionId);
     }

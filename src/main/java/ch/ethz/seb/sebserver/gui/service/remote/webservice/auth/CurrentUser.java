@@ -226,7 +226,7 @@ public class CurrentUser {
          *
          * @return true on read-only privilege grant on wrapped EntityType */
         public boolean r() {
-            return hasBasePrivilege(PrivilegeType.READ_ONLY, this.entityType);
+            return hasBasePrivilege(PrivilegeType.READ, this.entityType);
         }
 
         /** Checks the base modify privilege grant
@@ -247,7 +247,7 @@ public class CurrentUser {
          *
          * @return true institutional read-only privilege grant on wrapped EntityType */
         public boolean ir() {
-            return hasInstitutionalPrivilege(PrivilegeType.READ_ONLY, this.entityType);
+            return hasInstitutionalPrivilege(PrivilegeType.READ, this.entityType);
         }
 
         /** Checks the institutional modify privilege grant
@@ -277,7 +277,7 @@ public class CurrentUser {
          *
          * @return true on read-only privilege grant for wrapped grantEntity */
         public boolean r() {
-            return hasPrivilege(PrivilegeType.READ_ONLY, this.grantEntity);
+            return hasPrivilege(PrivilegeType.READ, this.grantEntity);
         }
 
         /** Checks the modify privilege grant for wrapped grantEntity

@@ -47,7 +47,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
         // login as SEB Administrator
         authorizationContextHolder.getAuthorizationContext().login("admin", "admin");
 
-        assertTrue(currentUser.hasBasePrivilege(PrivilegeType.READ_ONLY, EntityType.INSTITUTION));
+        assertTrue(currentUser.hasBasePrivilege(PrivilegeType.READ, EntityType.INSTITUTION));
         assertTrue(currentUser.hasPrivilege(PrivilegeType.WRITE, currentUser.get()));
         assertTrue(currentUser.hasBasePrivilege(PrivilegeType.WRITE, EntityType.INSTITUTION));
         assertTrue(currentUser.hasInstitutionalPrivilege(PrivilegeType.MODIFY, EntityType.INSTITUTION));

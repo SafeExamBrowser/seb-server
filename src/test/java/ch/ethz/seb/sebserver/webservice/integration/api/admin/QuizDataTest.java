@@ -31,7 +31,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
     @Test
     public void testGetInstitutionalQuizPage() throws Exception {
         // create new active LmsSetup Mock with seb-admin
-        final LmsSetup lmsSetup1 = createLmsSetupMockWith(
+        final LmsSetup lmsSetup1 = createLmsSetupMock(
                 this,
                 getSebAdminAccess(),
                 "new LmsSetup 1",
@@ -41,7 +41,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         assertTrue(lmsSetup1.isActive());
 
         // create new inactive LmsSetup Mock with institution 2 admin
-        final LmsSetup lmsSetup2 = createLmsSetupMockWith(
+        final LmsSetup lmsSetup2 = createLmsSetupMock(
                 this,
                 getAdminInstitution2Access(),
                 "new LmsSetup 2",
@@ -116,7 +116,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
     @Test
     public void testGetQuiz() throws Exception {
         // create new active LmsSetup Mock with seb-admin
-        final LmsSetup lmsSetup = createLmsSetupMockWith(
+        final LmsSetup lmsSetup = createLmsSetupMock(
                 this,
                 getSebAdminAccess(),
                 "new LmsSetup 1",
@@ -135,7 +135,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         assertNotNull(quizData);
     }
 
-    public static final LmsSetup createLmsSetupMockWith(
+    public static final LmsSetup createLmsSetupMock(
             final AdministrationAPIIntegrationTester tester,
             final String token,
             final String name,

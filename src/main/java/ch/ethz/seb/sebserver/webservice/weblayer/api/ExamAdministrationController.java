@@ -11,25 +11,33 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
@@ -40,6 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -49,6 +58,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
 
     private final ExamDAO examDAO;
+    private final UserDAO userDAO;
     private final LmsAPIService lmsAPIService;
 
     public ExamAdministrationController(
@@ -58,7 +68,8 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final PaginationService paginationService,
             final BulkActionService bulkActionService,
             final BeanValidationService beanValidationService,
-            final LmsAPIService lmsAPIService) {
+            final LmsAPIService lmsAPIService,
+            final UserDAO userDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -68,6 +79,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                 beanValidationService);
 
         this.examDAO = examDAO;
+        this.userDAO = userDAO;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -104,7 +116,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         } else {
 
             this.authorization.check(
-                    PrivilegeType.READ_ONLY,
+                    PrivilegeType.READ,
                     EntityType.EXAM,
                     institutionId);
 
@@ -146,9 +158,41 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
         return this.lmsAPIService
                 .getLmsAPITemplate(lmsSetupId)
+                .map(template -> {
+                    this.authorization.checkRead(template.lmsSetup());
+                    return template;
+                })
                 .flatMap(template -> template.getQuiz(quizId))
                 .map(quiz -> new Exam(null, quiz, postParams))
                 .getOrThrow();
+    }
+
+    @Override
+    protected Result<Exam> validForSave(final Exam entity) {
+        return super.validForSave(entity)
+                .map(this::checkExamSupporterRole);
+    }
+
+    private Exam checkExamSupporterRole(final Exam exam) {
+        final Set<String> examSupporter = this.userDAO.all(
+                this.authorization.getUserService().getCurrentUser().getUserInfo().institutionId,
+                true)
+                .map(users -> users.stream()
+                        .filter(user -> user.getRoles().contains(UserRole.EXAM_SUPPORTER.name()))
+                        .map(user -> user.uuid)
+                        .collect(Collectors.toSet()))
+                .getOrThrow();
+
+        for (final String supporterUUID : exam.getSupporter()) {
+            if (!examSupporter.contains(supporterUUID)) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.EXAM.TYPE_NAME,
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "exam:supporter:grantDenied:" + supporterUUID)));
+            }
+        }
+        return exam;
     }
 
 }

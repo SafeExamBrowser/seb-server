@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  *
  * If there is one or more GrantEntity objects within an authenticated user-request, this service
  * can be used check the authenticated user access grant within the object. Check if a given user
- * has write, modify or even read-only rights on an entity instance or on an entity type. */
+ * has write, modify or even read rights on an entity instance or on an entity type. */
 public interface AuthorizationService {
 
     /** Gets the UserService that is bundled within the AuthorizationGrantService
@@ -138,7 +138,7 @@ public interface AuthorizationService {
      * @param grantEntity Entity instance
      * @return true if the current user has read-only grant on given Entity instance or false on deny */
     default boolean hasReadonlyGrant(final GrantEntity grantEntity) {
-        return hasGrant(PrivilegeType.READ_ONLY, grantEntity);
+        return hasGrant(PrivilegeType.READ, grantEntity);
     }
 
     /** Check modify grant for a given Entity instance and current user.
@@ -199,14 +199,14 @@ public interface AuthorizationService {
         return Result.of(grantEntity);
     }
 
-    /** Check read-only grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
+    /** Check read grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
      *
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
-    default <E extends GrantEntity> Result<E> checkReadonly(final E grantEntity) {
-        return check(PrivilegeType.READ_ONLY, grantEntity);
+    default <E extends GrantEntity> Result<E> checkRead(final E grantEntity) {
+        return check(PrivilegeType.READ, grantEntity);
     }
 
     /** Check modify grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
