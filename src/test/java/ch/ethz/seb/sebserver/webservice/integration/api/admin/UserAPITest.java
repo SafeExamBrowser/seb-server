@@ -122,7 +122,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertEquals(
                 "[{\"messageCode\":\"1001\","
                         + "\"systemMessage\":\"FORBIDDEN\","
-                        + "\"details\":\"No grant: READ_ONLY on type: USER entity institution: 1 entity owner: user1 for user: user3\","
+                        + "\"details\":\"No grant: READ on type: USER entity institution: 1 entity owner: user1 for user: user3\","
                         + "\"attributes\":[]}]",
                 contentAsString);
     }
