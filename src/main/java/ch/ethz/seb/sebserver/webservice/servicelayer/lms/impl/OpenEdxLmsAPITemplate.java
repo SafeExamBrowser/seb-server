@@ -11,11 +11,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -93,7 +95,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             this.knownTokenAccessPaths.addAll(Arrays.asList(alternativeTokenRequestPaths));
         }
 
-        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(allQuizzesSupplier(lmsSetup));
+        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(allQuizzesSupplier());
     }
 
     @Override
@@ -143,8 +145,13 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO this can be improved in the future
+        return getQuizzes(new FilterMap())
+                .getOrElse(() -> Collections.emptyList())
+                .stream()
+                .filter(quiz -> ids.contains(quiz.id))
+                .map(quiz -> Result.of(quiz))
+                .collect(Collectors.toList());
     }
 
     private Result<LmsSetup> initRestTemplateAndRequestAccessToken() {
@@ -209,7 +216,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         return template;
     }
 
-    private Supplier<List<QuizData>> allQuizzesSupplier(final LmsSetup lmsSetup) {
+    private Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> {
             return initRestTemplateAndRequestAccessToken()
                     .map(this::collectAllQuizzes)

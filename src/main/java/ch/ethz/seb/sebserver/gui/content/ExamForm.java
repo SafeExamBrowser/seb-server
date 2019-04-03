@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -40,10 +41,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
@@ -128,8 +126,9 @@ public class ExamForm implements TemplateComposer {
         final BooleanSupplier isNew = () -> importFromQuizData;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
-        final boolean writeGrant = userGrantCheck.w();
         final boolean modifyGrant = userGrantCheck.m();
+        final ExamStatus examStatus = exam.getStatus();
+        final boolean editable = examStatus == ExamStatus.UP_COMING;
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
@@ -191,6 +190,11 @@ public class ExamForm implements TemplateComposer {
                         "sebserver.exam.form.type",
                         String.valueOf(exam.type),
                         this.resourceService::examTypeResources))
+                .addField(FormBuilder.text(
+                        Exam.ATTR_STATUS,
+                        "sebserver.exam.form.status",
+                        i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
+                        .readonly(true))
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
                         "sebserver.exam.form.supporter",
@@ -210,7 +214,7 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly)
+                .publishIf(() -> modifyGrant && readonly && editable)
 
                 .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(formHandle::processFormSave)
@@ -221,18 +225,18 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this::cancelModify)
-                .publishIf(() -> !readonly)
+                .publishIf(() -> !readonly);
 
-                .newAction(ActionDefinition.EXAM_DEACTIVATE)
-                .withEntityKey(entityKey)
-                .withSimpleRestCall(restService, DeactivateExam.class)
-                .withConfirm(PageUtils.confirmDeactivation(exam, restService))
-                .publishIf(() -> writeGrant && readonly && exam.isActive())
-
-                .newAction(ActionDefinition.EXAM_ACTIVATE)
-                .withEntityKey(entityKey)
-                .withSimpleRestCall(restService, ActivateExam.class)
-                .publishIf(() -> writeGrant && readonly && !exam.isActive());
+//                .newAction(ActionDefinition.EXAM_DEACTIVATE)
+//                .withEntityKey(entityKey)
+//                .withSimpleRestCall(restService, DeactivateExam.class)
+//                .withConfirm(PageUtils.confirmDeactivation(exam, restService))
+//                .publishIf(() -> writeGrant && readonly && exam.isActive())
+//
+//                .newAction(ActionDefinition.EXAM_ACTIVATE)
+//                .withEntityKey(entityKey)
+//                .withSimpleRestCall(restService, ActivateExam.class)
+//                .publishIf(() -> writeGrant && readonly && !exam.isActive());
 
         // additional data in read-only view
         if (readonly) {
@@ -274,17 +278,17 @@ public class ExamForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                     .withParentEntityKey(entityKey)
-                    .publishIf(() -> modifyGrant)
+                    .publishIf(() -> modifyGrant && editable)
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(indicatorTable::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(indicatorTable::getSelection, this::deleteSelectedIndicator, emptySelectionTextKey)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
 
             // TODO List of attached SEB Configurations
 

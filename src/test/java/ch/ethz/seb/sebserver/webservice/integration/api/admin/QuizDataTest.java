@@ -59,7 +59,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(quizzes);
-        assertTrue(quizzes.content.size() == 5);
+        assertTrue(quizzes.content.size() == 7);
 
         // for the inactive LmsSetup we should'nt get any quizzes
         quizzes = new RestAPITestHelper()
@@ -110,7 +110,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(quizzes);
-        assertTrue(quizzes.content.size() == 5);
+        assertTrue(quizzes.content.size() == 7);
     }
 
     @Test

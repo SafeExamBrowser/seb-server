@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -64,12 +63,12 @@ public interface LmsAPIService {
     public static Predicate<QuizData> quizFilterFunction(final FilterMap filterMap) {
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        //final DateTime now = DateTime.now(DateTimeZone.UTC);
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
             final boolean startTimeFilter = (from == null) || (q.startTime != null && q.startTime.isAfter(from));
-            final boolean endTimeFilter = (now == null) || (q.endTime != null && q.endTime.isAfter(now));
-            return nameFilter && startTimeFilter && endTimeFilter;
+//            final boolean endTimeFilter = (now == null) || (q.endTime != null && q.endTime.isAfter(now));
+            return nameFilter && startTimeFilter /* && endTimeFilter */;
         };
     }
 

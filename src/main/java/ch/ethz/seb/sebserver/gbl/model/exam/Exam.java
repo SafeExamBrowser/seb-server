@@ -14,6 +14,7 @@ import java.util.Collections;
 import javax.validation.constraints.NotNull;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,15 +28,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class Exam implements GrantEntity, Activatable {
 
+    public static final String ATTR_STATUS = "examStatus";
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_FROM = "from";
 
-//    public enum ExamStatus {
-//        ON_CREATION,
-//        READY,
-//        RUNNING,
-//        FINISHED
-//    }
+    public enum ExamStatus {
+        UP_COMING,
+        RUNNING,
+        FINISHED
+    }
 
     public enum ExamType {
         UNDEFINED,
@@ -82,7 +83,6 @@ public final class Exam implements GrantEntity, Activatable {
     public final String quitPassword;
 
     @JsonProperty(EXAM.ATTR_OWNER)
-    @NotNull
     public final String owner;
 
     @JsonProperty(EXAM.ATTR_SUPPORTER)
@@ -219,6 +219,24 @@ public final class Exam implements GrantEntity, Activatable {
 
     public String getQuitPassword() {
         return this.quitPassword;
+    }
+
+    @JsonIgnore
+    public ExamStatus getStatus() {
+        if (this.startTime == null) {
+            return ExamStatus.UP_COMING;
+        }
+
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        if (this.startTime.isBefore(now)) {
+            if (this.endTime == null || this.endTime.isAfter(now)) {
+                return ExamStatus.RUNNING;
+            } else {
+                return ExamStatus.FINISHED;
+            }
+        }
+
+        return ExamStatus.UP_COMING;
     }
 
     @Override

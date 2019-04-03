@@ -130,7 +130,7 @@ public class ModalInputDialog<T> extends Dialog {
         shell.pack();
         final Rectangle bounds = shell.getBounds();
         final Rectangle bounds2 = super.getParent().getDisplay().getBounds();
-        bounds.width = 400;
+        //bounds.width = bounds.width;
         bounds.x = (bounds2.width - bounds.width) / 2;
         bounds.y = (bounds2.height - bounds.height) / 2;
         shell.setBounds(bounds);

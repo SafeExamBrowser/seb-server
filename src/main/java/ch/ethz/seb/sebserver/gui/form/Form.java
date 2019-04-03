@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -266,11 +268,11 @@ public final class Form implements FormBinding {
                 final String[] nameValue = StringUtils.split(split[i], Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
                 buffer.append(nameValue[0])
                         .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(nameValue[1]);
+                        .append(URLEncoder.encode(nameValue[1], StandardCharsets.UTF_8));
             } else {
                 buffer.append(name)
                         .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(split[i]);
+                        .append(URLEncoder.encode(split[i], StandardCharsets.UTF_8));
             }
         }
     }

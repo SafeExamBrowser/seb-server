@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -60,6 +63,8 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.list.column.name");
     private final static LocTextKey DETAILS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.title");
+    private final static LocTextKey NO_IMPORT_OF_OUT_DATED_QUIZ =
+            new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
 
     // filter attribute models
     private final TableFilterAttribute lmsFilter;
@@ -174,6 +179,13 @@ public class QuizDiscoveryList implements TemplateComposer {
     private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {
         final QuizData selectedROWData = table.getSelectedROWData();
 
+        if (selectedROWData.endTime != null) {
+            final DateTime now = DateTime.now(DateTimeZone.UTC);
+            if (selectedROWData.endTime.isBefore(now)) {
+                throw new PageMessageException(NO_IMPORT_OF_OUT_DATED_QUIZ);
+            }
+        }
+
         return action
                 .withEntityKey(action.getSingleSelection())
                 .withParentEntityKey(new EntityKey(selectedROWData.lmsSetupId, EntityType.LMS_SETUP))
@@ -196,7 +208,8 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private void createDetailsForm(final QuizData quizData, final PageContext pc) {
-        this.pageService.formBuilder(pc, 4)
+        this.pageService.formBuilder(pc, 3)
+                .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,

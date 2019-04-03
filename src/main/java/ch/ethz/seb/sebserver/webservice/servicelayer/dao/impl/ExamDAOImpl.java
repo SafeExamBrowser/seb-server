@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -199,7 +200,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     null,
-                    BooleanUtils.toInteger(false));
+                    BooleanUtils.toInteger(true));
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;
@@ -353,29 +354,35 @@ public class ExamDAOImpl implements ExamDAO {
 
     private Result<Collection<Exam>> toDomainModel(final Long lmsSetupId, final Collection<ExamRecord> records) {
         return Result.tryCatch(() -> {
-            final HashMap<String, ExamRecord> recordMapping = records
-                    .stream()
-                    .reduce(new HashMap<String, ExamRecord>(),
-                            (map, record) -> Utils.mapPut(map, record.getExternalId(), record),
-                            (map1, map2) -> Utils.mapPutAll(map1, map2));
 
-            return this.lmsAPIService
+            // map records
+            final Map<String, ExamRecord> recordMapping = records
+                    .stream()
+                    .collect(Collectors.toMap(r -> r.getExternalId(), Function.identity()));
+
+            // get and map quizzes
+            final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
                     .map(template -> template.getQuizzes(recordMapping.keySet()))
                     .getOrThrow()
                     .stream()
-                    .map(result -> result.flatMap(quiz -> toDomainModel(recordMapping, quiz)).getOrThrow())
+                    .flatMap(Result::skipOnError)
+                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
+
+            // collect Exam's
+            return recordMapping.entrySet()
+                    .stream()
+                    .map(entry -> toDomainModel(entry.getValue(), quizzes.get(entry.getKey())).getOrThrow())
                     .collect(Collectors.toList());
         });
     }
 
     private Result<Exam> toDomainModel(
-            final HashMap<String, ExamRecord> recordMapping,
+            final ExamRecord record,
             final QuizData quizData) {
 
         return Result.tryCatch(() -> {
 
-            final ExamRecord record = recordMapping.get(quizData.id);
             final Collection<String> supporter = (StringUtils.isNoneBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
                     : null;
@@ -384,17 +391,17 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getId(),
                     record.getInstitutionId(),
                     record.getLmsSetupId(),
-                    quizData.id,
-                    quizData.name,
-                    quizData.description,
-                    quizData.startTime,
-                    quizData.endTime,
-                    quizData.startURL,
+                    record.getExternalId(),
+                    (quizData != null) ? quizData.name : Constants.EMPTY_NOTE,
+                    (quizData != null) ? quizData.description : Constants.EMPTY_NOTE,
+                    (quizData != null) ? quizData.startTime : null,
+                    (quizData != null) ? quizData.endTime : null,
+                    (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
                     record.getQuitPassword(),
                     record.getOwner(),
                     supporter,
-                    BooleanUtils.toBooleanObject(record.getActive()));
+                    BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0));
         });
     }
 
