@@ -18,7 +18,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -79,11 +78,11 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getExamFromTime() {
-        return Utils.toDateTime(getString(Exam.FILTER_ATTR_FROM));
+        return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
     }
 
     public DateTime getSebClientConfigFromTime() {
-        return Utils.toDateTime(getString(SebClientConfig.FILTER_ATTR_FROM));
+        return getQuizFromTime();
     }
 
     public Long getLmsSetupId() {

@@ -100,7 +100,7 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
-            final String name = filterMap.getName();
+            final String name = filterMap.getQuizName();
             final DateTime from = filterMap.getExamFromTime();
             final Predicate<Exam> quizDataFilter = exam -> {
                 if (StringUtils.isNoneBlank(name)) {

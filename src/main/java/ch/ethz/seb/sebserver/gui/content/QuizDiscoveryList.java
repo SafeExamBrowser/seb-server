@@ -179,9 +179,9 @@ public class QuizDiscoveryList implements TemplateComposer {
     private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {
         final QuizData selectedROWData = table.getSelectedROWData();
 
-        if (selectedROWData.endTime != null) {
+        if (selectedROWData.startTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            if (selectedROWData.endTime.isBefore(now)) {
+            if (selectedROWData.startTime.isBefore(now)) {
                 throw new PageMessageException(NO_IMPORT_OF_OUT_DATED_QUIZ);
             }
         }
