@@ -195,12 +195,13 @@ public class ExamForm implements TemplateComposer {
                         "sebserver.exam.form.status",
                         i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
                         .readonly(true))
-                .addField(FormBuilder.multiComboSelection(
-                        Domain.EXAM.ATTR_SUPPORTER,
-                        "sebserver.exam.form.supporter",
-                        StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                        this.resourceService::examSupporterResources)
-                        .withCondition(isNotNew))
+                .addFieldIf(
+                        isNotNew,
+                        () -> FormBuilder.multiComboSelection(
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "sebserver.exam.form.supporter",
+                                StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
+                                this.resourceService::examSupporterResources))
 
                 .buildFor(importFromQuizData
                         ? restService.getRestCall(ImportAsExam.class)
@@ -267,10 +268,12 @@ public class ExamForm implements TemplateComposer {
                                     thresholdColumnKey,
                                     ExamForm::thresholdsValue,
                                     false))
-                            .withDefaultAction(actionBuilder
-                                    .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
-                                    .withParentEntityKey(entityKey)
-                                    .create())
+                            .withDefaultActionIf(
+                                    () -> editable,
+                                    () -> actionBuilder
+                                            .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
+                                            .withParentEntityKey(entityKey)
+                                            .create())
 
                             .compose(content);
 

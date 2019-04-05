@@ -16,7 +16,6 @@ public abstract class FieldBuilder<T> {
     int spanEmptyCell = -1;
     boolean autoEmptyCellSeparation = false;
     String group = null;
-    BooleanSupplier condition = null;
     boolean readonly = false;
     boolean visible = true;
 
@@ -52,11 +51,6 @@ public abstract class FieldBuilder<T> {
 
     public FieldBuilder<T> withGroup(final String group) {
         this.group = group;
-        return this;
-    }
-
-    public FieldBuilder<T> withCondition(final BooleanSupplier condition) {
-        this.condition = condition;
         return this;
     }
 

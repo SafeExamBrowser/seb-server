@@ -145,23 +145,33 @@ public class FormBuilder {
         return this;
     }
 
-    public FormBuilder addField(final FieldBuilder<?> template) {
-        if (template.condition == null || template.condition.getAsBoolean()) {
-            template.spanLabel = (template.spanLabel < 0) ? this.defaultSpanLabel : template.spanLabel;
-            template.spanInput = (template.spanInput < 0) ? this.defaultSpanInput : template.spanInput;
-            template.spanEmptyCell = (template.spanEmptyCell < 0) ? this.defaultSpanEmptyCell : template.spanEmptyCell;
-            template.autoEmptyCellSeparation = template.autoEmptyCellSeparation || this.emptyCellSeparation;
+    public FormBuilder addFieldIf(
+            final BooleanSupplier condition,
+            final Supplier<FieldBuilder<?>> templateSupplier) {
 
-            if (template.autoEmptyCellSeparation && this.form.hasFields()) {
-                addEmptyCell(template.spanEmptyCell);
-            }
-
-            template.build(this);
-
-            if (StringUtils.isNoneBlank(template.group)) {
-                this.form.addToGroup(template.group, template.name);
-            }
+        if (condition.getAsBoolean()) {
+            return addField(templateSupplier.get());
         }
+
+        return this;
+    }
+
+    public FormBuilder addField(final FieldBuilder<?> template) {
+        template.spanLabel = (template.spanLabel < 0) ? this.defaultSpanLabel : template.spanLabel;
+        template.spanInput = (template.spanInput < 0) ? this.defaultSpanInput : template.spanInput;
+        template.spanEmptyCell = (template.spanEmptyCell < 0) ? this.defaultSpanEmptyCell : template.spanEmptyCell;
+        template.autoEmptyCellSeparation = template.autoEmptyCellSeparation || this.emptyCellSeparation;
+
+        if (template.autoEmptyCellSeparation && this.form.hasFields()) {
+            addEmptyCell(template.spanEmptyCell);
+        }
+
+        template.build(this);
+
+        if (StringUtils.isNoneBlank(template.group)) {
+            this.form.addToGroup(template.group, template.name);
+        }
+
         return this;
     }
 

@@ -108,8 +108,9 @@ public class LmsSetupList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetups.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withColumnIf(() -> isSEBAdmin,
-                                new ColumnDefinition<>(
+                        .withColumnIf(
+                                () -> isSEBAdmin,
+                                () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
                                         lmsSetupInstitutionNameFunction(this.resourceService),

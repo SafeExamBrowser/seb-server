@@ -137,13 +137,14 @@ public class LmsSetupForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
                         String.valueOf(lmsSetup.getLmsType()))
-                .addField(FormBuilder.singleSelection(
-                        Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
-                        "sebserver.lmssetup.form.institution",
-                        String.valueOf(lmsSetup.getInstitutionId()),
-                        () -> this.resourceService.institutionResource())
-                        .withCondition(isSEBAdmin)
-                        .readonlyIf(isNotNew))
+                .addFieldIf(
+                        isSEBAdmin,
+                        () -> FormBuilder.singleSelection(
+                                Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
+                                "sebserver.lmssetup.form.institution",
+                                String.valueOf(lmsSetup.getInstitutionId()),
+                                () -> this.resourceService.institutionResource())
+                                .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_NAME,
                         "sebserver.lmssetup.form.name",
@@ -154,21 +155,24 @@ public class LmsSetupForm implements TemplateComposer {
                         (lmsType != null) ? lmsType.name() : null,
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_URL,
-                        "sebserver.lmssetup.form.url",
-                        lmsSetup.getLmsApiUrl())
-                        .withCondition(() -> isNotNew.getAsBoolean()))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                        "sebserver.lmssetup.form.clientname.lms",
-                        lmsSetup.getLmsAuthName())
-                        .withCondition(() -> isNotNew.getAsBoolean()))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                        "sebserver.lmssetup.form.secret.lms")
-                        .asPasswordField()
-                        .withCondition(() -> isNotNew.getAsBoolean()))
+                .addFieldIf(
+                        () -> isNotNew.getAsBoolean(),
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_URL,
+                                "sebserver.lmssetup.form.url",
+                                lmsSetup.getLmsApiUrl()))
+                .addFieldIf(
+                        () -> isNotNew.getAsBoolean(),
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
+                                "sebserver.lmssetup.form.clientname.lms",
+                                lmsSetup.getLmsAuthName()))
+                .addFieldIf(
+                        () -> isNotNew.getAsBoolean(),
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                                "sebserver.lmssetup.form.secret.lms")
+                                .asPasswordField())
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)

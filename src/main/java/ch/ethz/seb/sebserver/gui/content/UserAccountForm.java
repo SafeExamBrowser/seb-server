@@ -138,13 +138,14 @@ public class UserAccountForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.USER.ATTR_INSTITUTION_ID,
                         String.valueOf(userAccount.getInstitutionId()))
-                .addField(FormBuilder.singleSelection(
-                        Domain.USER.ATTR_INSTITUTION_ID,
-                        "sebserver.useraccount.form.institution",
-                        String.valueOf(userAccount.getInstitutionId()),
-                        () -> this.resourceService.institutionResource())
-                        .withCondition(isSEBAdmin)
-                        .readonlyIf(isNotNew))
+                .addFieldIf(
+                        isSEBAdmin,
+                        () -> FormBuilder.singleSelection(
+                                Domain.USER.ATTR_INSTITUTION_ID,
+                                "sebserver.useraccount.form.institution",
+                                String.valueOf(userAccount.getInstitutionId()),
+                                () -> this.resourceService.institutionResource())
+                                .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
                         "sebserver.useraccount.form.name",
@@ -161,29 +162,33 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_LANGUAGE,
                         "sebserver.useraccount.form.language",
                         userAccount.getLanguage().getLanguage(),
-                        this.resourceService::languageResources))
+                        this.resourceService::languageResources)
+                        .readonly(true))
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
                         "sebserver.useraccount.form.timezone",
                         userAccount.getTimeZone().getID(),
                         this.resourceService::timeZoneResources))
-                .addField(FormBuilder.multiSelection(
-                        USER_ROLE.REFERENCE_NAME,
-                        "sebserver.useraccount.form.roles",
-                        StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
-                        this.resourceService::userRoleResources)
-                        .withCondition(() -> modifyGrant)
-                        .visibleIf(writeGrant))
-                .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password")
-                        .asPasswordField()
-                        .withCondition(isNew))
-                .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password.confirm")
-                        .asPasswordField()
-                        .withCondition(isNew))
+                .addFieldIf(
+                        () -> modifyGrant,
+                        () -> FormBuilder.multiSelection(
+                                USER_ROLE.REFERENCE_NAME,
+                                "sebserver.useraccount.form.roles",
+                                StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
+                                this.resourceService::userRoleResources)
+                                .visibleIf(writeGrant))
+                .addFieldIf(
+                        isNew,
+                        () -> FormBuilder.text(
+                                PasswordChange.ATTR_NAME_NEW_PASSWORD,
+                                "sebserver.useraccount.form.password")
+                                .asPasswordField())
+                .addFieldIf(
+                        isNew,
+                        () -> FormBuilder.text(
+                                PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                                "sebserver.useraccount.form.password.confirm")
+                                .asPasswordField())
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewUserAccount.class)
                         : restService.getRestCall(SaveUserAccount.class));

@@ -118,8 +118,9 @@ public class UserAccountList implements TemplateComposer {
 
                 .withEmptyMessage(new LocTextKey("sebserver.useraccount.list.empty"))
                 .withPaging(this.pageSize)
-                .withColumnIf(isSEBAdmin,
-                        new ColumnDefinition<>(
+                .withColumnIf(
+                        isSEBAdmin,
+                        () -> new ColumnDefinition<>(
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 INSTITUTION_TEXT_KEY,
                                 userInstitutionNameFunction(this.resourceService),

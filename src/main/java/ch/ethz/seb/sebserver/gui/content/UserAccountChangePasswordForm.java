@@ -95,11 +95,12 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
                         "sebserver.useraccount.form.password.new")
                         .asPasswordField())
-                .addField(FormBuilder.text(
-                        PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password.new.confirm")
-                        .asPasswordField()
-                        .withCondition(() -> entityKey != null))
+                .addFieldIf(
+                        () -> entityKey != null,
+                        () -> FormBuilder.text(
+                                PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                                "sebserver.useraccount.form.password.new.confirm")
+                                .asPasswordField())
                 .buildFor(this.restService.getRestCall(ChangePassword.class));
 
         this.pageService.pageActionBuilder(pageContext)

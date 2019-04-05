@@ -110,7 +110,7 @@ public class ExamDAOImpl implements ExamDAO {
                 }
 
                 if (from != null) {
-                    if (exam.startTime.isAfter(from)) {
+                    if (exam.startTime.isBefore(from)) {
                         return false;
                     }
                 }

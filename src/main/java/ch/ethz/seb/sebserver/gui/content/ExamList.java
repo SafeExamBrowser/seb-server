@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,17 +20,16 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -60,8 +61,9 @@ public class ExamList implements TemplateComposer {
             new LocTextKey("sebserver.exam.list.column.name");
     private final static LocTextKey columnTitleTypeKey =
             new LocTextKey("sebserver.exam.list.column.type");
+    private final static LocTextKey noModifyOfOutDatedExams =
+            new LocTextKey("sebserver.exam.list.modify.out.dated");
 
-    private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
@@ -76,11 +78,6 @@ public class ExamList implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = (pageSize != null) ? pageSize : 20;
-
-        this.institutionFilter = new TableFilterAttribute(
-                CriteriaType.SINGLE_SELECTION,
-                Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
 
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -101,7 +98,6 @@ public class ExamList implements TemplateComposer {
                 pageContext.getParent(),
                 new LocTextKey("sebserver.exam.list.title"));
 
-        final boolean isSEBAdmin = currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
         // table
@@ -109,13 +105,6 @@ public class ExamList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExams.class))
                         .withEmptyMessage(new LocTextKey("sebserver.exam.list.empty"))
                         .withPaging(this.pageSize)
-                        .withColumnIf(() -> isSEBAdmin,
-                                new ColumnDefinition<>(
-                                        Domain.EXAM.ATTR_INSTITUTION_ID,
-                                        new LocTextKey("sebserver.exam.list.column.institution"),
-                                        examInstitutionNameFunction(this.resourceService),
-                                        this.institutionFilter,
-                                        false))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
                                 columnTitleLmsSetupKey,
@@ -158,14 +147,25 @@ public class ExamList implements TemplateComposer {
                 .publishIf(table::hasAnyContent)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
+                .withSelect(
+                        table::getSelection,
+                        action -> this.modifyExam(action, table),
+                        emptySelectionTextKey)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }
 
-    private static Function<Exam, String> examInstitutionNameFunction(final ResourceService resourceService) {
-        return exam -> resourceService.getInstitutionNameFunction()
-                .apply(String.valueOf(exam.institutionId));
+    private PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
+        final Exam exam = table.getSelectedROWData();
+
+        if (exam.startTime != null) {
+            final DateTime now = DateTime.now(DateTimeZone.UTC);
+            if (exam.startTime.isBefore(now)) {
+                throw new PageMessageException(noModifyOfOutDatedExams);
+            }
+        }
+
+        return action.withEntityKey(action.getSingleSelection());
     }
 
     private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {

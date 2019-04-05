@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -80,10 +81,10 @@ public class TableBuilder<ROW extends Entity> {
 
     public TableBuilder<ROW> withColumnIf(
             final BooleanSupplier condition,
-            final ColumnDefinition<ROW> columnDefinition) {
+            final Supplier<ColumnDefinition<ROW>> columnDefSupplier) {
 
         if (condition != null && condition.getAsBoolean()) {
-            this.columns.add(columnDefinition);
+            this.columns.add(columnDefSupplier.get());
         }
         return this;
     }
@@ -95,6 +96,17 @@ public class TableBuilder<ROW extends Entity> {
 
     public TableBuilder<ROW> withMultiselection() {
         this.type |= SWT.MULTI;
+        return this;
+    }
+
+    public TableBuilder<ROW> withDefaultActionIf(
+            final BooleanSupplier condition,
+            final Supplier<PageAction> actionSupplier) {
+
+        if (condition.getAsBoolean()) {
+            return withDefaultAction(actionSupplier.get());
+        }
+
         return this;
     }
 
