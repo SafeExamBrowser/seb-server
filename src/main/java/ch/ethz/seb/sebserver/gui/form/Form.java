@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -35,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
@@ -268,11 +267,11 @@ public final class Form implements FormBinding {
                 final String[] nameValue = StringUtils.split(split[i], Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
                 buffer.append(nameValue[0])
                         .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(URLEncoder.encode(nameValue[1], StandardCharsets.UTF_8));
+                        .append(Utils.encodeFormURL_UTF_8(nameValue[1]));
             } else {
                 buffer.append(name)
                         .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(URLEncoder.encode(split[i], StandardCharsets.UTF_8));
+                        .append(Utils.encodeFormURL_UTF_8(split[i]));
             }
         }
     }

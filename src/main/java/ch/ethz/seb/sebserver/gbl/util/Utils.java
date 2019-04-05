@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +33,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
+
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
     /** Get an immutable List from a Collection of elements
      *
@@ -171,6 +178,15 @@ public final class Utils {
         return (message != null)
                 ? message.replace("\n", "<br/>")
                 : null;
+    }
+
+    public static final String encodeFormURL_UTF_8(final String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (final UnsupportedEncodingException e) {
+            log.error("Unexpected error while trying to encode to from URL UTF-8: ", e);
+            return value;
+        }
     }
 
 }
