@@ -12,9 +12,9 @@ INSERT INTO institution VALUES
 INSERT INTO user VALUES 
     (1, 1, 'super-admin', 'super-admin', 'super-admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'super-admin@nomail.nomail', 'en', 'UTC', 1),
     (2, 1, 'internalDemoAdmin', 'Admin1', 'admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (3, 1, 'inst1Admin', 'Institutional1 Admin', 'inst1Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'de', 'UTC', 1),
+    (3, 1, 'inst1Admin', 'Institutional1 Admin', 'inst1Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
     (4, 2, 'inst2Admin', 'Institutional2 Admin', 'inst2Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (5, 2, 'examAdminInst2', 'Exam Admin 2', 'examAdmin2', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'de', 'UTC', 1)
+    (5, 2, 'examAdminInst2', 'Exam Admin 2', 'examAdmin2', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1)
     ;
     
 INSERT INTO user_role VALUES
