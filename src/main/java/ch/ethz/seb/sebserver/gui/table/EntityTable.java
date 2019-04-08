@@ -56,6 +56,7 @@ public class EntityTable<ROW extends Entity> {
     final PageService pageService;
     final WidgetFactory widgetFactory;
     final RestCall<Page<ROW>> restCall;
+    final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
     final I18nSupport i18nSupport;
 
     final List<ColumnDefinition<ROW>> columns;
@@ -78,6 +79,7 @@ public class EntityTable<ROW extends Entity> {
             final int type,
             final Composite parent,
             final RestCall<Page<ROW>> restCall,
+            final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter,
             final PageService pageService,
             final List<ColumnDefinition<ROW>> columns,
             final List<TableRowAction> actions,
@@ -91,6 +93,7 @@ public class EntityTable<ROW extends Entity> {
         this.i18nSupport = pageService.getI18nSupport();
         this.widgetFactory = pageService.getWidgetFactory();
         this.restCall = restCall;
+        this.restCallAdapter = (restCallAdapter != null) ? restCallAdapter : Function.identity();
         this.columns = Utils.immutableListOf(columns);
         this.actions = Utils.immutableListOf(actions);
         this.emptyMessage = emptyMessage;
@@ -288,6 +291,7 @@ public class EntityTable<ROW extends Entity> {
                 .withPaging(pageNumber, pageSize)
                 .withSorting(sortColumn, sortOrder)
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
+                .apply(this.restCallAdapter)
                 .call()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)

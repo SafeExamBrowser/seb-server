@@ -45,14 +45,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
-    private final ClientCredentialService internalEncryptionService;
+    private final ClientCredentialService clientCredentialService;
 
     protected LmsSetupDAOImpl(
             final LmsSetupRecordMapper lmsSetupRecordMapper,
-            final ClientCredentialService internalEncryptionService) {
+            final ClientCredentialService clientCredentialService) {
 
         this.lmsSetupRecordMapper = lmsSetupRecordMapper;
-        this.internalEncryptionService = internalEncryptionService;
+        this.clientCredentialService = clientCredentialService;
     }
 
     @Override
@@ -130,7 +130,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
-            final ClientCredentials lmsCredentials = this.internalEncryptionService.encryptedClientCredentials(
+            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
                     new ClientCredentials(
                             lmsSetup.lmsAuthName,
                             lmsSetup.lmsAuthSecret,
@@ -159,7 +159,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> createNew(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
-            final ClientCredentials lmsCredentials = this.internalEncryptionService.encryptedClientCredentials(
+            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
                     new ClientCredentials(
                             lmsSetup.lmsAuthName,
                             lmsSetup.lmsAuthSecret,
@@ -311,8 +311,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsClientsecret(),
                 record.getLmsRestApiToken());
 
-        final CharSequence plainClientId = this.internalEncryptionService.getPlainClientId(clientCredentials);
-        final CharSequence plainAccessToken = this.internalEncryptionService.getPlainAccessToken(clientCredentials);
+        final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(clientCredentials);
+        final CharSequence plainAccessToken = this.clientCredentialService.getPlainAccessToken(clientCredentials);
 
         return Result.tryCatch(() -> new LmsSetup(
                 record.getId(),

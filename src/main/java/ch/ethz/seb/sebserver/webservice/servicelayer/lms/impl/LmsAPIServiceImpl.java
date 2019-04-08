@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
@@ -140,6 +141,17 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .flatMap(this::getLmsAPITemplate);
     }
 
+    @Override
+    public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
+        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
+                new ClientCredentials(
+                        lmsSetup.lmsAuthName,
+                        lmsSetup.lmsAuthSecret,
+                        lmsSetup.lmsRestApiToken));
+
+        return createLmsSetupTemplate(lmsSetup, lmsCredentials).testLmsSetup();
+    }
+
     private Result<LmsAPITemplate> getLmsAPITemplate(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
             LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetup);
@@ -176,6 +188,10 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .getLmsAPIAccessCredentials(lmsSetup.getModelId())
                 .getOrThrow();
 
+        return createLmsSetupTemplate(lmsSetup, credentials);
+    }
+
+    private LmsAPITemplate createLmsSetupTemplate(final LmsSetup lmsSetup, final ClientCredentials credentials) {
         switch (lmsSetup.lmsType) {
             case MOCKUP:
                 return new MockupLmsAPITemplate(
@@ -231,5 +247,4 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return true;
         }
     }
-
 }

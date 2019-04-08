@@ -46,6 +46,10 @@ public final class API {
     public static final String LMS_SETUP_TEST_ENDPOINT = LMS_SETUP_ENDPOINT
             + LMS_SETUP_TEST_PATH_SEGMENT
             + MODEL_ID_VAR_PATH_SEGMENT;
+    public static final String LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT = "/adhoc";
+    public static final String LMS_SETUP_TEST_AD_HOC_ENDPOINT = LMS_SETUP_ENDPOINT
+            + LMS_SETUP_TEST_PATH_SEGMENT
+            + LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT;
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
 

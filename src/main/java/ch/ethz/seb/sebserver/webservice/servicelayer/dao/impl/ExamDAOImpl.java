@@ -197,7 +197,9 @@ public class ExamDAOImpl implements ExamDAO {
                     exam.lmsSetupId,
                     exam.externalId,
                     exam.owner,
-                    null,
+                    (exam.supporter != null)
+                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     null,
                     BooleanUtils.toInteger(true));

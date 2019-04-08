@@ -8,10 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import javax.validation.Valid;
+
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -77,7 +80,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public LmsSetupTestResult connectionReport(
+    public LmsSetupTestResult testLms(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
@@ -93,6 +96,23 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 .map(template -> template.testLmsSetup())
                 .getOrThrow();
 
+        if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
+            throw new APIMessageException(result.missingLMSSetupAttribute);
+        }
+
+        return result;
+    }
+
+    @RequestMapping(
+            path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT,
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public LmsSetupTestResult testLmsAdHoc(@Valid @RequestBody final LmsSetup lmsSetup) {
+
+        this.authorization.checkModify(lmsSetup);
+
+        final LmsSetupTestResult result = this.lmsAPIService.testAdHoc(lmsSetup);
         if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
             throw new APIMessageException(result.missingLMSSetupAttribute);
         }

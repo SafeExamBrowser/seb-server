@@ -150,6 +150,11 @@ public enum ActionDefinition {
             ImageIcon.TEST,
             PageStateDefinition.LMS_SETUP_EDIT,
             ActionCategory.FORM),
+    LMS_SETUP_TEST_AND_SAVE(
+            new LocTextKey("sebserver.lmssetup.action.testsave"),
+            ImageIcon.TEST,
+            PageStateDefinition.LMS_SETUP_VIEW,
+            ActionCategory.FORM),
     LMS_SETUP_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
             ImageIcon.CANCEL,

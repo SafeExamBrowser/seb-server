@@ -138,6 +138,9 @@ public class UserAccountForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.USER.ATTR_INSTITUTION_ID,
                         String.valueOf(userAccount.getInstitutionId()))
+                .putStaticValue(
+                        Domain.USER.ATTR_LANGUAGE,
+                        "en")
                 .addFieldIf(
                         isSEBAdmin,
                         () -> FormBuilder.singleSelection(
@@ -158,12 +161,12 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_EMAIL,
                         "sebserver.useraccount.form.mail",
                         userAccount.getEmail()))
-                .addField(FormBuilder.singleSelection(
-                        Domain.USER.ATTR_LANGUAGE,
-                        "sebserver.useraccount.form.language",
-                        userAccount.getLanguage().getLanguage(),
-                        this.resourceService::languageResources)
-                        .readonly(true))
+//                .addField(FormBuilder.singleSelection(
+//                        Domain.USER.ATTR_LANGUAGE,
+//                        "sebserver.useraccount.form.language",
+//                        userAccount.getLanguage().getLanguage(),
+//                        this.resourceService::languageResources)
+//                        .readonly(true))
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
                         "sebserver.useraccount.form.timezone",

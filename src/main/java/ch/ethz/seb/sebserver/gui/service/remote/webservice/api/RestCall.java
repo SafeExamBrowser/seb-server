@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,6 +185,10 @@ public abstract class RestCall<T> {
         public RestCallBuilder withHeaders(final MultiValueMap<String, String> params) {
             this.httpHeaders.addAll(params);
             return this;
+        }
+
+        public RestCallBuilder apply(final Function<RestCallBuilder, RestCallBuilder> f) {
+            return f.apply(this);
         }
 
         public RestCallBuilder withBody(final Object body) {

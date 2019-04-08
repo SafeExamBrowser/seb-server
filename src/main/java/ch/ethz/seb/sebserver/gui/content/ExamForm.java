@@ -195,13 +195,11 @@ public class ExamForm implements TemplateComposer {
                         "sebserver.exam.form.status",
                         i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
                         .readonly(true))
-                .addFieldIf(
-                        isNotNew,
-                        () -> FormBuilder.multiComboSelection(
-                                Domain.EXAM.ATTR_SUPPORTER,
-                                "sebserver.exam.form.supporter",
-                                StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                                this.resourceService::examSupporterResources))
+                .addField(FormBuilder.multiComboSelection(
+                        Domain.EXAM.ATTR_SUPPORTER,
+                        "sebserver.exam.form.supporter",
+                        StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
+                        this.resourceService::examSupporterResources))
 
                 .buildFor(importFromQuizData
                         ? restService.getRestCall(ImportAsExam.class)
@@ -228,17 +226,6 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this::cancelModify)
                 .publishIf(() -> !readonly);
 
-//                .newAction(ActionDefinition.EXAM_DEACTIVATE)
-//                .withEntityKey(entityKey)
-//                .withSimpleRestCall(restService, DeactivateExam.class)
-//                .withConfirm(PageUtils.confirmDeactivation(exam, restService))
-//                .publishIf(() -> writeGrant && readonly && exam.isActive())
-//
-//                .newAction(ActionDefinition.EXAM_ACTIVATE)
-//                .withEntityKey(entityKey)
-//                .withSimpleRestCall(restService, ActivateExam.class)
-//                .publishIf(() -> writeGrant && readonly && !exam.isActive());
-
         // additional data in read-only view
         if (readonly) {
 
@@ -250,6 +237,9 @@ public class ExamForm implements TemplateComposer {
 
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(restService.getRestCall(GetIndicators.class))
+                            .withRestCallAdapter(builder -> builder.withQueryParam(
+                                    Indicator.FILTER_ATTR_EXAM,
+                                    entityKey.modelId))
                             .withEmptyMessage(new LocTextKey("sebserver.exam.indicator.list.empty"))
                             .withPaging(5)
                             .hideNavigation()

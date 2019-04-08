@@ -50,6 +50,7 @@ public class TableBuilder<ROW extends Entity> {
     private int pageSize = -1;
     private int type = SWT.NONE;
     private boolean hideNavigation = false;
+    private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;;
 
     public TableBuilder(
             final PageService pageService,
@@ -94,6 +95,12 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withRestCallAdapter(
+            final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> adapter) {
+        this.restCallAdapter = adapter;
+        return this;
+    }
+
     public TableBuilder<ROW> withMultiselection() {
         this.type |= SWT.MULTI;
         return this;
@@ -125,6 +132,7 @@ public class TableBuilder<ROW extends Entity> {
                 this.type,
                 parent,
                 this.restCall,
+                this.restCallAdapter,
                 this.pageService,
                 this.columns,
                 this.actions,

@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
@@ -51,6 +53,10 @@ public class FormHandle<T extends Entity> {
         this.i18nSupport = pageService.getI18nSupport();
     }
 
+    public FormBinding getFormBinding() {
+        return this.form;
+    }
+
     /** Process an API post request to send and save the form field values
      * to the webservice and publishes a page event to return to read-only-view
      * to indicate that the data was successfully saved or process an validation
@@ -69,10 +75,12 @@ public class FormHandle<T extends Entity> {
      *
      * @return the response result of the post (or put) RestCall */
     public Result<T> doAPIPost() {
+        // reset all errors that may still be displayed
         this.form.process(
                 name -> true,
                 fieldAccessor -> fieldAccessor.resetError());
 
+        // post
         return this.post
                 .newBuilder()
                 .withFormBinding(this.form)
@@ -135,8 +143,11 @@ public class FormHandle<T extends Entity> {
                 (Object[]) valError.getAttributes())));
     }
 
-    public FormHandle<T> process(final Consumer<Form> consumer) {
-        consumer.accept(this.form);
+    public FormHandle<T> process(
+            final Predicate<String> nameFilter,
+            final Consumer<FormFieldAccessor> processor) {
+
+        this.form.process(nameFilter, processor);
         return this;
     }
 

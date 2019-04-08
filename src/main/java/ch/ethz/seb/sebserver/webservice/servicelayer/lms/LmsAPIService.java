@@ -19,6 +19,8 @@ import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
@@ -43,6 +45,13 @@ public interface LmsAPIService {
      * @param lmsSetupId the identifier of LmsSetup
      * @return LmsAPITemplate for specified LmsSetup configuration */
     Result<LmsAPITemplate> getLmsAPITemplate(String lmsSetupId);
+
+    /** This can be used to test an LmsSetup connection parameter without saving or heaving
+     * an already persistent version of an LmsSetup.
+     * 
+     * @param lmsSetup
+     * @return */
+    LmsSetupTestResult testAdHoc(LmsSetup lmsSetup);
 
     /** Get a LmsAPITemplate for specified LmsSetup configuration by primary key
      *

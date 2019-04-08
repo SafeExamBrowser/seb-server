@@ -129,12 +129,10 @@ public class InstitutionForm implements TemplateComposer {
                         Domain.INSTITUTION.ATTR_URL_SUFFIX,
                         "sebserver.institution.form.urlSuffix",
                         institution.urlSuffix))
-                .addFieldIf(
-                        () -> !isNew && modifyGrant,
-                        () -> FormBuilder.imageUpload(
-                                Domain.INSTITUTION.ATTR_LOGO_IMAGE,
-                                "sebserver.institution.form.logoImage",
-                                institution.logoImage))
+                .addField(FormBuilder.imageUpload(
+                        Domain.INSTITUTION.ATTR_LOGO_IMAGE,
+                        "sebserver.institution.form.logoImage",
+                        institution.logoImage))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewInstitution.class)
                         : this.restService.getRestCall(SaveInstitution.class));

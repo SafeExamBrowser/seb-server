@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -47,6 +48,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetupAdHoc;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -155,24 +157,18 @@ public class LmsSetupForm implements TemplateComposer {
                         (lmsType != null) ? lmsType.name() : null,
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
-                .addFieldIf(
-                        () -> isNotNew.getAsBoolean(),
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_URL,
-                                "sebserver.lmssetup.form.url",
-                                lmsSetup.getLmsApiUrl()))
-                .addFieldIf(
-                        () -> isNotNew.getAsBoolean(),
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                                "sebserver.lmssetup.form.clientname.lms",
-                                lmsSetup.getLmsAuthName()))
-                .addFieldIf(
-                        () -> isNotNew.getAsBoolean(),
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                                "sebserver.lmssetup.form.secret.lms")
-                                .asPasswordField())
+                .addField(FormBuilder.text(
+                        Domain.LMS_SETUP.ATTR_LMS_URL,
+                        "sebserver.lmssetup.form.url",
+                        lmsSetup.getLmsApiUrl()))
+                .addField(FormBuilder.text(
+                        Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
+                        "sebserver.lmssetup.form.clientname.lms",
+                        lmsSetup.getLmsAuthName()))
+                .addField(FormBuilder.text(
+                        Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                        "sebserver.lmssetup.form.secret.lms")
+                        .asPasswordField())
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)
@@ -195,6 +191,12 @@ public class LmsSetupForm implements TemplateComposer {
                 .withExec(action -> this.testLmsSetup(action, formHandle))
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && !readonly)
+
+                .newAction(ActionDefinition.LMS_SETUP_TEST_AND_SAVE)
+                .withEntityKey(entityKey)
+                .withExec(action -> this.testAdHoc(action, formHandle))
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> modifyGrant && isNew.getAsBoolean() && !readonly)
 
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
@@ -237,6 +239,40 @@ public class LmsSetupForm implements TemplateComposer {
     }
 
     /** LmsSetup test action implementation */
+    private PageAction testAdHoc(final PageAction action, final FormHandle<LmsSetup> formHandle) {
+
+        // reset previous errors
+        formHandle.process(
+                name -> true,
+                fieldAccessor -> fieldAccessor.resetError());
+
+        // first test the connection on ad hoc object
+        final Result<LmsSetupTestResult> result = this.resourceService.getRestService()
+                .getBuilder(TestLmsSetupAdHoc.class)
+                .withFormBinding(formHandle.getFormBinding())
+                .call();
+
+        // ... and handle the response
+        if (result.hasError()) {
+            if (formHandle.handleError(result.getError())) {
+                throw new PageMessageException(
+                        new LocTextKey("sebserver.lmssetup.action.test.missingParameter"));
+            }
+        }
+
+        return handleTestResult(
+                action,
+                a -> {
+                    // try to save the LmsSetup
+                    final PageAction processFormSave = formHandle.processFormSave(a);
+                    processFormSave.pageContext().publishInfo(
+                            new LocTextKey("sebserver.lmssetup.action.test.ok"));
+                    return processFormSave;
+                },
+                result.getOrThrow());
+    }
+
+    /** LmsSetup test action implementation */
     private PageAction testLmsSetup(final PageAction action, final FormHandle<LmsSetup> formHandle) {
         // If we are in edit-mode we have to save the form before testing
         if (!action.pageContext().isReadonly()) {
@@ -262,13 +298,24 @@ public class LmsSetupForm implements TemplateComposer {
             }
         }
 
-        final LmsSetupTestResult testResult = result.getOrThrow();
+        return handleTestResult(
+                action,
+                a -> {
+                    action.pageContext().publishInfo(
+                            new LocTextKey("sebserver.lmssetup.action.test.ok"));
+
+                    return action;
+                },
+                result.getOrThrow());
+    }
+
+    private PageAction handleTestResult(
+            final PageAction action,
+            final Function<PageAction, PageAction> onOK,
+            final LmsSetupTestResult testResult) {
 
         if (testResult.isOk()) {
-            action.pageContext().publishInfo(
-                    new LocTextKey("sebserver.lmssetup.action.test.ok"));
-
-            return action;
+            return onOK.apply(action);
         } else if (StringUtils.isNoneBlank(testResult.tokenRequestError)) {
             throw new PageMessageException(
                     new LocTextKey("sebserver.lmssetup.action.test.tokenRequestError",

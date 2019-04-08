@@ -117,7 +117,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                                 pageContext.getShell(),
                                 this.i18nSupport.getText("sebserver.login.password.change"),
                                 this.i18nSupport.getText("sebserver.login.password.change.success"),
-                                SWT.ERROR);
+                                SWT.ICON_INFORMATION);
                         error.open(null);
                     }
                     return saveAction;
