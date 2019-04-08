@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
+import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 
 public final class Form implements FormBinding {
@@ -70,11 +71,26 @@ public final class Form implements FormBinding {
             appendFormUrlEncodedValue(buffer, entry.getKey(), entry.getValue());
         }
 
-        for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
-            entry.getValue()
-                    .stream()
-                    .forEach(ffa -> appendFormUrlEncodedValue(buffer, entry.getKey(), ffa.getStringValue()));
-        }
+        this.formFields.entrySet()
+                .stream()
+                .forEach(entry -> {
+                    entry.getValue()
+                            .stream()
+                            .forEach(ffa -> {
+                                if (ffa.listValue) {
+                                    appendFormUrlEncodedValue(
+                                            buffer,
+                                            entry.getKey(),
+                                            ffa.getStringValue());
+                                } else {
+                                    appendFormUrlEncodedSingleValue(
+                                            buffer,
+                                            entry.getKey(),
+                                            ffa.getStringValue(),
+                                            false);
+                                }
+                            });
+                });
 
         return buffer.toString();
     }
@@ -212,7 +228,11 @@ public final class Form implements FormBinding {
             final Selection selection,
             final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
 
-        return new FormFieldAccessor(label, selection.adaptToControl(), jsonValueAdapter) {
+        return new FormFieldAccessor(
+                label,
+                selection.adaptToControl(),
+                jsonValueAdapter,
+                selection.type() != Type.SINGLE) {
             @Override public String getStringValue() { return selection.getSelectionValue(); }
         };
     }
@@ -246,39 +266,53 @@ public final class Form implements FormBinding {
      * Checks first if the value String is a comma separated list. If true, splits values
      * and adds every value within the same name mapping to the string buffer
      */
-    private static void appendFormUrlEncodedValue(final StringBuffer buffer, final String name, final String value) {
+    private static void appendFormUrlEncodedValue(
+            final StringBuffer buffer,
+            final String name,
+            final String value) {
+
         if (StringUtils.isBlank(value)) {
             return;
         }
 
         final String[] split = StringUtils.split(value, Constants.LIST_SEPARATOR_CHAR);
         for (int i = 0; i < split.length; i++) {
-            if (StringUtils.isBlank(split[i])) {
-                continue;
-            }
+            appendFormUrlEncodedSingleValue(buffer, name, split[i], true);
+        }
+    }
 
-            if (buffer.length() > 0) {
-                buffer.append(Constants.FORM_URL_ENCODED_SEPARATOR);
-            }
+    private static void appendFormUrlEncodedSingleValue(
+            final StringBuffer buffer,
+            final String name,
+            final String value,
+            final boolean checkMultiValue) {
 
-            // check of the string value is a name-value pair. If true, use the specified name an value
-            // otherwise use the general name given within this method call and
-            if (split[i].contains(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)) {
-                final String[] nameValue = StringUtils.split(split[i], Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
-                buffer.append(nameValue[0])
-                        .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(Utils.encodeFormURL_UTF_8(nameValue[1]));
-            } else {
-                buffer.append(name)
-                        .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                        .append(Utils.encodeFormURL_UTF_8(split[i]));
-            }
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
+
+        if (buffer.length() > 0) {
+            buffer.append(Constants.FORM_URL_ENCODED_SEPARATOR);
+        }
+
+        // check of the string value is a name-value pair. If true, use the specified name an value
+        // otherwise use the general name given within this method call and
+        if (checkMultiValue && value.contains(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)) {
+            final String[] nameValue = StringUtils.split(value, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+            buffer.append(nameValue[0])
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(Utils.encodeFormURL_UTF_8(nameValue[1]));
+        } else {
+            buffer.append(name)
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(Utils.encodeFormURL_UTF_8(value));
         }
     }
 
     private static final void adaptCommaSeparatedStringToJsonArray(
             final Tuple<String> tuple,
             final ObjectNode jsonNode) {
+
         if (StringUtils.isNoneBlank(tuple._2)) {
             final ArrayNode arrayNode = jsonNode.putArray(tuple._1);
             final String[] split = StringUtils.split(tuple._2, Constants.LIST_SEPARATOR);
@@ -294,15 +328,17 @@ public final class Form implements FormBinding {
         public final Control control;
         private final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter;
         private boolean hasError;
+        private final boolean listValue;
 
         FormFieldAccessor(final Label label, final Control control) {
-            this(label, control, null);
+            this(label, control, null, false);
         }
 
         FormFieldAccessor(
                 final Label label,
                 final Control control,
-                final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
+                final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter,
+                final boolean listValue) {
 
             this.label = label;
             this.control = control;
@@ -315,6 +351,7 @@ public final class Form implements FormBinding {
                     }
                 };
             }
+            this.listValue = listValue;
         }
 
         public abstract String getStringValue();
