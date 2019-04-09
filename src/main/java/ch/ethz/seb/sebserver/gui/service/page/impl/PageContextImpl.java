@@ -210,6 +210,16 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public PageContext clearAttributes() {
+        return new PageContextImpl(
+                this.i18nSupport,
+                this.composerService,
+                this.root,
+                this.parent,
+                null);
+    }
+
+    @Override
     public void applyConfirmDialog(final LocTextKey confirmMessage, final Consumer<Boolean> callback) {
         final Message messageBox = new Message(
                 this.root.getShell(),
@@ -235,7 +245,8 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public void forwardToLoginPage() {
-        forwardToPage(this.composerService.loginPage());
+        this.clearAttributes()
+                .forwardToPage(this.composerService.loginPage());
     }
 
     @Override
@@ -286,20 +297,6 @@ public class PageContextImpl implements PageContext {
     public <T> T notifyError(final Throwable error) {
         notifyError(error.getMessage(), error);
         return null;
-    }
-
-    @Override
-    public void logout() {
-        // just to be sure we leave a clean and proper authorizationContext
-        try {
-            ((ComposerServiceImpl) this.composerService).authorizationContextHolder
-                    .getAuthorizationContext()
-                    .logout();
-        } catch (final Exception e) {
-            log.info("Cleanup logout failed: {}", e.getMessage());
-        }
-
-        forwardToLoginPage();
     }
 
     @Override

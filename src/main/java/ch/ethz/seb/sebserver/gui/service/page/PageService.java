@@ -14,6 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -23,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -32,6 +36,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -39,20 +44,32 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * with forms and tables as well as dealing with page actions */
 public interface PageService {
 
-    /** get the WidgetFactory service
+    Logger log = LoggerFactory.getLogger(PageService.class);
+
+    /** Get the WidgetFactory service
      *
      * @return the WidgetFactory service */
     WidgetFactory getWidgetFactory();
 
-    /** get the polyglotPageService service
+    /** Get the polyglotPageService service
      *
      * @return the polyglotPageService service */
     PolyglotPageService getPolyglotPageService();
 
-    /** get the I18nSupport (internationalization support) service
+    /** Get the underling AuthorizationContextHolder for the current user session
+     *
+     * @return the underling AuthorizationContextHolder for the current user session */
+    AuthorizationContextHolder getAuthorizationContextHolder();
+
+    /** Get the I18nSupport (internationalization support) service
      *
      * @return the I18nSupport (internationalization support) service */
     I18nSupport getI18nSupport();
+
+    /** Get the ResourceService
+     *
+     * @return the ResourceService */
+    ResourceService getResourceService();
 
     /** get the JSONMapper for parse, read and write JSON
      *
@@ -115,6 +132,16 @@ public interface PageService {
      * @return new PageActionBuilder to build PageAction */
     default PageActionBuilder pageActionBuilder(final PageContext pageContext) {
         return new PageActionBuilder(this, pageContext);
+    }
+
+    /** This triggers a logout on the current authorization context to logout the current user
+     * and forward to the login page with showing a successful logout message to the user. */
+    void logout(PageContext pageContext);
+
+    default <T> T logoutOnError(final Throwable t, final PageContext pageContext) {
+        log.error("Unexpected, Current User related error.Automatically logout and cleanup current user session. ", t);
+        logout(pageContext);
+        return null;
     }
 
     /** Clears the PageState of the current users page */

@@ -61,7 +61,7 @@ public class ActivitiesPane implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final UserInfo userInfo = this.currentUser
-                .getOrHandleError(pageContext::logoutOnError);
+                .getOrHandleError(t -> this.pageService.logoutOnError(t, pageContext));
 
         final Label activities = this.widgetFactory.labelLocalized(
                 pageContext.getParent(),

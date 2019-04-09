@@ -24,21 +24,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
-/** <code>
- *  new TableBuilder<T>(RestCall)
- *      .withPaging(pageSize)
- *      .withFilterAttribute(attribute.TableFilterAttribute)
- *      .withColumn(new ColumnDefinition(
- *          columnName:String,
- *          displayName:LocTextKey,
- *          tooltip:LocTextKey,
- *          width:int,
- *          valueSupplier:Function<ROW, String>,
- *          sortable:boolean
- *      .withAction(action:TableRowAction)
- *      .withSelectableRows(boolean)
- *      .compose(parent:Composit, group:Composite);
- * </code> */
 public class TableBuilder<ROW extends Entity> {
 
     private final PageService pageService;

@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -41,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -60,15 +62,21 @@ public class PageServiceImpl implements PageService {
     private final JSONMapper jsonMapper;
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
+    private final ResourceService resourceService;
+    private final AuthorizationContextHolder authorizationContextHolder;
 
     public PageServiceImpl(
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
-            final PolyglotPageService polyglotPageService) {
+            final PolyglotPageService polyglotPageService,
+            final ResourceService resourceService,
+            final AuthorizationContextHolder authorizationContextHolder) {
 
         this.jsonMapper = jsonMapper;
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
+        this.resourceService = resourceService;
+        this.authorizationContextHolder = authorizationContextHolder;
     }
 
     @Override
@@ -82,8 +90,18 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
+    public AuthorizationContextHolder getAuthorizationContextHolder() {
+        return this.authorizationContextHolder;
+    }
+
+    @Override
     public I18nSupport getI18nSupport() {
         return this.widgetFactory.getI18nSupport();
+    }
+
+    @Override
+    public ResourceService getResourceService() {
+        return this.resourceService;
     }
 
     @Override
@@ -197,6 +215,27 @@ public class PageServiceImpl implements PageService {
     @Override
     public <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
         return new TableBuilder<>(this, apiCall);
+    }
+
+    @Override
+    public void logout(final PageContext pageContext) {
+        this.clearState();
+
+        try {
+            final boolean logoutSuccessful = this.authorizationContextHolder
+                    .getAuthorizationContext()
+                    .logout();
+
+            if (!logoutSuccessful) {
+                // TODO error handling
+            }
+
+        } catch (final Exception e) {
+            log.info("Cleanup logout failed: {}", e.getMessage());
+        } finally {
+            pageContext.forwardToLoginPage();
+        }
+
     }
 
     @Override

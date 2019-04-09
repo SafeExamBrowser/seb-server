@@ -90,6 +90,11 @@ public interface PageContext {
      * @return this PageContext instance (builder pattern) */
     PageContext withAttribute(String key, String value);
 
+    /** Gets a copy of this PageContext with cleared attribute map.
+     *
+     * @return a copy of this PageContext with cleared attribute map. */
+    PageContext clearAttributes();
+
     /** Get the attribute value that is mapped to the given name or null of no mapping exists
      *
      * @param name the attribute name
@@ -167,10 +172,6 @@ public interface PageContext {
     /** Forward to login page */
     void forwardToLoginPage();
 
-    /** This triggers a logout on the current authorization context to logout the current user
-     * and forward to the login page with showing a successful logout message to the user. */
-    void logout();
-
     /** Notify an error dialog to the user with specified error message and
      * optional exception instance
      *
@@ -184,12 +185,6 @@ public interface PageContext {
      * @param error the Throwable to display
      * @return adaption to be used with functional approaches */
     <T> T notifyError(Throwable error);
-
-    default <T> T logoutOnError(final Throwable t) {
-        log.error("Unexpected, Current User related error.Automatically logout and cleanup current user session. ", t);
-        logout();
-        return null;
-    }
 
     /** Publish and shows a message to the user with the given localized title and
      * localized message. The message text can also be HTML text as far as RWT supports it.

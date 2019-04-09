@@ -35,8 +35,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.widget.Message;
@@ -52,21 +52,18 @@ public class DefaultPageLayout implements TemplateComposer {
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
     private final AuthorizationContextHolder authorizationContextHolder;
-    private final PageService pageStateService;
+    private final PageService pageService;
     private final String sebServerVersion;
     private final boolean multilingual;
 
     public DefaultPageLayout(
-            final WidgetFactory widgetFactory,
-            final PolyglotPageService polyglotPageService,
-            final AuthorizationContextHolder authorizationContextHolder,
-            final PageService pageStateService,
+            final PageService pageService,
             final Environment environment) {
 
-        this.widgetFactory = widgetFactory;
-        this.polyglotPageService = polyglotPageService;
-        this.authorizationContextHolder = authorizationContextHolder;
-        this.pageStateService = pageStateService;
+        this.widgetFactory = pageService.getWidgetFactory();
+        this.polyglotPageService = pageService.getPolyglotPageService();
+        this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
+        this.pageService = pageService;
         this.sebServerVersion = environment.getProperty("sebserver.version", Constants.EMPTY_NOTE);
         this.multilingual = BooleanUtils.toBoolean(environment.getProperty("sebserver.gui.multilingual", "false"));
     }
@@ -126,25 +123,13 @@ public class DefaultPageLayout implements TemplateComposer {
             username.setText(this.authorizationContextHolder
                     .getAuthorizationContext()
                     .getLoggedInUser()
-                    .get(pageContext::logoutOnError).username);
+                    .get(t -> this.pageService.logoutOnError(t, pageContext)).username);
 
             final Button logout = this.widgetFactory.buttonLocalized(headerRight, "sebserver.logout");
             logout.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, true, true));
             logout.setData(RWT.CUSTOM_VARIANT, "header");
             logout.addListener(SWT.Selection, event -> {
-                final boolean logoutSuccessful = this.authorizationContextHolder
-                        .getAuthorizationContext()
-                        .logout();
-
-                if (!logoutSuccessful) {
-                    // TODO error handling
-                }
-
-                this.pageStateService.clearState();
-
-                // forward to login page with success message
-                pageContext.forwardToLoginPage();
-
+                this.pageService.logout(pageContext);
                 // show successful logout message
                 final MessageBox logoutSuccess = new Message(
                         pageContext.getShell(),

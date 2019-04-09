@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
@@ -38,18 +39,16 @@ public class LoginPage implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(LoginPage.class);
 
+    private final PageService pageService;
     private final AuthorizationContextHolder authorizationContextHolder;
     private final WidgetFactory widgetFactory;
     private final I18nSupport i18nSupport;
 
-    public LoginPage(
-            final AuthorizationContextHolder authorizationContextHolder,
-            final WidgetFactory widgetFactory,
-            final I18nSupport i18nSupport) {
-
-        this.authorizationContextHolder = authorizationContextHolder;
-        this.widgetFactory = widgetFactory;
-        this.i18nSupport = i18nSupport;
+    public LoginPage(final PageService pageService) {
+        this.pageService = pageService;
+        this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
+        this.widgetFactory = pageService.getWidgetFactory();
+        this.i18nSupport = pageService.getI18nSupport();
     }
 
     @Override
@@ -125,7 +124,7 @@ public class LoginPage implements TemplateComposer {
             final PageContext pageContext,
             final String message) {
 
-        pageContext.logout();
+        this.pageService.logout(pageContext);
         final MessageBox error = new Message(
                 pageContext.getShell(),
                 this.i18nSupport.getText("sebserver.login.failed.title"),

@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
@@ -41,7 +42,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 @Lazy
 @Service
 @GuiProfile
+/** Defines functionality to get resources or functions of resources to feed e.g. selection or
+ * combo-box content. */
 public class ResourceService {
+
+    public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
+    public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
 
     private final I18nSupport i18nSupport;
     private final RestService restService;
@@ -219,6 +225,12 @@ public class ResourceService {
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .collect(Collectors.toList());
+    }
+
+    public Function<Boolean, String> localizedActivityResource() {
+        return activity -> activity
+                ? this.i18nSupport.getText(ACTIVE_TEXT_KEY)
+                : this.i18nSupport.getText(INACTIVE_TEXT_KEY);
     }
 
 }

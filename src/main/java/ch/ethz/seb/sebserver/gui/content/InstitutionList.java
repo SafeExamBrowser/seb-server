@@ -89,7 +89,9 @@ public class InstitutionList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
-                                entity -> entity.active,
+                                entity -> this.pageService
+                                        .getResourceService()
+                                        .localizedActivityResource().apply(entity.active),
                                 true))
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)

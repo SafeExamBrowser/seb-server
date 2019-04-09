@@ -112,7 +112,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         // NOTE: in this case the user changed the password of the own account
                         //       this should cause an logout with specified message that password change
                         //       was successful and the pointing the need of re login with the new password
-                        pageContext.logout();
+                        this.pageService.logout(pageContext);
                         final MessageBox error = new Message(
                                 pageContext.getShell(),
                                 this.i18nSupport.getText("sebserver.login.password.change"),
