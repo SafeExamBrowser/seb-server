@@ -133,7 +133,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_ID,
                         lmsSetup.getModelId())
-                .putStaticValueIf(isNotNew,
+                .putStaticValue(
                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                         String.valueOf(lmsSetup.getInstitutionId()))
                 .putStaticValueIf(isNotNew,
