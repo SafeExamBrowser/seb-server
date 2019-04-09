@@ -146,7 +146,7 @@ public class LmsSetupForm implements TemplateComposer {
                                 "sebserver.lmssetup.form.institution",
                                 String.valueOf(lmsSetup.getInstitutionId()),
                                 () -> this.resourceService.institutionResource())
-                                .readonlyIf(isNotNew))
+                                .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_NAME,
                         "sebserver.lmssetup.form.name",
