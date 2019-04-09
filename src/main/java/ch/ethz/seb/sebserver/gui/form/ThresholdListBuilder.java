@@ -19,13 +19,14 @@ import org.eclipse.swt.widgets.Label;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 
 public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
     protected ThresholdListBuilder(
             final String name,
-            final String label,
+            final LocTextKey label,
             final Collection<Threshold> value) {
 
         super(name, label, value);

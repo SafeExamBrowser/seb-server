@@ -13,13 +13,15 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+
 public final class TextFieldBuilder extends FieldBuilder<String> {
 
     boolean isPassword = false;
     boolean isNumber = false;
     boolean isArea = false;
 
-    TextFieldBuilder(final String name, final String label, final String value) {
+    TextFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
     }
 

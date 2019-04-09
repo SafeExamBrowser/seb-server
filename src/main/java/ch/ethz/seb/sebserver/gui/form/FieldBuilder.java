@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.BooleanSupplier;
 
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+
 public abstract class FieldBuilder<T> {
     int spanLabel = -1;
     int spanInput = -1;
@@ -20,10 +22,10 @@ public abstract class FieldBuilder<T> {
     boolean visible = true;
 
     final String name;
-    final String label;
+    final LocTextKey label;
     final T value;
 
-    protected FieldBuilder(final String name, final String label, final T value) {
+    protected FieldBuilder(final String name, final LocTextKey label, final T value) {
         this.name = name;
         this.label = label;
         this.value = value;

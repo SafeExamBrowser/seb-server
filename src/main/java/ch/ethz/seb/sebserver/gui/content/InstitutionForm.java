@@ -47,6 +47,13 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class InstitutionForm implements TemplateComposer {
 
+    private static final LocTextKey FORM_LOGO_IMAGE_TEXT_KEY =
+            new LocTextKey("sebserver.institution.form.logoImage");
+    private static final LocTextKey FORM_URL_SUFFIX_TEXT_KEY =
+            new LocTextKey("sebserver.institution.form.urlSuffix");
+    private static final LocTextKey FORM_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.institution.form.name");
+
     private static final Logger log = LoggerFactory.getLogger(InstitutionForm.class);
 
     private final PageService pageService;
@@ -123,15 +130,15 @@ public class InstitutionForm implements TemplateComposer {
                         institution.getModelId())
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_NAME,
-                        "sebserver.institution.form.name",
+                        FORM_NAME_TEXT_KEY,
                         institution.name))
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_URL_SUFFIX,
-                        "sebserver.institution.form.urlSuffix",
+                        FORM_URL_SUFFIX_TEXT_KEY,
                         institution.urlSuffix))
                 .addField(FormBuilder.imageUpload(
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
-                        "sebserver.institution.form.logoImage",
+                        FORM_LOGO_IMAGE_TEXT_KEY,
                         institution.logoImage))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewInstitution.class)

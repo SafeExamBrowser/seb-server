@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 
 public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
-    ImageUploadFieldBuilder(final String name, final String label, final String value) {
+    ImageUploadFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
     }
 

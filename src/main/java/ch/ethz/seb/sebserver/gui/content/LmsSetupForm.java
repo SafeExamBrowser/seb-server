@@ -60,6 +60,19 @@ public class LmsSetupForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(LmsSetupForm.class);
 
+    private static final LocTextKey FORM_SECRET_LMS_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.secret.lms");
+    private static final LocTextKey FORM_CLIENTNAME_LMS_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.clientname.lms");
+    private static final LocTextKey FORM_URL_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.url");
+    private static final LocTextKey FORM_TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.type");
+    private static final LocTextKey FORM_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.name");
+    private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.institution");
+
     private final PageService pageService;
     private final ResourceService resourceService;
 
@@ -143,31 +156,31 @@ public class LmsSetupForm implements TemplateComposer {
                         isSEBAdmin,
                         () -> FormBuilder.singleSelection(
                                 Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
-                                "sebserver.lmssetup.form.institution",
+                                FORM_INSTITUTION_TEXT_KEY,
                                 String.valueOf(lmsSetup.getInstitutionId()),
                                 () -> this.resourceService.institutionResource())
                                 .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_NAME,
-                        "sebserver.lmssetup.form.name",
+                        FORM_NAME_TEXT_KEY,
                         lmsSetup.getName()))
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
-                        "sebserver.lmssetup.form.type",
+                        FORM_TYPE_TEXT_KEY,
                         (lmsType != null) ? lmsType.name() : null,
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_URL,
-                        "sebserver.lmssetup.form.url",
+                        FORM_URL_TEXT_KEY,
                         lmsSetup.getLmsApiUrl()))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                        "sebserver.lmssetup.form.clientname.lms",
+                        FORM_CLIENTNAME_LMS_TEXT_KEY,
                         lmsSetup.getLmsAuthName()))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                        "sebserver.lmssetup.form.secret.lms")
+                        FORM_SECRET_LMS_TEXT_KEY)
                         .asPasswordField())
 
                 .buildFor((entityKey == null)

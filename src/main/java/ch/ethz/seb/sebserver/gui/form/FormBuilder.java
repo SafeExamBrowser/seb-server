@@ -28,6 +28,8 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -39,6 +41,7 @@ public class FormBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
+    final I18nSupport i18nSupport;
     final PageService pageService;
     final WidgetFactory widgetFactory;
     public final PageContext pageContext;
@@ -56,6 +59,7 @@ public class FormBuilder {
             final PageContext pageContext,
             final int rows) {
 
+        this.i18nSupport = pageService.getI18nSupport();
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
         this.pageContext = pageContext;
@@ -193,17 +197,17 @@ public class FormBuilder {
         empty.setText("");
     }
 
-    public static TextFieldBuilder text(final String name, final String label) {
+    public static TextFieldBuilder text(final String name, final LocTextKey label) {
         return new TextFieldBuilder(name, label, null);
     }
 
-    public static TextFieldBuilder text(final String name, final String label, final String value) {
+    public static TextFieldBuilder text(final String name, final LocTextKey label, final String value) {
         return new TextFieldBuilder(name, label, value);
     }
 
     public static SelectionFieldBuilder singleSelection(
             final String name,
-            final String label,
+            final LocTextKey label,
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
@@ -212,7 +216,7 @@ public class FormBuilder {
 
     public static SelectionFieldBuilder multiSelection(
             final String name,
-            final String label,
+            final LocTextKey label,
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
@@ -221,7 +225,7 @@ public class FormBuilder {
 
     public static SelectionFieldBuilder multiComboSelection(
             final String name,
-            final String label,
+            final LocTextKey label,
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
@@ -230,7 +234,7 @@ public class FormBuilder {
 
     public static SelectionFieldBuilder colorSelection(
             final String name,
-            final String label,
+            final LocTextKey label,
             final String value) {
 
         return new SelectionFieldBuilder(Selection.Type.COLOR, name, label, value, null);
@@ -238,17 +242,17 @@ public class FormBuilder {
 
     public static ThresholdListBuilder thresholdList(
             final String name,
-            final String label,
+            final LocTextKey label,
             final Collection<Threshold> value) {
 
         return new ThresholdListBuilder(name, label, value);
     }
 
-    public static ImageUploadFieldBuilder imageUpload(final String name, final String label, final String value) {
+    public static ImageUploadFieldBuilder imageUpload(final String name, final LocTextKey label, final String value) {
         return new ImageUploadFieldBuilder(name, label, value);
     }
 
-    Label labelLocalized(final Composite parent, final String locTextKey, final int hspan) {
+    Label labelLocalized(final Composite parent, final LocTextKey locTextKey, final int hspan) {
         final Label label = this.widgetFactory.labelLocalized(parent, locTextKey);
         final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
         gridData.verticalIndent = 4;

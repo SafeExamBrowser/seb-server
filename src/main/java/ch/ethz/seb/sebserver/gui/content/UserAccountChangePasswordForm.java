@@ -46,6 +46,13 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * password that is also required must match the administrators current password. */
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
+    private static final LocTextKey FORM_PASSWORD_NEW_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.password.new");
+    private static final LocTextKey FORM_PASSWORD_NEW_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.password.new.confirm");
+    private static final LocTextKey FORM_PASSWORD_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.password");
+
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
@@ -89,17 +96,17 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                         entityKey.getModelId())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_PASSWORD,
-                        "sebserver.useraccount.form.password")
+                        FORM_PASSWORD_TEXT_KEY)
                         .asPasswordField())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
-                        "sebserver.useraccount.form.password.new")
+                        FORM_PASSWORD_NEW_TEXT_KEY)
                         .asPasswordField())
                 .addFieldIf(
                         () -> entityKey != null,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                                "sebserver.useraccount.form.password.new.confirm")
+                                FORM_PASSWORD_NEW_CONFIRM_TEXT_KEY)
                                 .asPasswordField())
                 .buildFor(this.restService.getRestCall(ChangePassword.class));
 

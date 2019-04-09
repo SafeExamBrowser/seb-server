@@ -62,6 +62,16 @@ public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
+    private static final LocTextKey FORM_SUPPORTER_TEXT_KEY = new LocTextKey("sebserver.exam.form.supporter");
+    private static final LocTextKey FORM_STATUS_TEXT_KEY = new LocTextKey("sebserver.exam.form.status");
+    private static final LocTextKey FORM_TYPE_TEXT_KEY = new LocTextKey("sebserver.exam.form.type");
+    private static final LocTextKey FORM_ENDTIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.endtime");
+    private static final LocTextKey FORM_STARTTIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.starttime");
+    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY = new LocTextKey("sebserver.exam.form.description");
+    private static final LocTextKey FORM_NAME_TEXT_KEY = new LocTextKey("sebserver.exam.form.name");
+    private static final LocTextKey FORM_QUIZID_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizid");
+    private static final LocTextKey FORM_LMSSETUP_TEXT_KEY = new LocTextKey("sebserver.exam.form.lmssetup");
+
     private final PageService pageService;
     private final ResourceService resourceService;
 
@@ -155,49 +165,49 @@ public class ExamForm implements TemplateComposer {
 
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_LMS_SETUP_ID,
-                        "sebserver.exam.form.lmssetup",
+                        FORM_LMSSETUP_TEXT_KEY,
                         String.valueOf(exam.lmsSetupId),
                         this.resourceService::lmsSetupResource)
                         .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_EXTERNAL_ID,
-                        "sebserver.exam.form.quizid",
+                        FORM_QUIZID_TEXT_KEY,
                         exam.externalId)
                         .readonly(true))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
-                        "sebserver.exam.form.name",
+                        FORM_NAME_TEXT_KEY,
                         exam.name)
                         .readonly(true))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
-                        "sebserver.exam.form.description",
+                        FORM_DESCRIPTION_TEXT_KEY,
                         exam.description)
                         .asArea()
                         .readonly(true))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
-                        "sebserver.exam.form.starttime",
+                        FORM_STARTTIME_TEXT_KEY,
                         i18nSupport.formatDisplayDate(exam.startTime))
                         .readonly(true))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
-                        "sebserver.exam.form.endtime",
+                        FORM_ENDTIME_TEXT_KEY,
                         i18nSupport.formatDisplayDate(exam.endTime))
                         .readonly(true))
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
-                        "sebserver.exam.form.type",
+                        FORM_TYPE_TEXT_KEY,
                         String.valueOf(exam.type),
                         this.resourceService::examTypeResources))
                 .addField(FormBuilder.text(
                         Exam.ATTR_STATUS,
-                        "sebserver.exam.form.status",
+                        FORM_STATUS_TEXT_KEY,
                         i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
                         .readonly(true))
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
-                        "sebserver.exam.form.supporter",
+                        FORM_SUPPORTER_TEXT_KEY,
                         StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
                         this.resourceService::examSupporterResources))
 

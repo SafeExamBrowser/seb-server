@@ -42,6 +42,17 @@ public class IndicatorForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(IndicatorForm.class);
 
+    private static final LocTextKey FORM_THRESHOLDS_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.thresholds");
+    private static final LocTextKey FORM_COLOR_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.color");
+    private static final LocTextKey FORM_TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.type");
+    private static final LocTextKey FORM_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.name");
+    private static final LocTextKey FORM_EXAM_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.exam");
+
     private final PageService pageService;
     private final ResourceService resourceService;
 
@@ -110,25 +121,25 @@ public class IndicatorForm implements TemplateComposer {
                         parentEntityKey.getModelId())
                 .addField(FormBuilder.text(
                         "examName",
-                        "sebserver.exam.indicator.form.exam",
+                        FORM_EXAM_TEXT_KEY,
                         exam.name)
                         .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.INDICATOR.ATTR_NAME,
-                        "sebserver.exam.indicator.form.name",
+                        FORM_NAME_TEXT_KEY,
                         indicator.name))
                 .addField(FormBuilder.singleSelection(
                         Domain.INDICATOR.ATTR_TYPE,
-                        "sebserver.exam.indicator.form.type",
+                        FORM_TYPE_TEXT_KEY,
                         (indicator.type != null) ? indicator.type.name() : null,
                         this.resourceService::indicatorTypeResources))
                 .addField(FormBuilder.colorSelection(
                         Domain.INDICATOR.ATTR_COLOR,
-                        "sebserver.exam.indicator.form.color",
+                        FORM_COLOR_TEXT_KEY,
                         indicator.defaultColor))
                 .addField(FormBuilder.thresholdList(
                         Domain.THRESHOLD.REFERENCE_NAME,
-                        "sebserver.exam.indicator.form.thresholds",
+                        FORM_THRESHOLDS_TEXT_KEY,
                         indicator.getThresholds()))
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)

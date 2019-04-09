@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
@@ -39,7 +40,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     SelectionFieldBuilder(
             final Selection.Type type,
             final String name,
-            final String label,
+            final LocTextKey label,
             final String value,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 

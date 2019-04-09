@@ -51,6 +51,18 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class QuizDiscoveryList implements TemplateComposer {
 
     // localized text keys
+    private static final LocTextKey QUIZ_DETAILS_URL_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.url");
+    private static final LocTextKey QUIZ_DETAILS_ENDTIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
+    private static final LocTextKey QUIZ_DETAILS_STARTTIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.starttime");
+    private static final LocTextKey QUIZ_DETAILS_DESCRIPTION_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.description");
+    private static final LocTextKey QUIZ_DETAILS_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.name");
+    private static final LocTextKey QUIZ_DETAILS_LMS_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.lms");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.title");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
@@ -213,29 +225,29 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .readonly(true)
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,
-                        "sebserver.quizdiscovery.quiz.details.lms",
+                        QUIZ_DETAILS_LMS_TEXT_KEY,
                         String.valueOf(quizData.lmsSetupId),
                         () -> this.resourceService.lmsSetupResource()))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
-                        "sebserver.quizdiscovery.quiz.details.name",
+                        QUIZ_DETAILS_NAME_TEXT_KEY,
                         quizData.name))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
-                        "sebserver.quizdiscovery.quiz.details.description",
+                        QUIZ_DETAILS_DESCRIPTION_TEXT_KEY,
                         quizData.description)
                         .asArea())
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
-                        "sebserver.quizdiscovery.quiz.details.starttime",
+                        QUIZ_DETAILS_STARTTIME_TEXT_KEY,
                         this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.startTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
-                        "sebserver.quizdiscovery.quiz.details.endtime",
+                        QUIZ_DETAILS_ENDTIME_TEXT_KEY,
                         this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.startTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
-                        "sebserver.quizdiscovery.quiz.details.url",
+                        QUIZ_DETAILS_URL_TEXT_KEY,
                         quizData.startURL))
                 .build();
         this.widgetFactory.labelSeparator(pc.getParent());

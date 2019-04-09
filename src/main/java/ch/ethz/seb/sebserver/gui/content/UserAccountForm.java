@@ -56,6 +56,23 @@ public class UserAccountForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountForm.class);
 
+    private static final LocTextKey FORM_PASSWORD_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.password.confirm");
+    private static final LocTextKey FORM_PASSWORD_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.password");
+    private static final LocTextKey FORM_ROLES_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.roles");
+    private static final LocTextKey FORM_TIMEZONE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.timezone");
+    private static final LocTextKey FORM_MAIL_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.mail");
+    private static final LocTextKey FORM_USERNAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.username");
+    private static final LocTextKey FORM_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.name");
+    private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.institution");
+
     private final PageService pageService;
     private final ResourceService resourceService;
 
@@ -145,21 +162,21 @@ public class UserAccountForm implements TemplateComposer {
                         isSEBAdmin,
                         () -> FormBuilder.singleSelection(
                                 Domain.USER.ATTR_INSTITUTION_ID,
-                                "sebserver.useraccount.form.institution",
+                                FORM_INSTITUTION_TEXT_KEY,
                                 String.valueOf(userAccount.getInstitutionId()),
                                 () -> this.resourceService.institutionResource())
                                 .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
-                        "sebserver.useraccount.form.name",
+                        FORM_NAME_TEXT_KEY,
                         userAccount.getName()))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_USERNAME,
-                        "sebserver.useraccount.form.username",
+                        FORM_USERNAME_TEXT_KEY,
                         userAccount.getUsername()))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_EMAIL,
-                        "sebserver.useraccount.form.mail",
+                        FORM_MAIL_TEXT_KEY,
                         userAccount.getEmail()))
 //                .addField(FormBuilder.singleSelection(
 //                        Domain.USER.ATTR_LANGUAGE,
@@ -169,14 +186,14 @@ public class UserAccountForm implements TemplateComposer {
 //                        .readonly(true))
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
-                        "sebserver.useraccount.form.timezone",
+                        FORM_TIMEZONE_TEXT_KEY,
                         userAccount.getTimeZone().getID(),
                         this.resourceService::timeZoneResources))
                 .addFieldIf(
                         () -> modifyGrant,
                         () -> FormBuilder.multiSelection(
                                 USER_ROLE.REFERENCE_NAME,
-                                "sebserver.useraccount.form.roles",
+                                FORM_ROLES_TEXT_KEY,
                                 StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
                                 this.resourceService::userRoleResources)
                                 .visibleIf(writeGrant))
@@ -184,13 +201,13 @@ public class UserAccountForm implements TemplateComposer {
                         isNew,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_NEW_PASSWORD,
-                                "sebserver.useraccount.form.password")
+                                FORM_PASSWORD_TEXT_KEY)
                                 .asPasswordField())
                 .addFieldIf(
                         isNew,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                                "sebserver.useraccount.form.password.confirm")
+                                FORM_PASSWORD_CONFIRM_TEXT_KEY)
                                 .asPasswordField())
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewUserAccount.class)
