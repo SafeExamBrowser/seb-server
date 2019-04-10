@@ -23,39 +23,37 @@ public class AsyncService {
         this.asyncRunner = asyncRunner;
     }
 
-    public <T> CircuitBreakerSupplier<T> createMemoizingCircuitBreaker(
-            final Supplier<T> blockingSupplier) {
-        return new CircuitBreakerSupplier<>(this.asyncRunner, blockingSupplier, true);
+    public <T> CircuitBreaker<T> createCircuitBreaker() {
+
+        return new CircuitBreaker<>(this.asyncRunner);
     }
 
-    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
-            final Supplier<T> blockingSupplier,
-            final boolean momoized) {
-        return new CircuitBreakerSupplier<>(this.asyncRunner, blockingSupplier, momoized);
-    }
-
-    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
-            final Supplier<T> blockingSupplier,
+    public <T> CircuitBreaker<T> createCircuitBreaker(
+            final int maxFailingAttempts,
             final long maxBlockingTime,
-            final boolean momoized) {
+            final long timeToRecover) {
 
-        return new CircuitBreakerSupplier<>(
+        return new CircuitBreaker<>(
                 this.asyncRunner,
-                blockingSupplier,
-                CircuitBreakerSupplier.DEFAULT_MAX_FAILING_ATTEMPTS,
+                maxFailingAttempts,
                 maxBlockingTime,
-                CircuitBreakerSupplier.DEFAULT_TIME_TO_RECOVER,
-                momoized);
+                timeToRecover);
     }
 
-    public <T> CircuitBreakerSupplier<T> createCircuitBreaker(
+    public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
+            final Supplier<T> blockingSupplier) {
+
+        return new MemoizingCircuitBreaker<>(this.asyncRunner, blockingSupplier, true);
+    }
+
+    public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
             final Supplier<T> blockingSupplier,
             final int maxFailingAttempts,
             final long maxBlockingTime,
             final long timeToRecover,
             final boolean momoized) {
 
-        return new CircuitBreakerSupplier<>(
+        return new MemoizingCircuitBreaker<>(
                 this.asyncRunner,
                 blockingSupplier,
                 maxFailingAttempts,

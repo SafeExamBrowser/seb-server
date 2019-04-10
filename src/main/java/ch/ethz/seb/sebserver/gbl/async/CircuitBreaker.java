@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.async;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -18,13 +19,11 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** A circuit breaker with three states (CLOSED, HALF_OPEN, OPEN) and memoizing functionality
- * that wraps and safe a Supplier function of the same type.
+/** A circuit breaker with three states (CLOSED, HALF_OPEN, OPEN)
  * <p>
- * A <code>CircuitBreakerSupplier</code> can be used to make a save call within a Supplier function. This Supplier
- * function
- * usually access remote data on different processes probably on different machines over the Internet
- * and that can fail or hang with unexpected result.
+ * A <code>CircuitBreaker</code> can be used to make a save call within a Supplier function.
+ * This Supplier function usually access remote data on different processes probably on different
+ * machines over the Internet and that can fail or hang with unexpected result.
  * <p>
  * The circuit breaker pattern can safe resources like Threads, Data-Base-Connections, from being taken and
  * hold for long time not released. What normally lead into some kind of no resource available error state.
@@ -46,13 +45,16 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  *
  *
  * @param <T> The of the result of the suppling function */
-public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
+public final class CircuitBreaker<T> {
 
-    private static final Logger log = LoggerFactory.getLogger(CircuitBreakerSupplier.class);
+    private static final Logger log = LoggerFactory.getLogger(CircuitBreaker.class);
 
     public static final int DEFAULT_MAX_FAILING_ATTEMPTS = 5;
     public static final long DEFAULT_MAX_BLOCKING_TIME = Constants.MINUTE_IN_MILLIS;
     public static final long DEFAULT_TIME_TO_RECOVER = Constants.MINUTE_IN_MILLIS * 10;
+
+    public static final RuntimeException OPEN_STATE_EXCEPTION =
+            new RuntimeException("Open CircuitBreaker");
 
     public enum State {
         CLOSED,
@@ -61,7 +63,6 @@ public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
     }
 
     private final AsyncRunner asyncRunner;
-    private final Supplier<T> supplierThatCanFailOrBlock;
     private final int maxFailingAttempts;
     private final long maxBlockingTime;
     private final long timeToRecover;
@@ -70,57 +71,38 @@ public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
     private final AtomicInteger failingCount = new AtomicInteger(0);
     private long lastSuccessTime;
 
-    private final boolean memoizing;
-    private final Result<T> notAvailable = Result.ofRuntimeError("No chached resource available");
-    private Result<T> cached = null;
-
     /** Create new CircuitBreakerSupplier.
      *
-     * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
-     * @param supplierThatCanFailOrBlock The Supplier function that can fail or block for a long time
-     * @param memoizing whether the memoizing functionality is on or off */
-    CircuitBreakerSupplier(
-            final AsyncRunner asyncRunner,
-            final Supplier<T> supplierThatCanFailOrBlock,
-            final boolean memoizing) {
+     * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function */
+    CircuitBreaker(final AsyncRunner asyncRunner) {
 
         this(
                 asyncRunner,
-                supplierThatCanFailOrBlock,
                 DEFAULT_MAX_FAILING_ATTEMPTS,
                 DEFAULT_MAX_BLOCKING_TIME,
-                DEFAULT_TIME_TO_RECOVER,
-                memoizing);
+                DEFAULT_TIME_TO_RECOVER);
     }
 
     /** Create new CircuitBreakerSupplier.
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
-     * @param supplierThatCanFailOrBlock The Supplier function that can fail or block for a long time
      * @param maxFailingAttempts the number of maximal failing attempts before go form CLOSE into HALF_OPEN state
      * @param maxBlockingTime the maximal time that an call attempt can block until an error is responded
      * @param timeToRecover the time the circuit breaker needs to cool-down on OPEN-STATE before going back to HALF_OPEN
-     *            state
-     * @param memoizing whether the memoizing functionality is on or off */
-    CircuitBreakerSupplier(
+     *            state */
+    CircuitBreaker(
             final AsyncRunner asyncRunner,
-            final Supplier<T> supplierThatCanFailOrBlock,
             final int maxFailingAttempts,
             final long maxBlockingTime,
-            final long timeToRecover,
-            final boolean memoizing) {
+            final long timeToRecover) {
 
         this.asyncRunner = asyncRunner;
-        this.supplierThatCanFailOrBlock = supplierThatCanFailOrBlock;
         this.maxFailingAttempts = maxFailingAttempts;
         this.maxBlockingTime = maxBlockingTime;
         this.timeToRecover = timeToRecover;
-        this.memoizing = memoizing;
     }
 
-    @Override
-    public Result<T> get() {
-
+    public Result<T> protectedRun(final Supplier<T> supplier) {
         final long currentTime = System.currentTimeMillis();
 
         if (log.isDebugEnabled()) {
@@ -132,13 +114,13 @@ public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
 
         switch (this.state) {
             case CLOSED:
-                return handleClosed(currentTime);
+                return handleClosed(currentTime, supplier);
             case HALF_OPEN:
-                return handleHalfOpen(currentTime);
+                return handleHalfOpen(currentTime, supplier);
             case OPEN:
-                return handelOpen(currentTime);
+                return handelOpen(currentTime, supplier);
             default:
-                throw new IllegalStateException();
+                return Result.ofError(new IllegalStateException());
         }
     }
 
@@ -146,57 +128,63 @@ public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
         return this.state;
     }
 
-    private Result<T> handleClosed(final long currentTime) {
+    private Result<T> handleClosed(
+            final long startTime,
+            final Supplier<T> supplier) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Handle Closed on: {}", currentTime);
+            log.debug("Handle Closed on: {}", startTime);
         }
 
-        final Result<T> result = attempt();
+        // try once
+        final Result<T> result = attempt(supplier);
         if (result.hasError()) {
 
             if (log.isDebugEnabled()) {
                 log.debug("Attempt failed. failing count: {}", this.failingCount);
             }
 
+            final long currentBlockingTime = System.currentTimeMillis() - startTime;
             final int failing = this.failingCount.incrementAndGet();
-            if (failing > this.maxFailingAttempts) {
-
+            if (failing > this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
+                // brake thought to HALF_OPEN state and return error
                 if (log.isDebugEnabled()) {
                     log.debug("Changing state from Open to Half Open and return cached value");
                 }
 
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
-                return getCached(result);
+                return Result.ofError(OPEN_STATE_EXCEPTION);
             } else {
-                return get();
+                // try again
+                return protectedRun(supplier);
             }
         } else {
             this.lastSuccessTime = System.currentTimeMillis();
-            if (this.memoizing) {
-                this.cached = result;
-            }
             return result;
         }
     }
 
-    private Result<T> handleHalfOpen(final long currentTime) {
+    private Result<T> handleHalfOpen(
+            final long startTime,
+            final Supplier<T> supplier) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Handle Half Open on: {}", currentTime);
+            log.debug("Handle Half Open on: {}", startTime);
         }
 
-        final Result<T> result = attempt();
+        // try once
+        final Result<T> result = attempt(supplier);
         if (result.hasError()) {
+            // on fail go to OPEN state
             if (log.isDebugEnabled()) {
                 log.debug("Changing state from Half Open to Open and return cached value");
             }
 
             this.state = State.OPEN;
-            return getCached(result);
+            return Result.ofError(OPEN_STATE_EXCEPTION);
         } else {
-
+            // on success go to CLODED state
             if (log.isDebugEnabled()) {
                 log.debug("Changing state from Half Open to Closed and return value");
             }
@@ -209,58 +197,43 @@ public class CircuitBreakerSupplier<T> implements Supplier<Result<T>> {
 
     /** As long as time to recover is not reached, return from cache
      * If time to recover is reached go to half open state and try again */
-    private Result<T> handelOpen(final long currentTime) {
+    private Result<T> handelOpen(
+            final long startTime,
+            final Supplier<T> supplier) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Handle Open on: {}", currentTime);
+            log.debug("Handle Open on: {}", startTime);
         }
 
-        if (currentTime - this.lastSuccessTime >= this.timeToRecover) {
+        if (startTime - this.lastSuccessTime >= this.timeToRecover) {
+            // if cool-down period is over, go back to HALF_OPEN state and try again
             if (log.isDebugEnabled()) {
                 log.debug("Time to recover reached. Changing state from Open to Half Open");
             }
 
             this.state = State.HALF_OPEN;
-
+            return protectedRun(supplier);
         }
 
-        return getCached(this.notAvailable);
+        return Result.ofError(OPEN_STATE_EXCEPTION);
     }
 
-    private Result<T> attempt() {
+    private Result<T> attempt(final Supplier<T> supplier) {
+        final Future<T> future = this.asyncRunner.runAsync(supplier);
         try {
-            return Result.of(this.asyncRunner.runAsync(this.supplierThatCanFailOrBlock)
-                    .get(this.maxBlockingTime, TimeUnit.MILLISECONDS));
+            return Result.of(future.get(this.maxBlockingTime, TimeUnit.MILLISECONDS));
         } catch (final Exception e) {
+            future.cancel(false);
             return Result.ofError(e);
         }
     }
 
-    private Result<T> getCached(final Result<T> error) {
-        if (!this.memoizing) {
-            return error;
-        }
-        if (this.cached != null) {
-            return this.cached;
-        } else {
-            return error;
-        }
-    }
-
-    T getChached() {
-        if (this.cached == null) {
-            return null;
-        }
-
-        return this.cached.get();
-    }
-
     @Override
     public String toString() {
-        return "MemoizingCircuitBreaker [maxFailingAttempts=" + this.maxFailingAttempts + ", maxBlockingTime="
-                + this.maxBlockingTime + ", timeToRecover=" + this.timeToRecover + ", state=" + this.state
-                + ", failingCount="
-                + this.failingCount + ", lastSuccessTime=" + this.lastSuccessTime + ", cached=" + this.cached + "]";
+        return "CircuitBreaker [asyncRunner=" + this.asyncRunner + ", maxFailingAttempts=" + this.maxFailingAttempts
+                + ", maxBlockingTime=" + this.maxBlockingTime + ", timeToRecover=" + this.timeToRecover + ", state="
+                + this.state
+                + ", failingCount=" + this.failingCount + ", lastSuccessTime=" + this.lastSuccessTime + "]";
     }
 
 }
