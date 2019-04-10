@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
@@ -45,6 +46,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserActivityLogDAOImpl.class);

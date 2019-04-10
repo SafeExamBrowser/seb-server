@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
@@ -49,6 +50,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class IndicatorDAOImpl implements IndicatorDAO {
 
     private final IndicatorRecordMapper indicatorRecordMapper;

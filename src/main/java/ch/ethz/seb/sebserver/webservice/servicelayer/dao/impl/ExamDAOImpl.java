@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
@@ -48,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;

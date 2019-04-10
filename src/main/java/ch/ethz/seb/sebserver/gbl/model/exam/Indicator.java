@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -26,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.THRESHOLD;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Indicator implements GrantEntity {
 
     public static final String FILTER_ATTR_EXAM = "exam";
@@ -61,6 +63,7 @@ public final class Indicator implements GrantEntity {
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
 
+    @JsonProperty(EXAM.ATTR_OWNER)
     public final String examOwner;
 
     @JsonCreator
@@ -154,13 +157,6 @@ public final class Indicator implements GrantEntity {
 
     public static final class Threshold {
 
-//        @JsonProperty(THRESHOLD.ATTR_ID)
-//        public final Long id;
-//
-//        @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID)
-//        @NotNull
-//        public final Long indicatorId;
-
         @JsonProperty(THRESHOLD.ATTR_VALUE)
         @NotNull
         public final Double value;
@@ -170,24 +166,12 @@ public final class Indicator implements GrantEntity {
 
         @JsonCreator
         public Threshold(
-//                @JsonProperty(THRESHOLD.ATTR_ID) final Long id,
-//                @JsonProperty(THRESHOLD.ATTR_INDICATOR_ID) final Long indicatorId,
                 @JsonProperty(THRESHOLD.ATTR_VALUE) final Double value,
                 @JsonProperty(THRESHOLD.ATTR_COLOR) final String color) {
 
-//            this.id = id;
-//            this.indicatorId = indicatorId;
             this.value = value;
             this.color = color;
         }
-
-//        public Long getId() {
-//            return this.id;
-//        }
-//
-//        public Long getIndicatorId() {
-//            return this.indicatorId;
-//        }
 
         public Double getValue() {
             return this.value;
@@ -197,12 +181,10 @@ public final class Indicator implements GrantEntity {
             return this.color;
         }
 
-//        @Override
-//        public String toString() {
-//            return "Threshold [id=" + this.id + ", indicatorId=" + this.indicatorId + ", value=" + this.value
-//                    + ", color=" + this.color
-//                    + "]";
-//        }
+        @Override
+        public String toString() {
+            return "Threshold [value=" + this.value + ", color=" + this.color + "]";
+        }
 
     }
 

@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class LmsSetup implements GrantEntity, Activatable {
 
     public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
@@ -70,7 +71,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final Boolean active;
 
     @JsonCreator
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public LmsSetup(
             @JsonProperty(LMS_SETUP.ATTR_ID) final Long id,
             @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -108,12 +108,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @Override
     public EntityType entityType() {
         return EntityType.LMS_SETUP;
-    }
-
-    @JsonIgnore
-    @Override
-    public String getOwnerId() {
-        return null;
     }
 
     public Long getId() {

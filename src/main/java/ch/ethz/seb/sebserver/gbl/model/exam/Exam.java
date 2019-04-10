@@ -18,6 +18,7 @@ import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -26,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Exam implements GrantEntity, Activatable {
 
     public static final String ATTR_STATUS = "examStatus";
@@ -241,31 +243,6 @@ public final class Exam implements GrantEntity, Activatable {
     @Override
     public boolean isActive() {
         return this.active;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final Exam other = (Exam) obj;
-        if (this.id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!this.id.equals(other.id))
-            return false;
-        return true;
     }
 
     @Override

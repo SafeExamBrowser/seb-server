@@ -40,7 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
 public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
-        extends EntityController<T, M> {
+        extends GrantEntityController<T, M> {
 
     public ActivatableEntityController(
             final AuthorizationService authorizationGrantService,

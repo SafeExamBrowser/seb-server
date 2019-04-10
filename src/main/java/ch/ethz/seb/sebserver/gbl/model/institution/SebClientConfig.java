@@ -83,11 +83,6 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         return this.institutionId;
     }
 
-    @Override
-    public String getOwnerId() {
-        return null;
-    }
-
     public Long getId() {
         return this.id;
     }

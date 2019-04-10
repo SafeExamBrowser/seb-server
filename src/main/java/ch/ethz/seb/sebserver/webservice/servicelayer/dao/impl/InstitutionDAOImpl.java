@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
@@ -43,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class InstitutionDAOImpl implements InstitutionDAO {
 
     private final InstitutionRecordMapper institutionRecordMapper;

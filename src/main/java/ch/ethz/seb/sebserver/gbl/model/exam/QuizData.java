@@ -150,11 +150,6 @@ public final class QuizData implements GrantEntity {
     }
 
     @Override
-    public String getOwnerId() {
-        return null;
-    }
-
-    @Override
     public String getName() {
         return this.name;
     }
@@ -173,37 +168,6 @@ public final class QuizData implements GrantEntity {
 
     public String getStartURL() {
         return this.startURL;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.institutionId == null) ? 0 : this.institutionId.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final QuizData other = (QuizData) obj;
-        if (this.id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!this.id.equals(other.id))
-            return false;
-        if (this.institutionId == null) {
-            if (other.institutionId != null)
-                return false;
-        } else if (!this.institutionId.equals(other.institutionId))
-            return false;
-        return true;
     }
 
     @Override

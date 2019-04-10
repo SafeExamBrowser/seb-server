@@ -34,8 +34,10 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserMod implements UserAccount {
 
+    @JsonProperty(USER.ATTR_UUID)
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
@@ -86,7 +88,6 @@ public final class UserMod implements UserAccount {
     private final String confirmNewPassword;
 
     @JsonCreator
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public UserMod(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -146,7 +147,6 @@ public final class UserMod implements UserAccount {
         return this.uuid;
     }
 
-    @Override
     public String getNewPassword() {
         return this.newPassword;
     }
@@ -190,7 +190,6 @@ public final class UserMod implements UserAccount {
                         .collect(Collectors.toList()));
     }
 
-    @Override
     public String getRetypedNewPassword() {
         return this.confirmNewPassword;
     }

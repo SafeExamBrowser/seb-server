@@ -27,6 +27,8 @@ public interface GrantEntity extends Entity {
      *
      * @return The institution association of a GrantEntity */
     @JsonIgnore
-    String getOwnerId();
+    default String getOwnerId() {
+        return null;
+    }
 
 }

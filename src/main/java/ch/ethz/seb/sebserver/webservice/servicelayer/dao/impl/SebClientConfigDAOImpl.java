@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordMapper;
@@ -43,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;

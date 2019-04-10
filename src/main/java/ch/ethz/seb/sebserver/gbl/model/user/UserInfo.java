@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * to and from JSON within the Jackson library.
  *
  * This domain model is immutable and thread-save */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
@@ -98,7 +99,6 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public final Set<String> roles;
 
     @JsonCreator
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public UserInfo(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -203,18 +203,6 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     @JsonIgnore
     @Override
-    public String getNewPassword() {
-        return null;
-    }
-
-    @JsonIgnore
-    @Override
-    public String getRetypedNewPassword() {
-        return null;
-    }
-
-    @JsonIgnore
-    @Override
     public EntityKey getEntityKey() {
         if (StringUtils.isBlank(this.uuid)) {
             return null;
@@ -223,33 +211,8 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.uuid == null) ? 0 : this.uuid.hashCode());
-        return result;
-    }
-
-    @Override
     protected Object clone() throws CloneNotSupportedException {
         return UserInfo.of(this);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final UserInfo other = (UserInfo) obj;
-        if (this.uuid == null) {
-            if (other.uuid != null)
-                return false;
-        } else if (!this.uuid.equals(other.uuid))
-            return false;
-        return true;
     }
 
     @Override

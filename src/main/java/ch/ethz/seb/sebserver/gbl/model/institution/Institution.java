@@ -95,11 +95,6 @@ public final class Institution implements GrantEntity, Activatable {
     }
 
     @Override
-    public String getOwnerId() {
-        return null;
-    }
-
-    @Override
     public String getName() {
         return this.name;
     }

@@ -55,7 +55,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
  *
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
-public abstract class EntityController<T extends GrantEntity, M extends GrantEntity> {
+public abstract class GrantEntityController<T extends GrantEntity, M extends GrantEntity> {
 
     protected final AuthorizationService authorization;
     protected final BulkActionService bulkActionService;
@@ -64,7 +64,7 @@ public abstract class EntityController<T extends GrantEntity, M extends GrantEnt
     protected final PaginationService paginationService;
     protected final BeanValidationService beanValidationService;
 
-    protected EntityController(
+    protected GrantEntityController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final EntityDAO<T, M> entityDAO,

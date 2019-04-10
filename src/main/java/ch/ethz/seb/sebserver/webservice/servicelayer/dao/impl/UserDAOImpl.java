@@ -43,6 +43,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
@@ -60,6 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
+@WebServiceProfile
 public class UserDAOImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDAOImpl.class);

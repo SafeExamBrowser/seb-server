@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -99,6 +100,18 @@ public class FilterMap extends POSTMapper {
 
     public String getIndicatorName() {
         return getSQLWildcard(Indicator.FILTER_ATTR_NAME);
+    }
+
+    public String getOrientationTemplate() {
+        return getSQLWildcard(Orientation.FILTER_ATTR_TEMPLATE);
+    }
+
+    public String getOrientationView() {
+        return getSQLWildcard(Orientation.FILTER_ATTR_VIEW);
+    }
+
+    public String getOrientationGroup() {
+        return getSQLWildcard(Orientation.FILTER_ATTR_GROUP);
     }
 
     public String getSQLWildcard(final String name) {
