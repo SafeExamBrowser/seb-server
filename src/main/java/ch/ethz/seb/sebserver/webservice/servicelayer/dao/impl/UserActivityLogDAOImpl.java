@@ -336,14 +336,17 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public Result<UserActivityLog> save(final UserActivityLog modified) {
-        // TODO Auto-generated method stub
-        return Result.ofTODO();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Result<UserActivityLog> createNew(final UserActivityLog data) {
-        // TODO Auto-generated method stub
-        return Result.ofTODO();
+        return log(
+                data.activityType,
+                data.entityType,
+                data.entityId,
+                data.message,
+                data);
     }
 
     @Override

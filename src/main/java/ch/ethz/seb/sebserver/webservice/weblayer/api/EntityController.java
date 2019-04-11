@@ -55,7 +55,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
  *
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
-public abstract class GrantEntityController<T extends GrantEntity, M extends GrantEntity> {
+public abstract class EntityController<T extends Entity, M extends Entity> {
 
     protected final AuthorizationService authorization;
     protected final BulkActionService bulkActionService;
@@ -64,7 +64,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
     protected final PaginationService paginationService;
     protected final BeanValidationService beanValidationService;
 
-    protected GrantEntityController(
+    protected EntityController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final EntityDAO<T, M> entityDAO,
@@ -196,7 +196,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
 
         this.entityDAO
                 .byModelId(modelId)
-                .flatMap(this.authorization::checkRead);
+                .map(this::checkReadAccess);
 
         final BulkAction bulkAction = new BulkAction(
                 bulkActionType,
@@ -220,7 +220,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
 
         return this.entityDAO
                 .byModelId(modelId)
-                .flatMap(this.authorization::checkRead)
+                .flatMap(this::checkReadAccess)
                 .getOrThrow();
     }
 
@@ -246,7 +246,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
                 .flatMap(this.entityDAO::byEntityKeys)
                 .getOrThrow()
                 .stream()
-                .filter(this.authorization::hasReadonlyGrant)
+                .filter(this::hasReadAccess)
                 .collect(Collectors.toList());
     }
 
@@ -276,7 +276,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
 
         final M requestModel = this.createNew(postMap);
 
-        return this.authorization.checkWrite(requestModel)
+        return this.checkCreateAccess(requestModel)
                 .flatMap(this::validForCreate)
                 .flatMap(this.entityDAO::createNew)
                 .flatMap(this.userActivityLogDAO::logCreate)
@@ -294,42 +294,13 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public T savePut(@Valid @RequestBody final T modifyData) {
 
-        return this.authorization.checkModify(modifyData)
+        return this.checkModifyAccess(modifyData)
                 .flatMap(this::validForSave)
                 .flatMap(this.entityDAO::save)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .flatMap(this::notifySaved)
                 .getOrThrow();
     }
-
-    // ******************
-    // * PATCH (save)
-    // ******************
-
-    // NOTE: not supported yet because of difficulties on conversion of params-map to json object
-//    @RequestMapping(
-//            path = "/{id}",
-//            method = RequestMethod.PATCH,
-//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public T savePost(
-//            @PathVariable final String id,
-//            @RequestParam final MultiValueMap<String, String> allRequestParams,
-//            @RequestParam(
-//                    name = Entity.FILTER_ATTR_INSTITUTION,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
-//
-//        allRequestParams.putIfAbsent(
-//                Domain.ATTR_INSTITUTION_ID,
-//                Arrays.asList(String.valueOf(institutionId)));
-//        final M requestModel = this.toRequestModel(null, allRequestParams);
-//
-//        return this.entityDAO.save(id, requestModel)
-//                .flatMap(entity -> this.userActivityLogDAO.log(ActivityType.MODIFY, entity))
-//                .flatMap(entity -> notifySaved(requestModel, entity))
-//                .getOrThrow();
-//    }
 
     // ******************
     // * DELETE (delete)
@@ -347,7 +318,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
                 new EntityKey(modelId, entityType));
 
         return this.entityDAO.byModelId(modelId)
-                .flatMap(this.authorization::checkWrite)
+                .flatMap(this::checkWriteAccess)
                 .flatMap(entity -> this.bulkActionService.createReport(bulkAction))
                 .getOrThrow();
     }
@@ -362,7 +333,7 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
         return this.entityDAO.allMatching(
                 filterMap,
-                this.authorization::hasReadonlyGrant);
+                this::hasReadAccess);
     }
 
     protected Result<T> notifyCreated(final T entity) {
@@ -388,6 +359,56 @@ public abstract class GrantEntityController<T extends GrantEntity, M extends Gra
 
     protected Result<T> notifySaved(final T entity) {
         return Result.of(entity);
+    }
+
+    private Result<T> checkReadAccess(final T entity) {
+        final GrantEntity grantEntity = toGrantEntity(entity);
+        if (grantEntity != null) {
+            this.authorization.checkRead(grantEntity);
+        }
+        return Result.of(entity);
+    }
+
+    private boolean hasReadAccess(final T entity) {
+        final GrantEntity grantEntity = toGrantEntity(entity);
+        if (grantEntity != null) {
+            return this.authorization.hasReadonlyGrant(grantEntity);
+        }
+
+        return true;
+    }
+
+    private Result<T> checkModifyAccess(final T entity) {
+        final GrantEntity grantEntity = toGrantEntity(entity);
+        if (grantEntity != null) {
+            this.authorization.checkModify(grantEntity);
+        }
+        return Result.of(entity);
+    }
+
+    private Result<T> checkWriteAccess(final T entity) {
+        final GrantEntity grantEntity = toGrantEntity(entity);
+        if (grantEntity != null) {
+            this.authorization.checkWrite(grantEntity);
+        }
+        return Result.of(entity);
+    }
+
+    private Result<M> checkCreateAccess(final M entity) {
+        final GrantEntity grantEntity = toGrantEntity(entity);
+        if (grantEntity != null) {
+            this.authorization.checkWrite(grantEntity);
+        }
+        return Result.of(entity);
+    }
+
+    protected GrantEntity toGrantEntity(final Entity entity) {
+        if (entity instanceof GrantEntity) {
+            return (GrantEntity) entity;
+        }
+
+        throw new IllegalArgumentException("Entity instance is not of type GrantEntity. "
+                + "Do override the toGrantEntity method from EntityController within the specific -Controller implementation");
     }
 
     protected abstract M createNew(POSTMapper postParams);

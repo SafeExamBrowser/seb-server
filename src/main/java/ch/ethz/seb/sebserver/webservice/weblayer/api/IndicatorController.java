@@ -29,7 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @WebServiceProfile
 @RestController
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.EXAM_INDICATOR_ENDPOINT)
-public class IndicatorController extends GrantEntityController<Indicator, Indicator> {
+public class IndicatorController extends EntityController<Indicator, Indicator> {
 
     private final ExamDAO examDao;
 

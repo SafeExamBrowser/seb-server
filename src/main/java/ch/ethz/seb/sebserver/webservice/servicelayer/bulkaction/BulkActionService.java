@@ -11,12 +11,49 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Service to address bulk actions like activation or deletion where the action
+ * or state-change of one Entity has an effect on other entities that that has
+ * a relation to the source entity.
+ * <p>
+ * A bulk action for a specified entity instance will be first applied to all its dependent
+ * child-entities. For example if one is going to delete/deactivate a particular LMS Setup, all
+ * Exams imported from this LMSSetup are first deactivated and all Exam Config Mapping and
+ * all Client Connection are of all the Exams are deactivated first.
+ * <p>
+ * below is the relation-tree of known node-entities of the SEB Server application
+ * <code>
+ *                                  Institution
+ *                        ____________ / | \______________
+ *                       /               |                \
+ *                  LMS Setup            |            User-Account
+ *                      |                |
+ *                    Exam          Configuration
+ *                      |\              /
+ *                      | Exam Config Mapping
+ *                      |
+ *               Client Connection
+ * </code> */
 public interface BulkActionService {
 
+    /** Use this to collect all EntityKey's of all dependent entities for a given BulkAction.
+     *
+     * @param action the BulkAction defining the source entity keys and acts also as the
+     *            dependency collector */
     void collectDependencies(BulkAction action);
 
+    /** This executes a given BulkAction by first getting all dependencies and applying
+     * the action to that first and then applying the action to the source entities of
+     * the BulkAction.
+     * 
+     * @param action the BulkAction that defines at least the type and the source entity keys
+     * @return The BulkAction containing the result of the execution */
     Result<BulkAction> doBulkAction(BulkAction action);
 
+    /** Creates a EntityProcessingReport from a given BulkAction result.
+     * If the given BulkAction has not already been executed, it will be executed first
+     * 
+     * @param action the BulkAction of a concrete type
+     * @return EntityProcessingReport extracted form an executed BulkAxtion */
     Result<EntityProcessingReport> createReport(BulkAction action);
 
 }
