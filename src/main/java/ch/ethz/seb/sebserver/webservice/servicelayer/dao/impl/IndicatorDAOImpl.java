@@ -34,12 +34,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.IndicatorRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ThresholdRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
@@ -56,16 +54,13 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     private final IndicatorRecordMapper indicatorRecordMapper;
     private final ThresholdRecordMapper thresholdRecordMapper;
-    private final ExamRecordMapper examRecordMapper;
 
     public IndicatorDAOImpl(
             final IndicatorRecordMapper indicatorRecordMapper,
-            final ThresholdRecordMapper thresholdRecordMapper,
-            final ExamRecordMapper examRecordMapper) {
+            final ThresholdRecordMapper thresholdRecordMapper) {
 
         this.indicatorRecordMapper = indicatorRecordMapper;
         this.thresholdRecordMapper = thresholdRecordMapper;
-        this.examRecordMapper = examRecordMapper;
     }
 
     @Override
@@ -175,6 +170,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
             // insert thresholds
             modified.thresholds
                     .stream()
+                    .filter(threshold -> threshold.value != null && threshold.color != null)
                     .map(threshold -> new ThresholdRecord(
                             null,
                             newRecord.getId(),
@@ -321,8 +317,6 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     private Result<Indicator> toDomainModel(final IndicatorRecord record) {
         return Result.tryCatch(() -> {
 
-            final ExamRecord examRecord = this.examRecordMapper.selectByPrimaryKey(record.getExamId());
-
             final List<Threshold> thresholds = this.thresholdRecordMapper.selectByExample()
                     .where(ThresholdRecordDynamicSqlSupport.indicatorId, isEqualTo(record.getId()))
                     .build()
@@ -335,9 +329,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
             return new Indicator(
                     record.getId(),
-                    examRecord.getInstitutionId(),
                     record.getExamId(),
-                    examRecord.getOwner(),
                     record.getName(),
                     IndicatorType.valueOf(record.getType()),
                     record.getColor(),

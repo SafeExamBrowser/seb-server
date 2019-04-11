@@ -81,7 +81,7 @@ public class IndicatorForm implements TemplateComposer {
 
         // get data or create new. Handle error if happen
         final Indicator indicator = (isNew)
-                ? Indicator.createNew(exam.getInstitutionId(), exam)
+                ? Indicator.createNew(exam)
                 : restService
                         .getBuilder(GetIndicator.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

@@ -21,14 +21,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INDICATOR;
 import ch.ethz.seb.sebserver.gbl.model.Domain.THRESHOLD;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class Indicator implements GrantEntity {
+public final class Indicator implements Entity {
 
     public static final String FILTER_ATTR_EXAM = "exam";
 
@@ -39,10 +38,6 @@ public final class Indicator implements GrantEntity {
 
     @JsonProperty(INDICATOR.ATTR_ID)
     public final Long id;
-
-    @JsonProperty(EXAM.ATTR_INSTITUTION_ID)
-    @NotNull
-    public final Long institutionId;
 
     @JsonProperty(INDICATOR.ATTR_EXAM_ID)
     @NotNull
@@ -63,24 +58,17 @@ public final class Indicator implements GrantEntity {
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
 
-    @JsonProperty(EXAM.ATTR_OWNER)
-    public final String examOwner;
-
     @JsonCreator
     public Indicator(
             @JsonProperty(INDICATOR.ATTR_ID) final Long id,
-            @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(INDICATOR.ATTR_EXAM_ID) final Long examId,
-            @JsonProperty(EXAM.ATTR_OWNER) final String examOwner,
             @JsonProperty(INDICATOR.ATTR_NAME) final String name,
             @JsonProperty(INDICATOR.ATTR_TYPE) final IndicatorType type,
             @JsonProperty(INDICATOR.ATTR_COLOR) final String defaultColor,
             @JsonProperty(THRESHOLD.REFERENCE_NAME) final Collection<Threshold> thresholds) {
 
         this.id = id;
-        this.institutionId = institutionId;
         this.examId = examId;
-        this.examOwner = examOwner;
         this.name = name;
         this.type = type;
         this.defaultColor = defaultColor;
@@ -89,9 +77,7 @@ public final class Indicator implements GrantEntity {
 
     public Indicator(final Exam exam, final POSTMapper postParams) {
         this.id = null;
-        this.institutionId = exam.institutionId;
         this.examId = exam.id;
-        this.examOwner = exam.owner;
         this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
         this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
         this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
@@ -117,17 +103,6 @@ public final class Indicator implements GrantEntity {
         return this.id;
     }
 
-    @Override
-
-    public Long getInstitutionId() {
-        return this.institutionId;
-    }
-
-    @Override
-    public String getOwnerId() {
-        return this.examOwner;
-    }
-
     public Long getExamId() {
         return this.examId;
     }
@@ -151,8 +126,8 @@ public final class Indicator implements GrantEntity {
                 + this.defaultColor + ", thresholds=" + this.thresholds + "]";
     }
 
-    public static Indicator createNew(final Long institutionId, final Exam exam) {
-        return new Indicator(null, institutionId, exam.id, exam.owner, null, null, null, null);
+    public static Indicator createNew(final Exam exam) {
+        return new Indicator(null, exam.id, null, null, null, null);
     }
 
     public static final class Threshold {

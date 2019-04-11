@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.ORIENTATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
@@ -74,6 +76,18 @@ public final class Orientation implements Entity {
         this.yPosition = yPosition;
         this.width = width;
         this.height = height;
+    }
+
+    public Orientation(final ConfigurationAttribute attr, final POSTMapper postParams) {
+        this.id = null;
+        this.attributeId = attr.id;
+        this.template = postParams.getString(Domain.ORIENTATION.ATTR_TEMPLATE);
+        this.view = postParams.getString(Domain.ORIENTATION.ATTR_VIEW);
+        this.group = postParams.getString(Domain.ORIENTATION.ATTR_GROUP);
+        this.xPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_X_POSITION);
+        this.yPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_Y_POSITION);
+        this.width = postParams.getInteger(Domain.ORIENTATION.ATTR_WIDTH);
+        this.height = postParams.getInteger(Domain.ORIENTATION.ATTR_HEIGHT);
     }
 
     @Override

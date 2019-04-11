@@ -105,20 +105,42 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
-                .withOwnerPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
-        // grants for indicators
-        addPrivilege(EntityType.INDICATOR)
+        // grants for configuration node
+        addPrivilege(EntityType.CONFIGURATION_NODE)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
                 .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
-                .withOwnerPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .create();
+
+        // grants for configuration attributes
+        addPrivilege(EntityType.CONFIGURATION_ATTRIBUTE)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .create();
+
+        // grants for configuration orientations
+        addPrivilege(EntityType.ORIENTATION)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();

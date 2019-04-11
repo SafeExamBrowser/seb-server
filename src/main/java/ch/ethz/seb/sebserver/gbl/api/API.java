@@ -59,6 +59,18 @@ public final class API {
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
+    public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration_node";
+
+    public static final String CONFIGURATION_ENDPOINT = "/configuration";
+
+    public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
+
+    public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
+
+    public static final String ORIENTATION_ENDPOINT = "/orientation";
+
+    public static final String EXAM_CONFIGURATION_MAP_ENDPOINT = "/exam_configuration_map";
+
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";
 
     public static final String SELF_PATH_SEGMENT = "/self";

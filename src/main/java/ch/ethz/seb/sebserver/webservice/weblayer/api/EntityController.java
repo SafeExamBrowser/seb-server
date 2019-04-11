@@ -135,7 +135,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
         // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
-        if (!this.authorization.hasGrant(PrivilegeType.READ, this.entityDAO.entityType())) {
+        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
@@ -170,7 +170,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
         // if current user has no read access for specified entity type within other institution then its own institution,
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
-        if (!this.authorization.hasGrant(PrivilegeType.READ, this.entityDAO.entityType())) {
+        if (!this.authorization.hasGrant(PrivilegeType.READ, this.getGrantEntityType())) {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
@@ -266,10 +266,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         // check modify privilege for requested institution and concrete entityType
-        this.authorization.check(
-                PrivilegeType.MODIFY,
-                this.entityDAO.entityType(),
-                institutionId);
+        this.checkModifyPrivilege(institutionId);
 
         final POSTMapper postMap = new POSTMapper(allRequestParams)
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
@@ -323,10 +320,23 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
+    protected void checkReadPrivilege() {
+        this.authorization.check(
+                PrivilegeType.READ,
+                getGrantEntityType());
+    }
+
     protected void checkReadPrivilege(final Long institutionId) {
         this.authorization.check(
                 PrivilegeType.READ,
-                this.entityDAO.entityType(),
+                getGrantEntityType(),
+                institutionId);
+    }
+
+    protected void checkModifyPrivilege(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.MODIFY,
+                getGrantEntityType(),
                 institutionId);
     }
 
@@ -361,7 +371,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return Result.of(entity);
     }
 
-    private Result<T> checkReadAccess(final T entity) {
+    protected Result<T> checkReadAccess(final T entity) {
         final GrantEntity grantEntity = toGrantEntity(entity);
         if (grantEntity != null) {
             this.authorization.checkRead(grantEntity);
@@ -369,7 +379,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return Result.of(entity);
     }
 
-    private boolean hasReadAccess(final T entity) {
+    protected boolean hasReadAccess(final T entity) {
         final GrantEntity grantEntity = toGrantEntity(entity);
         if (grantEntity != null) {
             return this.authorization.hasReadonlyGrant(grantEntity);
@@ -378,7 +388,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return true;
     }
 
-    private Result<T> checkModifyAccess(final T entity) {
+    protected Result<T> checkModifyAccess(final T entity) {
         final GrantEntity grantEntity = toGrantEntity(entity);
         if (grantEntity != null) {
             this.authorization.checkModify(grantEntity);
@@ -386,7 +396,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return Result.of(entity);
     }
 
-    private Result<T> checkWriteAccess(final T entity) {
+    protected Result<T> checkWriteAccess(final T entity) {
         final GrantEntity grantEntity = toGrantEntity(entity);
         if (grantEntity != null) {
             this.authorization.checkWrite(grantEntity);
@@ -394,15 +404,37 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return Result.of(entity);
     }
 
-    private Result<M> checkCreateAccess(final M entity) {
-        final GrantEntity grantEntity = toGrantEntity(entity);
-        if (grantEntity != null) {
-            this.authorization.checkWrite(grantEntity);
+    /** Checks creation (write) privileges for a given Entity.
+     * Usually the GrantEntity and the Entity instance are the same if the Entity extends from GrantEntity.
+     * Otherwise the implementing EntityController must override this method and resolve the
+     * related GrantEntity for a given Entity.
+     * For example, the GrantEntity of Indicator is the related Exam
+     * 
+     * @param entity the Entity to check creation/write access for
+     * @return Result of the access check containing either the original entity or an error if no access granted */
+    protected Result<M> checkCreateAccess(final M entity) {
+        if (entity instanceof GrantEntity) {
+            this.authorization.checkWrite((GrantEntity) entity);
+            return Result.of(entity);
         }
-        return Result.of(entity);
+
+        return Result.ofError(new IllegalArgumentException("Entity instance is not of type GrantEntity. "
+                + "Do override the checkCreateAccess method from EntityController within the specific -Controller implementation"));
     }
 
-    protected GrantEntity toGrantEntity(final Entity entity) {
+    /** Gets the GrantEntity instance for a given Entity instance.
+     * Usually the GrantEntity and the Entity instance are the same if the Entity extends from GrantEntity.
+     * Otherwise the implementing EntityController must override this method and resolve the
+     * related GrantEntity for a given Entity.
+     * For example, the GrantEntity of Indicator is the related Exam
+     * 
+     * @param entity the Entity to get the related GrantEntity for
+     * @return the GrantEntity instance for a given Entity instance */
+    protected GrantEntity toGrantEntity(final T entity) {
+        if (entity == null) {
+            return null;
+        }
+
         if (entity instanceof GrantEntity) {
             return (GrantEntity) entity;
         }
@@ -411,8 +443,25 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 + "Do override the toGrantEntity method from EntityController within the specific -Controller implementation");
     }
 
+    /** Get the EntityType of the GrantEntity that is used for grant checks of the concrete Entity.
+     *
+     * NOTE: override this if the EntityType of the GrantEntity is not the same as the Entity itself.
+     * For example, the Exam is the GrantEntity of a Indicator
+     *
+     * @return the EntityType of the GrantEntity that is used for grant checks of the concrete Entity */
+    protected EntityType getGrantEntityType() {
+        return this.entityDAO.entityType();
+    }
+
+    /** Implements the creation of a new entity from the post parameters given within the POSTMapper
+     *
+     * @param postParams contains all post parameter from request
+     * @return new created Entity instance */
     protected abstract M createNew(POSTMapper postParams);
 
+    /** Gets the MyBatis SqlTable for the concrete Entity
+     *
+     * @return the MyBatis SqlTable for the concrete Entity */
     protected abstract SqlTable getSQLTableOfEntity();
 
 }

@@ -185,10 +185,16 @@ CREATE TABLE IF NOT EXISTS `configuration` (
   `version_date` DATETIME NULL,
   `followup` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `configurationNodeRef_idx` (`configuration_node_id` ASC, `institution_id` ASC),
-  CONSTRAINT `configurationNodeRef`
-    FOREIGN KEY (`configuration_node_id` , `institution_id`)
-    REFERENCES `configuration_node` (`id` , `institution_id`)
+  INDEX `configurationNodeRef_idx` (`configuration_node_id` ASC),
+  INDEX `config_institution_ref_idx` (`institution_id` ASC),
+  CONSTRAINT `configuration_node_ref`
+    FOREIGN KEY (`configuration_node_id`)
+    REFERENCES `configuration_node` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `config_institution_ref`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -232,16 +238,22 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
   `value` VARCHAR(255) NULL,
   `text` MEDIUMTEXT NULL,
   PRIMARY KEY (`id`),
-  INDEX `configuration_value_ref_idx` (`configuration_id` ASC, `institution_id` ASC),
+  INDEX `configuration_value_ref_idx` (`configuration_id` ASC),
   INDEX `configuration_attribute_ref_idx` (`configuration_attribute_id` ASC),
+  INDEX `configuration_value_institution_ref_idx` (`institution_id` ASC),
   CONSTRAINT `configuration_ref`
-    FOREIGN KEY (`configuration_id` , `institution_id`)
-    REFERENCES `configuration` (`id` , `institution_id`)
+    FOREIGN KEY (`configuration_id`)
+    REFERENCES `configuration` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `configuration_value_attribute_ref`
     FOREIGN KEY (`configuration_attribute_id`)
     REFERENCES `configuration_attribute` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `configuration_value_institution_ref`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -284,16 +296,22 @@ CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
   `configuration_node_id` BIGINT UNSIGNED NOT NULL,
   `user_names` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
-  INDEX `exam_ref_idx` (`exam_id` ASC, `institution_id` ASC),
-  INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC, `institution_id` ASC),
+  INDEX `exam_ref_idx` (`exam_id` ASC),
+  INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC),
+  INDEX `exam_config_institution_ref_idx` (`institution_id` ASC),
   CONSTRAINT `exam_map_ref`
-    FOREIGN KEY (`exam_id` , `institution_id`)
-    REFERENCES `exam` (`id` , `institution_id`)
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `configuration_map_ref`
-    FOREIGN KEY (`configuration_node_id` , `institution_id`)
-    REFERENCES `configuration_node` (`id` , `institution_id`)
+    FOREIGN KEY (`configuration_node_id`)
+    REFERENCES `configuration_node` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `exam_config_institution_ref`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

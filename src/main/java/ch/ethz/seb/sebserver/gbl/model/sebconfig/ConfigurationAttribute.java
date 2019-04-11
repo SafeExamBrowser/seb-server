@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_ATTRIBUTE;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
@@ -71,6 +73,17 @@ public final class ConfigurationAttribute implements Entity {
         this.validator = validator;
         this.dependencies = dependencies;
         this.defaultValue = defaultValue;
+    }
+
+    public ConfigurationAttribute(final POSTMapper postParams) {
+        this.id = null;
+        this.parentId = postParams.getLong(Domain.CONFIGURATION_ATTRIBUTE.ATTR_PARENT_ID);
+        this.name = postParams.getString(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME);
+        this.type = postParams.getEnum(Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE, AttributeType.class);
+        this.resources = postParams.getString(Domain.CONFIGURATION_ATTRIBUTE.ATTR_RESOURCES);
+        this.validator = postParams.getString(Domain.CONFIGURATION_ATTRIBUTE.ATTR_VALIDATOR);
+        this.dependencies = postParams.getString(Domain.CONFIGURATION_ATTRIBUTE.ATTR_DEPENDENCIES);
+        this.defaultValue = postParams.getString(Domain.CONFIGURATION_ATTRIBUTE.ATTR_DEFAULT_VALUE);
     }
 
     @Override

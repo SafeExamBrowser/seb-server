@@ -13,34 +13,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.EXAM_INDICATOR_ENDPOINT)
-public class IndicatorController extends EntityController<Indicator, Indicator> {
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ATTRIBUTE_ENDPOINT)
+public class ConfigurationAttributeController extends EntityController<ConfigurationAttribute, ConfigurationAttribute> {
 
-    private final ExamDAO examDao;
-
-    protected IndicatorController(
+    protected ConfigurationAttributeController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
-            final IndicatorDAO entityDAO,
-            final ExamDAO examDao,
+            final ConfigurationAttributeDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
@@ -51,48 +45,27 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
-
-        this.examDao = examDao;
     }
 
     @Override
-    protected Indicator createNew(final POSTMapper postParams) {
-        final Long examId = postParams.getLong(Domain.INDICATOR.ATTR_EXAM_ID);
-
-        return this.examDao
-                .byPK(examId)
-                .map(exam -> new Indicator(exam, postParams))
-                .getOrThrow();
+    protected ConfigurationAttribute createNew(final POSTMapper postParams) {
+        // TODO Auto-generated method stub
+        return new ConfigurationAttribute(postParams);
     }
 
     @Override
     protected SqlTable getSQLTableOfEntity() {
-        return IndicatorRecordDynamicSqlSupport.indicatorRecord;
+        return ConfigurationAttributeRecordDynamicSqlSupport.configurationAttributeRecord;
     }
 
     @Override
-    protected Result<Indicator> checkCreateAccess(final Indicator entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        this.authorization.checkWrite(this.examDao.byPK(entity.examId).getOrThrow());
-        return Result.of(entity);
+    protected Result<ConfigurationAttribute> checkCreateAccess(final ConfigurationAttribute entity) {
+        return Result.of(entity); // Skips the entity based grant check
     }
 
     @Override
-    protected GrantEntity toGrantEntity(final Indicator entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        return this.examDao.byPK(entity.examId)
-                .getOrThrow();
-    }
-
-    @Override
-    protected EntityType getGrantEntityType() {
-        return EntityType.EXAM;
+    protected GrantEntity toGrantEntity(final ConfigurationAttribute entity) {
+        return null; // Skips the entity based grant check
     }
 
 }
