@@ -237,7 +237,7 @@ public final class Form implements FormBinding {
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList) {
-        return new FormFieldAccessor(label, thresholdList) {
+        return new FormFieldAccessor(label, thresholdList, null, true) {
             @Override public String getStringValue() {
                 return ThresholdListBuilder
                         .thresholdsToFormURLEncodedStringValue(thresholdList.getThresholds());
