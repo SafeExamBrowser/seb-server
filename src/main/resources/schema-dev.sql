@@ -3,12 +3,9 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-
 -- -----------------------------------------------------
 -- Schema SEBServer
 -- -----------------------------------------------------
-
-
 
 -- -----------------------------------------------------
 -- Table `institution`
@@ -182,15 +179,16 @@ DROP TABLE IF EXISTS `configuration` ;
 
 CREATE TABLE IF NOT EXISTS `configuration` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `configuration_node_id` BIGINT UNSIGNED NOT NULL,
   `version` VARCHAR(255) NULL,
   `version_date` DATETIME NULL,
   `followup` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `configurationNodeRef_idx` (`configuration_node_id` ASC),
+  INDEX `configurationNodeRef_idx` (`configuration_node_id` ASC, `institution_id` ASC),
   CONSTRAINT `configurationNodeRef`
-    FOREIGN KEY (`configuration_node_id`)
-    REFERENCES `configuration_node` (`id`)
+    FOREIGN KEY (`configuration_node_id` , `institution_id`)
+    REFERENCES `configuration_node` (`id` , `institution_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -227,17 +225,18 @@ DROP TABLE IF EXISTS `configuration_value` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_value` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `configuration_id` BIGINT UNSIGNED NOT NULL,
   `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
   `list_index` INT NOT NULL DEFAULT 0,
   `value` VARCHAR(255) NULL,
   `text` MEDIUMTEXT NULL,
   PRIMARY KEY (`id`),
-  INDEX `configuration_value_ref_idx` (`configuration_id` ASC),
+  INDEX `configuration_value_ref_idx` (`configuration_id` ASC, `institution_id` ASC),
   INDEX `configuration_attribute_ref_idx` (`configuration_attribute_id` ASC),
   CONSTRAINT `configuration_ref`
-    FOREIGN KEY (`configuration_id`)
-    REFERENCES `configuration` (`id`)
+    FOREIGN KEY (`configuration_id` , `institution_id`)
+    REFERENCES `configuration` (`id` , `institution_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `configuration_value_attribute_ref`
@@ -280,20 +279,21 @@ DROP TABLE IF EXISTS `exam_configuration_map` ;
 
 CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `exam_id` BIGINT UNSIGNED NOT NULL,
   `configuration_node_id` BIGINT UNSIGNED NOT NULL,
   `user_names` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
-  INDEX `exam_ref_idx` (`exam_id` ASC),
-  INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC),
+  INDEX `exam_ref_idx` (`exam_id` ASC, `institution_id` ASC),
+  INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC, `institution_id` ASC),
   CONSTRAINT `exam_map_ref`
-    FOREIGN KEY (`exam_id`)
-    REFERENCES `exam` (`id`)
+    FOREIGN KEY (`exam_id` , `institution_id`)
+    REFERENCES `exam` (`id` , `institution_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `configuration_map_ref`
-    FOREIGN KEY (`configuration_node_id`)
-    REFERENCES `configuration_node` (`id`)
+    FOREIGN KEY (`configuration_node_id` , `institution_id`)
+    REFERENCES `configuration_node` (`id` , `institution_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -445,6 +445,20 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
+
+
+-- -----------------------------------------------------
+-- Table `webservice_server_info`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `webservice_server_info` ;
+
+CREATE TABLE IF NOT EXISTS `webservice_server_info` (
+  `id` BIGINT UNSIGNED NOT NULL,
+  `uuid` VARCHAR(255) NOT NULL,
+  `service_address` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

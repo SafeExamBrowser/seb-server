@@ -16,11 +16,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ConfigurationNode implements GrantEntity {
+public final class ConfigurationNode implements GrantEntity, Activatable {
+
+    public static final String FILTER_ATTR_DESCRIPTION = "description";
+    public static final String FILTER_ATTR_TYPE = "type";
+    public static final String FILTER_ATTR_TEMPLATE = "template";
 
     public enum ConfigurationType {
         TEMPLATE,
@@ -52,6 +57,10 @@ public final class ConfigurationNode implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER)
     public final String owner;
 
+    /** Indicates whether this Configuration is active or not */
+    @JsonProperty(CONFIGURATION_NODE.ATTR_ACTIVE)
+    public final Boolean active;
+
     @JsonCreator
     public ConfigurationNode(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long id,
@@ -60,7 +69,8 @@ public final class ConfigurationNode implements GrantEntity {
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,
             @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE) final ConfigurationType type,
             @JsonProperty(CONFIGURATION_NODE.ATTR_TEMPLATE) final String templateName,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner) {
+            @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner,
+            @JsonProperty(CONFIGURATION_NODE.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -69,6 +79,7 @@ public final class ConfigurationNode implements GrantEntity {
         this.type = type;
         this.templateName = templateName;
         this.owner = owner;
+        this.active = active;
     }
 
     @Override
@@ -114,12 +125,22 @@ public final class ConfigurationNode implements GrantEntity {
         return this.templateName;
     }
 
+    public Boolean getActive() {
+        return this.active;
+    }
+
+    @Override
+    public boolean isActive() {
+        return this.active;
+    }
+
     @Override
     public String toString() {
         return "ConfigurationNode [id=" + this.id + ", institutionId=" + this.institutionId + ", name=" + this.name
                 + ", description="
                 + this.description + ", type=" + this.type + ", templateName=" + this.templateName + ", owner="
-                + this.owner + "]";
+                + this.owner + ", active="
+                + this.active + "]";
     }
 
 }

@@ -19,22 +19,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION;
-import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration implements GrantEntity {
 
+    public static final String FILTER_ATTR_CONFIGURATION_NODE_ID = "configurationNodeId";
+    public static final String FILTER_ATTR_FROM_DATE = "fromDate";
+    public static final String FILTER_ATTR_FOLLOWUP = "followup";
+
     @JsonProperty(CONFIGURATION.ATTR_ID)
     public final Long id;
 
     @NotNull
-    @JsonProperty(CONFIGURATION_NODE.ATTR_INSTITUTION_ID)
+    @JsonProperty(CONFIGURATION.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
     @NotNull
     @JsonProperty(CONFIGURATION.ATTR_CONFIGURATION_NODE_ID)
-    public final Long nodeId;
+    public final Long configurationNodeId;
 
     @JsonProperty(CONFIGURATION.ATTR_VERSION)
     public final String version;
@@ -50,15 +53,15 @@ public final class Configuration implements GrantEntity {
     @JsonCreator
     public Configuration(
             @JsonProperty(CONFIGURATION.ATTR_ID) final Long id,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_INSTITUTION_ID) final Long institutionId,
-            @JsonProperty(CONFIGURATION.ATTR_CONFIGURATION_NODE_ID) final Long nodeId,
+            @JsonProperty(CONFIGURATION.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(CONFIGURATION.ATTR_CONFIGURATION_NODE_ID) final Long configurationNodeId,
             @JsonProperty(CONFIGURATION.ATTR_VERSION) final String version,
             @JsonProperty(CONFIGURATION.ATTR_VERSION_DATE) final DateTime versionDate,
             @JsonProperty(CONFIGURATION.ATTR_FOLLOWUP) final Boolean followup) {
 
         this.id = id;
         this.institutionId = institutionId;
-        this.nodeId = nodeId;
+        this.configurationNodeId = configurationNodeId;
         this.version = version;
         this.versionDate = versionDate;
         this.followup = followup;
@@ -92,8 +95,8 @@ public final class Configuration implements GrantEntity {
         return this.id;
     }
 
-    public Long getNodeId() {
-        return this.nodeId;
+    public Long getConfigurationNodeId() {
+        return this.configurationNodeId;
     }
 
     public String getVersion() {
@@ -110,7 +113,8 @@ public final class Configuration implements GrantEntity {
 
     @Override
     public String toString() {
-        return "Configuration [id=" + this.id + ", nodeId=" + this.nodeId + ", version=" + this.version
+        return "Configuration [id=" + this.id + ", configurationNodeId=" + this.configurationNodeId + ", version="
+                + this.version
                 + ", versionDate="
                 + this.versionDate + ", followup=" + this.followup + "]";
     }

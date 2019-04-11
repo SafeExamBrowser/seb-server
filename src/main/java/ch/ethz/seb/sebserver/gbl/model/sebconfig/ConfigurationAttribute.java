@@ -22,6 +22,9 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationAttribute implements Entity {
 
+    public static final String FILTER_ATTR_PARENT_ID = "parentId";
+    public static final String FILTER_ATTR_TYPE = "type";
+
     @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_ID)
     public final Long id;
 
@@ -40,6 +43,9 @@ public final class ConfigurationAttribute implements Entity {
     @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_RESOURCES)
     public final String resources;
 
+    @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_VALIDATOR)
+    public final String validator;
+
     @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_DEPENDENCIES)
     public final String dependencies;
 
@@ -53,6 +59,7 @@ public final class ConfigurationAttribute implements Entity {
             @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String name,
             @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_TYPE) final AttributeType type,
             @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_RESOURCES) final String resources,
+            @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_VALIDATOR) final String validator,
             @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_DEPENDENCIES) final String dependencies,
             @JsonProperty(CONFIGURATION_ATTRIBUTE.ATTR_DEFAULT_VALUE) final String defaultValue) {
 
@@ -61,6 +68,7 @@ public final class ConfigurationAttribute implements Entity {
         this.name = name;
         this.type = type;
         this.resources = resources;
+        this.validator = validator;
         this.dependencies = dependencies;
         this.defaultValue = defaultValue;
     }
@@ -98,6 +106,10 @@ public final class ConfigurationAttribute implements Entity {
         return this.resources;
     }
 
+    public String getValidator() {
+        return this.validator;
+    }
+
     public String getDependencies() {
         return this.dependencies;
     }
@@ -110,9 +122,9 @@ public final class ConfigurationAttribute implements Entity {
     public String toString() {
         return "ConfigurationAttribute [id=" + this.id + ", parentId=" + this.parentId + ", name=" + this.name
                 + ", type=" + this.type
-                + ", resources=" + this.resources + ", dependencies=" + this.dependencies + ", defaultValue="
-                + this.defaultValue
-                + "]";
+                + ", resources=" + this.resources + ", validator=" + this.validator + ", dependencies="
+                + this.dependencies
+                + ", defaultValue=" + this.defaultValue + "]";
     }
 
 }

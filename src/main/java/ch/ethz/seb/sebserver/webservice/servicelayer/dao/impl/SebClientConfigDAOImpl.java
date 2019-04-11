@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -146,7 +147,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
@@ -210,7 +211,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.sebClientConfigRecordMapper.deleteByExample()
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -225,12 +226,11 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<SebClientConfig>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<SebClientConfig>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
 
             return this.sebClientConfigRecordMapper.selectByExample()
-                    .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -62,12 +63,10 @@ public class OrientationDAOImpl implements OrientationDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Orientation>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<Orientation>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
-
             return this.orientationRecordMapper.selectByExample()
-                    .where(OrientationRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(OrientationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()
@@ -154,7 +153,7 @@ public class OrientationDAOImpl implements OrientationDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.orientationRecordMapper.deleteByExample()
                     .where(OrientationRecordDynamicSqlSupport.id, isIn(ids))

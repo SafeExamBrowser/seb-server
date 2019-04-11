@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -216,7 +217,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.userLogRecordMapper.deleteByExample()
                     .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(ids))
@@ -319,9 +320,17 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserActivityLog>> byEntityKeys(final Set<EntityKey> keys) {
-        // TODO Auto-generated method stub
-        return Result.ofTODO();
+    public Result<Collection<UserActivityLog>> allOf(final Set<Long> pks) {
+        return Result.tryCatch(() -> {
+            return this.userLogRecordMapper.selectByExample()
+                    .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserActivityLogDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

@@ -157,21 +157,30 @@ public class BulkActionServiceImpl implements BulkActionService {
                         this.supporter.get(EntityType.USER),
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE));
-            case USER:
-                return Arrays.asList(
-                        this.supporter.get(EntityType.EXAM),
-                        this.supporter.get(EntityType.INDICATOR),
-                        this.supporter.get(EntityType.CLIENT_CONNECTION),
-                        this.supporter.get(EntityType.CONFIGURATION_NODE));
+//            case USER:
+//                return Arrays.asList(
+//                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
+//                        this.supporter.get(EntityType.EXAM),
+//                        this.supporter.get(EntityType.INDICATOR),
+//                        this.supporter.get(EntityType.CLIENT_CONNECTION),
+//                        this.supporter.get(EntityType.CONFIGURATION_NODE));
             case LMS_SETUP:
-            case EXAM:
-            case CONFIGURATION:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
+            case EXAM:
+                return Arrays.asList(
+                        this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
+                        this.supporter.get(EntityType.CLIENT_CONNECTION));
+            case CONFIGURATION_NODE:
+                return Arrays.asList(
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP));
             default:
                 return Collections.emptyList();
         }

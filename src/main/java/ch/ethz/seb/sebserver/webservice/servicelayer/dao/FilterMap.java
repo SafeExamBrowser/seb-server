@@ -18,6 +18,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfiguration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -43,7 +48,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public Long getInstitutionId() {
-        return getLong(UserInfo.FILTER_ATTR_INSTITUTION);
+        return getLong(Entity.FILTER_ATTR_INSTITUTION);
     }
 
     public String getName() {
@@ -112,6 +117,54 @@ public class FilterMap extends POSTMapper {
 
     public String getOrientationGroup() {
         return getSQLWildcard(Orientation.FILTER_ATTR_GROUP);
+    }
+
+    public Long getConfigAttributeParentId() {
+        return getLong(ConfigurationAttribute.FILTER_ATTR_PARENT_ID);
+    }
+
+    public String getConfigAttributeType() {
+        return getSQLWildcard(ConfigurationAttribute.FILTER_ATTR_TYPE);
+    }
+
+    public Long getConfigValueConfigId() {
+        return getLong(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID);
+    }
+
+    public Long getConfigValueAttributeId() {
+        return getLong(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ATTRIBUTE_ID);
+    }
+
+    public Long getConfigNodeId() {
+        return getLong(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID);
+    }
+
+    public DateTime getConfigFromTime() {
+        return Utils.toDateTime(getString(Configuration.FILTER_ATTR_FROM_DATE));
+    }
+
+    public Integer getConfigFollowup() {
+        return getBooleanAsInteger(Configuration.FILTER_ATTR_FOLLOWUP);
+    }
+
+    public String getConfigNodeDesc() {
+        return getSQLWildcard(ConfigurationNode.FILTER_ATTR_DESCRIPTION);
+    }
+
+    public String getConfigNodeType() {
+        return getString(ConfigurationNode.FILTER_ATTR_TYPE);
+    }
+
+    public String getConfigNodeTemplate() {
+        return getString(ConfigurationNode.FILTER_ATTR_TEMPLATE);
+    }
+
+    public Long getExamConfigExamId() {
+        return getLong(ExamConfiguration.FILTER_ATTR_EXAM_ID);
+    }
+
+    public Long getExamConfigConfigId() {
+        return getLong(ExamConfiguration.FILTER_ATTR_CONFIG_ID);
     }
 
     public String getSQLWildcard(final String name) {

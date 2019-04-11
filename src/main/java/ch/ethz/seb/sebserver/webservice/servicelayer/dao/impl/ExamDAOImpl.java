@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -218,7 +219,7 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
                     null, null, null, BooleanUtils.toInteger(active));
 
@@ -254,7 +255,7 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.examRecordMapper.deleteByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -271,24 +272,29 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+
         // define the select function in case of source type
-        final Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction =
-                (bulkAction.sourceType == EntityType.INSTITUTION)
-                        ? this::allIdsOfInstitution
-                        : (bulkAction.sourceType == EntityType.LMS_SETUP)
-                                ? this::allIdsOfLmsSetup
-                                : key -> Result.of(Collections.emptyList()); // else : empty select function
+        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        switch (bulkAction.sourceType) {
+            case INSTITUTION:
+                selectionFunction = this::allIdsOfInstitution;
+                break;
+            case LMS_SETUP:
+                selectionFunction = this::allIdsOfLmsSetup;
+                break;
+            default:
+                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
+        }
 
         return getDependencies(bulkAction, selectionFunction);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Exam>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<Exam>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
             return this.examRecordMapper.selectByExample()
-                    .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute();
         }).flatMap(this::toDomainModel);
@@ -302,7 +308,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
                     .collect(Collectors.toList());
         });
     }
@@ -315,7 +321,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
                     .collect(Collectors.toList());
         });
     }

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -29,6 +32,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * @param <T> The specific type of the Entity domain model
  * @param <M> The specific type of the Entity domain model to create a new Entity */
 public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
+
+    Logger log = LoggerFactory.getLogger(EntityDAO.class);
 
     /** Get the entity type for a concrete EntityDAO implementation.
      *
@@ -57,11 +62,19 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         }).flatMap(this::byPK);
     }
 
+    /** Get a collection of all entities for the given Set of primary keys.
+     *
+     * @param pks the Set of primary keys to get the Entity's for
+     * @return Result referring the collection or an error if happened */
+    Result<Collection<T>> allOf(Set<Long> pks);
+
     /** Get a collection of all entities for the given Set of entity keys.
      *
      * @param keys the Set of EntityKey to get the Entity's for
      * @return Result referring the collection or an error if happened */
-    Result<Collection<T>> byEntityKeys(Set<EntityKey> keys);
+    default Result<Collection<T>> byEntityKeys(final Set<EntityKey> keys) {
+        return allOf(extractPKsFromKeys(keys));
+    }
 
     /** Get a collection of all EntityName for the given Set of EntityKey.
      *
@@ -157,7 +170,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         return Result.of(resources.iterator().next());
     }
 
-    /** Context based utility method to extract a list of id's (PK) from a collection of various EntityKey
+    /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
      * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
      * convert the matching EntityKey's to id's (PK's)
      *
@@ -165,19 +178,28 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * EntityType
      *
      * @param keys Collection of EntityKey of various types
-     * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
-    default List<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
+     * @return Set of id's (PK's) from the given key collection that match the concrete EntityType */
+    default Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
+        try {
 
-        if (keys == null) {
-            return Collections.emptyList();
+            if (keys == null) {
+                return Collections.emptySet();
+            }
+
+            final EntityType entityType = entityType();
+            return keys
+                    .stream()
+                    .filter(key -> key.entityType == entityType)
+                    .map(key -> Long.valueOf(key.modelId))
+                    .collect(Collectors.toSet());
+        } catch (final Exception e) {
+            log.error("unexpected error while trying to extract PK's from EntityKey's : ", e);
+            return Collections.emptySet();
         }
+    }
 
-        final EntityType entityType = entityType();
-        return keys
-                .stream()
-                .filter(key -> key.entityType == entityType)
-                .map(key -> Long.valueOf(key.modelId))
-                .collect(Collectors.toList());
+    default List<Long> extractListOfPKs(final Collection<EntityKey> keys) {
+        return new ArrayList<>(extractPKsFromKeys(keys));
     }
 
 }

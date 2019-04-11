@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -190,7 +191,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                     null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
@@ -226,7 +227,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.lmsSetupRecordMapper.deleteByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
@@ -252,12 +253,10 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<LmsSetup>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<LmsSetup>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
-
             return this.lmsSetupRecordMapper.selectByExample()
-                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()

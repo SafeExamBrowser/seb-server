@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -279,7 +281,7 @@ public class UserDAOImpl implements UserDAO {
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
             final UserRecord userRecord = new UserRecord(
                     null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
@@ -315,7 +317,7 @@ public class UserDAOImpl implements UserDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.userRecordMapper.deleteByExample()
                     .where(UserRecordDynamicSqlSupport.id, isIn(ids))
@@ -352,12 +354,10 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<UserInfo>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<UserInfo>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
-
             return this.userRecordMapper.selectByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()
@@ -368,24 +368,23 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public List<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
+    public Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
         if (keys == null || keys.isEmpty() || keys.iterator().next().entityType != EntityType.USER) {
             return UserDAO.super.extractPKsFromKeys(keys);
         } else {
-            final List<String> uuids = keys.stream()
-                    .map(key -> key.modelId)
-                    .collect(Collectors.toList());
-
             try {
+                final List<String> uuids = keys.stream()
+                        .map(key -> key.modelId)
+                        .collect(Collectors.toList());
 
-                return this.userRecordMapper.selectIdsByExample()
+                return new HashSet<>(this.userRecordMapper.selectIdsByExample()
                         .where(UserRecordDynamicSqlSupport.uuid, isIn(uuids))
                         .build()
-                        .execute();
+                        .execute());
 
             } catch (final Exception e) {
                 log.error("Unexpected error: ", e);
-                return Collections.emptyList();
+                return Collections.emptySet();
             }
         }
     }

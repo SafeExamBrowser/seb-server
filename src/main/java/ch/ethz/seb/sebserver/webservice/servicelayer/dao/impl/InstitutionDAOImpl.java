@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -178,7 +179,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
             final InstitutionRecord institutionRecord = new InstitutionRecord(
                     null, null, null, null, BooleanUtils.toInteger(active), null);
 
@@ -213,7 +214,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             this.institutionRecordMapper.deleteByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -235,12 +236,10 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Institution>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<Institution>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
-
             return this.institutionRecordMapper.selectByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()

@@ -15,18 +15,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_CONFIGURATION_MAP;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ExamConfiguration implements GrantEntity {
 
+    public static final String FILTER_ATTR_EXAM_ID = "examId";
+    public static final String FILTER_ATTR_CONFIG_ID = "configurationNodeId";
+
     @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID)
     public final Long id;
 
     @NotNull
-    @JsonProperty(EXAM.ATTR_INSTITUTION_ID)
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
     @NotNull
@@ -43,7 +45,7 @@ public final class ExamConfiguration implements GrantEntity {
     @JsonCreator
     public ExamConfiguration(
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID) final Long id,
-            @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID) final Long configurationNodeId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES) final String userNames) {

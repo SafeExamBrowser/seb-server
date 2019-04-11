@@ -11,13 +11,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
@@ -84,7 +85,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     public Result<Collection<Indicator>> allMatching(final FilterMap filterMap, final Predicate<Indicator> predicate) {
         return Result.tryCatch(() -> {
             return this.indicatorRecordMapper.selectByExample()
-                    .join(ExamRecordDynamicSqlSupport.examRecord)
+                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                     .on(
                             ExamRecordDynamicSqlSupport.id,
                             SqlBuilder.equalTo(IndicatorRecordDynamicSqlSupport.examId))
@@ -109,12 +110,10 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Indicator>> byEntityKeys(final Set<EntityKey> keys) {
+    public Result<Collection<Indicator>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
-            final List<Long> ids = extractPKsFromKeys(keys);
-
             return this.indicatorRecordMapper.selectByExample()
-                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(ids))
+                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()
@@ -194,7 +193,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            final List<Long> ids = extractPKsFromKeys(all);
+            final List<Long> ids = extractListOfPKs(all);
 
             // first delete all thresholds of indicators
             this.thresholdRecordMapper.deleteByExample()
@@ -236,23 +235,73 @@ public class IndicatorDAOImpl implements IndicatorDAO {
             return Collections.emptySet();
         }
 
-        final Set<EntityKey> examEntities = (bulkAction.sourceType == EntityType.EXAM)
-                ? bulkAction.sources
-                : bulkAction.extractKeys(EntityType.EXAM);
+        // define the select function in case of source type
+        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        switch (bulkAction.sourceType) {
+            case INSTITUTION:
+                selectionFunction = this::allIdsOfInstitution;
+                break;
+            case LMS_SETUP:
+                selectionFunction = this::allIdsOfLmsSetup;
+                break;
+            case EXAM:
+                selectionFunction = this::allIdsOfExam;
+                break;
+            default:
+                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
+        }
 
-        return examEntities
-                .stream()
-                .flatMap(this::getDependencies)
-                .collect(Collectors.toSet());
+        return getDependencies(bulkAction, selectionFunction);
     }
 
-    private Stream<EntityKey> getDependencies(final EntityKey examKey) {
-        return this.indicatorRecordMapper.selectIdsByExample()
-                .where(IndicatorRecordDynamicSqlSupport.examId, isEqualTo(Long.valueOf(examKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(pk -> new EntityKey(String.valueOf(pk), EntityType.INDICATOR));
+    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> {
+            return this.indicatorRecordMapper.selectIdsByExample()
+                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                    .on(
+                            ExamRecordDynamicSqlSupport.id,
+                            equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                    .where(
+                            ExamRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(Long.parseLong(institutionKey.modelId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> {
+            return this.indicatorRecordMapper.selectIdsByExample()
+                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                    .on(
+                            ExamRecordDynamicSqlSupport.id,
+                            equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                    .where(
+                            ExamRecordDynamicSqlSupport.lmsSetupId,
+                            isEqualTo(Long.parseLong(lmsSetupKey.modelId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
+        return Result.tryCatch(() -> {
+            return this.indicatorRecordMapper.selectIdsByExample()
+                    .where(
+                            IndicatorRecordDynamicSqlSupport.examId,
+                            isEqualTo(Long.parseLong(examKey.modelId)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<IndicatorRecord> recordById(final Long id) {
