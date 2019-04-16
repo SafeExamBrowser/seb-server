@@ -31,7 +31,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -150,10 +149,9 @@ public interface PageService {
     default PageAction onEmptyEntityKeyGoTo(final PageAction action, final ActionDefinition gotoActionDef) {
         if (action.getEntityKey() == null) {
             final PageContext pageContext = action.pageContext();
-            final PageAction activityHomeAction = pageActionBuilder(pageContext)
+            return pageActionBuilder(pageContext)
                     .newAction(gotoActionDef)
                     .create();
-            firePageEvent(new ActionEvent(activityHomeAction), activityHomeAction.pageContext());
         }
 
         return action;
