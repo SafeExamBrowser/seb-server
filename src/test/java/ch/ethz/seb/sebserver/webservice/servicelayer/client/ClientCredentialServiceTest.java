@@ -39,16 +39,16 @@ public class ClientCredentialServiceTest {
 
         final ClientCredentialServiceImpl service = new ClientCredentialServiceImpl(envMock);
         String encrypted =
-                service.encrypt(clientName, "secret1", ClientCredentialServiceImpl.DEFAULT_SALT).toString();
-        String decrypted = service.decrypt(encrypted, "secret1", ClientCredentialServiceImpl.DEFAULT_SALT).toString();
+                service.encrypt(clientName, "secret1").toString();
+        String decrypted = service.decrypt(encrypted, "secret1").toString();
 
         assertEquals(clientName, decrypted);
 
         final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
 
         encrypted =
-                service.encrypt(clientSecret, "secret1", ClientCredentialServiceImpl.DEFAULT_SALT).toString();
-        decrypted = service.decrypt(encrypted, "secret1", ClientCredentialServiceImpl.DEFAULT_SALT).toString();
+                service.encrypt(clientSecret, "secret1").toString();
+        decrypted = service.decrypt(encrypted, "secret1").toString();
 
         assertEquals(clientSecret, decrypted);
     }

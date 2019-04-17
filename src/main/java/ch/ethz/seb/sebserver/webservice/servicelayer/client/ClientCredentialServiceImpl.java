@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.client;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.CharBuffer;
 import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -19,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -34,9 +33,6 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);
 
     static final String SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY = "sebserver.webservice.internalSecret";
-    static final CharSequence DEFAULT_SALT =
-            CharBuffer.wrap(
-                    new char[] { 'b', '7', 'd', 'b', 'e', '9', '9', 'b', 'b', 'f', 'a', '3', 'e', '2', '1', 'e' });
 
     private final Environment environment;
 
@@ -48,14 +44,13 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public Result<ClientCredentials> createGeneratedClientCredentials(final CharSequence salt) {
+    public Result<ClientCredentials> createGeneratedClientCredentials() {
         return Result.tryCatch(() -> {
             try {
 
                 return encryptClientCredentials(
                         generateClientId(),
-                        generateClientSecret(),
-                        salt);
+                        generateClientSecret());
 
             } catch (final UnsupportedEncodingException e) {
                 log.error("Error while trying to generate client credentials: ", e);
@@ -68,26 +63,25 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     public ClientCredentials encryptClientCredentials(
             final CharSequence clientIdPlaintext,
             final CharSequence secretPlaintext,
-            final CharSequence accessTokenPlaintext,
-            final CharSequence salt) {
+            final CharSequence accessTokenPlaintext) {
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return new ClientCredentials(
                 (clientIdPlaintext != null)
-                        ? encrypt(clientIdPlaintext, secret, salt).toString()
+                        ? encrypt(clientIdPlaintext, secret).toString()
                         : null,
                 (secretPlaintext != null)
-                        ? encrypt(secretPlaintext, secret, salt).toString()
+                        ? encrypt(secretPlaintext, secret).toString()
                         : null,
                 (accessTokenPlaintext != null)
-                        ? encrypt(accessTokenPlaintext, secret, salt).toString()
+                        ? encrypt(accessTokenPlaintext, secret).toString()
                         : null);
     }
 
     @Override
-    public CharSequence getPlainClientId(final ClientCredentials credentials, final CharSequence salt) {
+    public CharSequence getPlainClientId(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasClientId()) {
             return null;
         }
@@ -95,89 +89,91 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
-        return this.decrypt(credentials.clientId, secret, salt);
+        return this.decrypt(credentials.clientId, secret);
     }
 
     @Override
-    public CharSequence getPlainClientSecret(final ClientCredentials credentials, final CharSequence salt) {
+    public CharSequence getPlainClientSecret(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasSecret()) {
             return null;
         }
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return this.decrypt(credentials.secret, secret, salt);
+        return this.decrypt(credentials.secret, secret);
     }
 
     @Override
-    public CharSequence getPlainAccessToken(final ClientCredentials credentials, final CharSequence salt) {
+    public CharSequence getPlainAccessToken(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasAccessToken()) {
             return null;
         }
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return this.decrypt(credentials.accessToken, secret, salt);
+        return this.decrypt(credentials.accessToken, secret);
     }
 
     @Override
     public CharSequence encrypt(final CharSequence text) {
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return encrypt(text, secret, null);
+        return encrypt(text, secret);
     }
 
     @Override
     public CharSequence decrypt(final CharSequence text) {
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return decrypt(text, secret, null);
+        return decrypt(text, secret);
     }
 
-    CharSequence encrypt(final CharSequence text, final CharSequence secret, final CharSequence salt) {
+    CharSequence encrypt(final CharSequence text, final CharSequence secret) {
         if (text == null) {
             throw new IllegalArgumentException("Text has null reference");
         }
 
         try {
 
-            return Encryptors
-                    .delux(secret, getSalt(salt))
+            final CharSequence salt = KeyGenerators.string().generateKey();
+            final CharSequence cipher = Encryptors
+                    .delux(secret, salt)
                     .encrypt(text.toString());
+
+            return new StringBuilder(cipher)
+                    .append(salt);
 
         } catch (final Exception e) {
             log.error("Failed to encrypt text: ", e);
-            return text;
+            throw e;
         }
     }
 
-    CharSequence decrypt(final CharSequence text, final CharSequence secret, final CharSequence salt) {
-        if (text == null) {
-            throw new IllegalArgumentException("Text has null reference");
+    CharSequence decrypt(final CharSequence cipher, final CharSequence secret) {
+        if (cipher == null) {
+            throw new IllegalArgumentException("Cipher has null reference");
         }
 
         try {
 
+            final int length = cipher.length();
+            final int cipherTextLength = length - 16;
+            final CharSequence salt = cipher.subSequence(cipherTextLength, length);
+            final CharSequence cipherText = cipher.subSequence(0, cipherTextLength);
+
             return Encryptors
-                    .delux(secret, getSalt(salt))
-                    .decrypt(text.toString());
+                    .delux(secret, salt)
+                    .decrypt(cipherText.toString());
 
         } catch (final Exception e) {
             log.error("Failed to decrypt text: ", e);
-            return text;
+            throw e;
         }
     }
 
     private final static char[] possibleCharacters = (new String(
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"))
                     .toCharArray();
-
-    private CharSequence getSalt(final CharSequence saltPlain) throws UnsupportedEncodingException {
-        final CharSequence _salt = (saltPlain == null || saltPlain.length() <= 0)
-                ? this.environment.getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY, DEFAULT_SALT.toString())
-                : saltPlain;
-        return new String(Hex.encode(_salt.toString().getBytes("UTF-8")));
-    }
 
     private CharSequence generateClientId() {
         return RandomStringUtils.random(

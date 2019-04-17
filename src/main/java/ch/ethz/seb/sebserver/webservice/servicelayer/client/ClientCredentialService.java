@@ -12,53 +12,28 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientCredentialService {
 
-    Result<ClientCredentials> createGeneratedClientCredentials(CharSequence salt);
-
-    default Result<ClientCredentials> createGeneratedClientCredentials() {
-        return createGeneratedClientCredentials(null);
-    }
+    Result<ClientCredentials> createGeneratedClientCredentials();
 
     ClientCredentials encryptClientCredentials(
             CharSequence clientIdPlaintext,
             CharSequence secretPlaintext,
-            CharSequence accessTokenPlaintext,
-            CharSequence salt);
+            CharSequence accessTokenPlaintext);
 
     default ClientCredentials encryptClientCredentials(
             final CharSequence clientIdPlaintext,
             final CharSequence secretPlaintext) {
 
-        return encryptClientCredentials(clientIdPlaintext, secretPlaintext, null, null);
+        return encryptClientCredentials(clientIdPlaintext, secretPlaintext, null);
     }
 
-    default ClientCredentials encryptClientCredentials(
-            final CharSequence clientIdPlaintext,
-            final CharSequence secretPlaintext,
-            final CharSequence accessTokenPlaintext) {
+    CharSequence getPlainClientId(ClientCredentials credentials);
 
-        return encryptClientCredentials(clientIdPlaintext, secretPlaintext, accessTokenPlaintext, null);
-    }
+    CharSequence getPlainClientSecret(ClientCredentials credentials);
 
-    CharSequence getPlainClientId(ClientCredentials credentials, CharSequence salt);
-
-    default CharSequence getPlainClientId(final ClientCredentials credentials) {
-        return getPlainClientId(credentials, null);
-    }
-
-    CharSequence getPlainClientSecret(ClientCredentials credentials, CharSequence salt);
-
-    default CharSequence getPlainClientSecret(final ClientCredentials credentials) {
-        return getPlainClientSecret(credentials, null);
-    }
-
-    CharSequence getPlainAccessToken(ClientCredentials credentials, CharSequence salt);
-
-    default CharSequence getPlainAccessToken(final ClientCredentials credentials) {
-        return getPlainAccessToken(credentials, null);
-    }
+    CharSequence getPlainAccessToken(ClientCredentials credentials);
 
     CharSequence encrypt(final CharSequence text);
 
-    CharSequence decrypt(final CharSequence text);
+    CharSequence decrypt(final CharSequence cipher);
 
 }
