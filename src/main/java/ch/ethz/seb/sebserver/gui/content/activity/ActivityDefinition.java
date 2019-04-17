@@ -17,7 +17,9 @@ public enum ActivityDefinition implements Activity {
     LMS_SETUP(new LocTextKey("sebserver.lmssetup.action.list")),
     QUIZ_DISCOVERY(new LocTextKey("sebserver.quizdiscovery.action.list")),
     EXAM(new LocTextKey("sebserver.exam.action.list")),
-    ;
+    SEB_CONFIGURATION(new LocTextKey("sebserver.sebconfig.activity.name")),
+    SEB_CLIENT_CONFIG(new LocTextKey("sebserver.clientconfig.action.list")),
+    SEB_EXAM_CONFIG(new LocTextKey("sebserver.examconfig.action.list"));
 
     public final LocTextKey displayName;
 

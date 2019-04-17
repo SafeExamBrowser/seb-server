@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ExportSEBConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
 
 @Lazy
 @Component
@@ -33,18 +34,20 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
 
     private static final Logger log = LoggerFactory.getLogger(SebClientConfigDownload.class);
 
-    // TODO must this be configurable?
-    public static final String SEB_CLIENT_CONFIG_FILE_NAME = "SebClientSettings.seb";
-
     private final RestService restService;
+    public final String downloadFileName;
 
-    protected SebClientConfigDownload(final RestService restService) {
+    protected SebClientConfigDownload(
+            final RestService restService,
+            @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
+
         this.restService = restService;
+        this.downloadFileName = downloadFileName;
     }
 
     @Override
-    public String getName() {
-        return SEB_CLIENT_CONFIG_FILE_NAME;
+    public String getFileName() {
+        return this.downloadFileName;
     }
 
     @Override
@@ -53,18 +56,18 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
 
             log.debug("download requested... trying to get needed parameter from request");
 
-            final String modelId = request.getParameter(API.PARAM_INSTITUTION_ID);
-            if (StringUtils.isBlank(modelId)) {
+            final String configId = request.getParameter(API.PARAM_MODEL_ID);
+            if (StringUtils.isBlank(configId)) {
                 log.error(
                         "Mandatory modelId parameter not found within HttpServletRequest. Download request is ignored");
                 return;
             }
 
-            log.debug("Found modelId: {} for {} download. Trying to request webservice...", modelId,
-                    SEB_CLIENT_CONFIG_FILE_NAME);
+            log.debug("Found modelId: {} for {} download. Trying to request webservice...", configId,
+                    this.downloadFileName);
 
-            final byte[] configFile = this.restService.getBuilder(ExportSEBConfig.class)
-                    .withURIVariable(API.PARAM_INSTITUTION_ID, modelId)
+            final byte[] configFile = this.restService.getBuilder(ExportClientConfig.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, configId)
                     .call()
                     .getOrThrow();
 
@@ -79,7 +82,7 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
             response.setContentLength(configFile.length);
             response.setHeader(
                     HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + SEB_CLIENT_CONFIG_FILE_NAME + "\"");
+                    "attachment; filename=\"" + this.downloadFileName + "\"");
 
             log.debug("Write the SEB Client configuration to response output");
 
@@ -97,13 +100,13 @@ public class SebClientConfigDownload implements DownloadServiceHandler {
                 .append(RWT.getServiceManager()
                         .getServiceHandlerUrl(DownloadService.DOWNLOAD_SERVICE_NAME))
                 .append(Constants.FORM_URL_ENCODED_SEPARATOR)
-                .append(API.PARAM_INSTITUTION_ID)
+                .append(API.PARAM_MODEL_ID)
                 .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
                 .append(modelId)
                 .append(Constants.FORM_URL_ENCODED_SEPARATOR)
                 .append(DownloadService.HANDLER_NAME_PARAMETER)
                 .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
-                .append(SebClientConfigDownload.SEB_CLIENT_CONFIG_FILE_NAME);
+                .append(this.downloadFileName);
         return url.toString();
     }
 

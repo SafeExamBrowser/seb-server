@@ -77,9 +77,15 @@ public class ModalInputDialog<T> extends Dialog {
         ok.setLayoutData(data);
         ok.addListener(SWT.Selection, event -> {
             if (valueSuppier != null) {
-                callback.accept(valueSuppier.get());
+                final T result = valueSuppier.get();
+                if (result != null) {
+                    callback.accept(result);
+                    shell.close();
+                }
+
+            } else {
+                shell.close();
             }
-            shell.close();
         });
 
         shell.setDefaultButton(ok);

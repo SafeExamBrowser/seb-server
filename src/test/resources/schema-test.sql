@@ -449,6 +449,7 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
   `date` DATETIME NOT NULL,
   `client_name` VARCHAR(4000) NOT NULL,
   `client_secret` VARCHAR(4000) NOT NULL,
+  `encrypt_secret` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),

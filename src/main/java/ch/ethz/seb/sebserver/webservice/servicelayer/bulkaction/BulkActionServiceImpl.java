@@ -157,6 +157,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                         this.supporter.get(EntityType.USER),
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.SEB_CLIENT_CONFIGURATION),
                         this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE));

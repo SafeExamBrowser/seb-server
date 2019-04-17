@@ -42,7 +42,7 @@ public class DownloadService implements ServiceHandler {
     protected DownloadService(final Collection<DownloadServiceHandler> handler) {
         this.handler = handler
                 .stream()
-                .collect(Collectors.toMap(h -> h.getName(), Function.identity()));
+                .collect(Collectors.toMap(h -> h.getFileName(), Function.identity()));
     }
 
     @Override

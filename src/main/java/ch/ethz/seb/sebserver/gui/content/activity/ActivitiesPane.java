@@ -167,6 +167,44 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
+        // SEB Configurations
+        final boolean clientConfigRead = this.currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.READ,
+                EntityType.SEB_CLIENT_CONFIGURATION);
+        final boolean examConfigRead = this.currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.READ,
+                EntityType.CONFIGURATION_NODE);
+        if (clientConfigRead || examConfigRead) {
+            final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActivityDefinition.SEB_CONFIGURATION.displayName);
+
+            // SEB Client Config
+            if (clientConfigRead) {
+                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
+                injectActivitySelection(
+                        clientConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_LIST)
+                                .create());
+            }
+
+            // SEB Exam Config
+            if (examConfigRead) {
+                final TreeItem examConfig = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_EXAM_CONFIG.displayName);
+                injectActivitySelection(
+                        examConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                                .create());
+            }
+
+        }
+
         // TODO other activities
 
         // register page listener and initialize navigation data
@@ -190,13 +228,20 @@ public class ActivitiesPane implements TemplateComposer {
     }
 
     private void handleSelection(final PageContext composerCtx, final Event event) {
+        final Tree tree = (Tree) event.widget;
         final TreeItem treeItem = (TreeItem) event.item;
         final PageAction action = getActivitySelection(treeItem);
+        // if there is no form action associated with the treeItem and the treeItem has sub items, toggle the item state
+        if (action == null) {
+            if (treeItem.getItemCount() > 0) {
+                treeItem.setExpanded(!treeItem.getExpanded());
+            }
+            return;
+        }
         this.pageService.executePageAction(
                 action,
                 result -> {
                     if (result.hasError()) {
-                        final Tree tree = (Tree) event.widget;
                         tree.deselect(treeItem);
                         final PageState currentState = this.pageService.getCurrentState();
                         if (currentState != null) {

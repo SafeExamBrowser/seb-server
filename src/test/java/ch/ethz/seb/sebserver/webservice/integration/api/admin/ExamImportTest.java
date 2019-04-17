@@ -87,7 +87,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 this,
                 getAdminInstitution2Access(),
                 getExamAdmin1(), // this exam administrator is on Institution 2
-                "LmsSetupMock",
+                "LmsSetupMock2",
                 "quiz2",
                 ExamType.MANAGED);
 

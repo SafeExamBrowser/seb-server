@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public interface DownloadServiceHandler {
 
-    String getName();
+    String getFileName();
 
     void processDownload(final HttpServletRequest request, final HttpServletResponse response);
 

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -26,9 +26,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class ExportSEBConfig extends RestCall<byte[]> {
+public class ExportClientConfig extends RestCall<byte[]> {
 
-    protected ExportSEBConfig() {
+    protected ExportClientConfig() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.INSTITUTION,
@@ -36,7 +36,9 @@ public class ExportSEBConfig extends RestCall<byte[]> {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CONFIG_EXPORT_ENDPOINT);
+                API.SEB_CLIENT_CONFIG_ENDPOINT 
+                + API.SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT
+                + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
     @Override

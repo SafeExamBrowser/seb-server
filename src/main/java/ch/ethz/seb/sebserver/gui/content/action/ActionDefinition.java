@@ -61,11 +61,6 @@ public enum ActionDefinition {
             ImageIcon.ACTIVE,
             PageStateDefinition.INSTITUTION_VIEW,
             ActionCategory.FORM),
-    INSTITUTION_EXPORT_SEB_CONFIG(
-            new LocTextKey("sebserver.institution.action.export.sebconfig"),
-            ImageIcon.SAVE,
-            PageStateDefinition.INSTITUTION_VIEW,
-            ActionCategory.FORM),
 
     USER_ACCOUNT_VIEW_LIST(
             new LocTextKey("sebserver.useraccount.action.list"),
@@ -257,6 +252,58 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.FORM),
+
+    SEB_CLIENT_CONFIG_LIST(
+            new LocTextKey("sebserver.clientconfig.action.list"),
+            PageStateDefinition.SEB_CLIENT_CONFIG_LIST),
+    SEB_CLIENT_CONFIG_NEW(
+            new LocTextKey("sebserver.clientconfig.action.list.new"),
+            ImageIcon.NEW,
+            PageStateDefinition.SEB_CLIENT_CONFIG_EDIT),
+    SEB_CLIENT_CONFIG_VIEW_FROM_LIST(
+            new LocTextKey("sebserver.clientconfig.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.SEB_CLIENT_CONFIG_LIST),
+    SEB_CLIENT_CONFIG_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.clientconfig.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_CLIENT_CONFIG_EDIT,
+            ActionCategory.SEB_CLIENT_CONFIG_LIST),
+    SEB_CLIENT_CONFIG_MODIFY(
+            new LocTextKey("sebserver.clientconfig.action.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_CLIENT_CONFIG_EDIT,
+            ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_SAVE(
+            new LocTextKey("sebserver.clientconfig.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_ACTIVATE(
+            new LocTextKey("sebserver.clientconfig.action.activate"),
+            ImageIcon.INACTIVE,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_DEACTIVATE(
+            new LocTextKey("sebserver.clientconfig.action.deactivate"),
+            ImageIcon.ACTIVE,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_EXPORT(
+            new LocTextKey("sebserver.clientconfig.action.export"),
+            ImageIcon.SAVE,
+            PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
+
+    SEB_EXAM_CONFIG_LIST(
+            new LocTextKey("sebserver.examconfig.action.list"),
+            PageStateDefinition.SEB_EXAM_CONFIG_LIST),
 
     ;
 

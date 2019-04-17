@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.client;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.CharBuffer;
 import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -33,7 +34,9 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);
 
     static final String SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY = "sebserver.webservice.internalSecret";
-    static final CharSequence DEFAULT_SALT = "b7dbe99bbfa3e21e";
+    static final CharSequence DEFAULT_SALT =
+            CharBuffer.wrap(
+                    new char[] { 'b', '7', 'd', 'b', 'e', '9', '9', 'b', 'b', 'f', 'a', '3', 'e', '2', '1', 'e' });
 
     private final Environment environment;
 
@@ -45,21 +48,15 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public Result<ClientCredentials> createGeneratedClientCredentials() {
-        return createGeneratedClientCredentials(null);
-    }
-
-    @Override
     public Result<ClientCredentials> createGeneratedClientCredentials(final CharSequence salt) {
         return Result.tryCatch(() -> {
-
             try {
-                return encryptedClientCredentials(
-                        new ClientCredentials(
-                                generateClientId().toString(),
-                                generateClientSecret().toString(),
-                                null),
+
+                return encryptClientCredentials(
+                        generateClientId(),
+                        generateClientSecret(),
                         salt);
+
             } catch (final UnsupportedEncodingException e) {
                 log.error("Error while trying to generate client credentials: ", e);
                 throw new RuntimeException("cause: ", e);
@@ -68,38 +65,30 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public ClientCredentials encryptedClientCredentials(final ClientCredentials clientCredentials) {
-        return encryptedClientCredentials(clientCredentials, null);
-    }
-
-    @Override
-    public ClientCredentials encryptedClientCredentials(
-            final ClientCredentials clientCredentials,
+    public ClientCredentials encryptClientCredentials(
+            final CharSequence clientIdPlaintext,
+            final CharSequence secretPlaintext,
+            final CharSequence accessTokenPlaintext,
             final CharSequence salt) {
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return new ClientCredentials(
-                (clientCredentials.clientId != null)
-                        ? encrypt(clientCredentials.clientId, secret, salt).toString()
+                (clientIdPlaintext != null)
+                        ? encrypt(clientIdPlaintext, secret, salt).toString()
                         : null,
-                (clientCredentials.secret != null)
-                        ? encrypt(clientCredentials.secret, secret, salt).toString()
+                (secretPlaintext != null)
+                        ? encrypt(secretPlaintext, secret, salt).toString()
                         : null,
-                (clientCredentials.accessToken != null)
-                        ? encrypt(clientCredentials.accessToken, secret, salt).toString()
+                (accessTokenPlaintext != null)
+                        ? encrypt(accessTokenPlaintext, secret, salt).toString()
                         : null);
     }
 
     @Override
-    public CharSequence getPlainClientId(final ClientCredentials credentials) {
-        return getPlainClientId(credentials, null);
-    }
-
-    @Override
     public CharSequence getPlainClientId(final ClientCredentials credentials, final CharSequence salt) {
-        if (credentials == null || credentials.clientId == null) {
+        if (credentials == null || !credentials.hasClientId()) {
             return null;
         }
 
@@ -110,13 +99,8 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public CharSequence getPlainClientSecret(final ClientCredentials credentials) {
-        return getPlainClientSecret(credentials, null);
-    }
-
-    @Override
     public CharSequence getPlainClientSecret(final ClientCredentials credentials, final CharSequence salt) {
-        if (credentials == null || credentials.secret == null) {
+        if (credentials == null || !credentials.hasSecret()) {
             return null;
         }
 
@@ -126,19 +110,28 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public CharSequence getPlainAccessToken(final ClientCredentials credentials) {
-        return getPlainAccessToken(credentials, null);
-    }
-
-    @Override
     public CharSequence getPlainAccessToken(final ClientCredentials credentials, final CharSequence salt) {
-        if (credentials == null || credentials.accessToken == null) {
+        if (credentials == null || !credentials.hasAccessToken()) {
             return null;
         }
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
         return this.decrypt(credentials.accessToken, secret, salt);
+    }
+
+    @Override
+    public CharSequence encrypt(final CharSequence text) {
+        final CharSequence secret = this.environment
+                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+        return encrypt(text, secret, null);
+    }
+
+    @Override
+    public CharSequence decrypt(final CharSequence text) {
+        final CharSequence secret = this.environment
+                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+        return decrypt(text, secret, null);
     }
 
     CharSequence encrypt(final CharSequence text, final CharSequence secret, final CharSequence salt) {

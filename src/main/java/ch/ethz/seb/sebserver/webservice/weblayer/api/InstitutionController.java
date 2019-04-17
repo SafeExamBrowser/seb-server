@@ -8,23 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.io.InputStream;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
@@ -34,7 +24,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.seb.SebClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -43,7 +32,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class InstitutionController extends ActivatableEntityController<Institution, Institution> {
 
     private final InstitutionDAO institutionDAO;
-    private final SebClientConfigService sebClientConfigService;
 
     public InstitutionController(
             final InstitutionDAO institutionDAO,
@@ -51,8 +39,7 @@ public class InstitutionController extends ActivatableEntityController<Instituti
             final UserActivityLogDAO userActivityLogDAO,
             final BulkActionService bulkActionService,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService,
-            final SebClientConfigService sebClientConfigService) {
+            final BeanValidationService beanValidationService) {
 
         super(authorization,
                 bulkActionService,
@@ -62,7 +49,6 @@ public class InstitutionController extends ActivatableEntityController<Instituti
                 beanValidationService);
 
         this.institutionDAO = institutionDAO;
-        this.sebClientConfigService = sebClientConfigService;
     }
 
     @Override
@@ -78,27 +64,6 @@ public class InstitutionController extends ActivatableEntityController<Instituti
 
         final Long institutionId = currentUser.institutionId();
         return this.institutionDAO.byPK(institutionId).getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.INSTITUTION_VAR_PATH_SEGMENT + API.SEB_CONFIG_EXPORT_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE) // TODO check if this is the right format
-    public void downloadSEBConfig(
-            @PathVariable final Long institutionId,
-            final HttpServletResponse response) throws Exception {
-
-        this.authorization.check(PrivilegeType.WRITE, EntityType.SEB_CLIENT_CONFIGURATION);
-
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.setStatus(HttpStatus.OK.value());
-
-        final InputStream sebConfigFileIn = this.sebClientConfigService
-                .exportSebClientConfigurationOfInstitution(institutionId)
-                .getOrThrow();
-
-        IOUtils.copyLarge(sebConfigFileIn, response.getOutputStream());
-        response.flushBuffer();
     }
 
     @Override

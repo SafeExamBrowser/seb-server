@@ -131,6 +131,14 @@ public final class ColumnDefinition<ROW extends Entity> {
         public TableFilterAttribute(
                 final CriteriaType type,
                 final String columnName,
+                final String initValue) {
+
+            this(type, columnName, initValue, null);
+        }
+
+        public TableFilterAttribute(
+                final CriteriaType type,
+                final String columnName,
                 final String initValue,
                 final Supplier<List<Tuple<String>>> resourceSupplier) {
 

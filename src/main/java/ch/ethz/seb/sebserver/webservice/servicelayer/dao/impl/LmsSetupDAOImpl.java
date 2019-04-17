@@ -24,7 +24,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -133,11 +136,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
-            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
-                    new ClientCredentials(
-                            lmsSetup.lmsAuthName,
-                            lmsSetup.lmsAuthSecret,
-                            lmsSetup.lmsRestApiToken));
+            checkUniqueName(lmsSetup);
+
+            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
+                    lmsSetup.lmsAuthName,
+                    lmsSetup.lmsAuthSecret,
+                    lmsSetup.lmsRestApiToken);
 
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
@@ -145,9 +149,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsCredentials.clientId,
-                    lmsCredentials.secret,
-                    lmsCredentials.accessToken,
+                    lmsCredentials.clientIdAsString(),
+                    lmsCredentials.secretAsString(),
+                    lmsCredentials.accessTokenAsString(),
                     null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -162,11 +166,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> createNew(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
-            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
-                    new ClientCredentials(
-                            lmsSetup.lmsAuthName,
-                            lmsSetup.lmsAuthSecret,
-                            lmsSetup.lmsRestApiToken));
+            checkUniqueName(lmsSetup);
+
+            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
+                    lmsSetup.lmsAuthName,
+                    lmsSetup.lmsAuthSecret,
+                    lmsSetup.lmsRestApiToken);
 
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     null,
@@ -174,9 +179,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsCredentials.clientId,
-                    lmsCredentials.secret,
-                    lmsCredentials.accessToken,
+                    lmsCredentials.clientIdAsString(),
+                    lmsCredentials.secretAsString(),
+                    lmsCredentials.accessTokenAsString(),
                     BooleanUtils.toInteger(false));
 
             this.lmsSetupRecordMapper.insert(newRecord);
@@ -325,6 +330,25 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsUrl(),
                 (plainAccessToken != null) ? plainAccessToken.toString() : null,
                 BooleanUtils.toBooleanObject(record.getActive())));
+    }
+
+    // check if same name already exists for the same institution
+    // if true an APIMessageException with a field validation error is thrown
+    private void checkUniqueName(final LmsSetup lmsSetup) {
+
+        final Long otherWithSameName = this.lmsSetupRecordMapper
+                .countByExample()
+                .where(LmsSetupRecordDynamicSqlSupport.name, isEqualTo(lmsSetup.name))
+                .and(LmsSetupRecordDynamicSqlSupport.institutionId, isEqualTo(lmsSetup.institutionId))
+                .and(LmsSetupRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(lmsSetup.id))
+                .build()
+                .execute();
+
+        if (otherWithSameName != null && otherWithSameName.longValue() > 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    Domain.LMS_SETUP.ATTR_NAME,
+                    "lmsSetup:name:name.notunique"));
+        }
     }
 
 }

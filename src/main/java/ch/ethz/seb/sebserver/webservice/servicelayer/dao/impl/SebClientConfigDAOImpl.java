@@ -26,9 +26,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -149,7 +153,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final SebClientConfigRecord record = new SebClientConfigRecord(
-                    null, null, null, null, null, null,
+                    null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
 
             this.sebClientConfigRecordMapper.updateByExampleSelective(record)
@@ -169,13 +173,17 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
         return this.clientCredentialService
                 .createGeneratedClientCredentials()
                 .map(cc -> {
+
+                    checkUniqueName(sebClientConfig);
+
                     final SebClientConfigRecord newRecord = new SebClientConfigRecord(
                             null,
                             sebClientConfig.institutionId,
                             sebClientConfig.name,
                             DateTime.now(DateTimeZone.UTC),
-                            cc.clientId,
-                            cc.secret,
+                            cc.clientIdAsString(),
+                            cc.secretAsString(),
+                            getEncryptionPassword(sebClientConfig),
                             BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)));
 
                     this.sebClientConfigRecordMapper.insert(newRecord);
@@ -190,6 +198,8 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     public Result<SebClientConfig> save(final SebClientConfig sebClientConfig) {
         return Result.tryCatch(() -> {
 
+            checkUniqueName(sebClientConfig);
+
             final SebClientConfigRecord newRecord = new SebClientConfigRecord(
                     sebClientConfig.id,
                     null,
@@ -197,6 +207,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     null,
                     null,
                     null,
+                    getEncryptionPassword(sebClientConfig),
                     null);
 
             this.sebClientConfigRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -255,7 +266,17 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     @Transactional(readOnly = true)
     public Result<ClientCredentials> getSebClientCredentials(final String modelId) {
         return recordByModelId(modelId)
-                .map(rec -> new ClientCredentials(rec.getClientName(), rec.getClientSecret(), null));
+                .map(rec -> new ClientCredentials(
+                        rec.getClientName(),
+                        rec.getClientSecret(),
+                        null));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<CharSequence> getConfigPasswortCipher(final String modelId) {
+        return recordByModelId(modelId)
+                .map(rec -> rec.getEncryptSecret());
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
@@ -295,7 +316,40 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                 record.getInstitutionId(),
                 record.getName(),
                 record.getDate(),
+                null,
+                null,
                 BooleanUtils.toBooleanObject(record.getActive())));
+    }
+
+    private String getEncryptionPassword(final SebClientConfig sebClientConfig) {
+        if (sebClientConfig.hasEncryptionSecret() &&
+                !sebClientConfig.encryptSecret.equals(sebClientConfig.confirmEncryptSecret)) {
+            throw new APIMessageException(ErrorMessage.PASSWORD_MISMATCH);
+        }
+
+        final CharSequence encrypted_encrypt_secret = sebClientConfig.hasEncryptionSecret()
+                ? this.clientCredentialService.encrypt(sebClientConfig.encryptSecret)
+                : null;
+        return (encrypted_encrypt_secret != null) ? encrypted_encrypt_secret.toString() : null;
+    }
+
+    // check if same name already exists for the same institution
+    // if true an APIMessageException with a field validation error is thrown
+    private void checkUniqueName(final SebClientConfig sebClientConfig) {
+
+        final Long otherWithSameName = this.sebClientConfigRecordMapper
+                .countByExample()
+                .where(SebClientConfigRecordDynamicSqlSupport.name, isEqualTo(sebClientConfig.name))
+                .and(SebClientConfigRecordDynamicSqlSupport.institutionId, isEqualTo(sebClientConfig.institutionId))
+                .and(SebClientConfigRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(sebClientConfig.id))
+                .build()
+                .execute();
+
+        if (otherWithSameName != null && otherWithSameName.longValue() > 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
+                    "clientconfig:name:name.notunique"));
+        }
     }
 
 }

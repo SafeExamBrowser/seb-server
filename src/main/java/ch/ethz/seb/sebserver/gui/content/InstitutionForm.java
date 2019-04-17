@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -31,7 +28,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
-import ch.ethz.seb.sebserver.gui.service.remote.SebClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
@@ -59,18 +55,15 @@ public class InstitutionForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
-    private final SebClientConfigDownload sebClientConfigDownload;
 
     protected InstitutionForm(
             final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser,
-            final SebClientConfigDownload sebClientConfigDownload) {
+            final CurrentUser currentUser) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
-        this.sebClientConfigDownload = sebClientConfigDownload;
     }
 
     @Override
@@ -99,9 +92,6 @@ public class InstitutionForm implements TemplateComposer {
         final boolean writeGrant = instGrant.w();
         final boolean modifyGrant = instGrant.m();
         final boolean userWriteGrant = this.currentUser.grantCheck(EntityType.USER).w();
-        final boolean sebConfigWriteGrant = this.currentUser.hasInstitutionalPrivilege(
-                PrivilegeType.WRITE,
-                EntityType.SEB_CLIENT_CONFIGURATION);
         final boolean isReadonly = pageContext.isReadonly();
 
         // new PageContext with actual EntityKey
@@ -145,7 +135,6 @@ public class InstitutionForm implements TemplateComposer {
                         : this.restService.getRestCall(SaveInstitution.class));
 
         // propagate content actions to action-pane
-        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.INSTITUTION_NEW)
@@ -158,16 +147,6 @@ public class InstitutionForm implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
-
-                .newAction(ActionDefinition.INSTITUTION_EXPORT_SEB_CONFIG)
-                .withEntityKey(entityKey)
-                .withExec(action -> {
-                    final String downloadURL = this.sebClientConfigDownload.downloadSEBClientConfigURL(
-                            entityKey.modelId);
-                    urlLauncher.openURL(downloadURL);
-                    return action;
-                })
-                .publishIf(() -> sebConfigWriteGrant && isReadonly && institution.isActive())
 
                 .newAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                 .withEntityKey(entityKey)

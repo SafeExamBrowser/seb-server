@@ -23,9 +23,14 @@ public final class API {
     public static final String PARAM_PARENT_MODEL_ID = "parentModelId";
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
+    public static final String PARAM_CLIENT_CONFIG_SECRET = "client_config_secret";
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";
+
+    public static final String OAUTH_TOKEN_ENDPOINT = "/oauth/token"; // TODO to config properties?
+    public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = "/oauth/revoke-token"; // TODO to config properties?
+    public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + "/me";
 
     public static final String INFO_ENDPOINT = "/info";
 
@@ -36,10 +41,10 @@ public final class API {
     public static final String PRIVILEGES_ENDPOINT = INFO_ENDPOINT + PRIVILEGES_PATH_SEGMENT;
 
     public static final String INSTITUTION_ENDPOINT = "/institution";
-    public static final String SEB_CONFIG_EXPORT_PATH_SEGMENT = "/sebconfig";
-    public static final String SEB_CONFIG_EXPORT_ENDPOINT = INSTITUTION_ENDPOINT
-            + INSTITUTION_VAR_PATH_SEGMENT
-            + SEB_CONFIG_EXPORT_PATH_SEGMENT;
+//    public static final String SEB_CONFIG_EXPORT_PATH_SEGMENT = "/sebconfig";
+//    public static final String SEB_CONFIG_EXPORT_ENDPOINT = INSTITUTION_ENDPOINT
+//            + INSTITUTION_VAR_PATH_SEGMENT
+//            + SEB_CONFIG_EXPORT_PATH_SEGMENT;
 
     public static final String LMS_SETUP_ENDPOINT = "/lms_setup";
     public static final String LMS_SETUP_TEST_PATH_SEGMENT = "/test";
@@ -58,6 +63,9 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
+
+    public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
+    public static final String SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT = "/download";
 
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration_node";
 

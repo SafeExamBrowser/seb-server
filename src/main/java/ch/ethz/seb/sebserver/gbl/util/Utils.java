@@ -189,4 +189,15 @@ public final class Utils {
         }
     }
 
+    public static void clearCharArray(final char[] array) {
+        if (array == null) {
+            return;
+        }
+
+        for (int i = 0; i < array.length; i++) {
+            array[i] = 0;
+        }
+
+    }
+
 }

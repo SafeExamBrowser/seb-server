@@ -36,7 +36,7 @@ public class APIMessage implements Serializable {
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
-        PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match retyped password")
+        PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password")
 
         ;
 

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +43,24 @@ public class POSTMapper {
 
     public String getString(final String name) {
         return this.params.getFirst(name);
+    }
+
+    public char[] getCharArray(final String name) {
+        final String value = getString(name);
+        if (value == null || value.length() <= 0) {
+            return null;
+        }
+
+        return value.toCharArray();
+    }
+
+    public CharSequence getCharSequence(final String name) {
+        final char[] charArray = getCharArray(name);
+        if (charArray == null) {
+            return null;
+        }
+
+        return CharBuffer.wrap(charArray);
     }
 
     public Long getLong(final String name) {

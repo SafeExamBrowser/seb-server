@@ -143,11 +143,10 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     @Override
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
-        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptedClientCredentials(
-                new ClientCredentials(
-                        lmsSetup.lmsAuthName,
-                        lmsSetup.lmsAuthSecret,
-                        lmsSetup.lmsRestApiToken));
+        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
+                lmsSetup.lmsAuthName,
+                lmsSetup.lmsAuthSecret,
+                lmsSetup.lmsRestApiToken);
 
         return createLmsSetupTemplate(lmsSetup, lmsCredentials).testLmsSetup();
     }

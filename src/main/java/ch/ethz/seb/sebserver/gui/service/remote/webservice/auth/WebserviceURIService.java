@@ -19,10 +19,6 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 @GuiProfile
 public class WebserviceURIService {
 
-    private static final String OAUTH_TOKEN_URI_PATH = "oauth/token"; // TODO to config properties?
-    private static final String OAUTH_REVOKE_TOKEN_URI_PATH = "/oauth/revoke-token"; // TODO to config properties?
-    private static final String CURRENT_USER_URI_PATH = API.USER_ACCOUNT_ENDPOINT + "/me";
-
     private final String webserviceServerAddress;
     private final UriComponentsBuilder webserviceURIBuilder;
 
@@ -49,19 +45,19 @@ public class WebserviceURIService {
 
     public String getOAuthTokenURI() {
         return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
-                .path(OAUTH_TOKEN_URI_PATH)
+                .path(API.OAUTH_TOKEN_ENDPOINT)
                 .toUriString();
     }
 
     public String getOAuthRevokeTokenURI() {
         return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
-                .path(OAUTH_REVOKE_TOKEN_URI_PATH)
+                .path(API.OAUTH_REVOKE_TOKEN_ENDPOINT)
                 .toUriString();
     }
 
     public String getCurrentUserRequestURI() {
         return getURIBuilder()
-                .path(CURRENT_USER_URI_PATH)
+                .path(API.CURRENT_USER_ENDPOINT)
                 .toUriString();
     }
 }

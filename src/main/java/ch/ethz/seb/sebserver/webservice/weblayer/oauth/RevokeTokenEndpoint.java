@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 /** Spring MVC controller that defines a revoke token endpoint */
@@ -44,7 +45,7 @@ public class RevokeTokenEndpoint {
         this.tokenStore = tokenStore;
     }
 
-    @RequestMapping(value = "/oauth/revoke-token", method = RequestMethod.DELETE)
+    @RequestMapping(value = API.OAUTH_REVOKE_TOKEN_ENDPOINT, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void logout(final HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");

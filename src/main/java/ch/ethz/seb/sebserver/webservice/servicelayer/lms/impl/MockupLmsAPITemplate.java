@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,12 +131,12 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         try {
 
             final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(this.credentials);
-            if (StringUtils.isBlank(plainClientId)) {
+            if (plainClientId == null || plainClientId.length() <= 0) {
                 throw new IllegalAccessException("Wrong client credential");
             }
 
             final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(this.credentials);
-            if (StringUtils.isBlank(plainClientSecret)) {
+            if (plainClientSecret == null || plainClientSecret.length() <= 0) {
                 throw new IllegalAccessException("Wrong client credential");
             }
 

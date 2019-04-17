@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import ch.ethz.seb.sebserver.gbl.model.institution.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
@@ -24,5 +24,12 @@ public interface SebClientConfigDAO extends
      * @param modelId the model identifier of the SebClientConfig to get the ClientCredentials for
      * @return the configured ClientCredentials for a given SebClientConfig */
     Result<ClientCredentials> getSebClientCredentials(String modelId);
+
+    /** Get the stored encrypted configuration password from a specified SEB client configuration.
+     * The SEB client configuration password is used to encrypt a SEB Client Configuration
+     *
+     * @param modelId the model
+     * @return encrypted configuration password */
+    Result<CharSequence> getConfigPasswortCipher(String modelId);
 
 }

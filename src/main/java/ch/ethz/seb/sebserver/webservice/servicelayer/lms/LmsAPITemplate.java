@@ -90,12 +90,12 @@ public interface LmsAPITemplate {
                     LMS_SETUP.ATTR_LMS_URL,
                     "lmsSetup:lmsUrl:notNull"));
         }
-        if (StringUtils.isBlank(credentials.clientId)) {
+        if (!credentials.hasClientId()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTNAME,
                     "lmsSetup:lmsClientname:notNull"));
         }
-        if (StringUtils.isBlank(credentials.secret)) {
+        if (!credentials.hasSecret()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                     "lmsSetup:lmsClientsecret:notNull"));
