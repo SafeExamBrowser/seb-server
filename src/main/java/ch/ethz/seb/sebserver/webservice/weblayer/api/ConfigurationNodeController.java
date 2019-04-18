@@ -14,27 +14,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ATTRIBUTE_ENDPOINT)
-public class ConfigurationAttributeController extends EntityController<ConfigurationAttribute, ConfigurationAttribute> {
+@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_NODE_ENDPOINT)
+public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
 
-    protected ConfigurationAttributeController(
+    protected ConfigurationNodeController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
-            final ConfigurationAttributeDAO entityDAO,
+            final ConfigurationNodeDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
@@ -48,23 +46,14 @@ public class ConfigurationAttributeController extends EntityController<Configura
     }
 
     @Override
-    protected ConfigurationAttribute createNew(final POSTMapper postParams) {
-        return new ConfigurationAttribute(postParams);
+    protected ConfigurationNode createNew(final POSTMapper postParams) {
+        final Long institutionId = postParams.getLong(API.PARAM_INSTITUTION_ID);
+        return new ConfigurationNode(institutionId, postParams);
     }
 
     @Override
     protected SqlTable getSQLTableOfEntity() {
-        return ConfigurationAttributeRecordDynamicSqlSupport.configurationAttributeRecord;
-    }
-
-    @Override
-    protected Result<ConfigurationAttribute> checkCreateAccess(final ConfigurationAttribute entity) {
-        return Result.of(entity); // Skips the entity based grant check
-    }
-
-    @Override
-    protected GrantEntity toGrantEntity(final ConfigurationAttribute entity) {
-        return null; // Skips the entity based grant check
+        return ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord;
     }
 
 }

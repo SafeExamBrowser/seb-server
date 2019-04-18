@@ -8,15 +8,27 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+import java.util.Set;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, ConfigurationValue> {
 
+    /** NOTE: Deletion is not supported for ConfigurationValue.
+     * A ConfigurationValue get automatically deleted on deletion of a Configuration */
+    @Override
+    default Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        throw new UnsupportedOperationException(
+                "Deletion is not supported for ConfigurationValue. A ConfigurationValue get automatically deleted on deletion of a Configuration");
+    }
+
     Result<ConfigurationTableValue> getTableValue(
-            Long institutionId,
-            Long attributeId,
+            final Long institutionId,
+            final Long attributeId,
             final Long configurationId);
 
     Result<ConfigurationTableValue> saveTableValue(ConfigurationTableValue value);

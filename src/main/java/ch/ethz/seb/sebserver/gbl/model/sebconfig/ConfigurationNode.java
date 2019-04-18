@@ -16,7 +16,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
@@ -78,9 +80,19 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
         this.name = name;
         this.description = description;
         this.type = type;
-
         this.owner = owner;
         this.active = active;
+    }
+
+    public ConfigurationNode(final Long institutionId, final POSTMapper postParams) {
+        this.id = null;
+        this.institutionId = institutionId;
+        this.templateId = postParams.getLong(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID);
+        this.name = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_NAME);
+        this.description = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION);
+        this.type = postParams.getEnum(Domain.CONFIGURATION_NODE.ATTR_TYPE, ConfigurationType.class);
+        this.owner = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_OWNER);
+        this.active = postParams.getBoolean(Domain.CONFIGURATION_NODE.ATTR_ACTIVE);
     }
 
     @Override

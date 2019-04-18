@@ -70,8 +70,11 @@ public final class API {
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration_node";
 
     public static final String CONFIGURATION_ENDPOINT = "/configuration";
+    public static final String CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT = "/save_to_history";
+    public static final String CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT = "/restore";
 
     public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
+    public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
 
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
 

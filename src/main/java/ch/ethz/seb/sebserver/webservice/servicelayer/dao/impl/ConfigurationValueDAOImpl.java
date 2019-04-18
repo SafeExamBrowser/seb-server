@@ -20,13 +20,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeValueType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
@@ -123,8 +123,11 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Transactional
     public Result<ConfigurationValue> createNew(final ConfigurationValue data) {
         return checkInstitutionalIntegrity(data)
-                .flatMap(v -> attributeRecordById(v.attributeId))
+                .map(this::checkFollowUpIntegrity)
+                .map(this::checkCreationIntegrity)
+                .flatMap(this::attributeRecord)
                 .map(attributeRecord -> {
+
                     final String value = (data.value != null)
                             ? data.value
                             : attributeRecord.getDefaultValue();
@@ -148,8 +151,11 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Override
     @Transactional
     public Result<ConfigurationValue> save(final ConfigurationValue data) {
-        return attributeRecordById(data.attributeId)
+        return checkInstitutionalIntegrity(data)
+                .map(this::checkFollowUpIntegrity)
+                .flatMap(this::attributeRecord)
                 .map(attributeRecord -> {
+
                     final boolean bigValue = isBigValue(attributeRecord);
                     final ConfigurationValueRecord newRecord = new ConfigurationValueRecord(
                             data.id,
@@ -165,24 +171,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
-    }
-
-    @Override
-    @Transactional
-    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        return Result.tryCatch(() -> {
-
-            final List<Long> ids = extractListOfPKs(all);
-
-            this.configurationValueRecordMapper.deleteByExample()
-                    .where(ConfigurationValueRecordDynamicSqlSupport.id, isIn(ids))
-                    .build()
-                    .execute();
-
-            return ids.stream()
-                    .map(id -> new EntityKey(id, EntityType.CONFIGURATION_VALUE))
-                    .collect(Collectors.toList());
-        });
     }
 
     @Override
@@ -257,14 +245,16 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             new ArrayList<>(valueMapping.keySet()),
                             values);
                 });
-
     }
 
     @Override
     @Transactional
     public Result<ConfigurationTableValue> saveTableValue(final ConfigurationTableValue value) {
-        return attributeRecordById(value.attributeId)
+        return checkInstitutionalIntegrity(value)
+                .map(this::checkFollowUpIntegrity)
+                .flatMap(val -> attributeRecordById(val.attributeId))
                 .map(attributeRecord -> {
+
                     final List<ConfigurationAttributeRecord> columnAttributes =
                             this.configurationAttributeRecordMapper.selectByExample()
                                     .where(
@@ -315,6 +305,10 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                     return value;
                 });
+    }
+
+    private Result<ConfigurationAttributeRecord> attributeRecord(final ConfigurationValue value) {
+        return attributeRecordById(value.attributeId);
     }
 
     private Result<ConfigurationAttributeRecord> attributeRecordById(final Long id) {
@@ -371,6 +365,58 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             }
             return data;
         });
+    }
+
+    private Result<ConfigurationTableValue> checkInstitutionalIntegrity(final ConfigurationTableValue data) {
+        return Result.tryCatch(() -> {
+            final ConfigurationRecord r = this.configurationRecordMapper.selectByPrimaryKey(data.configurationId);
+            if (r.getInstitutionId().longValue() != data.institutionId.longValue()) {
+                throw new IllegalArgumentException("Institutional integrity constraint violation");
+            }
+            return data;
+        });
+    }
+
+    private ConfigurationTableValue checkFollowUpIntegrity(final ConfigurationTableValue data) {
+        checkFollowUp(data.configurationId);
+        return data;
+    }
+
+    private ConfigurationValue checkFollowUpIntegrity(final ConfigurationValue data) {
+        checkFollowUp(data.configurationId);
+        return data;
+    }
+
+    private void checkFollowUp(final Long configurationId) {
+        final ConfigurationRecord config = this.configurationRecordMapper
+                .selectByPrimaryKey(configurationId);
+
+        if (!BooleanUtils.toBoolean(config.getFollowup())) {
+            throw new IllegalArgumentException(
+                    "Forbidden to modify an configuration value of a none follow-up configuration");
+        }
+    }
+
+    private ConfigurationValue checkCreationIntegrity(final ConfigurationValue data) {
+        final Long exists = this.configurationValueRecordMapper.countByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(data.configurationId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                        isEqualTo(data.attributeId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                        isEqualTo(data.listIndex))
+                .build()
+                .execute();
+
+        if (exists != null && exists.longValue() > 0) {
+            throw new IllegalArgumentException(
+                    "The configuration value already exists");
+        }
+
+        return data;
     }
 
 }

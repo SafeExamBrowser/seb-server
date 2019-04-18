@@ -15,8 +15,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_VALUE;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationValue implements GrantEntity {
@@ -58,6 +60,15 @@ public final class ConfigurationValue implements GrantEntity {
         this.attributeId = attributeId;
         this.listIndex = listIndex;
         this.value = value;
+    }
+
+    public ConfigurationValue(final Long institutionId, final POSTMapper postParams) {
+        this.id = null;
+        this.institutionId = institutionId;
+        this.configurationId = postParams.getLong(Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID);
+        this.attributeId = postParams.getLong(Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID);
+        this.listIndex = postParams.getInteger(Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX);
+        this.value = postParams.getString(Domain.CONFIGURATION_VALUE.ATTR_VALUE);
     }
 
     @Override

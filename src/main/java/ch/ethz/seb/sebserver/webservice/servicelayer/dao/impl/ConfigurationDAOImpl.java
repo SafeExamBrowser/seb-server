@@ -142,7 +142,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     @Override
     @Transactional
-    public Result<Configuration> saveInHistory(final Long configurationNodeId) {
+    public Result<Configuration> saveToHistory(final Long configurationNodeId) {
         return Result.tryCatch(() -> {
 
             // get follow-up configuration...
