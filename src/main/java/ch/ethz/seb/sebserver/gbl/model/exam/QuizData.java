@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 public final class QuizData implements GrantEntity {
 
@@ -224,8 +224,8 @@ public final class QuizData implements GrantEntity {
     }
 
     public static Comparator<QuizData> getComparator(final String sort) {
-        final boolean descending = SortOrder.getSortOrder(sort) == SortOrder.DESCENDING;
-        final String sortParam = SortOrder.decode(sort);
+        final boolean descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
+        final String sortParam = PageSortOrder.decode(sort);
         if (QUIZ_ATTR_NAME.equals(sortParam)) {
             return getNameComparator(descending);
         } else if (QUIZ_ATTR_START_TIME.equals(sortParam)) {

@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityName implements ModelIdAware, ModelNameAware {
+public class EntityName implements ModelIdAware {
 
     @JsonProperty(value = API.PARAM_ENTITY_TYPE, required = true)
     public final EntityType entityType;
@@ -48,7 +48,6 @@ public class EntityName implements ModelIdAware, ModelNameAware {
         return this.entityType;
     }
 
-    @Override
     public String getName() {
         return this.name;
     }

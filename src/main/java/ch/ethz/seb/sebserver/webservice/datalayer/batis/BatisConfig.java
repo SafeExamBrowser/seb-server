@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis;
 
 import javax.sql.DataSource;
 
+import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -42,6 +43,8 @@ public class BatisConfig {
     public static final String TRANSACTION_MANAGER = "transactionManager";
     /** Name of the sql session template bean of MyBatis */
     public static final String SQL_SESSION_TEMPLATE = "sqlSessionTemplate";
+    /** Name of the sql session template bean of MyBatis with BATCH enabled */
+    public static final String SQL_BATCH_SESSION_TEMPLATE = "sqlSessionTemplate";
     /** Name of the sql session factory bean of MyBatis */
     public static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
@@ -58,8 +61,16 @@ public class BatisConfig {
     @Lazy
     @Bean(name = SQL_SESSION_TEMPLATE)
     public SqlSessionTemplate sqlSessionTemplate(final DataSource dataSource) throws Exception {
-        final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory(dataSource));
-        return sqlSessionTemplate;
+        return new SqlSessionTemplate(sqlSessionFactory(dataSource));
+    }
+
+    /** SQL session template bean of MyBatis with BATCH enabled */
+    @Lazy
+    @Bean(name = SQL_BATCH_SESSION_TEMPLATE)
+    public SqlSessionTemplate sqlBatchSessionTemplate(final DataSource dataSource) throws Exception {
+        return new SqlSessionTemplate(
+                sqlSessionFactory(dataSource),
+                ExecutorType.BATCH);
     }
 
     /** SQL session factory bean of MyBatis */

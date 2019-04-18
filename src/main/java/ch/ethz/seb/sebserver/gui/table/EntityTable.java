@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -44,7 +45,6 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
 public class EntityTable<ROW extends Entity> {
 
@@ -71,7 +71,7 @@ public class EntityTable<ROW extends Entity> {
     int pageNumber = 1;
     int pageSize;
     String sortColumn = null;
-    SortOrder sortOrder = SortOrder.ASCENDING;
+    PageSortOrder sortOrder = PageSortOrder.ASCENDING;
     boolean columnsWithSameWidth = true;
     boolean hideNavigation = false;
 
@@ -196,7 +196,7 @@ public class EntityTable<ROW extends Entity> {
 
     public void applySort(final String columnName) {
         this.sortColumn = columnName;
-        this.sortOrder = SortOrder.ASCENDING;
+        this.sortOrder = PageSortOrder.ASCENDING;
 
         updateTableRows(
                 this.pageNumber,
@@ -206,9 +206,9 @@ public class EntityTable<ROW extends Entity> {
     }
 
     public void changeSortOrder() {
-        this.sortOrder = (this.sortOrder == SortOrder.ASCENDING)
-                ? SortOrder.DESCENDING
-                : SortOrder.ASCENDING;
+        this.sortOrder = (this.sortOrder == PageSortOrder.ASCENDING)
+                ? PageSortOrder.DESCENDING
+                : PageSortOrder.ASCENDING;
 
         updateTableRows(
                 this.pageNumber,
@@ -266,7 +266,7 @@ public class EntityTable<ROW extends Entity> {
                     } else {
                         changeSortOrder();
                         this.table.setSortDirection(
-                                (this.sortOrder == SortOrder.ASCENDING) ? SWT.UP : SWT.DOWN);
+                                (this.sortOrder == PageSortOrder.ASCENDING) ? SWT.UP : SWT.DOWN);
                     }
                 });
             }
@@ -281,7 +281,7 @@ public class EntityTable<ROW extends Entity> {
             final int pageNumber,
             final int pageSize,
             final String sortColumn,
-            final SortOrder sortOrder) {
+            final PageSortOrder sortOrder) {
 
         // first remove all rows if there are some
         this.table.removeAll();

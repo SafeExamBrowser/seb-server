@@ -24,8 +24,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Exam implements GrantEntity, Activatable {

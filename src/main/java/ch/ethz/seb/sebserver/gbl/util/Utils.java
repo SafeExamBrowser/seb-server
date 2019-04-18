@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,29 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 public final class Utils {
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
+
+    /** This Collector can be used within stream collect to get one expected singleton element from
+     * the given Stream.
+     * This first collects the given Stream to a list and then check if there is one expected element.
+     * If not a IllegalStateException is thrown.
+     * 
+     * @return the expected singleton element
+     * @throws IllegalStateException if the given stream was empty or has more then one element */
+    public static <T> Collector<T, ?, T> toSingleton() {
+        return Collectors.collectingAndThen(
+                Collectors.toList(),
+                list -> {
+                    if (list == null) {
+                        throw new IllegalStateException(
+                                "Expected one elements in the given list but is empty");
+                    }
+                    if (list.size() != 1) {
+                        throw new IllegalStateException(
+                                "Expected only one elements in the given list but size is: " + list.size());
+                    }
+                    return list.get(0);
+                });
+    }
 
     /** Get an immutable List from a Collection of elements
      *

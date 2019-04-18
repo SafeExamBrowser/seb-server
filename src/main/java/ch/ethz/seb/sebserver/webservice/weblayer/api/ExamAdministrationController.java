@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -40,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -127,7 +127,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     this.examDAO.allMatching(new FilterMap(allRequestParams)).getOrThrow());
 
             if (!StringUtils.isBlank(sort)) {
-                final String sortBy = SortOrder.decode(sort);
+                final String sortBy = PageSortOrder.decode(sort);
                 if (sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
                     Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
                 }
@@ -136,7 +136,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                 }
             }
 
-            if (SortOrder.DESCENDING == SortOrder.getSortOrder(sort)) {
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
                 Collections.reverse(exams);
             }
 

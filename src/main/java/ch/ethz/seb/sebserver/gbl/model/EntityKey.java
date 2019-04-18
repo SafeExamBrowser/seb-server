@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
 /** A EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
  * A EntityKey consists of the model identifier of a domain entity and the type of the entity. */
-public class EntityKey implements Serializable {
+public class EntityKey implements ModelIdAware, Serializable {
 
     private static final long serialVersionUID = -2368065921846821061L;
 
@@ -71,6 +71,7 @@ public class EntityKey implements Serializable {
     /** Get the model identifier of this EntityKey
      *
      * @return the model identifier of this EntityKey */
+    @Override
     public String getModelId() {
         return this.modelId;
     }

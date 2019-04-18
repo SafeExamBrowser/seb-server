@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 public class PermissionDeniedException extends RuntimeException {
 

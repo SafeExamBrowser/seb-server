@@ -171,7 +171,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     @Transactional
     public Result<SebClientConfig> createNew(final SebClientConfig sebClientConfig) {
         return this.clientCredentialService
-                .createGeneratedClientCredentials()
+                .generatedClientCredentials()
                 .map(cc -> {
 
                     checkUniqueName(sebClientConfig);

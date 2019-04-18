@@ -21,10 +21,10 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 @Service
 @WebServiceProfile
@@ -108,7 +108,7 @@ public class BulkActionServiceImpl implements BulkActionService {
     }
 
     private void processUserActivityLog(final BulkAction action) {
-        final ActivityType activityType = action.getActivityType();
+        final UserLogActivityType activityType = action.getActivityType();
 
         if (activityType == null) {
             return;

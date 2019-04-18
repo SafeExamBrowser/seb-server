@@ -8,11 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfiguration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface ExamConfigurationDAO extends
-        EntityDAO<ExamConfiguration, ExamConfiguration>,
-        BulkActionSupportDAO<ExamConfiguration> {
+public interface ExamConfigurationMapDAO extends
+        EntityDAO<ExamConfigurationMap, ExamConfigurationMap>,
+        BulkActionSupportDAO<ExamConfigurationMap> {
 
 }

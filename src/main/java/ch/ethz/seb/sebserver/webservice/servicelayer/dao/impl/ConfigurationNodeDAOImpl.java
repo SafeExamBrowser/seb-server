@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -21,7 +22,12 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +39,8 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
@@ -40,6 +48,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
@@ -52,18 +62,24 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @WebServiceProfile
 public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
 
+    private final SqlSessionFactory sqlSessionFactory;
     private final ConfigurationRecordMapper configurationRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
+    private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
 
     protected ConfigurationNodeDAOImpl(
+            final SqlSessionFactory sqlSessionFactory,
             final ConfigurationRecordMapper configurationRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
-            final ConfigurationValueRecordMapper configurationValueRecordMapper) {
+            final ConfigurationValueRecordMapper configurationValueRecordMapper,
+            final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper) {
 
+        this.sqlSessionFactory = sqlSessionFactory;
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
+        this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
     }
 
     @Override
@@ -143,8 +159,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                         ConfigurationNodeRecordDynamicSqlSupport.type,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeType()))
                 .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.template,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplate()))
+                        ConfigurationNodeRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplateId()))
                 .build()
                 .execute()
                 .stream()
@@ -207,17 +223,18 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
                     null,
                     data.institutionId,
+                    data.templateId,
                     data.owner,
                     data.name,
                     data.description,
                     data.type.name(),
-                    data.templateName,
                     BooleanUtils.toInteger(false));
 
             this.configurationNodeRecordMapper.insert(newRecord);
             return newRecord;
         })
                 .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .flatMap(this::createInitialConfiguration)
                 .onErrorDo(TransactionHandler::rollback);
     }
 
@@ -348,12 +365,127 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return Result.tryCatch(() -> new ConfigurationNode(
                 record.getId(),
                 record.getInstitutionId(),
+                record.getTemplateId(),
                 record.getName(),
                 record.getDescription(),
                 ConfigurationType.valueOf(record.getType()),
-                record.getTemplate(),
                 record.getOwner(),
                 BooleanUtils.toBooleanObject(record.getActive())));
+    }
+
+    /*
+     * Creates the first Configuration and a follow-up within a newly created ConfigurationNode.
+     * This creates a first new Configuration and all attribute values for that either
+     * from the default values or from template values if defined.
+     * Then a follow-up Configuration is created with the same values to follow-up user input
+     */
+    private Result<ConfigurationNode> createInitialConfiguration(final ConfigurationNode config) {
+        return Result.tryCatch(() -> {
+            final ConfigurationRecord initConfig = new ConfigurationRecord(
+                    null,
+                    config.institutionId,
+                    config.id,
+                    "v0", // TODO?
+                    DateTime.now(DateTimeZone.UTC),
+                    BooleanUtils.toInteger(false));
+
+            this.configurationRecordMapper.insert(initConfig);
+            createAttributeValues(config, initConfig);
+
+            final ConfigurationRecord followup = new ConfigurationRecord(
+                    null,
+                    config.institutionId,
+                    config.id,
+                    null,
+                    null,
+                    BooleanUtils.toInteger(true));
+
+            this.configurationRecordMapper.insert(followup);
+            createAttributeValues(config, followup);
+
+            return config;
+        });
+    }
+
+    /*
+     * Creates all attribute values for a given ConfigurationNode with its newly created first ConfigurationRecord
+     * If the ConfigurationNode has a templateId this will gather all attributes values from the latest
+     * configuration of this ConfigurationNode template to override the default values.
+     * Otherwise creates all attribute values from the default values.
+     */
+    private Result<ConfigurationNode> createAttributeValues(
+            final ConfigurationNode configNode,
+            final ConfigurationRecord config) {
+
+        return Result.tryCatch(() -> {
+
+            // templateValues to override default values if available
+            final Map<Long, String> templateValues = getTemplateValues(configNode);
+
+            final SqlSessionTemplate batchSession = new SqlSessionTemplate(
+                    this.sqlSessionFactory,
+                    ExecutorType.BATCH);
+            final ConfigurationValueRecordMapper batchValueMapper =
+                    batchSession.getMapper(ConfigurationValueRecordMapper.class);
+
+            // go through all configuration attributes and create and store a
+            // configuration value from either the default value or the value from the template
+            this.configurationAttributeRecordMapper
+                    .selectByExample()
+                    .build()
+                    .execute()
+                    .stream()
+                    .forEach(attrRec -> {
+                        final boolean bigValue = ConfigurationValueDAOImpl.isBigValue(attrRec);
+                        final String value = templateValues.getOrDefault(
+                                attrRec.getId(),
+                                attrRec.getDefaultValue());
+
+                        batchValueMapper.insert(new ConfigurationValueRecord(
+                                null,
+                                configNode.institutionId,
+                                config.getId(),
+                                attrRec.getId(),
+                                0,
+                                bigValue ? null : value,
+                                bigValue ? value : null));
+                    });
+
+            batchSession.flushStatements();
+            batchSession.close();
+
+            return configNode;
+        });
+    }
+
+    /*
+     * Get values from template with configuration attribute id mapped to the value
+     * returns empty list if no template available
+     */
+    private Map<Long, String> getTemplateValues(final ConfigurationNode configNode) {
+        if (configNode.templateId == null) {
+            return Collections.emptyMap();
+        }
+
+        final Long configurationId = this.configurationRecordMapper.selectByExample()
+                .where(ConfigurationRecordDynamicSqlSupport.configurationNodeId, isEqualTo(configNode.templateId))
+                .and(ConfigurationRecordDynamicSqlSupport.followup, isEqualTo(BooleanUtils.toIntegerObject(true)))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton())
+                .getId();
+
+        return this.configurationValueRecordMapper.selectByExample()
+                .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isEqualTo(configurationId))
+                .build()
+                .execute()
+                .stream()
+                .collect(Collectors.toMap(
+                        valRec -> valRec.getConfigurationAttributeId(),
+                        valRec -> (valRec.getValue() != null)
+                                ? valRec.getValue()
+                                : valRec.getText()));
     }
 
 }

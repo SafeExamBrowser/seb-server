@@ -353,7 +353,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 record.getValue()));
     }
 
-    private static boolean isBigValue(final ConfigurationAttributeRecord attributeRecord) {
+    public static boolean isBigValue(final ConfigurationAttributeRecord attributeRecord) {
         try {
             final AttributeType type = AttributeType.valueOf(attributeRecord.getType());
             return type.attributeValueType == AttributeValueType.LARGE_TEXT

@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
@@ -71,43 +72,43 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public <E extends Entity> Result<E> logCreate(final E entity) {
-        return log(ActivityType.CREATE, entity);
+        return log(UserLogActivityType.CREATE, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logImport(final E entity) {
-        return log(ActivityType.IMPORT, entity);
+        return log(UserLogActivityType.IMPORT, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logModify(final E entity) {
-        return log(ActivityType.MODIFY, entity);
+        return log(UserLogActivityType.MODIFY, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logActivate(final E entity) {
-        return log(ActivityType.ACTIVATE, entity);
+        return log(UserLogActivityType.ACTIVATE, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logDeactivate(final E entity) {
-        return log(ActivityType.DEACTIVATE, entity);
+        return log(UserLogActivityType.DEACTIVATE, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logDelete(final E entity) {
-        return log(ActivityType.DELETE, entity);
+        return log(UserLogActivityType.DELETE, entity);
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> log(
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final E entity,
             final String message) {
 
@@ -116,14 +117,14 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public <E extends Entity> Result<E> log(final ActivityType activityType, final E entity) {
+    public <E extends Entity> Result<E> log(final UserLogActivityType activityType, final E entity) {
         return log(this.userService.getCurrentUser(), activityType, entity, null);
     }
 
     @Override
     @Transactional
     public void log(
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final EntityType entityType,
             final String entityId,
             final String message) {
@@ -149,7 +150,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     public <T> Result<T> log(
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final EntityType entityType,
             final String entityId,
             final String message,
@@ -170,7 +171,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional
     public <E extends Entity> Result<E> log(
             final SEBServerUser user,
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final E entity,
             final String message) {
 
@@ -190,7 +191,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private void log(
             final SEBServerUser user,
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final EntityType entityType,
             final String entityId,
             final String message) {
@@ -400,7 +401,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     record.getId(),
                     record.getUserUuid(),
                     record.getTimestamp(),
-                    ActivityType.valueOf(record.getActivityType()),
+                    UserLogActivityType.valueOf(record.getActivityType()),
                     EntityType.valueOf(record.getEntityType()),
                     record.getEntityId(),
                     record.getMessage());

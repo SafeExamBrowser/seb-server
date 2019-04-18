@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration implements GrantEntity {

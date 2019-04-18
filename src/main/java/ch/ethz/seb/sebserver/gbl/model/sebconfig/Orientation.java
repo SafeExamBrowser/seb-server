@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Orientation implements Entity {
 
-    public static final String FILTER_ATTR_TEMPLATE = "template";
+    public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_VIEW = "view";
     public static final String FILTER_ATTR_GROUP = "group";
 
@@ -34,8 +34,8 @@ public final class Orientation implements Entity {
     @JsonProperty(ORIENTATION.ATTR_CONFIG_ATTRIBUTE_ID)
     public final Long attributeId;
 
-    @JsonProperty(ORIENTATION.ATTR_TEMPLATE)
-    public final String template;
+    @JsonProperty(ORIENTATION.ATTR_TEMPLATE_ID)
+    public final Long templateId;
 
     @JsonProperty(ORIENTATION.ATTR_VIEW)
     public final String view;
@@ -59,7 +59,7 @@ public final class Orientation implements Entity {
     public Orientation(
             @JsonProperty(ORIENTATION.ATTR_ID) final Long id,
             @JsonProperty(ORIENTATION.ATTR_CONFIG_ATTRIBUTE_ID) final Long attributeId,
-            @JsonProperty(ORIENTATION.ATTR_TEMPLATE) final String template,
+            @JsonProperty(ORIENTATION.ATTR_TEMPLATE_ID) final Long templateId,
             @JsonProperty(ORIENTATION.ATTR_VIEW) final String view,
             @JsonProperty(ORIENTATION.ATTR_GROUP) final String group,
             @JsonProperty(ORIENTATION.ATTR_X_POSITION) final Integer xPosition,
@@ -69,7 +69,7 @@ public final class Orientation implements Entity {
 
         this.id = id;
         this.attributeId = attributeId;
-        this.template = template;
+        this.templateId = templateId;
         this.view = view;
         this.group = group;
         this.xPosition = xPosition;
@@ -81,7 +81,7 @@ public final class Orientation implements Entity {
     public Orientation(final ConfigurationAttribute attr, final POSTMapper postParams) {
         this.id = null;
         this.attributeId = attr.id;
-        this.template = postParams.getString(Domain.ORIENTATION.ATTR_TEMPLATE);
+        this.templateId = postParams.getLong(Domain.ORIENTATION.ATTR_TEMPLATE_ID);
         this.view = postParams.getString(Domain.ORIENTATION.ATTR_VIEW);
         this.group = postParams.getString(Domain.ORIENTATION.ATTR_GROUP);
         this.xPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_X_POSITION);
@@ -115,8 +115,8 @@ public final class Orientation implements Entity {
         return this.attributeId;
     }
 
-    public String getTemplate() {
-        return this.template;
+    public Long getTemplateId() {
+        return this.templateId;
     }
 
     public String getView() {
@@ -145,11 +145,11 @@ public final class Orientation implements Entity {
 
     @Override
     public String toString() {
-        return "Orientation [id=" + this.id + ", attributeId=" + this.attributeId + ", template=" + this.template
-                + ", view=" + this.view
-                + ", group=" + this.group + ", xPosition=" + this.xPosition + ", yPosition=" + this.yPosition
-                + ", width=" + this.width
-                + ", height=" + this.height + "]";
+        return "Orientation [id=" + this.id + ", attributeId=" + this.attributeId + ", templateId=" + this.templateId
+                + ", view="
+                + this.view + ", group=" + this.group + ", xPosition=" + this.xPosition + ", yPosition="
+                + this.yPosition + ", width="
+                + this.width + ", height=" + this.height + "]";
     }
 
 }

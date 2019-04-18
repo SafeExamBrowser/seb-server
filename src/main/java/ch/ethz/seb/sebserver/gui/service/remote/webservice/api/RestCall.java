@@ -37,9 +37,9 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService.SortOrder;
 
 public abstract class RestCall<T> {
 
@@ -229,7 +229,7 @@ public abstract class RestCall<T> {
             return this;
         }
 
-        public RestCallBuilder withSorting(final String column, final SortOrder order) {
+        public RestCallBuilder withSorting(final String column, final PageSortOrder order) {
             if (column != null) {
                 this.queryParams.put(Page.ATTR_SORT, Arrays.asList(order.encode(column)));
             }

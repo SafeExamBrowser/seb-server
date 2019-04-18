@@ -18,14 +18,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationNode implements GrantEntity, Activatable {
 
+    public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_DESCRIPTION = "description";
     public static final String FILTER_ATTR_TYPE = "type";
-    public static final String FILTER_ATTR_TEMPLATE = "template";
 
     public enum ConfigurationType {
         TEMPLATE,
@@ -39,6 +39,9 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
     @JsonProperty(CONFIGURATION_NODE.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
+    @JsonProperty(CONFIGURATION_NODE.ATTR_TEMPLATE_ID)
+    public final Long templateId;
+
     @NotNull(message = "configurationNode:name:notNull")
     @Size(min = 3, max = 255, message = "configurationNode:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(CONFIGURATION_NODE.ATTR_NAME)
@@ -51,9 +54,6 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
     @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE)
     public final ConfigurationType type;
 
-    @JsonProperty(CONFIGURATION_NODE.ATTR_TEMPLATE)
-    public final String templateName;
-
     @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER)
     public final String owner;
 
@@ -65,19 +65,20 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
     public ConfigurationNode(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long id,
             @JsonProperty(CONFIGURATION_NODE.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(CONFIGURATION_NODE.ATTR_TEMPLATE_ID) final Long templateId,
             @JsonProperty(CONFIGURATION_NODE.ATTR_NAME) final String name,
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,
             @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE) final ConfigurationType type,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_TEMPLATE) final String templateName,
             @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner,
             @JsonProperty(CONFIGURATION_NODE.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.institutionId = institutionId;
+        this.templateId = templateId;
         this.name = name;
         this.description = description;
         this.type = type;
-        this.templateName = templateName;
+
         this.owner = owner;
         this.active = active;
     }
@@ -121,8 +122,8 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
         return this.type;
     }
 
-    public String getTemplateName() {
-        return this.templateName;
+    public Long getTemplateId() {
+        return this.templateId;
     }
 
     public Boolean getActive() {
@@ -136,11 +137,11 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
 
     @Override
     public String toString() {
-        return "ConfigurationNode [id=" + this.id + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", description="
-                + this.description + ", type=" + this.type + ", templateName=" + this.templateName + ", owner="
-                + this.owner + ", active="
-                + this.active + "]";
+        return "ConfigurationNode [id=" + this.id + ", institutionId=" + this.institutionId + ", templateId="
+                + this.templateId
+                + ", name=" + this.name + ", description=" + this.description + ", type=" + this.type + ", owner="
+                + this.owner
+                + ", active=" + this.active + "]";
     }
 
 }

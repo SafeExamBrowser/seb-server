@@ -15,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_CONFIGURATION_MAP;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ExamConfiguration implements GrantEntity {
+public final class ExamConfigurationMap implements GrantEntity {
 
     public static final String FILTER_ATTR_EXAM_ID = "examId";
     public static final String FILTER_ATTR_CONFIG_ID = "configurationNodeId";
@@ -43,7 +43,7 @@ public final class ExamConfiguration implements GrantEntity {
     public final String userNames;
 
     @JsonCreator
-    public ExamConfiguration(
+    public ExamConfigurationMap(
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID) final Long id,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID) final Long examId,

@@ -85,8 +85,8 @@ public class OrientationDAOImpl implements OrientationDAO {
         return Result.tryCatch(() -> this.orientationRecordMapper
                 .selectByExample()
                 .where(
-                        OrientationRecordDynamicSqlSupport.template,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplate()))
+                        OrientationRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplateId()))
                 .and(
                         OrientationRecordDynamicSqlSupport.view,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationView()))
@@ -110,7 +110,7 @@ public class OrientationDAOImpl implements OrientationDAO {
             final OrientationRecord newRecord = new OrientationRecord(
                     null,
                     data.attributeId,
-                    data.template,
+                    data.templateId,
                     data.view,
                     data.group,
                     data.xPosition,
@@ -168,16 +168,16 @@ public class OrientationDAOImpl implements OrientationDAO {
 
     @Override
     @Transactional
-    public Result<Collection<EntityKey>> deleteAllOfTemplate(final String templateName) {
+    public Result<Collection<EntityKey>> deleteAllOfTemplate(final Long templateId) {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = this.orientationRecordMapper.selectIdsByExample()
-                    .where(OrientationRecordDynamicSqlSupport.template, isEqualTo(templateName))
+                    .where(OrientationRecordDynamicSqlSupport.templateId, isEqualTo(templateId))
                     .build()
                     .execute();
 
             this.orientationRecordMapper.deleteByExample()
-                    .where(OrientationRecordDynamicSqlSupport.template, isEqualTo(templateName))
+                    .where(OrientationRecordDynamicSqlSupport.templateId, isEqualTo(templateId))
                     .build()
                     .execute();
 
@@ -203,7 +203,7 @@ public class OrientationDAOImpl implements OrientationDAO {
         return Result.tryCatch(() -> new Orientation(
                 record.getId(),
                 record.getConfigAttributeId(),
-                record.getTemplate(),
+                record.getTemplateId(),
                 record.getView(),
                 record.getGroup(),
                 record.getxPosition(),

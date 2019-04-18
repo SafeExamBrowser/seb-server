@@ -44,8 +44,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class UserAPITest extends AdministrationAPIIntegrationTester {
@@ -951,7 +951,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(userLogs);
         assertTrue(userLogs.content.size() == 1);
         final UserActivityLog userLog = userLogs.content.iterator().next();
-        assertEquals(ActivityType.DEACTIVATE, userLog.activityType);
+        assertEquals(UserLogActivityType.DEACTIVATE, userLog.activityType);
         assertEquals("user4", userLog.entityId);
     }
 
@@ -1012,7 +1012,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(userLogs);
         assertTrue(userLogs.content.size() == 1);
         final UserActivityLog userLog = userLogs.content.iterator().next();
-        assertEquals(ActivityType.ACTIVATE, userLog.activityType);
+        assertEquals(UserLogActivityType.ACTIVATE, userLog.activityType);
         assertEquals("user6", userLog.entityId);
     }
 

@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -47,7 +48,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
@@ -134,7 +134,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .map(ui -> checkPasswordChange(ui, passwordChange))
                 .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
                 .flatMap(this::revokeAccessToken)
-                .flatMap(e -> this.userActivityLogDAO.log(ActivityType.PASSWORD_CHANGE, e))
+                .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
                 .getOrThrow();
     }
 

@@ -6,11 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
+package ch.ethz.seb.sebserver.gbl.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 /** Interface of an entity that needs a grant for access.
  * Such an entity usually has an institution association and optionally an owner association */

@@ -44,7 +44,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public Result<ClientCredentials> createGeneratedClientCredentials() {
+    public Result<ClientCredentials> generatedClientCredentials() {
         return Result.tryCatch(() -> {
             try {
 

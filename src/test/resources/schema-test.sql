@@ -151,11 +151,11 @@ DROP TABLE IF EXISTS `configuration_node` ;
 CREATE TABLE IF NOT EXISTS `configuration_node` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
+  `template_id` BIGINT UNSIGNED NULL,
   `owner` VARCHAR(255) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(4000) NULL,
   `type` VARCHAR(45) NULL,
-  `template` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `configurationInstitutionRef_idx` (`institution_id` ASC),
@@ -262,7 +262,7 @@ DROP TABLE IF EXISTS `orientation` ;
 CREATE TABLE IF NOT EXISTS `orientation` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `config_attribute_id` BIGINT UNSIGNED NOT NULL,
-  `template` VARCHAR(255) NULL,
+  `template_id` BIGINT UNSIGNED NULL,
   `view` VARCHAR(45) NOT NULL,
   `group` VARCHAR(45) NULL,
   `x_position` INT UNSIGNED NOT NULL DEFAULT 0,

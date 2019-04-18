@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 /** Defines a bulk action with its type, source entities (and source-type) and dependent entities.
  * A BulkAction acts as a collector for entities (keys) that depends on the Bulk Action during the
@@ -83,18 +83,18 @@ public final class BulkAction {
         return Collections.emptySet();
     }
 
-    public ActivityType getActivityType() {
+    public UserLogActivityType getActivityType() {
         if (this.type == null) {
             return null;
         }
 
         switch (this.type) {
             case ACTIVATE:
-                return ActivityType.ACTIVATE;
+                return UserLogActivityType.ACTIVATE;
             case DEACTIVATE:
-                return ActivityType.DEACTIVATE;
+                return UserLogActivityType.DEACTIVATE;
             case HARD_DELETE:
-                return ActivityType.DELETE;
+                return UserLogActivityType.DELETE;
             default:
                 throw new IllegalStateException("There is no ActivityType mapped to the BulkActionType " + this.type);
         }

@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ACTIVITY_LOG;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO.ActivityType;
 
 public class UserActivityLog implements Entity {
 
@@ -32,7 +31,7 @@ public class UserActivityLog implements Entity {
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_TIMESTAMP)
     public final Long timestamp;
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE)
-    public final ActivityType activityType;
+    public final UserLogActivityType activityType;
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE)
     public final EntityType entityType;
     @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_ID)
@@ -44,7 +43,7 @@ public class UserActivityLog implements Entity {
     public UserActivityLog(
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_USER_UUID) final String userUUID,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_TIMESTAMP) final Long timestamp,
-            @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE) final ActivityType activityType,
+            @JsonProperty(USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE) final UserLogActivityType activityType,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE) final EntityType entityType,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_ENTITY_ID) final String entityId,
             @JsonProperty(USER_ACTIVITY_LOG.ATTR_MESSAGE) final String message) {
@@ -62,7 +61,7 @@ public class UserActivityLog implements Entity {
             final Long id,
             final String userUUID,
             final Long timestamp,
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final EntityType entityType,
             final String entityId,
             final String message) {
@@ -101,7 +100,7 @@ public class UserActivityLog implements Entity {
         return this.timestamp;
     }
 
-    public ActivityType getActivityType() {
+    public UserLogActivityType getActivityType() {
         return this.activityType;
     }
 

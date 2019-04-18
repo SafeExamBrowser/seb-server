@@ -24,6 +24,7 @@ import com.github.pagehelper.PageHelper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
@@ -36,29 +37,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 @Service
 @WebServiceProfile
 public class PaginationService {
-
-    public enum SortOrder {
-        ASCENDING,
-        DESCENDING;
-
-        public final static String DESCENDING_PREFIX = "-";
-
-        public String encode(final String sort) {
-            return (this == DESCENDING) ? DESCENDING_PREFIX + sort : sort;
-        }
-
-        public static String decode(final String sort) {
-            return (sort != null && sort.startsWith(DESCENDING_PREFIX))
-                    ? sort.substring(1)
-                    : sort;
-        }
-
-        public static SortOrder getSortOrder(final String encoded) {
-            return (encoded != null && encoded.startsWith(DESCENDING_PREFIX))
-                    ? SortOrder.DESCENDING
-                    : SortOrder.ASCENDING;
-        }
-    }
 
     private final int defaultPageSize;
     private final int maxPageSize;
@@ -137,7 +115,7 @@ public class PaginationService {
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
         if (table != null && StringUtils.isNoneBlank(sort)) {
-            final SortOrder sortOrder = SortOrder.getSortOrder(sort);
+            final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
             final String sortColumnName = verifySortColumnName(sort, table);
             if (StringUtils.isNoneBlank(sortColumnName)) {
                 switch (sortOrder) {
@@ -178,7 +156,7 @@ public class PaginationService {
 
         final Map<String, String> mapping = this.sortColumnMapping.get(table.name());
         if (mapping != null) {
-            final String sortColumn = SortOrder.decode(sort);
+            final String sortColumn = PageSortOrder.decode(sort);
             if (StringUtils.isBlank(sortColumn)) {
                 return this.defaultSortColumn.get(table.name());
             }

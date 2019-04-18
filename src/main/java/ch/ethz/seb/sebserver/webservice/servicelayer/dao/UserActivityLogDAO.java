@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 
@@ -21,17 +22,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser
 public interface UserActivityLogDAO extends
         EntityDAO<UserActivityLog, UserActivityLog>,
         UserRelatedEntityDAO<UserActivityLog> {
-
-    /** All activity types */
-    enum ActivityType {
-        CREATE,
-        IMPORT,
-        MODIFY,
-        PASSWORD_CHANGE,
-        DEACTIVATE,
-        ACTIVATE,
-        DELETE
-    }
 
     /** Create a user activity log entry for the current user of activity type CREATE
      *
@@ -75,21 +65,21 @@ public interface UserActivityLogDAO extends
      * @param entity the Entity
      * @param message an optional message
      * @return Result of the Entity or referring to an Error id happened */
-    <E extends Entity> Result<E> log(ActivityType activityType, E entity, String message);
+    <E extends Entity> Result<E> log(UserLogActivityType activityType, E entity, String message);
 
     /** Creates a user activity log entry for the current user.
      *
      * @param actionType the action type
      * @param entity the Entity
      * @return Result of the Entity or referring to an Error id happened */
-    <E extends Entity> Result<E> log(ActivityType activityType, E entity);
+    <E extends Entity> Result<E> log(UserLogActivityType activityType, E entity);
 
     /** Creates a user activity log entry for the current user.
      *
      * @param activityType the activity type
      * @param entityType the EntityType
      * @param message the message */
-    void log(ActivityType activityType, EntityType entityType, String entityId, String message);
+    void log(UserLogActivityType activityType, EntityType entityType, String entityId, String message);
 
     /** Creates a user activity log entry for the current user.
      *
@@ -97,7 +87,7 @@ public interface UserActivityLogDAO extends
      * @param entityType the EntityType
      * @param message the message
      * @return Result of the Entity or referring to an Error id happened */
-    <T> Result<T> log(ActivityType activityType, EntityType entityType, String entityId, String message, T data);
+    <T> Result<T> log(UserLogActivityType activityType, EntityType entityType, String entityId, String message, T data);
 
     /** Creates a user activity log entry.
      *
@@ -108,7 +98,7 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error id happened */
     <E extends Entity> Result<E> log(
             SEBServerUser user,
-            ActivityType activityType,
+            UserLogActivityType activityType,
             E entity,
             String message);
 
@@ -121,7 +111,7 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error id happened */
     default <E extends Entity> Result<E> log(
             final SEBServerUser user,
-            final ActivityType activityType,
+            final UserLogActivityType activityType,
             final E entity) {
 
         return log(user, activityType, entity, null);

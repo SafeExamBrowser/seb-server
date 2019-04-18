@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfiguration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
@@ -40,7 +40,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamConfigurationM
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -48,13 +48,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Lazy
 @Component
 @WebServiceProfile
-public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
+public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
 
-    protected ExamConfigurationDAOImpl(
+    protected ExamConfigurationMapDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper) {
@@ -71,21 +71,21 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<ExamConfiguration> byPK(final Long id) {
+    public Result<ExamConfigurationMap> byPK(final Long id) {
         return recordById(id)
-                .flatMap(ExamConfigurationDAOImpl::toDomainModel);
+                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ExamConfiguration>> allOf(final Set<Long> pks) {
+    public Result<Collection<ExamConfigurationMap>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
             return this.examConfigurationMapRecordMapper.selectByExample()
                     .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()
-                    .map(ExamConfigurationDAOImpl::toDomainModel)
+                    .map(ExamConfigurationMapDAOImpl::toDomainModel)
                     .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                     .collect(Collectors.toList());
         });
@@ -93,9 +93,9 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ExamConfiguration>> allMatching(
+    public Result<Collection<ExamConfigurationMap>> allMatching(
             final FilterMap filterMap,
-            final Predicate<ExamConfiguration> predicate) {
+            final Predicate<ExamConfigurationMap> predicate) {
 
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
@@ -111,7 +111,7 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ExamConfigurationDAOImpl::toDomainModel)
+                .map(ExamConfigurationMapDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
                 .filter(predicate)
                 .collect(Collectors.toList()));
@@ -119,7 +119,7 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
 
     @Override
     @Transactional
-    public Result<ExamConfiguration> createNew(final ExamConfiguration data) {
+    public Result<ExamConfigurationMap> createNew(final ExamConfigurationMap data) {
         return checkMappingIntegrity(data)
                 .map(config -> {
                     final ExamConfigurationMapRecord newRecord = new ExamConfigurationMapRecord(
@@ -132,13 +132,13 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
                     this.examConfigurationMapRecordMapper.insert(newRecord);
                     return newRecord;
                 })
-                .flatMap(ExamConfigurationDAOImpl::toDomainModel)
+                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional
-    public Result<ExamConfiguration> save(final ExamConfiguration data) {
+    public Result<ExamConfigurationMap> save(final ExamConfigurationMap data) {
         return Result.tryCatch(() -> {
 
             final ExamConfigurationMapRecord newRecord = new ExamConfigurationMapRecord(
@@ -151,7 +151,7 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
             this.examConfigurationMapRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
         })
-                .flatMap(ExamConfigurationDAOImpl::toDomainModel)
+                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
                 .onErrorDo(TransactionHandler::rollback);
     }
 
@@ -215,8 +215,8 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
         });
     }
 
-    private static Result<ExamConfiguration> toDomainModel(final ExamConfigurationMapRecord record) {
-        return Result.tryCatch(() -> new ExamConfiguration(
+    private static Result<ExamConfigurationMap> toDomainModel(final ExamConfigurationMapRecord record) {
+        return Result.tryCatch(() -> new ExamConfigurationMap(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getExamId(),
@@ -224,7 +224,7 @@ public class ExamConfigurationDAOImpl implements ExamConfigurationDAO {
                 record.getUserNames()));
     }
 
-    private Result<ExamConfiguration> checkMappingIntegrity(final ExamConfiguration data) {
+    private Result<ExamConfigurationMap> checkMappingIntegrity(final ExamConfigurationMap data) {
         return Result.tryCatch(() -> {
             final ConfigurationNodeRecord config =
                     this.configurationNodeRecordMapper.selectByPrimaryKey(data.configurationNodeId);

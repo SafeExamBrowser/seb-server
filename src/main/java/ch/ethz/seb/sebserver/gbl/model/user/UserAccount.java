@@ -15,7 +15,7 @@ import java.util.Set;
 import org.joda.time.DateTimeZone;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 /** Defines a User-Account object */
 public interface UserAccount extends GrantEntity {

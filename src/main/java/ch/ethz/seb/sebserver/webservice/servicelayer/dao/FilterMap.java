@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfiguration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -107,8 +107,8 @@ public class FilterMap extends POSTMapper {
         return getSQLWildcard(Indicator.FILTER_ATTR_NAME);
     }
 
-    public String getOrientationTemplate() {
-        return getSQLWildcard(Orientation.FILTER_ATTR_TEMPLATE);
+    public Long getOrientationTemplateId() {
+        return getLong(Orientation.FILTER_ATTR_TEMPLATE_ID);
     }
 
     public String getOrientationView() {
@@ -155,16 +155,16 @@ public class FilterMap extends POSTMapper {
         return getString(ConfigurationNode.FILTER_ATTR_TYPE);
     }
 
-    public String getConfigNodeTemplate() {
-        return getString(ConfigurationNode.FILTER_ATTR_TEMPLATE);
+    public Long getConfigNodeTemplateId() {
+        return getLong(ConfigurationNode.FILTER_ATTR_TEMPLATE_ID);
     }
 
     public Long getExamConfigExamId() {
-        return getLong(ExamConfiguration.FILTER_ATTR_EXAM_ID);
+        return getLong(ExamConfigurationMap.FILTER_ATTR_EXAM_ID);
     }
 
     public Long getExamConfigConfigId() {
-        return getLong(ExamConfiguration.FILTER_ATTR_CONFIG_ID);
+        return getLong(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID);
     }
 
     public String getSQLWildcard(final String name) {
