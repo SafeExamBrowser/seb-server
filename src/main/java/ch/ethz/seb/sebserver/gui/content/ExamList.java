@@ -140,7 +140,7 @@ public class ExamList implements TemplateComposer {
         actionBuilder
 
                 .newAction(ActionDefinition.EXAM_IMPORT)
-                .publishIf(userGrant::im)
+                .publishIf(userGrant::im) // TODO iw instead of im?
 
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)

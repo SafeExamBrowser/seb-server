@@ -156,4 +156,28 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
                 + ", active=" + this.active + "]";
     }
 
+    public static ConfigurationNode createNewExamConfig(final Long institutionId) {
+        return new ConfigurationNode(
+                null,
+                institutionId,
+                null,
+                null,
+                null,
+                ConfigurationType.EXAM_CONFIG,
+                null,
+                false);
+    }
+
+    public static ConfigurationNode createNewTemplate(final Long institutionId) {
+        return new ConfigurationNode(
+                null,
+                institutionId,
+                null,
+                null,
+                null,
+                ConfigurationType.TEMPLATE,
+                null,
+                false);
+    }
+
 }

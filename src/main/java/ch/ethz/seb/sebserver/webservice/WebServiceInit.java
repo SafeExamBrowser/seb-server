@@ -13,6 +13,8 @@ import java.net.UnknownHostException;
 
 import javax.sql.DataSource;
 
+import org.cryptonode.jncryptor.AES256JNCryptor;
+import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,5 +69,11 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
     @Bean
     public TokenStore tokenStore(final DataSource dataSource) {
         return new JdbcTokenStore(dataSource);
+    }
+
+    @Lazy
+    @Bean
+    public JNCryptor jnCryptor() {
+        return new AES256JNCryptor();
     }
 }

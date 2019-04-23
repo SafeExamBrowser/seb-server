@@ -15,7 +15,6 @@ import java.nio.CharBuffer;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.CryptorException;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
@@ -45,17 +44,17 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
+    private final JNCryptor jnCryptor;
     private final String httpScheme;
     private final String serverAddress;
     private final String serverPort;
     private final String sebClientAPIEndpoint;
 
-    private final JNCryptor cryptor = new AES256JNCryptor();
-
     protected SebClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
             final SebClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
+            final JNCryptor jnCryptor,
             @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
             @Value("${server.address}") final String serverAddress,
             @Value("${server.port}") final String serverPort,
@@ -64,6 +63,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
+        this.jnCryptor = jnCryptor;
         this.httpScheme = httpScheme;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
@@ -166,11 +166,28 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
     private byte[] encode(final byte[] plainTextConfig, final CharSequence secret) {
 
-        // TODO format the plainTextConfig for SEB Client encoding format
-
         try {
-            // TODO do we need salt
-            return this.cryptor.encryptData(plainTextConfig, CharBuffer.wrap(secret).array());
+
+            char[] secretChars;
+            final CharBuffer secretBuffer = CharBuffer.wrap(secret);
+            if (secretBuffer.hasArray()) {
+                secretChars = secretBuffer.array();
+            } else {
+                secretChars = new char[secretBuffer.length()];
+                secretBuffer.get(secretChars);
+            }
+            // TODO format the plainTextConfig for SEB Client encoding format
+//            jnCryptor.encryptData(
+//                    plainTextConfig,
+//                    secret,
+//                    encryptionSalt,
+//                    hmacSalt,
+//                    iv);
+
+            return this.jnCryptor.encryptData(
+                    plainTextConfig,
+                    secretChars);
+
         } catch (final CryptorException e) {
             log.error("Unexpected error while trying to encrypt SEB Client configuration: ", e);
             return plainTextConfig;

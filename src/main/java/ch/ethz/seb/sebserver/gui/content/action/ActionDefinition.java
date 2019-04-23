@@ -304,6 +304,51 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_LIST(
             new LocTextKey("sebserver.examconfig.action.list"),
             PageStateDefinition.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_NEW(
+            new LocTextKey("sebserver.examconfig.action.list.new"),
+            ImageIcon.NEW,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT),
+    SEB_EXAM_CONFIG_VIEW_FROM_LIST(
+            new LocTextKey("sebserver.examconfig.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.examconfig.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_MODIFY(
+            new LocTextKey("sebserver.examconfig.action.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_SAVE(
+            new LocTextKey("sebserver.examconfig.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_ACTIVATE(
+            new LocTextKey("sebserver.examconfig.action.activate"),
+            ImageIcon.INACTIVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_DEACTIVATE(
+            new LocTextKey("sebserver.examconfig.action.deactivate"),
+            ImageIcon.ACTIVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+
+    SEB_EXAM_CONFIG_MODIFY_PROPERTIES_FROM_LIST(
+            new LocTextKey("sebserver.examconfig.properties.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
 
     ;
 

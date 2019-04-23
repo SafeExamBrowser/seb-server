@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -48,6 +50,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @Override
     protected ConfigurationNode createNew(final POSTMapper postParams) {
         final Long institutionId = postParams.getLong(API.PARAM_INSTITUTION_ID);
+        final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+        postParams.putIfAbsent(EXAM.ATTR_OWNER, currentUser.uuid());
         return new ConfigurationNode(institutionId, postParams);
     }
 

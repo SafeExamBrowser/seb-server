@@ -111,20 +111,25 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+
         return this.decrypt(credentials.accessToken, secret);
     }
 
     @Override
     public CharSequence encrypt(final CharSequence text) {
+
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+
         return encrypt(text, secret);
     }
 
     @Override
     public CharSequence decrypt(final CharSequence text) {
+
         final CharSequence secret = this.environment
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+
         return decrypt(text, secret);
     }
 

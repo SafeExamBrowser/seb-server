@@ -203,6 +203,7 @@ Text.error {
 
 Text[MULTI] {
     padding: 5px 10px 5px 10px;
+    height=50px;
 }
 
 Text[BORDER], Text[MULTI][BORDER] {
@@ -220,6 +221,7 @@ Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
     Text[MULTI][BORDER]:read-only {
     box-shadow: none;
 }
+
 
 /* Combo default theme */
 Combo, Combo[BORDER] {

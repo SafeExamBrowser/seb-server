@@ -97,7 +97,6 @@ public class SebClientConfigList implements TemplateComposer {
     public void compose(final PageContext pageContext) {
 
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
-
         final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
@@ -150,7 +149,7 @@ public class SebClientConfigList implements TemplateComposer {
         pageActionBuilder
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_NEW)
-                .publishIf(clientConfigGrant::w)
+                .publishIf(clientConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
@@ -158,7 +157,7 @@ public class SebClientConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> clientConfigGrant.m() && table.hasAnyContent());
+                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent());
 
     }
 
