@@ -6,34 +6,34 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ConfigurationAttributeRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.806+02:00", comments="Source Table: configuration_attribute")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.548+02:00", comments="Source Table: configuration_attribute")
     public static final ConfigurationAttributeRecord configurationAttributeRecord = new ConfigurationAttributeRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.810+02:00", comments="Source field: configuration_attribute.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.551+02:00", comments="Source field: configuration_attribute.id")
     public static final SqlColumn<Long> id = configurationAttributeRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.813+02:00", comments="Source field: configuration_attribute.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.552+02:00", comments="Source field: configuration_attribute.name")
     public static final SqlColumn<String> name = configurationAttributeRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.813+02:00", comments="Source field: configuration_attribute.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.552+02:00", comments="Source field: configuration_attribute.type")
     public static final SqlColumn<String> type = configurationAttributeRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.814+02:00", comments="Source field: configuration_attribute.parent_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.552+02:00", comments="Source field: configuration_attribute.parent_id")
     public static final SqlColumn<Long> parentId = configurationAttributeRecord.parentId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.814+02:00", comments="Source field: configuration_attribute.resources")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.552+02:00", comments="Source field: configuration_attribute.resources")
     public static final SqlColumn<String> resources = configurationAttributeRecord.resources;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.814+02:00", comments="Source field: configuration_attribute.validator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.552+02:00", comments="Source field: configuration_attribute.validator")
     public static final SqlColumn<String> validator = configurationAttributeRecord.validator;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.814+02:00", comments="Source field: configuration_attribute.dependencies")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.553+02:00", comments="Source field: configuration_attribute.dependencies")
     public static final SqlColumn<String> dependencies = configurationAttributeRecord.dependencies;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.815+02:00", comments="Source field: configuration_attribute.default_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.553+02:00", comments="Source field: configuration_attribute.default_value")
     public static final SqlColumn<String> defaultValue = configurationAttributeRecord.defaultValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:33.809+02:00", comments="Source Table: configuration_attribute")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.550+02:00", comments="Source Table: configuration_attribute")
     public static final class ConfigurationAttributeRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

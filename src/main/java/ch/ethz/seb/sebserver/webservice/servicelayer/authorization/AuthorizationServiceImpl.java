@@ -20,9 +20,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.authorization.Privilege.RoleTypeKey;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 

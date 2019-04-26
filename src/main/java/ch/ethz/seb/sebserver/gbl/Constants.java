@@ -14,6 +14,8 @@ import org.joda.time.format.DateTimeFormatter;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final int JN_CRYPTOR_ITERATIONS = 10000;
+
     public static final String TRUE_STRING = Boolean.TRUE.toString();
     public static final String FALSE_STRING = Boolean.FALSE.toString();
 

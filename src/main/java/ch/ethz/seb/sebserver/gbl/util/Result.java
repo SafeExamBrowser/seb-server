@@ -227,7 +227,7 @@ public final class Result<T> {
 
     /** Uses a given error handler to apply an error if there is one and returning itself again
      * for further processing.
-     * 
+     *
      * @param errorHandler the error handler
      * @return self reference */
     public Result<T> onErrorDo(final Consumer<Throwable> errorHandler) {
@@ -271,17 +271,9 @@ public final class Result<T> {
         return ofError(new RuntimeException("TODO: " + message));
     }
 
-    public static <T> Result<T> tryCatch(final Supplier<T> supplier) {
+    public static <T> Result<T> tryCatch(final TryCatchSupplier<T> supplier) {
         try {
             return Result.of(supplier.get());
-        } catch (final Exception e) {
-            return Result.ofError(e);
-        }
-    }
-
-    public static <T> Result<T> tryCatchOf(final Supplier<Result<T>> supplier) {
-        try {
-            return supplier.get();
         } catch (final Exception e) {
             return Result.ofError(e);
         }
@@ -332,6 +324,10 @@ public final class Result<T> {
     @Override
     public String toString() {
         return "Result [value=" + this.value + ", error=" + this.error + "]";
+    }
+
+    public static interface TryCatchSupplier<T> {
+        T get() throws Exception;
     }
 
 }

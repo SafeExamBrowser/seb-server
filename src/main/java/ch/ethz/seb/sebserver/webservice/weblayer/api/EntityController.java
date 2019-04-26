@@ -30,9 +30,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
@@ -143,7 +143,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 pageNumber,
                 pageSize,
                 sort,
-                getSQLTableOfEntity(),
+                getSQLTableOfEntity().name(),
                 () -> getAll(filterMap)).getOrThrow();
     }
 
@@ -409,7 +409,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * Otherwise the implementing EntityController must override this method and resolve the
      * related GrantEntity for a given Entity.
      * For example, the GrantEntity of Indicator is the related Exam
-     * 
+     *
      * @param entity the Entity to check creation/write access for
      * @return Result of the access check containing either the original entity or an error if no access granted */
     protected Result<M> checkCreateAccess(final M entity) {
@@ -427,7 +427,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * Otherwise the implementing EntityController must override this method and resolve the
      * related GrantEntity for a given Entity.
      * For example, the GrantEntity of Indicator is the related Exam
-     * 
+     *
      * @param entity the Entity to get the related GrantEntity for
      * @return the GrantEntity instance for a given Entity instance */
     protected GrantEntity toGrantEntity(final T entity) {

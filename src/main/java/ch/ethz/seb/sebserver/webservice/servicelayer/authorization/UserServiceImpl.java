@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.beans.PropertyEditorSupport;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.WebDataBinder;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Lazy
@@ -120,12 +123,20 @@ public class UserServiceImpl implements UserService {
 
     private static final SEBServerUser SUPER_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_SUPER_USER", -1L, "superUser", "superUser", null, false, null, null, null),
+            new UserInfo("SEB_SERVER_SUPER_USER", -1L, "superUser", "superUser", null, false, null, null,
+                    Arrays.asList(UserRole.values())
+                            .stream()
+                            .map(ur -> ur.name())
+                            .collect(Collectors.toSet())),
             null);
 
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", null, false, null, null, null),
+            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", null, false, null, null,
+                    Arrays.asList(UserRole.values())
+                            .stream()
+                            .map(ur -> ur.name())
+                            .collect(Collectors.toSet())),
             null);
 
 }

@@ -8,8 +8,15 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -23,6 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -45,6 +53,25 @@ public class ConfigurationAttributeController extends EntityController<Configura
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
+    }
+
+    @Override
+    @RequestMapping(
+            path = API.LIST_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<ConfigurationAttribute> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST) final String modelIds) {
+
+        if (StringUtils.isNoneBlank(modelIds)) {
+            return super.getForIds(modelIds);
+        }
+
+        return this.entityDAO
+                .allMatching(new FilterMap())
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toList());
     }
 
     @Override

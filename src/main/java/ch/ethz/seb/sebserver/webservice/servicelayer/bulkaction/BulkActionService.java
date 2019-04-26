@@ -44,14 +44,14 @@ public interface BulkActionService {
     /** This executes a given BulkAction by first getting all dependencies and applying
      * the action to that first and then applying the action to the source entities of
      * the BulkAction.
-     * 
+     *
      * @param action the BulkAction that defines at least the type and the source entity keys
      * @return The BulkAction containing the result of the execution */
     Result<BulkAction> doBulkAction(BulkAction action);
 
     /** Creates a EntityProcessingReport from a given BulkAction result.
      * If the given BulkAction has not already been executed, it will be executed first
-     * 
+     *
      * @param action the BulkAction of a concrete type
      * @return EntityProcessingReport extracted form an executed BulkAxtion */
     Result<EntityProcessingReport> createReport(BulkAction action);

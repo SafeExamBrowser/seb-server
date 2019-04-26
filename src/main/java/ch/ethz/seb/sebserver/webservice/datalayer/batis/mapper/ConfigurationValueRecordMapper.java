@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ConfigurationValueRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.073+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.073+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.073+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ConfigurationValueRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -58,7 +58,7 @@ public interface ConfigurationValueRecordMapper {
     })
     ConfigurationValueRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -71,22 +71,22 @@ public interface ConfigurationValueRecordMapper {
     })
     List<ConfigurationValueRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.771+02:00", comments="Source Table: configuration_value")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(configurationValueRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, configurationValueRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, configurationValueRecord)
                 .where(id, isEqualTo(id_))
@@ -94,7 +94,7 @@ public interface ConfigurationValueRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default int insert(ConfigurationValueRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(configurationValueRecord)
@@ -108,7 +108,7 @@ public interface ConfigurationValueRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default int insertSelective(ConfigurationValueRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(configurationValueRecord)
@@ -122,19 +122,19 @@ public interface ConfigurationValueRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ConfigurationValueRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, configurationId, configurationAttributeId, listIndex, value, text)
                 .from(configurationValueRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.074+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ConfigurationValueRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, configurationId, configurationAttributeId, listIndex, value, text)
                 .from(configurationValueRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.075+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default ConfigurationValueRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, configurationId, configurationAttributeId, listIndex, value, text)
                 .from(configurationValueRecord)
@@ -143,7 +143,7 @@ public interface ConfigurationValueRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.075+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ConfigurationValueRecord record) {
         return UpdateDSL.updateWithMapper(this::update, configurationValueRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -154,7 +154,7 @@ public interface ConfigurationValueRecordMapper {
                 .set(text).equalTo(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.075+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ConfigurationValueRecord record) {
         return UpdateDSL.updateWithMapper(this::update, configurationValueRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -165,7 +165,7 @@ public interface ConfigurationValueRecordMapper {
                 .set(text).equalToWhenPresent(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.075+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default int updateByPrimaryKey(ConfigurationValueRecord record) {
         return UpdateDSL.updateWithMapper(this::update, configurationValueRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -179,7 +179,7 @@ public interface ConfigurationValueRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.075+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.772+02:00", comments="Source Table: configuration_value")
     default int updateByPrimaryKeySelective(ConfigurationValueRecord record) {
         return UpdateDSL.updateWithMapper(this::update, configurationValueRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)

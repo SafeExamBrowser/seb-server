@@ -51,6 +51,7 @@ public abstract class RestCall<T> {
         GET_PAGE,
         GET_NAMES,
         GET_DEPENDENCIES,
+        GET_LIST,
         NEW,
         SAVE,
         DELETE,
@@ -78,7 +79,7 @@ public abstract class RestCall<T> {
 
     }
 
-    RestCall<T> init(final RestService restService, final JSONMapper jsonMapper) {
+    protected RestCall<T> init(final RestService restService, final JSONMapper jsonMapper) {
         this.restService = restService;
         this.jsonMapper = jsonMapper;
         return this;
@@ -161,15 +162,25 @@ public abstract class RestCall<T> {
 
     public class RestCallBuilder {
 
-        private final HttpHeaders httpHeaders = new HttpHeaders();
+        private final HttpHeaders httpHeaders;
         private String body = null;
-        private final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        private final Map<String, String> uriVariables = new HashMap<>();
+        private final MultiValueMap<String, String> queryParams;
+        private final Map<String, String> uriVariables;
 
         protected RestCallBuilder() {
+            this.httpHeaders = new HttpHeaders();
+            this.queryParams = new LinkedMultiValueMap<>();
+            this.uriVariables = new HashMap<>();
             this.httpHeaders.set(
                     HttpHeaders.CONTENT_TYPE,
                     RestCall.this.contentType.toString());
+        }
+
+        public RestCallBuilder(final RestCall<?>.RestCallBuilder builder) {
+            this.httpHeaders = builder.httpHeaders;
+            this.body = builder.body;
+            this.queryParams = new LinkedMultiValueMap<>(builder.queryParams);
+            this.uriVariables = new HashMap<>(builder.uriVariables);
         }
 
         public RestCallBuilder withHeaders(final HttpHeaders headers) {

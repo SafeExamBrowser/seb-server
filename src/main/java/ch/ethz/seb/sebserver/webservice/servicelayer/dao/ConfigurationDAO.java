@@ -44,10 +44,12 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
 
     /** Restores the current follow-up Configuration to the values of a given Configuration
      * in the history of the specified ConfigurationNode.
-     * 
+     *
      * @param configurationNodeId the ConfigurationNode identifier
      * @param configId the identifier of historical Configuration that defines the restore point and values
      * @return the follow-up Configuration with restored values */
     Result<Configuration> restoreToVersion(Long configurationNodeId, Long configId);
+
+    Result<Configuration> getFollowupConfiguration(String configNodeId);
 
 }

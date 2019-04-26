@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gbl.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +43,7 @@ public final class Utils {
      * the given Stream.
      * This first collects the given Stream to a list and then check if there is one expected element.
      * If not a IllegalStateException is thrown.
-     * 
+     *
      * @return the expected singleton element
      * @throws IllegalStateException if the given stream was empty or has more then one element */
     public static <T> Collector<T, ?, T> toSingleton() {
@@ -128,7 +130,7 @@ public final class Utils {
                 : Collections.emptyList();
     }
 
-    public static Map<String, String> immutableMapOf(final Map<String, String> params) {
+    public static <K, V> Map<K, V> immutableMapOf(final Map<K, V> params) {
         return (params != null)
                 ? Collections.unmodifiableMap(params)
                 : Collections.emptyMap();
@@ -222,6 +224,69 @@ public final class Utils {
             array[i] = 0;
         }
 
+    }
+
+    public static byte[] toByteArray(final ByteBuffer buffer) {
+        if (buffer == null) {
+            return new byte[0];
+        }
+
+        buffer.rewind();
+        final byte[] result = new byte[buffer.limit()];
+        buffer.get(result);
+        return result;
+    }
+
+    /** Formats the given CharSequence to a UTF-8 and convert to byte array
+     *
+     * @param chars
+     * @return UTF-8 formatted byte array of given CharSequence */
+    public static byte[] toByteArray(final CharSequence chars) {
+        return toByteArray(toByteBuffer(chars));
+    }
+
+    public static ByteBuffer toByteBuffer(final CharSequence chars) {
+        if (chars == null) {
+            return ByteBuffer.allocate(0);
+        }
+
+        return StandardCharsets.UTF_8.encode(CharBuffer.wrap(chars));
+    }
+
+    public static CharBuffer toCharBuffer(final ByteBuffer byteBuffer) {
+        if (byteBuffer == null) {
+            return CharBuffer.allocate(0);
+        }
+
+        byteBuffer.rewind();
+        return StandardCharsets.UTF_8.decode(byteBuffer);
+    }
+
+    public static String toString(final ByteBuffer byteBuffer) {
+        return toCharBuffer(byteBuffer).toString();
+    }
+
+    public static String toString(final byte[] byteArray) {
+        return toString(ByteBuffer.wrap(byteArray));
+    }
+
+    public static char[] toCharArray(final CharBuffer buffer) {
+        if (buffer == null) {
+            return new char[0];
+        }
+
+        buffer.rewind();
+        final char[] result = new char[buffer.limit()];
+        buffer.get(result);
+        return result;
+    }
+
+    public static char[] toCharArray(final CharSequence chars) {
+        if (chars == null) {
+            return new char[0];
+        }
+
+        return toCharArray(CharBuffer.wrap(chars));
     }
 
 }

@@ -29,6 +29,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 // TODO check if DataSourceAutoConfiguration and TokenStore bean definition is really needed here
@@ -74,6 +75,8 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
     @Lazy
     @Bean
     public JNCryptor jnCryptor() {
-        return new AES256JNCryptor();
+        final AES256JNCryptor aes256jnCryptor = new AES256JNCryptor();
+        aes256jnCryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
+        return aes256jnCryptor;
     }
 }

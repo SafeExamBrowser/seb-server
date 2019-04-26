@@ -9,12 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
@@ -22,6 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -31,13 +36,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_NODE_ENDPOINT)
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
 
+    private final ConfigurationDAO configurationDAO;
+
     protected ConfigurationNodeController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final ConfigurationNodeDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final ConfigurationDAO configurationDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -45,6 +53,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
+
+        this.configurationDAO = configurationDAO;
     }
 
     @Override
@@ -58,6 +68,23 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @Override
     protected SqlTable getSQLTableOfEntity() {
         return ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord;
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Configuration getFollowup(@PathVariable final String modelId) {
+
+        this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkModifyAccess)
+                .getOrThrow();
+
+        return this.configurationDAO
+                .getFollowupConfiguration(modelId)
+                .getOrThrow();
     }
 
 }

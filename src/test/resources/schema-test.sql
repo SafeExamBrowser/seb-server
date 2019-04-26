@@ -269,6 +269,7 @@ CREATE TABLE IF NOT EXISTS `orientation` (
   `y_position` INT UNSIGNED NOT NULL DEFAULT 0,
   `width` INT UNSIGNED NULL,
   `height` INT UNSIGNED NULL,
+  `title` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `config_attribute_orientation_rev_idx` (`config_attribute_id` ASC),
   CONSTRAINT `config_attribute_orientation_rev`

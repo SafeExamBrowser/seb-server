@@ -46,9 +46,9 @@ public interface SebClientConfigService {
                     "</dict>" +
                     "</plist>";
 
-    boolean hasSebClientConfigurationForIntitution(Long institutionId);
+    boolean hasSebClientConfigurationForInstitution(Long institutionId);
 
-    Result<SebClientConfig> autoCreateSebClientConfigurationForIntitution(Long institutionId);
+    Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
 
     Result<InputStream> exportSebClientConfiguration(final String modelId);
 

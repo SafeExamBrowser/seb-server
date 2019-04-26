@@ -3,35 +3,38 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class OrientationRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source field: orientation.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source field: orientation.config_attribute_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.config_attribute_id")
     private Long configAttributeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source field: orientation.template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.template_id")
     private Long templateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.view")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.view")
     private String view;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.group")
     private String group;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.x_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.x_position")
     private Integer xPosition;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.y_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.775+02:00", comments="Source field: orientation.y_position")
     private Integer yPosition;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.width")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.775+02:00", comments="Source field: orientation.width")
     private Integer width;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.height")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.776+02:00", comments="Source field: orientation.height")
     private Integer height;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source Table: orientation")
-    public OrientationRecord(Long id, Long configAttributeId, Long templateId, String view, String group, Integer xPosition, Integer yPosition, Integer width, Integer height) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.776+02:00", comments="Source field: orientation.title")
+    private String title;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.773+02:00", comments="Source Table: orientation")
+    public OrientationRecord(Long id, Long configAttributeId, Long templateId, String view, String group, Integer xPosition, Integer yPosition, Integer width, Integer height, String title) {
         this.id = id;
         this.configAttributeId = configAttributeId;
         this.templateId = templateId;
@@ -41,58 +44,64 @@ public class OrientationRecord {
         this.yPosition = yPosition;
         this.width = width;
         this.height = height;
+        this.title = title;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source field: orientation.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.076+02:00", comments="Source field: orientation.config_attribute_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.config_attribute_id")
     public Long getConfigAttributeId() {
         return configAttributeId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.077+02:00", comments="Source field: orientation.template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.template_id")
     public Long getTemplateId() {
         return templateId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.view")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.view")
     public String getView() {
         return view;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.774+02:00", comments="Source field: orientation.group")
     public String getGroup() {
         return group;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.078+02:00", comments="Source field: orientation.x_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.775+02:00", comments="Source field: orientation.x_position")
     public Integer getxPosition() {
         return xPosition;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.y_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.775+02:00", comments="Source field: orientation.y_position")
     public Integer getyPosition() {
         return yPosition;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.width")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.775+02:00", comments="Source field: orientation.width")
     public Integer getWidth() {
         return width;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.079+02:00", comments="Source field: orientation.height")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.776+02:00", comments="Source field: orientation.height")
     public Integer getHeight() {
         return height;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.776+02:00", comments="Source field: orientation.title")
+    public String getTitle() {
+        return title;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table orientation
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public String toString() {
@@ -109,6 +118,7 @@ public class OrientationRecord {
         sb.append(", yPosition=").append(yPosition);
         sb.append(", width=").append(width);
         sb.append(", height=").append(height);
+        sb.append(", title=").append(title);
         sb.append("]");
         return sb.toString();
     }
@@ -117,7 +127,7 @@ public class OrientationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table orientation
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public boolean equals(Object that) {
@@ -139,14 +149,15 @@ public class OrientationRecord {
             && (this.getxPosition() == null ? other.getxPosition() == null : this.getxPosition().equals(other.getxPosition()))
             && (this.getyPosition() == null ? other.getyPosition() == null : this.getyPosition().equals(other.getyPosition()))
             && (this.getWidth() == null ? other.getWidth() == null : this.getWidth().equals(other.getWidth()))
-            && (this.getHeight() == null ? other.getHeight() == null : this.getHeight().equals(other.getHeight()));
+            && (this.getHeight() == null ? other.getHeight() == null : this.getHeight().equals(other.getHeight()))
+            && (this.getTitle() == null ? other.getTitle() == null : this.getTitle().equals(other.getTitle()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table orientation
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public int hashCode() {
@@ -161,6 +172,7 @@ public class OrientationRecord {
         result = prime * result + ((getyPosition() == null) ? 0 : getyPosition().hashCode());
         result = prime * result + ((getWidth() == null) ? 0 : getWidth().hashCode());
         result = prime * result + ((getHeight() == null) ? 0 : getHeight().hashCode());
+        result = prime * result + ((getTitle() == null) ? 0 : getTitle().hashCode());
         return result;
     }
 }

@@ -55,6 +55,9 @@ public final class Orientation implements Entity {
     @JsonProperty(ORIENTATION.ATTR_HEIGHT)
     public final Integer height;
 
+    @JsonProperty(ORIENTATION.ATTR_TITLE)
+    public final TitleOrientation title;
+
     @JsonCreator
     public Orientation(
             @JsonProperty(ORIENTATION.ATTR_ID) final Long id,
@@ -65,7 +68,8 @@ public final class Orientation implements Entity {
             @JsonProperty(ORIENTATION.ATTR_X_POSITION) final Integer xPosition,
             @JsonProperty(ORIENTATION.ATTR_Y_POSITION) final Integer yPosition,
             @JsonProperty(ORIENTATION.ATTR_WIDTH) final Integer width,
-            @JsonProperty(ORIENTATION.ATTR_HEIGHT) final Integer height) {
+            @JsonProperty(ORIENTATION.ATTR_HEIGHT) final Integer height,
+            @JsonProperty(ORIENTATION.ATTR_TITLE) final TitleOrientation title) {
 
         this.id = id;
         this.attributeId = attributeId;
@@ -76,6 +80,7 @@ public final class Orientation implements Entity {
         this.yPosition = yPosition;
         this.width = width;
         this.height = height;
+        this.title = (title != null) ? title : TitleOrientation.NONE;
     }
 
     public Orientation(final ConfigurationAttribute attr, final POSTMapper postParams) {
@@ -88,6 +93,10 @@ public final class Orientation implements Entity {
         this.yPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_Y_POSITION);
         this.width = postParams.getInteger(Domain.ORIENTATION.ATTR_WIDTH);
         this.height = postParams.getInteger(Domain.ORIENTATION.ATTR_HEIGHT);
+        this.title = postParams.getEnum(
+                Domain.ORIENTATION.ATTR_TITLE,
+                TitleOrientation.class,
+                TitleOrientation.NONE);
     }
 
     @Override
@@ -143,13 +152,17 @@ public final class Orientation implements Entity {
         return this.height;
     }
 
+    public TitleOrientation getTitle() {
+        return this.title;
+    }
+
     @Override
     public String toString() {
         return "Orientation [id=" + this.id + ", attributeId=" + this.attributeId + ", templateId=" + this.templateId
                 + ", view="
                 + this.view + ", group=" + this.group + ", xPosition=" + this.xPosition + ", yPosition="
                 + this.yPosition + ", width="
-                + this.width + ", height=" + this.height + "]";
+                + this.width + ", height=" + this.height + ", title=" + this.title + "]";
     }
 
 }

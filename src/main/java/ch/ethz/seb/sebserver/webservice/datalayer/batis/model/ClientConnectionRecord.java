@@ -3,31 +3,31 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientConnectionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.status")
     private String status;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.connection_token")
     private String connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.user_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.user_name")
     private String userName;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.vdi")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.vdi")
     private Boolean vdi;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.client_address")
     private String clientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.virtual_client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.virtual_client_address")
     private String virtualClientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source Table: client_connection")
     public ClientConnectionRecord(Long id, Long examId, String status, String connectionToken, String userName, Boolean vdi, String clientAddress, String virtualClientAddress) {
         this.id = id;
         this.examId = examId;
@@ -39,42 +39,42 @@ public class ClientConnectionRecord {
         this.virtualClientAddress = virtualClientAddress;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.status")
     public String getStatus() {
         return status;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.118+02:00", comments="Source field: client_connection.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.connection_token")
     public String getConnectionToken() {
         return connectionToken;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.user_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.user_name")
     public String getUserName() {
         return userName;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.vdi")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.vdi")
     public Boolean getVdi() {
         return vdi;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.client_address")
     public String getClientAddress() {
         return clientAddress;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-17T16:13:34.119+02:00", comments="Source field: client_connection.virtual_client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.814+02:00", comments="Source field: client_connection.virtual_client_address")
     public String getVirtualClientAddress() {
         return virtualClientAddress;
     }
@@ -83,7 +83,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public String toString() {
@@ -107,7 +107,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public boolean equals(Object that) {
@@ -135,7 +135,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Wed Apr 17 16:13:34 CEST 2019
+     * @mbg.generated Tue Apr 23 15:30:54 CEST 2019
      */
     @Override
     public int hashCode() {

@@ -6,17 +6,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
+package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.CharBuffer;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.cryptonode.jncryptor.CryptorException;
-import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,10 +26,14 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 
 @Lazy
 @Service
@@ -44,7 +45,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
-    private final JNCryptor jnCryptor;
+    private final SebConfigEncryptionService sebConfigEncryptionService;
     private final String httpScheme;
     private final String serverAddress;
     private final String serverPort;
@@ -54,7 +55,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final InstitutionDAO institutionDAO,
             final SebClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
-            final JNCryptor jnCryptor,
+            final SebConfigEncryptionService sebConfigEncryptionService,
             @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
             @Value("${server.address}") final String serverAddress,
             @Value("${server.port}") final String serverPort,
@@ -63,7 +64,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
-        this.jnCryptor = jnCryptor;
+        this.sebConfigEncryptionService = sebConfigEncryptionService;
         this.httpScheme = httpScheme;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
@@ -71,13 +72,13 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     }
 
     @Override
-    public boolean hasSebClientConfigurationForIntitution(final Long institutionId) {
+    public boolean hasSebClientConfigurationForInstitution(final Long institutionId) {
         final Result<Collection<SebClientConfig>> all = this.sebClientConfigDAO.all(institutionId, true);
         return all != null && !all.hasError() && !all.getOrThrow().isEmpty();
     }
 
     @Override
-    public Result<SebClientConfig> autoCreateSebClientConfigurationForIntitution(final Long institutionId) {
+    public Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(final Long institutionId) {
         return Result.tryCatch(() -> {
             final Institution institution = this.institutionDAO
                     .byPK(institutionId)
@@ -131,67 +132,42 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final CharSequence plainClientSecret = this.clientCredentialService
                     .getPlainClientSecret(sebClientCredentials);
 
-            try {
+            final String plainTextConfig = String.format(
+                    SEB_CLIENT_CONFIG_EXAMPLE_XML,
+                    serverURL,
+                    String.valueOf(config.institutionId),
+                    plainClientId,
+                    plainClientSecret,
+                    API.OAUTH_TOKEN_ENDPOINT,
+                    this.sebClientAPIEndpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
+                    this.sebClientAPIEndpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
+                    this.sebClientAPIEndpoint + API.EXAM_API_PING_ENDPOINT,
+                    this.sebClientAPIEndpoint + API.EXAM_API_EVENT_ENDPOINT);
 
-                final byte[] plainTextConfig = String.format(
-                        SEB_CLIENT_CONFIG_EXAMPLE_XML,
-                        serverURL,
-                        String.valueOf(config.institutionId),
-                        plainClientId,
-                        plainClientSecret,
-                        API.OAUTH_TOKEN_ENDPOINT,
-                        this.sebClientAPIEndpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
-                        this.sebClientAPIEndpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
-                        this.sebClientAPIEndpoint + API.EXAM_API_PING_ENDPOINT,
-                        this.sebClientAPIEndpoint + API.EXAM_API_EVENT_ENDPOINT)
-                        .getBytes("UTF-8");
+            if (encryptionPassword != null) {
 
-                if (encryptionPassword != null) {
-                    final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
-                            .decrypt(encryptionPassword);
+                log.debug("Try to encrypt seb client configuration with password based encryption");
 
-                    return new ByteArrayInputStream(encode(
-                            plainTextConfig,
-                            encryptionPasswordPlaintext));
-                } else {
-                    return new ByteArrayInputStream(plainTextConfig);
-                }
+                final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
+                        .decrypt(encryptionPassword);
 
-            } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException("cause: ", e);
-            }
+                final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.encryptWithPassword(
+                        plainTextConfig,
+                        Strategy.PASSWORD_PWCC,
+                        encryptionPasswordPlaintext)
+                        .getOrThrow();
 
-        });
-    }
-
-    private byte[] encode(final byte[] plainTextConfig, final CharSequence secret) {
-
-        try {
-
-            char[] secretChars;
-            final CharBuffer secretBuffer = CharBuffer.wrap(secret);
-            if (secretBuffer.hasArray()) {
-                secretChars = secretBuffer.array();
+                return new ByteArrayInputStream(encryptedConfig.array());
             } else {
-                secretChars = new char[secretBuffer.length()];
-                secretBuffer.get(secretChars);
+
+                log.debug("Serve plain text seb configuration with specified header");
+
+                final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.plainText(plainTextConfig)
+                        .getOrThrow();
+
+                return new ByteArrayInputStream(Utils.toByteArray(encryptedConfig));
             }
-            // TODO format the plainTextConfig for SEB Client encoding format
-//            jnCryptor.encryptData(
-//                    plainTextConfig,
-//                    secret,
-//                    encryptionSalt,
-//                    hmacSalt,
-//                    iv);
-
-            return this.jnCryptor.encryptData(
-                    plainTextConfig,
-                    secretChars);
-
-        } catch (final CryptorException e) {
-            log.error("Unexpected error while trying to encrypt SEB Client configuration: ", e);
-            return plainTextConfig;
-        }
+        });
     }
 
 }

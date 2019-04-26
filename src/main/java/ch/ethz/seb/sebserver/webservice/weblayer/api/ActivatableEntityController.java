@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -83,7 +82,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 pageNumber,
                 pageSize,
                 sort,
-                UserRecordDynamicSqlSupport.userRecord,
+                getSQLTableOfEntity().name(),
                 () -> getAll(filterMap)).getOrThrow();
     }
 
@@ -111,7 +110,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 pageNumber,
                 pageSize,
                 sort,
-                UserRecordDynamicSqlSupport.userRecord,
+                getSQLTableOfEntity().name(),
                 () -> getAll(filterMap)).getOrThrow();
     }
 

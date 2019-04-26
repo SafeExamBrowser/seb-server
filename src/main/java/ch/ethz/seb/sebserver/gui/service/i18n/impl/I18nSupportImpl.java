@@ -25,17 +25,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
 @Lazy
-@Component
+@Service
+@GuiProfile
 public class I18nSupportImpl implements I18nSupport {
 
     private static final Logger log = LoggerFactory.getLogger(I18nSupportImpl.class);

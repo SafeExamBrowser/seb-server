@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
@@ -116,7 +117,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                     data.xPosition,
                     data.yPosition,
                     data.width,
-                    data.height);
+                    data.height,
+                    data.title.name());
 
             this.orientationRecordMapper.insert(newRecord);
             return newRecord;
@@ -139,7 +141,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                     data.xPosition,
                     data.yPosition,
                     data.width,
-                    data.height);
+                    data.height,
+                    data.title.name());
 
             this.orientationRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.orientationRecordMapper.selectByPrimaryKey(data.id);
@@ -209,7 +212,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 record.getxPosition(),
                 record.getyPosition(),
                 record.getWidth(),
-                record.getHeight()));
+                record.getHeight(),
+                TitleOrientation.valueOf(record.getTitle())));
     }
 
 }
