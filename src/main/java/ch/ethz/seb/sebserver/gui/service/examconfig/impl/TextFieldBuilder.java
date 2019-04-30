@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -85,59 +84,26 @@ public class TextFieldBuilder implements InputFieldBuilder {
         errorLabel.setVisible(false);
         errorLabel.setData(RWT.CUSTOM_VARIANT, "error");
 
-        addValueChangeListener(
-                text,
-                attribute,
-                orientation,
-                viewContext);
-
-        return new TextInputField(attribute, orientation, text, errorLabel);
-    }
-
-    private void addValueChangeListener(
-            final Text control,
-            final ConfigurationAttribute attribute,
-            final Orientation orientation,
-            final ViewContext viewContext) {
-
+        final TextInputField textInputField = new TextInputField(attribute, orientation, text, errorLabel);
         final ValueChangeListener valueListener = viewContext.getValueChangeListener();
-        if (attribute.type == AttributeType.INTEGER) {
-            addNumberCheckListener(control, attribute, s -> Integer.parseInt(s), viewContext);
-        } else if (attribute.type == AttributeType.DECIMAL) {
-            addNumberCheckListener(control, attribute, s -> Double.parseDouble(s), viewContext);
-        } else {
-            control.addListener(
-                    SWT.FocusOut,
-                    event -> valueListener.valueChanged(
+        text.addListener(
+                SWT.FocusOut,
+                event -> {
+                    textInputField.clearError();
+                    valueListener.valueChanged(
                             viewContext,
                             attribute,
-                            String.valueOf(control.getText()),
-                            0));
-        }
-    }
+                            String.valueOf(text.getText()),
+                            textInputField.listIndex);
+                });
 
-    private void addNumberCheckListener(
-            final Text control,
-            final ConfigurationAttribute attribute,
-            final Consumer<String> numberCheck,
-            final ViewContext viewContext) {
-
-        final ValueChangeListener valueListener = viewContext.getValueChangeListener();
-        control.addListener(SWT.FocusOut, event -> {
-            try {
-                final String text = control.getText();
-                numberCheck.accept(text);
-                viewContext.clearError(attribute.id);
-                valueListener.valueChanged(viewContext, attribute, text, 0);
-            } catch (final NumberFormatException e) {
-                viewContext.showError(attribute.id, "Not A Number");
-            }
-        });
+        return textInputField;
     }
 
     static final class TextInputField extends ControlFieldAdapter<Text> {
 
         private String initValue = "";
+        private int listIndex = 0;
 
         TextInputField(
                 final ConfigurationAttribute attribute,
@@ -155,6 +121,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
                     .findFirst()
                     .map(v -> {
                         this.initValue = v.value;
+                        this.listIndex = (v.listIndex != null) ? v.listIndex : 0;
                         setDefaultValue();
                         return this.initValue;
                     });

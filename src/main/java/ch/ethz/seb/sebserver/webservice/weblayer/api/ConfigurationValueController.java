@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -44,6 +45,7 @@ public class ConfigurationValueController extends EntityController<Configuration
 
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationValueDAO configurationValueDAO;
+    private final SebExamConfigService sebExamConfigService;
 
     protected ConfigurationValueController(
             final AuthorizationService authorization,
@@ -52,7 +54,8 @@ public class ConfigurationValueController extends EntityController<Configuration
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ConfigurationDAO configurationDAO) {
+            final ConfigurationDAO configurationDAO,
+            final SebExamConfigService sebExamConfigService) {
 
         super(authorization,
                 bulkActionService,
@@ -63,6 +66,7 @@ public class ConfigurationValueController extends EntityController<Configuration
 
         this.configurationDAO = configurationDAO;
         this.configurationValueDAO = entityDAO;
+        this.sebExamConfigService = sebExamConfigService;
     }
 
     @Override
@@ -138,17 +142,21 @@ public class ConfigurationValueController extends EntityController<Configuration
                 _entity = entity;
             }
 
-            // test either id or (configurationId and attributeId and listIndex) are set
-            if (_entity.id != null ||
-                    (_entity.configurationId != null &&
-                            _entity.attributeId != null &&
-                            _entity.listIndex != null)) {
+            // ConfigurationValue identity constraint
+            // test either id or (configurationId and attributeId and listIndex) must be set
+            final boolean idSet = _entity.id != null;
+            final boolean idsSet = _entity.configurationId != null &&
+                    _entity.attributeId != null &&
+                    _entity.listIndex != null;
+            if (!idSet && !idsSet) {
+                throw new IllegalAPIArgumentException(
+                        "Missing some mandatory attributes. Either id must be set or all of configurationId, attributeId and listIndex");
 
-                return _entity;
             }
 
-            throw new IllegalAPIArgumentException(
-                    "Missing some mandatory attributes. Either id must be set or all of configurationId, attributeId and listIndex");
+            // apply field type validation
+            this.sebExamConfigService.validate(_entity);
+            return _entity;
         });
     }
 

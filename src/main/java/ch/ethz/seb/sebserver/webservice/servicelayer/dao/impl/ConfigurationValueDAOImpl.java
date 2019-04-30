@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
@@ -156,9 +157,29 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(this::attributeRecord)
                 .map(attributeRecord -> {
 
+                    final Long id;
+                    if (data.id == null) {
+                        id = this.configurationValueRecordMapper.selectIdsByExample()
+                                .where(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                        isEqualTo(data.configurationId))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                        isEqualTo(data.attributeId))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                                        isEqualTo(data.listIndex))
+                                .build()
+                                .execute()
+                                .stream()
+                                .collect(Utils.toSingleton());
+                    } else {
+                        id = data.id;
+                    }
+
                     final boolean bigValue = isBigValue(attributeRecord);
                     final ConfigurationValueRecord newRecord = new ConfigurationValueRecord(
-                            data.id,
+                            id,
                             null,
                             null,
                             null,
@@ -166,13 +187,8 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             (bigValue) ? null : data.value,
                             (bigValue) ? data.value : null);
 
-                    if (data.id != null) {
-                        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    } else {
-                        saveByMatch(data, newRecord);
-                    }
-                    return this.configurationValueRecordMapper.selectByPrimaryKey(data.id);
-
+                    this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    return this.configurationValueRecordMapper.selectByPrimaryKey(id);
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -422,31 +438,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         }
 
         return data;
-    }
-
-    /** Try to identify and save attribute value by configurationId and configurationAttributeId and listIndex
-     *
-     * @param data
-     * @param newRecord
-     * @throws ResourceNotFoundException if no matching attribute value was found */
-    private void saveByMatch(final ConfigurationValue data, final ConfigurationValueRecord newRecord) {
-
-        final Integer execute = this.configurationValueRecordMapper.updateByExample(newRecord)
-                .where(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                        isEqualTo(data.configurationId))
-                .and(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                        isEqualTo(data.attributeId))
-                .and(
-                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                        isEqualTo(data.listIndex))
-                .build()
-                .execute();
-
-        if (execute == null || execute < 0) {
-            throw new ResourceNotFoundException(EntityType.CONFIGURATION_VALUE, data.toString());
-        }
     }
 
 }
