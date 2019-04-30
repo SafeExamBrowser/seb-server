@@ -222,7 +222,7 @@ public class UserDAOImpl implements UserDAO {
 
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -245,7 +245,7 @@ public class UserDAOImpl implements UserDAO {
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -273,7 +273,7 @@ public class UserDAOImpl implements UserDAO {
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

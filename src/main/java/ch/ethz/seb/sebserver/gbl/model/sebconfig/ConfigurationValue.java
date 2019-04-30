@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +27,6 @@ public final class ConfigurationValue implements GrantEntity {
     @JsonProperty(CONFIGURATION_VALUE.ATTR_ID)
     public final Long id;
 
-    @NotNull
     @JsonProperty(CONFIGURATION_VALUE.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
@@ -37,7 +34,7 @@ public final class ConfigurationValue implements GrantEntity {
     public final Long configurationId;
 
     @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID)
-    public final long attributeId;
+    public final Long attributeId;
 
     @JsonProperty(CONFIGURATION_VALUE.ATTR_LIST_INDEX)
     public final Integer listIndex;

@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class AttributeMapping {
 
-    public final String template;
+    public final Long templateId;
 
     public final Map<Long, ConfigurationAttribute> attributeIdMapping;
     public final Map<String, Long> attributeNameIdMapping;
@@ -34,11 +36,15 @@ public class AttributeMapping {
     public final Map<String, List<ConfigurationAttribute>> attributeGroupMapping;
 
     AttributeMapping(
-            final String template,
+            final Long templateId,
             final Collection<ConfigurationAttribute> attributes,
             final Collection<Orientation> orientations) {
 
-        this.template = template;
+        Objects.requireNonNull(templateId);
+        Objects.requireNonNull(attributes);
+        Objects.requireNonNull(orientations);
+
+        this.templateId = templateId;
         this.attributeIdMapping = Utils.immutableMapOf(attributes
                 .stream()
                 .collect(Collectors.toMap(
@@ -71,7 +77,7 @@ public class AttributeMapping {
 
         this.attributeGroupMapping = Utils.immutableMapOf(orientations
                 .stream()
-                .map(o -> o.group)
+                .map(o -> o.groupId)
                 .collect(Collectors.toSet())
                 .stream()
                 .collect(Collectors.toMap(
@@ -79,8 +85,16 @@ public class AttributeMapping {
                         this::getAttributesOfGroup)));
     }
 
+    public Collection<ConfigurationAttribute> getAttributes() {
+        return Collections.unmodifiableCollection(this.attributeIdMapping.values());
+    }
+
     public ConfigurationAttribute getAttribute(final Long attributeId) {
         return this.attributeIdMapping.get(attributeId);
+    }
+
+    public Orientation getOrientation(final Long attributeId) {
+        return this.orientationAttributeMapping.get(attributeId);
     }
 
     public Orientation getOrientation(final String attributeName) {
@@ -91,21 +105,21 @@ public class AttributeMapping {
         return this.attributeIdMapping.get(this.attributeNameIdMapping.get(attributeName));
     }
 
-    public List<ConfigurationAttribute> getAttributes(final String view) {
-        if (StringUtils.isBlank(view)) {
+    public List<ConfigurationAttribute> getAttributes(final Long viewId) {
+        if (viewId == null) {
             return Utils.immutableListOf(this.attributeIdMapping.values());
         } else {
             return Utils.immutableListOf(this.attributeIdMapping
                     .values()
                     .stream()
                     .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id)
-                            && view.equals(this.orientationAttributeMapping.get(attr.id).view))
+                            && viewId.equals(this.orientationAttributeMapping.get(attr.id).viewId))
                     .collect(Collectors.toList()));
         }
     }
 
-    public List<String> getAttributeNames(final String view) {
-        if (StringUtils.isBlank(view)) {
+    public List<String> getAttributeNames(final Long viewId) {
+        if (viewId == null) {
             return Utils.immutableListOf(this.attributeIdMapping
                     .values()
                     .stream()
@@ -116,10 +130,34 @@ public class AttributeMapping {
                     .values()
                     .stream()
                     .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id)
-                            && view.equals(this.orientationAttributeMapping.get(attr.id).view))
+                            && viewId.equals(this.orientationAttributeMapping.get(attr.id).viewId))
                     .map(attr -> attr.name)
                     .collect(Collectors.toList()));
         }
+    }
+
+    public Collection<Long> getViewIds() {
+        return this.orientationAttributeMapping.values()
+                .stream()
+                .map(o -> o.viewId)
+                .collect(Collectors.toSet());
+    }
+
+    public Collection<Orientation> getOrientationsOfGroup(final ConfigurationAttribute attribute) {
+        final Orientation orientation = this.orientationAttributeMapping.get(attribute.id);
+        if (orientation == null) {
+            return Collections.emptyList();
+        }
+
+        if (StringUtils.isBlank(orientation.groupId)) {
+            return Collections.emptyList();
+        }
+
+        return Collections.unmodifiableCollection(this.orientationAttributeMapping
+                .values()
+                .stream()
+                .filter(o -> orientation.groupId.equals(o.groupId))
+                .collect(Collectors.toList()));
     }
 
     private List<ConfigurationAttribute> getChildAttributes(final ConfigurationAttribute attribute) {
@@ -141,7 +179,7 @@ public class AttributeMapping {
         return this.orientationAttributeMapping
                 .values()
                 .stream()
-                .filter(o -> groupName.equals(o.group))
+                .filter(o -> groupName.equals(o.groupId))
                 .sorted((o1, o2) -> (o1.yPosition == o2.yPosition)
                         ? o1.xPosition.compareTo(o2.xPosition)
                         : o1.yPosition.compareTo(o2.yPosition))

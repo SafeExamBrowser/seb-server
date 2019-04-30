@@ -66,6 +66,11 @@ Label.h3 {
     color: #1f407a;
 }
 
+Label.error {
+    font: 10px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    color: #aa0000;
+}
+
 Label:hover.imageButton {
     background-color: transparent;
     background-repeat: no-repeat;

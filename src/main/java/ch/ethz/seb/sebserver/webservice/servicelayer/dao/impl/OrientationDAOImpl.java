@@ -89,11 +89,11 @@ public class OrientationDAOImpl implements OrientationDAO {
                         OrientationRecordDynamicSqlSupport.templateId,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplateId()))
                 .and(
-                        OrientationRecordDynamicSqlSupport.view,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationView()))
+                        OrientationRecordDynamicSqlSupport.viewId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationViewId()))
                 .and(
-                        OrientationRecordDynamicSqlSupport.group,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationGroup()))
+                        OrientationRecordDynamicSqlSupport.groupId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationGroupId()))
                 .build()
                 .execute()
                 .stream()
@@ -112,8 +112,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                     null,
                     data.attributeId,
                     data.templateId,
-                    data.view,
-                    data.group,
+                    data.viewId,
+                    data.groupId,
                     data.xPosition,
                     data.yPosition,
                     data.width,
@@ -124,7 +124,7 @@ public class OrientationDAOImpl implements OrientationDAO {
             return newRecord;
         })
                 .flatMap(OrientationDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class OrientationDAOImpl implements OrientationDAO {
                     null,
                     null,
                     null,
-                    data.group,
+                    data.groupId,
                     data.xPosition,
                     data.yPosition,
                     data.width,
@@ -148,7 +148,7 @@ public class OrientationDAOImpl implements OrientationDAO {
             return this.orientationRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(OrientationDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -207,8 +207,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 record.getId(),
                 record.getConfigAttributeId(),
                 record.getTemplateId(),
-                record.getView(),
-                record.getGroup(),
+                record.getViewId(),
+                record.getGroupId(),
                 record.getxPosition(),
                 record.getyPosition(),
                 record.getWidth(),

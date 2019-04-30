@@ -24,14 +24,12 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ActivateExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeactivateExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
@@ -54,6 +52,8 @@ public class SebExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.name");
     private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
+    private static final LocTextKey FORM_STATUS_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.status");
 
     private final PageService pageService;
     private final RestService restService;
@@ -72,6 +72,7 @@ public class SebExamConfigForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+        final ResourceService resourceService = this.pageService.getResourceService();
 
         final UserInfo user = this.currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -134,6 +135,11 @@ public class SebExamConfigForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         examConfig.description).asArea())
+                .addField(FormBuilder.singleSelection(
+                        Domain.CONFIGURATION_NODE.ATTR_STATUS,
+                        FORM_STATUS_TEXT_KEY,
+                        examConfig.status.name(),
+                        resourceService::examConfigStatusResources))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
@@ -146,17 +152,6 @@ public class SebExamConfigForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_DEACTIVATE)
-                .withEntityKey(entityKey)
-                .withSimpleRestCall(this.restService, DeactivateExamConfig.class)
-                .withConfirm(PageUtils.confirmDeactivation(examConfig, this.restService))
-                .publishIf(() -> writeGrant && isReadonly && examConfig.isActive())
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_ACTIVATE)
-                .withEntityKey(entityKey)
-                .withSimpleRestCall(this.restService, ActivateExamConfig.class)
-                .publishIf(() -> writeGrant && isReadonly && !examConfig.isActive())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
                 .withEntityKey(entityKey)

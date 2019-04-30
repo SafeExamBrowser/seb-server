@@ -6,40 +6,40 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class OrientationRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.779+02:00", comments="Source Table: orientation")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.095+02:00", comments="Source Table: orientation")
     public static final OrientationRecord orientationRecord = new OrientationRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.780+02:00", comments="Source field: orientation.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.096+02:00", comments="Source field: orientation.id")
     public static final SqlColumn<Long> id = orientationRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.780+02:00", comments="Source field: orientation.config_attribute_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.096+02:00", comments="Source field: orientation.config_attribute_id")
     public static final SqlColumn<Long> configAttributeId = orientationRecord.configAttributeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.781+02:00", comments="Source field: orientation.template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.096+02:00", comments="Source field: orientation.template_id")
     public static final SqlColumn<Long> templateId = orientationRecord.templateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.781+02:00", comments="Source field: orientation.view")
-    public static final SqlColumn<String> view = orientationRecord.view;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.096+02:00", comments="Source field: orientation.view_id")
+    public static final SqlColumn<Long> viewId = orientationRecord.viewId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.781+02:00", comments="Source field: orientation.group")
-    public static final SqlColumn<String> group = orientationRecord.group;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.096+02:00", comments="Source field: orientation.group_id")
+    public static final SqlColumn<String> groupId = orientationRecord.groupId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.782+02:00", comments="Source field: orientation.x_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.097+02:00", comments="Source field: orientation.x_position")
     public static final SqlColumn<Integer> xPosition = orientationRecord.xPosition;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.782+02:00", comments="Source field: orientation.y_position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.097+02:00", comments="Source field: orientation.y_position")
     public static final SqlColumn<Integer> yPosition = orientationRecord.yPosition;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.782+02:00", comments="Source field: orientation.width")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.097+02:00", comments="Source field: orientation.width")
     public static final SqlColumn<Integer> width = orientationRecord.width;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.783+02:00", comments="Source field: orientation.height")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.097+02:00", comments="Source field: orientation.height")
     public static final SqlColumn<Integer> height = orientationRecord.height;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.783+02:00", comments="Source field: orientation.title")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.097+02:00", comments="Source field: orientation.title")
     public static final SqlColumn<String> title = orientationRecord.title;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-23T15:30:54.779+02:00", comments="Source Table: orientation")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.095+02:00", comments="Source Table: orientation")
     public static final class OrientationRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -47,9 +47,9 @@ public final class OrientationRecordDynamicSqlSupport {
 
         public final SqlColumn<Long> templateId = column("template_id", JDBCType.BIGINT);
 
-        public final SqlColumn<String> view = column("view", JDBCType.VARCHAR);
+        public final SqlColumn<Long> viewId = column("view_id", JDBCType.BIGINT);
 
-        public final SqlColumn<String> group = column("group", JDBCType.VARCHAR);
+        public final SqlColumn<String> groupId = column("group_id", JDBCType.VARCHAR);
 
         public final SqlColumn<Integer> xPosition = column("x_position", JDBCType.INTEGER);
 

@@ -150,7 +150,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
             return this.indicatorRecordMapper.selectByPrimaryKey(modified.id);
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -181,7 +181,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
             return newRecord;
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

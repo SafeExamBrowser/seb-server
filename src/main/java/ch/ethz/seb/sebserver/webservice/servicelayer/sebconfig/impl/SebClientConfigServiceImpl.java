@@ -153,11 +153,11 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
                 final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.encryptWithPassword(
                         plainTextConfig,
-                        Strategy.PASSWORD_PWCC,
+                        Strategy.PASSWORD_PSWD,
                         encryptionPasswordPlaintext)
                         .getOrThrow();
 
-                return new ByteArrayInputStream(encryptedConfig.array());
+                return new ByteArrayInputStream(Utils.toByteArray(encryptedConfig));
             } else {
 
                 log.debug("Serve plain text seb configuration with specified header");

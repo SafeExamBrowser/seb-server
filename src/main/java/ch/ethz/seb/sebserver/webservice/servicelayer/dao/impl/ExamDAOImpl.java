@@ -164,7 +164,7 @@ public class ExamDAOImpl implements ExamDAO {
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -211,7 +211,7 @@ public class ExamDAOImpl implements ExamDAO {
             return examRecord;
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

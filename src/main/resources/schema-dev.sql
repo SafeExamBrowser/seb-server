@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `configuration_node` (
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(4000) NULL,
   `type` VARCHAR(45) NULL,
-  `active` INT(1) NOT NULL,
+  `status` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `configurationInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `configurationInstitutionRef`
@@ -260,6 +260,19 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
 
 
 -- -----------------------------------------------------
+-- Table `view`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `view` ;
+
+CREATE TABLE IF NOT EXISTS `view` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `position` INT NOT NULL,
+  PRIMARY KEY (`id`))
+;
+
+
+-- -----------------------------------------------------
 -- Table `orientation`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `orientation` ;
@@ -268,8 +281,8 @@ CREATE TABLE IF NOT EXISTS `orientation` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `config_attribute_id` BIGINT UNSIGNED NOT NULL,
   `template_id` BIGINT UNSIGNED NULL,
-  `view` VARCHAR(45) NOT NULL,
-  `group` VARCHAR(45) NULL,
+  `view_id` BIGINT UNSIGNED NOT NULL,
+  `group_id` VARCHAR(45) NULL,
   `x_position` INT UNSIGNED NOT NULL DEFAULT 0,
   `y_position` INT UNSIGNED NOT NULL DEFAULT 0,
   `width` INT UNSIGNED NULL,
@@ -277,9 +290,15 @@ CREATE TABLE IF NOT EXISTS `orientation` (
   `title` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `config_attribute_orientation_rev_idx` (`config_attribute_id` ASC),
-  CONSTRAINT `config_attribute_orientation_rev`
+  INDEX `orientation_view_ref_idx` (`view_id` ASC),
+  CONSTRAINT `config_attribute_orientation_ref`
     FOREIGN KEY (`config_attribute_id`)
     REFERENCES `configuration_attribute` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `orientation_view_ref`
+    FOREIGN KEY (`view_id`)
+    REFERENCES `view` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

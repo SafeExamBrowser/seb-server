@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccounts;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -114,7 +114,7 @@ public class UserAccountList implements TemplateComposer {
 
         // table
         final EntityTable<UserInfo> table = this.pageService.entityTableBuilder(
-                restService.getRestCall(GetUserAccounts.class))
+                restService.getRestCall(GetUserAccountPage.class))
 
                 .withEmptyMessage(new LocTextKey("sebserver.useraccount.list.empty"))
                 .withPaging(this.pageSize)

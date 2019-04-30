@@ -11,46 +11,61 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
 
 public final class ViewContext {
 
-    public final String name;
-    public final String configurationId;
+    public final Configuration configuration;
+    public final View view;
     public final int columns, rows;
 
-    public final AttributeMapping attributeContext;
-
-    private final Map<String, InputField> inputFieldMapping;
+    public final AttributeMapping attributeMapping;
+    private final Map<Long, InputField> inputFieldMapping;
     private final ValueChangeListener valueChangeListener;
 
     ViewContext(
-            final String name,
-            final String configurationId,
+            final Configuration configuration,
+            final View view,
             final int columns,
             final int rows,
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener) {
 
-        this.name = name;
-        this.configurationId = configurationId;
+        Objects.requireNonNull(configuration);
+        Objects.requireNonNull(view);
+        Objects.requireNonNull(attributeContext);
+        Objects.requireNonNull(valueChangeListener);
+
+        this.configuration = configuration;
+        this.view = view;
         this.columns = columns;
         this.rows = rows;
 
-        this.attributeContext = attributeContext;
+        this.attributeMapping = attributeContext;
         this.inputFieldMapping = new HashMap<>();
         this.valueChangeListener = valueChangeListener;
     }
 
-    public String getName() {
-        return this.name;
+    public Long getId() {
+        return this.view.id;
     }
 
-    public String getConfigurationId() {
-        return this.configurationId;
+    public String getName() {
+        return this.view.name;
+    }
+
+    public Long getConfigurationId() {
+        return this.configuration.id;
+    }
+
+    public Long getInstitutionId() {
+        return this.configuration.institutionId;
     }
 
     public int getColumns() {
@@ -65,9 +80,27 @@ public final class ViewContext {
         return this.valueChangeListener;
     }
 
+    public void showError(final Long attributeId, final String errorMessage) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.showError(errorMessage);
+    }
+
+    public void clearError(final Long attributeId) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.clearError();
+    }
+
     void registerInputField(final InputField inputField) {
         this.inputFieldMapping.put(
-                inputField.getAttribute().getName(),
+                inputField.getAttribute().id,
                 inputField);
     }
 

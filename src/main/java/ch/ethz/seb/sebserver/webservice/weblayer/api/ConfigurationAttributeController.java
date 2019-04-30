@@ -61,7 +61,8 @@ public class ConfigurationAttributeController extends EntityController<Configura
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public List<ConfigurationAttribute> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST) final String modelIds) {
+    public List<ConfigurationAttribute> getForIds(
+            @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = false) final String modelIds) {
 
         if (StringUtils.isNoneBlank(modelIds)) {
             return super.getForIds(modelIds);

@@ -22,7 +22,7 @@ public final class DAOLoggingSupport {
 
     public static <T> Stream<T> logUnexpectedErrorAndSkip(final Result<T> result) {
         return Result.skipOnError(
-                result.onErrorDo(error -> log.error("Unexpected error. Object processing is skipped: ", error)));
+                result.onError(error -> log.error("Unexpected error. Object processing is skipped: ", error)));
     }
 
 }

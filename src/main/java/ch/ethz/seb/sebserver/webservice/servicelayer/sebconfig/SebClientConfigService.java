@@ -16,15 +16,20 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface SebClientConfigService {
 
     static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
-            "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" " +
-                    "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+                    "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
+                    +
                     "<plist version=\"1.0\">" +
                     "<dict>" +
+                    "<key>sebMode</key>" +
+                    "<integer>1</integer>" +
+                    "<key>sebServerFallback</key>" +
+                    "<true />" +
+                    "<key>sebServerURL</key>" +
+                    "<string>%s</string>" +
                     "<key>sebServerConfiguration</key>" +
                     "<array>" +
                     "<dict>" +
-                    "<key>serverURL</key>" +
-                    "<string>%s</string>" +
                     "<key>institution</key>" +
                     "<string>%s</string>" +
                     "<key>clientName</key>" +

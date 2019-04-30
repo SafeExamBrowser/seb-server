@@ -80,6 +80,8 @@ public final class API {
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
 
+    public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";
+
     public static final String EXAM_CONFIGURATION_MAP_ENDPOINT = "/exam_configuration_map";
 
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";

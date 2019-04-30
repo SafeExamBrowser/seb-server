@@ -332,7 +332,7 @@ public class ExamForm implements TemplateComposer {
         }
 
         return this.resourceService.getI18nSupport()
-                .getText("sebserver.exam.indicator.type." + indicator.type.name());
+                .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
     }
 
     private static String thresholdsValue(final Indicator indicator) {

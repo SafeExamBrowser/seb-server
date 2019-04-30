@@ -158,7 +158,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             return newRecord;
         })
                 .flatMap(this::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

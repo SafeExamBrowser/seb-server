@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 
 import org.mybatis.dynamic.sql.SqlTable;
@@ -19,14 +21,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -117,18 +118,38 @@ public class ConfigurationValueController extends EntityController<Configuration
     }
 
     @Override
-    protected GrantEntity toGrantEntity(final ConfigurationValue entity) {
-        if (entity == null) {
-            return null;
-        }
+    protected Result<ConfigurationValue> validForSave(final ConfigurationValue entity) {
+        return Result.tryCatch(() -> {
 
-        return this.configurationDAO.byPK(entity.configurationId)
-                .getOrThrow();
-    }
+            Objects.requireNonNull(entity);
 
-    @Override
-    protected EntityType getGrantEntityType() {
-        return EntityType.CONFIGURATION;
+            // apply current users institution if institution is not set on entity
+            final ConfigurationValue _entity;
+            if (entity.institutionId == null) {
+                final Long institutionId = this.authorization.getUserService().getCurrentUser().institutionId();
+                _entity = new ConfigurationValue(
+                        entity.id,
+                        institutionId,
+                        entity.configurationId,
+                        entity.attributeId,
+                        entity.listIndex,
+                        entity.value);
+            } else {
+                _entity = entity;
+            }
+
+            // test either id or (configurationId and attributeId and listIndex) are set
+            if (_entity.id != null ||
+                    (_entity.configurationId != null &&
+                            _entity.attributeId != null &&
+                            _entity.listIndex != null)) {
+
+                return _entity;
+            }
+
+            throw new IllegalAPIArgumentException(
+                    "Missing some mandatory attributes. Either id must be set or all of configurationId, attributeId and listIndex");
+        });
     }
 
 }

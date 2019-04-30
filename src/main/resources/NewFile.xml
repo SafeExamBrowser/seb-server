@@ -1,0 +1,32 @@
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>sebMode</key>
+    <integer>1</integer>
+    <key>sebServerFallback</key>
+    <true />
+    <key>sebServerURL</key>
+    <string>http://localhost:8080</string>
+    <key>sebServerConfiguration</key>
+    <array>
+      <dict>
+        <key>institution</key>
+        <string>1</string>
+        <key>clientName</key>
+        <string>+Ra01]`-4e*$(=@=</string>
+        <key>clientSecret</key>
+        <string>(+8Jl-#l8t(XHi%hxi88HXsjC{BE1F(TgdbQSzz=TpR]%_fJ~IjkdAL^YzfV*()t</string>
+        <key>accessTokenEndpoint</key>
+        <string>/oauth/token</string>
+        <key>handshakeEndpoint</key>
+        <string>/exam-api/v1/handshake</string>
+        <key>examConfigEndpoint</key>
+        <string>/exam-api/v1/examconfig</string>
+        <key>pingEndpoint</key>
+        <string>/exam-api/v1/sebping</string>
+        <key>eventEndpoint</key>
+        <string>/exam-api/v1/sebevent</string>
+      </dict>
+    </array>
+  </dict>
+</plist>

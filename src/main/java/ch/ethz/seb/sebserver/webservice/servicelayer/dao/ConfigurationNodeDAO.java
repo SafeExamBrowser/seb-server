@@ -12,7 +12,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 public interface ConfigurationNodeDAO extends
-        ActivatableEntityDAO<ConfigurationNode, ConfigurationNode>,
+        EntityDAO<ConfigurationNode, ConfigurationNode>,
         BulkActionSupportDAO<ConfigurationNode> {
 
 }

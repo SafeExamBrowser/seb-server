@@ -8,40 +8,50 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.eclipse.swt.widgets.Composite;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public interface ExamConfigurationService {
 
-    AttributeMapping getAttributes(String template);
+    public static final String ATTRIBUTE_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.label.";
+    public static final String GROUP_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.group.";
 
-    default ViewContext createViewContext(
-            final String template,
-            final Composite parent,
-            final String name,
-            final String configurationId,
-            final int columns,
-            final int rows) {
+    WidgetFactory getWidgetFactory();
 
-        return createViewContext(
-                getAttributes(template),
-                parent,
-                name,
-                configurationId,
-                columns,
-                rows);
-    }
+    InputFieldBuilder getInputFieldBuilder(
+            ConfigurationAttribute attribute,
+            Orientation orientation);
+
+    Result<AttributeMapping> getAttributes(Long templateId);
+
+    List<View> getViews(AttributeMapping allAttributes);
 
     ViewContext createViewContext(
-            final AttributeMapping attributeMapping,
-            final Composite parent,
-            final String name,
-            final String configurationId,
-            final int columns,
-            final int rows);
+            PageContext pageContext,
+            Configuration configuration,
+            View view,
+            AttributeMapping attributeMapping,
+            int columns,
+            int rows);
 
-    ViewContext initInputFieldValues(final ViewContext viewContext);
+    Composite createViewGrid(
+            Composite parent,
+            ViewContext viewContext);
+
+    void initInputFieldValues(
+            Long configurationId,
+            Collection<ViewContext> viewContexts);
 
 }

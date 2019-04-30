@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -120,7 +121,7 @@ public class IndicatorForm implements TemplateComposer {
                         Domain.INDICATOR.ATTR_EXAM_ID,
                         parentEntityKey.getModelId())
                 .addField(FormBuilder.text(
-                        "examName",
+                        QuizData.QUIZ_ATTR_NAME,
                         FORM_EXAM_TEXT_KEY,
                         exam.name)
                         .readonly(true))

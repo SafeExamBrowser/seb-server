@@ -230,7 +230,7 @@ public final class Result<T> {
      *
      * @param errorHandler the error handler
      * @return self reference */
-    public Result<T> onErrorDo(final Consumer<Throwable> errorHandler) {
+    public Result<T> onError(final Consumer<Throwable> errorHandler) {
         if (this.error != null) {
             errorHandler.accept(this.error);
         }

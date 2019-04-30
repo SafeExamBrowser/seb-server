@@ -108,7 +108,7 @@ public class FormHandle<T extends Entity> {
 
                     return resultAction;
                 })
-                .onErrorDo(this::handleError)
+                .onError(this::handleError)
                 .getOrThrow();
     }
 

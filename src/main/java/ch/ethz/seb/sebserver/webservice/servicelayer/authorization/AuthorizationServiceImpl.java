@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege.RoleTypeKey;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
@@ -111,6 +111,28 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for configuration node
         addPrivilege(EntityType.CONFIGURATION_NODE)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .create();
+        // grants for configuration
+        addPrivilege(EntityType.CONFIGURATION)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .create();
+        // grants for configuration value
+        addPrivilege(EntityType.CONFIGURATION_VALUE)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
                 .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)

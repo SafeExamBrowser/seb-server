@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -28,6 +29,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -208,6 +211,23 @@ public class WidgetFactory {
         return label;
     }
 
+    public Label labelLocalized(
+            final Composite parent,
+            final LocTextKey locTextKey,
+            final String defaultValue) {
+
+        final Label label = new Label(parent, SWT.NONE);
+
+        final String text = this.i18nSupport.getText(locTextKey, "");
+        if (StringUtils.isNoneBlank(text)) {
+            this.injectI18n(label, locTextKey);
+        } else {
+            this.injectI18n(label, new LocTextKey(defaultValue));
+        }
+
+        return label;
+    }
+
     public Label labelLocalized(final Composite parent, final CustomVariant variant, final LocTextKey locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
         this.injectI18n(label, locTextKey);
@@ -320,6 +340,22 @@ public class WidgetFactory {
         final TableColumn tableColumn = new TableColumn(table, SWT.NONE);
         this.injectI18n(tableColumn, locTextKey, toolTipKey);
         return tableColumn;
+    }
+
+    public TabFolder tabFolderLocalized(final Composite parent) {
+        final TabFolder tabs = new TabFolder(parent, SWT.NONE);
+        this.injectI18n(tabs);
+        return tabs;
+    }
+
+    public TabItem tabItemLocalized(
+            final TabFolder parent,
+            final LocTextKey locTextKey,
+            final LocTextKey toolTipKey) {
+
+        final TabItem tabItem = new TabItem(parent, SWT.NONE);
+        this.injectI18n(tabItem, locTextKey, toolTipKey);
+        return tabItem;
     }
 
     public Label labelSeparator(final Composite parent) {
@@ -437,7 +473,7 @@ public class WidgetFactory {
     }
 
     public void injectI18n(final TreeItem treeItem, final LocTextKey locTextKey) {
-        treeItem.setData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY, locTextKey);
+        treeItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         treeItem.setText(this.i18nSupport.getText(locTextKey));
     }
 
@@ -450,12 +486,18 @@ public class WidgetFactory {
                 });
     }
 
+    public void injectI18n(final TabFolder tabFolder) {
+        tabFolder.setData(
+                POLYGLOT_WIDGET_FUNCTION_KEY,
+                (Consumer<TabFolder>) t -> updateLocale(t.getItems(), this.i18nSupport));
+    }
+
     public void injectI18n(final TableColumn tableColumn, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
-        tableColumn.setData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY, locTextKey);
+        tableColumn.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         tableColumn.setText(this.i18nSupport.getText(locTextKey));
 
         if (locTooltipKey != null) {
-            tableColumn.setData(POLYGLOT_TREE_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            tableColumn.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
             tableColumn.setToolTipText(this.i18nSupport.getText(locTooltipKey));
         }
     }
@@ -465,9 +507,19 @@ public class WidgetFactory {
             return;
         }
 
-        tableItem.setData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY, locTextKey);
+        tableItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         for (int i = 0; i < locTextKey.length; i++) {
             tableItem.setText(i, this.i18nSupport.getText(locTextKey[i]));
+        }
+    }
+
+    private void injectI18n(final TabItem tabItem, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        tabItem.setText(this.i18nSupport.getText(locTextKey));
+
+        if (locTooltipKey != null) {
+            tabItem.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            tabItem.setToolTipText(this.i18nSupport.getText(locTooltipKey));
         }
     }
 
@@ -516,13 +568,26 @@ public class WidgetFactory {
         };
     }
 
+    private static final void updateLocale(final TabItem[] items, final I18nSupport i18nSupport) {
+        if (items == null) {
+            return;
+        }
+
+        for (final TabItem childItem : items) {
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                childItem.setText(i18nSupport.getText(locTextKey));
+            }
+        }
+    }
+
     private static final void updateLocale(final TreeItem[] items, final I18nSupport i18nSupport) {
         if (items == null) {
             return;
         }
 
         for (final TreeItem childItem : items) {
-            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY);
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
             if (locTextKey != null) {
                 childItem.setText(i18nSupport.getText(locTextKey));
             }
@@ -536,7 +601,7 @@ public class WidgetFactory {
         }
 
         for (final TableItem childItem : items) {
-            final LocTextKey[] locTextKey = (LocTextKey[]) childItem.getData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY);
+            final LocTextKey[] locTextKey = (LocTextKey[]) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
             if (locTextKey != null) {
                 for (int i = 0; i < locTextKey.length; i++) {
                     if (locTextKey[i] != null) {
@@ -553,7 +618,7 @@ public class WidgetFactory {
         }
 
         for (final TableColumn childItem : columns) {
-            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_TREE_ITEM_TEXT_DATA_KEY);
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
             if (locTextKey != null) {
                 childItem.setText(i18nSupport.getText(locTextKey));
             }

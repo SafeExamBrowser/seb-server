@@ -85,6 +85,10 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
     public static final DateTime getDateTime(final String stringValue) {
         String dateFormattedString = stringValue;
 
+        if (dateFormattedString == null) {
+            return null;
+        }
+
         // cutting milliseconds if there are some. This is needed to be able to use a general pattern
         // independently from the different data-base-drivers format the date-time values
         if (dateFormattedString.contains(".")) {

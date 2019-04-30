@@ -43,16 +43,29 @@ public interface I18nSupport {
 
     /** Get localized text of specified key for currently set Locale.
      *
-     * @param key the key name of localized text
-     * @param args additional arguments to parse the localized text
+     * @param key LocTextKey instance
      * @return the text in current language parsed from localized text */
-    String getText(String key, Object... args);
+    default String getText(final LocTextKey key) {
+        return getText(key.name, key.args);
+    }
 
     /** Get localized text of specified key for currently set Locale.
      *
      * @param key LocTextKey instance
+     * @param def default text that is returned if no localized test with specified key was found
      * @return the text in current language parsed from localized text */
-    String getText(LocTextKey key);
+    default String getText(final LocTextKey key, final String def) {
+        return getText(key.name, def, key.args);
+    }
+
+    /** Get localized text of specified key for currently set Locale.
+     *
+     * @param key the key name of localized text
+     * @param args additional arguments to parse the localized text
+     * @return the text in current language parsed from localized text */
+    default String getText(final String key, final Object... args) {
+        return getText(key, key, args);
+    }
 
     /** Get localized text of specified key for currently set Locale.
      *
@@ -68,7 +81,9 @@ public interface I18nSupport {
      * @param locale the Locale
      * @param args additional arguments to parse the localized text
      * @return the text in current language parsed from localized text */
-    String getText(String key, Locale locale, Object... args);
+    default String getText(final String key, final Locale locale, final Object... args) {
+        return getText(key, locale, key, args);
+    }
 
     /** Get localized text of specified key and Locale.
      *

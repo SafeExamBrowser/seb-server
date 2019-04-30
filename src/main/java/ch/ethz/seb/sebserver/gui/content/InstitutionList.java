@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutions;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -73,7 +73,7 @@ public class InstitutionList implements TemplateComposer {
 
         // table
         final EntityTable<Institution> table =
-                this.pageService.entityTableBuilder(this.restService.getRestCall(GetInstitutions.class))
+                this.pageService.entityTableBuilder(this.restService.getRestCall(GetInstitutionPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(3)
                         .withColumn(new ColumnDefinition<>(

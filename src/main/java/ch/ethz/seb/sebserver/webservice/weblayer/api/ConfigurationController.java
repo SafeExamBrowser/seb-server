@@ -21,11 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
@@ -118,18 +116,4 @@ public class ConfigurationController extends EntityController<Configuration, Con
         return ConfigurationRecordDynamicSqlSupport.configurationRecord;
     }
 
-    @Override
-    protected GrantEntity toGrantEntity(final Configuration entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        return this.configurationNodeDAO.byPK(entity.configurationNodeId)
-                .getOrThrow();
-    }
-
-    @Override
-    protected EntityType getGrantEntityType() {
-        return EntityType.CONFIGURATION_NODE;
-    }
 }

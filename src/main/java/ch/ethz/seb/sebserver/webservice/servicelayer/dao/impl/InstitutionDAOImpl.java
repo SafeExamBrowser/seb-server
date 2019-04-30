@@ -142,7 +142,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             return this.institutionRecordMapper.selectByPrimaryKey(institution.id);
         })
                 .flatMap(InstitutionDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             return newRecord;
         })
                 .flatMap(InstitutionDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

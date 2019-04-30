@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -63,6 +63,8 @@ public class ExamList implements TemplateComposer {
             new LocTextKey("sebserver.exam.list.column.type");
     private final static LocTextKey noModifyOfOutDatedExams =
             new LocTextKey("sebserver.exam.list.modify.out.dated");
+    private final static LocTextKey emptyListTextKey =
+            new LocTextKey("sebserver.exam.list.empty");
 
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
@@ -102,8 +104,8 @@ public class ExamList implements TemplateComposer {
 
         // table
         final EntityTable<Exam> table =
-                this.pageService.entityTableBuilder(restService.getRestCall(GetExams.class))
-                        .withEmptyMessage(new LocTextKey("sebserver.exam.list.empty"))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
+                        .withEmptyMessage(emptyListTextKey)
                         .withPaging(this.pageSize)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
@@ -179,7 +181,7 @@ public class ExamList implements TemplateComposer {
         }
 
         return this.resourceService.getI18nSupport()
-                .getText("sebserver.exam.type." + exam.type.name());
+                .getText(ResourceService.EXAM_TYPE_PREFIX + exam.type.name());
     }
 
 }

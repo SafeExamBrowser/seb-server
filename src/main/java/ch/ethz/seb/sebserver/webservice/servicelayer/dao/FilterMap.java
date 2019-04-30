@@ -111,12 +111,12 @@ public class FilterMap extends POSTMapper {
         return getLong(Orientation.FILTER_ATTR_TEMPLATE_ID);
     }
 
-    public String getOrientationView() {
-        return getSQLWildcard(Orientation.FILTER_ATTR_VIEW);
+    public Long getOrientationViewId() {
+        return getLong(Orientation.FILTER_ATTR_VIEW_ID);
     }
 
-    public String getOrientationGroup() {
-        return getSQLWildcard(Orientation.FILTER_ATTR_GROUP);
+    public String getOrientationGroupId() {
+        return getSQLWildcard(Orientation.FILTER_ATTR_GROUP_ID);
     }
 
     public Long getConfigAttributeParentId() {
@@ -149,6 +149,10 @@ public class FilterMap extends POSTMapper {
 
     public String getConfigNodeDesc() {
         return getSQLWildcard(ConfigurationNode.FILTER_ATTR_DESCRIPTION);
+    }
+
+    public String getConfigNodeStatus() {
+        return getString(ConfigurationNode.FILTER_ATTR_STATUS);
     }
 
     public String getConfigNodeType() {

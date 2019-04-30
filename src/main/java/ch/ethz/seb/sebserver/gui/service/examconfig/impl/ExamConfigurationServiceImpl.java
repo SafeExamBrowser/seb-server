@@ -9,100 +9,267 @@
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.buf.StringUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeRule;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Service
 @GuiProfile
-public class ExamConfigurationServiceImpl implements ExamConfigurationService, ValueChangeListener {
+public class ExamConfigurationServiceImpl implements ExamConfigurationService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigurationServiceImpl.class);
 
     private final RestService restService;
     private final JSONMapper jsonMapper;
+    private final WidgetFactory widgetFactory;
 
-    private final Collection<InputFieldBuilder> inputFieldBuilderMapping;
+    private final Collection<InputFieldBuilder> inputFieldBuilder;
     private final Collection<ValueChangeRule> valueChangeRules;
 
     protected ExamConfigurationServiceImpl(
             final RestService restService,
             final JSONMapper jsonMapper,
+            final WidgetFactory widgetFactory,
             final Collection<InputFieldBuilder> inputFieldBuilder,
             final Collection<ValueChangeRule> valueChangeRules) {
 
         this.restService = restService;
         this.jsonMapper = jsonMapper;
-        this.inputFieldBuilderMapping = Utils.immutableCollectionOf(inputFieldBuilder);
+        this.widgetFactory = widgetFactory;
+        this.inputFieldBuilder = Utils.immutableCollectionOf(inputFieldBuilder);
         this.valueChangeRules = Utils.immutableCollectionOf(valueChangeRules);
     }
 
     @Override
-    public AttributeMapping getAttributes(final String template) {
-        final List<ConfigurationAttribute> attributes = this.restService
-                .getBuilder(GetConfigAttributes.class)
-                .call()
-                .getOrThrow();
+    public WidgetFactory getWidgetFactory() {
+        return this.widgetFactory;
+    }
 
-        final List<Orientation> orientations = this.restService
-                .getBuilder(GetOrientations.class)
-                .withQueryParam(Domain.ORIENTATION.ATTR_TEMPLATE_ID, template)
-                .call()
-                .getOrThrow();
+    @Override
+    public InputFieldBuilder getInputFieldBuilder(
+            final ConfigurationAttribute attribute,
+            final Orientation orientation) {
 
-        return new AttributeMapping(template, attributes, orientations);
+        return this.inputFieldBuilder
+                .stream()
+                .filter(b -> b.builderFor(attribute, orientation))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    @Override
+    public Result<AttributeMapping> getAttributes(final Long templateId) {
+        return Result.tryCatch(() -> {
+            return new AttributeMapping(
+                    templateId,
+                    this.restService
+                            .getBuilder(GetConfigAttributes.class)
+                            .call()
+                            .onError(t -> log.error("Failed to get all ConfigurationAttribute"))
+                            .getOrThrow(),
+                    this.restService
+                            .getBuilder(GetOrientations.class)
+                            .withQueryParam(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(templateId))
+                            .call()
+                            .onError(t -> log.error("Failed to get all Orientation of template {}", templateId))
+                            .getOrThrow());
+        });
+    }
+
+    @Override
+    public List<View> getViews(final AttributeMapping allAttributes) {
+        final Collection<Long> viewIds = allAttributes.getViewIds();
+        if (viewIds == null || viewIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final String ids = StringUtils.join(
+                viewIds
+                        .stream()
+                        .map(id -> String.valueOf(id))
+                        .collect(Collectors.toList()),
+                Constants.LIST_SEPARATOR_CHAR);
+
+        return this.restService.getBuilder(GetViewList.class)
+                .withQueryParam(API.PARAM_MODEL_ID_LIST, ids)
+                .call()
+                .getOrThrow()
+                .stream()
+                .sorted((v1, v2) -> v1.position.compareTo(v2.position))
+                .collect(Collectors.toList());
     }
 
     @Override
     public ViewContext createViewContext(
+            final PageContext pageContext,
+            final Configuration configuration,
+            final View view,
             final AttributeMapping attributeMapping,
-            final Composite parent,
-            final String name,
-            final String configurationId,
             final int columns,
             final int rows) {
 
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public ViewContext initInputFieldValues(final ViewContext viewContext) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void valueChanged(
-            final ViewContext context,
-            final ConfigurationAttribute attribute,
-            final String value,
-            final int listIndex) {
-
-        // TODO Auto-generated method stub
+        return new ViewContext(
+                configuration,
+                view,
+                columns,
+                rows,
+                attributeMapping,
+                new ValueChangeListenerImpl(
+                        pageContext,
+                        this.restService,
+                        this.jsonMapper,
+                        this.valueChangeRules));
 
     }
 
     @Override
-    public void tableChanged(final ConfigurationTableValue tableValue) {
-        // TODO Auto-generated method stub
+    public Composite createViewGrid(final Composite parent, final ViewContext viewContext) {
+        final Composite composite = new Composite(parent, SWT.NONE);
+        final GridLayout gridLayout = new GridLayout(viewContext.columns, true);
+        gridLayout.marginTop = 10;
+        gridLayout.verticalSpacing = 5;
+        gridLayout.horizontalSpacing = 10;
+        composite.setLayout(gridLayout);
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+        final ViewGridBuilder viewGridBuilder = new ViewGridBuilder(
+                composite,
+                viewContext,
+                this);
+
+        for (final ConfigurationAttribute attribute : viewContext.attributeMapping.getAttributes()) {
+            viewGridBuilder.add(attribute);
+        }
+
+        viewGridBuilder.compose();
+        return composite;
+    }
+
+    @Override
+    public void initInputFieldValues(
+            final Long configurationId,
+            final Collection<ViewContext> viewContexts) {
+
+        if (viewContexts == null || viewContexts.size() < 1) {
+            log.warn("No viewContexts available");
+            return;
+        }
+
+        final Collection<ConfigurationValue> attributeValues = this.restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(
+                        ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID,
+                        String.valueOf(configurationId))
+                .call()
+                .onError(t -> log.error(
+                        "Failed to get all ConfigurationValue for configuration with id: {}",
+                        configurationId))
+                .getOrElse(Collections::emptyList);
+
+        viewContexts
+                .forEach(vc -> vc.setValuesToInputFields(attributeValues));
+    }
+
+    private static final class ValueChangeListenerImpl implements ValueChangeListener {
+
+        private final PageContext pageContext;
+        private final RestService restService;
+        private final JSONMapper jsonMapper;
+        private final Collection<ValueChangeRule> valueChangeRules;
+
+        protected ValueChangeListenerImpl(
+                final PageContext pageContext,
+                final RestService restService,
+                final JSONMapper jsonMapper,
+                final Collection<ValueChangeRule> valueChangeRules) {
+
+            this.pageContext = pageContext;
+            this.restService = restService;
+            this.jsonMapper = jsonMapper;
+            this.valueChangeRules = valueChangeRules;
+        }
+
+        @Override
+        public void valueChanged(
+                final ViewContext context,
+                final ConfigurationAttribute attribute,
+                final String value,
+                final int listIndex) {
+
+            final ConfigurationValue configurationValue = new ConfigurationValue(
+                    null,
+                    context.getInstitutionId(),
+                    context.getConfigurationId(),
+                    attribute.id,
+                    listIndex,
+                    value);
+
+            try {
+                final String jsonValue = this.jsonMapper.writeValueAsString(configurationValue);
+
+                final Result<ConfigurationValue> savedValue = this.restService.getBuilder(SaveExamConfigValue.class)
+                        .withBody(jsonValue)
+                        .call();
+
+                if (savedValue.hasError()) {
+                    context.showError(attribute.id, verifyErrorMessage(savedValue.getError()));
+                } else {
+                    this.valueChangeRules.stream()
+                            .filter(rule -> rule.observesAttribute(attribute))
+                            .forEach(rule -> rule.applyRule(context, attribute, savedValue.get()));
+                }
+
+            } catch (final Exception e) {
+                this.pageContext.notifyError(e);
+            }
+        }
+
+        @Override
+        public void tableChanged(final ConfigurationTableValue tableValue) {
+            // TODO Auto-generated method stub
+
+        }
+
+        private String verifyErrorMessage(final Throwable error) {
+            // TODO Auto-generated method stub
+            return "TODO";
+        }
     }
 
 }

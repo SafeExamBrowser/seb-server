@@ -333,21 +333,11 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_ACTIVATE(
-            new LocTextKey("sebserver.examconfig.action.activate"),
-            ImageIcon.INACTIVE,
-            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
-            ActionCategory.FORM),
-    SEB_EXAM_CONFIG_DEACTIVATE(
-            new LocTextKey("sebserver.examconfig.action.deactivate"),
-            ImageIcon.ACTIVE,
-            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
-            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_PROPERTIES_FROM_LIST(
-            new LocTextKey("sebserver.examconfig.properties.action.list.modify"),
+            new LocTextKey("sebserver.examconfig.props.action.list.modify"),
             ImageIcon.EDIT,
-            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_PROPERTIES_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
     ;

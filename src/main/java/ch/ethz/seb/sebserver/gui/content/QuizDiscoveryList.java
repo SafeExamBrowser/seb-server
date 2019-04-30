@@ -36,7 +36,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizzes;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -122,7 +122,7 @@ public class QuizDiscoveryList implements TemplateComposer {
 
         // table
         final EntityTable<QuizData> table =
-                this.pageService.entityTableBuilder(restService.getRestCall(GetQuizzes.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetQuizPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumn(new ColumnDefinition<>(

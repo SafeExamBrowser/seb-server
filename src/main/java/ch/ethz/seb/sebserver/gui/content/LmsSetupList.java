@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetups;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -105,7 +105,7 @@ public class LmsSetupList implements TemplateComposer {
 
         // table
         final EntityTable<LmsSetup> table =
-                this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetups.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetupPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(
@@ -161,7 +161,7 @@ public class LmsSetupList implements TemplateComposer {
         }
 
         return this.resourceService.getI18nSupport()
-                .getText("sebserver.lmssetup.type." + lmsSetup.lmsType.name());
+                .getText(ResourceService.LMSSETUP_TYPE_PREFIX + lmsSetup.lmsType.name());
     }
 
     private static Function<LmsSetup, String> lmsSetupInstitutionNameFunction(final ResourceService resourceService) {

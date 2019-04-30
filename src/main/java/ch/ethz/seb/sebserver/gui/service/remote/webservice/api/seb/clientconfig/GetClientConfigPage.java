@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -18,24 +18,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetLmsSetups extends RestCall<Page<LmsSetup>> {
+public class GetClientConfigPage extends RestCall<Page<SebClientConfig>> {
 
-    protected GetLmsSetups() {
+    protected GetClientConfigPage() {
         super(new TypeKey<>(
                 CallType.GET_PAGE,
-                EntityType.LMS_SETUP,
-                new TypeReference<Page<LmsSetup>>() {
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                new TypeReference<Page<SebClientConfig>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.LMS_SETUP_ENDPOINT);
+                API.SEB_CLIENT_CONFIG_ENDPOINT);
     }
 
 }

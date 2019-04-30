@@ -8,33 +8,30 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.PageToListCallAdapter;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetConfigurations extends RestCall<Page<Configuration>> {
+public class GetConfigurations extends PageToListCallAdapter<Configuration> {
 
     protected GetConfigurations() {
-        super(new TypeKey<>(
-                CallType.GET_PAGE,
+        super(
+                GetConfigurationPage.class,
                 EntityType.CONFIGURATION,
-                new TypeReference<Page<Configuration>>() {
-                }),
-                HttpMethod.GET,
-                MediaType.APPLICATION_FORM_URLENCODED,
+                new TypeReference<List<Configuration>>() {
+                },
                 API.CONFIGURATION_ENDPOINT);
     }
 

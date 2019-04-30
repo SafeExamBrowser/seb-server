@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -18,24 +18,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetClientConfigs extends RestCall<Page<SebClientConfig>> {
+public class GetExamConfigNodePage extends RestCall<Page<ConfigurationNode>> {
 
-    protected GetClientConfigs() {
+    protected GetExamConfigNodePage() {
         super(new TypeKey<>(
                 CallType.GET_PAGE,
-                EntityType.SEB_CLIENT_CONFIGURATION,
-                new TypeReference<Page<SebClientConfig>>() {
+                EntityType.CONFIGURATION_NODE,
+                new TypeReference<Page<ConfigurationNode>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CLIENT_CONFIG_ENDPOINT);
+                API.CONFIGURATION_NODE_ENDPOINT);
     }
 
 }

@@ -23,11 +23,11 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * below is the relation-tree of known node-entities of the SEB Server application
  * <code>
  *                                  Institution
- *                        ____________ / | \______________
- *                       /               |                \
- *                  LMS Setup            |            User-Account
+ *                        ____________ / | \________________________
+ *                       /               |              \           \
+ *                  LMS Setup            |          User-Account   Client Configuration
  *                      |                |
- *                    Exam          Configuration
+ *                    Exam       Exam Configuration
  *                      |\              /
  *                      | Exam Config Mapping
  *                      |

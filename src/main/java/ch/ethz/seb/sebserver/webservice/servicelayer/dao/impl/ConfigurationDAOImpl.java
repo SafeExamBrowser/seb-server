@@ -156,7 +156,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             return newRecord;
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -236,7 +236,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -306,7 +306,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             return followup;
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     private Result<ConfigurationRecord> recordById(final Long id) {

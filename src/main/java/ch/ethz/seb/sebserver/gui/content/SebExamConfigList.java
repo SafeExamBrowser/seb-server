@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -30,7 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -53,14 +54,15 @@ public class SebExamConfigList implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.list.column.name");
     private static final LocTextKey DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.description");
-    private static final LocTextKey ACTIVE_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.list.column.active");
+    private static final LocTextKey STATUS_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.list.column.status");
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.info.pleaseSelect");
 
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute statusFilter;
 
     private final PageService pageService;
     private final RestService restService;
@@ -84,6 +86,11 @@ public class SebExamConfigList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
                 this.resourceService::institutionResource);
+
+        this.statusFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                ConfigurationNode.FILTER_ATTR_STATUS,
+                this.resourceService::examConfigStatusResources);
     }
 
     @Override
@@ -99,7 +106,7 @@ public class SebExamConfigList implements TemplateComposer {
 
         // table
         final EntityTable<ConfigurationNode> table =
-                this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigNodes.class))
+                this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigNodePage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(
@@ -123,9 +130,10 @@ public class SebExamConfigList implements TemplateComposer {
                                 this.nameFilter,
                                 true))
                         .withColumn(new ColumnDefinition<>(
-                                Domain.CONFIGURATION_NODE.ATTR_ACTIVE,
-                                ACTIVE_TEXT_KEY,
-                                entity -> entity.active,
+                                Domain.CONFIGURATION_NODE.ATTR_STATUS,
+                                STATUS_TEXT_KEY,
+                                this::examConfigStatusName,
+                                this.statusFilter,
                                 true))
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_FROM_LIST)
@@ -157,6 +165,15 @@ public class SebExamConfigList implements TemplateComposer {
 
         return config -> resourceService.getInstitutionNameFunction()
                 .apply(String.valueOf(config.institutionId));
+    }
+
+    private String examConfigStatusName(final ConfigurationNode config) {
+        if (config.status == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.resourceService.getI18nSupport()
+                .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.status.name());
     }
 
 }

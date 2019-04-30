@@ -17,21 +17,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ConfigurationNode implements GrantEntity, Activatable {
+public final class ConfigurationNode implements GrantEntity {
+
+    public static final Long DEFAULT_TEMPLATE_ID = 0L;
 
     public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_DESCRIPTION = "description";
     public static final String FILTER_ATTR_TYPE = "type";
+    public static final String FILTER_ATTR_STATUS = "status";
 
     public enum ConfigurationType {
         TEMPLATE,
         EXAM_CONFIG
+    }
+
+    public enum ConfigurationStatus {
+        CONSTRUCTION,
+        READY_TO_USE,
+        IN_USE
     }
 
     @JsonProperty(CONFIGURATION_NODE.ATTR_ID)
@@ -59,9 +67,8 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
     @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER)
     public final String owner;
 
-    /** Indicates whether this Configuration is active or not */
-    @JsonProperty(CONFIGURATION_NODE.ATTR_ACTIVE)
-    public final Boolean active;
+    @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
+    public final ConfigurationStatus status;
 
     @JsonCreator
     public ConfigurationNode(
@@ -72,27 +79,34 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,
             @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE) final ConfigurationType type,
             @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_ACTIVE) final Boolean active) {
+            @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS) final ConfigurationStatus status) {
 
         this.id = id;
         this.institutionId = institutionId;
-        this.templateId = templateId;
+        this.templateId = (templateId != null) ? templateId : DEFAULT_TEMPLATE_ID;
         this.name = name;
         this.description = description;
         this.type = type;
         this.owner = owner;
-        this.active = active;
+        this.status = status;
     }
 
     public ConfigurationNode(final Long institutionId, final POSTMapper postParams) {
         this.id = null;
         this.institutionId = institutionId;
-        this.templateId = postParams.getLong(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID);
+        final Long tplId = postParams.getLong(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID);
+        this.templateId = (tplId != null) ? tplId : DEFAULT_TEMPLATE_ID;
         this.name = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_NAME);
         this.description = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION);
-        this.type = postParams.getEnum(Domain.CONFIGURATION_NODE.ATTR_TYPE, ConfigurationType.class);
+        this.type = postParams.getEnum(
+                Domain.CONFIGURATION_NODE.ATTR_TYPE,
+                ConfigurationType.class,
+                ConfigurationType.EXAM_CONFIG);
         this.owner = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_OWNER);
-        this.active = postParams.getBoolean(Domain.CONFIGURATION_NODE.ATTR_ACTIVE);
+        this.status = postParams.getEnum(
+                Domain.CONFIGURATION_NODE.ATTR_STATUS,
+                ConfigurationStatus.class,
+                ConfigurationStatus.CONSTRUCTION);
     }
 
     @Override
@@ -138,22 +152,8 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
         return this.templateId;
     }
 
-    public Boolean getActive() {
-        return this.active;
-    }
-
-    @Override
-    public boolean isActive() {
-        return this.active;
-    }
-
-    @Override
-    public String toString() {
-        return "ConfigurationNode [id=" + this.id + ", institutionId=" + this.institutionId + ", templateId="
-                + this.templateId
-                + ", name=" + this.name + ", description=" + this.description + ", type=" + this.type + ", owner="
-                + this.owner
-                + ", active=" + this.active + "]";
+    public ConfigurationStatus getStatus() {
+        return this.status;
     }
 
     public static ConfigurationNode createNewExamConfig(final Long institutionId) {
@@ -165,7 +165,7 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
                 null,
                 ConfigurationType.EXAM_CONFIG,
                 null,
-                false);
+                ConfigurationStatus.CONSTRUCTION);
     }
 
     public static ConfigurationNode createNewTemplate(final Long institutionId) {
@@ -177,7 +177,7 @@ public final class ConfigurationNode implements GrantEntity, Activatable {
                 null,
                 ConfigurationType.TEMPLATE,
                 null,
-                false);
+                ConfigurationStatus.CONSTRUCTION);
     }
 
 }

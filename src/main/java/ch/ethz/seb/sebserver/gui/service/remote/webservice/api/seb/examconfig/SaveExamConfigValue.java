@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,25 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetInstitutions extends RestCall<Page<Institution>> {
+public class SaveExamConfigValue extends RestCall<ConfigurationValue> {
 
-    protected GetInstitutions() {
+    protected SaveExamConfigValue() {
         super(new TypeKey<>(
-                CallType.GET_PAGE,
-                EntityType.INSTITUTION,
-                new TypeReference<Page<Institution>>() {
+                CallType.SAVE,
+                EntityType.CONFIGURATION_VALUE,
+                new TypeReference<ConfigurationValue>() {
                 }),
-                HttpMethod.GET,
-                MediaType.APPLICATION_FORM_URLENCODED,
-                API.INSTITUTION_ENDPOINT);
+                HttpMethod.PUT,
+                MediaType.APPLICATION_JSON_UTF8,
+                API.CONFIGURATION_VALUE_ENDPOINT);
     }
 
 }

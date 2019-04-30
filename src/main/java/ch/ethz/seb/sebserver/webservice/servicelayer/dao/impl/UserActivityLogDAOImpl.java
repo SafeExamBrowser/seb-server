@@ -179,8 +179,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
             log(user, activityType, entity.entityType(), entity.getModelId(), message);
             return entity;
         })
-                .onErrorDo(TransactionHandler::rollback)
-                .onErrorDo(t -> log.error(
+                .onError(TransactionHandler::rollback)
+                .onError(t -> log.error(
                         "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
                         user.getUserInfo().uuid,
                         activityType,

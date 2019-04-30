@@ -133,7 +133,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     return newRecord;
                 })
                 .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

@@ -246,7 +246,7 @@ public interface PageService {
                                 API.PARAM_MODEL_ID,
                                 action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
                         .call()
-                        .onErrorDo(t -> action.pageContext().notifyError(t));
+                        .onError(t -> action.pageContext().notifyError(t));
                 return action;
             };
 

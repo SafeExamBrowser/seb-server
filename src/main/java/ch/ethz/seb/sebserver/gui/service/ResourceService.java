@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -46,6 +47,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
  * combo-box content. */
 public class ResourceService {
 
+    public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
+    public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
+    public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
+    public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
+    public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
     public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
     public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
 
@@ -86,7 +92,7 @@ public class ResourceService {
                 .stream()
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
-                        this.i18nSupport.getText("sebserver.lmssetup.type." + lmsType.name())))
+                        this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name())))
                 .collect(Collectors.toList());
     }
 
@@ -95,7 +101,7 @@ public class ResourceService {
                 .stream()
                 .map(type -> new Tuple<>(
                         type.name(),
-                        this.i18nSupport.getText("sebserver.exam.indicator.type." + type.name())))
+                        this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name())))
                 .collect(Collectors.toList());
     }
 
@@ -104,7 +110,7 @@ public class ResourceService {
                 .stream()
                 .map(ur -> new Tuple<>(
                         ur.name(),
-                        this.i18nSupport.getText("sebserver.useraccount.role." + ur.name())))
+                        this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name())))
                 .collect(Collectors.toList());
     }
 
@@ -198,7 +204,16 @@ public class ResourceService {
                 .stream()
                 .map(type -> new Tuple<>(
                         type.name(),
-                        this.i18nSupport.getText("sebserver.exam.type." + type.name())))
+                        this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name())))
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examConfigStatusResources() {
+        return Arrays.asList(ConfigurationStatus.values())
+                .stream()
+                .map(type -> new Tuple<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())))
                 .collect(Collectors.toList());
     }
 

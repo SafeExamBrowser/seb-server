@@ -295,7 +295,7 @@ public class EntityTable<ROW extends Entity> {
                 .call()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
-                .onErrorDo(t -> {
+                .onError(t -> {
                     // TODO error handling
                 });
 

@@ -8,14 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
-import java.util.Set;
-
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 
 public interface ValueChangeRule {
 
-    Set<String> observedAttributeNames();
+    boolean observesAttribute(ConfigurationAttribute attribute);
 
-    void applyRule(ViewContext context, String attributeName, String value);
+    void applyRule(
+            ViewContext context,
+            ConfigurationAttribute attribut,
+            ConfigurationValue value);
 
 }

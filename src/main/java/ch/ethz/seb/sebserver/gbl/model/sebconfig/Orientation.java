@@ -24,8 +24,8 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 public final class Orientation implements Entity {
 
     public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
-    public static final String FILTER_ATTR_VIEW = "view";
-    public static final String FILTER_ATTR_GROUP = "group";
+    public static final String FILTER_ATTR_VIEW_ID = "viewId";
+    public static final String FILTER_ATTR_GROUP_ID = "groupId";
 
     @JsonProperty(ORIENTATION.ATTR_ID)
     public final Long id;
@@ -37,11 +37,11 @@ public final class Orientation implements Entity {
     @JsonProperty(ORIENTATION.ATTR_TEMPLATE_ID)
     public final Long templateId;
 
-    @JsonProperty(ORIENTATION.ATTR_VIEW)
-    public final String view;
+    @JsonProperty(ORIENTATION.ATTR_VIEW_ID)
+    public final Long viewId;
 
-    @JsonProperty(ORIENTATION.ATTR_GROUP)
-    public final String group;
+    @JsonProperty(ORIENTATION.ATTR_GROUP_ID)
+    public final String groupId;
 
     @JsonProperty(ORIENTATION.ATTR_X_POSITION)
     public final Integer xPosition;
@@ -63,8 +63,8 @@ public final class Orientation implements Entity {
             @JsonProperty(ORIENTATION.ATTR_ID) final Long id,
             @JsonProperty(ORIENTATION.ATTR_CONFIG_ATTRIBUTE_ID) final Long attributeId,
             @JsonProperty(ORIENTATION.ATTR_TEMPLATE_ID) final Long templateId,
-            @JsonProperty(ORIENTATION.ATTR_VIEW) final String view,
-            @JsonProperty(ORIENTATION.ATTR_GROUP) final String group,
+            @JsonProperty(ORIENTATION.ATTR_VIEW_ID) final Long viewId,
+            @JsonProperty(ORIENTATION.ATTR_GROUP_ID) final String groupId,
             @JsonProperty(ORIENTATION.ATTR_X_POSITION) final Integer xPosition,
             @JsonProperty(ORIENTATION.ATTR_Y_POSITION) final Integer yPosition,
             @JsonProperty(ORIENTATION.ATTR_WIDTH) final Integer width,
@@ -74,8 +74,8 @@ public final class Orientation implements Entity {
         this.id = id;
         this.attributeId = attributeId;
         this.templateId = templateId;
-        this.view = view;
-        this.group = group;
+        this.viewId = viewId;
+        this.groupId = groupId;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.width = width;
@@ -87,8 +87,8 @@ public final class Orientation implements Entity {
         this.id = null;
         this.attributeId = attr.id;
         this.templateId = postParams.getLong(Domain.ORIENTATION.ATTR_TEMPLATE_ID);
-        this.view = postParams.getString(Domain.ORIENTATION.ATTR_VIEW);
-        this.group = postParams.getString(Domain.ORIENTATION.ATTR_GROUP);
+        this.viewId = postParams.getLong(Domain.ORIENTATION.ATTR_VIEW_ID);
+        this.groupId = postParams.getString(Domain.ORIENTATION.ATTR_GROUP_ID);
         this.xPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_X_POSITION);
         this.yPosition = postParams.getInteger(Domain.ORIENTATION.ATTR_Y_POSITION);
         this.width = postParams.getInteger(Domain.ORIENTATION.ATTR_WIDTH);
@@ -128,12 +128,12 @@ public final class Orientation implements Entity {
         return this.templateId;
     }
 
-    public String getView() {
-        return this.view;
+    public Long getViewId() {
+        return this.viewId;
     }
 
-    public String getGroup() {
-        return this.group;
+    public String getGroupId() {
+        return this.groupId;
     }
 
     public Integer getXPosition() {
@@ -156,13 +156,28 @@ public final class Orientation implements Entity {
         return this.title;
     }
 
+    public int xpos() {
+        return this.xPosition != null ? this.xPosition.intValue() : -1;
+    }
+
+    public int ypos() {
+        return this.yPosition != null ? this.yPosition.intValue() : -1;
+    }
+
+    public int width() {
+        return this.width != null ? this.width.intValue() : -1;
+    }
+
+    public int height() {
+        return this.height != null ? this.height.intValue() : -1;
+    }
+
     @Override
     public String toString() {
         return "Orientation [id=" + this.id + ", attributeId=" + this.attributeId + ", templateId=" + this.templateId
-                + ", view="
-                + this.view + ", group=" + this.group + ", xPosition=" + this.xPosition + ", yPosition="
+                + ", viewId="
+                + this.viewId + ", groupId=" + this.groupId + ", xPosition=" + this.xPosition + ", yPosition="
                 + this.yPosition + ", width="
                 + this.width + ", height=" + this.height + ", title=" + this.title + "]";
     }
-
 }

@@ -34,7 +34,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigs;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -107,7 +107,7 @@ public class SebClientConfigList implements TemplateComposer {
 
         // table
         final EntityTable<SebClientConfig> table =
-                this.pageService.entityTableBuilder(this.restService.getRestCall(GetClientConfigs.class))
+                this.pageService.entityTableBuilder(this.restService.getRestCall(GetClientConfigPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(

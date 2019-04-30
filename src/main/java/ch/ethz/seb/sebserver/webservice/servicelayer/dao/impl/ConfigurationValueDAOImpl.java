@@ -145,7 +145,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                     return newRecord;
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -166,11 +166,16 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             (bigValue) ? null : data.value,
                             (bigValue) ? data.value : null);
 
-                    this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    if (data.id != null) {
+                        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    } else {
+                        saveByMatch(data, newRecord);
+                    }
                     return this.configurationValueRecordMapper.selectByPrimaryKey(data.id);
+
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -417,6 +422,31 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         }
 
         return data;
+    }
+
+    /** Try to identify and save attribute value by configurationId and configurationAttributeId and listIndex
+     *
+     * @param data
+     * @param newRecord
+     * @throws ResourceNotFoundException if no matching attribute value was found */
+    private void saveByMatch(final ConfigurationValue data, final ConfigurationValueRecord newRecord) {
+
+        final Integer execute = this.configurationValueRecordMapper.updateByExample(newRecord)
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(data.configurationId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                        isEqualTo(data.attributeId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                        isEqualTo(data.listIndex))
+                .build()
+                .execute();
+
+        if (execute == null || execute < 0) {
+            throw new ResourceNotFoundException(EntityType.CONFIGURATION_VALUE, data.toString());
+        }
     }
 
 }

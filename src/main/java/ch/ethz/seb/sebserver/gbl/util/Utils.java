@@ -62,6 +62,10 @@ public final class Utils {
                 });
     }
 
+    public static <T> T toSingleton(final Collection<T> collection) {
+        return collection.stream().collect(toSingleton());
+    }
+
     /** Get an immutable List from a Collection of elements
      *
      * @param collection Collection of elements

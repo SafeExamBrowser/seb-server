@@ -142,6 +142,10 @@ public abstract class RestCall<T> {
         return new RestCallBuilder();
     }
 
+    public RestCall<T>.RestCallBuilder newBuilder(final RestCall<?>.RestCallBuilder builder) {
+        return new RestCallBuilder(builder);
+    }
+
     private Result<T> handleRestCallError(final ResponseEntity<String> responseEntity)
             throws IOException, JsonParseException, JsonMappingException {
 

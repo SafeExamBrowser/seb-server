@@ -128,7 +128,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
             return newRecord;
         })
                 .flatMap(ConfigurationAttributeDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
             return this.configurationAttributeRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ConfigurationAttributeDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

@@ -190,7 +190,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     return newRecord;
                 })
                 .flatMap(SebClientConfigDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -214,7 +214,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
             return this.sebClientConfigRecordMapper.selectByPrimaryKey(sebClientConfig.id);
         })
                 .flatMap(SebClientConfigDAOImpl::toDomainModel)
-                .onErrorDo(TransactionHandler::rollback);
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

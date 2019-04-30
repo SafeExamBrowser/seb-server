@@ -16,6 +16,9 @@ public enum AttributeType {
     LABEL(NONE),
     /** Single lined text value */
     TEXT_FIELD(TEXT),
+    /** Password (Base 16 encoded SHA256)
+     * Displayed as two text input fields (confirm) */
+    PASSWORD_FIELD(TEXT),
     /** Multiple lined text value */
     TEXT_AREA(TEXT),
     /** Check Box or boolean type */
