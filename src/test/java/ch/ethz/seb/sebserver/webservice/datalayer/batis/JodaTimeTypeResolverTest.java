@@ -26,7 +26,7 @@ import org.mockito.Mockito;
 public class JodaTimeTypeResolverTest {
 
     @Test
-    public void testGetNullableResultExceptions() throws SQLException {
+    public void testNull() throws SQLException {
         final String columnName = "timestamp";
 
         final JodaTimeTypeResolver jodaTimeTypeResolver = new JodaTimeTypeResolver();
@@ -34,14 +34,8 @@ public class JodaTimeTypeResolverTest {
         final ResultSet resultSetMock = Mockito.mock(ResultSet.class);
         when(resultSetMock.getString(columnName)).thenReturn(null);
 
-        try {
-            @SuppressWarnings("unused")
-            final DateTime nullableResult = jodaTimeTypeResolver.getNullableResult(resultSetMock, columnName);
-            fail("Exception expected here");
-        } catch (final Exception e) {
-            assertEquals("Failed to parse date-time from SQL string: null", e.getMessage());
-        }
-
+        final DateTime nullableResult = jodaTimeTypeResolver.getNullableResult(resultSetMock, columnName);
+        assertNull(nullableResult);
     }
 
     @Test
