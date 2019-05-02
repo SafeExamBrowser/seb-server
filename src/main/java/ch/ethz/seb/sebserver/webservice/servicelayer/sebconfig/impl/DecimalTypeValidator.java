@@ -21,11 +21,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValu
 @Lazy
 @Component
 @WebServiceProfile
-public class IntegerTypeValueValidator implements ConfigurationValueValidator {
+public class DecimalTypeValidator implements ConfigurationValueValidator {
 
     @Override
     public String name() {
-        return AttributeType.INTEGER.name();
+        return AttributeType.DECIMAL.name();
     }
 
     @Override
@@ -34,7 +34,7 @@ public class IntegerTypeValueValidator implements ConfigurationValueValidator {
             final ConfigurationAttribute attribute) {
 
         // if value is not an integer type or another specific validation is defined --> skip
-        if (attribute.type != AttributeType.INTEGER ||
+        if (attribute.type != AttributeType.DECIMAL ||
                 StringUtils.isNoneBlank(attribute.validator)) {
 
             return true;
@@ -45,7 +45,7 @@ public class IntegerTypeValueValidator implements ConfigurationValueValidator {
         }
 
         try {
-            Integer.parseInt(value.value);
+            Double.parseDouble(value.value);
             return true;
         } catch (final NumberFormatException nfe) {
             return false;

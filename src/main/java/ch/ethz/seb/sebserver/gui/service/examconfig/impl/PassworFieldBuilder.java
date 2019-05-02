@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,26 +8,21 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 
-@Lazy
-@Component
-@GuiProfile
-public class TextFieldBuilder implements InputFieldBuilder {
+public class PassworFieldBuilder implements InputFieldBuilder {
 
     @Override
     public boolean builderFor(
@@ -38,10 +33,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             return false;
         }
 
-        return attribute.type == AttributeType.TEXT_FIELD ||
-                attribute.type == AttributeType.TEXT_AREA ||
-                attribute.type == AttributeType.INTEGER ||
-                attribute.type == AttributeType.DECIMAL;
+        return AttributeType.PASSWORD_FIELD == attribute.type;
     }
 
     @Override
@@ -55,50 +47,69 @@ public class TextFieldBuilder implements InputFieldBuilder {
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, orientation);
 
-        final Text text;
-        if (attribute.type == AttributeType.INTEGER ||
-                attribute.type == AttributeType.DECIMAL) {
+        final Text passwordInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
+        passwordInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final Text confirmInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
+        confirmInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-            text = new Text(innerGrid, SWT.RIGHT | SWT.BORDER);
-        } else {
-            text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
-        }
-        text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-        final TextInputField textInputField = new TextInputField(
+        final PasswordInputField passwordInputField = new PasswordInputField(
                 attribute,
                 orientation,
-                text,
+                passwordInput,
+                confirmInput,
                 InputFieldBuilder.createErrorLabel(innerGrid));
 
         final Listener valueChangeEventListener = event -> {
-            textInputField.clearError();
+
+            final String pwd = passwordInput.getText();
+            final String confirm = confirmInput.getText();
+
+            if (StringUtils.isBlank(pwd) && StringUtils.isBlank(confirm)) {
+                return;
+            }
+
+            if (!pwd.equals(confirm)) {
+                passwordInputField.showError("TODO confirm password message");
+                return;
+            }
+
+            // TODO hash password
+
+            passwordInputField.clearError();
             viewContext.getValueChangeListener().valueChanged(
                     viewContext,
                     attribute,
-                    String.valueOf(text.getText()),
-                    textInputField.listIndex);
+                    pwd,
+                    passwordInputField.listIndex);
         };
 
-        text.addListener(SWT.FocusOut, valueChangeEventListener);
-        text.addListener(SWT.Traverse, valueChangeEventListener);
-        return textInputField;
+        passwordInput.addListener(SWT.FocusOut, valueChangeEventListener);
+        passwordInput.addListener(SWT.Traverse, valueChangeEventListener);
+        confirmInput.addListener(SWT.FocusOut, valueChangeEventListener);
+        confirmInput.addListener(SWT.Traverse, valueChangeEventListener);
+        return passwordInputField;
     }
 
-    static final class TextInputField extends AbstractInputField<Text> {
+    static final class PasswordInputField extends AbstractInputField<Text> {
 
-        TextInputField(
+        private final Text confirm;
+
+        PasswordInputField(
                 final ConfigurationAttribute attribute,
                 final Orientation orientation,
                 final Text control,
+                final Text confirm,
                 final Label errorLabel) {
 
             super(attribute, orientation, control, errorLabel);
+            this.confirm = confirm;
         }
 
         @Override
         protected void setDefaultValue() {
+            // TODO clarify setting some "fake" input when a password is set (like in config tool)
             this.control.setText(this.initValue);
+            this.confirm.setText(this.initValue);
         }
 
     }

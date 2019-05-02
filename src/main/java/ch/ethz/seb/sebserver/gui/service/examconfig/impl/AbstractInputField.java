@@ -18,14 +18,17 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 
-public abstract class ControlFieldAdapter<T extends Control> implements InputField {
+public abstract class AbstractInputField<T extends Control> implements InputField {
 
     protected final ConfigurationAttribute attribute;
     protected final Orientation orientation;
     protected final T control;
     protected final Label errorLabel;
 
-    ControlFieldAdapter(
+    protected String initValue = "";
+    protected int listIndex = 0;
+
+    AbstractInputField(
             final ConfigurationAttribute attribute,
             final Orientation orientation,
             final T control,
@@ -40,11 +43,6 @@ public abstract class ControlFieldAdapter<T extends Control> implements InputFie
     @Override
     public final ConfigurationAttribute getAttribute() {
         return this.attribute;
-    }
-
-    @Override
-    public final Control getControl() {
-        return this.control;
     }
 
     @Override
@@ -89,7 +87,15 @@ public abstract class ControlFieldAdapter<T extends Control> implements InputFie
 
     @Override
     public void initValue(final Collection<ConfigurationValue> values) {
-        // Does Nothing for default
+        values.stream()
+                .filter(a -> this.attribute.id.equals(a.attributeId))
+                .findFirst()
+                .map(v -> {
+                    this.initValue = v.value;
+                    this.listIndex = (v.listIndex != null) ? v.listIndex : 0;
+                    setDefaultValue();
+                    return this.initValue;
+                });
     }
 
     protected abstract void setDefaultValue();

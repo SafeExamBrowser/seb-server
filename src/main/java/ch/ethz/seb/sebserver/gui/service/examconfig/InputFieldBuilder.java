@@ -8,12 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public interface InputFieldBuilder {
 
@@ -28,8 +33,31 @@ public interface InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext);
 
-    static LocTextKey createResourceBundleKey(final String paramName, final String value) {
-        return new LocTextKey(RES_BUNDLE_KEY_PREFIX + paramName + "." + value);
+    static Composite createInnerGrid(
+            final Composite parent,
+            final Orientation orientation) {
+
+        final Composite comp = new Composite(parent, SWT.NONE);
+        final GridLayout gridLayout = new GridLayout();
+        gridLayout.verticalSpacing = 0;
+        gridLayout.marginHeight = 1;
+        comp.setLayout(gridLayout);
+
+        final GridData gridData = new GridData(
+                SWT.FILL, SWT.FILL,
+                true, false,
+                (orientation != null) ? orientation.width() : 1,
+                (orientation != null) ? orientation.height() : 1);
+        comp.setLayoutData(gridData);
+        return comp;
+    }
+
+    static Label createErrorLabel(final Composite innerGrid) {
+        final Label errorLabel = new Label(innerGrid, SWT.NONE);
+        errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        errorLabel.setVisible(false);
+        errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
+        return errorLabel;
     }
 
 }

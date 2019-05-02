@@ -117,7 +117,8 @@ public class WidgetFactory {
         FOOTER("footer"),
         TITLE_LABEL("head"),
 
-        MESSAGE("message")
+        MESSAGE("message"),
+        ERROR("error")
 
         ;
 

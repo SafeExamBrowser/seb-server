@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
 /** Holds a page-context and defines some convenient functionality for page handling */
@@ -38,6 +39,11 @@ public interface PageContext {
         public static final String IMPORT_FROM_QUIZZ_DATA = "IMPORT_FROM_QUIZZ_DATA";
 
     }
+
+    /** Get the I18nSupport service
+     * 
+     * @return the I18nSupport service */
+    I18nSupport getI18nSupport();
 
     /** Use this to get the ComposerService used by this PageContext
      *

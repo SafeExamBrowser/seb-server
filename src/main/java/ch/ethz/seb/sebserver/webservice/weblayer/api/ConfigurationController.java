@@ -31,7 +31,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -41,7 +40,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ConfigurationController extends EntityController<Configuration, Configuration> {
 
     private final ConfigurationDAO configurationDAO;
-    private final ConfigurationNodeDAO configurationNodeDAO;
 
     protected ConfigurationController(
             final AuthorizationService authorization,
@@ -49,8 +47,7 @@ public class ConfigurationController extends EntityController<Configuration, Con
             final ConfigurationDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService,
-            final ConfigurationNodeDAO configurationNodeDAO) {
+            final BeanValidationService beanValidationService) {
 
         super(authorization,
                 bulkActionService,
@@ -60,7 +57,6 @@ public class ConfigurationController extends EntityController<Configuration, Con
                 beanValidationService);
 
         this.configurationDAO = entityDAO;
-        this.configurationNodeDAO = configurationNodeDAO;
     }
 
     @RequestMapping(

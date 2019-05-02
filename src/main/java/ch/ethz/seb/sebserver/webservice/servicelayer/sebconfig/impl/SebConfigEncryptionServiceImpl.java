@@ -154,7 +154,8 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             input.get(b);
             return ByteBuffer.wrap(b).asReadOnlyBuffer();
         } else {
-            return input.clear().asReadOnlyBuffer();
+            input.clear();
+            return input.asReadOnlyBuffer();
         }
     }
 

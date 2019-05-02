@@ -59,7 +59,7 @@ public class LabelBuilder implements InputFieldBuilder {
                 label);
     }
 
-    static final class LabelField extends ControlFieldAdapter<Label> {
+    static final class LabelField extends AbstractInputField<Label> {
 
         LabelField(
                 final ConfigurationAttribute attribute,

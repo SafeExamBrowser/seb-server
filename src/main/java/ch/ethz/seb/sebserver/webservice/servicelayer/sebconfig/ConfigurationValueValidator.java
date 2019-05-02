@@ -35,7 +35,13 @@ public interface ConfigurationValueValidator {
             final ConfigurationValue value,
             final ConfigurationAttribute attribute) {
 
-        return "examConfigValue:" + attribute.name + ":" + name() + ":" + value.listIndex;
+        return new StringBuffer("examConfigValue:")
+                .append(attribute.name)
+                .append(":")
+                .append(name())
+                .append(":")
+                .append(value.listIndex)
+                .toString();
     }
 
 }

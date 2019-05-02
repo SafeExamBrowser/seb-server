@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
@@ -39,7 +41,10 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeRule;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
@@ -162,9 +167,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     public Composite createViewGrid(final Composite parent, final ViewContext viewContext) {
         final Composite composite = new Composite(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(viewContext.columns, true);
-        gridLayout.marginTop = 10;
-        gridLayout.verticalSpacing = 5;
-        gridLayout.horizontalSpacing = 10;
+        gridLayout.verticalSpacing = 0;
         composite.setLayout(gridLayout);
         composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
@@ -207,6 +210,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     }
 
     private static final class ValueChangeListenerImpl implements ValueChangeListener {
+
+        public static final String VALIDATION_ERROR_KEY_PREFIX = "sebserver.examconfig.props.validation.";
 
         private final PageContext pageContext;
         private final RestService restService;
@@ -267,8 +272,25 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         }
 
         private String verifyErrorMessage(final Throwable error) {
-            // TODO Auto-generated method stub
-            return "TODO";
+            if (error instanceof RestCallError) {
+                final List<APIMessage> errorMessages = ((RestCallError) error).getErrorMessages();
+                if (errorMessages.isEmpty()) {
+                    return "";
+                }
+
+                final APIMessage apiMessage = errorMessages.get(0);
+                if (!ErrorMessage.FIELD_VALIDATION.isOf(apiMessage)) {
+                    return "";
+                }
+
+                final FieldValidationError fieldValidationError = new FieldValidationError(apiMessage);
+                return this.pageContext.getI18nSupport().getText(new LocTextKey(
+                        VALIDATION_ERROR_KEY_PREFIX + fieldValidationError.errorType,
+                        (Object[]) fieldValidationError.getAttributes()));
+            }
+
+            log.warn("Unexpected error happened while trying to set SEB configuration value: ", error);
+            return VALIDATION_ERROR_KEY_PREFIX + "unexpected";
         }
     }
 

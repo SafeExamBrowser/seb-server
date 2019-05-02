@@ -60,6 +60,11 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
+    public I18nSupport getI18nSupport() {
+        return this.i18nSupport;
+    }
+
+    @Override
     public Shell getShell() {
         if (this.root == null) {
             return null;
@@ -328,5 +333,4 @@ public class PageContextImpl implements PageContext {
             this.onOK.accept(false);
         }
     }
-
 }

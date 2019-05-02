@@ -10,8 +10,6 @@ package ch.ethz.seb.sebserver.gui.service.examconfig;
 
 import java.util.Collection;
 
-import org.eclipse.swt.widgets.Control;
-
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
@@ -23,8 +21,6 @@ public interface InputField {
     Orientation getOrientation();
 
     void initValue(Collection<ConfigurationValue> values);
-
-    Control getControl();
 
     void showError(String errorMessage);
 

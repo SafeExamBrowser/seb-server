@@ -46,8 +46,6 @@ public class ViewGridBuilder {
         this.viewContext = viewContext;
         this.grid = new CellFieldBuilderAdapter[viewContext.rows][viewContext.columns];
         this.registeredGroups = new HashSet<>();
-
-        fillDummy(0, 0, viewContext.columns, viewContext.rows);
     }
 
     ViewGridBuilder add(final ConfigurationAttribute attribute) {
@@ -77,6 +75,10 @@ public class ViewGridBuilder {
         // create single input field with label
         final int xpos = orientation.xpos();
         final int ypos = orientation.ypos();
+
+        if (orientation.width > 1 || orientation.height > 1) {
+            fillDummy(xpos, ypos, orientation.width, orientation.height);
+        }
 
         final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
                 attribute,
@@ -114,7 +116,8 @@ public class ViewGridBuilder {
             for (int x = 0; x < this.grid[y].length; x++) {
                 if (this.grid[y][x] == null) {
                     final Label empty = new Label(this.parent, SWT.LEFT);
-                    empty.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+                    final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+                    empty.setLayoutData(gridData);
                     empty.setText("");
                 } else {
                     this.grid[y][x].createCell(this);
@@ -149,10 +152,6 @@ public class ViewGridBuilder {
                         attribute,
                         ViewGridBuilder.this.viewContext);
 
-//                final Orientation orientation =
-//                        ViewGridBuilder.this.viewContext.attributeMapping.getOrientation(attribute.id);
-//
-//                //inputField.setSpan(orientation.width, orientation.height);
                 ViewGridBuilder.this.viewContext.registerInputField(inputField);
             }
         };
@@ -257,13 +256,6 @@ public class ViewGridBuilder {
                     attr,
                     this.builder.viewContext);
 
-            final GridData gridData = new GridData(
-                    SWT.FILL, SWT.FILL,
-                    true, false,
-                    orientation.width(), orientation.height());
-
-            inputField.getControl().setLayoutData(gridData);
-            inputField.getControl().setToolTipText(attr.name);
             this.builder.viewContext.registerInputField(inputField);
         }
     }

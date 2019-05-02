@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Collection;
 import java.util.Objects;
 
 import org.eclipse.swt.SWT;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
@@ -72,9 +70,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                 checkbox);
     }
 
-    static final class CheckboxField extends ControlFieldAdapter<Button> {
-
-        private boolean initValue = false;
+    static final class CheckboxField extends AbstractInputField<Button> {
 
         CheckboxField(
                 final ConfigurationAttribute attribute,
@@ -85,20 +81,8 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         }
 
         @Override
-        public void initValue(final Collection<ConfigurationValue> values) {
-            values.stream()
-                    .filter(v -> this.attribute.id.equals(v.attributeId))
-                    .findFirst()
-                    .map(v -> {
-                        this.initValue = Boolean.valueOf(v.value);
-                        this.control.setSelection(this.initValue);
-                        return this.initValue;
-                    });
-        }
-
-        @Override
         protected void setDefaultValue() {
-            this.control.setSelection(this.initValue);
+            this.control.setSelection(Boolean.valueOf(this.initValue));
         }
     }
 
