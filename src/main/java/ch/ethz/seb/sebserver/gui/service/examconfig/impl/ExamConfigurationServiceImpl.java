@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
@@ -95,7 +96,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 .stream()
                 .filter(b -> b.builderFor(attribute, orientation))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new NoSuchElementException("No InputFieldBuilder found for : " + attribute.type));
     }
 
     @Override
