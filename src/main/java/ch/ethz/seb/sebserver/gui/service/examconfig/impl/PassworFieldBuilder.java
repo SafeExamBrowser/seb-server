@@ -8,6 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -15,14 +20,28 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
+@Lazy
+@Component
+@GuiProfile
 public class PassworFieldBuilder implements InputFieldBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(PassworFieldBuilder.class);
+
+    private static final LocTextKey VAL_CONFIRM_PWD_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.props.validation.password.confirm");
 
     @Override
     public boolean builderFor(
@@ -50,7 +69,9 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         final Text passwordInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
         passwordInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         final Text confirmInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
-        confirmInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        gridData.verticalIndent = 5;
+        confirmInput.setLayoutData(gridData);
 
         final PasswordInputField passwordInputField = new PasswordInputField(
                 attribute,
@@ -69,18 +90,29 @@ public class PassworFieldBuilder implements InputFieldBuilder {
             }
 
             if (!pwd.equals(confirm)) {
-                passwordInputField.showError("TODO confirm password message");
+                passwordInputField.showError(viewContext
+                        .getI18nSupport()
+                        .getText(VAL_CONFIRM_PWD_TEXT_KEY));
                 return;
             }
 
-            // TODO hash password
+            String hashedPWD;
+            try {
+                hashedPWD = hashPassword(pwd);
+            } catch (final NoSuchAlgorithmException e) {
+                log.error("Failed to hash password: ", e);
+                passwordInputField.showError("Failed to hash password");
+                hashedPWD = null;
+            }
 
-            passwordInputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    pwd,
-                    passwordInputField.listIndex);
+            if (hashedPWD != null) {
+                passwordInputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        hashedPWD,
+                        passwordInputField.listIndex);
+            }
         };
 
         passwordInput.addListener(SWT.FocusOut, valueChangeEventListener);
@@ -88,6 +120,14 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         confirmInput.addListener(SWT.FocusOut, valueChangeEventListener);
         confirmInput.addListener(SWT.Traverse, valueChangeEventListener);
         return passwordInputField;
+    }
+
+    private String hashPassword(final String pwd) throws NoSuchAlgorithmException {
+        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        final byte[] encodedhash = digest.digest(
+                pwd.getBytes(StandardCharsets.UTF_8));
+
+        return Hex.encodeHexString(encodedhash);
     }
 
     static final class PasswordInputField extends AbstractInputField<Text> {
@@ -108,8 +148,10 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         @Override
         protected void setDefaultValue() {
             // TODO clarify setting some "fake" input when a password is set (like in config tool)
-            this.control.setText(this.initValue);
-            this.confirm.setText(this.initValue);
+            if (this.initValue != null) {
+                this.control.setText(this.initValue);
+                this.confirm.setText(this.initValue);
+            }
         }
 
     }

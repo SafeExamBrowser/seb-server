@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -368,16 +367,16 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                                 attrRec.getId(),
                                 attrRec.getDefaultValue());
 
-                        if (StringUtils.isNoneBlank(value)) {
-                            this.configurationValueRecordMapper.insert(new ConfigurationValueRecord(
-                                    null,
-                                    configNode.institutionId,
-                                    config.getId(),
-                                    attrRec.getId(),
-                                    0,
-                                    bigValue ? null : value,
-                                    bigValue ? value : null));
-                        }
+                        //if (StringUtils.isNoneBlank(value)) {
+                        this.configurationValueRecordMapper.insert(new ConfigurationValueRecord(
+                                null,
+                                configNode.institutionId,
+                                config.getId(),
+                                attrRec.getId(),
+                                0,
+                                bigValue ? null : value,
+                                bigValue ? value : null));
+                        //}
                     });
 
             return configNode;

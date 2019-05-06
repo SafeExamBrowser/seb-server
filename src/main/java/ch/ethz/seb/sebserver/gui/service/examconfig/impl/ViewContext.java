@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 
 public final class ViewContext {
 
@@ -28,6 +29,7 @@ public final class ViewContext {
     public final AttributeMapping attributeMapping;
     private final Map<Long, InputField> inputFieldMapping;
     private final ValueChangeListener valueChangeListener;
+    private final I18nSupport i18nSupport;
 
     ViewContext(
             final Configuration configuration,
@@ -35,7 +37,8 @@ public final class ViewContext {
             final int columns,
             final int rows,
             final AttributeMapping attributeContext,
-            final ValueChangeListener valueChangeListener) {
+            final ValueChangeListener valueChangeListener,
+            final I18nSupport i18nSupport) {
 
         Objects.requireNonNull(configuration);
         Objects.requireNonNull(view);
@@ -50,6 +53,11 @@ public final class ViewContext {
         this.attributeMapping = attributeContext;
         this.inputFieldMapping = new HashMap<>();
         this.valueChangeListener = valueChangeListener;
+        this.i18nSupport = i18nSupport;
+    }
+
+    public I18nSupport getI18nSupport() {
+        return this.i18nSupport;
     }
 
     public Long getId() {

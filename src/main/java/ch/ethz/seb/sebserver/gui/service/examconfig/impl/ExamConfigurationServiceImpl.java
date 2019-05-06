@@ -160,7 +160,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                         pageContext,
                         this.restService,
                         this.jsonMapper,
-                        this.valueChangeRules));
+                        this.valueChangeRules),
+                this.widgetFactory.getI18nSupport());
 
     }
 

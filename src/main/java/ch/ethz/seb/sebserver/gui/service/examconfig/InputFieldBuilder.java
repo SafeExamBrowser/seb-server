@@ -37,8 +37,16 @@ public interface InputFieldBuilder {
             final Composite parent,
             final Orientation orientation) {
 
+        return createInnerGrid(parent, orientation, 1);
+    }
+
+    static Composite createInnerGrid(
+            final Composite parent,
+            final Orientation orientation,
+            final int numColumns) {
+
         final Composite comp = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout();
+        final GridLayout gridLayout = new GridLayout(numColumns, true);
         gridLayout.verticalSpacing = 0;
         gridLayout.marginHeight = 1;
         comp.setLayout(gridLayout);
