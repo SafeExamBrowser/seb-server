@@ -41,10 +41,6 @@ public final class API {
     public static final String PRIVILEGES_ENDPOINT = INFO_ENDPOINT + PRIVILEGES_PATH_SEGMENT;
 
     public static final String INSTITUTION_ENDPOINT = "/institution";
-//    public static final String SEB_CONFIG_EXPORT_PATH_SEGMENT = "/sebconfig";
-//    public static final String SEB_CONFIG_EXPORT_ENDPOINT = INSTITUTION_ENDPOINT
-//            + INSTITUTION_VAR_PATH_SEGMENT
-//            + SEB_CONFIG_EXPORT_PATH_SEGMENT;
 
     public static final String LMS_SETUP_ENDPOINT = "/lms_setup";
     public static final String LMS_SETUP_TEST_PATH_SEGMENT = "/test";

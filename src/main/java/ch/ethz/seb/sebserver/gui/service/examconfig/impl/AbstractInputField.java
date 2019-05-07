@@ -28,7 +28,7 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
     protected String initValue = "";
     protected int listIndex = 0;
 
-    AbstractInputField(
+    protected AbstractInputField(
             final ConfigurationAttribute attribute,
             final Orientation orientation,
             final T control,
@@ -93,11 +93,15 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
                 .map(v -> {
                     this.initValue = v.value;
                     this.listIndex = (v.listIndex != null) ? v.listIndex : 0;
-                    setDefaultValue();
+                    setValueToControl(this.initValue);
                     return this.initValue;
                 });
     }
 
-    protected abstract void setDefaultValue();
+    protected void setDefaultValue() {
+        setValueToControl(this.attribute.defaultValue);
+    }
+
+    protected abstract void setValueToControl(String value);
 
 }

@@ -10,10 +10,12 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
@@ -82,6 +84,11 @@ public final class ViewContext {
 
     public int getRows() {
         return this.rows;
+    }
+
+    public List<ConfigurationAttribute> getChildAttributes(final ConfigurationAttribute attribute) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public ValueChangeListener getValueChangeListener() {

@@ -24,8 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationTableValue implements GrantEntity {
 
-    public static final String ATTR_COLUMNS = "columnAttributeIds";
-    public static final String ATTR_VALUES = "values";
+    public static final String ATTR_TABLE_VALUES = "tableValues";
 
     @NotNull
     @JsonProperty(CONFIGURATION_VALUE.ATTR_INSTITUTION_ID)
@@ -39,24 +38,19 @@ public final class ConfigurationTableValue implements GrantEntity {
     @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID)
     public final Long attributeId;
 
-    @JsonProperty(ATTR_COLUMNS)
-    public final List<Long> columnAttributeIds;
-
-    @JsonProperty(ATTR_VALUES)
-    public final List<String> values;
+    @JsonProperty(ATTR_TABLE_VALUES)
+    public final List<TableValue> values;
 
     @JsonCreator
     public ConfigurationTableValue(
             @JsonProperty(CONFIGURATION_VALUE.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID) final Long configurationId,
             @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID) final Long attributeId,
-            @JsonProperty(ATTR_COLUMNS) final List<Long> columns,
-            @JsonProperty(ATTR_VALUES) final List<String> values) {
+            @JsonProperty(ATTR_TABLE_VALUES) final List<TableValue> values) {
 
         this.institutionId = institutionId;
         this.configurationId = configurationId;
         this.attributeId = attributeId;
-        this.columnAttributeIds = Collections.unmodifiableList(columns);
         this.values = Collections.unmodifiableList(values);
     }
 
@@ -88,11 +82,7 @@ public final class ConfigurationTableValue implements GrantEntity {
         return this.attributeId;
     }
 
-    public List<Long> getColumnAttributeIds() {
-        return this.columnAttributeIds;
-    }
-
-    public List<String> getValues() {
+    public List<TableValue> getValues() {
         return this.values;
     }
 
@@ -100,8 +90,31 @@ public final class ConfigurationTableValue implements GrantEntity {
     public String toString() {
         return "ConfigurationTableValue [institutionId=" + this.institutionId + ", configurationId="
                 + this.configurationId
-                + ", attributeId=" + this.attributeId + ", columnAttributeIds=" + this.columnAttributeIds + ", values="
-                + this.values
-                + "]";
+                + ", attributeId=" + this.attributeId + ", values=" + this.values + "]";
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class TableValue {
+
+        @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID)
+        public final Long attributeId;
+        @JsonProperty(CONFIGURATION_VALUE.ATTR_LIST_INDEX)
+        public final Integer listIndex;
+        @JsonProperty(CONFIGURATION_VALUE.ATTR_VALUE)
+        public final String value;
+
+        public TableValue(
+                @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID) final Long attributeId,
+                @JsonProperty(CONFIGURATION_VALUE.ATTR_LIST_INDEX) final Integer listIndex,
+                @JsonProperty(CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
+
+            this.attributeId = attributeId;
+            this.listIndex = listIndex;
+            this.value = value;
+        }
+
+        public static TableValue of(final ConfigurationValue value) {
+            return new TableValue(value.attributeId, value.listIndex, value.value);
+        }
     }
 }

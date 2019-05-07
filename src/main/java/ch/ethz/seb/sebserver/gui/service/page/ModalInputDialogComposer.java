@@ -10,9 +10,11 @@ package ch.ethz.seb.sebserver.gui.service.page;
 
 import java.util.function.Supplier;
 
+import org.eclipse.swt.widgets.Composite;
+
 @FunctionalInterface
 public interface ModalInputDialogComposer<T> {
 
-    Supplier<T> compose(PageContext pageContext);
+    Supplier<T> compose(Composite parent);
 
 }

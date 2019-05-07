@@ -50,7 +50,6 @@ public class ModalInputDialog<T> extends Dialog {
 
     public void open(
             final LocTextKey title,
-            final PageContext pageContext,
             final Consumer<T> callback,
             final ModalInputDialogComposer<T> contentComposer) {
 
@@ -68,8 +67,7 @@ public class ModalInputDialog<T> extends Dialog {
         gridData.horizontalSpan = 2;
         main.setLayoutData(gridData);
 
-        final PageContext internalPageContext = pageContext.copyOf(main);
-        final Supplier<T> valueSuppier = contentComposer.compose(internalPageContext);
+        final Supplier<T> valueSuppier = contentComposer.compose(main);
 
         final Button ok = this.widgetFactory.buttonLocalized(shell, OK_TEXT_KEY);
         GridData data = new GridData(GridData.HORIZONTAL_ALIGN_END);

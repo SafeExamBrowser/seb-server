@@ -146,11 +146,11 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         }
 
         @Override
-        protected void setDefaultValue() {
+        protected void setValueToControl(final String value) {
             // TODO clarify setting some "fake" input when a password is set (like in config tool)
             if (this.initValue != null) {
-                this.control.setText(this.initValue);
-                this.confirm.setText(this.initValue);
+                this.control.setText(value);
+                this.confirm.setText(value);
             }
         }
 

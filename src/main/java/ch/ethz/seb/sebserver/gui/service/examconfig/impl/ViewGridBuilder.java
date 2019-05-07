@@ -19,6 +19,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
@@ -30,6 +32,8 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public class ViewGridBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(ViewGridBuilder.class);
 
     private final ExamConfigurationService examConfigurationService;
     private final Composite parent;
@@ -85,34 +89,29 @@ public class ViewGridBuilder {
                 attribute,
                 orientation);
 
-        final CellFieldBuilderAdapter fieldBuilderAdapter = fieldBuilderAdapter(
+        this.grid[ypos][xpos] = fieldBuilderAdapter(
                 inputFieldBuilder,
                 attribute);
 
-        switch (orientation.title) {
-            case RIGHT: {
-                this.grid[ypos][xpos] = fieldBuilderAdapter;
-                this.grid[ypos][xpos + 1] = labelBuilder(attribute, orientation);
-                if (attribute.type == AttributeType.PASSWORD_FIELD) {
-                    this.grid[ypos + 1][xpos + 1] = passwordConfirmLabel(attribute, orientation);
+        try {
+            switch (orientation.title) {
+                case RIGHT: {
+                    this.grid[ypos][xpos + 1] = labelBuilder(attribute, orientation);
+                    break;
                 }
-                break;
-            }
-            case LEFT: {
-                this.grid[ypos][xpos] = labelBuilder(attribute, orientation);
-                if (attribute.type == AttributeType.PASSWORD_FIELD) {
-                    this.grid[ypos + 1][xpos] = passwordConfirmLabel(attribute, orientation);
+                case LEFT: {
+                    this.grid[ypos][xpos - 1] = labelBuilder(attribute, orientation);
+                    break;
                 }
-                this.grid[ypos][xpos + 1] = fieldBuilderAdapter;
-                break;
+                case TOP: {
+                    this.grid[ypos - 1][xpos] = labelBuilder(attribute, orientation);
+                    break;
+                }
+                default: {
+                }
             }
-            case TOP: {
-                this.grid[ypos][xpos] = labelBuilder(attribute, orientation);
-                this.grid[ypos + 1][xpos] = fieldBuilderAdapter;
-            }
-            default: {
-                this.grid[ypos][xpos] = fieldBuilderAdapter;
-            }
+        } catch (final ArrayIndexOutOfBoundsException e) {
+            log.error("Failed to set title as configured in: {} for attribute: {}", orientation, attribute, e);
         }
 
         return this;
@@ -136,6 +135,7 @@ public class ViewGridBuilder {
     private static interface CellFieldBuilderAdapter {
 
         void createCell(ViewGridBuilder builder);
+
     }
 
     private CellFieldBuilderAdapter dummyBuilderAdapter() {
@@ -143,6 +143,12 @@ public class ViewGridBuilder {
             @Override
             public void createCell(final ViewGridBuilder builder) {
             }
+
+            @Override
+            public String toString() {
+                return "[DUMMY]";
+            }
+
         };
     }
 
@@ -161,26 +167,10 @@ public class ViewGridBuilder {
 
                 ViewGridBuilder.this.viewContext.registerInputField(inputField);
             }
-        };
-    }
 
-    private CellFieldBuilderAdapter passwordConfirmLabel(
-            final ConfigurationAttribute attribute,
-            final Orientation orientation) {
-
-        return new CellFieldBuilderAdapter() {
             @Override
-            public void createCell(final ViewGridBuilder builder) {
-                final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
-                final Label label = widgetFactory.labelLocalized(
-                        ViewGridBuilder.this.parent,
-                        new LocTextKey(
-                                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".confirm"),
-                        "Confirm Password");
-                final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-                label.setAlignment(SWT.LEFT);
-                gridData.verticalIndent = 10;
-                label.setLayoutData(gridData);
+            public String toString() {
+                return "[FIELD]";
             }
         };
     }
@@ -188,6 +178,10 @@ public class ViewGridBuilder {
     private CellFieldBuilderAdapter labelBuilder(
             final ConfigurationAttribute attribute,
             final Orientation orientation) {
+
+        if (attribute.type == AttributeType.PASSWORD_FIELD) {
+            return passwordConfirmLabel(attribute, orientation);
+        }
 
         return new CellFieldBuilderAdapter() {
             @Override
@@ -208,7 +202,7 @@ public class ViewGridBuilder {
                         break;
                     }
                     case TOP: {
-                        label.setAlignment(SWT.BOTTOM);
+                        label.setAlignment(SWT.LEFT);
                         break;
                     }
 
@@ -216,6 +210,27 @@ public class ViewGridBuilder {
                         label.setAlignment(SWT.LEFT);
                     }
                 }
+                label.setLayoutData(gridData);
+            }
+        };
+    }
+
+    private CellFieldBuilderAdapter passwordConfirmLabel(
+            final ConfigurationAttribute attribute,
+            final Orientation orientation) {
+
+        return new CellFieldBuilderAdapter() {
+            @Override
+            public void createCell(final ViewGridBuilder builder) {
+                final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
+                final Label label = widgetFactory.labelLocalized(
+                        ViewGridBuilder.this.parent,
+                        new LocTextKey(
+                                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".confirm"),
+                        "Confirm Password");
+                final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+                label.setAlignment(SWT.LEFT);
+                gridData.verticalIndent = 10;
                 label.setLayoutData(gridData);
             }
         };

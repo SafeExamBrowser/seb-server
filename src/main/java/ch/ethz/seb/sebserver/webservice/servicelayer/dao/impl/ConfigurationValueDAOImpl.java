@@ -13,10 +13,10 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeValueType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -213,59 +214,47 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                     .build()
                                     .execute();
 
-                    final List<Long> columnAttributeIds = columnAttributes.stream()
-                            .map(a -> a.getId())
-                            .collect(Collectors.toList());
+                    final Map<Long, ConfigurationAttributeRecord> attributeMapping = columnAttributes
+                            .stream()
+                            .collect(Collectors.toMap(attr -> attr.getId(), Function.identity()));
 
                     // get all values of the table and group them by attribute and sorted by list/row index
-                    final List<ConfigurationValueRecord> valueRecords =
-                            this.configurationValueRecordMapper.selectByExample()
-                                    .where(
-                                            ConfigurationValueRecordDynamicSqlSupport.institutionId,
-                                            isEqualTo(institutionId))
-                                    .and(
-                                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                            isEqualTo(configurationId))
-                                    .and(
-                                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                            SqlBuilder.isIn(columnAttributeIds))
-                                    .build()
-                                    .execute();
-
-                    int rows = 0;
-                    final List<String> values = new ArrayList<>();
-                    final Map<Long, List<ConfigurationValueRecord>> valueMapping = new LinkedHashMap<>();
-                    for (final ConfigurationValueRecord valueRecord : valueRecords) {
-                        final List<ConfigurationValueRecord> list = valueMapping.putIfAbsent(
-                                valueRecord.getId(),
-                                new ArrayList<>());
-                        list.add(valueRecord);
-                        list.sort((r1, r2) -> r1.getListIndex().compareTo(r2.getListIndex()));
-                        rows = list.size();
-                    }
-
-                    for (int row = 0; row < rows; row++) {
-                        for (final ConfigurationAttributeRecord aRecord : columnAttributes) {
-                            final List<ConfigurationValueRecord> list = valueMapping.get(aRecord.getId());
-                            if (list != null) {
-                                final ConfigurationValueRecord valueRecord = list.get(row);
-                                if (valueRecord != null) {
-                                    values.add((isBigValue(aRecord)) ? valueRecord.getText() : valueRecord.getValue());
-                                    continue;
-                                }
-                            }
-
-                            values.add(null);
-                        }
-                    }
+                    final List<TableValue> values = this.configurationValueRecordMapper.selectByExample()
+                            .where(
+                                    ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                                    isEqualTo(institutionId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                    isEqualTo(configurationId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                    SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
+                            .build()
+                            .execute()
+                            .stream()
+                            .map(value -> getTableValue(value, attributeMapping))
+                            .collect(Collectors.toList());
 
                     return new ConfigurationTableValue(
                             institutionId,
                             configurationId,
                             attributeId,
-                            new ArrayList<>(valueMapping.keySet()),
                             values);
                 });
+    }
+
+    private TableValue getTableValue(
+            final ConfigurationValueRecord value,
+            final Map<Long, ConfigurationAttributeRecord> attributeMapping) {
+
+        final Long configurationAttributeId = value.getConfigurationAttributeId();
+        final ConfigurationAttributeRecord configurationAttributeRecord = attributeMapping
+                .get(configurationAttributeId);
+        final boolean bigValue = isBigValue(configurationAttributeRecord);
+        return new TableValue(
+                value.getConfigurationAttributeId(),
+                value.getListIndex(),
+                bigValue ? value.getText() : value.getValue());
     }
 
     @Override
@@ -276,18 +265,20 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(val -> attributeRecordById(val.attributeId))
                 .map(attributeRecord -> {
 
-                    final List<ConfigurationAttributeRecord> columnAttributes =
-                            this.configurationAttributeRecordMapper.selectByExample()
-                                    .where(
-                                            ConfigurationAttributeRecordDynamicSqlSupport.parentId,
-                                            isEqualTo(attributeRecord.getId()))
-                                    .build()
-                                    .execute();
+                    final Map<Long, ConfigurationAttributeRecord> attributeMap = this.configurationAttributeRecordMapper
+                            .selectByExample()
+                            .where(
+                                    ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                                    isEqualTo(attributeRecord.getId()))
+                            .build()
+                            .execute()
+                            .stream()
+                            .collect(Collectors.toMap(rec -> rec.getId(), Function.identity()));
 
-                    final List<Long> columnAttributeIds = columnAttributes.stream()
+                    final List<Long> columnAttributeIds = attributeMap.values()
+                            .stream()
                             .map(a -> a.getId())
                             .collect(Collectors.toList());
-                    final int columns = columnAttributeIds.size();
 
                     // first delete all old values of this table
                     this.configurationValueRecordMapper.deleteByExample()
@@ -301,27 +292,19 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             .execute();
 
                     // then add the new values
-                    int columnIndex = 0;
-                    int rowIndex = 0;
-                    for (final String val : value.values) {
-                        final ConfigurationAttributeRecord columnAttr = columnAttributes.get(columnIndex);
+                    for (final TableValue tableValue : value.values) {
+                        final ConfigurationAttributeRecord columnAttr = attributeMap.get(tableValue.attributeId);
                         final boolean bigValue = isBigValue(columnAttr);
                         final ConfigurationValueRecord valueRecord = new ConfigurationValueRecord(
                                 null,
                                 value.institutionId,
                                 value.configurationId,
                                 columnAttr.getId(),
-                                rowIndex,
-                                (bigValue) ? null : val,
-                                (bigValue) ? val : null);
+                                tableValue.listIndex,
+                                (bigValue) ? null : tableValue.value,
+                                (bigValue) ? tableValue.value : null);
 
                         this.configurationValueRecordMapper.insert(valueRecord);
-
-                        columnIndex++;
-                        if (columnIndex >= columns) {
-                            columnIndex = 0;
-                            rowIndex++;
-                        }
                     }
 
                     return value;

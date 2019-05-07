@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * </code> */
 public interface BulkActionService {
 
-    /** Use this to collect all EntityKey's of all dependent entities for a given BulkAction.
+    /** Use this to collect all EntityKey's of dependent entities for a given BulkAction.
      *
      * @param action the BulkAction defining the source entity keys and acts also as the
      *            dependency collector */

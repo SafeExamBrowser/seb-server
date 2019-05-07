@@ -70,7 +70,7 @@ public class LabelBuilder implements InputFieldBuilder {
         }
 
         @Override
-        protected void setDefaultValue() {
+        protected void setValueToControl(final String value) {
             // Does Nothing, Label has no default value
         }
 

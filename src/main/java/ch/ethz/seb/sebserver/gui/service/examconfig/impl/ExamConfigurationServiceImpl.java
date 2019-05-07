@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValue;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -269,8 +270,9 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
         @Override
         public void tableChanged(final ConfigurationTableValue tableValue) {
-            // TODO Auto-generated method stub
-
+            this.restService.getBuilder(SaveExamConfigTableValue.class)
+                    .withBody(tableValue)
+                    .call();
         }
 
         private String verifyErrorMessage(final Throwable error) {

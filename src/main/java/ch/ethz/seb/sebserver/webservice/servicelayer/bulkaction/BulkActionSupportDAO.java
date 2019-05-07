@@ -45,10 +45,10 @@ public interface BulkActionSupportDAO<T extends Entity> {
 
     /** This processed a given BulkAction for all entities of the concrete type of this BulkActionSupportDAO
      * that are defined by this given BulkAction.
-     * 
+     *
      * This returns a Collection of EntityKey results of each Entity that has been processed.
      * If there was an error for a particular Entity, the Result will have an error reference.
-     * 
+     *
      * @param bulkAction the BulkAction containing the source entity and all dependencies
      * @return a Collection of EntityKey results of each Entity that has been processed. */
     @Transactional
@@ -92,7 +92,15 @@ public interface BulkActionSupportDAO<T extends Entity> {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    /** Get dependency keys of all source entities of a given BulkAction
+     * This method simply goes through all source EntityKeys of the given BulkAction
+     * and applies the selection functions for each, collecting the resulting dependency EntityKeys
+     * into one Set of all dependency keys for all source keys
+     *
+     * 
+     * @param bulkAction The BulkAction that defines the source keys
+     * @param selectionFunction a selection functions that gives all dependency keys for a given source key
+     * @return */
     default Set<EntityKey> getDependencies(
             final BulkAction bulkAction,
             final Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction) {

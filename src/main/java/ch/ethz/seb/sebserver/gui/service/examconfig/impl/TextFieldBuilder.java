@@ -97,10 +97,9 @@ public class TextFieldBuilder implements InputFieldBuilder {
         }
 
         @Override
-        protected void setDefaultValue() {
-            this.control.setText(this.initValue);
+        protected void setValueToControl(final String value) {
+            this.control.setText(value);
         }
-
     }
 
 }

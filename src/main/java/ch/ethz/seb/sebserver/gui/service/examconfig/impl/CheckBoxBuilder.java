@@ -81,7 +81,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         }
 
         @Override
-        protected void setDefaultValue() {
+        protected void setValueToControl(final String value) {
             this.control.setSelection(Boolean.valueOf(this.initValue));
         }
     }
