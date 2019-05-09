@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -43,6 +43,7 @@ import org.springframework.security.oauth2.provider.token.UserAuthenticationConv
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
@@ -64,9 +65,8 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfigu
  * and is by default set to "/exam-api/**" */
 @WebServiceProfile
 @Configuration
-//@EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
-@Order(5)
+@Order(6)
 @Import(DataSourceAutoConfiguration.class)
 public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -89,6 +89,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private String adminAPIEndpoint;
     @Value("${sebserver.webservice.api.exam.endpoint}")
     private String examAPIEndpoint;
+    @Value("${management.endpoints.web.base-path}")
+    private String actuatorEndpoint;
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
 
@@ -154,6 +156,16 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 this.examAPIEndpoint);
     }
 
+    @Bean
+    protected ResourceServerConfiguration sebServerActuatorResources() throws Exception {
+        return new ActuatorResourceServerConfiguration(
+                this.tokenStore,
+                this.webServiceClientDetails,
+                authenticationManagerBean(),
+                this.actuatorEndpoint,
+                this.unauthorizedRedirect);
+    }
+
     // NOTE: We need two different class types here to support Spring configuration for different
     //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
     private static final class AdminAPIResourceServerConfiguration extends WebserviceResourceConfiguration {
@@ -191,6 +203,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     tokenStore,
                     webServiceClientDetails,
                     authenticationManager,
+                    // TODO create a proper error handling here with also documentation on SEB Binding Specification
                     (request, response, exception) -> {
                         response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -203,6 +216,36 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     true,
                     3);
         }
+    }
+
+    private static final class ActuatorResourceServerConfiguration extends WebserviceResourceConfiguration {
+
+        public ActuatorResourceServerConfiguration(
+                final TokenStore tokenStore,
+                final WebClientDetailsService webServiceClientDetails,
+                final AuthenticationManager authenticationManager,
+                final String apiEndpoint,
+                final String redirect) {
+
+            super(
+                    tokenStore,
+                    webServiceClientDetails,
+                    authenticationManager,
+                    new LoginRedirectOnUnauthorized(redirect),
+                    ADMIN_API_RESOURCE_ID,
+                    apiEndpoint,
+                    true,
+                    4);
+        }
+
+        @Override
+        protected void addConfiguration(final String apiEndpoint, final HttpSecurity http) throws Exception {
+            http.antMatcher(apiEndpoint + "/**")
+                    .authorizeRequests()
+                    .anyRequest()
+                    .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
+        }
+
     }
 
     private static class LoginRedirectOnUnauthorized implements AuthenticationEntryPoint {
@@ -222,8 +265,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
                     request.getRequestURI());
 
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.sendRedirect(this.redirect);
+            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+            response.setHeader(HttpHeaders.LOCATION, this.redirect);
+            response.flushBuffer();
         }
     }
 

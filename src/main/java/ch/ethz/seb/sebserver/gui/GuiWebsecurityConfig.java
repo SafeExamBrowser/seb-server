@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Configuration
 @GuiProfile
-@Order(4)
+@Order(5)
 public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

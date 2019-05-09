@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.DevGuiProfile;
 import ch.ethz.seb.sebserver.gbl.profile.DevWebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -59,13 +58,13 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @WebServiceProfile
 @GuiProfile
 @RestController
-@Order(6)
+@Order(7)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
 
     private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
-    @Value("${sebserver.webservice.api.admin.endpoint}")
-    private String adminEndpoint;
+//    @Value("${sebserver.webservice.api.admin.endpoint}")
+//    private String adminEndpoint;
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
 
@@ -101,13 +100,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         web
                 .ignoring()
                 .antMatchers("/error")
-                .antMatchers(this.adminEndpoint + API.INFO_ENDPOINT + "/**");
+        // TODO this may not be necessary, test with separated GUI and webservice server
+        //.antMatchers(this.adminEndpoint + API.INFO_ENDPOINT + "/**")
+        ;
     }
 
     @RequestMapping("/error")
     public void handleError(final HttpServletResponse response) throws IOException {
-        response.setStatus(HttpStatus.NOT_FOUND.value());
-        response.sendRedirect(this.unauthorizedRedirect);
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader(HttpHeaders.LOCATION, this.unauthorizedRedirect);
+        response.flushBuffer();
     }
 
     @Override
@@ -123,7 +125,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     @DevGuiProfile
     @DevWebServiceProfile
     public ClientHttpRequestFactory clientHttpRequestFactory() {
+
         log.info("Initialize with insecure ClientHttpRequestFactory for development");
+
         return new DevClientHttpRequestFactory();
     }
 

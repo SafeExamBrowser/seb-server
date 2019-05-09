@@ -43,6 +43,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
 
         super();
         final ConfigurerAdapter configurerAdapter = new ConfigurerAdapter(
+                this,
                 tokenStore,
                 webServiceClientDetails,
                 authenticationManager,
@@ -61,8 +62,13 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         super.setConfigurers(configurers);
     }
 
+    protected void addConfiguration(final String apiEndpoint, final HttpSecurity http) throws Exception {
+        // To override of additional configuration is needed
+    }
+
     private static final class ConfigurerAdapter extends ResourceServerConfigurerAdapter {
 
+        private final WebserviceResourceConfiguration webserviceResourceConfiguration;
         private final TokenStore tokenStore;
         private final WebClientDetailsService webServiceClientDetails;
         private final AuthenticationManager authenticationManager;
@@ -72,6 +78,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         private final boolean supportRefreshToken;
 
         public ConfigurerAdapter(
+                final WebserviceResourceConfiguration webserviceResourceConfiguration,
                 final TokenStore tokenStore,
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
@@ -81,6 +88,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                 final boolean supportRefreshToken) {
 
             super();
+            this.webserviceResourceConfiguration = webserviceResourceConfiguration;
             this.tokenStore = tokenStore;
             this.webServiceClientDetails = webServiceClientDetails;
             this.authenticationManager = authenticationManager;
@@ -121,6 +129,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                     .headers().frameOptions().disable()
                     .and()
                     .csrf().disable();
+
+            this.webserviceResourceConfiguration.addConfiguration(this.apiEndpoint, http);
         }
     }
 
