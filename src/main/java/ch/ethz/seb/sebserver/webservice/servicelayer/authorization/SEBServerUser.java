@@ -22,7 +22,10 @@ import org.springframework.util.CollectionUtils;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
-/** SEBServerUser defines web-service internal user-account based authentication principal */
+/** SEBServerUser defines web-service internal user-account based authentication principal
+ *
+ * This implements Spring's UserDetails and CredentialsContainer to act as a principal
+ * within internal authentication and authorization processes. */
 public final class SEBServerUser implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = 5726250141482925769L;

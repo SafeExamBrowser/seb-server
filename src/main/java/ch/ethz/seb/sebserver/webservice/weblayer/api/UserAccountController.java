@@ -156,7 +156,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             // check of institution of UserInfo is active. Otherwise save is not valid
             if (!this.beanValidationService
                     .isActive(new EntityKey(userInfo.getInstitutionId(), EntityType.INSTITUTION))) {
-                throw new IllegalAPIArgumentException(
+                throw new APIConstraintViolationException(
                         "User within an inactive institution cannot be created nor modified");
             }
 
@@ -168,7 +168,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             if (userRolesOfAccount.contains(UserRole.SEB_SERVER_ADMIN) &&
                     !rolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
 
-                throw new IllegalAPIArgumentException(
+                throw new APIConstraintViolationException(
                         "The current user cannot edit a User-Account of heigher role pased rank: "
                                 + UserRole.SEB_SERVER_ADMIN);
             }
@@ -182,7 +182,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     .orElse(null);
 
             if (nonePublicRole != null) {
-                throw new IllegalAPIArgumentException(
+                throw new APIConstraintViolationException(
                         "The current user has not the privilege to create a User-Account with none public role: "
                                 + nonePublicRole);
             }

@@ -12,6 +12,8 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
+/** Permission denied exception that refers to the checked entity type, privilege and
+ * the user identifier of the user that did request the permission */
 public class PermissionDeniedException extends RuntimeException {
 
     private static final long serialVersionUID = 5333137812363042580L;

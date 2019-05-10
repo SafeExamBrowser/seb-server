@@ -94,7 +94,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
             return records.stream()
                     .map(SebClientConfigDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -125,7 +125,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .execute()
                     .stream()
                     .map(SebClientConfigDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
         });
@@ -246,7 +246,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .execute()
                     .stream()
                     .map(SebClientConfigDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

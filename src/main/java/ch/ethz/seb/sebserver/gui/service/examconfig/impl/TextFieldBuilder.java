@@ -50,7 +50,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
-        final Orientation orientation = viewContext.attributeMapping
+        final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, orientation);
@@ -99,6 +99,11 @@ public class TextFieldBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             this.control.setText(value);
+        }
+
+        @Override
+        public String getValue() {
+            return this.control.getText();
         }
     }
 

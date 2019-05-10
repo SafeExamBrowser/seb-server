@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 
 public interface ValueChangeListener {
@@ -20,6 +20,6 @@ public interface ValueChangeListener {
             String value,
             int listIndex);
 
-    void tableChanged(ConfigurationTableValue tableValue);
+    void tableChanged(ConfigurationTableValues tableValue);
 
 }

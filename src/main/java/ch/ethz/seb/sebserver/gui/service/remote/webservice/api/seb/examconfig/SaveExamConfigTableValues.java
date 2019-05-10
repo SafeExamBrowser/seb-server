@@ -17,20 +17,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SaveExamConfigTableValue extends RestCall<ConfigurationTableValue> {
+public class SaveExamConfigTableValues extends RestCall<ConfigurationTableValues> {
 
-    protected SaveExamConfigTableValue() {
+    protected SaveExamConfigTableValues() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.CONFIGURATION_VALUE,
-                new TypeReference<ConfigurationTableValue>() {
+                new TypeReference<ConfigurationTableValues>() {
                 }),
                 HttpMethod.PUT,
                 MediaType.APPLICATION_JSON_UTF8,

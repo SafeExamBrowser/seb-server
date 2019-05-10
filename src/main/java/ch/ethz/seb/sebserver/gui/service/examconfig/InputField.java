@@ -22,6 +22,10 @@ public interface InputField {
 
     void initValue(Collection<ConfigurationValue> values);
 
+    void initValue(final String value, final Integer listIndex);
+
+    String getValue();
+
     void showError(String errorMessage);
 
     void clearError();

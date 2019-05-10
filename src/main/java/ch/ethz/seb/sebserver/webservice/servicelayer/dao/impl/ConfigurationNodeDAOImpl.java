@@ -98,7 +98,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .execute()
                     .stream()
                     .map(ConfigurationNodeDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -133,7 +133,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 .execute()
                 .stream()
                 .map(ConfigurationNodeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }
@@ -362,21 +362,18 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .execute()
                     .stream()
                     .forEach(attrRec -> {
-                        final boolean bigValue = ConfigurationValueDAOImpl.isBigValue(attrRec);
                         final String value = templateValues.getOrDefault(
                                 attrRec.getId(),
                                 attrRec.getDefaultValue());
 
-                        //if (StringUtils.isNoneBlank(value)) {
                         this.configurationValueRecordMapper.insert(new ConfigurationValueRecord(
                                 null,
                                 configNode.institutionId,
                                 config.getId(),
                                 attrRec.getId(),
                                 0,
-                                bigValue ? null : value,
-                                bigValue ? value : null));
-                        //}
+                                value,
+                                null));
                     });
 
             return configNode;

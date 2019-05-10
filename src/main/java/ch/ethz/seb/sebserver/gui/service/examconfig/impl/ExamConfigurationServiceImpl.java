@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
@@ -31,7 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
@@ -51,7 +50,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -66,20 +65,20 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     private final JSONMapper jsonMapper;
     private final WidgetFactory widgetFactory;
 
-    private final Collection<InputFieldBuilder> inputFieldBuilder;
+    private final InputFieldBuilderSupplier inputFieldBuilderSupplier;
     private final Collection<ValueChangeRule> valueChangeRules;
 
     protected ExamConfigurationServiceImpl(
             final RestService restService,
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
-            final Collection<InputFieldBuilder> inputFieldBuilder,
+            final InputFieldBuilderSupplier inputFieldBuilderSupplier,
             final Collection<ValueChangeRule> valueChangeRules) {
 
         this.restService = restService;
         this.jsonMapper = jsonMapper;
         this.widgetFactory = widgetFactory;
-        this.inputFieldBuilder = Utils.immutableCollectionOf(inputFieldBuilder);
+        this.inputFieldBuilderSupplier = inputFieldBuilderSupplier;
         this.valueChangeRules = Utils.immutableCollectionOf(valueChangeRules);
     }
 
@@ -93,11 +92,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final ConfigurationAttribute attribute,
             final Orientation orientation) {
 
-        return this.inputFieldBuilder
-                .stream()
-                .filter(b -> b.builderFor(attribute, orientation))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No InputFieldBuilder found for : " + attribute.type));
+        return this.inputFieldBuilderSupplier.getInputFieldBuilder(attribute, orientation);
     }
 
     @Override
@@ -169,7 +164,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     @Override
     public Composite createViewGrid(final Composite parent, final ViewContext viewContext) {
         final Composite composite = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout(viewContext.columns, true);
+        final GridLayout gridLayout = new GridLayout(viewContext.getColumns(), true);
         gridLayout.verticalSpacing = 0;
         composite.setLayout(gridLayout);
         composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -179,7 +174,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 viewContext,
                 this);
 
-        for (final ConfigurationAttribute attribute : viewContext.attributeMapping.getAttributes()) {
+        for (final ConfigurationAttribute attribute : viewContext.getAttributes()) {
             viewGridBuilder.add(attribute);
         }
 
@@ -269,8 +264,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         }
 
         @Override
-        public void tableChanged(final ConfigurationTableValue tableValue) {
-            this.restService.getBuilder(SaveExamConfigTableValue.class)
+        public void tableChanged(final ConfigurationTableValues tableValue) {
+            this.restService.getBuilder(SaveExamConfigTableValues.class)
                     .withBody(tableValue)
                     .call();
         }

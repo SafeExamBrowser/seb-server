@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -24,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -90,7 +91,7 @@ public class ConfigurationValueController extends EntityController<Configuration
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ConfigurationTableValue getTableValueBy(
+    public ConfigurationTableValues getTableValueBy(
             @RequestParam(
                     name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
                     required = true) final Long attributeId,
@@ -100,10 +101,36 @@ public class ConfigurationValueController extends EntityController<Configuration
 
         return this.configurationDAO.byPK(configurationId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(config -> this.configurationValueDAO.getTableValue(
+                .flatMap(config -> this.configurationValueDAO.getTableValues(
                         config.institutionId,
+                        configurationId,
+                        attributeId))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.CONFIGURATION_TABLE_ROW_VALUE_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<ConfigurationValue> getTableRowValueBy(
+            @RequestParam(
+                    name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
+                    required = true) final Long attributeId,
+            @RequestParam(
+                    name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID,
+                    required = true) final Long configurationId,
+            @RequestParam(
+                    name = Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX,
+                    required = true) final Integer rowIndex) {
+
+        return this.configurationDAO.byPK(configurationId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(config -> this.configurationValueDAO.getTableRowValues(
+                        config.institutionId,
+                        configurationId,
                         attributeId,
-                        configurationId))
+                        rowIndex))
                 .getOrThrow();
     }
 
@@ -112,12 +139,12 @@ public class ConfigurationValueController extends EntityController<Configuration
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ConfigurationTableValue savePut(
-            @Valid @RequestBody final ConfigurationTableValue tableValue) {
+    public ConfigurationTableValues savePut(
+            @Valid @RequestBody final ConfigurationTableValues tableValue) {
 
         return this.configurationDAO.byPK(tableValue.configurationId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(config -> this.configurationValueDAO.saveTableValue(tableValue))
+                .flatMap(config -> this.configurationValueDAO.saveTableValues(tableValue))
                 .getOrThrow();
     }
 
@@ -149,7 +176,7 @@ public class ConfigurationValueController extends EntityController<Configuration
                     _entity.attributeId != null &&
                     _entity.listIndex != null;
             if (!idSet && !idsSet) {
-                throw new IllegalAPIArgumentException(
+                throw new APIConstraintViolationException(
                         "Missing some mandatory attributes. Either id must be set or all of configurationId, attributeId and listIndex");
 
             }

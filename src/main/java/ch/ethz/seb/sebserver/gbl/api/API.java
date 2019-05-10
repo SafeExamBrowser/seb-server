@@ -71,6 +71,8 @@ public final class API {
 
     public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
     public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
+    public static final String CONFIGURATION_TABLE_ROW_VALUE_PATH_SEGMENT =
+            CONFIGURATION_TABLE_VALUE_PATH_SEGMENT + "/row";
 
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
 

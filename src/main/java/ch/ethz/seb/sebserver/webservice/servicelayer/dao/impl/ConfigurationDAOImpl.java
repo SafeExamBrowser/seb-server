@@ -84,7 +84,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     .execute()
                     .stream()
                     .map(ConfigurationDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -113,7 +113,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 .execute()
                 .stream()
                 .map(ConfigurationDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }

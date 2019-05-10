@@ -20,7 +20,7 @@ public final class DAOLoggingSupport {
 
     public static final Logger log = LoggerFactory.getLogger(DAOLoggingSupport.class);
 
-    public static <T> Stream<T> logUnexpectedErrorAndSkip(final Result<T> result) {
+    public static <T> Stream<T> logAndSkipOnError(final Result<T> result) {
         return Result.skipOnError(
                 result.onError(error -> log.error("Unexpected error. Object processing is skipped: ", error)));
     }

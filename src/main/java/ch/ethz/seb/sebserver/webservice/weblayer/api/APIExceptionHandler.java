@@ -111,9 +111,9 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .createErrorResponse(ex.getMessage());
     }
 
-    @ExceptionHandler(IllegalAPIArgumentException.class)
+    @ExceptionHandler(APIConstraintViolationException.class)
     public ResponseEntity<Object> handleIllegalAPIArgumentException(
-            final IllegalAPIArgumentException ex,
+            final APIConstraintViolationException ex,
             final WebRequest request) {
 
         log.warn("Illegal API Argument Exception: ", ex);

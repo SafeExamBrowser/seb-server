@@ -10,13 +10,13 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
@@ -24,11 +24,11 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 
 public final class ViewContext {
 
-    public final Configuration configuration;
-    public final View view;
-    public final int columns, rows;
+    private final Configuration configuration;
+    private final View view;
+    private final int columns, rows;
 
-    public final AttributeMapping attributeMapping;
+    private final AttributeMapping attributeMapping;
     private final Map<Long, InputField> inputFieldMapping;
     private final ValueChangeListener valueChangeListener;
     private final I18nSupport i18nSupport;
@@ -86,9 +86,36 @@ public final class ViewContext {
         return this.rows;
     }
 
-    public List<ConfigurationAttribute> getChildAttributes(final ConfigurationAttribute attribute) {
-        // TODO Auto-generated method stub
-        return null;
+    public Configuration getConfiguration() {
+        return this.configuration;
+    }
+
+    public View getView() {
+        return this.view;
+    }
+//
+//    public AttributeMapping getAttributeMapping() {
+//        return this.attributeMapping;
+//    }
+
+    public Collection<ConfigurationAttribute> getChildAttributes(final Long id) {
+        return this.attributeMapping.childAttributeMapping.get(id);
+    }
+
+    public Collection<ConfigurationAttribute> getAttributes() {
+        return this.attributeMapping.getAttributes();
+    }
+
+    public ConfigurationAttribute getAttribute(final Long attributeId) {
+        return this.attributeMapping.getAttribute(attributeId);
+    }
+
+    public Collection<Orientation> getOrientationsOfGroup(final ConfigurationAttribute attribute) {
+        return this.attributeMapping.getOrientationsOfGroup(attribute);
+    }
+
+    public Orientation getOrientation(final Long attributeId) {
+        return this.attributeMapping.getOrientation(attributeId);
     }
 
     public ValueChangeListener getValueChangeListener() {
@@ -124,6 +151,18 @@ public final class ViewContext {
                 .values()
                 .stream()
                 .forEach(field -> field.initValue(values));
+    }
+
+    /** Removes all registered InputFields with the given attribute ids
+     *
+     * @param values Collection of attribute ids */
+    void flushInputFields(final Collection<Long> values) {
+        if (values == null) {
+            return;
+        }
+
+        values.stream()
+                .forEach(attrId -> this.inputFieldMapping.remove(attrId));
     }
 
 }

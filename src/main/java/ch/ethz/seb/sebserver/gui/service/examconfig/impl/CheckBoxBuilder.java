@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
@@ -66,7 +67,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
 
         return new CheckboxField(
                 attribute,
-                viewContext.attributeMapping.getOrientation(attribute.id),
+                viewContext.getOrientation(attribute.id),
                 checkbox);
     }
 
@@ -83,6 +84,13 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             this.control.setSelection(Boolean.valueOf(this.initValue));
+        }
+
+        @Override
+        public String getValue() {
+            return this.control.getSelection()
+                    ? Constants.TRUE_STRING
+                    : Constants.FALSE_STRING;
         }
     }
 

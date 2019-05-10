@@ -139,13 +139,10 @@ public class I18nSupportImpl implements I18nSupport {
                 .toString(this.displayDateFormatter);
 
         final UserInfo userInfo = this.currentUser.get();
-        if (userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
-            if (userInfo != null && userInfo.timeZone != null) {
-                return dateTimeStringUTC + date
-                        .withZone(userInfo.timeZone)
-                        .toString(this.timeZoneFormatter);
-            }
-            return dateTimeStringUTC;
+        if (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
+            return dateTimeStringUTC + date
+                    .withZone(userInfo.timeZone)
+                    .toString(this.timeZoneFormatter);
         } else {
             return dateTimeStringUTC;
         }

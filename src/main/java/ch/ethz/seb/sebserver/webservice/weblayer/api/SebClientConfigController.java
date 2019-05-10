@@ -98,7 +98,7 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID);
 
         if (institutionId == null) {
-            throw new IllegalAPIArgumentException("Institution identifier is missing");
+            throw new APIConstraintViolationException("Institution identifier is missing");
         }
 
         postParams.putIfAbsent(

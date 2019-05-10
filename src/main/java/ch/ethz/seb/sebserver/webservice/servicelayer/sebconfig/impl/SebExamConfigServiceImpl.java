@@ -9,13 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.util.Collection;
-import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
@@ -26,6 +27,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigServ
 @Service
 @WebServiceProfile
 public class SebExamConfigServiceImpl implements SebExamConfigService {
+
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigServiceImpl.class);
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final Collection<ConfigurationValueValidator> validators;
@@ -40,7 +43,10 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     @Override
     public void validate(final ConfigurationValue value) {
-        Objects.requireNonNull(value);
+        if (value == null) {
+            log.warn("Validate called with null reference. Ignore this and skip validation");
+            return;
+        }
 
         final ConfigurationAttribute attribute = this.configurationAttributeDAO.byPK(value.attributeId)
                 .getOrThrow();
@@ -53,7 +59,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     }
 
     @Override
-    public void validate(final ConfigurationTableValue tableValue) {
+    public void validate(final ConfigurationTableValues tableValue) {
         // TODO Auto-generated method stub
 
     }

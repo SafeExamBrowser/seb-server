@@ -69,7 +69,7 @@ public class ViewDAOImpl implements ViewDAO {
                     .execute()
                     .stream()
                     .map(ViewDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -89,7 +89,7 @@ public class ViewDAOImpl implements ViewDAO {
                 .execute()
                 .stream()
                 .map(ViewDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }

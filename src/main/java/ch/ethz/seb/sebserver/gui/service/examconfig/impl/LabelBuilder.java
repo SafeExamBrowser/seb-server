@@ -55,7 +55,7 @@ public class LabelBuilder implements InputFieldBuilder {
 
         return new LabelField(
                 attribute,
-                viewContext.attributeMapping.getOrientation(attribute.id),
+                viewContext.getOrientation(attribute.id),
                 label);
     }
 
@@ -72,6 +72,11 @@ public class LabelBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             // Does Nothing, Label has no default value
+        }
+
+        @Override
+        public String getValue() {
+            return this.control.getText();
         }
 
     }

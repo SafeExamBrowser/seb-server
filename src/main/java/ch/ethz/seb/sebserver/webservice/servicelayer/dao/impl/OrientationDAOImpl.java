@@ -72,7 +72,7 @@ public class OrientationDAOImpl implements OrientationDAO {
                     .execute()
                     .stream()
                     .map(OrientationDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -98,7 +98,7 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .execute()
                 .stream()
                 .map(OrientationDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }

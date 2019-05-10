@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class ViewGridBuilder {
 
@@ -49,7 +51,7 @@ public class ViewGridBuilder {
         this.examConfigurationService = examConfigurationService;
         this.parent = parent;
         this.viewContext = viewContext;
-        this.grid = new CellFieldBuilderAdapter[viewContext.rows][viewContext.columns];
+        this.grid = new CellFieldBuilderAdapter[viewContext.getRows()][viewContext.getColumns()];
         this.registeredGroups = new HashSet<>();
     }
 
@@ -59,7 +61,7 @@ public class ViewGridBuilder {
             return this;
         }
 
-        final Orientation orientation = this.viewContext.attributeMapping
+        final Orientation orientation = this.viewContext
                 .getOrientation(attribute.id);
 
         // create group builder
@@ -101,6 +103,10 @@ public class ViewGridBuilder {
                 }
                 case LEFT: {
                     this.grid[ypos][xpos - 1] = labelBuilder(attribute, orientation);
+                    // special case for password, also add confirm label
+                    if (attribute.type == AttributeType.PASSWORD_FIELD) {
+                        this.grid[ypos + 1][xpos - 1] = passwordConfirmLabel(attribute, orientation);
+                    }
                     break;
                 }
                 case TOP: {
@@ -179,10 +185,6 @@ public class ViewGridBuilder {
             final ConfigurationAttribute attribute,
             final Orientation orientation) {
 
-        if (attribute.type == AttributeType.PASSWORD_FIELD) {
-            return passwordConfirmLabel(attribute, orientation);
-        }
-
         return new CellFieldBuilderAdapter() {
             @Override
             public void createCell(final ViewGridBuilder builder) {
@@ -192,6 +194,7 @@ public class ViewGridBuilder {
                         ViewGridBuilder.this.parent,
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name),
                         attribute.name);
+                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
 
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
                 switch (orientation.title) {
@@ -211,6 +214,7 @@ public class ViewGridBuilder {
                     }
                 }
                 label.setLayoutData(gridData);
+
             }
         };
     }
@@ -232,6 +236,7 @@ public class ViewGridBuilder {
                 label.setAlignment(SWT.LEFT);
                 gridData.verticalIndent = 10;
                 label.setLayoutData(gridData);
+                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
             }
         };
     }
@@ -254,7 +259,7 @@ public class ViewGridBuilder {
             this.builder = builder;
             this.attribute = attribute;
             this.orientationsOfGroup =
-                    builder.viewContext.attributeMapping.getOrientationsOfGroup(attribute);
+                    builder.viewContext.getOrientationsOfGroup(attribute);
             for (final Orientation o : this.orientationsOfGroup) {
                 this.x = (this.x < o.xpos()) ? o.xpos() : this.x;
                 this.x = (this.y < o.ypos()) ? o.ypos() : this.y;
@@ -291,7 +296,7 @@ public class ViewGridBuilder {
                 final Orientation orientation,
                 final InputFieldBuilder inputFieldBuilder) {
 
-            final ConfigurationAttribute attr = this.builder.viewContext.attributeMapping
+            final ConfigurationAttribute attr = this.builder.viewContext
                     .getAttribute(orientation.attributeId);
 
             final InputField inputField = inputFieldBuilder.createInputField(

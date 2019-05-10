@@ -146,7 +146,7 @@ public class UserDAOImpl implements UserDAO {
 
             return records.stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -184,7 +184,7 @@ public class UserDAOImpl implements UserDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(_predicate)
                     .collect(Collectors.toList());
         });
@@ -362,7 +362,7 @@ public class UserDAOImpl implements UserDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

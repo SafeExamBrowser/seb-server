@@ -355,7 +355,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             return this.beanValidationService.validateBean(entity);
         } else {
             return Result.ofError(
-                    new IllegalAPIArgumentException("Model identifier already defined: " + entity.getModelId()));
+                    new APIConstraintViolationException("Model identifier already defined: " + entity.getModelId()));
         }
     }
 
@@ -363,7 +363,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         if (entity.getModelId() != null) {
             return Result.of(entity);
         } else {
-            return Result.ofError(new IllegalAPIArgumentException("Missing model identifier"));
+            return Result.ofError(new APIConstraintViolationException("Missing model identifier"));
         }
     }
 

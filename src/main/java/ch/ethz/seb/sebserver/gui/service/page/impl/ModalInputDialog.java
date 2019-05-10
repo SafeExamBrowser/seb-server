@@ -39,6 +39,7 @@ public class ModalInputDialog<T> extends Dialog {
             new LocTextKey("sebserver.overall.action.close");
 
     private final WidgetFactory widgetFactory;
+    private int dialogWidth = 400;
 
     public ModalInputDialog(
             final Shell parent,
@@ -46,6 +47,11 @@ public class ModalInputDialog<T> extends Dialog {
 
         super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL);
         this.widgetFactory = widgetFactory;
+    }
+
+    public ModalInputDialog<T> setDialogWidth(final int dialogWidth) {
+        this.dialogWidth = dialogWidth;
+        return this;
     }
 
     public void open(
@@ -65,6 +71,8 @@ public class ModalInputDialog<T> extends Dialog {
         main.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         gridData.horizontalSpan = 2;
+        gridData.widthHint = this.dialogWidth;
+
         main.setLayoutData(gridData);
 
         final Supplier<T> valueSuppier = contentComposer.compose(main);

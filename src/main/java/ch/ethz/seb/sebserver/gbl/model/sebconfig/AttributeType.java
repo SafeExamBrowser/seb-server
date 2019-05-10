@@ -39,7 +39,7 @@ public enum AttributeType {
 
     FILE_UPLOAD(BASE64_BINARY),
 
-    /** Table type is a list of composite */
+    /** Table type is a list of a composite of single types */
     TABLE(COMPOSITE_LIST),
     ;
 

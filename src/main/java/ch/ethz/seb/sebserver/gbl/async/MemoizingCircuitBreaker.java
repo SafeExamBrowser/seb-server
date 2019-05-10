@@ -46,6 +46,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * @param <T> The of the result of the suppling function */
 public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
 
+    // TODO considering invalidation time for memoizing
+
     private static final Logger log = LoggerFactory.getLogger(MemoizingCircuitBreaker.class);
 
     private final CircuitBreaker<T> delegate;

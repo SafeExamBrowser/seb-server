@@ -24,11 +24,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** This class defines API error messages that are created and responded on error and/or exceptional
+ * cases within the web-service. */
 public class APIMessage implements Serializable {
 
     private static final long serialVersionUID = -6858683658311637361L;
 
+    /** An enumeration of error messages defining the error code, the HTTP status for the response
+     * and a short system message. This error message definition can be used to
+     * generate APIMessages for default errors. */
     public enum ErrorMessage {
+        /** For every unknown or unspecific internal error */
         GENERIC("0", HttpStatus.INTERNAL_SERVER_ERROR, "Generic error message"),
         UNAUTHORIZED("1000", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"),
         FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
@@ -89,12 +95,19 @@ public class APIMessage implements Serializable {
         }
     }
 
+    /** A specific message code that can be used to identify the type of message */
     @JsonProperty("messageCode")
     public final String messageCode;
+
+    /** A short system message that describes the cause */
     @JsonProperty("systemMessage")
     public final String systemMessage;
+
+    /** Message details */
     @JsonProperty("details")
     public final String details;
+
+    /** A list of additional attributes */
     @JsonProperty("attributes")
     public final List<String> attributes;
 
@@ -137,6 +150,11 @@ public class APIMessage implements Serializable {
         return this.attributes;
     }
 
+    /** Use this as a conversion from a given FieldError of Spring to a APIMessage
+     * of type field validation.
+     * 
+     * @param error FieldError instance
+     * @return converted APIMessage of type field validation */
     public static final APIMessage fieldValidationError(final FieldError error) {
         final String[] args = StringUtils.split(error.getDefaultMessage(), ":");
         return ErrorMessage.FIELD_VALIDATION.of(error.toString(), args);
@@ -165,6 +183,10 @@ public class APIMessage implements Serializable {
         return builder.toString();
     }
 
+    /** This exception can be internal used to wrap a created APIMessage
+     * within an Exception and throw. The Exception will be caught a the
+     * APIExceptionHandler endpoint. The APIMessage will be extracted
+     * and send as response. */
     public static class APIMessageException extends RuntimeException {
 
         private static final long serialVersionUID = 1453431210820677296L;
@@ -196,6 +218,10 @@ public class APIMessage implements Serializable {
         }
     }
 
+    /** This is used as a field validation exception that creates a APIMessage of filed
+     * validation. The Exception will be caught a the
+     * APIExceptionHandler endpoint. The APIMessage will be extracted
+     * and send as response. */
     public static class FieldValidationException extends RuntimeException {
 
         private static final long serialVersionUID = 3324566460573096815L;

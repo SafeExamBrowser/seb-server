@@ -108,7 +108,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
         return bulkAction.sources
                 .stream()
                 .map(selectionFunction) // apply select function for each source key
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip) // handle and skip results with error
+                .flatMap(DAOLoggingSupport::logAndSkipOnError) // handle and skip results with error
                 .flatMap(Collection::stream) // Flatten stream of Collection in to one stream
                 .collect(Collectors.toSet());
     }

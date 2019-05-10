@@ -8,13 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
 public interface SebExamConfigService {
 
     void validate(ConfigurationValue value);
 
-    void validate(ConfigurationTableValue tableValue);
+    void validate(ConfigurationTableValues tableValue);
 
 }

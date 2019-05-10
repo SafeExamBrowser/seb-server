@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabItem;
@@ -65,15 +64,8 @@ public class FormBuilder {
         this.pageContext = pageContext;
         this.form = new Form(pageService.getJSONMapper());
 
-        this.formParent = new Composite(pageContext.getParent(), SWT.NONE);
-        final GridLayout layout = new GridLayout(rows, true);
-        layout.horizontalSpacing = 10;
-        layout.verticalSpacing = 10;
-        layout.marginBottom = 50;
-        layout.marginLeft = 10;
-        layout.marginTop = 0;
-        this.formParent.setLayout(layout);
-        this.formParent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        this.formParent = this.widgetFactory
+                .formGrid(pageContext.getParent(), rows);
     }
 
     public FormBuilder readonly(final boolean readonly) {

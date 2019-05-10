@@ -17,12 +17,25 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.InputFieldBuilderSupplier;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public interface InputFieldBuilder {
 
     String RES_BUNDLE_KEY_PREFIX = "sebserver.examconfig.attribute.";
+
+    /** Called by the InputFieldBuilderSupplier bean instance on initialization to avoid
+     * circular dependencies.
+     *
+     * This method must not be called from other then InputFieldBuilderSupplier
+     * For default this does nothing and a InputFieldBuilder that uses a reference to
+     * the calling InputFieldBuilderSupplier must override this to get the reference
+     *
+     * @param inputFieldBuilderSupplier reference of InputFieldBuilderSupplier */
+    default void init(final InputFieldBuilderSupplier inputFieldBuilderSupplier) {
+        // NOOP for default
+    }
 
     boolean builderFor(
             ConfigurationAttribute attribute,

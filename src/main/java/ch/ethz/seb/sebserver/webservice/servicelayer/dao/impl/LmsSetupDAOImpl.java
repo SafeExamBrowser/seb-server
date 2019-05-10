@@ -94,7 +94,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             return records.stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -125,7 +125,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
         });
@@ -266,7 +266,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

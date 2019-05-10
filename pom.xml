@@ -112,6 +112,7 @@
               <excludes>
                 <exclude>**/batis/mapper/*.java</exclude>
                 <exclude>**/batis/model/*.java</exclude>
+                <exclude name="UselessParentheses"/>
               </excludes>
             </configuration>
             <executions>

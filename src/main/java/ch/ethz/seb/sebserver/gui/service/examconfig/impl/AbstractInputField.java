@@ -90,12 +90,14 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
         values.stream()
                 .filter(a -> this.attribute.id.equals(a.attributeId))
                 .findFirst()
-                .map(v -> {
-                    this.initValue = v.value;
-                    this.listIndex = (v.listIndex != null) ? v.listIndex : 0;
-                    setValueToControl(this.initValue);
-                    return this.initValue;
-                });
+                .ifPresent(v -> initValue(v.value, v.listIndex));
+    }
+
+    @Override
+    public void initValue(final String value, final Integer listIndex) {
+        this.initValue = value;
+        this.listIndex = (listIndex != null) ? listIndex : 0;
+        setValueToControl(this.initValue);
     }
 
     protected void setDefaultValue() {

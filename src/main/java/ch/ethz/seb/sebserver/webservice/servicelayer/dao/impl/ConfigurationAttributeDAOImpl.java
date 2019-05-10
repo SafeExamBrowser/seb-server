@@ -82,7 +82,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                     .execute()
                     .stream()
                     .map(ConfigurationAttributeDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -105,7 +105,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .execute()
                 .stream()
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }

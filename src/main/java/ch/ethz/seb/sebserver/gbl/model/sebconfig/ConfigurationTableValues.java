@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_VALUE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ConfigurationTableValue implements GrantEntity {
+public final class ConfigurationTableValues implements GrantEntity {
 
     public static final String ATTR_TABLE_VALUES = "tableValues";
 
@@ -42,7 +42,7 @@ public final class ConfigurationTableValue implements GrantEntity {
     public final List<TableValue> values;
 
     @JsonCreator
-    public ConfigurationTableValue(
+    public ConfigurationTableValues(
             @JsonProperty(CONFIGURATION_VALUE.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID) final Long configurationId,
             @JsonProperty(CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID) final Long attributeId,
@@ -88,7 +88,7 @@ public final class ConfigurationTableValue implements GrantEntity {
 
     @Override
     public String toString() {
-        return "ConfigurationTableValue [institutionId=" + this.institutionId + ", configurationId="
+        return "ConfigurationTableValues [institutionId=" + this.institutionId + ", configurationId="
                 + this.configurationId
                 + ", attributeId=" + this.attributeId + ", values=" + this.values + "]";
     }

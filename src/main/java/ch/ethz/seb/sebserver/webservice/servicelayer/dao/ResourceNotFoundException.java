@@ -20,6 +20,7 @@ public final class ResourceNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = 8319235723086949618L;
 
+    /** The entity key of the resource that was requested */
     public final EntityKey entityKey;
 
     public ResourceNotFoundException(final EntityType entityType, final String modelId) {

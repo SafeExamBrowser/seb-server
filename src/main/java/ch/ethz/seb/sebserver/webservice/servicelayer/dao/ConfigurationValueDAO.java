@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -26,11 +26,17 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
                 "Deletion is not supported for ConfigurationValue. A ConfigurationValue get automatically deleted on deletion of a Configuration");
     }
 
-    Result<ConfigurationTableValue> getTableValue(
+    Result<ConfigurationTableValues> getTableValues(
             final Long institutionId,
-            final Long attributeId,
-            final Long configurationId);
+            final Long configurationId,
+            final Long attributeId);
 
-    Result<ConfigurationTableValue> saveTableValue(ConfigurationTableValue value);
+    Result<ConfigurationTableValues> saveTableValues(ConfigurationTableValues value);
+
+    Result<Collection<ConfigurationValue>> getTableRowValues(
+            final Long institutionId,
+            final Long configurationId,
+            final Long attributeId,
+            final Integer rowIndex);
 
 }

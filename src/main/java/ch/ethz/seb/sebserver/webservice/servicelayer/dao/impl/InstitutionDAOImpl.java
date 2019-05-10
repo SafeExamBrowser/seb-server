@@ -87,7 +87,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
             return records.stream()
                     .map(InstitutionDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -110,7 +110,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 .execute()
                 .stream()
                 .map(InstitutionDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }
@@ -244,7 +244,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     .execute()
                     .stream()
                     .map(InstitutionDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

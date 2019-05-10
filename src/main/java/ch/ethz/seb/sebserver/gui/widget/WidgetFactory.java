@@ -175,6 +175,19 @@ public class WidgetFactory {
         return defaultPageLayout;
     }
 
+    public Composite formGrid(final Composite parent, final int rows) {
+        final Composite grid = new Composite(parent, SWT.NONE);
+        final GridLayout layout = new GridLayout(rows, true);
+        layout.horizontalSpacing = 10;
+        layout.verticalSpacing = 10;
+        layout.marginBottom = 50;
+        layout.marginLeft = 10;
+        layout.marginTop = 0;
+        grid.setLayout(layout);
+        grid.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        return grid;
+    }
+
     public Button buttonLocalized(final Composite parent, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
         this.injectI18n(button, new LocTextKey(locTextKey));

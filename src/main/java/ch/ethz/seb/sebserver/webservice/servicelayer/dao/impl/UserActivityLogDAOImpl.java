@@ -243,7 +243,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .execute()
                     .stream()
                     .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -312,7 +312,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .execute()
                     .stream()
                     .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(_predicate)
                     .collect(Collectors.toList());
 
@@ -329,7 +329,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .execute()
                     .stream()
                     .map(UserActivityLogDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

@@ -86,7 +86,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .execute()
                     .stream()
                     .map(ExamConfigurationMapDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -112,7 +112,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .execute()
                 .stream()
                 .map(ExamConfigurationMapDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }

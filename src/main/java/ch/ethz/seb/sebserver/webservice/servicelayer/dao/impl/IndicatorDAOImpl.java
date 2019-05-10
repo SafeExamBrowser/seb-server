@@ -97,7 +97,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
         });
@@ -113,7 +113,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }
@@ -219,7 +219,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute()
                     .stream()
                     .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logUnexpectedErrorAndSkip)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
     }

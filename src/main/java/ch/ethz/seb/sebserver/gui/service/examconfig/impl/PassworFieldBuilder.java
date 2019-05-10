@@ -61,7 +61,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
-        final Orientation orientation = viewContext.attributeMapping
+        final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, orientation);
@@ -96,15 +96,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 return;
             }
 
-            String hashedPWD;
-            try {
-                hashedPWD = hashPassword(pwd);
-            } catch (final NoSuchAlgorithmException e) {
-                log.error("Failed to hash password: ", e);
-                passwordInputField.showError("Failed to hash password");
-                hashedPWD = null;
-            }
-
+            final String hashedPWD = passwordInputField.getValue();
             if (hashedPWD != null) {
                 passwordInputField.clearError();
                 viewContext.getValueChangeListener().valueChanged(
@@ -120,14 +112,6 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         confirmInput.addListener(SWT.FocusOut, valueChangeEventListener);
         confirmInput.addListener(SWT.Traverse, valueChangeEventListener);
         return passwordInputField;
-    }
-
-    private String hashPassword(final String pwd) throws NoSuchAlgorithmException {
-        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        final byte[] encodedhash = digest.digest(
-                pwd.getBytes(StandardCharsets.UTF_8));
-
-        return Hex.encodeHexString(encodedhash);
     }
 
     static final class PasswordInputField extends AbstractInputField<Text> {
@@ -152,6 +136,28 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 this.control.setText(value);
                 this.confirm.setText(value);
             }
+        }
+
+        @Override
+        public String getValue() {
+            String hashedPWD;
+            try {
+                hashedPWD = hashPassword(this.control.getText());
+            } catch (final NoSuchAlgorithmException e) {
+                log.error("Failed to hash password: ", e);
+                showError("Failed to hash password");
+                hashedPWD = null;
+            }
+
+            return hashedPWD;
+        }
+
+        private String hashPassword(final String pwd) throws NoSuchAlgorithmException {
+            final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            final byte[] encodedhash = digest.digest(
+                    pwd.getBytes(StandardCharsets.UTF_8));
+
+            return Hex.encodeHexString(encodedhash);
         }
 
     }

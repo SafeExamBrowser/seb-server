@@ -8,19 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-public class IllegalAPIArgumentException extends RuntimeException {
+/** This exception shall be used on additional validations of API attribute constraints.
+ * Throwing an APIConstraintViolationException will lead to a HTTP 400 Bad Request response. */
+public class APIConstraintViolationException extends RuntimeException {
 
     private static final long serialVersionUID = 3732727447520974727L;
 
-    public IllegalAPIArgumentException() {
+    public APIConstraintViolationException() {
         super();
     }
 
-    public IllegalAPIArgumentException(final String message, final Throwable cause) {
+    public APIConstraintViolationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public IllegalAPIArgumentException(final String message) {
+    public APIConstraintViolationException(final String message) {
         super(message);
     }
 
