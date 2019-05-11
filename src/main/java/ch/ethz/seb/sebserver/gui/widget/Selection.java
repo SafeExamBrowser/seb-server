@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
@@ -35,10 +36,15 @@ public interface Selection {
 
     void setVisible(boolean visible);
 
+    void setSelectionListener(Listener listener);
+
     default Control adaptToControl() {
         return (Control) this;
     }
 
-    //<T extends Selection> T getTypeInstance();
+    @SuppressWarnings("unchecked")
+    default <T extends Selection> T getTypeInstance() {
+        return (T) this;
+    }
 
 }

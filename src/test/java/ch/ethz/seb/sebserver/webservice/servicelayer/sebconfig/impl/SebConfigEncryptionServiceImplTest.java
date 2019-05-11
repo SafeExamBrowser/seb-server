@@ -10,18 +10,21 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 
 public class SebConfigEncryptionServiceImplTest {
 
@@ -42,19 +45,24 @@ public class SebConfigEncryptionServiceImplTest {
     }
 
     @Test
-    public void testPasswordEncryption() {
+    public void testPasswordEncryption() throws IOException {
         final SebConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl = sebConfigEncryptionServiceImpl();
 
         final String config = "<TestConfig></TestConfig>";
         final String pwd = "password";
 
-        final Result<ByteBuffer> plainText = sebConfigEncryptionServiceImpl.encryptWithPassword(
-                config,
+        final ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
+
+        sebConfigEncryptionServiceImpl.streamEncryption(
+                out,
+                IOUtils.toInputStream(config, "UTF-8"),
                 Strategy.PASSWORD_PWCC,
                 pwd);
 
-        assertFalse(plainText.hasError());
-        final ByteBuffer cipher = plainText.get();
+        final byte[] byteArray = out.toByteArray();
+
+        //assertFalse(plainText.hasError());
+        final ByteBuffer cipher = ByteBuffer.wrap(byteArray);
         assertTrue(Utils.toString(cipher).startsWith(Utils.toString(Strategy.PASSWORD_PWCC.header)));
 
         final Result<ByteBuffer> decrypt = sebConfigEncryptionServiceImpl.decrypt(cipher, () -> pwd, null);

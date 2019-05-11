@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,8 @@ public class MultiSelectionCombo extends Composite implements Selection {
 
     private final GridData comboCell;
     private final GridData actionCell;
+
+    private Listener listener = null;
 
     MultiSelectionCombo(final Composite parent, final WidgetFactory widgetFactory) {
         super(parent, SWT.NONE);
@@ -81,6 +84,11 @@ public class MultiSelectionCombo extends Composite implements Selection {
     @Override
     public Type type() {
         return Type.MULTI_COMBO;
+    }
+
+    @Override
+    public void setSelectionListener(final Listener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -153,6 +161,9 @@ public class MultiSelectionCombo extends Composite implements Selection {
         }
 
         addSelection(findFirst.get().getKey());
+        if (this.listener != null) {
+            this.listener.handleEvent(event);
+        }
     }
 
     private void addSelection(final String itemKey) {
@@ -203,6 +214,9 @@ public class MultiSelectionCombo extends Composite implements Selection {
         this.combo.add(value._2, this.combo.getItemCount());
 
         this.getParent().layout();
+        if (this.listener != null) {
+            this.listener.handleEvent(event);
+        }
     }
 
     private void adaptColumnWidth(final Event event) {

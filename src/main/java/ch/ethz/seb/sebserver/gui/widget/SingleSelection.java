@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
@@ -75,6 +76,11 @@ public class SingleSelection extends Combo implements Selection {
     @Override
     public Type type() {
         return Type.SINGLE;
+    }
+
+    @Override
+    public void setSelectionListener(final Listener listener) {
+        super.addListener(SWT.Selection, listener);
     }
 
 }

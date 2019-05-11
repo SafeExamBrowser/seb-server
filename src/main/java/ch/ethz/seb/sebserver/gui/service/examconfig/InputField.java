@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 
+/** Adapter interface for SEB Exam Configuration based input fields. */
 public interface InputField {
 
     ConfigurationAttribute getAttribute();

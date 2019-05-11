@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,8 @@ public class ColorSelection extends Composite implements Selection {
     private final ColorDialog colorDialog;
     private final Composite colorField;
     private RGB selection;
+
+    private Listener listener = null;
 
     ColorSelection(final Composite parent, final WidgetFactory widgetFactory) {
         super(parent, SWT.NONE);
@@ -65,6 +68,11 @@ public class ColorSelection extends Composite implements Selection {
         imageButton.setLayoutData(actionCell);
 
         this.addListener(SWT.Resize, this::adaptColumnWidth);
+    }
+
+    @Override
+    public void setSelectionListener(final Listener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -100,6 +108,9 @@ public class ColorSelection extends Composite implements Selection {
 
             this.selection = this.colorDialog.getRGB();
             applySelection();
+            if (this.listener != null) {
+                this.listener.handleEvent(event);
+            }
         });
     }
 

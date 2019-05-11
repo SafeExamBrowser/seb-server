@@ -9,11 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.UUID;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +39,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
 @Service
@@ -46,6 +52,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final SebClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
     private final SebConfigEncryptionService sebConfigEncryptionService;
+    private final ZipService zipService;
     private final String httpScheme;
     private final String serverAddress;
     private final String serverPort;
@@ -56,6 +63,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final SebClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
             final SebConfigEncryptionService sebConfigEncryptionService,
+            final ZipService zipService,
             @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
             @Value("${server.address}") final String serverAddress,
             @Value("${server.port}") final String serverPort,
@@ -65,6 +73,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
+        this.zipService = zipService;
         this.httpScheme = httpScheme;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
@@ -97,77 +106,113 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     }
 
     @Override
-    public Result<InputStream> exportSebClientConfiguration(final String modelId) {
-        return this.sebClientConfigDAO.byModelId(modelId)
-                .flatMap(this::createExport);
-    }
+    public void exportSebClientConfiguration(
+            final OutputStream output,
+            final String modelId) {
 
-    private final Result<InputStream> createExport(final SebClientConfig config) {
-        // TODO implementation of creation of SEB client configuration for specified Institution
-        // A SEB start configuration should at least contain the SEB-Client-Credentials to access the SEB Server API
-        // and the SEB Server URL
-        //
-        // To Clarify : The format of a SEB start configuration
-        // To Clarify : How the file should be encrypted (use case) maybe we need another encryption-secret for this that can be given by
-        //              an administrator on SEB start configuration creation time
+        final SebClientConfig config = this.sebClientConfigDAO
+                .byModelId(modelId).getOrThrow();
 
-        return Result.tryCatch(() -> {
+        final String serverURL = UriComponentsBuilder.newInstance()
+                .scheme(this.httpScheme)
+                .host(this.serverAddress)
+                .port(this.serverPort)
+                .toUriString();
 
-            final String serverURL = UriComponentsBuilder.newInstance()
-                    .scheme(this.httpScheme)
-                    .host(this.serverAddress)
-                    .port(this.serverPort)
-                    .toUriString();
+        final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
+                .getSebClientCredentials(config.getModelId())
+                .getOrThrow();
 
-            final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
-                    .getSebClientCredentials(config.getModelId())
-                    .getOrThrow();
+        final CharSequence encryptionPassword = this.sebClientConfigDAO
+                .getConfigPasswortCipher(config.getModelId())
+                .getOrThrow();
 
-            final CharSequence encryptionPassword = this.sebClientConfigDAO
-                    .getConfigPasswortCipher(config.getModelId())
-                    .getOrThrow();
+        final CharSequence plainClientId = this.clientCredentialService
+                .getPlainClientId(sebClientCredentials);
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(sebClientCredentials);
 
-            final CharSequence plainClientId = this.clientCredentialService
-                    .getPlainClientId(sebClientCredentials);
-            final CharSequence plainClientSecret = this.clientCredentialService
-                    .getPlainClientSecret(sebClientCredentials);
+        final String plainTextConfig = String.format(
+                SEB_CLIENT_CONFIG_EXAMPLE_XML,
+                serverURL,
+                String.valueOf(config.institutionId),
+                plainClientId,
+                plainClientSecret,
+                API.OAUTH_TOKEN_ENDPOINT,
+                this.sebClientAPIEndpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
+                this.sebClientAPIEndpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
+                this.sebClientAPIEndpoint + API.EXAM_API_PING_ENDPOINT,
+                this.sebClientAPIEndpoint + API.EXAM_API_EVENT_ENDPOINT);
 
-            final String plainTextConfig = String.format(
-                    SEB_CLIENT_CONFIG_EXAMPLE_XML,
-                    serverURL,
-                    String.valueOf(config.institutionId),
-                    plainClientId,
-                    plainClientSecret,
-                    API.OAUTH_TOKEN_ENDPOINT,
-                    this.sebClientAPIEndpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
-                    this.sebClientAPIEndpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
-                    this.sebClientAPIEndpoint + API.EXAM_API_PING_ENDPOINT,
-                    this.sebClientAPIEndpoint + API.EXAM_API_EVENT_ENDPOINT);
+        PipedOutputStream pOut = null;
+        PipedInputStream pIn = null;
+        try {
+            // zip the plain text
+            final InputStream plainIn = IOUtils.toInputStream(plainTextConfig, "UTF-8");
+            pOut = new PipedOutputStream();
+            pIn = new PipedInputStream(pOut);
+
+            this.zipService.write(pOut, plainIn);
 
             if (encryptionPassword != null) {
-
-                log.debug("Try to encrypt seb client configuration with password based encryption");
-
-                final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
-                        .decrypt(encryptionPassword);
-
-                final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.encryptWithPassword(
-                        plainTextConfig,
-                        Strategy.PASSWORD_PSWD,
-                        encryptionPasswordPlaintext)
-                        .getOrThrow();
-
-                return new ByteArrayInputStream(Utils.toByteArray(encryptedConfig));
+                passwordEncryption(output, encryptionPassword, pIn);
             } else {
-
-                log.debug("Serve plain text seb configuration with specified header");
-
-                final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.plainText(plainTextConfig)
-                        .getOrThrow();
-
-                return new ByteArrayInputStream(Utils.toByteArray(encryptedConfig));
+                noEncryption(output, plainTextConfig);
             }
-        });
+
+        } catch (final Exception e) {
+            log.error("Error while zip and encrypt seb client config stream: ", e);
+            try {
+                if (pIn != null)
+                    pIn.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedInputStream: ", e1);
+            }
+            try {
+                if (pOut != null)
+                    pOut.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedOutputStream: ", e1);
+            }
+        }
+    }
+
+    private void noEncryption(
+            final OutputStream output,
+            final String plainTextConfig) throws IOException {
+
+        log.debug("Serve plain text seb configuration with specified header");
+
+        final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.plainText(plainTextConfig)
+                .getOrThrow();
+
+        IOUtils.copyLarge(
+                new ByteArrayInputStream(Utils.toByteArray(encryptedConfig)),
+                output);
+
+    }
+
+    private void passwordEncryption(
+            final OutputStream output,
+            final CharSequence encryptionPassword,
+            final InputStream input) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("*** Seb client configuration with password based encryption");
+        }
+
+        final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
+                .decrypt(encryptionPassword);
+
+        this.sebConfigEncryptionService.streamEncryption(
+                output,
+                input,
+                Strategy.PASSWORD_PSWD,
+                encryptionPasswordPlaintext);
+
+        if (log.isDebugEnabled()) {
+            log.debug("*** Finished Seb client configuration with password based encryption");
+        }
     }
 
 }

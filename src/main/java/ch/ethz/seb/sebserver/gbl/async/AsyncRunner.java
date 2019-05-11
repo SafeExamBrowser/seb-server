@@ -31,4 +31,9 @@ public class AsyncRunner {
         return new AsyncResult<>(supplier.get());
     }
 
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    public void runAsync(final Runnable block) {
+        block.run();
+    }
+
 }

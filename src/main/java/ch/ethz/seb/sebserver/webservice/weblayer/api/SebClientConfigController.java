@@ -8,21 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.io.InputStream;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -45,8 +45,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
+@EnableAsync
 @RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
 public class SebClientConfigController extends ActivatableEntityController<SebClientConfig, SebClientConfig> {
+
+    private static final Logger log = LoggerFactory.getLogger(SebClientConfigController.class);
 
     private final SebClientConfigService sebClientConfigService;
 
@@ -73,22 +76,16 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
             path = API.SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public void downloadSEBConfig(
-            @PathVariable final String modelId,
-            final HttpServletResponse response) throws Exception {
+    public ResponseEntity<StreamingResponseBody> downloadSEBConfig(
+            @PathVariable final String modelId) {
 
         this.entityDAO.byModelId(modelId)
                 .map(this.authorization::checkWrite);
 
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.setStatus(HttpStatus.OK.value());
+        final StreamingResponseBody stream = out -> this.sebClientConfigService
+                .exportSebClientConfiguration(out, modelId);
 
-        final InputStream sebConfigFileIn = this.sebClientConfigService
-                .exportSebClientConfiguration(modelId)
-                .getOrThrow();
-
-        IOUtils.copyLarge(sebConfigFileIn, response.getOutputStream());
-        response.flushBuffer();
+        return new ResponseEntity<>(stream, HttpStatus.OK);
     }
 
     @Override

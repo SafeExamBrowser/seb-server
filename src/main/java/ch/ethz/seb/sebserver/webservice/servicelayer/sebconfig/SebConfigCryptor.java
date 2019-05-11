@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Set;
 
@@ -41,6 +43,16 @@ public interface SebConfigCryptor {
      * @return Result of decrypted SEB configuration within a ByteBuffer or reference to an Exception on error case. */
     Result<ByteBuffer> decrypt(
             final ByteBuffer cipher,
+            final SebConfigEncryptionContext context);
+
+    void encrypt(
+            final OutputStream encryptedOutput,
+            final InputStream plainTextInputStream,
+            final SebConfigEncryptionContext context);
+
+    void decrypt(
+            final OutputStream plainTextOutput,
+            final InputStream cipherInputStream,
             final SebConfigEncryptionContext context);
 
 }

@@ -270,17 +270,6 @@ public class TableFieldBuilder implements InputFieldBuilder {
 
         }
 
-//        private void applyRowValues(
-//                final int rowIndex,
-//                final Map<Long, TableValue> rowValues) {
-//
-//            // set the new values
-//            this.values.set(rowIndex, rowValues);
-//            // update table row
-//            applyTableRowValues(rowIndex);
-//
-//        }
-
         private void applyTableRowValues(final int index) {
             final TableItem item = this.control.getItem(index);
             final Map<Long, TableValue> rowValues = this.values.get(index);

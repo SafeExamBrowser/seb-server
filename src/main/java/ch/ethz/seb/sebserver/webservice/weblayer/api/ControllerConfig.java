@@ -6,36 +6,36 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.async;
+package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.concurrent.Executor;
-
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+
 @EnableAsync
-public class AsyncServiceSpringConfig implements AsyncConfigurer {
+@Configuration
+@WebServiceProfile
+public class ControllerConfig implements WebMvcConfigurer {
 
-    public static final String EXECUTOR_BEAN_NAME = "AsyncServiceExecutorBean";
+    @Override
+    public void configureAsyncSupport(final AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(threadPoolTaskExecutor());
+        configurer.setDefaultTimeout(30_000);
+    }
 
-    @Bean(name = EXECUTOR_BEAN_NAME)
-    public Executor threadPoolTaskExecutor() {
+    public AsyncTaskExecutor threadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(7);
         executor.setMaxPoolSize(42);
         executor.setQueueCapacity(11);
-        executor.setThreadNamePrefix("asyncService-");
+        executor.setThreadNamePrefix("mvc-");
         executor.initialize();
         return executor;
-    }
-
-    @Override
-    public Executor getAsyncExecutor() {
-        return threadPoolTaskExecutor();
     }
 
 }

@@ -20,6 +20,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -34,6 +35,8 @@ public class MultiSelection extends Composite implements Selection {
     private final List<Label> labels = new ArrayList<>();
     private final List<Label> selected = new ArrayList<>();
 
+    private Listener listener = null;
+
     MultiSelection(final Composite parent) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
@@ -47,6 +50,11 @@ public class MultiSelection extends Composite implements Selection {
     @Override
     public Type type() {
         return Type.MULTI;
+    }
+
+    @Override
+    public void setSelectionListener(final Listener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -70,6 +78,9 @@ public class MultiSelection extends Composite implements Selection {
                 } else {
                     l.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTED.key);
                     this.selected.add(l);
+                }
+                if (this.listener != null) {
+                    this.listener.handleEvent(event);
                 }
             });
             this.labels.add(label);

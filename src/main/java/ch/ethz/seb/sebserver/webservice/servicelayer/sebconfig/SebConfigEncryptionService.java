@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
 import java.util.function.Function;
@@ -60,16 +62,11 @@ public interface SebConfigEncryptionService {
      *         case */
     Result<ByteBuffer> plainText(CharSequence plainTextConfig);
 
-    /** Use this to create a password encrypted SEB Configuration file from configuration text
-     * with the given Strategy
-     *
-     * @param plainTextConfig plainTextConfig plain text SEB Configuration as CharSequence
-     * @return Result of password encoded ByteBuffer or a reference to an Exception on error
-     *         case */
-    Result<ByteBuffer> encryptWithPassword(
-            CharSequence plainTextConfig,
-            Strategy strategy,
-            CharSequence password);
+    void streamEncryption(
+            final OutputStream output,
+            final InputStream input,
+            final Strategy strategy,
+            final CharSequence password);
 
     Result<ByteBuffer> encryptWithCertificate(
             CharSequence plainTextConfig,

@@ -8,14 +8,24 @@
 
 package ch.ethz.seb.sebserver.gbl.async;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
 public class AsyncService {
+
+    private static final Logger log = LoggerFactory.getLogger(AsyncService.class);
 
     private final AsyncRunner asyncRunner;
 
@@ -60,6 +70,43 @@ public class AsyncService {
                 maxBlockingTime,
                 timeToRecover,
                 momoized);
+    }
+
+    public void pipeToOutputStream(
+            final OutputStream output,
+            final Consumer<PipedOutputStream> consumer) {
+
+        this.asyncRunner.runAsync(() -> {
+
+            PipedOutputStream pout = null;
+            PipedInputStream pin = null;
+            try {
+                pout = new PipedOutputStream();
+                pin = new PipedInputStream(pout);
+
+                consumer.accept(pout);
+
+                IOUtils.copyLarge(pin, output);
+
+                pin.close();
+                pout.flush();
+                pout.close();
+
+            } catch (final IOException e) {
+                log.error("Error while pipe stream data: ", e);
+            } finally {
+                try {
+                    pin.close();
+                } catch (final IOException e1) {
+                    log.error("Failed to close PipedInputStream: ", e1);
+                }
+                try {
+                    pout.close();
+                } catch (final IOException e1) {
+                    log.error("Failed to close PipedOutputStream: ", e1);
+                }
+            }
+        });
     }
 
 }

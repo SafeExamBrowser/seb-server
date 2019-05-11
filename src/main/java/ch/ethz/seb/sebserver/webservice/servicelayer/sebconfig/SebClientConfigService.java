@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
-import java.io.InputStream;
+import java.io.OutputStream;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -55,6 +55,8 @@ public interface SebClientConfigService {
 
     Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
 
-    Result<InputStream> exportSebClientConfiguration(final String modelId);
+    void exportSebClientConfiguration(
+            OutputStream out,
+            final String modelId);
 
 }

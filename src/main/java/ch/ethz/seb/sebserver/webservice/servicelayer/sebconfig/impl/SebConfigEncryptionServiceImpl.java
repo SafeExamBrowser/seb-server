@@ -8,6 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
 import java.util.Arrays;
@@ -17,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,20 +72,49 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
     }
 
     @Override
-    public Result<ByteBuffer> encryptWithPassword(
-            final CharSequence plainTextConfig,
+    public void streamEncryption(
+            final OutputStream output,
+            final InputStream input,
             final Strategy strategy,
             final CharSequence password) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Password encryption with strategy: {}", strategy);
-        }
+        PipedOutputStream pout = null;
+        PipedInputStream pin = null;
+        try {
+            pout = new PipedOutputStream();
+            pin = new PipedInputStream(pout);
 
-        return getEncryptor(strategy)
-                .flatMap(encryptor -> encryptor.encrypt(
-                        plainTextConfig,
-                        EncryptionContext.contextOf(strategy, password)))
-                .map(bb -> addHeader(bb, strategy));
+            if (log.isDebugEnabled()) {
+                log.debug("Password encryption with strategy: {}", strategy);
+            }
+
+            pout.write(strategy.header);
+            getEncryptor(strategy)
+                    .getOrThrow()
+                    .encrypt(pout,
+                            input,
+                            EncryptionContext.contextOf(strategy, password));
+
+            IOUtils.copyLarge(pin, output);
+
+            pin.close();
+            pout.flush();
+            pout.close();
+
+        } catch (final IOException e) {
+            log.error("Error while stream encrypted data: ", e);
+        } finally {
+            try {
+                pin.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedInputStream: ", e1);
+            }
+            try {
+                pout.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedOutputStream: ", e1);
+            }
+        }
     }
 
     @Override
