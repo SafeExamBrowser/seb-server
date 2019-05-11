@@ -10,12 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public interface SebConfigEncryptionService {
@@ -60,21 +58,18 @@ public interface SebConfigEncryptionService {
      * @param plainTextConfig plainTextConfig plain text SEB Configuration as CharSequence
      * @return Result of plain text SEB Configuration within a ByteBuffer or a reference to an Exception on error
      *         case */
-    Result<ByteBuffer> plainText(CharSequence plainTextConfig);
+//    void streamPlainData(
+//            final OutputStream output,
+//            final InputStream input);
 
-    void streamEncryption(
+    void streamEncrypted(
             final OutputStream output,
             final InputStream input,
-            final Strategy strategy,
-            final CharSequence password);
+            SebConfigEncryptionContext context);
 
-    Result<ByteBuffer> encryptWithCertificate(
-            CharSequence plainTextConfig,
-            Strategy strategy,
-            Certificate certificate);
-
-    Result<ByteBuffer> decrypt(
-            ByteBuffer cipher,
+    void streamDecrypted(
+            final OutputStream output,
+            final InputStream input,
             Supplier<CharSequence> passwordSupplier,
             Function<CharSequence, Certificate> certificateStore);
 

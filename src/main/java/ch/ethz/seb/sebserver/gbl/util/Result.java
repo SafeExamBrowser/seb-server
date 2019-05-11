@@ -181,6 +181,12 @@ public final class Result<T> {
         }
     }
 
+    public void ifPresent(final Consumer<T> consumer) {
+        if (this.value != null) {
+            consumer.accept(this.value);
+        }
+    }
+
     /** Use this to map a given Result of type T to another Result of type U
      * within a given mapping function.
      *

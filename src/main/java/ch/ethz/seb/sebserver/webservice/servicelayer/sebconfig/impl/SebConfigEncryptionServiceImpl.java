@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
@@ -57,27 +55,24 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
     }
 
-    @Override
-    public Result<ByteBuffer> plainText(final CharSequence plainTextConfig) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("No encryption, use plain text with header");
-        }
-
-        return Result.tryCatch(() -> {
-            return addHeader(
-                    Utils.toByteBuffer(plainTextConfig),
-                    Strategy.PLAIN_TEXT);
-        });
-    }
+//    @Override
+//    public void streamPlainData(
+//            final OutputStream output,
+//            final InputStream input) {
+//
+//
+//        getEncryptor(strategy)
+//        .getOrThrow()
+//        .encrypt(pout, input, context);
+//    }
 
     @Override
-    public void streamEncryption(
+    public void streamEncrypted(
             final OutputStream output,
             final InputStream input,
-            final Strategy strategy,
-            final CharSequence password) {
+            final SebConfigEncryptionContext context) {
 
+        final Strategy strategy = context.getStrategy();
         PipedOutputStream pout = null;
         PipedInputStream pin = null;
         try {
@@ -91,26 +86,27 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             pout.write(strategy.header);
             getEncryptor(strategy)
                     .getOrThrow()
-                    .encrypt(pout,
-                            input,
-                            EncryptionContext.contextOf(strategy, password));
+                    .encrypt(pout, input, context);
 
             IOUtils.copyLarge(pin, output);
 
             pin.close();
             pout.flush();
             pout.close();
+            output.flush();
 
         } catch (final IOException e) {
             log.error("Error while stream encrypted data: ", e);
         } finally {
             try {
-                pin.close();
+                if (pin != null)
+                    pin.close();
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
             try {
-                pout.close();
+                if (pout != null)
+                    pout.close();
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }
@@ -118,95 +114,72 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
     }
 
     @Override
-    public Result<ByteBuffer> encryptWithCertificate(
-            final CharSequence plainTextConfig,
-            final Strategy strategy,
-            final Certificate certificate) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Certificate encryption with strategy: {}", strategy);
-        }
-
-        return getEncryptor(strategy)
-                .flatMap(encryptor -> encryptor.encrypt(
-                        plainTextConfig,
-                        EncryptionContext.contextOf(strategy, certificate)))
-                .map(bb -> addHeader(bb, strategy));
-    }
-
-    @Override
-    public Result<ByteBuffer> decrypt(
-            final ByteBuffer cipher,
+    public void streamDecrypted(
+            final OutputStream output,
+            final InputStream input,
             final Supplier<CharSequence> passwordSupplier,
             final Function<CharSequence, Certificate> certificateStore) {
 
-        return verifyStrategy(cipher)
-                .flatMap(strategy -> decrypt(strategy, cipher, passwordSupplier, certificateStore));
-    }
+        PipedOutputStream pout = null;
+        PipedInputStream pin = null;
+        try {
+            pout = new PipedOutputStream();
+            pin = new PipedInputStream(pout);
 
-    private Result<ByteBuffer> decrypt(
-            final Strategy strategy,
-            final ByteBuffer cipher,
-            final Supplier<CharSequence> passwordSupplier,
-            final Function<CharSequence, Certificate> certificateStore) {
+            final Strategy strategy = verifyStrategy(input);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Decryption with strategy: {}", strategy);
-        }
+            if (log.isDebugEnabled()) {
+                log.debug("Password decryption with strategy: {}", strategy);
+            }
 
-        if (strategy == Strategy.PLAIN_TEXT) {
-            return Result.of(removeHeader(cipher, strategy));
-        }
+            final EncryptionContext context = new EncryptionContext(
+                    strategy,
+                    (passwordSupplier != null) ? passwordSupplier.get() : null,
+                    certificateStore);
 
-        return getEncryptor(strategy)
-                .flatMap(encryptor -> encryptor.decrypt(
-                        removeHeader(cipher, strategy),
-                        (strategy.type == Type.PASSWORD)
-                                ? EncryptionContext.contextOf(strategy, passwordSupplier.get())
-                                : EncryptionContext.contextOf(strategy, certificateStore)));
-    }
+            getEncryptor(strategy)
+                    .getOrThrow()
+                    .decrypt(pout, input, context);
 
-    private ByteBuffer addHeader(final ByteBuffer input, final Strategy strategy) {
-        final ByteBuffer _input = (input == null) ? ByteBuffer.allocate(0) : input;
+            IOUtils.copyLarge(pin, output);
 
-        _input.rewind();
-        final ByteBuffer buffer = ByteBuffer.allocate(
-                SebConfigEncryptionServiceImpl.HEADER_SIZE +
-                        _input.limit());
+            pin.close();
+            pout.flush();
+            pout.close();
+            output.flush();
 
-        buffer.put(strategy.header);
-        buffer.put(_input);
-        return buffer.asReadOnlyBuffer();
-    }
-
-    private ByteBuffer removeHeader(final ByteBuffer input, final Strategy strategy) {
-        input.rewind();
-        final byte[] header = new byte[SebConfigEncryptionServiceImpl.HEADER_SIZE];
-        input.get(header);
-
-        if (Arrays.equals(strategy.header, header)) {
-            final byte[] b = new byte[input.remaining()];
-            input.get(b);
-            return ByteBuffer.wrap(b).asReadOnlyBuffer();
-        } else {
-            input.clear();
-            return input.asReadOnlyBuffer();
-        }
-    }
-
-    private Result<Strategy> verifyStrategy(final ByteBuffer cipher) {
-        cipher.rewind();
-        final byte[] header = new byte[HEADER_SIZE];
-        cipher.get(header);
-        //final String headerString = Utils.toString(header);
-        for (final Strategy s : Strategy.values()) {
-            if (Arrays.equals(s.header, header)) {
-                return Result.of(s);
+        } catch (final IOException e) {
+            log.error("Error while stream decrypted data: ", e);
+        } finally {
+            try {
+                if (pin != null)
+                    pin.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedInputStream: ", e1);
+            }
+            try {
+                if (pout != null)
+                    pout.close();
+            } catch (final IOException e1) {
+                log.error("Failed to close PipedOutputStream: ", e1);
             }
         }
+    }
 
-        log.error("Failed to verify encryption strategy. Fallback to plain text strategy");
-        return Result.of(Strategy.PLAIN_TEXT);
+    private Strategy verifyStrategy(final InputStream input) {
+        try {
+            final byte[] header = new byte[HEADER_SIZE];
+            input.read(header);
+            for (final Strategy s : Strategy.values()) {
+                if (Arrays.equals(s.header, header)) {
+                    return s;
+                }
+            }
+            throw new IllegalStateException("Failed to verify decryption strategy from input stream");
+        } catch (final IOException e) {
+            log.error("Failed to read decryption strategy from input stream");
+            throw new IllegalStateException("Failed to verify decryption strategy from input stream");
+        }
     }
 
     private Result<SebConfigCryptor> getEncryptor(final Strategy strategy) {
@@ -218,21 +191,20 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
         return Result.of(encryptor);
     }
 
-    protected static class EncryptionContext implements SebConfigEncryptionContext {
+    static class EncryptionContext implements SebConfigEncryptionContext {
 
         public final Strategy strategy;
         public final CharSequence password;
-        public final Certificate certificate;
+        public final Function<CharSequence, Certificate> certificateStore;
 
         private EncryptionContext(
                 final Strategy strategy,
                 final CharSequence password,
-                final Certificate certificate,
                 final Function<CharSequence, Certificate> certificateStore) {
 
             this.strategy = strategy;
             this.password = password;
-            this.certificate = certificate;
+            this.certificateStore = certificateStore;
         }
 
         @Override
@@ -246,18 +218,16 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
         }
 
         @Override
-        public Certificate getCertificate() {
-            return this.certificate;
+        public Certificate getCertificate(final CharSequence key) {
+            if (this.certificateStore == null) {
+                throw new UnsupportedOperationException();
+            }
+            return this.certificateStore.apply(key);
         }
 
         static SebConfigEncryptionContext contextOf(final Strategy strategy, final CharSequence password) {
             checkPasswordbased(strategy);
-            return new EncryptionContext(strategy, password, null, null);
-        }
-
-        static SebConfigEncryptionContext contextOf(final Strategy strategy, final Certificate certificate) {
-            checkCertificateBased(strategy);
-            return new EncryptionContext(strategy, null, certificate, null);
+            return new EncryptionContext(strategy, password, null);
         }
 
         static SebConfigEncryptionContext contextOf(
@@ -265,7 +235,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
                 final Function<CharSequence, Certificate> certificateStore) {
 
             checkCertificateBased(strategy);
-            return new EncryptionContext(strategy, null, null, certificateStore);
+            return new EncryptionContext(strategy, null, certificateStore);
         }
 
         static void checkPasswordbased(final Strategy strategy) {
@@ -278,6 +248,10 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             if (strategy == null || strategy.type != Type.CERTIFICATE) {
                 throw new IllegalArgumentException("Strategy missmatch for certificate based encryption: " + strategy);
             }
+        }
+
+        public static SebConfigEncryptionContext contextOfPlainText() {
+            return new EncryptionContext(Strategy.PLAIN_TEXT, null, null);
         }
 
     }

@@ -10,10 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
@@ -22,7 +22,6 @@ import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.junit.Test;
 
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
@@ -45,7 +44,7 @@ public class PasswordEncryptorTest {
     public void testUsingPassword() throws Exception {
 
         final String config = "<TestConfig></TestConfig>";
-        final byte[] plaintext = Utils.toByteArray(config);//getRandomBytes(127);
+        final byte[] plaintext = Utils.toByteArray(config);
 
         final String password = "Testing1234";
 
@@ -64,35 +63,8 @@ public class PasswordEncryptorTest {
     }
 
     @Test
-    public void test1() {
-        final JNCryptor jnCryptor = new AES256JNCryptor();
-        jnCryptor.setPBKDFIterations(10000);
-        final PasswordEncryptor encryptor = new PasswordEncryptor(jnCryptor);
-
-        final String config = "<TestConfig></TestConfig>";
-        final String pwd = "password";
-
-        final SebConfigEncryptionContext context = EncryptionContext.contextOf(
-                Strategy.PASSWORD_PWCC,
-                pwd);
-
-        final Result<ByteBuffer> encrypt = encryptor.encrypt(config, context);
-        assertFalse(encrypt.hasError());
-        final ByteBuffer cipher = encrypt.getOrThrow();
-        final byte[] byteArray = Utils.toByteArray(cipher);
-
-        final Result<ByteBuffer> decrypt = encryptor.decrypt(cipher, context);
-        assertFalse(decrypt.hasError());
-
-        final String decryptedConfig = Utils.toString(decrypt.getOrThrow());
-        assertEquals(config, decryptedConfig);
-    }
-
-    @Test
     public void test2() throws IOException {
-        final JNCryptor jnCryptor = new AES256JNCryptor();
-        jnCryptor.setPBKDFIterations(10000);
-        final PasswordEncryptor encryptor = new PasswordEncryptor(jnCryptor);
+        final PasswordEncryptor encryptor = new PasswordEncryptor();
 
         final String config = "<TestConfig></TestConfig>";
         final String pwd = "password";
@@ -109,14 +81,16 @@ public class PasswordEncryptorTest {
 
         final byte[] byteArray = out.toByteArray();
 
-        final Result<ByteBuffer> decrypt = encryptor.decrypt(
-                ByteBuffer.wrap(byteArray),
+        final ByteArrayOutputStream out2 = new ByteArrayOutputStream(512);
+        encryptor.decrypt(
+                out2,
+                new ByteArrayInputStream(byteArray),
                 context);
-        assertFalse(decrypt.hasError());
 
-        final ByteBuffer buffer = decrypt.getOrThrow();
-        buffer.rewind();
-        final String decryptedConfig = Utils.toString(buffer);
+        final byte[] byteArray2 = out2.toByteArray();
+        assertNotNull(byteArray2);
+
+        final String decryptedConfig = new String(byteArray2, "UTF-8");
         assertEquals(config, decryptedConfig);
     }
 

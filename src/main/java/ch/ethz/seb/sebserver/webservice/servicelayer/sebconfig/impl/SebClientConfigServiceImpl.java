@@ -8,13 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -31,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
@@ -40,6 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigSe
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
 
 @Lazy
 @Service
@@ -147,6 +145,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         PipedOutputStream pOut = null;
         PipedInputStream pIn = null;
         try {
+
             // zip the plain text
             final InputStream plainIn = IOUtils.toInputStream(plainTextConfig, "UTF-8");
             pOut = new PipedOutputStream();
@@ -157,7 +156,10 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             if (encryptionPassword != null) {
                 passwordEncryption(output, encryptionPassword, pIn);
             } else {
-                noEncryption(output, plainTextConfig);
+                this.sebConfigEncryptionService.streamEncrypted(
+                        output,
+                        pIn,
+                        EncryptionContext.contextOfPlainText());
             }
 
         } catch (final Exception e) {
@@ -177,21 +179,6 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         }
     }
 
-    private void noEncryption(
-            final OutputStream output,
-            final String plainTextConfig) throws IOException {
-
-        log.debug("Serve plain text seb configuration with specified header");
-
-        final ByteBuffer encryptedConfig = this.sebConfigEncryptionService.plainText(plainTextConfig)
-                .getOrThrow();
-
-        IOUtils.copyLarge(
-                new ByteArrayInputStream(Utils.toByteArray(encryptedConfig)),
-                output);
-
-    }
-
     private void passwordEncryption(
             final OutputStream output,
             final CharSequence encryptionPassword,
@@ -204,11 +191,12 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
                 .decrypt(encryptionPassword);
 
-        this.sebConfigEncryptionService.streamEncryption(
+        this.sebConfigEncryptionService.streamEncrypted(
                 output,
                 input,
-                Strategy.PASSWORD_PSWD,
-                encryptionPasswordPlaintext);
+                EncryptionContext.contextOf(
+                        Strategy.PASSWORD_PSWD,
+                        encryptionPasswordPlaintext));
 
         if (log.isDebugEnabled()) {
             log.debug("*** Finished Seb client configuration with password based encryption");

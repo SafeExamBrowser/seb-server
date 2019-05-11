@@ -13,10 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
-import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.cryptonode.jncryptor.AES256JNCryptorInputStream;
-import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
-import org.cryptonode.jncryptor.CryptorException;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -33,13 +30,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncrypti
 @Lazy
 @Component
 @WebServiceProfile
-public class PasswordEncryptor implements SebConfigCryptor {
+public class NoneEncryptor implements SebConfigCryptor {
 
-    private static final Logger log = LoggerFactory.getLogger(PasswordEncryptor.class);
+    private static final Logger log = LoggerFactory.getLogger(NoneEncryptor.class);
 
     private static final Set<Strategy> STRATEGIES = Utils.immutableSetOf(
-            Strategy.PASSWORD_PSWD,
-            Strategy.PASSWORD_PWCC);
+            Strategy.PLAIN_TEXT);
 
     @Override
     public Set<Strategy> strategies() {
@@ -54,37 +50,28 @@ public class PasswordEncryptor implements SebConfigCryptor {
             final SebConfigEncryptionContext context) {
 
         if (log.isDebugEnabled()) {
-            log.debug("*** Start streaming asynchronous encryption");
+            log.debug("No encryption, write plain input data");
         }
 
-        AES256JNCryptorOutputStream encryptOutput = null;
         try {
 
-            encryptOutput = new AES256JNCryptorOutputStream(
-                    output,
-                    Utils.toCharArray(context.getPassword()),
-                    10000);
-
-            IOUtils.copyLarge(input, encryptOutput);
+            IOUtils.copyLarge(input, output);
 
             input.close();
-            encryptOutput.flush();
-            encryptOutput.close();
+            output.flush();
+            output.close();
 
-        } catch (final CryptorException e) {
-            log.error("Error while trying to stream and encrypt data: ", e);
         } catch (final IOException e) {
-            log.error("Error while trying to read/write form/to streams: ", e);
+            log.error("Error while streaming plain data to output: ", e);
         } finally {
             try {
-                if (encryptOutput != null)
-                    encryptOutput.close();
+                input.close();
             } catch (final IOException e) {
-                log.error("Failed to close AES256JNCryptorOutputStream: ", e);
+                log.error("Failed to close InputStream");
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("*** Finish streaming asynchronous encryption");
+                log.debug("Finished with no encryption. Close input stream");
             }
         }
     }
@@ -97,35 +84,28 @@ public class PasswordEncryptor implements SebConfigCryptor {
             final SebConfigEncryptionContext context) {
 
         if (log.isDebugEnabled()) {
-            log.debug("*** Start streaming asynchronous decryption");
+            log.debug("No decryption, read plain input data");
         }
 
-        AES256JNCryptorInputStream encryptInput = null;
         try {
 
-            encryptInput = new AES256JNCryptorInputStream(
-                    input,
-                    Utils.toCharArray(context.getPassword()));
-
-            IOUtils.copyLarge(encryptInput, output);
+            IOUtils.copyLarge(input, output);
 
             input.close();
-            encryptInput.close();
             output.flush();
             output.close();
 
         } catch (final IOException e) {
-            log.error("Error while trying to read/write form/to streams: ", e);
+            log.error("Error while streaming plain data to output: ", e);
         } finally {
             try {
-                if (encryptInput != null)
-                    encryptInput.close();
+                input.close();
             } catch (final IOException e) {
-                log.error("Failed to close AES256JNCryptorOutputStream: ", e);
+                log.error("Failed to close InputStream");
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("*** Finish streaming asynchronous decryption");
+                log.debug("Finished with no encryption. Close input stream");
             }
         }
 
