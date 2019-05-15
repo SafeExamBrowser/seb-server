@@ -300,6 +300,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public <T> T notifyError(final Throwable error) {
+        log.error("Unexpected error: ", error);
         notifyError(error.getMessage(), error);
         return null;
     }

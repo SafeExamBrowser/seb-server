@@ -21,7 +21,7 @@ public interface InputField {
 
     Orientation getOrientation();
 
-    void initValue(Collection<ConfigurationValue> values);
+    ConfigurationValue initValue(Collection<ConfigurationValue> values);
 
     void initValue(final String value, final Integer listIndex);
 
@@ -31,8 +31,10 @@ public interface InputField {
 
     void clearError();
 
-    void disable();
+    void disable(boolean group);
 
-    void enable();
+    void enable(boolean group);
+
+    void setDefaultValue();
 
 }

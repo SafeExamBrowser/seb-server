@@ -188,7 +188,7 @@ public class TableFieldBuilder implements InputFieldBuilder {
         }
 
         @Override
-        public void initValue(final Collection<ConfigurationValue> values) {
+        public ConfigurationValue initValue(final Collection<ConfigurationValue> values) {
             clearTable();
             // get all child values as TableValues
             final List<TableValue> tableValues = values.stream()
@@ -215,6 +215,8 @@ public class TableFieldBuilder implements InputFieldBuilder {
                         this.values.add(rowValues);
                         addTableRow(rowValues);
                     });
+
+            return null;
         }
 
         private boolean isChildValue(final ConfigurationValue value) {
@@ -327,7 +329,7 @@ public class TableFieldBuilder implements InputFieldBuilder {
         }
 
         @Override
-        protected void setDefaultValue() {
+        public void setDefaultValue() {
             // NOTE this just empty the list for now
             // TODO do we need default values for lists?
             clearTable();

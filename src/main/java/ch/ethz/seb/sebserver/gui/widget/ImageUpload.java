@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
-public class ImageUpload extends Composite {
+public final class ImageUpload extends Composite {
 
     private static final long serialVersionUID = 368264811155804533L;
 

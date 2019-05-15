@@ -17,10 +17,15 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface Selection {
 
+    static final String OPTION_VALUE = "OPTION_VALUE";
+
     enum Type {
         SINGLE,
+        SINGLE_COMBO,
+        RADIO,
         MULTI,
         MULTI_COMBO,
+        MULTI_CHECKBOX,
         COLOR,
     }
 
@@ -37,6 +42,12 @@ public interface Selection {
     void setVisible(boolean visible);
 
     void setSelectionListener(Listener listener);
+
+    void setToolTipText(String tooltipText);
+
+    default void applyToolTipsForItems(final List<Tuple<String>> mapping) {
+        throw new UnsupportedOperationException("Must be implemented for this specific Selection");
+    }
 
     default Control adaptToControl() {
         return (Control) this;

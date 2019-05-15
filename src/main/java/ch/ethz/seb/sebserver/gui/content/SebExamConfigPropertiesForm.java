@@ -16,6 +16,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -45,8 +47,10 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class SebExamConfigPropertiesForm implements TemplateComposer {
 
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigPropertiesForm.class);
+
     private static final String VIEW_TEXT_KEY_PREFIX = "sebserver.examconfig.props.form.views.";
-    private static final String VIEW_TOOLTIP_TEXT_KEY_PREFIX = "tooltip";
+    private static final String VIEW_TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
 
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.from.title");
@@ -75,57 +79,62 @@ public class SebExamConfigPropertiesForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
 
-        final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(pageContext::notifyError)
-                .getOrThrow();
-
-        final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
-                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, configNode.getModelId())
-                .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
-                .call()
-                .map(Utils::toSingleton)
-                .onError(pageContext::notifyError)
-                .getOrThrow();
-
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
-        final AttributeMapping attributes = this.examConfigurationService
-                .getAttributes(configNode.templateId)
-                .onError(pageContext::notifyError)
-                .getOrThrow();
+        try {
 
-        final List<View> views = this.examConfigurationService.getViews(attributes);
+            final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-        final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
-        tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
+                    .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, configNode.getModelId())
+                    .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
+                    .call()
+                    .map(Utils::toSingleton)
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-        final List<ViewContext> viewContexts = new ArrayList<>();
-        for (final View view : views) {
-            final ViewContext viewContext = this.examConfigurationService.createViewContext(
-                    pageContext,
-                    configuration,
-                    view,
-                    attributes,
-                    4,
-                    20);
-            viewContexts.add(viewContext);
+            final AttributeMapping attributes = this.examConfigurationService
+                    .getAttributes(configNode.templateId)
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-            final Composite viewGrid = this.examConfigurationService.createViewGrid(
-                    tabFolder,
-                    viewContext);
+            final List<View> views = this.examConfigurationService.getViews(attributes);
 
-            final TabItem tabItem = widgetFactory.tabItemLocalized(
-                    tabFolder,
-                    new LocTextKey(VIEW_TEXT_KEY_PREFIX + view.name),
-                    new LocTextKey(VIEW_TEXT_KEY_PREFIX + view.name + VIEW_TOOLTIP_TEXT_KEY_PREFIX));
-            tabItem.setControl(viewGrid);
+            final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
+            tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+            final List<ViewContext> viewContexts = new ArrayList<>();
+            for (final View view : views) {
+                final ViewContext viewContext = this.examConfigurationService.createViewContext(
+                        pageContext,
+                        configuration,
+                        view,
+                        attributes,
+                        20);
+                viewContexts.add(viewContext);
+
+                final Composite viewGrid = this.examConfigurationService.createViewGrid(
+                        tabFolder,
+                        viewContext);
+
+                final TabItem tabItem = widgetFactory.tabItemLocalized(
+                        tabFolder,
+                        new LocTextKey(VIEW_TEXT_KEY_PREFIX + view.name));
+                tabItem.setControl(viewGrid);
+            }
+
+            this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
+            pageContext.notifyError(e);
         }
-
-        this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
 
     }
 

@@ -143,13 +143,11 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final Configuration configuration,
             final View view,
             final AttributeMapping attributeMapping,
-            final int columns,
             final int rows) {
 
         return new ViewContext(
                 configuration,
                 view,
-                columns,
                 rows,
                 attributeMapping,
                 new ValueChangeListenerImpl(
@@ -175,7 +173,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 this);
 
         for (final ConfigurationAttribute attribute : viewContext.getAttributes()) {
-            viewGridBuilder.add(attribute);
+            final Orientation orientation = viewContext.getOrientation(attribute.id);
+            if (orientation != null && viewContext.getId().equals(orientation.viewId)) {
+                viewGridBuilder.add(attribute);
+            }
         }
 
         viewGridBuilder.compose();
@@ -253,9 +254,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 if (savedValue.hasError()) {
                     context.showError(attribute.id, verifyErrorMessage(savedValue.getError()));
                 } else {
-                    this.valueChangeRules.stream()
-                            .filter(rule -> rule.observesAttribute(attribute))
-                            .forEach(rule -> rule.applyRule(context, attribute, savedValue.get()));
+                    this.notifyGUI(context, attribute, savedValue.get());
                 }
 
             } catch (final Exception e) {
@@ -290,6 +289,18 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
             log.warn("Unexpected error happened while trying to set SEB configuration value: ", error);
             return VALIDATION_ERROR_KEY_PREFIX + "unexpected";
+        }
+
+        @Override
+        public void notifyGUI(
+                final ViewContext viewContext,
+                final ConfigurationAttribute attribute,
+                final ConfigurationValue value) {
+
+            this.valueChangeRules.stream()
+                    .filter(rule -> rule.observesAttribute(attribute))
+                    .forEach(rule -> rule.applyRule(viewContext, attribute, value));
+
         }
     }
 

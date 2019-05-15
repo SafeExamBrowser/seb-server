@@ -17,10 +17,8 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
@@ -32,7 +30,6 @@ public class ZipServiceImpl implements ZipService {
     private static final Logger log = LoggerFactory.getLogger(ZipServiceImpl.class);
 
     @Override
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void write(final OutputStream out, final InputStream in) {
 
         if (log.isDebugEnabled()) {
@@ -67,7 +64,6 @@ public class ZipServiceImpl implements ZipService {
     }
 
     @Override
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void read(final OutputStream out, final InputStream in) {
         // TODO Auto-generated method stub
 

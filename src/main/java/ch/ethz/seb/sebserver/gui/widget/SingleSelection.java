@@ -19,17 +19,19 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
-public class SingleSelection extends Combo implements Selection {
+public final class SingleSelection extends Combo implements Selection {
 
     private static final long serialVersionUID = 6522063655406404279L;
 
     final List<String> valueMapping;
     final List<String> keyMapping;
+    final boolean isEditable;
 
-    SingleSelection(final Composite parent) {
-        super(parent, SWT.READ_ONLY);
+    SingleSelection(final Composite parent, final int type) {
+        super(parent, type);
         this.valueMapping = new ArrayList<>();
         this.keyMapping = new ArrayList<>();
+        this.isEditable = type == SWT.NONE;
     }
 
     @Override
@@ -59,6 +61,10 @@ public class SingleSelection extends Combo implements Selection {
 
     @Override
     public String getSelectionValue() {
+        if (this.isEditable) {
+            return super.getText();
+        }
+
         final int selectionindex = super.getSelectionIndex();
         if (selectionindex < 0) {
             return null;
@@ -81,6 +87,10 @@ public class SingleSelection extends Combo implements Selection {
     @Override
     public void setSelectionListener(final Listener listener) {
         super.addListener(SWT.Selection, listener);
+        if (this.isEditable) {
+            super.addListener(SWT.FocusOut, listener);
+            super.addListener(SWT.Traverse, listener);
+        }
     }
 
 }

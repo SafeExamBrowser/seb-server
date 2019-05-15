@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 
 public final class Utils {
 
@@ -291,6 +292,24 @@ public final class Utils {
         }
 
         return toCharArray(CharBuffer.wrap(chars));
+    }
+
+    public static Map<String, String> getAttributeDependencyMap(final ConfigurationAttribute attribute) {
+        if (StringUtils.isBlank(attribute.dependencies)) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            return Arrays.asList(StringUtils.split(attribute.dependencies, Constants.LIST_SEPARATOR))
+                    .stream()
+                    .map(s -> StringUtils.split(s, Constants.EMBEDDED_LIST_SEPARATOR))
+                    .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to parse dependency map of ConfigurationAttribute: {}",
+                    attribute,
+                    e);
+            return Collections.emptyMap();
+        }
     }
 
 }

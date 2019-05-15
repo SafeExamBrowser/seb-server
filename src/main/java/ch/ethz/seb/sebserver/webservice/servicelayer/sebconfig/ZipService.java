@@ -11,10 +11,16 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.springframework.scheduling.annotation.Async;
+
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+
 public interface ZipService {
 
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void write(OutputStream out, InputStream in);
 
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void read(OutputStream out, InputStream in);
 
 }

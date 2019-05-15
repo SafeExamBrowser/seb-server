@@ -23,8 +23,8 @@ public enum AttributeType {
     TEXT_AREA(TEXT),
     /** Check Box or boolean type */
     CHECKBOX(TEXT),
-    /** Check Box or boolean type without label (e.g.: used in a table) */
-    CHECK_FIELD(TEXT),
+
+    SLIDER(TEXT),
 
     /** Integer number type */
     INTEGER(TEXT),
@@ -32,10 +32,14 @@ public enum AttributeType {
     DECIMAL(TEXT),
     /** Single selection type (Drop-down) */
     SINGLE_SELECTION(TEXT),
-    /** Multiple selection type */
-    MULTI_SELECTION(LIST),
+
+    COMBO_SELECTION(TEXT),
     /** Radio selection type (like single selection but with check-boxes) */
     RADIO_SELECTION(TEXT),
+    /** Multiple selection type */
+    MULTI_SELECTION(LIST),
+    /** Multiple selection with checkbox type */
+    MULTI_CHECKBOX_SELECTION(LIST),
 
     FILE_UPLOAD(BASE64_BINARY),
 

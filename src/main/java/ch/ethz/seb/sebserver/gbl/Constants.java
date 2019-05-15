@@ -31,6 +31,8 @@ public final class Constants {
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
 
+    public static final String PERCENTAGE = "%";
+
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String DEFAULT_DISPLAY_DATE_FORMAT = "MM-dd-yyy HH:mm";
     public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";

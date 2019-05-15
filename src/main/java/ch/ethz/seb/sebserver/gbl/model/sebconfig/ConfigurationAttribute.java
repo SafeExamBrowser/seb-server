@@ -24,6 +24,8 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationAttribute implements Entity {
 
+    public static final String DEPENDENCY_RESOURCE_LOC_TEXT_KEY = "resourceLocTextKey";
+
     public static final String FILTER_ATTR_PARENT_ID = "parentId";
     public static final String FILTER_ATTR_TYPE = "type";
 

@@ -77,6 +77,7 @@ public class AttributeMapping {
 
         this.attributeGroupMapping = Utils.immutableMapOf(orientations
                 .stream()
+                .filter(o -> o.groupId != null)
                 .map(o -> o.groupId)
                 .collect(Collectors.toSet())
                 .stream()
@@ -176,6 +177,9 @@ public class AttributeMapping {
     }
 
     private List<ConfigurationAttribute> getAttributesOfGroup(final String groupName) {
+        if (groupName == null) {
+            return Collections.emptyList();
+        }
         return this.orientationAttributeMapping
                 .values()
                 .stream()

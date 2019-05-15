@@ -6,40 +6,40 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class UserRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.170+02:00", comments="Source Table: user")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source Table: user")
     public static final UserRecord userRecord = new UserRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source field: user.id")
     public static final SqlColumn<Long> id = userRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source field: user.institution_id")
     public static final SqlColumn<Long> institutionId = userRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source field: user.uuid")
     public static final SqlColumn<String> uuid = userRecord.uuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source field: user.name")
     public static final SqlColumn<String> name = userRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.username")
     public static final SqlColumn<String> username = userRecord.username;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.password")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.password")
     public static final SqlColumn<String> password = userRecord.password;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.email")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.email")
     public static final SqlColumn<String> email = userRecord.email;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.language")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.language")
     public static final SqlColumn<String> language = userRecord.language;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.timezone")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.timezone")
     public static final SqlColumn<String> timezone = userRecord.timezone;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.171+02:00", comments="Source field: user.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.173+02:00", comments="Source field: user.active")
     public static final SqlColumn<Integer> active = userRecord.active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-04-30T14:19:49.170+02:00", comments="Source Table: user")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-05-13T14:59:57.172+02:00", comments="Source Table: user")
     public static final class UserRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

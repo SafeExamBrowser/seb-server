@@ -51,6 +51,8 @@ public class SebConfigEncryptionServiceImplTest {
                 null,
                 null);
 
+        out2.close();
+
         final byte[] byteArray2 = out2.toByteArray();
         assertNotNull(byteArray2);
 

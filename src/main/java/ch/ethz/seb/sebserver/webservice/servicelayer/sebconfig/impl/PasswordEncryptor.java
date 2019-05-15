@@ -20,10 +20,8 @@ import org.cryptonode.jncryptor.CryptorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
@@ -47,7 +45,6 @@ public class PasswordEncryptor implements SebConfigCryptor {
     }
 
     @Override
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void encrypt(
             final OutputStream output,
             final InputStream input,
@@ -90,7 +87,6 @@ public class PasswordEncryptor implements SebConfigCryptor {
     }
 
     @Override
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void decrypt(
             final OutputStream output,
             final InputStream input,
@@ -109,7 +105,6 @@ public class PasswordEncryptor implements SebConfigCryptor {
 
             IOUtils.copyLarge(encryptInput, output);
 
-            input.close();
             encryptInput.close();
             output.flush();
             output.close();
@@ -128,7 +123,6 @@ public class PasswordEncryptor implements SebConfigCryptor {
                 log.debug("*** Finish streaming asynchronous decryption");
             }
         }
-
     }
 
 }

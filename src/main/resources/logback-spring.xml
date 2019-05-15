@@ -21,13 +21,13 @@
       <appender-ref ref="STDOUT" />
     </root>
 
-    <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <Logger name="ch.ethz.seb.sebserver" level="INFO" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
-    <Logger name="org.springframework.security" level="DEBUG" additivity="true" />
+    <Logger name="org.springframework.security" level="INFO" additivity="true" />
 
-    <Logger name="org.springframework.web" level="DEBUG" additivity="true" />
-    <Logger name="org.springframework.security.oauth2" level="DEBUG" additivity="true" />
+    <Logger name="org.springframework.web" level="INFO" additivity="true" />
+    <Logger name="org.springframework.security.oauth2" level="INFO" additivity="true" />
 
     
   </springProfile>
@@ -38,13 +38,13 @@
       <appender-ref ref="STDOUT" />
     </root>
 
-    <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <Logger name="ch.ethz.seb.sebserver" level="INFO" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
-    <Logger name="org.springframework.security" level="DEBUG" additivity="true" />
+    <Logger name="org.springframework.security" level="INFO" additivity="true" />
 
-    <Logger name="org.springframework.web" level="DEBUG" additivity="true" />
-    <Logger name="org.springframework.security.oauth2" level="DEBUG" additivity="true" />
+    <Logger name="org.springframework.web" level="INFO" additivity="true" />
+    <Logger name="org.springframework.security.oauth2" level="INFO" additivity="true" />
 
     
   </springProfile>

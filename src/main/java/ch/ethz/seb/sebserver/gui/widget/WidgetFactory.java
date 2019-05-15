@@ -17,7 +17,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -27,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
@@ -207,6 +207,17 @@ public class WidgetFactory {
         return button;
     }
 
+    public Button buttonLocalized(
+            final Composite parent,
+            final int type,
+            final LocTextKey locTextKey,
+            final LocTextKey toolTipKey) {
+
+        final Button button = new Button(parent, type);
+        this.injectI18n(button, locTextKey, toolTipKey);
+        return button;
+    }
+
     public Label label(final Composite parent, final String text) {
         final Label label = new Label(parent, SWT.NONE);
         label.setText(text);
@@ -222,23 +233,6 @@ public class WidgetFactory {
     public Label labelLocalized(final Composite parent, final LocTextKey locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
         this.injectI18n(label, locTextKey);
-        return label;
-    }
-
-    public Label labelLocalized(
-            final Composite parent,
-            final LocTextKey locTextKey,
-            final String defaultValue) {
-
-        final Label label = new Label(parent, SWT.NONE);
-
-        final String text = this.i18nSupport.getText(locTextKey, "");
-        if (StringUtils.isNoneBlank(text)) {
-            this.injectI18n(label, locTextKey);
-        } else {
-            this.injectI18n(label, new LocTextKey(defaultValue));
-        }
-
         return label;
     }
 
@@ -310,6 +304,22 @@ public class WidgetFactory {
         return numberInput;
     }
 
+    public Group groupLocalized(
+            final Composite parent,
+            final int columns,
+            final LocTextKey locTextKey) {
+
+        final Group group = new Group(parent, SWT.NONE);
+        final GridLayout gridLayout = new GridLayout(columns, true);
+        gridLayout.verticalSpacing = 0;
+        gridLayout.horizontalSpacing = 0;
+        gridLayout.marginHeight = 0;
+        group.setLayout(gridLayout);
+
+        this.injectI18n(group, locTextKey);
+        return group;
+    }
+
     public Tree treeLocalized(final Composite parent, final int style) {
         final Tree tree = new Tree(parent, style);
         this.injectI18n(tree);
@@ -364,6 +374,13 @@ public class WidgetFactory {
 
     public TabItem tabItemLocalized(
             final TabFolder parent,
+            final LocTextKey locTextKey) {
+
+        return this.tabItemLocalized(parent, locTextKey, null);
+    }
+
+    public TabItem tabItemLocalized(
+            final TabFolder parent,
             final LocTextKey locTextKey,
             final LocTextKey toolTipKey) {
 
@@ -399,16 +416,44 @@ public class WidgetFactory {
             final Composite parent,
             final Supplier<List<Tuple<String>>> itemsSupplier) {
 
+        return this.selectionLocalized(type, parent, itemsSupplier, null, null);
+    }
+
+    public Selection selectionLocalized(
+            final Selection.Type type,
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey toolTipTextKey) {
+
+        return this.selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, null);
+    }
+
+    public Selection selectionLocalized(
+            final Selection.Type type,
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey toolTipTextKey,
+            final Supplier<List<Tuple<String>>> itemsToolTipSupplier) {
+
         final Selection selection;
         switch (type) {
             case SINGLE:
-                selection = new SingleSelection(parent);
+                selection = new SingleSelection(parent, SWT.READ_ONLY);
+                break;
+            case SINGLE_COMBO:
+                selection = new SingleSelection(parent, SWT.NONE);
+                break;
+            case RADIO:
+                selection = new RadioSelection(parent);
                 break;
             case MULTI:
                 selection = new MultiSelection(parent);
                 break;
             case MULTI_COMBO:
                 selection = new MultiSelectionCombo(parent, this);
+                break;
+            case MULTI_CHECKBOX:
+                selection = new MultiSelectionCheckbox(parent);
                 break;
             case COLOR:
                 selection = new ColorSelection(parent, this);
@@ -418,10 +463,23 @@ public class WidgetFactory {
         }
 
         if (itemsSupplier != null) {
-            final Consumer<Selection> updateFunction = ss -> ss.applyNewMapping(itemsSupplier.get());
+            final Consumer<Selection> updateFunction = ss -> {
+                try {
+                    ss.applyNewMapping(itemsSupplier.get());
+                    if (toolTipTextKey != null) {
+                        ss.setToolTipText(this.i18nSupport.getText(toolTipTextKey));
+                    }
+                    if (itemsToolTipSupplier != null) {
+                        ss.applyToolTipsForItems(itemsToolTipSupplier.get());
+                    }
+                } catch (final Exception e) {
+                    log.error("Unexpected error while trying to apply localization to selection widget", e);
+                }
+            };
             selection.adaptToControl().setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
             updateFunction.accept(selection);
         }
+
         return selection;
     }
 
@@ -461,6 +519,12 @@ public class WidgetFactory {
         final Consumer<Label> labelFunction = labelFunction(locTextKey, locToolTipKey, this.i18nSupport);
         label.setData(POLYGLOT_WIDGET_FUNCTION_KEY, labelFunction);
         labelFunction.accept(label);
+    }
+
+    public void injectI18n(final Group group, final LocTextKey locTextKey) {
+        final Consumer<Group> groupFunction = groupFunction(locTextKey, null, this.i18nSupport);
+        group.setData(POLYGLOT_WIDGET_FUNCTION_KEY, groupFunction);
+        groupFunction.accept(group);
     }
 
     public void injectI18n(final Button button, final LocTextKey locTextKey) {
@@ -578,6 +642,21 @@ public class WidgetFactory {
 //                label.addListener(SWT.MouseExit, event -> {
 //                    label.setToolTipText(null);
 //                });
+            }
+        };
+    }
+
+    private static final Consumer<Group> groupFunction(
+            final LocTextKey locTextKey,
+            final LocTextKey locToolTipKey,
+            final I18nSupport i18nSupport) {
+
+        return group -> {
+            if (locTextKey != null) {
+                group.setText(i18nSupport.getText(locTextKey));
+            }
+            if (locToolTipKey != null) {
+                group.setToolTipText(i18nSupport.getText(locToolTipKey));
             }
         };
     }

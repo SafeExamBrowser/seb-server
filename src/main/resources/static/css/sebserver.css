@@ -12,7 +12,7 @@
 
 /* Label default theme */
 Label {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #4a4a4a;
     background-color: transparent;
     background-image: none;
@@ -27,11 +27,11 @@ Label {
 }
 
 Label.head {
-    font: bold 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: bold 12px Arial, Helvetica, sans-serif;
 }
 
 Label.action {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #82BE1E;
     background-color: transparent;
     background-image: none;
@@ -67,7 +67,7 @@ Label.h3 {
 }
 
 Label.error {
-    font: 10px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 10px Arial, Helvetica, sans-serif;
     color: #aa0000;
 }
 
@@ -106,7 +106,6 @@ Label-SeparatorLine {
     height: 1px;
 }
 
-
 Composite.bordered {
     border: 2px;
 }
@@ -132,8 +131,6 @@ Composite.bgLogoNoImage {
     background-repeat: no-repeat;
     background-position: left center;
 }
-
-
 
 Composite.bgContent {
     background-color: #EAECEE;
@@ -183,10 +180,38 @@ Composite.error {
     background-color: transparent;
 }
 
+/* Group default theme */
+Group {
+    font: 10px Arial, Helvetica, sans-serif;
+    color: #4a4a4a;
+    background-color: #ffffff;
+    border: none;
+}
+
+Group-Frame {
+    margin: 10px 0 0 0;
+    padding: 10px 0px 0px 0px;
+    border: 1px solid #bdbdbd;
+    border-radius: 2px;
+}
+
+Group-Label {
+    padding: 2px 10px 2px 10px;
+    background-color: #ffffff;
+    background-image: none;
+    background-repeat: repeat;
+    background-position: left top;
+    border: 0px solid #bdbdbd;
+    border-radius: 0px;
+    color: inherit;
+    margin: 0px 0px 0px 10px;
+    text-shadow: none;
+}
+
 
 /* Text default */
 Text {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     border: none;
     border-radius: 0;
     padding: 3px 10px 3px 10px;
@@ -230,7 +255,7 @@ Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
 
 /* Combo default theme */
 Combo, Combo[BORDER] {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #4a4a4a;
     background-color: #ffffff;
     border: 1px solid #aaaaaa;
@@ -271,7 +296,7 @@ Combo.error {
 
 /* DateTime default theme */
 DateTime, DateTime[BORDER] {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #4a4a4a;
     background-color: #ffffff;
     border: 1px solid #aaaaaa;
@@ -287,7 +312,7 @@ DateTime, DateTime[BORDER]:focused {
 }
 
 DateTime-Field, DateTime-Field[BORDER] {
-  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  font: 12px Arial, Helvetica, sans-serif;
   color: #4a4a4a;
   background-color: #ffffff;
   padding: 3px 10px 2px 10px;
@@ -339,7 +364,7 @@ Shell-Titlebar.message {
   padding: 2px 5px 2px;
   margin: 0px;
   height: 22px;
-  font: 14px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  font: 14px Arial, Helvetica, sans-serif;
   border: none;
   border-radius: 1px 1px 0px 0px;
   text-shadow: none;
@@ -502,7 +527,7 @@ Tree-RowOverlay:selected:hover {
 }
 
 Tree.actions {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #4a4a4a;
     background-color: transparent;
     border: none;
@@ -514,7 +539,7 @@ Tree[BORDER].actions {
 }
 
 TreeItem.actions {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     color: #4a4a4a;
     background-color: transparent;
     text-decoration: none;
@@ -562,7 +587,7 @@ Tree-Indent:line {
 /* TabFolder default theme */
 
 TabFolder {
-  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  font: 12px Arial, Helvetica, sans-serif;
   color: #4a4a4a;
   border: none;
 }
@@ -573,7 +598,7 @@ TabFolder-ContentContainer {
 }
 
 TabItem {
-  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  font: 12px Arial, Helvetica, sans-serif;
   color: #4a4a4a;
   background-color: #FFFFFF;
   text-decoration: none;
@@ -615,7 +640,7 @@ TabItem:selected:hover {
 }
 
 TabItem:first {
-  font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+  font: 12px Arial, Helvetica, sans-serif;
   color: #4a4a4a;
   background-color: #FFFFFF;
   text-decoration: none;
@@ -720,7 +745,7 @@ Widget-ToolTip-Pointer {
 
 /* Table default theme */
 Table {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     background-color: #ffffff;
     background-image: none;
     color: #4a4a4a;
@@ -732,7 +757,7 @@ Table[BORDER] {
 }
 
 TableColumn {
-    font: 12px Verdana, "Lucida Sans", Arial, Helvetica, sans-serif;
+    font: 12px Arial, Helvetica, sans-serif;
     background-color: #595959;
     background-gradient-color: #595959;
     background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );

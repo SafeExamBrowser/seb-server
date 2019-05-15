@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
-public class ThresholdList extends Composite {
+public final class ThresholdList extends Composite {
 
     private static final Logger log = LoggerFactory.getLogger(ThresholdList.class);
     private static final long serialVersionUID = -2305091471607040280L;

@@ -13,6 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -24,9 +27,11 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 
 public final class ViewContext {
 
+    private static final Logger log = LoggerFactory.getLogger(ViewContext.class);
+
     private final Configuration configuration;
     private final View view;
-    private final int columns, rows;
+    private final int rows;
 
     private final AttributeMapping attributeMapping;
     private final Map<Long, InputField> inputFieldMapping;
@@ -36,7 +41,6 @@ public final class ViewContext {
     ViewContext(
             final Configuration configuration,
             final View view,
-            final int columns,
             final int rows,
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener,
@@ -49,7 +53,6 @@ public final class ViewContext {
 
         this.configuration = configuration;
         this.view = view;
-        this.columns = columns;
         this.rows = rows;
 
         this.attributeMapping = attributeContext;
@@ -79,7 +82,7 @@ public final class ViewContext {
     }
 
     public int getColumns() {
-        return this.columns;
+        return this.view.columns;
     }
 
     public int getRows() {
@@ -110,6 +113,18 @@ public final class ViewContext {
         return this.attributeMapping.getAttribute(attributeId);
     }
 
+    public Long getAttributeIdByName(final String name) {
+        return this.attributeMapping.attributeNameIdMapping.get(name);
+    }
+
+    public ConfigurationAttribute getAttributeByName(final String name) {
+        final Long attributeId = this.attributeMapping.attributeNameIdMapping.get(name);
+        if (attributeId != null) {
+            return getAttribute(attributeId);
+        }
+        return null;
+    }
+
     public Collection<Orientation> getOrientationsOfGroup(final ConfigurationAttribute attribute) {
         return this.attributeMapping.getOrientationsOfGroup(attribute);
     }
@@ -120,6 +135,69 @@ public final class ViewContext {
 
     public ValueChangeListener getValueChangeListener() {
         return this.valueChangeListener;
+    }
+
+    public void disable(final String attributeName) {
+        disable(this.getAttributeIdByName(attributeName));
+    }
+
+    public void disable(final Long attributeId) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.disable(false);
+    }
+
+    public void enable(final String attributeName) {
+        enable(this.getAttributeIdByName(attributeName));
+    }
+
+    public void enable(final Long attributeId) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.enable(false);
+    }
+
+    public void disableGroup(final String attributeName) {
+        disableGroup(this.getAttributeIdByName(attributeName));
+    }
+
+    public void disableGroup(final Long attributeId) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.disable(true);
+
+        try {
+            this.attributeMapping.attributeGroupMapping
+                    .get(inputField.getOrientation().groupId)
+                    .stream()
+                    .map(ConfigurationAttribute::getId)
+                    .map(this.inputFieldMapping::get)
+                    .forEach(InputField::setDefaultValue);
+        } catch (final Exception e) {
+            log.warn("Failed to send attribute value update to server: ", e);
+        }
+    }
+
+    public void enableGroup(final String attributeName) {
+        enableGroup(this.getAttributeIdByName(attributeName));
+    }
+
+    public void enableGroup(final Long attributeId) {
+        final InputField inputField = this.inputFieldMapping.get(attributeId);
+        if (inputField == null) {
+            return;
+        }
+
+        inputField.enable(true);
     }
 
     public void showError(final Long attributeId, final String errorMessage) {
@@ -150,7 +228,12 @@ public final class ViewContext {
         this.inputFieldMapping
                 .values()
                 .stream()
-                .forEach(field -> field.initValue(values));
+                .forEach(field -> {
+                    final ConfigurationValue initValue = field.initValue(values);
+                    if (initValue != null) {
+                        this.valueChangeListener.notifyGUI(this, field.getAttribute(), initValue);
+                    }
+                });
     }
 
     /** Removes all registered InputFields with the given attribute ids

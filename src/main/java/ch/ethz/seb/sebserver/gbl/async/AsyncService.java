@@ -10,16 +10,12 @@ package ch.ethz.seb.sebserver.gbl.async;
 
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
 public class AsyncService {
-
-    private static final Logger log = LoggerFactory.getLogger(AsyncService.class);
 
     private final AsyncRunner asyncRunner;
 

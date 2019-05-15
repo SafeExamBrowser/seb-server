@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
-public class ColorSelection extends Composite implements Selection {
+public final class ColorSelection extends Composite implements Selection {
 
     private static final long serialVersionUID = 4775375044147842526L;
     private static final Logger log = LoggerFactory.getLogger(ColorSelection.class);

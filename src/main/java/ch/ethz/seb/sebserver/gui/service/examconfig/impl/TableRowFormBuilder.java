@@ -110,11 +110,11 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
 
     private void createLabel(final Composite parent, final ConfigurationAttribute attribute) {
         final LocTextKey locTextKey = new LocTextKey(
-                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
-                        attribute.name);
+                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name,
+                attribute.name);
         final Label label = this.tableContext
                 .getWidgetFactory()
-                .labelLocalized(parent, locTextKey, attribute.name);
+                .labelLocalized(parent, locTextKey);
         final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false);
         gridData.verticalIndent = 4;
         label.setLayoutData(gridData);

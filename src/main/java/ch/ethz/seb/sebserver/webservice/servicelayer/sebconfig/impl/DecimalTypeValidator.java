@@ -23,9 +23,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValu
 @WebServiceProfile
 public class DecimalTypeValidator implements ConfigurationValueValidator {
 
+    public static final String NAME = "DecimalTypeValidator";
+
     @Override
     public String name() {
-        return AttributeType.DECIMAL.name();
+        return NAME;
     }
 
     @Override
@@ -33,10 +35,8 @@ public class DecimalTypeValidator implements ConfigurationValueValidator {
             final ConfigurationValue value,
             final ConfigurationAttribute attribute) {
 
-        // if value is not an integer type or another specific validation is defined --> skip
-        if (attribute.type != AttributeType.DECIMAL ||
-                StringUtils.isNoneBlank(attribute.validator)) {
-
+        // if value is not an decimal type and validator is not specified --> skip
+        if (attribute.type != AttributeType.DECIMAL && !name().equals(attribute.validator)) {
             return true;
         }
 

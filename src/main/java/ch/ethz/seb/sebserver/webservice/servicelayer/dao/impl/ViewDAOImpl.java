@@ -102,6 +102,7 @@ public class ViewDAOImpl implements ViewDAO {
             final ViewRecord newRecord = new ViewRecord(
                     null,
                     data.name,
+                    data.columns,
                     data.position);
 
             this.viewRecordMapper.insert(newRecord);
@@ -119,6 +120,7 @@ public class ViewDAOImpl implements ViewDAO {
             final ViewRecord newRecord = new ViewRecord(
                     data.id,
                     data.name,
+                    data.columns,
                     data.position);
 
             this.viewRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -162,6 +164,7 @@ public class ViewDAOImpl implements ViewDAO {
         return Result.tryCatch(() -> new View(
                 record.getId(),
                 record.getName(),
+                record.getColumns(),
                 record.getPosition()));
     }
 

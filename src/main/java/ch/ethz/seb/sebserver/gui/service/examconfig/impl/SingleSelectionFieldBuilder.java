@@ -8,28 +8,21 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -37,7 +30,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SingleSelectionFieldBuilder implements InputFieldBuilder {
+public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implements InputFieldBuilder {
 
     private final WidgetFactory widgetFactory;
 
@@ -50,7 +43,8 @@ public class SingleSelectionFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final Orientation orientation) {
 
-        return attribute.type == AttributeType.SINGLE_SELECTION;
+        return attribute.type == AttributeType.SINGLE_SELECTION ||
+                attribute.type == AttributeType.COMBO_SELECTION;
     }
 
     @Override
@@ -59,17 +53,22 @@ public class SingleSelectionFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
+        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, orientation);
 
         final SingleSelection selection = this.widgetFactory.selectionLocalized(
-                Selection.Type.SINGLE,
+                (attribute.type == AttributeType.COMBO_SELECTION)
+                        ? Selection.Type.SINGLE_COMBO
+                        : Selection.Type.SINGLE,
                 innerGrid,
-                () -> this.getLocalizedResources(attribute))
+                () -> this.getLocalizedResources(attribute, i18nSupport),
+                ExamConfigurationService.getToolTipKey(attribute, i18nSupport))
                 .getTypeInstance();
 
+        selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         final SingleSelectionInputField singleSelectionInputField = new SingleSelectionInputField(
                 attribute,
                 orientation,
@@ -81,30 +80,11 @@ public class SingleSelectionFieldBuilder implements InputFieldBuilder {
             viewContext.getValueChangeListener().valueChanged(
                     viewContext,
                     attribute,
-                    String.valueOf(selection.getSelectionValue()),
+                    singleSelectionInputField.getValue(),
                     singleSelectionInputField.listIndex);
         });
 
-        return null;
-    }
-
-    private List<Tuple<String>> getLocalizedResources(final ConfigurationAttribute attribute) {
-        if (attribute == null) {
-            return Collections.emptyList();
-        }
-
-        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
-        final String prefix = ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".";
-        return Arrays.asList(StringUtils.split(
-                attribute.resources,
-                Constants.LIST_SEPARATOR))
-                .stream()
-                .map(value -> new Tuple<>(
-                        value,
-                        i18nSupport.getText(
-                                new LocTextKey(prefix + value),
-                                value)))
-                .collect(Collectors.toList());
+        return singleSelectionInputField;
     }
 
     static final class SingleSelectionInputField extends AbstractInputField<SingleSelection> {

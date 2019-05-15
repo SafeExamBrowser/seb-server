@@ -8,17 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,20 +24,19 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
-import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.GroupCellFieldBuilderAdapter;
 
 public class ViewGridBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(ViewGridBuilder.class);
 
-    private final ExamConfigurationService examConfigurationService;
-    private final Composite parent;
-    private final ViewContext viewContext;
+    final ExamConfigurationService examConfigurationService;
+    final Composite parent;
+    final ViewContext viewContext;
+
     private final CellFieldBuilderAdapter[][] grid;
+    private final GroupCellFieldBuilderAdapter groupBuilderAdapter;
     private final Set<String> registeredGroups;
 
     ViewGridBuilder(
@@ -52,7 +48,22 @@ public class ViewGridBuilder {
         this.parent = parent;
         this.viewContext = viewContext;
         this.grid = new CellFieldBuilderAdapter[viewContext.getRows()][viewContext.getColumns()];
+        this.groupBuilderAdapter = null;
         this.registeredGroups = new HashSet<>();
+    }
+
+    ViewGridBuilder(
+            final Composite parent,
+            final ViewContext viewContext,
+            final GroupCellFieldBuilderAdapter groupBuilderAdapter,
+            final ExamConfigurationService examConfigurationService) {
+
+        this.examConfigurationService = examConfigurationService;
+        this.parent = parent;
+        this.viewContext = viewContext;
+        this.groupBuilderAdapter = groupBuilderAdapter;
+        this.grid = new CellFieldBuilderAdapter[groupBuilderAdapter.height - 1][groupBuilderAdapter.width];
+        this.registeredGroups = null;
     }
 
     ViewGridBuilder add(final ConfigurationAttribute attribute) {
@@ -64,14 +75,14 @@ public class ViewGridBuilder {
         final Orientation orientation = this.viewContext
                 .getOrientation(attribute.id);
 
-        // create group builder
-        if (StringUtils.isNotBlank(orientation.groupId)) {
+        // create group if this is not a group builder
+        if (this.groupBuilderAdapter == null && StringUtils.isNotBlank(orientation.groupId)) {
             if (this.registeredGroups.contains(orientation.groupId)) {
                 return this;
             }
 
             final GroupCellFieldBuilderAdapter groupBuilder =
-                    new GroupCellFieldBuilderAdapter(this, attribute);
+                    new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
 
             fillDummy(groupBuilder.x, groupBuilder.y, groupBuilder.width, groupBuilder.height);
             this.grid[groupBuilder.y][groupBuilder.x] = groupBuilder;
@@ -80,8 +91,8 @@ public class ViewGridBuilder {
         }
 
         // create single input field with label
-        final int xpos = orientation.xpos();
-        final int ypos = orientation.ypos();
+        final int xpos = orientation.xpos() + ((this.groupBuilderAdapter != null) ? -this.groupBuilderAdapter.x : 0);
+        final int ypos = orientation.ypos() + ((this.groupBuilderAdapter != null) ? -this.groupBuilderAdapter.y : 0);
 
         if (orientation.width > 1 || orientation.height > 1) {
             fillDummy(xpos, ypos, orientation.width, orientation.height);
@@ -91,26 +102,43 @@ public class ViewGridBuilder {
                 attribute,
                 orientation);
 
-        this.grid[ypos][xpos] = fieldBuilderAdapter(
+        this.grid[ypos][xpos] = CellFieldBuilderAdapter.fieldBuilderAdapter(
                 inputFieldBuilder,
                 attribute);
 
         try {
             switch (orientation.title) {
-                case RIGHT: {
-                    this.grid[ypos][xpos + 1] = labelBuilder(attribute, orientation);
+                case RIGHT:
+                case RIGHT_SPAN: {
+                    this.grid[ypos][xpos + 1] = CellFieldBuilderAdapter.labelBuilder(
+                            attribute,
+                            orientation);
                     break;
                 }
                 case LEFT: {
-                    this.grid[ypos][xpos - 1] = labelBuilder(attribute, orientation);
+                    this.grid[ypos][xpos - 1] = CellFieldBuilderAdapter.labelBuilder(
+                            attribute,
+                            orientation);
                     // special case for password, also add confirm label
                     if (attribute.type == AttributeType.PASSWORD_FIELD) {
-                        this.grid[ypos + 1][xpos - 1] = passwordConfirmLabel(attribute, orientation);
+                        this.grid[ypos + 1][xpos - 1] = CellFieldBuilderAdapter.passwordConfirmLabel(
+                                attribute,
+                                orientation);
                     }
                     break;
                 }
+                case LEFT_SPAN: {
+                    fillDummy(xpos - orientation.width, ypos, orientation.width, 1);
+                    this.grid[ypos][xpos - orientation.width] = CellFieldBuilderAdapter.labelBuilder(
+                            attribute,
+                            orientation);
+                    break;
+                }
                 case TOP: {
-                    this.grid[ypos - 1][xpos] = labelBuilder(attribute, orientation);
+                    fillDummy(xpos, ypos - 1, orientation.width, 1);
+                    this.grid[ypos - 1][xpos] = CellFieldBuilderAdapter.labelBuilder(
+                            attribute,
+                            orientation);
                     break;
                 }
                 default: {
@@ -124,11 +152,23 @@ public class ViewGridBuilder {
     }
 
     void compose() {
+        if (log.isDebugEnabled()) {
+            log.debug("Compose grid view: \n" + gridToString());
+        }
+
+        for (int y = 0; y < this.grid.length; y++) {
+            for (int x = 0; x < this.grid[y].length; x++) {
+                if (this.grid[y][x] != null) {
+                }
+            }
+        }
+
         for (int y = 0; y < this.grid.length; y++) {
             for (int x = 0; x < this.grid[y].length; x++) {
                 if (this.grid[y][x] == null) {
                     final Label empty = new Label(this.parent, SWT.LEFT);
                     final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+                    gridData.verticalIndent = 8;
                     empty.setLayoutData(gridData);
                     empty.setText("");
                 } else {
@@ -138,184 +178,25 @@ public class ViewGridBuilder {
         }
     }
 
-    private static interface CellFieldBuilderAdapter {
-
-        void createCell(ViewGridBuilder builder);
-
-    }
-
-    private CellFieldBuilderAdapter dummyBuilderAdapter() {
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-            }
-
-            @Override
-            public String toString() {
-                return "[DUMMY]";
-            }
-
-        };
-    }
-
-    private final CellFieldBuilderAdapter fieldBuilderAdapter(
-            final InputFieldBuilder inputFieldBuilder,
-            final ConfigurationAttribute attribute) {
-
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-
-                final InputField inputField = inputFieldBuilder.createInputField(
-                        ViewGridBuilder.this.parent,
-                        attribute,
-                        ViewGridBuilder.this.viewContext);
-
-                ViewGridBuilder.this.viewContext.registerInputField(inputField);
-            }
-
-            @Override
-            public String toString() {
-                return "[FIELD]";
-            }
-        };
-    }
-
-    private CellFieldBuilderAdapter labelBuilder(
-            final ConfigurationAttribute attribute,
-            final Orientation orientation) {
-
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-
-                final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
-                final Label label = widgetFactory.labelLocalized(
-                        ViewGridBuilder.this.parent,
-                        new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name),
-                        attribute.name);
-                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
-
-                final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-                switch (orientation.title) {
-                    case LEFT:
-                    case RIGHT: {
-                        label.setAlignment(SWT.LEFT);
-                        gridData.verticalIndent = 5;
-                        break;
-                    }
-                    case TOP: {
-                        label.setAlignment(SWT.LEFT);
-                        break;
-                    }
-
-                    default: {
-                        label.setAlignment(SWT.LEFT);
-                    }
-                }
-                label.setLayoutData(gridData);
-
-            }
-        };
-    }
-
-    private CellFieldBuilderAdapter passwordConfirmLabel(
-            final ConfigurationAttribute attribute,
-            final Orientation orientation) {
-
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-                final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
-                final Label label = widgetFactory.labelLocalized(
-                        ViewGridBuilder.this.parent,
-                        new LocTextKey(
-                                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".confirm"),
-                        "Confirm Password");
-                final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-                label.setAlignment(SWT.LEFT);
-                gridData.verticalIndent = 10;
-                label.setLayoutData(gridData);
-                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
-            }
-        };
-    }
-
-    private static class GroupCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
-
-        final ViewGridBuilder builder;
-        final ConfigurationAttribute attribute;
-        final Collection<Orientation> orientationsOfGroup;
-
-        int x = 0;
-        final int y = 0;
-        int width = 1;
-        int height = 1;
-
-        GroupCellFieldBuilderAdapter(
-                final ViewGridBuilder builder,
-                final ConfigurationAttribute attribute) {
-
-            this.builder = builder;
-            this.attribute = attribute;
-            this.orientationsOfGroup =
-                    builder.viewContext.getOrientationsOfGroup(attribute);
-            for (final Orientation o : this.orientationsOfGroup) {
-                this.x = (this.x < o.xpos()) ? o.xpos() : this.x;
-                this.x = (this.y < o.ypos()) ? o.ypos() : this.y;
-                this.width = (this.width < o.xpos() + o.width()) ? o.xpos() + o.width() : this.width;
-                this.height = (this.height < o.ypos() + o.height()) ? o.ypos() + o.height() : this.height;
-            }
-
-            this.width = this.width - this.x;
-            this.height = this.height - this.y + 2;
-        }
-
-        @Override
-        public void createCell(final ViewGridBuilder builder) {
-            final Group group = new Group(builder.parent, SWT.NONE);
-            group.setLayout(new GridLayout(this.width, true));
-            group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height));
-
-            // TODO needs localization?
-            final Orientation o = this.orientationsOfGroup.stream().findFirst().get();
-            if (o != null) {
-                group.setText(o.groupId);
-            }
-
-            for (final Orientation orientation : this.orientationsOfGroup) {
-                final InputFieldBuilder inputComponentBuilder = builder.examConfigurationService
-                        .getInputFieldBuilder(this.attribute, orientation);
-
-                createSingleInputField(group, orientation, inputComponentBuilder);
-            }
-        }
-
-        private void createSingleInputField(
-                final Group group,
-                final Orientation orientation,
-                final InputFieldBuilder inputFieldBuilder) {
-
-            final ConfigurationAttribute attr = this.builder.viewContext
-                    .getAttribute(orientation.attributeId);
-
-            final InputField inputField = inputFieldBuilder.createInputField(
-                    group,
-                    attr,
-                    this.builder.viewContext);
-
-            this.builder.viewContext.registerInputField(inputField);
-        }
-    }
-
     private void fillDummy(final int x, final int y, final int width, final int height) {
         final int upperBoundX = x + width;
         final int upperBoundY = y + height;
         for (int _y = y; _y < upperBoundY; _y++) {
             for (int _x = x; _x < upperBoundX; _x++) {
-                this.grid[_y][_x] = dummyBuilderAdapter();
+                this.grid[_y][_x] = CellFieldBuilderAdapter.dummyBuilderAdapter();
             }
         }
+    }
+
+    private String gridToString() {
+        final StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < this.grid.length; i++) {
+            if (sb.length() > 0) {
+                sb.append(",\n");
+            }
+            sb.append(Arrays.toString(this.grid[i]));
+        }
+        return sb.toString();
     }
 
 }

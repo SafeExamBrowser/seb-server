@@ -27,10 +27,9 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
-public class MultiSelection extends Composite implements Selection {
+public final class MultiSelection extends Composite implements Selection {
 
     private static final long serialVersionUID = 2730206903047681378L;
-    private static final String OPTION_VALUE = "OPTION_VALUE";
 
     private final List<Label> labels = new ArrayList<>();
     private final List<Label> selected = new ArrayList<>();
@@ -63,6 +62,7 @@ public class MultiSelection extends Composite implements Selection {
         this.selected.clear();
         this.labels.clear();
         PageUtils.clearComposite(this);
+
         for (final Tuple<String> tuple : mapping) {
             final Label label = new Label(this, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);

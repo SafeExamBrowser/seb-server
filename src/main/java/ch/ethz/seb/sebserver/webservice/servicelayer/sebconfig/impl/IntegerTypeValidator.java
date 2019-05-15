@@ -23,9 +23,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValu
 @WebServiceProfile
 public class IntegerTypeValidator implements ConfigurationValueValidator {
 
+    public static final String NAME = "IntegerTypeValidator";
+
     @Override
     public String name() {
-        return AttributeType.INTEGER.name();
+        return NAME;
     }
 
     @Override
@@ -33,10 +35,8 @@ public class IntegerTypeValidator implements ConfigurationValueValidator {
             final ConfigurationValue value,
             final ConfigurationAttribute attribute) {
 
-        // if value is not an integer type or another specific validation is defined --> skip
-        if (attribute.type != AttributeType.INTEGER ||
-                StringUtils.isNoneBlank(attribute.validator)) {
-
+        // if value is not an integer type and validator is not specified --> skip
+        if (attribute.type != AttributeType.INTEGER && !name().equals(attribute.validator)) {
             return true;
         }
 

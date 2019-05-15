@@ -21,13 +21,22 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
 @GuiProfile
 public class CheckBoxBuilder implements InputFieldBuilder {
+
+    private final WidgetFactory widgetFactory;
+
+    protected CheckBoxBuilder(final WidgetFactory widgetFactory) {
+        this.widgetFactory = widgetFactory;
+    }
 
     @Override
     public boolean builderFor(
@@ -38,8 +47,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
             return false;
         }
 
-        return attribute.type == AttributeType.CHECK_FIELD ||
-                attribute.type == AttributeType.CHECKBOX;
+        return attribute.type == AttributeType.CHECKBOX;
     }
 
     @Override
@@ -52,23 +60,32 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         Objects.requireNonNull(attribute);
         Objects.requireNonNull(viewContext);
 
-        final Button checkbox = new Button(parent, SWT.CHECK);
-        if (attribute.type == AttributeType.CHECKBOX) {
-            checkbox.setText(attribute.name);
-        }
+        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
+        final Orientation orientation = viewContext
+                .getOrientation(attribute.id);
+        final Composite innerGrid = InputFieldBuilder
+                .createInnerGrid(parent, orientation);
+
+        final Button checkbox = this.widgetFactory.buttonLocalized(
+                innerGrid,
+                SWT.CHECK,
+                ExamConfigurationService.attributeNameLocKey(attribute),
+                ExamConfigurationService.getToolTipKey(attribute, i18nSupport));
+
+        final CheckboxField checkboxField = new CheckboxField(
+                attribute,
+                viewContext.getOrientation(attribute.id),
+                checkbox);
 
         checkbox.addListener(
                 SWT.Selection,
                 event -> viewContext.getValueChangeListener().valueChanged(
                         viewContext,
                         attribute,
-                        String.valueOf(checkbox.getSelection()),
-                        0));
+                        checkboxField.getValue(),
+                        checkboxField.listIndex));
 
-        return new CheckboxField(
-                attribute,
-                viewContext.getOrientation(attribute.id),
-                checkbox);
+        return checkboxField;
     }
 
     static final class CheckboxField extends AbstractInputField<Button> {
@@ -78,7 +95,9 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                 final Orientation orientation,
                 final Button control) {
 
-            super(attribute, orientation, control, null);
+            super(attribute, orientation, control, (orientation.groupId == null)
+                    ? InputFieldBuilder.createErrorLabel(control.getParent())
+                    : null);
         }
 
         @Override

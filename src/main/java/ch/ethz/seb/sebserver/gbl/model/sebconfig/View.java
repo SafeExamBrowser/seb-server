@@ -29,27 +29,38 @@ public class View implements Entity {
     public final String name;
 
     @NotNull
+    @JsonProperty(VIEW.ATTR_COLUMNS)
+    public final Integer columns;
+
+    @NotNull
     @JsonProperty(VIEW.ATTR_POSITION)
     public final Integer position;
 
     public View(
             @JsonProperty(VIEW.ATTR_ID) final Long id,
             @JsonProperty(VIEW.ATTR_NAME) final String name,
+            @JsonProperty(VIEW.ATTR_COLUMNS) final Integer columns,
             @JsonProperty(VIEW.ATTR_POSITION) final Integer position) {
 
         this.id = id;
         this.name = name;
+        this.columns = columns;
         this.position = position;
     }
 
     public View(final POSTMapper postParams) {
         this.id = null;
         this.name = postParams.getString(Domain.VIEW.ATTR_NAME);
+        this.columns = postParams.getInteger(Domain.VIEW.ATTR_COLUMNS);
         this.position = postParams.getInteger(Domain.VIEW.ATTR_POSITION);
     }
 
     public Integer getPosition() {
         return this.position;
+    }
+
+    public Integer getColumns() {
+        return this.columns;
     }
 
     public Long getId() {
@@ -75,15 +86,8 @@ public class View implements Entity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("View [id=");
-        builder.append(this.id);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", position=");
-        builder.append(this.position);
-        builder.append("]");
-        return builder.toString();
+        return "View [id=" + this.id + ", name=" + this.name + ", columns=" + this.columns + ", position="
+                + this.position + "]";
     }
 
 }

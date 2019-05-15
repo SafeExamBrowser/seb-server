@@ -35,12 +35,11 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
-public class MultiSelectionCombo extends Composite implements Selection {
+public final class MultiSelectionCombo extends Composite implements Selection {
 
     private static final Logger log = LoggerFactory.getLogger(MultiSelectionCombo.class);
     private static final long serialVersionUID = -7787134114963647332L;
     private static final int ACTION_COLUMN_WIDTH = 20;
-    private static final String SELECTION_KEY = "SELECTION_KEY";
 
     private final WidgetFactory widgetFactory;
     private final Combo combo;
@@ -179,7 +178,7 @@ public class MultiSelectionCombo extends Composite implements Selection {
                 this,
                 new LocTextKey("Remove"),
                 this::removeComboSelection);
-        imageButton.setData(SELECTION_KEY, itemName);
+        imageButton.setData(OPTION_VALUE, itemName);
         final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
         actionCell.widthHint = ACTION_COLUMN_WIDTH;
         imageButton.setLayoutData(actionCell);
@@ -195,9 +194,9 @@ public class MultiSelectionCombo extends Composite implements Selection {
             return;
         }
 
-        final String selectionKey = (String) event.widget.getData(SELECTION_KEY);
+        final String selectionKey = (String) event.widget.getData(OPTION_VALUE);
         final Optional<Tuple<Control>> findFirst = this.selectionControls.stream()
-                .filter(t -> selectionKey.equals(t._2.getData(SELECTION_KEY)))
+                .filter(t -> selectionKey.equals(t._2.getData(OPTION_VALUE)))
                 .findFirst();
         if (!findFirst.isPresent()) {
             return;

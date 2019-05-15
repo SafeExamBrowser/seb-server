@@ -52,16 +52,6 @@ public interface SebConfigEncryptionService {
 
     }
 
-    /** Use this to create a plain text SEB Configuration file from configuration text.
-     * This just appends the plain-text header 'plnd' to the given plainTextConfig
-     *
-     * @param plainTextConfig plainTextConfig plain text SEB Configuration as CharSequence
-     * @return Result of plain text SEB Configuration within a ByteBuffer or a reference to an Exception on error
-     *         case */
-//    void streamPlainData(
-//            final OutputStream output,
-//            final InputStream input);
-
     void streamEncrypted(
             final OutputStream output,
             final InputStream input,

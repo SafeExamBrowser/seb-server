@@ -48,7 +48,8 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             return;
         }
 
-        final ConfigurationAttribute attribute = this.configurationAttributeDAO.byPK(value.attributeId)
+        final ConfigurationAttribute attribute = this.configurationAttributeDAO
+                .byPK(value.attributeId)
                 .getOrThrow();
 
         this.validators

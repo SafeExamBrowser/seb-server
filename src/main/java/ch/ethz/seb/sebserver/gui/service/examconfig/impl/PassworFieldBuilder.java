@@ -70,7 +70,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         passwordInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         final Text confirmInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-        gridData.verticalIndent = 5;
+        gridData.verticalIndent = 14;
         confirmInput.setLayoutData(gridData);
 
         final PasswordInputField passwordInputField = new PasswordInputField(

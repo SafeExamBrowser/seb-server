@@ -12,6 +12,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
+import org.springframework.scheduling.annotation.Async;
+
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 
 /** Interface for a SEB Configuration encryption and decryption strategy.
@@ -25,11 +28,20 @@ public interface SebConfigCryptor {
      * @return Set of strategies a concrete implementation is supporting */
     Set<Strategy> strategies();
 
+    /** Encrypt an incoming plain data stream to an outgoing cipher data stream
+     *
+     * IMPORTANT: This must run in a separated thread
+     *
+     * @param output the output stream to write encrypted data to
+     * @param input the input stream to read plain data from
+     * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void encrypt(
             final OutputStream output,
             final InputStream input,
             final SebConfigEncryptionContext context);
 
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void decrypt(
             final OutputStream output,
             final InputStream input,

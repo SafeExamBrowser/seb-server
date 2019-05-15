@@ -62,6 +62,8 @@ public interface InputFieldBuilder {
         final GridLayout gridLayout = new GridLayout(numColumns, true);
         gridLayout.verticalSpacing = 0;
         gridLayout.marginHeight = 1;
+        gridLayout.marginWidth = 0;
+        gridLayout.marginRight = 5;
         comp.setLayout(gridLayout);
 
         final GridData gridData = new GridData(

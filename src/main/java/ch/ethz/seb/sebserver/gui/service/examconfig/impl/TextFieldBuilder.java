@@ -76,7 +76,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             viewContext.getValueChangeListener().valueChanged(
                     viewContext,
                     attribute,
-                    String.valueOf(text.getText()),
+                    textInputField.getValue(),
                     textInputField.listIndex);
         };
 

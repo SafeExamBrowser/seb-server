@@ -14,7 +14,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-public class Message extends MessageBox {
+public final class Message extends MessageBox {
 
     private static final long serialVersionUID = 6973272221493264432L;
 

@@ -10,8 +10,12 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -19,6 +23,8 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 
 public abstract class AbstractInputField<T extends Control> implements InputField {
+
+    private static final Logger log = LoggerFactory.getLogger(AbstractInputField.class);
 
     protected final ConfigurationAttribute attribute;
     protected final Orientation orientation;
@@ -46,17 +52,25 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
     }
 
     @Override
-    public void disable() {
+    public void disable(final boolean group) {
         if (this.control.isEnabled()) {
-            setDefaultValue();
-            this.control.setEnabled(false);
+            if (group) {
+                this.control.getParent().getParent().setEnabled(false);
+            } else {
+                setDefaultValue();
+                this.control.setEnabled(false);
+            }
         }
     }
 
     @Override
-    public void enable() {
+    public void enable(final boolean group) {
         if (!this.control.isEnabled()) {
-            this.control.setEnabled(true);
+            if (group) {
+                this.control.getParent().getParent().setEnabled(true);
+            } else {
+                this.control.setEnabled(true);
+            }
         }
     }
 
@@ -86,11 +100,15 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
     }
 
     @Override
-    public void initValue(final Collection<ConfigurationValue> values) {
-        values.stream()
+    public ConfigurationValue initValue(final Collection<ConfigurationValue> values) {
+        return values.stream()
                 .filter(a -> this.attribute.id.equals(a.attributeId))
                 .findFirst()
-                .ifPresent(v -> initValue(v.value, v.listIndex));
+                .map(v -> {
+                    initValue(v.value, v.listIndex);
+                    return v;
+                })
+                .orElse(null);
     }
 
     @Override
@@ -100,8 +118,16 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
         setValueToControl(this.initValue);
     }
 
-    protected void setDefaultValue() {
+    @Override
+    public void setDefaultValue() {
         setValueToControl(this.attribute.defaultValue);
+        final Event event = new Event();
+        try {
+            this.control.notifyListeners(SWT.Selection, event);
+            this.control.notifyListeners(SWT.FocusOut, event);
+        } catch (final Exception e) {
+            log.warn("Failed to send value update to server: {}", this.attribute, e);
+        }
     }
 
     protected abstract void setValueToControl(String value);

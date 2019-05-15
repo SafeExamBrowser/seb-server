@@ -55,17 +55,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
     }
 
-//    @Override
-//    public void streamPlainData(
-//            final OutputStream output,
-//            final InputStream input) {
-//
-//
-//        getEncryptor(strategy)
-//        .getOrThrow()
-//        .encrypt(pout, input, context);
-//    }
-
     @Override
     public void streamEncrypted(
             final OutputStream output,
