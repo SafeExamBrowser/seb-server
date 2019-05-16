@@ -123,7 +123,6 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
         setValueToControl(this.attribute.defaultValue);
         final Event event = new Event();
         try {
-            this.control.notifyListeners(SWT.Selection, event);
             this.control.notifyListeners(SWT.FocusOut, event);
         } catch (final Exception e) {
             log.warn("Failed to send value update to server: {}", this.attribute, e);

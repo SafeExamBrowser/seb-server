@@ -335,7 +335,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_PROPERTIES_FROM_LIST(
-            new LocTextKey("sebserver.examconfig.props.action.list.modify"),
+            new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,
             PageStateDefinition.SEB_EXAM_CONFIG_PROPERTIES_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),

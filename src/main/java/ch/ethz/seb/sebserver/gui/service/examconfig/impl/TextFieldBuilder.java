@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import java.util.function.Consumer;
+
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -21,8 +24,12 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 
 @Lazy
 @Component
@@ -50,6 +57,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
+        final I18nSupport i18nSupport = viewContext.getI18nSupport();
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
@@ -64,6 +72,17 @@ public class TextFieldBuilder implements InputFieldBuilder {
             text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
         }
         text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+        final LocTextKey toolTipKey = ExamConfigurationService.getToolTipKey(
+                attribute,
+                i18nSupport);
+        if (toolTipKey != null) {
+            final Consumer<Text> updateFunction = t -> t.setToolTipText(i18nSupport.getText(toolTipKey));
+            text.setData(
+                    PolyglotPageService.POLYGLOT_ITEM_TOOLTIP_DATA_KEY,
+                    updateFunction);
+            updateFunction.accept(text);
+        }
 
         final TextInputField textInputField = new TextInputField(
                 attribute,
@@ -98,6 +117,11 @@ public class TextFieldBuilder implements InputFieldBuilder {
 
         @Override
         protected void setValueToControl(final String value) {
+            if (value == null) {
+                this.control.setText(StringUtils.EMPTY);
+                return;
+            }
+
             this.control.setText(value);
         }
 

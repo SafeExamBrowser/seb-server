@@ -128,8 +128,12 @@ public class ViewGridBuilder {
                     break;
                 }
                 case LEFT_SPAN: {
-                    fillDummy(xpos - orientation.width, ypos, orientation.width, 1);
-                    this.grid[ypos][xpos - orientation.width] = CellFieldBuilderAdapter.labelBuilder(
+                    int spanxpos = xpos - orientation.width;
+                    if (spanxpos < 0) {
+                        spanxpos = 0;
+                    }
+                    fillDummy(spanxpos, ypos, orientation.width, 1);
+                    this.grid[ypos][spanxpos] = CellFieldBuilderAdapter.labelBuilder(
                             attribute,
                             orientation);
                     break;

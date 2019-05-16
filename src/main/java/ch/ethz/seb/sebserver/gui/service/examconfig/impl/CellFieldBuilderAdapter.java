@@ -88,7 +88,12 @@ interface CellFieldBuilderAdapter {
                         gridData.verticalIndent = 5;
                         break;
                     }
-                    case LEFT_SPAN:
+                    case LEFT_SPAN: {
+                        label.setAlignment(SWT.LEFT);
+                        gridData.horizontalSpan = orientation.width;
+                        gridData.verticalIndent = 5;
+                        break;
+                    }
                     case RIGHT_SPAN: {
                         label.setAlignment(SWT.LEFT);
                         gridData.verticalIndent = 5;
@@ -180,7 +185,7 @@ interface CellFieldBuilderAdapter {
                     builder.parent,
                     this.width,
                     groupLabelKey);
-            group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height));
+            group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, this.width, this.height));
 
             final ViewGridBuilder groupBuilder = new ViewGridBuilder(
                     group,
