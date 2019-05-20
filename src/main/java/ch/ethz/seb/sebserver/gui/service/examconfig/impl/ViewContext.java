@@ -33,10 +33,10 @@ public final class ViewContext {
     private final View view;
     private final int rows;
 
-    private final AttributeMapping attributeMapping;
-    private final Map<Long, InputField> inputFieldMapping;
-    private final ValueChangeListener valueChangeListener;
-    private final I18nSupport i18nSupport;
+    final AttributeMapping attributeMapping;
+    final Map<Long, InputField> inputFieldMapping;
+    final ValueChangeListener valueChangeListener;
+    final I18nSupport i18nSupport;
 
     ViewContext(
             final Configuration configuration,

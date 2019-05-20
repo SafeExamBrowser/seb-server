@@ -20,7 +20,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -40,7 +39,6 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -105,15 +103,16 @@ public class TableFieldBuilder implements InputFieldBuilder {
                 true, false,
                 (tableContext.orientation != null) ? tableContext.orientation.width() : 1,
                 (tableContext.orientation != null) ? tableContext.orientation.height() : 1);
-        gridData.heightHint = tableContext.orientation.height * 40;
+        gridData.heightHint = tableContext.orientation.height * 20 + 40;
         table.setLayoutData(gridData);
         table.setHeaderVisible(true);
-        table.addListener(SWT.Resize, this::adaptColumnWidth);
+        table.addListener(SWT.Resize, event -> adaptColumnWidth(table, tableContext));
 
         for (final ConfigurationAttribute columnAttribute : tableContext.getColumnAttributes()) {
             final TableColumn column = new TableColumn(table, SWT.NONE);
             final String text = i18nSupport.getText(
-                    ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + columnAttribute.name,
+                    ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
+                            columnAttribute.name,
                     columnAttribute.name);
             column.setText(text);
             column.setWidth(100);
@@ -159,14 +158,25 @@ public class TableFieldBuilder implements InputFieldBuilder {
         return tableField;
     }
 
-    private void adaptColumnWidth(final Event event) {
+    private void adaptColumnWidth(
+            final Table table,
+            final TableContext tableContext) {
+
         try {
-            final Table table = (Table) event.widget;
             final int currentTableWidth = table.getClientArea().width - 50;
             final TableColumn[] columns = table.getColumns();
-            final int columnWidth = currentTableWidth / (columns.length - 2);
+            final List<Orientation> orientations = tableContext
+                    .getColumnAttributes()
+                    .stream()
+                    .map(attr -> tableContext.getOrientation(attr.id))
+                    .collect(Collectors.toList());
+            final Integer div = orientations
+                    .stream()
+                    .map(o -> o.width)
+                    .reduce(0, (acc, val) -> acc + val);
+            final int widthUnit = currentTableWidth / div;
             for (int i = 0; i < columns.length - 2; i++) {
-                columns[i].setWidth(columnWidth);
+                columns[i].setWidth(widthUnit * orientations.get(i).width);
             }
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
@@ -196,6 +206,12 @@ public class TableFieldBuilder implements InputFieldBuilder {
                     .map(TableValue::of)
                     .collect(Collectors.toList());
 
+            initValue(tableValues);
+
+            return null;
+        }
+
+        void initValue(final List<TableValue> tableValues) {
             final Map<Integer, Map<Long, TableValue>> _initValue = new HashMap<>();
             for (final TableValue tableValue : tableValues) {
                 final Map<Long, TableValue> rowValues = _initValue.computeIfAbsent(
@@ -215,13 +231,24 @@ public class TableFieldBuilder implements InputFieldBuilder {
                         this.values.add(rowValues);
                         addTableRow(rowValues);
                     });
-
-            return null;
         }
 
         private boolean isChildValue(final ConfigurationValue value) {
-            return this.attribute.id.equals(
-                    this.tableContext.getAttribute(value.attributeId).parentId);
+            if (!this.tableContext.getViewContext().attributeMapping.attributeIdMapping
+                    .containsKey(value.attributeId)) {
+
+                return false;
+            }
+
+            ConfigurationAttribute attr = this.tableContext.getAttribute(value.attributeId);
+            while (attr.parentId != null) {
+                if (this.attribute.id.equals(attr.parentId)) {
+                    return true;
+                }
+                attr = this.tableContext.getAttribute(attr.parentId);
+            }
+
+            return false;
         }
 
         private void deleteRow(final int selectionIndex) {
@@ -254,22 +281,7 @@ public class TableFieldBuilder implements InputFieldBuilder {
             final TableItem tableItem = new TableItem(this.control, SWT.NONE);
             applyTableRowValues(this.values.size() - 1);
 
-// TODO delete icon is not working on row as expected
-//            final TableEditor editor = new TableEditor(this.control);
-//            editor.horizontalAlignment = SWT.CENTER;
-//            editor.grabHorizontal = true;
-//            editor.minimumWidth = 20;
-//            final Image image = ImageIcon.REMOVE_BOX.getImage(this.control.getDisplay());
-//            final Label imageLabel = new Label(this.control, SWT.NONE);
-//            imageLabel.setAlignment(SWT.CENTER);
-//            imageLabel.setImage(image);
-//            imageLabel.addListener(SWT.MouseDown, event -> System.out.println("*************** removeRow"));
-//            editor.setEditor(imageLabel, tableItem, this.columnAttributes.size());
-//            tableItem.setData("EDITOR", editor);
-//
-//            editor.layout();
-//            this.control.layout(true, true);
-
+            // TODO try to add delete button within table row?
         }
 
         private void applyTableRowValues(final int index) {
@@ -279,7 +291,9 @@ public class TableFieldBuilder implements InputFieldBuilder {
             int cellIndex = 0;
             for (final ConfigurationAttribute attr : this.tableContext.getColumnAttributes()) {
                 if (rowValues.containsKey(attr.id)) {
-                    item.setText(cellIndex, rowValues.get(attr.id).value);
+                    item.setText(
+                            cellIndex,
+                            this.tableContext.getRowValue(rowValues.get(attr.id)));
                 }
                 cellIndex++;
             }
@@ -299,7 +313,9 @@ public class TableFieldBuilder implements InputFieldBuilder {
                     this.tableContext.getWidgetFactory())
                             .setDialogWidth(500)
                             .open(
-                                    new LocTextKey("Title"),
+                                    ExamConfigurationService.getTablePopupTitleKey(
+                                            this.attribute,
+                                            this.tableContext.getViewContext().i18nSupport),
                                     values -> applyFormValues(values, selectionIndex),
                                     builder);
         }
@@ -313,6 +329,9 @@ public class TableFieldBuilder implements InputFieldBuilder {
             this.values.remove(index);
             this.values.add(index, tableRowValues);
             applyTableRowValues(index);
+            // send new values to web-service
+            this.tableContext.getValueChangeListener()
+                    .tableChanged(extractTableValue());
         }
 
         private ConfigurationTableValues extractTableValue() {
@@ -353,12 +372,13 @@ public class TableFieldBuilder implements InputFieldBuilder {
 
         @Override
         protected void setValueToControl(final String value) {
-            throw new UnsupportedOperationException();
+            //throw new UnsupportedOperationException();
         }
 
         @Override
         public String getValue() {
-            throw new UnsupportedOperationException();
+            return null;
+            //throw new UnsupportedOperationException();
         }
     }
 

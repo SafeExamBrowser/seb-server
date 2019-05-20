@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import static ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.dummyBuilderAdapter;
+
 import java.util.Collection;
 
 import org.eclipse.swt.SWT;
@@ -27,6 +29,10 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 interface CellFieldBuilderAdapter {
 
     void createCell(ViewGridBuilder builder);
+
+    default void balanceGrid(final CellFieldBuilderAdapter[][] grid, final int x, final int y) {
+
+    }
 
     static CellFieldBuilderAdapter dummyBuilderAdapter() {
         return new CellFieldBuilderAdapter() {
@@ -71,6 +77,9 @@ interface CellFieldBuilderAdapter {
             final Orientation orientation) {
 
         return new CellFieldBuilderAdapter() {
+
+            private int span = 1;
+
             @Override
             public void createCell(final ViewGridBuilder builder) {
 
@@ -88,21 +97,16 @@ interface CellFieldBuilderAdapter {
                         gridData.verticalIndent = 5;
                         break;
                     }
+                    case RIGHT_SPAN:
                     case LEFT_SPAN: {
                         label.setAlignment(SWT.LEFT);
-                        gridData.horizontalSpan = orientation.width;
+                        gridData.horizontalSpan = (span > 1) ? span : orientation.width;
                         gridData.verticalIndent = 5;
-                        break;
-                    }
-                    case RIGHT_SPAN: {
-                        label.setAlignment(SWT.LEFT);
-                        gridData.verticalIndent = 5;
-                        gridData.horizontalSpan = orientation.width;
                         break;
                     }
                     case TOP: {
                         gridData.horizontalSpan = orientation.width;
-                        label.setAlignment(SWT.LEFT);
+                        gridData.verticalAlignment = SWT.BOTTOM;
                         break;
                     }
 
@@ -112,6 +116,22 @@ interface CellFieldBuilderAdapter {
                 }
                 label.setLayoutData(gridData);
                 label.pack();
+            }
+
+            @Override
+            public void balanceGrid(final CellFieldBuilderAdapter[][] grid, final int x, final int y) {
+                if (grid[y][x] != this) {
+                    return;
+                }
+                if (orientation.title == TitleOrientation.LEFT_SPAN) {
+                    int xpos = x - 1;
+                    while (xpos >= 0 && grid[y][xpos] == null && span < orientation.width) {
+                        grid[y][xpos] = this;
+                        grid[y][xpos + 1] = dummyBuilderAdapter();
+                        this.span++;
+                        xpos--;
+                    }
+                }
             }
 
             @Override
@@ -185,7 +205,7 @@ interface CellFieldBuilderAdapter {
                     builder.parent,
                     this.width,
                     groupLabelKey);
-            group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, this.width, this.height));
+            group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height));
 
             final ViewGridBuilder groupBuilder = new ViewGridBuilder(
                     group,

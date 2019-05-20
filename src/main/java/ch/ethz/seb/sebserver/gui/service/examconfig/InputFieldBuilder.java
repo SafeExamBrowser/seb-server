@@ -48,13 +48,15 @@ public interface InputFieldBuilder {
 
     static Composite createInnerGrid(
             final Composite parent,
+            final ConfigurationAttribute attribute,
             final Orientation orientation) {
 
-        return createInnerGrid(parent, orientation, 1);
+        return createInnerGrid(parent, attribute, orientation, 1);
     }
 
     static Composite createInnerGrid(
             final Composite parent,
+            final ConfigurationAttribute attribute,
             final Orientation orientation,
             final int numColumns) {
 
@@ -69,8 +71,8 @@ public interface InputFieldBuilder {
         final GridData gridData = new GridData(
                 SWT.FILL, SWT.FILL,
                 true, false,
-                (orientation != null) ? orientation.width() : 1,
-                (orientation != null) ? orientation.height() : 1);
+                (orientation != null && attribute.parentId == null) ? orientation.width() : 1,
+                (orientation != null && attribute.parentId == null) ? orientation.height() : 1);
         comp.setLayoutData(gridData);
         return comp;
     }

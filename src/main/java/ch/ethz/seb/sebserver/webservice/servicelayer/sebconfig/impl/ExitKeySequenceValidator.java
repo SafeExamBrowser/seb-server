@@ -56,7 +56,7 @@ public class ExitKeySequenceValidator implements ConfigurationValueValidator {
         }
 
         try {
-            return this.configurationValueRecordMapper.selectByExample()
+            return !this.configurationValueRecordMapper.selectByExample()
                     .join(ConfigurationAttributeRecordDynamicSqlSupport.configurationAttributeRecord)
                     .on(
                             ConfigurationAttributeRecordDynamicSqlSupport.id,
@@ -75,7 +75,7 @@ public class ExitKeySequenceValidator implements ConfigurationValueValidator {
                     .stream()
                     .filter(val -> value.value.equals(val.getValue()))
                     .findFirst()
-                    .isEmpty();
+                    .isPresent();
         } catch (final Exception e) {
             log.error("unexpected error while trying to validate SEB exam configuration attributes: {}", ATTR_NAMES, e);
             return true;

@@ -51,7 +51,7 @@ public class SliderFieldBuilder implements InputFieldBuilder {
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final Slider slider = new Slider(innerGrid, SWT.NONE);
         slider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

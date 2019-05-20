@@ -27,6 +27,8 @@ public interface InputField {
 
     String getValue();
 
+    String getReadableValue();
+
     void showError(String errorMessage);
 
     void clearError();

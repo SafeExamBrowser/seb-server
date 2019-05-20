@@ -45,11 +45,6 @@ public class AttributeMapping {
         Objects.requireNonNull(orientations);
 
         this.templateId = templateId;
-        this.attributeIdMapping = Utils.immutableMapOf(attributes
-                .stream()
-                .collect(Collectors.toMap(
-                        attr -> attr.id,
-                        Function.identity())));
 
         this.orientationAttributeMapping = Utils.immutableMapOf(orientations
                 .stream()
@@ -57,8 +52,16 @@ public class AttributeMapping {
                         o -> o.attributeId,
                         Function.identity())));
 
+        this.attributeIdMapping = Utils.immutableMapOf(attributes
+                .stream()
+                .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
+                .collect(Collectors.toMap(
+                        attr -> attr.id,
+                        Function.identity())));
+
         this.attributeNameIdMapping = Utils.immutableMapOf(attributes
                 .stream()
+                .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
                 .collect(Collectors.toMap(
                         attr -> attr.name,
                         attr -> attr.id)));
@@ -71,6 +74,7 @@ public class AttributeMapping {
 
         this.childAttributeMapping = Utils.immutableMapOf(attributes
                 .stream()
+                .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
                 .collect(Collectors.toMap(
                         attr -> attr.id,
                         this::getChildAttributes)));
@@ -184,7 +188,7 @@ public class AttributeMapping {
                 .values()
                 .stream()
                 .filter(o -> groupName.equals(o.groupId))
-                .sorted((o1, o2) -> (o1.yPosition == o2.yPosition)
+                .sorted((o1, o2) -> (o1.yPosition != null && o1.yPosition.equals(o2.yPosition))
                         ? o1.xPosition.compareTo(o2.xPosition)
                         : o1.yPosition.compareTo(o2.yPosition))
                 .map(o -> this.attributeIdMapping.get(o.attributeId))

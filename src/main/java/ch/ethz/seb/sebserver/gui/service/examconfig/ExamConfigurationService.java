@@ -31,6 +31,7 @@ public interface ExamConfigurationService {
     public static final String ATTRIBUTE_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.label.";
     public static final String GROUP_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.group.";
     public static final String TOOL_TIP_SUFFIX = ".tooltip";
+    public static final String TABLE_ROW_TITLE_SUFFIX = ".row.title";
 
     WidgetFactory getWidgetFactory();
 
@@ -83,6 +84,13 @@ public interface ExamConfigurationService {
         } else {
             return new LocTextKey(attributeNameKey);
         }
+    }
+
+    static LocTextKey getTablePopupTitleKey(
+            final ConfigurationAttribute attribute,
+            final I18nSupport i18nSupport) {
+
+        return new LocTextKey(ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + TABLE_ROW_TITLE_SUFFIX);
     }
 
 }

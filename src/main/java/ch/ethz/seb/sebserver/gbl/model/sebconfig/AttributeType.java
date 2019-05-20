@@ -46,7 +46,9 @@ public enum AttributeType {
     /** Table type is a list of a composite of single types */
     TABLE(COMPOSITE_LIST),
 
-    STATIC_TABLE(COMPOSITE_LIST);
+    INLINE_TABLE(COMPOSITE_LIST),
+
+    ;
 
     public final AttributeValueType attributeValueType;
 

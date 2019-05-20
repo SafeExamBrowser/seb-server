@@ -67,6 +67,10 @@ public class ViewGridBuilder {
     }
 
     ViewGridBuilder add(final ConfigurationAttribute attribute) {
+        if (log.isDebugEnabled()) {
+            log.debug("Add SEB Configuration Attribute: " + attribute);
+        }
+
         // ignore nested attributes here
         if (attribute.parentId != null) {
             return this;
@@ -115,7 +119,8 @@ public class ViewGridBuilder {
                             orientation);
                     break;
                 }
-                case LEFT: {
+                case LEFT:
+                case LEFT_SPAN: {
                     this.grid[ypos][xpos - 1] = CellFieldBuilderAdapter.labelBuilder(
                             attribute,
                             orientation);
@@ -127,17 +132,17 @@ public class ViewGridBuilder {
                     }
                     break;
                 }
-                case LEFT_SPAN: {
-                    int spanxpos = xpos - orientation.width;
-                    if (spanxpos < 0) {
-                        spanxpos = 0;
-                    }
-                    fillDummy(spanxpos, ypos, orientation.width, 1);
-                    this.grid[ypos][spanxpos] = CellFieldBuilderAdapter.labelBuilder(
-                            attribute,
-                            orientation);
-                    break;
-                }
+//                case LEFT_SPAN: {
+//                    int spanxpos = xpos - orientation.width;
+//                    if (spanxpos < 0) {
+//                        spanxpos = 0;
+//                    }
+//                    fillDummy(spanxpos, ypos, orientation.width, 1);
+//                    this.grid[ypos][spanxpos] = CellFieldBuilderAdapter.labelBuilder(
+//                            attribute,
+//                            orientation);
+//                    break;
+//                }
                 case TOP: {
                     fillDummy(xpos, ypos - 1, orientation.width, 1);
                     this.grid[ypos - 1][xpos] = CellFieldBuilderAdapter.labelBuilder(
@@ -160,9 +165,11 @@ public class ViewGridBuilder {
             log.debug("Compose grid view: \n" + gridToString());
         }
 
+        // balance grid (optimize span and grab empty spaces for labels where applicable)
         for (int y = 0; y < this.grid.length; y++) {
             for (int x = 0; x < this.grid[y].length; x++) {
                 if (this.grid[y][x] != null) {
+                    this.grid[y][x].balanceGrid(this.grid, x, y);
                 }
             }
         }
@@ -174,7 +181,7 @@ public class ViewGridBuilder {
                     final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
                     gridData.verticalIndent = 8;
                     empty.setLayoutData(gridData);
-                    empty.setText("");
+                    empty.setText("" /* "empty " + x + " " + y */);
                 } else {
                     this.grid[y][x].createCell(this);
                 }

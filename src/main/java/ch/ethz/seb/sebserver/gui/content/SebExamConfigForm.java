@@ -8,33 +8,38 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.form.FormBuilder;
-import ch.ethz.seb.sebserver.gui.form.FormHandle;
-import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -44,127 +49,92 @@ public class SebExamConfigForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(SebExamConfigForm.class);
 
-    private static final LocTextKey FORM_TITLE_NEW =
-            new LocTextKey("sebserver.examconfig.form.title.new");
-    private static final LocTextKey FORM_TITLE =
-            new LocTextKey("sebserver.examconfig.form.title");
-    private static final LocTextKey FORM_NAME_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.form.name");
-    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.form.description");
-    private static final LocTextKey FORM_STATUS_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.form.status");
+    private static final String VIEW_TEXT_KEY_PREFIX = "sebserver.examconfig.props.form.views.";
+    private static final String VIEW_TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
+
+    private static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.props.from.title");
 
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final ExamConfigurationService examConfigurationService;
 
     protected SebExamConfigForm(
             final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            final ExamConfigurationService examConfigurationService) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
+        this.examConfigurationService = examConfigurationService;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-        final ResourceService resourceService = this.pageService.getResourceService();
 
-        final UserInfo user = this.currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
 
-        final boolean isNew = entityKey == null;
-
-        // get data or create new. Handle error if happen
-        final ConfigurationNode examConfig = (isNew)
-                ? ConfigurationNode.createNewExamConfig((parentEntityKey != null)
-                        ? Long.valueOf(parentEntityKey.modelId)
-                        : user.institutionId)
-                : this.restService
-                        .getBuilder(GetExamConfigNode.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                        .call()
-                        .get(pageContext::notifyError);
-
-        if (examConfig == null) {
-            log.error("Failed to get ConfigurationNode. "
-                    + "Error was notified to the User. "
-                    + "See previous logs for more infomation");
-            return;
-        }
-
-        final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(examConfig);
-        final boolean writeGrant = entityGrant.w();
-        final boolean modifyGrant = entityGrant.m();
-        final boolean isReadonly = pageContext.isReadonly();
-
-        // new PageContext with actual EntityKey
-        final PageContext formContext = pageContext.withEntityKey(examConfig.getEntityKey());
-
-        // the default page layout with interactive title
-        final LocTextKey titleKey = (isNew)
-                ? FORM_TITLE_NEW
-                : FORM_TITLE;
         final Composite content = widgetFactory.defaultPageLayout(
-                formContext.getParent(),
-                titleKey);
+                pageContext.getParent(),
+                TITLE_TEXT_KEY);
 
-        // The SebClientConfig form
-        final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
-                .readonly(isReadonly)
-                .putStaticValueIf(() -> !isNew,
-                        Domain.CONFIGURATION_NODE.ATTR_ID,
-                        examConfig.getModelId())
-                .putStaticValue(
-                        Domain.CONFIGURATION_NODE.ATTR_INSTITUTION_ID,
-                        String.valueOf(examConfig.getInstitutionId()))
-                .putStaticValue(
-                        Domain.CONFIGURATION_NODE.ATTR_TYPE,
-                        ConfigurationType.EXAM_CONFIG.name())
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_NODE.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        examConfig.name))
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                        FORM_DESCRIPTION_TEXT_KEY,
-                        examConfig.description).asArea())
-                .addField(FormBuilder.singleSelection(
-                        Domain.CONFIGURATION_NODE.ATTR_STATUS,
-                        FORM_STATUS_TEXT_KEY,
-                        examConfig.status.name(),
-                        resourceService::examConfigStatusResources))
-                .buildFor((isNew)
-                        ? this.restService.getRestCall(NewExamConfig.class)
-                        : this.restService.getRestCall(SaveExamConfig.class));
+        try {
 
-        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
+            final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
-                .publishIf(() -> writeGrant && isReadonly)
+            final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
+                    .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, configNode.getModelId())
+                    .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
+                    .call()
+                    .map(Utils::toSingleton)
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
-                .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && isReadonly)
+            final AttributeMapping attributes = this.examConfigurationService
+                    .getAttributes(configNode.templateId)
+                    .onError(pageContext::notifyError)
+                    .getOrThrow();
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
-                .withEntityKey(entityKey)
-                .withExec(formHandle::processFormSave)
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> !isReadonly)
+            final List<View> views = this.examConfigurationService.getViews(attributes);
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_CANCEL_MODIFY)
-                .withEntityKey(entityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.SEB_EXAM_CONFIG_LIST))
-                .publishIf(() -> !isReadonly);
+            final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
+            tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+            final List<ViewContext> viewContexts = new ArrayList<>();
+            for (final View view : views) {
+                final ViewContext viewContext = this.examConfigurationService.createViewContext(
+                        pageContext,
+                        configuration,
+                        view,
+                        attributes,
+                        20);
+                viewContexts.add(viewContext);
+
+                final Composite viewGrid = this.examConfigurationService.createViewGrid(
+                        tabFolder,
+                        viewContext);
+
+                final TabItem tabItem = widgetFactory.tabItemLocalized(
+                        tabFolder,
+                        new LocTextKey(VIEW_TEXT_KEY_PREFIX + view.name));
+                tabItem.setControl(viewGrid);
+            }
+
+            this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
+            pageContext.notifyError(e);
+        }
 
     }
 

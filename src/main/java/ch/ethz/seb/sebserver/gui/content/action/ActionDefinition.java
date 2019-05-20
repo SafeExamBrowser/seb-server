@@ -307,17 +307,22 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_NEW(
             new LocTextKey("sebserver.examconfig.action.list.new"),
             ImageIcon.NEW,
-            PageStateDefinition.SEB_EXAM_CONFIG_EDIT),
-    SEB_EXAM_CONFIG_VIEW_FROM_LIST(
+            PageStateDefinition.SEB_EXAM_CONFIG_PROP_EDIT),
+    SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.view"),
             ImageIcon.SHOW,
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
-    SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
-            new LocTextKey("sebserver.examconfig.action.list.modify"),
+    SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
+            new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,
-            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_PROP_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_PROP_MODIFY(
+            new LocTextKey("sebserver.examconfig.action.modify.properties"),
+            ImageIcon.EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_PROP_EDIT,
+            ActionCategory.FORM),
     SEB_EXAM_CONFIG_MODIFY(
             new LocTextKey("sebserver.examconfig.action.modify"),
             ImageIcon.EDIT,
@@ -334,10 +339,10 @@ public enum ActionDefinition {
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
 
-    SEB_EXAM_CONFIG_MODIFY_PROPERTIES_FROM_LIST(
-            new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
+    SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.examconfig.action.list.modify"),
             ImageIcon.EDIT,
-            PageStateDefinition.SEB_EXAM_CONFIG_PROPERTIES_EDIT,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
     ;

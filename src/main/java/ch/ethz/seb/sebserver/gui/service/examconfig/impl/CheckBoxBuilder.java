@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Objects;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -20,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
@@ -64,13 +66,19 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final Button checkbox = this.widgetFactory.buttonLocalized(
                 innerGrid,
                 SWT.CHECK,
-                ExamConfigurationService.attributeNameLocKey(attribute),
+                (orientation.title == TitleOrientation.NONE)
+                        ? ExamConfigurationService.attributeNameLocKey(attribute)
+                        : null,
                 ExamConfigurationService.getToolTipKey(attribute, i18nSupport));
+
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        gridData.verticalIndent = 0;
+        checkbox.setLayoutData(gridData);
 
         final CheckboxField checkboxField = new CheckboxField(
                 attribute,
@@ -95,9 +103,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                 final Orientation orientation,
                 final Button control) {
 
-            super(attribute, orientation, control, (orientation.groupId == null)
-                    ? InputFieldBuilder.createErrorLabel(control.getParent())
-                    : null);
+            super(attribute, orientation, control, null);
         }
 
         @Override
@@ -111,6 +117,14 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                     ? Constants.TRUE_STRING
                     : Constants.FALSE_STRING;
         }
+
+        @Override
+        public String getReadableValue() {
+            return this.control.getSelection()
+                    ? "Active"
+                    : "Inactive";
+        }
+
     }
 
 }

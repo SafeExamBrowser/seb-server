@@ -61,7 +61,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final Text text;
         if (attribute.type == AttributeType.INTEGER ||

@@ -37,6 +37,10 @@ public interface Selection {
 
     String getSelectionValue();
 
+    default String getSelectionReadableValue() {
+        return getSelectionValue();
+    }
+
     void clear();
 
     void setVisible(boolean visible);

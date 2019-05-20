@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
@@ -58,8 +60,8 @@ public class TableContext {
         this.attribute = Objects.requireNonNull(attribute);
         this.viewContext = Objects.requireNonNull(viewContext);
 
-        this.orientation = viewContext
-                .getOrientation(attribute.id);
+        this.orientation = Objects.requireNonNull(viewContext
+                .getOrientation(attribute.id));
 
         this.rowAttributes = viewContext.getChildAttributes(attribute.id)
                 .stream()
@@ -181,6 +183,31 @@ public class TableContext {
                 return -1;
             }
         };
+    }
+
+    public String getRowValue(final TableValue tableValue) {
+        final ConfigurationAttribute attribute = this.viewContext.getAttribute(tableValue.attributeId);
+        if (attribute != null) {
+            switch (attribute.type) {
+                case CHECKBOX: {
+                    return BooleanUtils.toBoolean(tableValue.value)
+                            ? "Active"
+                            : "Inactive";
+                }
+                case SINGLE_SELECTION: {
+                    final ConfigurationAttribute tableAttr =
+                            this.viewContext.attributeMapping.getAttribute(attribute.parentId);
+                    final String key = ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
+                            attribute.getName() + "." +
+                            tableValue.value;
+                    return this.viewContext.i18nSupport.getText(key, tableValue.value);
+                }
+                default:
+                    return tableValue.value;
+            }
+        }
+
+        return tableValue.value;
     }
 
 }

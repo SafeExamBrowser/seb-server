@@ -54,14 +54,14 @@ public class MultiCheckboxSelection extends SelectionFieldBuilder implements Inp
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final MultiSelectionCheckbox selection = this.widgetFactory.selectionLocalized(
                 Selection.Type.MULTI_CHECKBOX,
                 innerGrid,
-                () -> this.getLocalizedResources(attribute, i18nSupport),
+                () -> this.getLocalizedResources(attribute, viewContext),
                 null,
-                () -> this.getLocalizedResourcesAsToolTip(attribute, i18nSupport))
+                () -> this.getLocalizedResourcesAsToolTip(attribute, viewContext))
                 .getTypeInstance();
 
         selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

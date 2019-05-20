@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public final class SingleSelection extends Combo implements Selection {
@@ -71,6 +72,16 @@ public final class SingleSelection extends Combo implements Selection {
         }
 
         return this.keyMapping.get(selectionindex);
+    }
+
+    @Override
+    public String getSelectionReadableValue() {
+        final int selectionindex = super.getSelectionIndex();
+        if (selectionindex < 0) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.valueMapping.get(selectionindex);
     }
 
     @Override

@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.TableFieldBuilder.TableInputField;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
@@ -82,25 +83,27 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
             final Composite parent,
             final ConfigurationAttribute attribute) {
 
-        if (attribute.type == AttributeType.TABLE) {
-            throw new UnsupportedOperationException(
-                    "Table type is currently not supported within a table row form view!");
-        }
+//        if (attribute.type == AttributeType.TABLE) {
+//            throw new UnsupportedOperationException(
+//                    "Table type is currently not supported within a table row form view!");
+//        }
 
         final Orientation orientation = this.tableContext
                 .getOrientation(attribute.id);
-
         final InputFieldBuilder inputFieldBuilder = this.tableContext
                 .getInputFieldBuilder(attribute, orientation);
-
         final InputField inputField = inputFieldBuilder.createInputField(
                 parent,
                 attribute,
                 this.tableContext.getViewContext());
 
-        inputField.initValue(
-                this.rowValues.get(attribute.id).value,
-                this.listIndex);
+        if (attribute.type == AttributeType.TABLE) {
+            ((TableInputField) inputField).initValue(new ArrayList<>(this.rowValues.values()));
+        } else {
+            inputField.initValue(
+                    this.rowValues.get(attribute.id).value,
+                    this.listIndex);
+        }
 
         // we have to register the input field within the ViewContext to receive error messages
         this.tableContext.registerInputField(inputField);
@@ -108,9 +111,13 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
         return inputField;
     }
 
-    private void createLabel(final Composite parent, final ConfigurationAttribute attribute) {
+    private void createLabel(
+            final Composite parent,
+            final ConfigurationAttribute attribute) {
+
         final LocTextKey locTextKey = new LocTextKey(
-                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name,
+                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
+                        attribute.name,
                 attribute.name);
         final Label label = this.tableContext
                 .getWidgetFactory()

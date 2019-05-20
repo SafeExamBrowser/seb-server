@@ -129,6 +129,12 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
         }
     }
 
+    @Override
+    public String getReadableValue() {
+        return getValue();
+
+    }
+
     protected abstract void setValueToControl(String value);
 
 }

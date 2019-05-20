@@ -136,7 +136,7 @@ public class SebExamConfigList implements TemplateComposer {
                                 this.statusFilter,
                                 true))
                         .withDefaultAction(pageActionBuilder
-                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_FROM_LIST)
+                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())
                         .compose(content);
 
@@ -147,15 +147,15 @@ public class SebExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
                 .publishIf(examConfigGrant::iw)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_FROM_LIST)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_FROM_LIST)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && table.hasAnyContent())
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROPERTIES_FROM_LIST)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && table.hasAnyContent());
     }

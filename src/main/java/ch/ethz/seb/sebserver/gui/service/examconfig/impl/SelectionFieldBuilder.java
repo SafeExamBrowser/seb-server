@@ -21,27 +21,26 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 
 public abstract class SelectionFieldBuilder {
 
     protected List<Tuple<String>> getLocalizedResources(
             final ConfigurationAttribute attribute,
-            final I18nSupport i18nSupport) {
+            final ViewContext viewContext) {
 
-        return getLocalizedRes(attribute, i18nSupport, false);
+        return getLocalizedRes(attribute, viewContext, false);
     }
 
     protected List<Tuple<String>> getLocalizedResourcesAsToolTip(
             final ConfigurationAttribute attribute,
-            final I18nSupport i18nSupport) {
+            final ViewContext viewContext) {
 
-        return getLocalizedRes(attribute, i18nSupport, true);
+        return getLocalizedRes(attribute, viewContext, true);
     }
 
     private List<Tuple<String>> getLocalizedRes(
             final ConfigurationAttribute attribute,
-            final I18nSupport i18nSupport,
+            final ViewContext viewContext,
             final boolean toolTipResources) {
 
         if (attribute == null) {
@@ -62,7 +61,7 @@ public abstract class SelectionFieldBuilder {
                     final String key = prefix + value + ((toolTipResources)
                             ? ExamConfigurationService.TOOL_TIP_SUFFIX
                             : "");
-                    final String text = i18nSupport.getText(key, "");
+                    final String text = viewContext.i18nSupport.getText(key, "");
                     return new Tuple<>(value, (StringUtils.isBlank(text))
                             ? (toolTipResources)
                                     ? text

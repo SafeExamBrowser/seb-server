@@ -64,7 +64,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final Text passwordInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
         passwordInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

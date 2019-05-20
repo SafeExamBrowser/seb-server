@@ -56,14 +56,14 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final RadioSelection selection = this.widgetFactory.selectionLocalized(
                 Selection.Type.RADIO,
                 innerGrid,
-                () -> this.getLocalizedResources(attribute, i18nSupport),
+                () -> this.getLocalizedResources(attribute, viewContext),
                 null,
-                () -> this.getLocalizedResourcesAsToolTip(attribute, i18nSupport))
+                () -> this.getLocalizedResourcesAsToolTip(attribute, viewContext))
                 .getTypeInstance();
 
         selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
@@ -71,7 +71,7 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
                 attribute,
                 orientation,
                 selection,
-                InputFieldBuilder.createErrorLabel(innerGrid));
+                null);
 
         selection.setSelectionListener(event -> {
             radioSelectionInputField.clearError();

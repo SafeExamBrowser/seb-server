@@ -57,14 +57,14 @@ public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implement
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
-                .createInnerGrid(parent, orientation);
+                .createInnerGrid(parent, attribute, orientation);
 
         final SingleSelection selection = this.widgetFactory.selectionLocalized(
                 (attribute.type == AttributeType.COMBO_SELECTION)
                         ? Selection.Type.SINGLE_COMBO
                         : Selection.Type.SINGLE,
                 innerGrid,
-                () -> this.getLocalizedResources(attribute, i18nSupport),
+                () -> this.getLocalizedResources(attribute, viewContext),
                 ExamConfigurationService.getToolTipKey(attribute, i18nSupport))
                 .getTypeInstance();
 
@@ -107,6 +107,14 @@ public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implement
         protected void setValueToControl(final String value) {
             this.control.select(value);
         }
+
+        @Override
+        public String getReadableValue() {
+
+            // TODO Auto-generated method stub
+            return super.getReadableValue();
+        }
+
     }
 
 }
