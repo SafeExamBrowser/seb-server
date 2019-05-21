@@ -318,7 +318,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
             final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("grant_type", "client_credentials");
-            params.add("token_type", "jwt");
+            //params.add("token_type", "jwt");
             params.add("client_id", resource.getClientId());
             params.add("client_secret", resource.getClientSecret());
 
@@ -340,7 +340,9 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                 throw new AccessTokenRequiredException(resource);
             }
 
-            request.getHeaders().set("Authorization", String.format("%s %s", "JWT:", accessToken.getValue()));
+            request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
+
+            //request.getHeaders().set("Authorization", String.format("%s %s", "JWT", accessToken.getValue()));
         }
 
     }
