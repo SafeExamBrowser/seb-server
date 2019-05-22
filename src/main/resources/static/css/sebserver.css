@@ -604,7 +604,7 @@ TabItem {
   text-decoration: none;
   text-shadow: none;
   background-image: none;
-  margin: 1px 0px 0px -1px;
+  margin: 1px 0px 0px 0px;
   border: 1px solid #bdbdbd;
   border-bottom: none;
   border-left: none;
@@ -733,15 +733,6 @@ Widget-ToolTip {
 Widget-ToolTip-Pointer {
     background-image: none;
 }
-
-
-
-
-
-
-
-
-
 
 /* Table default theme */
 Table {

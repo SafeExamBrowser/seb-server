@@ -165,18 +165,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         return Result.tryCatch(() -> {
 
             // get follow-up configuration...
-            final ConfigurationRecord followupConfig = this.configurationRecordMapper
-                    .selectByExample()
-                    .where(
-                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configurationNodeId))
-                    .and(
-                            ConfigurationRecordDynamicSqlSupport.followup,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
+            final ConfigurationRecord followupConfig = getFollowupConfigurationRecord(configurationNodeId);
 
             // with actual attribute values
             final List<ConfigurationValueRecord> allValues = this.configurationValueRecordMapper
@@ -239,6 +228,41 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 .onError(TransactionHandler::rollback);
     }
 
+    private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {
+        return this.configurationRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(configurationNodeId))
+                .and(
+                        ConfigurationRecordDynamicSqlSupport.followup,
+                        isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton());
+    }
+
+    @Override
+    @Transactional
+    public Result<Configuration> undo(final Long configurationNodeId) {
+        return Result.tryCatch(() -> {
+            // get all configurations of the node
+            final List<ConfigurationRecord> configs = this.configurationRecordMapper
+                    .selectByExample()
+                    .where(
+                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configurationNodeId))
+                    .orderBy(ConfigurationRecordDynamicSqlSupport.versionDate)
+                    .build()
+                    .execute();
+
+            return configs.get(configs.size() - 1);
+        })
+                .flatMap(rec -> restoreToVersion(configurationNodeId, rec.getId()))
+                .onError(TransactionHandler::rollback);
+    }
+
     @Override
     @Transactional
     public Result<Configuration> restoreToVersion(final Long configurationNodeId, final Long configId) {
@@ -268,28 +292,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     .execute();
 
             // get follow-up configuration id
-            final ConfigurationRecord followup = this.configurationRecordMapper
-                    .selectByExample()
-                    .where(
-                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configurationNodeId))
-                    .and(
-                            ConfigurationRecordDynamicSqlSupport.followup,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
+            final ConfigurationRecord followup = getFollowupConfigurationRecord(configurationNodeId);
 
             // restore all current values of the follow-up with historic values
             // TODO batch here for better performance
             historicValues.stream()
                     .map(historicValRec -> new ConfigurationValueRecord(
                             null,
-                            null,
-                            null,
+                            followup.getInstitutionId(),
+                            followup.getId(),
                             historicValRec.getConfigurationAttributeId(),
-                            null,
+                            historicValRec.getListIndex(),
                             historicValRec.getValue(),
                             historicValRec.getText()))
                     .forEach(newValRec -> this.configurationValueRecordMapper

@@ -64,11 +64,24 @@ public class ConfigurationController extends EntityController<Configuration, Con
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Configuration saveToHistory(@PathVariable final String configId) {
+    public Configuration saveToHistory(@PathVariable final String modelId) {
 
-        return this.entityDAO.byModelId(configId)
+        return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkModifyAccess)
                 .flatMap(config -> this.configurationDAO.saveToHistory(config.configurationNodeId))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.CONFIGURATION_UNDO_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Configuration undo(@PathVariable final String modelId) {
+
+        return this.entityDAO.byModelId(modelId)
+                .flatMap(this::checkModifyAccess)
+                .flatMap(config -> this.configurationDAO.undo(config.configurationNodeId))
                 .getOrThrow();
     }
 
@@ -78,10 +91,10 @@ public class ConfigurationController extends EntityController<Configuration, Con
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Configuration restoreFormHistory(
-            @PathVariable final String configId,
+            @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long configurationNodeId) {
 
-        return this.entityDAO.byModelId(configId)
+        return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkModifyAccess)
                 .flatMap(config -> this.configurationDAO.restoreToVersion(configurationNodeId, config.getId()))
                 .getOrThrow();

@@ -42,6 +42,8 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @return the new follow-up Configuration model */
     Result<Configuration> saveToHistory(Long configurationNodeId);
 
+    Result<Configuration> undo(Long configurationNodeId);
+
     /** Restores the current follow-up Configuration to the values of a given Configuration
      * in the history of the specified ConfigurationNode.
      *

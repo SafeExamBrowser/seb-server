@@ -83,10 +83,10 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
             final Composite parent,
             final ConfigurationAttribute attribute) {
 
-//        if (attribute.type == AttributeType.TABLE) {
-//            throw new UnsupportedOperationException(
-//                    "Table type is currently not supported within a table row form view!");
-//        }
+        if (attribute.type == AttributeType.TABLE) {
+            throw new UnsupportedOperationException(
+                    "Table type is currently not supported within a table row form view!");
+        }
 
         final Orientation orientation = this.tableContext
                 .getOrientation(attribute.id);

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.OutputStream;
 import java.util.Collection;
 
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
 
 @Lazy
 @Service
@@ -32,13 +34,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final Collection<ConfigurationValueValidator> validators;
+    private final Collection<XMLValueConverter> converters;
 
     protected SebExamConfigServiceImpl(
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final Collection<ConfigurationValueValidator> validators) {
+            final Collection<ConfigurationValueValidator> validators,
+            final Collection<XMLValueConverter> converters) {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.validators = validators;
+        this.converters = converters;
     }
 
     @Override
@@ -61,6 +66,18 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     @Override
     public void validate(final ConfigurationTableValues tableValue) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void exportXML(final OutputStream out, final Long configurationNodeId) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void exportForExam(final OutputStream out, final Long configExamMappingId) {
         // TODO Auto-generated method stub
 
     }

@@ -60,7 +60,6 @@ public class EntityTable<ROW extends Entity> {
     final I18nSupport i18nSupport;
 
     final List<ColumnDefinition<ROW>> columns;
-    final List<TableRowAction> actions;
     final LocTextKey emptyMessage;
 
     final Composite composite;
@@ -82,7 +81,6 @@ public class EntityTable<ROW extends Entity> {
             final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter,
             final PageService pageService,
             final List<ColumnDefinition<ROW>> columns,
-            final List<TableRowAction> actions,
             final int pageSize,
             final LocTextKey emptyMessage,
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
@@ -95,7 +93,6 @@ public class EntityTable<ROW extends Entity> {
         this.restCall = restCall;
         this.restCallAdapter = (restCallAdapter != null) ? restCallAdapter : Function.identity();
         this.columns = Utils.immutableListOf(columns);
-        this.actions = Utils.immutableListOf(actions);
         this.emptyMessage = emptyMessage;
         this.hideNavigation = hideNavigation;
 
@@ -323,9 +320,6 @@ public class EntityTable<ROW extends Entity> {
             for (final ColumnDefinition<ROW> column : this.columns) {
                 setValueToCell(item, index, column.valueSupplier.apply(row));
                 index++;
-            }
-            if (this.actions != null) {
-                // TODO??
             }
         }
 

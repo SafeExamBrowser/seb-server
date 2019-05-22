@@ -29,13 +29,12 @@ public class TableBuilder<ROW extends Entity> {
     private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
-    final List<TableRowAction> actions = new ArrayList<>();
     LocTextKey emptyMessage;
     private Function<EntityTable<ROW>, PageAction> defaultActionFunction;
     private int pageSize = -1;
     private int type = SWT.NONE;
     private boolean hideNavigation = false;
-    private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;;
+    private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
 
     public TableBuilder(
             final PageService pageService,
@@ -72,11 +71,6 @@ public class TableBuilder<ROW extends Entity> {
         if (condition != null && condition.getAsBoolean()) {
             this.columns.add(columnDefSupplier.get());
         }
-        return this;
-    }
-
-    public TableBuilder<ROW> withAction(final TableRowAction action) {
-        this.actions.add(action);
         return this;
     }
 
@@ -120,7 +114,6 @@ public class TableBuilder<ROW extends Entity> {
                 this.restCallAdapter,
                 this.pageService,
                 this.columns,
-                this.actions,
                 this.pageSize,
                 this.emptyMessage,
                 this.defaultActionFunction,

@@ -44,6 +44,15 @@ public interface I18nSupport {
     /** Get localized text of specified key for currently set Locale.
      *
      * @param key LocTextKey instance
+     * @param def default text
+     * @return the text in current language parsed from localized text */
+    default String getText(final LocTextKey key, final String def) {
+        return getText(key.name, def, key.args);
+    }
+
+    /** Get localized text of specified key for currently set Locale.
+     *
+     * @param key LocTextKey instance
      * @return the text in current language parsed from localized text */
     default String getText(final LocTextKey key) {
         return getText(key.name, "missing:" + key.name, key.args);

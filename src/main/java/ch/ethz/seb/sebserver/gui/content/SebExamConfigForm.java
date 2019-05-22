@@ -23,12 +23,14 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
@@ -39,7 +41,10 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SebExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -50,7 +55,10 @@ public class SebExamConfigForm implements TemplateComposer {
     private static final Logger log = LoggerFactory.getLogger(SebExamConfigForm.class);
 
     private static final String VIEW_TEXT_KEY_PREFIX = "sebserver.examconfig.props.form.views.";
-    private static final String VIEW_TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
+    private static final String KEY_SAVE_TO_HISTORY_SUCCESS =
+            "sebserver.examconfig.action.saveToHistory.success";
+    private static final String KEY_UNDO_SUCCESS =
+            "sebserver.examconfig.action.undo.success";
 
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.from.title");
@@ -77,7 +85,6 @@ public class SebExamConfigForm implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
 
         final EntityKey entityKey = pageContext.getEntityKey();
-        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
 
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -130,6 +137,36 @@ public class SebExamConfigForm implements TemplateComposer {
             }
 
             this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
+
+            final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
+            this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE_TO_HISTORY)
+                    .withEntityKey(entityKey)
+                    .withExec(action -> {
+                        this.restService.getBuilder(SaveExamConfigHistory.class)
+                                .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
+                                .call()
+                                .onError(pageContext::notifyError)
+                                .getOrThrow();
+                        return action;
+                    })
+                    .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
+                    .publishIf(() -> examConfigGrant.iw())
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_UNDO)
+                    .withEntityKey(entityKey)
+                    .withExec(action -> {
+                        this.restService.getBuilder(SebExamConfigUndo.class)
+                                .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
+                                .call()
+                                .onError(pageContext::notifyError)
+                                .getOrThrow();
+                        return action;
+                    })
+                    .withSuccess(KEY_UNDO_SUCCESS)
+                    .publishIf(() -> examConfigGrant.iw())
+
+            ;
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);

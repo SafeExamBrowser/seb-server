@@ -345,6 +345,17 @@ public enum ActionDefinition {
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
+    SEB_EXAM_CONFIG_SAVE_TO_HISTORY(
+            new LocTextKey("sebserver.examconfig.action.saveToHistory"),
+            ImageIcon.SAVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_UNDO(
+            new LocTextKey("sebserver.examconfig.action.undo"),
+            ImageIcon.SAVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+
     ;
 
     public final LocTextKey title;

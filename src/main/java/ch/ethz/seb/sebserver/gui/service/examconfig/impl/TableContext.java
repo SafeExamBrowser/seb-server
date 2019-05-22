@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
@@ -191,12 +192,10 @@ public class TableContext {
             switch (attribute.type) {
                 case CHECKBOX: {
                     return BooleanUtils.toBoolean(tableValue.value)
-                            ? "Active"
-                            : "Inactive";
+                            ? this.viewContext.i18nSupport.getText(ResourceService.ACTIVE_TEXT_KEY)
+                            : this.viewContext.i18nSupport.getText(ResourceService.INACTIVE_TEXT_KEY);
                 }
                 case SINGLE_SELECTION: {
-                    final ConfigurationAttribute tableAttr =
-                            this.viewContext.attributeMapping.getAttribute(attribute.parentId);
                     final String key = ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             attribute.getName() + "." +
                             tableValue.value;

@@ -31,6 +31,8 @@ public final class PageAction {
 
     private static final Logger log = LoggerFactory.getLogger(PageAction.class);
 
+    public static final LocTextKey SUCCESS_MSG_TITLE = new LocTextKey("sebserver.page.message");
+
     public final ActionDefinition definition;
     private final Supplier<LocTextKey> confirm;
     final LocTextKey successMessage;
@@ -126,7 +128,11 @@ public final class PageAction {
     private Result<PageAction> exec() {
         try {
 
-            return Result.of(this.exec.apply(this));
+            final PageAction apply = this.exec.apply(this);
+            if (this.successMessage != null) {
+                apply.pageContext.publishPageMessage(SUCCESS_MSG_TITLE, this.successMessage);
+            }
+            return Result.of(apply);
 
         } catch (final PageMessageException pme) {
             PageAction.this.pageContext.publishPageMessage(pme);

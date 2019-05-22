@@ -278,7 +278,7 @@ public class TableFieldBuilder implements InputFieldBuilder {
         }
 
         private void addTableRow(final Map<Long, TableValue> rowValues) {
-            final TableItem tableItem = new TableItem(this.control, SWT.NONE);
+            new TableItem(this.control, SWT.NONE);
             applyTableRowValues(this.values.size() - 1);
 
             // TODO try to add delete button within table row?

@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import static ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.dummyBuilderAdapter;
-
 import java.util.Collection;
 
 import org.eclipse.swt.SWT;
@@ -28,23 +26,20 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 interface CellFieldBuilderAdapter {
 
+    static CellFieldBuilderAdapter DUMMY_BUILDER_ADAPTER = new CellFieldBuilderAdapter() {
+        @Override
+        public void createCell(final ViewGridBuilder builder) {
+        }
+
+        @Override
+        public String toString() {
+            return "[DUMMY]";
+        }
+    };
+
     void createCell(ViewGridBuilder builder);
 
     default void balanceGrid(final CellFieldBuilderAdapter[][] grid, final int x, final int y) {
-
-    }
-
-    static CellFieldBuilderAdapter dummyBuilderAdapter() {
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-            }
-
-            @Override
-            public String toString() {
-                return "[DUMMY]";
-            }
-        };
     }
 
     static CellFieldBuilderAdapter fieldBuilderAdapter(
@@ -127,7 +122,7 @@ interface CellFieldBuilderAdapter {
                     int xpos = x - 1;
                     while (xpos >= 0 && grid[y][xpos] == null && span < orientation.width) {
                         grid[y][xpos] = this;
-                        grid[y][xpos + 1] = dummyBuilderAdapter();
+                        grid[y][xpos + 1] = DUMMY_BUILDER_ADAPTER;
                         this.span++;
                         xpos--;
                     }
@@ -198,13 +193,20 @@ interface CellFieldBuilderAdapter {
             final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
             final Orientation o = this.orientationsOfGroup.stream().findFirst().get();
             final LocTextKey groupLabelKey = new LocTextKey(
-                    ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX + o.groupId,
+                    ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX +
+                            o.groupId,
+                    o.groupId);
+            final LocTextKey groupTooltipKey = new LocTextKey(
+                    ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX +
+                            o.groupId +
+                            ExamConfigurationService.TOOL_TIP_SUFFIX,
                     o.groupId);
 
             final Group group = widgetFactory.groupLocalized(
                     builder.parent,
                     this.width,
-                    groupLabelKey);
+                    groupLabelKey,
+                    groupTooltipKey);
             group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height));
 
             final ViewGridBuilder groupBuilder = new ViewGridBuilder(

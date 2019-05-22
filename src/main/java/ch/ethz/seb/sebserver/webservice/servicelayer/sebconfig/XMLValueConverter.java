@@ -10,17 +10,16 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.OutputStream;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
-public interface SebExamConfigService {
+public interface XMLValueConverter {
 
-    void validate(ConfigurationValue value);
+    String name();
 
-    void validate(ConfigurationTableValues tableValue);
-
-    void exportXML(OutputStream out, Long configurationNodeId);
-
-    void exportForExam(OutputStream out, Long configExamMappingId);
+    void convertToXML(
+            OutputStream out,
+            ConfigurationAttribute attribute,
+            ConfigurationValue value);
 
 }

@@ -161,8 +161,8 @@ public class ViewGridBuilder {
     }
 
     void compose() {
-        if (log.isDebugEnabled()) {
-            log.debug("Compose grid view: \n" + gridToString());
+        if (log.isTraceEnabled()) {
+            log.trace("Compose grid view: \n" + gridToString());
         }
 
         // balance grid (optimize span and grab empty spaces for labels where applicable)
@@ -181,7 +181,7 @@ public class ViewGridBuilder {
                     final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
                     gridData.verticalIndent = 8;
                     empty.setLayoutData(gridData);
-                    empty.setText("" /* "empty " + x + " " + y */);
+                    empty.setText(StringUtils.EMPTY /* "empty " + x + " " + y */);
                 } else {
                     this.grid[y][x].createCell(this);
                 }
@@ -194,7 +194,11 @@ public class ViewGridBuilder {
         final int upperBoundY = y + height;
         for (int _y = y; _y < upperBoundY; _y++) {
             for (int _x = x; _x < upperBoundX; _x++) {
-                this.grid[_y][_x] = CellFieldBuilderAdapter.dummyBuilderAdapter();
+                if (_y < 0 || _x < 0 || _y >= this.grid.length || _x >= this.grid[_y].length) {
+                    log.warn("Out of bounds: {} {}", _x, _y);
+                    continue;
+                }
+                this.grid[_y][_x] = CellFieldBuilderAdapter.DUMMY_BUILDER_ADAPTER;
             }
         }
     }

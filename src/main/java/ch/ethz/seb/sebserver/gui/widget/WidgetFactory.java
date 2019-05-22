@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -309,6 +310,15 @@ public class WidgetFactory {
             final int columns,
             final LocTextKey locTextKey) {
 
+        return groupLocalized(parent, columns, locTextKey, null);
+    }
+
+    public Group groupLocalized(
+            final Composite parent,
+            final int columns,
+            final LocTextKey locTextKey,
+            final LocTextKey locTooltipKey) {
+
         final Group group = new Group(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(columns, true);
         gridLayout.verticalSpacing = 0;
@@ -316,7 +326,7 @@ public class WidgetFactory {
         gridLayout.marginHeight = 0;
         group.setLayout(gridLayout);
 
-        this.injectI18n(group, locTextKey);
+        this.injectI18n(group, locTextKey, locTooltipKey);
         return group;
     }
 
@@ -521,8 +531,8 @@ public class WidgetFactory {
         labelFunction.accept(label);
     }
 
-    public void injectI18n(final Group group, final LocTextKey locTextKey) {
-        final Consumer<Group> groupFunction = groupFunction(locTextKey, null, this.i18nSupport);
+    public void injectI18n(final Group group, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        final Consumer<Group> groupFunction = groupFunction(locTextKey, locTooltipKey, this.i18nSupport);
         group.setData(POLYGLOT_WIDGET_FUNCTION_KEY, groupFunction);
         groupFunction.accept(group);
     }
@@ -656,7 +666,7 @@ public class WidgetFactory {
                 group.setText(i18nSupport.getText(locTextKey));
             }
             if (locToolTipKey != null) {
-                group.setToolTipText(i18nSupport.getText(locToolTipKey));
+                group.setToolTipText(i18nSupport.getText(locToolTipKey, StringUtils.EMPTY));
             }
         };
     }

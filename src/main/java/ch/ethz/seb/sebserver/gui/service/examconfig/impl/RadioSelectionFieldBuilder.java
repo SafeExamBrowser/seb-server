@@ -21,7 +21,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.widget.RadioSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -52,7 +51,6 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
-        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
