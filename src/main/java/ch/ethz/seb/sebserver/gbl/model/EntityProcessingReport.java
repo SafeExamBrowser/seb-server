@@ -67,9 +67,15 @@ public class EntityProcessingReport {
 
     @Override
     public String toString() {
-        return "EntityProcessingReport [source=" + this.source + ", dependencies=" + this.dependencies + ", errors="
-                + this.errors
-                + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("EntityProcessingReport [source=");
+        builder.append(this.source);
+        builder.append(", dependencies=");
+        builder.append(this.dependencies);
+        builder.append(", errors=");
+        builder.append(this.errors);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

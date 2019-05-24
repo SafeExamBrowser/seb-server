@@ -135,11 +135,25 @@ public final class ConfigurationAttribute implements Entity {
 
     @Override
     public String toString() {
-        return "ConfigurationAttribute [id=" + this.id + ", parentId=" + this.parentId + ", name=" + this.name
-                + ", type=" + this.type
-                + ", resources=" + this.resources + ", validator=" + this.validator + ", dependencies="
-                + this.dependencies
-                + ", defaultValue=" + this.defaultValue + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ConfigurationAttribute [id=");
+        builder.append(this.id);
+        builder.append(", parentId=");
+        builder.append(this.parentId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", type=");
+        builder.append(this.type);
+        builder.append(", resources=");
+        builder.append(this.resources);
+        builder.append(", validator=");
+        builder.append(this.validator);
+        builder.append(", dependencies=");
+        builder.append(this.dependencies);
+        builder.append(", defaultValue=");
+        builder.append(this.defaultValue);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

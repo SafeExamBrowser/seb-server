@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ACTIVITY_LOG;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ACTIVITY_LOG;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 public class UserActivityLog implements Entity {
@@ -118,10 +118,23 @@ public class UserActivityLog implements Entity {
 
     @Override
     public String toString() {
-        return "UserActivityLog [id=" + this.id + ", userUUID=" + this.userUUID + ", timestamp=" + this.timestamp
-                + ", activityType="
-                + this.activityType + ", entityType=" + this.entityType + ", entityId=" + this.entityId + ", message="
-                + this.message + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("UserActivityLog [id=");
+        builder.append(this.id);
+        builder.append(", userUUID=");
+        builder.append(this.userUUID);
+        builder.append(", timestamp=");
+        builder.append(this.timestamp);
+        builder.append(", activityType=");
+        builder.append(this.activityType);
+        builder.append(", entityType=");
+        builder.append(this.entityType);
+        builder.append(", entityId=");
+        builder.append(this.entityId);
+        builder.append(", message=");
+        builder.append(this.message);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

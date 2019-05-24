@@ -61,9 +61,17 @@ public class ExamineeAccountDetails {
 
     @Override
     public String toString() {
-        return "ExamineeAccountDetails [id=" + this.id + ", name=" + this.name + ", username=" + this.username
-                + ", email=" + this.email
-                + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ExamineeAccountDetails [id=");
+        builder.append(this.id);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", username=");
+        builder.append(this.username);
+        builder.append(", email=");
+        builder.append(this.email);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

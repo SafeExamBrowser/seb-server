@@ -121,9 +121,21 @@ public final class Indicator implements Entity {
 
     @Override
     public String toString() {
-        return "Indicator [id=" + this.id + ", examId=" + this.examId + ", name=" + this.name + ", type=" + this.type
-                + ", defaultColor="
-                + this.defaultColor + ", thresholds=" + this.thresholds + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Indicator [id=");
+        builder.append(this.id);
+        builder.append(", examId=");
+        builder.append(this.examId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", type=");
+        builder.append(this.type);
+        builder.append(", defaultColor=");
+        builder.append(this.defaultColor);
+        builder.append(", thresholds=");
+        builder.append(this.thresholds);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static Indicator createNew(final Exam exam) {

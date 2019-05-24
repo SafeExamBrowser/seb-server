@@ -174,10 +174,29 @@ public final class Orientation implements Entity {
 
     @Override
     public String toString() {
-        return "Orientation [id=" + this.id + ", attributeId=" + this.attributeId + ", templateId=" + this.templateId
-                + ", viewId="
-                + this.viewId + ", groupId=" + this.groupId + ", xPosition=" + this.xPosition + ", yPosition="
-                + this.yPosition + ", width="
-                + this.width + ", height=" + this.height + ", title=" + this.title + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Orientation [id=");
+        builder.append(this.id);
+        builder.append(", attributeId=");
+        builder.append(this.attributeId);
+        builder.append(", templateId=");
+        builder.append(this.templateId);
+        builder.append(", viewId=");
+        builder.append(this.viewId);
+        builder.append(", groupId=");
+        builder.append(this.groupId);
+        builder.append(", xPosition=");
+        builder.append(this.xPosition);
+        builder.append(", yPosition=");
+        builder.append(this.yPosition);
+        builder.append(", width=");
+        builder.append(this.width);
+        builder.append(", height=");
+        builder.append(this.height);
+        builder.append(", title=");
+        builder.append(this.title);
+        builder.append("]");
+        return builder.toString();
     }
+
 }

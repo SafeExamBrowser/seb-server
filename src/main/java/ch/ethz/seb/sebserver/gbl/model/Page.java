@@ -75,9 +75,19 @@ public final class Page<T> {
 
     @Override
     public String toString() {
-        return "Page [numberOfPages=" + this.numberOfPages + ", pageNumber=" + this.pageNumber + ", pageSize="
-                + this.pageSize
-                + ", sort=" + this.sort + ", content=" + this.content + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Page [numberOfPages=");
+        builder.append(this.numberOfPages);
+        builder.append(", pageNumber=");
+        builder.append(this.pageNumber);
+        builder.append(", pageSize=");
+        builder.append(this.pageSize);
+        builder.append(", sort=");
+        builder.append(this.sort);
+        builder.append(", content=");
+        builder.append(this.content);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

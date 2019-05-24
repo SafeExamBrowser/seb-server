@@ -156,6 +156,29 @@ public final class ConfigurationNode implements GrantEntity {
         return this.status;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ConfigurationNode [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", templateId=");
+        builder.append(this.templateId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", description=");
+        builder.append(this.description);
+        builder.append(", type=");
+        builder.append(this.type);
+        builder.append(", owner=");
+        builder.append(this.owner);
+        builder.append(", status=");
+        builder.append(this.status);
+        builder.append("]");
+        return builder.toString();
+    }
+
     public static ConfigurationNode createNewExamConfig(final Long institutionId) {
         return new ConfigurationNode(
                 null,

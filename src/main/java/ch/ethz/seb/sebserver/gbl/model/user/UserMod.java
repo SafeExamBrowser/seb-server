@@ -223,12 +223,29 @@ public final class UserMod implements UserAccount {
 
     @Override
     public String toString() {
-        return "UserMod [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", username="
-                + this.username + ", email=" + this.email + ", language=" + this.language + ", timeZone="
-                + this.timeZone
-                + ", roles=" + this.roles
-                + ", newPassword=" + this.newPassword + ", retypedNewPassword=" + this.confirmNewPassword + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("UserMod [uuid=");
+        builder.append(this.uuid);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", username=");
+        builder.append(this.username);
+        builder.append(", email=");
+        builder.append(this.email);
+        builder.append(", language=");
+        builder.append(this.language);
+        builder.append(", timeZone=");
+        builder.append(this.timeZone);
+        builder.append(", roles=");
+        builder.append(this.roles);
+        builder.append(", newPassword=");
+        builder.append(this.newPassword);
+        builder.append(", confirmNewPassword=");
+        builder.append(this.confirmNewPassword);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static UserMod createNew(final Long institutionId) {

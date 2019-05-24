@@ -372,8 +372,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                                 config.getId(),
                                 attrRec.getId(),
                                 0,
-                                value,
-                                null));
+                                value));
                     });
 
             return configNode;
@@ -405,9 +404,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 .stream()
                 .collect(Collectors.toMap(
                         valRec -> valRec.getConfigurationAttributeId(),
-                        valRec -> (valRec.getValue() != null)
-                                ? valRec.getValue()
-                                : valRec.getText()));
+                        valRec -> valRec.getValue()));
     }
 
 }

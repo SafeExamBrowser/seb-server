@@ -158,6 +158,7 @@ public class ExamDAOImpl implements ExamDAO {
                             : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     exam.quitPassword,
+                    exam.browserExamKeys,
                     BooleanUtils.toIntegerObject(exam.active));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
@@ -188,6 +189,7 @@ public class ExamDAOImpl implements ExamDAO {
                         null, null, null, null, null,
                         (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                         null,
+                        null,
                         BooleanUtils.toIntegerObject(exam.active));
 
                 this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -205,6 +207,7 @@ public class ExamDAOImpl implements ExamDAO {
                             : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     null,
+                    null,
                     BooleanUtils.toInteger(true));
 
             this.examRecordMapper.insert(examRecord);
@@ -221,7 +224,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -409,6 +412,7 @@ public class ExamDAOImpl implements ExamDAO {
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
                     record.getQuitPassword(),
+                    record.getBrowserKeys(),
                     record.getOwner(),
                     supporter,
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0));

@@ -1,3 +1,4 @@
+
 -- -----------------------------------------------------
 -- Schema SEBServer
 -- -----------------------------------------------------
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `supporter` VARCHAR(4000) NULL COMMENT 'comma separated list of user_uuid',
   `type` VARCHAR(45) NOT NULL,
   `quit_password` VARCHAR(4000) NULL,
+  `browser_keys` VARCHAR(4000) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
@@ -230,8 +232,7 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
   `configuration_id` BIGINT UNSIGNED NOT NULL,
   `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
   `list_index` INT NOT NULL DEFAULT 0,
-  `value` VARCHAR(255) NULL,
-  `text` MEDIUMTEXT NULL,
+  `value` VARCHAR(20000) NULL,
   PRIMARY KEY (`id`),
   INDEX `configuration_value_ref_idx` (`configuration_id` ASC),
   INDEX `configuration_attribute_ref_idx` (`configuration_attribute_id` ASC),
@@ -493,3 +494,5 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
 ;
+
+

@@ -15,8 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_CONFIGURATION_MAP;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ExamConfigurationMap implements GrantEntity {
@@ -97,8 +97,19 @@ public final class ExamConfigurationMap implements GrantEntity {
 
     @Override
     public String toString() {
-        return "ExamConfiguration [id=" + this.id + ", institutionId=" + this.institutionId + ", examId=" + this.examId
-                + ", configurationNodeId=" + this.configurationNodeId + ", userNames=" + this.userNames + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ExamConfigurationMap [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", examId=");
+        builder.append(this.examId);
+        builder.append(", configurationNodeId=");
+        builder.append(this.configurationNodeId);
+        builder.append(", userNames=");
+        builder.append(this.userNames);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

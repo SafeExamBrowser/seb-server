@@ -61,6 +61,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.startURL,
                         exam.type,
                         exam.quitPassword,
+                        exam.browserExamKeys,
                         exam.owner,
                         Arrays.asList("user5"),
                         false))
@@ -89,6 +90,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.startURL,
                         exam.type,
                         exam.quitPassword,
+                        exam.browserExamKeys,
                         exam.owner,
                         Arrays.asList("user2"),
                         false))

@@ -163,11 +163,27 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     @Override
     public String toString() {
-        return "LmsSetup [id=" + this.id + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", lmsType=" + this.lmsType
-                + ", lmsAuthName=" + this.lmsAuthName + ", lmsAuthSecret=" + this.lmsAuthSecret + ", lmsApiUrl="
-                + this.lmsApiUrl
-                + ", lmsRestApiToken=" + this.lmsRestApiToken + ", active=" + this.active + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LmsSetup [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", lmsType=");
+        builder.append(this.lmsType);
+        builder.append(", lmsAuthName=");
+        builder.append(this.lmsAuthName);
+        builder.append(", lmsAuthSecret=");
+        builder.append(this.lmsAuthSecret);
+        builder.append(", lmsApiUrl=");
+        builder.append(this.lmsApiUrl);
+        builder.append(", lmsRestApiToken=");
+        builder.append(this.lmsRestApiToken);
+        builder.append(", active=");
+        builder.append(this.active);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static EntityName toName(final LmsSetup lmsSetup) {

@@ -86,8 +86,17 @@ public class View implements Entity {
 
     @Override
     public String toString() {
-        return "View [id=" + this.id + ", name=" + this.name + ", columns=" + this.columns + ", position="
-                + this.position + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("View [id=");
+        builder.append(this.id);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", columns=");
+        builder.append(this.columns);
+        builder.append(", position=");
+        builder.append(this.position);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

@@ -88,9 +88,17 @@ public final class ConfigurationTableValues implements GrantEntity {
 
     @Override
     public String toString() {
-        return "ConfigurationTableValues [institutionId=" + this.institutionId + ", configurationId="
-                + this.configurationId
-                + ", attributeId=" + this.attributeId + ", values=" + this.values + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ConfigurationTableValues [institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", configurationId=");
+        builder.append(this.configurationId);
+        builder.append(", attributeId=");
+        builder.append(this.attributeId);
+        builder.append(", values=");
+        builder.append(this.values);
+        builder.append("]");
+        return builder.toString();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

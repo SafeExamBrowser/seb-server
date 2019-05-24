@@ -112,10 +112,21 @@ public final class ConfigurationValue implements GrantEntity {
 
     @Override
     public String toString() {
-        return "ConfigurationValue [id=" + this.id + ", institutionId=" + this.institutionId + ", configurationId="
-                + this.configurationId + ", attributeId=" + this.attributeId + ", listIndex=" + this.listIndex
-                + ", value=" + this.value
-                + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ConfigurationValue [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", configurationId=");
+        builder.append(this.configurationId);
+        builder.append(", attributeId=");
+        builder.append(this.attributeId);
+        builder.append(", listIndex=");
+        builder.append(this.listIndex);
+        builder.append(", value=");
+        builder.append(this.value);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

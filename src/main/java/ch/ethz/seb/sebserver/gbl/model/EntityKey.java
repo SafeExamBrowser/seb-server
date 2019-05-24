@@ -109,7 +109,13 @@ public class EntityKey implements ModelIdAware, Serializable {
 
     @Override
     public String toString() {
-        return "EntityKey [modelId=" + this.modelId + ", entityType=" + this.entityType + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("EntityKey [modelId=");
+        builder.append(this.modelId);
+        builder.append(", entityType=");
+        builder.append(this.entityType);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

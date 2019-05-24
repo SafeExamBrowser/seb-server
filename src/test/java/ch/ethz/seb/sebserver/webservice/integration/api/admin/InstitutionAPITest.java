@@ -264,10 +264,8 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(report);
-        assertEquals("EntityProcessingReport "
-                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
-                + "dependencies=[], "
-                + "errors=[]]",
+        assertEquals(
+                "EntityProcessingReport [source=[EntityKey [modelId=4, entityType=INSTITUTION]], dependencies=[], errors=[]]",
                 report.toString());
 
         // get

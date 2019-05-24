@@ -99,7 +99,15 @@ public class EntityName implements ModelIdAware {
 
     @Override
     public String toString() {
-        return "EntityIdAndName [entityType=" + this.entityType + ", id=" + this.modelId + ", name=" + this.name + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("EntityName [entityType=");
+        builder.append(this.entityType);
+        builder.append(", modelId=");
+        builder.append(this.modelId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

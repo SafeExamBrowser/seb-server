@@ -217,8 +217,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             newFollowup.getId(),
                             oldValRec.getConfigurationAttributeId(),
                             oldValRec.getListIndex(),
-                            oldValRec.getValue(),
-                            oldValRec.getText()))
+                            oldValRec.getValue()))
                     .forEach(newValRec -> this.configurationValueRecordMapper.insert(newValRec));
 
             return newFollowup;
@@ -303,8 +302,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             followup.getId(),
                             historicValRec.getConfigurationAttributeId(),
                             historicValRec.getListIndex(),
-                            historicValRec.getValue(),
-                            historicValRec.getText()))
+                            historicValRec.getValue()))
                     .forEach(newValRec -> this.configurationValueRecordMapper
                             .updateByExample(newValRec)
                             .where(

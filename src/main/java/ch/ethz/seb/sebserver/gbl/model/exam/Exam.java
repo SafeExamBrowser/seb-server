@@ -24,8 +24,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Exam implements GrantEntity, Activatable {
@@ -83,6 +83,9 @@ public final class Exam implements GrantEntity, Activatable {
     @JsonProperty(EXAM.ATTR_QUIT_PASSWORD)
     public final String quitPassword;
 
+    @JsonProperty(EXAM.ATTR_BROWSER_KEYS)
+    public final String browserExamKeys;
+
     @JsonProperty(EXAM.ATTR_OWNER)
     public final String owner;
 
@@ -106,6 +109,7 @@ public final class Exam implements GrantEntity, Activatable {
             @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType type,
             @JsonProperty(EXAM.ATTR_QUIT_PASSWORD) final String quitPassword,
+            @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active) {
@@ -121,6 +125,7 @@ public final class Exam implements GrantEntity, Activatable {
         this.startURL = startURL;
         this.type = type;
         this.quitPassword = quitPassword;
+        this.browserExamKeys = browserExamKeys;
         this.owner = owner;
         this.active = (active != null) ? active : Boolean.FALSE;
 
@@ -142,6 +147,7 @@ public final class Exam implements GrantEntity, Activatable {
         this.startURL = quizData.startURL;
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
+        this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
@@ -222,6 +228,10 @@ public final class Exam implements GrantEntity, Activatable {
         return this.quitPassword;
     }
 
+    public String getBrowserExamKeys() {
+        return this.browserExamKeys;
+    }
+
     @JsonIgnore
     public ExamStatus getStatus() {
         if (this.startTime == null) {
@@ -247,14 +257,39 @@ public final class Exam implements GrantEntity, Activatable {
 
     @Override
     public String toString() {
-        return "Exam [id=" + this.id + ", institutionId=" + this.institutionId + ", lmsSetupId=" + this.lmsSetupId
-                + ", externalId="
-                + this.externalId + ", name=" + this.name + ", description=" + this.description + ", startTime="
-                + this.startTime
-                + ", endTime=" + this.endTime + ", startURL=" + this.startURL + ", type=" + this.type
-                + ", quitPassword="
-                + this.quitPassword + ", owner=" + this.owner + ", supporter=" + this.supporter + ", active="
-                + this.active + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Exam [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", lmsSetupId=");
+        builder.append(this.lmsSetupId);
+        builder.append(", externalId=");
+        builder.append(this.externalId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", description=");
+        builder.append(this.description);
+        builder.append(", startTime=");
+        builder.append(this.startTime);
+        builder.append(", endTime=");
+        builder.append(this.endTime);
+        builder.append(", startURL=");
+        builder.append(this.startURL);
+        builder.append(", type=");
+        builder.append(this.type);
+        builder.append(", quitPassword=");
+        builder.append(this.quitPassword);
+        builder.append(", browserExamKeys=");
+        builder.append(this.browserExamKeys);
+        builder.append(", owner=");
+        builder.append(this.owner);
+        builder.append(", supporter=");
+        builder.append(this.supporter);
+        builder.append(", active=");
+        builder.append(this.active);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

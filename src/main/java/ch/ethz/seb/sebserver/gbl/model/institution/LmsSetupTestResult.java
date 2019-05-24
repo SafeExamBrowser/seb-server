@@ -77,9 +77,17 @@ public final class LmsSetupTestResult {
 
     @Override
     public String toString() {
-        return "LmsSetupTestResult [okStatus=" + this.okStatus + ", missingLMSSetupAttribute="
-                + this.missingLMSSetupAttribute
-                + ", tokenRequestError=" + this.tokenRequestError + ", quizRequestError=" + this.quizRequestError + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LmsSetupTestResult [okStatus=");
+        builder.append(this.okStatus);
+        builder.append(", missingLMSSetupAttribute=");
+        builder.append(this.missingLMSSetupAttribute);
+        builder.append(", tokenRequestError=");
+        builder.append(this.tokenRequestError);
+        builder.append(", quizRequestError=");
+        builder.append(this.quizRequestError);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static final LmsSetupTestResult ofOkay() {

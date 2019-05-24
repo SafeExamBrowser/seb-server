@@ -138,8 +138,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             data.configurationId,
                             data.attributeId,
                             data.listIndex,
-                            value,
-                            null);
+                            value);
 
                     this.configurationValueRecordMapper.insert(newRecord);
                     return newRecord;
@@ -182,8 +181,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             null,
                             null,
                             data.listIndex,
-                            data.value,
-                            null);
+                            data.value);
 
                     this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.configurationValueRecordMapper.selectByPrimaryKey(id);
@@ -330,8 +328,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                 value.configurationId,
                                 columnAttr.getId(),
                                 tableValue.listIndex,
-                                tableValue.value,
-                                null);
+                                tableValue.value);
 
                         this.configurationValueRecordMapper.insert(valueRecord);
                     }

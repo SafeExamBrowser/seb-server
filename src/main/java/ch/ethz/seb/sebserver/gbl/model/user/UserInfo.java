@@ -217,11 +217,27 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     @Override
     public String toString() {
-        return "UserInfo [uuid=" + this.uuid + ", institutionId=" + this.institutionId + ", name=" + this.name
-                + ", username="
-                + this.username + ", email=" + this.email + ", active=" + this.active + ", language=" + this.language
-                + ", timeZone=" + this.timeZone
-                + ", roles=" + this.roles + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("UserInfo [uuid=");
+        builder.append(this.uuid);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", username=");
+        builder.append(this.username);
+        builder.append(", email=");
+        builder.append(this.email);
+        builder.append(", active=");
+        builder.append(this.active);
+        builder.append(", language=");
+        builder.append(this.language);
+        builder.append(", timeZone=");
+        builder.append(this.timeZone);
+        builder.append(", roles=");
+        builder.append(this.roles);
+        builder.append("]");
+        return builder.toString();
     }
 
     /** Use this to create a copy of a given UserInfo instance.
