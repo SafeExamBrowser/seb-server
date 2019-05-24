@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -35,6 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.TableFieldBuilder.TableInputField;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, TableValue>> {
@@ -56,39 +54,19 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
     @Override
     public Supplier<Map<Long, TableValue>> compose(final Composite parent) {
 
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
-        final GridData gridData3 = new GridData(SWT.LEFT, SWT.TOP, true, true);
-//      gridData3.horizontalSpan = 2;
-//        gridData3.widthHint = 400;
-//        gridData3.heightHint = 400;
-        scrolledComposite.setLayoutData(gridData3);
+        final Composite grid = PageService.createManagedVScrolledComposite(
+                parent,
+                scrolledComposite -> {
+                    final Composite result = this.tableContext
+                            .getWidgetFactory()
+                            .formGrid(scrolledComposite, 2);
+                    final GridLayout layout = (GridLayout) result.getLayout();
+                    layout.verticalSpacing = 0;
+                    return result;
+                },
+                false);
 
         final List<InputField> inputFields = new ArrayList<>();
-        final Composite grid = this.tableContext
-                .getWidgetFactory()
-                .formGrid(scrolledComposite, 2);
-        grid.setBackground(new Color(grid.getDisplay(), new RGB(100, 100, 100)));
-        final GridLayout layout = (GridLayout) grid.getLayout();
-        layout.verticalSpacing = 0;
-        final GridData gridData = (GridData) grid.getLayoutData();
-        gridData.grabExcessVerticalSpace = false;
-        gridData.verticalAlignment = SWT.ON_TOP;
-
-        scrolledComposite.setContent(grid);
-        scrolledComposite.setExpandHorizontal(true);
-        scrolledComposite.setExpandVertical(true);
-        scrolledComposite.setSize(parent.computeSize(400, SWT.DEFAULT));
-        scrolledComposite.setAlwaysShowScrollBars(true);
-        scrolledComposite.addListener(SWT.Resize, event -> {
-            scrolledComposite.setMinSize(grid.computeSize(400, SWT.DEFAULT));
-            //    main.setSize(shell.computeSize(this.dialogWidth, SWT.DEFAULT));
-            System.out.println("*************************");
-        });
-        grid.addListener(SWT.Resize, event -> {
-            //    main.setSize(shell.computeSize(this.dialogWidth, SWT.DEFAULT));
-            System.out.println("*************************");
-        });
-
         for (final ConfigurationAttribute attribute : this.tableContext.getRowAttributes()) {
             createLabel(grid, attribute);
             inputFields.add(createInputField(grid, attribute));

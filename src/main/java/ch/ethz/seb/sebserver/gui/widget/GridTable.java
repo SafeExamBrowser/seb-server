@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -34,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class GridTable extends Composite {
@@ -66,21 +66,17 @@ public class GridTable extends Composite {
         final GridLayout gridLayout = new GridLayout(columnDefs.size() + 1, false);
         gridLayout.verticalSpacing = 1;
         gridLayout.marginLeft = 0;
-        gridLayout.marginHeight = 0;
+        gridLayout.marginHeight = 5;
         gridLayout.marginWidth = 0;
         gridLayout.horizontalSpacing = 0;
         this.setLayout(gridLayout);
-        // this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         this.columns = new ArrayList<>();
         for (final ColumnDef columnDef : columnDefs) {
-            final Label label = new Label(this, SWT.NONE);
-            label.setText("column");
-//widgetFactory.labelLocalized(
-//                    this,
-//                    new LocTextKey(locTextKeyPrefix + columnDef.name));
+            final Label label = widgetFactory.labelLocalized(
+                    this,
+                    new LocTextKey(locTextKeyPrefix + columnDef.name));
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-            //       gridData.widthHint = 50;
             label.setLayoutData(gridData);
             this.columns.add(new Column(columnDef, label, gridData));
         }
@@ -88,7 +84,7 @@ public class GridTable extends Composite {
         this.addAction = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
-                new LocTextKey(locTextKeyPrefix + "addAction"),
+                new LocTextKey(locTextKeyPrefix + "removeAction"),
                 this::addRow);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.widthHint = ACTION_COLUMN_WIDTH;
@@ -118,16 +114,7 @@ public class GridTable extends Composite {
 
     public void adaptLayout() {
         this.getParent().getParent().layout(true, true);
-
-        Composite parent = this.getParent();
-        while (parent != null && !(parent instanceof ScrolledComposite)) {
-            parent = parent.getParent();
-        }
-
-        System.out.println("********************** " + parent);
-        if (parent != null) {
-            ((ScrolledComposite) parent).setMinSize(this.getParent().getParent().computeSize(400, SWT.DEFAULT));
-        }
+        PageService.updateScrolledComposite(this);
     }
 
     void addRow(final String values) {

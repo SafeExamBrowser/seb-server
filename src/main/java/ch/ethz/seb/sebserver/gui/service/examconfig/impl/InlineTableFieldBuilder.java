@@ -72,7 +72,7 @@ public class InlineTableFieldBuilder implements InputFieldBuilder {
                                 Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
                         .collect(Collectors.toMap(
                                 valueMap -> valueMap[0],
-                                valueMap -> (valueMap.length > 1) ? valueMap[1] : ""));
+                                valueMap -> (valueMap.length > 1) ? valueMap[1] : StringUtils.EMPTY));
 
         final List<ColumnDef> columns = Arrays.asList(StringUtils.split(
                 attribute.getResources(),
@@ -84,7 +84,7 @@ public class InlineTableFieldBuilder implements InputFieldBuilder {
         final GridTable gridTable = new GridTable(
                 innerGrid,
                 columns,
-                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX,
+                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".",
                 this.widgetFactory);
 
         final InlineTableInputField inlineTableInputField = new InlineTableInputField(

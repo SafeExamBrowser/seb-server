@@ -14,6 +14,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,6 +159,68 @@ public interface PageService {
         }
 
         return action;
+    }
+
+    /** Key to store the ScrolledComposite update function within Control data map */
+    static String SCROLLED_COMPOSITE_UPDATE = "SCROLLED_COMPOSITE_UPDATE";
+
+    /** Creates a ScrolledComposite with content supplied the given content creation function.
+     * The content creation function is used to create the content Composite as a child of the
+     * newly created ScrolledComposite.
+     * Also adds an update function within the ScrolledComposite Data mapping. If a child inside
+     * the ScrolledComposite changes its dimensions the method updateScrolledComposite must be
+     * called to update the ScrolledComposite scrolled content.
+     *
+     * @param parent the parent Composite of the ScrolledComposite
+     * @param contentFunction the content creation function
+     * @param showScrollbars indicates whether the scrollbar shall always be shown
+     * @return the child composite that is scrolled by the newly created ScrolledComposite */
+    static Composite createManagedVScrolledComposite(
+            final Composite parent,
+            final Function<ScrolledComposite, Composite> contentFunction,
+            final boolean showScrollbars) {
+
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
+        scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+
+        final Composite content = contentFunction.apply(scrolledComposite);
+        scrolledComposite.setContent(content);
+        scrolledComposite.setExpandHorizontal(true);
+        scrolledComposite.setExpandVertical(true);
+        scrolledComposite.setSize(parent.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        if (showScrollbars) {
+            scrolledComposite.setAlwaysShowScrollBars(true);
+        }
+
+        final Runnable update = () -> {
+            scrolledComposite.setMinSize(content.computeSize(SWT.DEFAULT - 20, SWT.DEFAULT));
+            ;
+        };
+
+        scrolledComposite.addListener(SWT.Resize, event -> update.run());
+        scrolledComposite.setData(SCROLLED_COMPOSITE_UPDATE, update);
+
+        return content;
+    }
+
+    /** Used to update the crolledComposite when some if its content has dynamically changed
+     * its dimensions.
+     *
+     * @param composite The Component that changed its dimensions */
+    static void updateScrolledComposite(final Composite composite) {
+        if (composite == null) {
+            return;
+        }
+
+        Composite parent = composite.getParent();
+        while (parent != null) {
+            final Object update = parent.getData(SCROLLED_COMPOSITE_UPDATE);
+            if (update != null) {
+                ((Runnable) update).run();
+                return;
+            }
+            parent = parent.getParent();
+        }
     }
 
     public class PageActionBuilder {

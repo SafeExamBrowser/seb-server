@@ -13,8 +13,6 @@ import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -78,9 +76,7 @@ public class ModalInputDialog<T> extends Dialog {
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, false, false);
         gridData.horizontalSpan = 2;
         gridData.widthHint = this.dialogWidth;
-        //  gridData.heightHint = 400;
         main.setLayoutData(gridData);
-        main.setBackground(new Color(shell.getDisplay(), new RGB(1, 2, 3)));
 
         final Supplier<T> valueSuppier = contentComposer.compose(main);
 

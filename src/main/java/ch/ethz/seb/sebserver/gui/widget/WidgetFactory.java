@@ -511,6 +511,9 @@ public class WidgetFactory {
         return imageUpload;
     }
 
+    // ************************************************************
+    //  TODO code from below should move to PolyglotPageService or a utility of that
+
     public void injectI18n(final ImageUpload imageUpload, final LocTextKey locTextKey) {
         final Consumer<ImageUpload> imageUploadFunction = iu -> {
             if (locTextKey != null) {
