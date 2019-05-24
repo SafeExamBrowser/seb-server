@@ -8,18 +8,32 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
 public interface XMLValueConverter {
+
+    Set<AttributeType> types();
 
     String name();
 
     void convertToXML(
             OutputStream out,
             ConfigurationAttribute attribute,
-            ConfigurationValue value);
+            ConfigurationValue value) throws IOException;
+
+    default String extractName(final ConfigurationAttribute attribute) {
+        final int lastIndexOf = attribute.name.lastIndexOf('.');
+        if (lastIndexOf > 0) {
+            return attribute.name.substring(lastIndexOf, attribute.name.length() - 1);
+        } else {
+            return attribute.name;
+        }
+    }
 
 }

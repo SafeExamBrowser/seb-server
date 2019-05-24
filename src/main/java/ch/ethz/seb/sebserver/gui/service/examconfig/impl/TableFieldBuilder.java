@@ -317,19 +317,19 @@ public class TableFieldBuilder implements InputFieldBuilder {
                                             this.attribute,
                                             this.tableContext.getViewContext().i18nSupport),
                                     values -> applyFormValues(values, selectionIndex),
+                                    () -> this.tableContext.getValueChangeListener()
+                                            .tableChanged(extractTableValue()),
                                     builder);
         }
 
         private void applyFormValues(final Map<Long, TableValue> values, final int index) {
-            final Map<Long, TableValue> tableRowValues = this.tableContext.getTableRowValues(index);
-            if (tableRowValues == null || tableRowValues.isEmpty()) {
-                return;
+            if (values != null && !values.isEmpty()) {
+                this.values.remove(index);
+                this.values.add(index, values);
+                applyTableRowValues(index);
             }
 
-            this.values.remove(index);
-            this.values.add(index, tableRowValues);
-            applyTableRowValues(index);
-            // send new values to web-service
+            // send values to web-service
             this.tableContext.getValueChangeListener()
                     .tableChanged(extractTableValue());
         }
@@ -372,13 +372,12 @@ public class TableFieldBuilder implements InputFieldBuilder {
 
         @Override
         protected void setValueToControl(final String value) {
-            //throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public String getValue() {
-            return null;
-            //throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
         }
     }
 

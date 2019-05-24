@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -47,6 +49,7 @@ public class ModalInputDialog<T> extends Dialog {
 
         super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL);
         this.widgetFactory = widgetFactory;
+
     }
 
     public ModalInputDialog<T> setDialogWidth(final int dialogWidth) {
@@ -57,6 +60,7 @@ public class ModalInputDialog<T> extends Dialog {
     public void open(
             final LocTextKey title,
             final Consumer<T> callback,
+            final Runnable cancelCallback,
             final ModalInputDialogComposer<T> contentComposer) {
 
         // Create the selection dialog window
@@ -65,15 +69,18 @@ public class ModalInputDialog<T> extends Dialog {
         shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
         shell.setText(this.widgetFactory.getI18nSupport().getText(title));
         shell.setLayout(new GridLayout(2, true));
-        shell.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, false, false);
+        gridData2.widthHint = this.dialogWidth;
+        shell.setLayoutData(gridData2);
 
         final Composite main = new Composite(shell, SWT.NONE);
         main.setLayout(new GridLayout());
-        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, false, false);
         gridData.horizontalSpan = 2;
         gridData.widthHint = this.dialogWidth;
-
+        //  gridData.heightHint = 400;
         main.setLayoutData(gridData);
+        main.setBackground(new Color(shell.getDisplay(), new RGB(1, 2, 3)));
 
         final Supplier<T> valueSuppier = contentComposer.compose(main);
 
@@ -84,11 +91,8 @@ public class ModalInputDialog<T> extends Dialog {
         ok.addListener(SWT.Selection, event -> {
             if (valueSuppier != null) {
                 final T result = valueSuppier.get();
-                if (result != null) {
-                    callback.accept(result);
-                    shell.close();
-                }
-
+                callback.accept(result);
+                shell.close();
             } else {
                 shell.close();
             }
@@ -101,6 +105,9 @@ public class ModalInputDialog<T> extends Dialog {
         data.widthHint = 100;
         cancel.setLayoutData(data);
         cancel.addListener(SWT.Selection, event -> {
+            if (cancelCallback != null) {
+                cancelCallback.run();
+            }
             shell.close();
         });
 

@@ -8,44 +8,51 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.StringUtils;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
 
-@Lazy
-@Component
-@WebServiceProfile
-public class KioskModeConverter implements XMLValueConverter {
+public class BooleanConverter implements XMLValueConverter {
 
-    public static final String NAME = "kioskMode";
+    public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(
+                    AttributeType.CHECKBOX)));
+
+    private static final StringBuilder BUILDER = new StringBuilder();
 
     @Override
     public String name() {
-        return NAME;
+        return StringUtils.EMPTY;
     }
 
     @Override
     public Set<AttributeType> types() {
-        return Collections.emptySet();
+        return SUPPORTED_TYPES;
     }
 
     @Override
     public void convertToXML(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value) {
+            final ConfigurationValue value) throws IOException {
 
-        // TODO Auto-generated method stub
-
+        BUILDER.setLength(0);
+        out.write(Utils.toByteArray(BUILDER.append("<key>")
+                .append(extractName(attribute))
+                .append("<")
+                .append((value.value != null) ? value.value : "false")
+                .append(" />")));
     }
 
 }

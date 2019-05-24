@@ -185,7 +185,7 @@ public class WidgetFactory {
         layout.marginLeft = 10;
         layout.marginTop = 0;
         grid.setLayout(layout);
-        grid.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         return grid;
     }
 

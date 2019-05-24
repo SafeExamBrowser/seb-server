@@ -158,7 +158,6 @@ public final class ThresholdList extends Composite {
 
     private void adaptColumnWidth(final Event event) {
         try {
-            // TODO
             final int currentTableWidth = this.getClientArea().width;
             final int dynWidth = currentTableWidth - ACTION_COLUMN_WIDTH;
             final int colWidth = dynWidth / 2;

@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -53,13 +56,38 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
     @Override
     public Supplier<Map<Long, TableValue>> compose(final Composite parent) {
 
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
+        final GridData gridData3 = new GridData(SWT.LEFT, SWT.TOP, true, true);
+//      gridData3.horizontalSpan = 2;
+//        gridData3.widthHint = 400;
+//        gridData3.heightHint = 400;
+        scrolledComposite.setLayoutData(gridData3);
+
         final List<InputField> inputFields = new ArrayList<>();
         final Composite grid = this.tableContext
                 .getWidgetFactory()
-                .formGrid(parent, 2);
-
+                .formGrid(scrolledComposite, 2);
+        grid.setBackground(new Color(grid.getDisplay(), new RGB(100, 100, 100)));
         final GridLayout layout = (GridLayout) grid.getLayout();
         layout.verticalSpacing = 0;
+        final GridData gridData = (GridData) grid.getLayoutData();
+        gridData.grabExcessVerticalSpace = false;
+        gridData.verticalAlignment = SWT.ON_TOP;
+
+        scrolledComposite.setContent(grid);
+        scrolledComposite.setExpandHorizontal(true);
+        scrolledComposite.setExpandVertical(true);
+        scrolledComposite.setSize(parent.computeSize(400, SWT.DEFAULT));
+        scrolledComposite.setAlwaysShowScrollBars(true);
+        scrolledComposite.addListener(SWT.Resize, event -> {
+            scrolledComposite.setMinSize(grid.computeSize(400, SWT.DEFAULT));
+            //    main.setSize(shell.computeSize(this.dialogWidth, SWT.DEFAULT));
+            System.out.println("*************************");
+        });
+        grid.addListener(SWT.Resize, event -> {
+            //    main.setSize(shell.computeSize(this.dialogWidth, SWT.DEFAULT));
+            System.out.println("*************************");
+        });
 
         for (final ConfigurationAttribute attribute : this.tableContext.getRowAttributes()) {
             createLabel(grid, attribute);
@@ -122,7 +150,7 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
         final Label label = this.tableContext
                 .getWidgetFactory()
                 .labelLocalized(parent, locTextKey);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
