@@ -82,12 +82,18 @@ public class MainPage implements TemplateComposer {
         navLayout.marginWidth = 0;
         nav.setLayout(navLayout);
 
-        final Composite content = new Composite(mainSash, SWT.NONE);
-        content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        final GridLayout contentOuterlayout = new GridLayout();
-        contentOuterlayout.marginHeight = 0;
-        contentOuterlayout.marginWidth = 0;
-        content.setLayout(contentOuterlayout);
+        final Composite content = PageService.createManagedVScrolledComposite(
+                mainSash,
+                scrolledComposite -> {
+                    final Composite reusult = new Composite(scrolledComposite, SWT.NONE);
+                    reusult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+                    final GridLayout contentOuterlayout = new GridLayout();
+                    contentOuterlayout.marginHeight = 0;
+                    contentOuterlayout.marginWidth = 0;
+                    reusult.setLayout(contentOuterlayout);
+                    return reusult;
+                },
+                false);
 
         final Label toggleView = this.widgetFactory.imageButton(
                 ImageIcon.MAXIMIZE,
@@ -130,7 +136,7 @@ public class MainPage implements TemplateComposer {
                         event.action.pageContext().copyOf(contentObjects)), 2));
 
         final Composite actionPane = new Composite(mainSash, SWT.NONE);
-        actionPane.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        actionPane.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         final GridLayout actionPaneGrid = new GridLayout();
         actionPane.setLayout(actionPaneGrid);
         actionPane.setData(RWT.CUSTOM_VARIANT, "actionPane");
