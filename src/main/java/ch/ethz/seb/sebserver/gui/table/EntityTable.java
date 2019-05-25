@@ -100,8 +100,8 @@ public class EntityTable<ROW extends Entity> {
         layout.horizontalSpacing = 0;
         layout.verticalSpacing = 0;
         this.composite.setLayout(layout);
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
-        gridData.heightHint = (pageSize + 2) * 40;
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        //      gridData.heightHint = (pageSize + 2) * 40;
         this.composite.setLayoutData(gridData);
 
 // TODO just for debugging, remove when tested
@@ -295,6 +295,9 @@ public class EntityTable<ROW extends Entity> {
                 .onError(t -> {
                     // TODO error handling
                 });
+
+        final GridData gridData = (GridData) this.composite.getLayoutData();
+        gridData.heightHint = (this.table.getItemCount() + 2) * 50;
 
         this.composite.layout(true, true);
     }

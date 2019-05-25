@@ -29,7 +29,8 @@ public class TableNavigator {
 
     TableNavigator(final EntityTable<?> entityTable) {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
-        this.composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        this.composite.setLayoutData(gridData);
 
 // TODO just for debugging, remove when tested
 //        this.composite.setBackground(new Color(entityTable.composite.getDisplay(), new RGB(200, 0, 0)));

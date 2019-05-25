@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
@@ -187,14 +188,16 @@ public interface PageService {
         scrolledComposite.setContent(content);
         scrolledComposite.setExpandHorizontal(true);
         scrolledComposite.setExpandVertical(true);
-        scrolledComposite.setSize(parent.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        final Point parentSize = parent.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+        scrolledComposite.setSize(parentSize);
         if (showScrollbars) {
             scrolledComposite.setAlwaysShowScrollBars(true);
         }
 
         final Runnable update = () -> {
-            scrolledComposite.setMinSize(content.computeSize(SWT.DEFAULT - 20, SWT.DEFAULT));
-            ;
+            final Point computeSize = content.computeSize(SWT.DEFAULT - 20, SWT.DEFAULT);
+            scrolledComposite.setMinSize(computeSize);
+
         };
 
         scrolledComposite.addListener(SWT.Resize, event -> update.run());
