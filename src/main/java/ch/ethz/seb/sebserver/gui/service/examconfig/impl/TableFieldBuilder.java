@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -291,9 +292,19 @@ public class TableFieldBuilder implements InputFieldBuilder {
             int cellIndex = 0;
             for (final ConfigurationAttribute attr : this.tableContext.getColumnAttributes()) {
                 if (rowValues.containsKey(attr.id)) {
-                    item.setText(
-                            cellIndex,
-                            this.tableContext.getRowValue(rowValues.get(attr.id)));
+                    final TableValue tableValue = rowValues.get(attr.id);
+                    if (attr.type == AttributeType.CHECKBOX) {
+
+                        item.setImage(
+                                cellIndex,
+                                (BooleanUtils.toBoolean((tableValue != null) ? tableValue.value : null))
+                                        ? ImageIcon.ACTIVE.getImage(this.control.getDisplay())
+                                        : ImageIcon.INACTIVE.getImage(this.control.getDisplay()));
+                    } else {
+                        item.setText(
+                                cellIndex,
+                                this.tableContext.getRowValue(tableValue));
+                    }
                 }
                 cellIndex++;
             }

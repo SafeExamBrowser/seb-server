@@ -160,7 +160,7 @@ public class WidgetFactory {
     public Composite defaultPageLayout(final Composite parent, final LocTextKey title) {
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
-        final GridData gridData = new GridData(SWT.TOP, SWT.TOP, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         labelLocalizedTitle.setLayoutData(gridData);
         return defaultPageLayout;
     }
@@ -172,7 +172,7 @@ public class WidgetFactory {
 
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
-        labelLocalizedTitle.setLayoutData(new GridData(SWT.TOP, SWT.TOP, true, false));
+        labelLocalizedTitle.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         return defaultPageLayout;
     }
 

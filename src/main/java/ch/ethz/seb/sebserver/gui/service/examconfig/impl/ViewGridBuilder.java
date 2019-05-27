@@ -132,17 +132,6 @@ public class ViewGridBuilder {
                     }
                     break;
                 }
-//                case LEFT_SPAN: {
-//                    int spanxpos = xpos - orientation.width;
-//                    if (spanxpos < 0) {
-//                        spanxpos = 0;
-//                    }
-//                    fillDummy(spanxpos, ypos, orientation.width, 1);
-//                    this.grid[ypos][spanxpos] = CellFieldBuilderAdapter.labelBuilder(
-//                            attribute,
-//                            orientation);
-//                    break;
-//                }
                 case TOP: {
                     fillDummy(xpos, ypos - 1, orientation.width, 1);
                     this.grid[ypos - 1][xpos] = CellFieldBuilderAdapter.labelBuilder(
@@ -178,7 +167,7 @@ public class ViewGridBuilder {
             for (int x = 0; x < this.grid[y].length; x++) {
                 if (this.grid[y][x] == null) {
                     final Label empty = new Label(this.parent, SWT.LEFT);
-                    final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+                    final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
                     gridData.verticalIndent = 8;
                     empty.setLayoutData(gridData);
                     empty.setText(StringUtils.EMPTY /* "empty " + x + " " + y */);
