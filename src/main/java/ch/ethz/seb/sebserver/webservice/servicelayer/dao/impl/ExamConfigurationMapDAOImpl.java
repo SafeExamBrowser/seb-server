@@ -25,6 +25,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfigurationMap;
@@ -39,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamConfigurationMapRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -53,15 +56,18 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     private final ExamRecordMapper examRecordMapper;
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
+    private final ClientCredentialService clientCredentialService;
 
     protected ExamConfigurationMapDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper,
-            final ConfigurationNodeRecordMapper configurationNodeRecordMapper) {
+            final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
+            final ClientCredentialService clientCredentialService) {
 
         this.examRecordMapper = examRecordMapper;
         this.examConfigurationMapRecordMapper = examConfigurationMapRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
+        this.clientCredentialService = clientCredentialService;
     }
 
     @Override
@@ -127,7 +133,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                             data.institutionId,
                             data.examId,
                             data.configurationNodeId,
-                            data.userNames);
+                            data.userNames,
+                            getEncryptionPassword(data));
 
                     this.examConfigurationMapRecordMapper.insert(newRecord);
                     return newRecord;
@@ -146,7 +153,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     null,
                     null,
                     null,
-                    data.userNames);
+                    data.userNames,
+                    getEncryptionPassword(data));
 
             this.examConfigurationMapRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
@@ -221,7 +229,9 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 record.getInstitutionId(),
                 record.getExamId(),
                 record.getConfigurationNodeId(),
-                record.getUserNames()));
+                record.getUserNames(),
+                null,
+                null));
     }
 
     private Result<ExamConfigurationMap> checkMappingIntegrity(final ExamConfigurationMap data) {
@@ -314,6 +324,18 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
                     .collect(Collectors.toList());
         });
+    }
+
+    private String getEncryptionPassword(final ExamConfigurationMap examConfigurationMap) {
+        if (examConfigurationMap.hasEncryptionSecret() &&
+                !examConfigurationMap.encryptSecret.equals(examConfigurationMap.confirmEncryptSecret)) {
+            throw new APIMessageException(ErrorMessage.PASSWORD_MISMATCH);
+        }
+
+        final CharSequence encrypted_encrypt_secret = examConfigurationMap.hasEncryptionSecret()
+                ? this.clientCredentialService.encrypt(examConfigurationMap.encryptSecret)
+                : null;
+        return (encrypted_encrypt_secret != null) ? encrypted_encrypt_secret.toString() : null;
     }
 
 }

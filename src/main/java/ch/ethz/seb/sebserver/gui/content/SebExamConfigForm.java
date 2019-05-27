@@ -114,7 +114,7 @@ public class SebExamConfigForm implements TemplateComposer {
             final List<View> views = this.examConfigurationService.getViews(attributes);
 
             final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
-            tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
             final List<ViewContext> viewContexts = new ArrayList<>();
             for (final View view : views) {

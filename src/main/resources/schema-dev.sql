@@ -320,6 +320,7 @@ CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
   `exam_id` BIGINT UNSIGNED NOT NULL,
   `configuration_node_id` BIGINT UNSIGNED NOT NULL,
   `user_names` VARCHAR(4000) NULL,
+  `encrypt_secret` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `exam_ref_idx` (`exam_id` ASC),
   INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC),

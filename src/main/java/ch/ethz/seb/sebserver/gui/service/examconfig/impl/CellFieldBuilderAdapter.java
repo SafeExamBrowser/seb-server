@@ -207,7 +207,7 @@ interface CellFieldBuilderAdapter {
                     this.width,
                     groupLabelKey,
                     groupTooltipKey);
-            group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height));
+            group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, this.width, this.height));
 
             final ViewGridBuilder groupBuilder = new ViewGridBuilder(
                     group,

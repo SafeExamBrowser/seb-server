@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 
@@ -118,8 +119,9 @@ public class ComposerServiceImpl implements ComposerService {
 
             try {
                 composer.compose(pageContext);
-            } catch (final Exception e) {
-                log.warn("Failed to compose: {}, pageContext: {}", name, pageContext, e);
+                PageService.updateScrolledComposite(pageContext.getParent());
+            } catch (final Throwable e) {
+                log.error("Failed to compose: {}, pageContext: {}", name, pageContext, e);
             }
 
             try {

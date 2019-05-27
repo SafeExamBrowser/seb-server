@@ -17,9 +17,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
@@ -187,6 +189,10 @@ public class TableContext {
     }
 
     public String getRowValue(final TableValue tableValue) {
+        if (tableValue == null || StringUtils.isBlank(tableValue.value)) {
+            return Constants.EMPTY_NOTE;
+        }
+
         final ConfigurationAttribute attribute = this.viewContext.getAttribute(tableValue.attributeId);
         if (attribute != null) {
             switch (attribute.type) {
