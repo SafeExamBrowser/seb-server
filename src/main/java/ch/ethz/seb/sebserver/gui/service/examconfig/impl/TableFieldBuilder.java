@@ -298,8 +298,8 @@ public class TableFieldBuilder implements InputFieldBuilder {
                         item.setImage(
                                 cellIndex,
                                 (BooleanUtils.toBoolean((tableValue != null) ? tableValue.value : null))
-                                        ? ImageIcon.ACTIVE.getImage(this.control.getDisplay())
-                                        : ImageIcon.INACTIVE.getImage(this.control.getDisplay()));
+                                        ? ImageIcon.YES.getImage(this.control.getDisplay())
+                                        : ImageIcon.NO.getImage(this.control.getDisplay()));
                     } else {
                         item.setText(
                                 cellIndex,

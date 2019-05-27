@@ -8,14 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.function.Function;
-
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -114,7 +111,7 @@ public class SebExamConfigList implements TemplateComposer {
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
-                                        examConfigInstitutionNameFunction(this.resourceService),
+                                        this.resourceService::localizedExamConfigInstitutionName,
                                         this.institutionFilter,
                                         false))
                         .withColumn(new ColumnDefinition<>(
@@ -132,7 +129,7 @@ public class SebExamConfigList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.CONFIGURATION_NODE.ATTR_STATUS,
                                 STATUS_TEXT_KEY,
-                                this::examConfigStatusName,
+                                this.resourceService::localizedExamConfigStatusName,
                                 this.statusFilter,
                                 true))
                         .withDefaultAction(pageActionBuilder
@@ -141,7 +138,6 @@ public class SebExamConfigList implements TemplateComposer {
                         .compose(content);
 
         final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
-
         pageActionBuilder
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
@@ -158,22 +154,6 @@ public class SebExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && table.hasAnyContent());
-    }
-
-    private static Function<ConfigurationNode, String> examConfigInstitutionNameFunction(
-            final ResourceService resourceService) {
-
-        return config -> resourceService.getInstitutionNameFunction()
-                .apply(String.valueOf(config.institutionId));
-    }
-
-    private String examConfigStatusName(final ConfigurationNode config) {
-        if (config.status == null) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        return this.resourceService.getI18nSupport()
-                .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.status.name());
     }
 
 }

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content.activity;
 
 import ch.ethz.seb.sebserver.gui.content.ExamForm;
 import ch.ethz.seb.sebserver.gui.content.ExamList;
+import ch.ethz.seb.sebserver.gui.content.ExamSebConfigMapForm;
 import ch.ethz.seb.sebserver.gui.content.IndicatorForm;
 import ch.ethz.seb.sebserver.gui.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.content.InstitutionList;
@@ -49,6 +50,7 @@ public enum PageStateDefinition implements PageState {
     EXAM_LIST(Type.LIST_VIEW, ExamList.class, ActivityDefinition.EXAM),
     EXAM_VIEW(Type.FORM_VIEW, ExamForm.class, ActivityDefinition.EXAM),
     EXAM_EDIT(Type.FORM_EDIT, ExamForm.class, ActivityDefinition.EXAM),
+    EXAM_CONFIG_MAP_EDIT(Type.FORM_EDIT, ExamSebConfigMapForm.class, ActivityDefinition.EXAM),
     INDICATOR_EDIT(Type.FORM_EDIT, IndicatorForm.class, ActivityDefinition.EXAM),
 
     SEB_CLIENT_CONFIG_LIST(Type.LIST_VIEW, SebClientConfigList.class, ActivityDefinition.SEB_CLIENT_CONFIG),

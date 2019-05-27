@@ -24,17 +24,23 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
@@ -105,6 +111,28 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> examConfigurationSelectionResources() {
+        return getExamConfigurationSelection()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .collect(Collectors.toList());
+    }
+
+//    public Function<String, String> getExamConfigurationNameFunction() {
+//        final Map<String, String> idNameMap = getExamConfigurationSelection()
+//                .getOr(Collections.emptyList())
+//                .stream()
+//                .collect(Collectors.toMap(e -> e.modelId, e -> e.name));
+//
+//        return id -> {
+//            if (!idNameMap.containsKey(id)) {
+//                return Constants.EMPTY_NOTE;
+//            }
+//            return idNameMap.get(id);
+//        };
+//    }
+
     public List<Tuple<String>> userRoleResources() {
         return UserRole.publicRolesForUser(this.currentUser.get())
                 .stream()
@@ -125,7 +153,6 @@ public class ResourceService {
     }
 
     public Function<String, String> getInstitutionNameFunction() {
-
         final Map<String, String> idNameMap = this.restService.getBuilder(GetInstitutionNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .call()
@@ -246,6 +273,43 @@ public class ResourceService {
         return activity -> activity
                 ? this.i18nSupport.getText(ACTIVE_TEXT_KEY)
                 : this.i18nSupport.getText(INACTIVE_TEXT_KEY);
+    }
+
+    public String localizedExamConfigInstitutionName(final ConfigurationNode config) {
+        return getInstitutionNameFunction()
+                .apply(String.valueOf(config.institutionId));
+    }
+
+    public String localizedExamConfigStatusName(final ConfigurationNode config) {
+        if (config.status == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.status.name());
+    }
+
+    public String localizedExamConfigStatusName(final ExamConfigurationMap config) {
+        if (config.configStatus == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
+    }
+
+    private Result<List<EntityName>> getExamConfigurationSelection() {
+        return this.restService.getBuilder(GetExamConfigMappingNames.class)
+                .withQueryParam(
+                        Entity.FILTER_ATTR_INSTITUTION,
+                        String.valueOf(this.currentUser.get().institutionId))
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_TYPE,
+                        ConfigurationType.EXAM_CONFIG.name())
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_STATUS,
+                        ConfigurationStatus.READY_TO_USE.name())
+                .call();
     }
 
 }

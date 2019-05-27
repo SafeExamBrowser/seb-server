@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
@@ -79,7 +81,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Transactional(readOnly = true)
     public Result<ExamConfigurationMap> byPK(final Long id) {
         return recordById(id)
-                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel);
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -91,7 +93,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(ExamConfigurationMapDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
@@ -117,7 +119,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ExamConfigurationMapDAOImpl::toDomainModel)
+                .map(this::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
@@ -139,7 +141,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     this.examConfigurationMapRecordMapper.insert(newRecord);
                     return newRecord;
                 })
-                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -159,7 +161,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
             this.examConfigurationMapRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
         })
-                .flatMap(ExamConfigurationMapDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -223,15 +225,25 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         });
     }
 
-    private static Result<ExamConfigurationMap> toDomainModel(final ExamConfigurationMapRecord record) {
-        return Result.tryCatch(() -> new ExamConfigurationMap(
-                record.getId(),
-                record.getInstitutionId(),
-                record.getExamId(),
-                record.getConfigurationNodeId(),
-                record.getUserNames(),
-                null,
-                null));
+    private Result<ExamConfigurationMap> toDomainModel(final ExamConfigurationMapRecord record) {
+        return Result.tryCatch(() -> {
+
+            final ConfigurationNodeRecord selectByPrimaryKey = this.configurationNodeRecordMapper
+                    .selectByPrimaryKey(record.getConfigurationNodeId());
+            final String status = selectByPrimaryKey.getStatus();
+
+            return new ExamConfigurationMap(
+                    record.getId(),
+                    record.getInstitutionId(),
+                    record.getExamId(),
+                    record.getConfigurationNodeId(),
+                    record.getUserNames(),
+                    null,
+                    null,
+                    selectByPrimaryKey.getName(),
+                    selectByPrimaryKey.getDescription(),
+                    (StringUtils.isNotBlank(status)) ? ConfigurationStatus.valueOf(status) : null);
+        });
     }
 
     private Result<ExamConfigurationMap> checkMappingIntegrity(final ExamConfigurationMap data) {

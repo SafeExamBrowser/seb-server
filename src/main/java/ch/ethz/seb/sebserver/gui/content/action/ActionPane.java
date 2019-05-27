@@ -119,9 +119,9 @@ public class ActionPane implements TemplateComposer {
             }
         }
 
-        final Label labelSeparator = this.widgetFactory.labelSeparator(composite);
-        final GridData separatorLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
-        labelSeparator.setLayoutData(separatorLayout);
+//        final Label labelSeparator = this.widgetFactory.labelSeparator(composite);
+//        final GridData separatorLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
+//        labelSeparator.setLayoutData(separatorLayout);
 
         // title
         if (category.title != null) {
@@ -140,7 +140,7 @@ public class ActionPane implements TemplateComposer {
                 composite,
                 SWT.SINGLE | SWT.FULL_SELECTION);
         actions.setData(RWT.CUSTOM_VARIANT, "actions");
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         actions.setLayoutData(gridData);
         final Template template = new Template();
         final ImageCell imageCell = new ImageCell(template);

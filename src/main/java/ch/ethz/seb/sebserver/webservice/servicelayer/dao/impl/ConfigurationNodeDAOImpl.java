@@ -213,9 +213,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     data.id,
                     null,
                     null,
+                    null,
                     data.name,
                     data.description,
-                    null,
                     null,
                     (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
 
