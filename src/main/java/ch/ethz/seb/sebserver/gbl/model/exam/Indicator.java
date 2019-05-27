@@ -29,7 +29,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Indicator implements Entity {
 
-    public static final String FILTER_ATTR_EXAM = "exam";
+    public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
         LAST_PING,

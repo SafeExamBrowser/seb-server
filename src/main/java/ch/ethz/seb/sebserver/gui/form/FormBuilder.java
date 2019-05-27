@@ -256,7 +256,7 @@ public class FormBuilder {
     Label valueLabel(final Composite parent, final String value, final int hspan) {
         final Label label = new Label(parent, SWT.NONE);
         label.setText((StringUtils.isNoneBlank(value)) ? value : Constants.EMPTY_NOTE);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, hspan, 1);
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false, hspan, 1);
         gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
         return label;

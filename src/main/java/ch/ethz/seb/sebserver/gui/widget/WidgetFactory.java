@@ -68,6 +68,7 @@ public class WidgetFactory {
         ADD_BOX("add_box.png"),
         REMOVE_BOX("remove_box.png"),
         EDIT("edit.png"),
+        EDIT_SETTINGS("settings.png"),
         TEST("test.png"),
         IMPORT("import.png"),
         CANCEL("cancel.png"),
@@ -75,10 +76,13 @@ public class WidgetFactory {
         SHOW("show.png"),
         ACTIVE("active.png"),
         INACTIVE("inactive.png"),
+        YES("yes.png"),
+        NO("no.png"),
         SAVE("save.png"),
         NEW("new.png"),
         DELETE("delete.png"),
         SEARCH("lens.png"),
+        UNDO("undo.png"),
         COLOR("color.png");
 
         private String fileName;

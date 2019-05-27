@@ -143,6 +143,24 @@ public final class Form implements FormBinding {
         this.formFields.add(name, createAccessor(label, imageUpload));
     }
 
+    public String getFieldValue(final String attributeName) {
+        final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
+        if (fieldAccessor == null) {
+            return null;
+        }
+
+        return fieldAccessor.getStringValue();
+    }
+
+    public void setFieldValue(final String attributeName, final String attributeValue) {
+        final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
+        if (fieldAccessor == null) {
+            return;
+        }
+
+        fieldAccessor.setStringValue(attributeValue);
+    }
+
     public void allVisible() {
         process(
                 name -> true,
@@ -208,11 +226,13 @@ public final class Form implements FormBinding {
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
         return new FormFieldAccessor(label, field) {
             @Override public String getStringValue() { return null; }
+            @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Text text) {
         return new FormFieldAccessor(label, text) {
             @Override public String getStringValue() { return text.getText(); }
+            @Override public void setStringValue(final String value) { text.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Selection selection) {
@@ -234,6 +254,7 @@ public final class Form implements FormBinding {
                 jsonValueAdapter,
                 selection.type() != Type.SINGLE) {
             @Override public String getStringValue() { return selection.getSelectionValue(); }
+            @Override public void setStringValue(final String value) { selection.select(value); }
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList) {
@@ -355,6 +376,10 @@ public final class Form implements FormBinding {
         }
 
         public abstract String getStringValue();
+
+        public void setStringValue(final String value) {
+            throw new UnsupportedOperationException();
+        }
 
         public void setVisible(final boolean visible) {
             this.label.setVisible(visible);

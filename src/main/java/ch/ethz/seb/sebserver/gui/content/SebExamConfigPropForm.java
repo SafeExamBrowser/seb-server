@@ -134,7 +134,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
-                        examConfig.description).asArea())
+                        examConfig.description)
+                        .asArea())
                 .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,

@@ -43,6 +43,10 @@ public class IndicatorForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(IndicatorForm.class);
 
+    private static final LocTextKey NEW_INDICATOR_TILE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.title.new");
+    private static final LocTextKey INDICATOR_TILE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.title");
     private static final LocTextKey FORM_THRESHOLDS_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.form.thresholds");
     private static final LocTextKey FORM_COLOR_TEXT_KEY =
@@ -100,10 +104,9 @@ public class IndicatorForm implements TemplateComposer {
         final PageContext formContext = pageContext.withEntityKey(indicator.getEntityKey());
 
         // the default page layout
-        final LocTextKey titleKey = new LocTextKey(
-                (isNew)
-                        ? "sebserver.exam.indicator.form.title.new"
-                        : "sebserver.exam.indicator.form.title");
+        final LocTextKey titleKey = (isNew)
+                ? NEW_INDICATOR_TILE_TEXT_KEY
+                : INDICATOR_TILE_TEXT_KEY;
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);

@@ -228,10 +228,37 @@ public enum ActionDefinition {
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.FORM),
 
+    EXAM_CONFIGURATION_NEW(
+            new LocTextKey("sebserver.exam.configuration.action.list.new"),
+            ImageIcon.NEW,
+            PageStateDefinition.EXAM_CONFIG_MAP_EDIT,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.exam.configuration.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinition.EXAM_CONFIG_MAP_EDIT,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_DELETE_FROM_LIST(
+            new LocTextKey("sebserver.exam.configuration.action.list.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinition.EXAM_VIEW,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_SAVE(
+            new LocTextKey("sebserver.exam.configuration.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinition.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_CONFIGURATION_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinition.EXAM_VIEW,
+            ActionCategory.FORM),
+
     EXAM_INDICATOR_NEW(
             new LocTextKey("sebserver.exam.indicator.action.list.new"),
             ImageIcon.NEW,
-            PageStateDefinition.INDICATOR_EDIT),
+            PageStateDefinition.INDICATOR_EDIT,
+            ActionCategory.INDICATOR_LIST),
     EXAM_INDICATOR_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.exam.indicator.action.list.modify"),
             ImageIcon.EDIT,
@@ -325,7 +352,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_MODIFY(
             new LocTextKey("sebserver.examconfig.action.modify"),
-            ImageIcon.EDIT,
+            ImageIcon.EDIT_SETTINGS,
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_CANCEL_MODIFY(
@@ -341,7 +368,7 @@ public enum ActionDefinition {
 
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify"),
-            ImageIcon.EDIT,
+            ImageIcon.EDIT_SETTINGS,
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
@@ -352,7 +379,7 @@ public enum ActionDefinition {
             ActionCategory.SEB_EXAM_CONFIG_LIST),
     SEB_EXAM_CONFIG_UNDO(
             new LocTextKey("sebserver.examconfig.action.undo"),
-            ImageIcon.SAVE,
+            ImageIcon.UNDO,
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 

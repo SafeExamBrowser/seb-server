@@ -101,7 +101,6 @@ public class EntityTable<ROW extends Entity> {
         layout.verticalSpacing = 0;
         this.composite.setLayout(layout);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        //      gridData.heightHint = (pageSize + 2) * 40;
         this.composite.setLayoutData(gridData);
 
 // TODO just for debugging, remove when tested
@@ -223,6 +222,19 @@ public class EntityTable<ROW extends Entity> {
         return getRowDataId(selection[0]);
     }
 
+    public ROW getFirstRowData() {
+        if (!this.hasAnyContent()) {
+            return null;
+        }
+
+        final TableItem item = this.table.getItem(0);
+        if (item == null) {
+            return null;
+        }
+
+        return getRowData(item);
+    }
+
     public ROW getSelectedROWData() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
@@ -295,9 +307,6 @@ public class EntityTable<ROW extends Entity> {
                 .onError(t -> {
                     // TODO error handling
                 });
-
-        final GridData gridData = (GridData) this.composite.getLayoutData();
-        gridData.heightHint = (this.table.getItemCount() + 2) * 50;
 
         this.composite.layout(true, true);
     }
@@ -405,9 +414,9 @@ public class EntityTable<ROW extends Entity> {
 
     private static void addBooleanCell(final TableItem item, final int index, final Object value) {
         if ((Boolean) value) {
-            item.setImage(index, ImageIcon.ACTIVE.getImage(item.getDisplay()));
+            item.setImage(index, ImageIcon.YES.getImage(item.getDisplay()));
         } else {
-            item.setImage(index, ImageIcon.INACTIVE.getImage(item.getDisplay()));
+            item.setImage(index, ImageIcon.NO.getImage(item.getDisplay()));
         }
     }
 

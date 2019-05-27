@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.function.BooleanSupplier;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -23,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -42,8 +46,10 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
@@ -62,28 +68,50 @@ public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
-    private static final LocTextKey FORM_SUPPORTER_TEXT_KEY = new LocTextKey("sebserver.exam.form.supporter");
-    private static final LocTextKey FORM_STATUS_TEXT_KEY = new LocTextKey("sebserver.exam.form.status");
-    private static final LocTextKey FORM_TYPE_TEXT_KEY = new LocTextKey("sebserver.exam.form.type");
-    private static final LocTextKey FORM_ENDTIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.endtime");
-    private static final LocTextKey FORM_STARTTIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.starttime");
-    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY = new LocTextKey("sebserver.exam.form.description");
-    private static final LocTextKey FORM_NAME_TEXT_KEY = new LocTextKey("sebserver.exam.form.name");
-    private static final LocTextKey FORM_QUIZID_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizid");
-    private static final LocTextKey FORM_LMSSETUP_TEXT_KEY = new LocTextKey("sebserver.exam.form.lmssetup");
-
     private final PageService pageService;
     private final ResourceService resourceService;
 
-    private final static LocTextKey listTitleKey =
+    private static final LocTextKey CONFIG_EMPTY_LIST_MESSAGE =
+            new LocTextKey("sebserver.exam.configuration.list.empty");
+    private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
+            new LocTextKey("sebserver.exam.indicator.list.empty");
+    private static final LocTextKey FORM_SUPPORTER_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.supporter");
+    private static final LocTextKey FORM_STATUS_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.status");
+    private static final LocTextKey FORM_TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.type");
+    private static final LocTextKey FORM_ENDTIME_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.endtime");
+    private static final LocTextKey FORM_STARTTIME_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.starttime");
+    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.description");
+    private static final LocTextKey FORM_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.name");
+    private static final LocTextKey FORM_QUIZID_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.quizid");
+    private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.lmssetup");
+
+    private final static LocTextKey CONFIG_LIST_TITLE_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.title");
+    private final static LocTextKey CONFIG_NAME_COLUMN_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.column.name");
+    private final static LocTextKey CONFIG_DESCRIPTION_COLUMN_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.column.description");
+    private final static LocTextKey CONFIG_STATUS_COLUMN_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.column.status");
+
+    private final static LocTextKey INDICATOR_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.indicator.list.title");
-    private final static LocTextKey typeColumnKey =
+    private final static LocTextKey INDICATOR_TYPE_COLUMN_KEY =
             new LocTextKey("sebserver.exam.indicator.list.column.type");
-    private final static LocTextKey nameColumnKey =
+    private final static LocTextKey INDICATOR_NAME_COLUMN_KEY =
             new LocTextKey("sebserver.exam.indicator.list.column.name");
-    private final static LocTextKey thresholdColumnKey =
+    private final static LocTextKey INDICATOR_THRESHOLD_COLUMN_KEY =
             new LocTextKey("sebserver.exam.indicator.list.column.thresholds");
-    private final static LocTextKey emptySelectionTextKey =
+    private final static LocTextKey INDICATOR_EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
 
     protected ExamForm(
@@ -162,7 +190,6 @@ public class ExamForm implements TemplateComposer {
                 .putStaticValueIf(isNew,
                         QuizData.QUIZ_ATTR_ID,
                         exam.externalId)
-
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_LMS_SETUP_ID,
                         FORM_LMSSETUP_TEXT_KEY,
@@ -237,35 +264,102 @@ public class ExamForm implements TemplateComposer {
                 .publishIf(() -> !readonly);
 
         // additional data in read-only view
-        if (readonly) {
+        if (readonly && !importFromQuizData) {
+
+            // List of SEB Configuration
+            widgetFactory.labelLocalized(
+                    content,
+                    CustomVariant.TEXT_H3,
+                    CONFIG_LIST_TITLE_KEY);
+
+            final EntityTable<ExamConfigurationMap> configurationTable =
+                    this.pageService.entityTableBuilder(restService.getRestCall(GetExamConfigMappingsPage.class))
+                            .withRestCallAdapter(builder -> builder.withQueryParam(
+                                    ExamConfigurationMap.FILTER_ATTR_EXAM_ID,
+                                    entityKey.modelId))
+                            .withEmptyMessage(CONFIG_EMPTY_LIST_MESSAGE)
+                            .withPaging(1)
+                            .hideNavigation()
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CONFIGURATION_NODE.ATTR_NAME,
+                                    CONFIG_NAME_COLUMN_KEY,
+                                    ExamConfigurationMap::getConfigName,
+                                    false))
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
+                                    CONFIG_DESCRIPTION_COLUMN_KEY,
+                                    ExamConfigurationMap::getConfigDescription,
+                                    false))
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CONFIGURATION_NODE.ATTR_STATUS,
+                                    CONFIG_STATUS_COLUMN_KEY,
+                                    this.resourceService::localizedExamConfigStatusName,
+                                    false))
+                            .withDefaultActionIf(
+                                    () -> editable,
+                                    () -> actionBuilder
+                                            .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
+                                            .create())
+
+                            .compose(content);
+
+            final EntityKey configMapKey = (configurationTable.hasAnyContent())
+                    ? configurationTable.getFirstRowData().getEntityKey()
+                    : null;
+
+            actionBuilder
+
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_NEW)
+                    .withParentEntityKey(entityKey)
+                    .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
+
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
+                    .withParentEntityKey(entityKey)
+                    .withEntityKey(configMapKey)
+                    .publishIf(() -> modifyGrant && editable && configurationTable.hasAnyContent())
+
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
+                    .withEntityKey(entityKey)
+                    .withSelect(
+                            () -> {
+                                final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
+                                if (firstRowData == null) {
+                                    return Collections.emptySet();
+                                } else {
+                                    return new HashSet<>(Arrays.asList(firstRowData.getEntityKey()));
+                                }
+                            },
+                            this::deleteExamConfigMapping,
+                            null)
+                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable);
 
             // List of Indicators
             widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
-                    listTitleKey);
+                    INDICATOR_LIST_TITLE_KEY);
 
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(restService.getRestCall(GetIndicators.class))
                             .withRestCallAdapter(builder -> builder.withQueryParam(
-                                    Indicator.FILTER_ATTR_EXAM,
+                                    Indicator.FILTER_ATTR_EXAM_ID,
                                     entityKey.modelId))
-                            .withEmptyMessage(new LocTextKey("sebserver.exam.indicator.list.empty"))
+                            .withEmptyMessage(INDICATOR_EMPTY_LIST_MESSAGE)
                             .withPaging(5)
                             .hideNavigation()
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_NAME,
-                                    nameColumnKey,
+                                    INDICATOR_NAME_COLUMN_KEY,
                                     Indicator::getName,
                                     false))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_TYPE,
-                                    typeColumnKey,
+                                    INDICATOR_TYPE_COLUMN_KEY,
                                     this::indicatorTypeName,
                                     false))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.THRESHOLD.REFERENCE_NAME,
-                                    thresholdColumnKey,
+                                    INDICATOR_THRESHOLD_COLUMN_KEY,
                                     ExamForm::thresholdsValue,
                                     false))
                             .withDefaultActionIf(
@@ -285,18 +379,20 @@ public class ExamForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
-                    .withSelect(indicatorTable::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
+                    .withSelect(
+                            indicatorTable::getSelection,
+                            PageAction::applySingleSelection,
+                            INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
-                    .withSelect(indicatorTable::getSelection, this::deleteSelectedIndicator, emptySelectionTextKey)
+                    .withSelect(
+                            indicatorTable::getSelection,
+                            this::deleteSelectedIndicator,
+                            INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
-
-            // TODO List of attached SEB Configurations
-
         }
-
     }
 
     private PageAction deleteSelectedIndicator(final PageAction action) {
@@ -304,6 +400,15 @@ public class ExamForm implements TemplateComposer {
         this.resourceService.getRestService()
                 .getBuilder(DeleteIndicator.class)
                 .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
+                .call();
+        return action;
+    }
+
+    private PageAction deleteExamConfigMapping(final PageAction action) {
+        final EntityKey examConfigMappingKey = action.getSingleSelection();
+        this.resourceService.getRestService()
+                .getBuilder(DeleteExamConfigMapping.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examConfigMappingKey.modelId)
                 .call();
         return action;
     }
