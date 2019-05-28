@@ -11,15 +11,31 @@ package ch.ethz.seb.sebserver.gui.service.i18n.impl;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 
 /** Service that supports page language change on the fly */
 @Lazy
@@ -53,6 +69,224 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                 comp -> ((Consumer<Control>) comp.getData(POLYGLOT_WIDGET_FUNCTION_KEY)).accept(comp));
 
         root.layout(true, true);
+    }
+
+    @Override
+    public void injectI18n(final ImageUpload imageUpload, final LocTextKey locTextKey) {
+        final Consumer<ImageUpload> imageUploadFunction = iu -> {
+            if (locTextKey != null) {
+                iu.setSelectionText(this.i18nSupport.getText(locTextKey));
+            }
+        };
+        imageUpload.setData(POLYGLOT_WIDGET_FUNCTION_KEY, imageUploadFunction);
+        imageUploadFunction.accept(imageUpload);
+    }
+
+    @Override
+    public void injectI18n(final Label label, final LocTextKey locTextKey) {
+        injectI18n(label, locTextKey, null);
+    }
+
+    @Override
+    public void injectI18n(final Label label, final LocTextKey locTextKey, final LocTextKey locToolTipKey) {
+        final Consumer<Label> labelFunction = labelFunction(locTextKey, locToolTipKey, this.i18nSupport);
+        label.setData(POLYGLOT_WIDGET_FUNCTION_KEY, labelFunction);
+        labelFunction.accept(label);
+    }
+
+    @Override
+    public void injectI18n(final Group group, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        final Consumer<Group> groupFunction = groupFunction(locTextKey, locTooltipKey, this.i18nSupport);
+        group.setData(POLYGLOT_WIDGET_FUNCTION_KEY, groupFunction);
+        groupFunction.accept(group);
+    }
+
+    @Override
+    public void injectI18n(final Button button, final LocTextKey locTextKey) {
+        injectI18n(button, locTextKey, null);
+    }
+
+    @Override
+    public void injectI18n(final Button button, final LocTextKey locTextKey, final LocTextKey locToolTipKey) {
+        final Consumer<Button> buttonFunction = b -> {
+            if (locTextKey != null) {
+                b.setText(this.i18nSupport.getText(locTextKey));
+            }
+            if (locToolTipKey != null) {
+                b.setToolTipText(this.i18nSupport.getText(locToolTipKey));
+            }
+        };
+        button.setData(POLYGLOT_WIDGET_FUNCTION_KEY, buttonFunction);
+        buttonFunction.accept(button);
+    }
+
+    @Override
+    public void injectI18n(final Tree tree) {
+        tree.setData(
+                POLYGLOT_WIDGET_FUNCTION_KEY,
+                (Consumer<Tree>) t -> updateLocale(t.getItems(), this.i18nSupport));
+    }
+
+    @Override
+    public void injectI18n(final TreeItem treeItem, final LocTextKey locTextKey) {
+        treeItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        treeItem.setText(this.i18nSupport.getText(locTextKey));
+    }
+
+    @Override
+    public void injectI18n(final Table table) {
+        table.setData(
+                POLYGLOT_WIDGET_FUNCTION_KEY,
+                (Consumer<Table>) t -> {
+                    updateLocale(t.getColumns(), this.i18nSupport);
+                    updateLocale(t.getItems(), this.i18nSupport);
+                });
+    }
+
+    @Override
+    public void injectI18n(final TabFolder tabFolder) {
+        tabFolder.setData(
+                POLYGLOT_WIDGET_FUNCTION_KEY,
+                (Consumer<TabFolder>) t -> updateLocale(t.getItems(), this.i18nSupport));
+    }
+
+    @Override
+    public void injectI18n(final TableColumn tableColumn, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        tableColumn.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        tableColumn.setText(this.i18nSupport.getText(locTextKey));
+
+        if (locTooltipKey != null) {
+            tableColumn.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            tableColumn.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+        }
+    }
+
+    @Override
+    public void injectI18n(final TableItem tableItem, final LocTextKey... locTextKey) {
+        if (locTextKey == null) {
+            return;
+        }
+
+        tableItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        for (int i = 0; i < locTextKey.length; i++) {
+            tableItem.setText(i, this.i18nSupport.getText(locTextKey[i]));
+        }
+    }
+
+    @Override
+    public void injectI18n(final TabItem tabItem, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        tabItem.setText(this.i18nSupport.getText(locTextKey));
+
+        if (locTooltipKey != null) {
+            tabItem.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            tabItem.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+        }
+    }
+
+    @Override
+    public void createLanguageSelector(final PageContext composerCtx) {
+        for (final Locale locale : this.i18nSupport.supportedLanguages()) {
+            final Label languageSelection = new Label(composerCtx.getParent(), SWT.NONE);
+            languageSelection.setData(
+                    POLYGLOT_WIDGET_FUNCTION_KEY,
+                    (Consumer<Label>) label -> label.setVisible(
+                            !this.i18nSupport.getCurrentLocale()
+                                    .getLanguage()
+                                    .equals(locale.getLanguage())));
+            languageSelection.setData(RWT.CUSTOM_VARIANT, "header");
+            languageSelection.setText("|  " + locale.getLanguage().toUpperCase());
+            languageSelection.addListener(SWT.MouseDown, event -> {
+                this.setPageLocale(composerCtx.getRoot(), locale);
+            });
+        }
+    }
+
+    private static final Consumer<Label> labelFunction(
+            final LocTextKey locTextKey,
+            final LocTextKey locToolTipKey,
+            final I18nSupport i18nSupport) {
+
+        return label -> {
+            if (locTextKey != null) {
+                label.setText(i18nSupport.getText(locTextKey));
+            }
+            if (locToolTipKey != null) {
+                label.setToolTipText(i18nSupport.getText(locToolTipKey));
+            }
+        };
+    }
+
+    private static final Consumer<Group> groupFunction(
+            final LocTextKey locTextKey,
+            final LocTextKey locToolTipKey,
+            final I18nSupport i18nSupport) {
+
+        return group -> {
+            if (locTextKey != null) {
+                group.setText(i18nSupport.getText(locTextKey));
+            }
+            if (locToolTipKey != null) {
+                group.setToolTipText(i18nSupport.getText(locToolTipKey, StringUtils.EMPTY));
+            }
+        };
+    }
+
+    private static final void updateLocale(final TabItem[] items, final I18nSupport i18nSupport) {
+        if (items == null) {
+            return;
+        }
+
+        for (final TabItem childItem : items) {
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                childItem.setText(i18nSupport.getText(locTextKey));
+            }
+        }
+    }
+
+    private static final void updateLocale(final TreeItem[] items, final I18nSupport i18nSupport) {
+        if (items == null) {
+            return;
+        }
+
+        for (final TreeItem childItem : items) {
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                childItem.setText(i18nSupport.getText(locTextKey));
+            }
+            updateLocale(childItem.getItems(), i18nSupport);
+        }
+    }
+
+    private static void updateLocale(final TableItem[] items, final I18nSupport i18nSupport) {
+        if (items == null) {
+            return;
+        }
+
+        for (final TableItem childItem : items) {
+            final LocTextKey[] locTextKey = (LocTextKey[]) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                for (int i = 0; i < locTextKey.length; i++) {
+                    if (locTextKey[i] != null) {
+                        childItem.setText(i, i18nSupport.getText(locTextKey[i]));
+                    }
+                }
+            }
+        }
+    }
+
+    private static void updateLocale(final TableColumn[] columns, final I18nSupport i18nSupport) {
+        if (columns == null) {
+            return;
+        }
+
+        for (final TableColumn childItem : columns) {
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                childItem.setText(i18nSupport.getText(locTextKey));
+            }
+        }
     }
 
 }

@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class GridTable extends Composite {
 
+    private static final long serialVersionUID = 8515260041931976458L;
     private static final Logger log = LoggerFactory.getLogger(GridTable.class);
 
     public static final Set<AttributeType> SUPPORTED_TYPES = EnumSet.of(

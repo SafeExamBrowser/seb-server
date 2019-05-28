@@ -43,6 +43,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
     private final WidgetFactory widgetFactory;
     private final Combo combo;
+    private final LocTextKey addTextKey;
+    private final LocTextKey removeTextKey;
 
     private final List<Tuple<Control>> selectionControls = new ArrayList<>();
     private final List<Tuple<String>> selectedValues = new ArrayList<>();
@@ -53,9 +55,20 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
     private Listener listener = null;
 
-    MultiSelectionCombo(final Composite parent, final WidgetFactory widgetFactory) {
+    MultiSelectionCombo(
+            final Composite parent,
+            final WidgetFactory widgetFactory,
+            final String locTextPrefix) {
+
         super(parent, SWT.NONE);
         this.widgetFactory = widgetFactory;
+        this.addTextKey = (locTextPrefix != null)
+                ? new LocTextKey(locTextPrefix + ".add")
+                : new LocTextKey("sebserver.overall.add");
+        this.removeTextKey = (locTextPrefix != null)
+                ? new LocTextKey(locTextPrefix + ".remove")
+                : new LocTextKey("sebserver.overall.remove");
+
         final GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.verticalSpacing = 1;
         gridLayout.marginLeft = 0;
@@ -73,7 +86,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
-                new LocTextKey("Add"),
+                this.addTextKey,
                 this::addComboSelection);
         this.actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
         this.actionCell.widthHint = ACTION_COLUMN_WIDTH;
@@ -176,7 +189,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         final Label imageButton = this.widgetFactory.imageButton(
                 ImageIcon.REMOVE_BOX,
                 this,
-                new LocTextKey("Remove"),
+                this.removeTextKey,
                 this::removeComboSelection);
         imageButton.setData(OPTION_VALUE, itemName);
         final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);

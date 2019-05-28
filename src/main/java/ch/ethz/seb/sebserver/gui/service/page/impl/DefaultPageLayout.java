@@ -176,7 +176,7 @@ public class DefaultPageLayout implements TemplateComposer {
         langSupport.setLayout(rowLayout);
 
         if (this.multilingual) {
-            this.widgetFactory.createLanguageSelector(pageContext.copyOf(langSupport));
+            this.polyglotPageService.createLanguageSelector(pageContext.copyOf(langSupport));
         }
     }
 
