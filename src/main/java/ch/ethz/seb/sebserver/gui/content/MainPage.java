@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.activity.ActivitiesPane;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -52,13 +53,16 @@ public class MainPage implements TemplateComposer {
     private static final int[] OPENED_SASH_WEIGHTS = new int[] { 0, 100, 0 };
 
     private final WidgetFactory widgetFactory;
+    private final PolyglotPageService polyglotPageService;
     private final PageService pageStateService;
 
     public MainPage(
             final WidgetFactory widgetFactory,
+            final PolyglotPageService polyglotPageService,
             final PageService pageStateService) {
 
         this.widgetFactory = widgetFactory;
+        this.polyglotPageService = polyglotPageService;
         this.pageStateService = pageStateService;
     }
 
@@ -105,7 +109,7 @@ public class MainPage implements TemplateComposer {
                         mainSash.setWeights(DEFAULT_SASH_WEIGHTS);
                         ib.setData("fullScreen", false);
                         ib.setImage(WidgetFactory.ImageIcon.MAXIMIZE.getImage(ib.getDisplay()));
-                        this.widgetFactory.injectI18n(
+                        this.polyglotPageService.injectI18n(
                                 ib,
                                 null,
                                 new LocTextKey("sebserver.mainpage.maximize.tooltip"));
@@ -113,7 +117,7 @@ public class MainPage implements TemplateComposer {
                         mainSash.setWeights(OPENED_SASH_WEIGHTS);
                         ib.setData("fullScreen", true);
                         ib.setImage(WidgetFactory.ImageIcon.MINIMIZE.getImage(ib.getDisplay()));
-                        this.widgetFactory.injectI18n(
+                        this.polyglotPageService.injectI18n(
                                 ib,
                                 null,
                                 new LocTextKey("sebserver.mainpage.minimize.tooltip"));
