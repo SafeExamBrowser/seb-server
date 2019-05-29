@@ -166,7 +166,6 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         gridLayout.verticalSpacing = 0;
         composite.setLayout(gridLayout);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.heightHint = 200;
         composite.setLayoutData(gridData);
 
         final ViewGridBuilder viewGridBuilder = new ViewGridBuilder(

@@ -96,10 +96,6 @@ public final class ViewContext {
     public View getView() {
         return this.view;
     }
-//
-//    public AttributeMapping getAttributeMapping() {
-//        return this.attributeMapping;
-//    }
 
     public Collection<ConfigurationAttribute> getChildAttributes(final Long id) {
         return this.attributeMapping.childAttributeMapping.get(id);

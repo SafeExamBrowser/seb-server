@@ -20,8 +20,8 @@ public enum AttributeValueType {
     BASE64_BINARY,
     /** A list of single values of the same type */
     LIST,
-    /** A composite of different typed values like a Map or Dictionary */
+    /** A composite of different typed values like a map or dictionary */
     COMPOSITE,
-    /** A list of composites of the same type like a Table */
+    /** A list of composites (list of dictionary) of the same type like a Table */
     COMPOSITE_LIST
 }

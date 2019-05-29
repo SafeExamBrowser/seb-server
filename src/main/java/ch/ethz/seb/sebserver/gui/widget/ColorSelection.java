@@ -33,6 +33,8 @@ public final class ColorSelection extends Composite implements Selection {
     private static final long serialVersionUID = 4775375044147842526L;
     private static final Logger log = LoggerFactory.getLogger(ColorSelection.class);
 
+    private static final LocTextKey DEFAULT_SELECT_TOOLTIP_KEY = new LocTextKey("sebserver.overall.action.select");
+
     private static final int ACTION_COLUMN_WIDTH = 20;
     private final ColorDialog colorDialog;
     private final Composite colorField;
@@ -40,7 +42,11 @@ public final class ColorSelection extends Composite implements Selection {
 
     private Listener listener = null;
 
-    ColorSelection(final Composite parent, final WidgetFactory widgetFactory) {
+    ColorSelection(
+            final Composite parent,
+            final WidgetFactory widgetFactory,
+            final String tooltipKeyPrefix) {
+
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.verticalSpacing = 1;
@@ -60,7 +66,9 @@ public final class ColorSelection extends Composite implements Selection {
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.COLOR,
                 this,
-                new LocTextKey("Set Color"),
+                (StringUtils.isNoneBlank(tooltipKeyPrefix)
+                        ? new LocTextKey(tooltipKeyPrefix)
+                        : DEFAULT_SELECT_TOOLTIP_KEY),
                 this::addColorSelection);
 
         final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -71,8 +72,12 @@ public class ViewGridBuilder {
             log.debug("Add SEB Configuration Attribute: " + attribute);
         }
 
-        // ignore nested attributes here
-        if (attribute.parentId != null) {
+        // ignore nested attributes here (if not propagated to show up in view)
+        if (attribute.parentId != null &&
+                !BooleanUtils.toBoolean(ConfigurationAttribute.getDependencyValue(
+                        ConfigurationAttribute.DEPENDENCY_SHOW_IN_VIEW,
+                        attribute))) {
+
             return this;
         }
 

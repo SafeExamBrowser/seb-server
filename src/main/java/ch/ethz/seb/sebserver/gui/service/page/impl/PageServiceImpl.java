@@ -189,7 +189,7 @@ public class PageServiceImpl implements PageService {
                             .getUISession()
                             .getHttpSession();
 
-                    log.debug("SET session PageState: {} : {}", pageAction.definition.targetState, httpSession.getId());
+                    log.debug("Set session PageState: {} : {}", pageAction.definition.targetState, httpSession.getId());
                     httpSession.setAttribute(ATTR_PAGE_STATE, pageAction.definition.targetState);
 
                 } catch (final Exception e) {

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -71,10 +72,16 @@ public interface InputFieldBuilder {
         final GridData gridData = new GridData(
                 SWT.FILL, SWT.FILL,
                 true, false,
-                (orientation != null && attribute.parentId == null) ? orientation.width() : 1,
-                (orientation != null && attribute.parentId == null) ? orientation.height() : 1);
+                (orientation != null && isOnView(attribute)) ? orientation.width() : 1,
+                (orientation != null && isOnView(attribute)) ? orientation.height() : 1);
         comp.setLayoutData(gridData);
         return comp;
+    }
+
+    private static boolean isOnView(final ConfigurationAttribute attribute) {
+        return attribute.parentId == null || BooleanUtils.toBoolean(ConfigurationAttribute.getDependencyValue(
+                ConfigurationAttribute.DEPENDENCY_SHOW_IN_VIEW,
+                attribute));
     }
 
     static Label createErrorLabel(final Composite innerGrid) {

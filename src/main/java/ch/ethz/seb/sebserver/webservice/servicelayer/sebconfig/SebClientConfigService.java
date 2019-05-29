@@ -16,39 +16,28 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface SebClientConfigService {
 
     static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
-                    "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
+            "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\r\n"
                     +
-                    "<plist version=\"1.0\">" +
-                    "<dict>" +
-                    "<key>sebMode</key>" +
-                    "<integer>1</integer>" +
-                    "<key>sebServerFallback</key>" +
-                    "<true />" +
-                    "<key>sebServerURL</key>" +
-                    "<string>%s</string>" +
-                    "<key>sebServerConfiguration</key>" +
-                    "<array>" +
-                    "<dict>" +
-                    "<key>institution</key>" +
-                    "<string>%s</string>" +
-                    "<key>clientName</key>" +
-                    "<string>%s</string>" +
-                    "<key>clientSecret</key>" +
-                    "<string>%s</string>" +
-                    "<key>accessTokenEndpoint</key>" +
-                    "<string>%s</string>" +
-                    "<key>handshakeEndpoint</key>" +
-                    "<string>%s</string>" +
-                    "<key>examConfigEndpoint</key>" +
-                    "<string>%s</string>" +
-                    "<key>pingEndpoint</key>" +
-                    "<string>%s</string>" +
-                    "<key>eventEndpoint</key>" +
-                    "<string>%s</string>" +
-                    "</dict>" +
-                    "</array>" +
-                    "</dict>" +
+                    "<plist version=\"1.0\">\r\n" +
+                    "  <dict>\r\n" +
+                    "    <key>sebMode</key>\r\n" +
+                    "    <integer>1</integer>\r\n" +
+                    "    <key>sebServerFallback</key>\r\n" +
+                    "    <true />\r\n" +
+                    "    <key>sebServerURL</key>\r\n" +
+                    "    <string>%s</string>\r\n" +
+                    "    <key>sebServerConfiguration</key>\r\n" +
+                    "    <dict>\r\n" +
+                    "        <key>institution</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>clientName</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>clientSecret</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>apiDiscovery</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "    </dict>\r\n" +
+                    "  </dict>\r\n" +
                     "</plist>";
 
     boolean hasSebClientConfigurationForInstitution(Long institutionId);

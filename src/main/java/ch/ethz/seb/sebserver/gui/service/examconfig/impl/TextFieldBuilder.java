@@ -64,14 +64,23 @@ public class TextFieldBuilder implements InputFieldBuilder {
                 .createInnerGrid(parent, attribute, orientation);
 
         final Text text;
-        if (attribute.type == AttributeType.INTEGER ||
-                attribute.type == AttributeType.DECIMAL) {
-
-            text = new Text(innerGrid, SWT.RIGHT | SWT.BORDER);
-        } else {
-            text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        switch (attribute.type) {
+            case INTEGER:
+            case DECIMAL: {
+                text = new Text(innerGrid, SWT.RIGHT | SWT.BORDER);
+                break;
+            }
+            case TEXT_AREA: {
+                text = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+                gridData.heightHint = 50;
+                break;
+            }
+            default: {
+                text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
+            }
         }
-        text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        text.setLayoutData(gridData);
 
         final LocTextKey toolTipKey = ExamConfigurationService.getToolTipKey(
                 attribute,

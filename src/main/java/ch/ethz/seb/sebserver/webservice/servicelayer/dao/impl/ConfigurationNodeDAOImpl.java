@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
@@ -361,6 +363,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .build()
                     .execute()
                     .stream()
+                    // filter child attributes of tables. No default value for tables. Use templates for that
+                    .filter(ConfigurationNodeDAOImpl::filterChildAttribute)
                     .forEach(attrRec -> {
                         final String value = templateValues.getOrDefault(
                                 attrRec.getId(),
@@ -377,6 +381,17 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
 
             return configNode;
         });
+    }
+
+    private static boolean filterChildAttribute(final ConfigurationAttributeRecord rec) {
+
+        if (rec.getParentId() == null) {
+            return true;
+        }
+
+        return BooleanUtils.toBoolean(ConfigurationAttribute.getDependencyValue(
+                ConfigurationAttribute.DEPENDENCY_CREATE_DEFAULT_VALUE,
+                rec.getDependencies()));
     }
 
     /*

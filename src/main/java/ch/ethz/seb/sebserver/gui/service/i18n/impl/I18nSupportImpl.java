@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
 @Lazy
@@ -166,6 +167,15 @@ public class I18nSupportImpl implements I18nSupport {
     @Override
     public String getText(final String key, final Locale locale, final String def, final Object... args) {
         return this.messageSource.getMessage(key, args, def, locale);
+    }
+
+    @Override
+    public boolean hasText(final LocTextKey key) {
+        if (key == null) {
+            return false;
+        }
+
+        return getText(key.name, (String) null) != null;
     }
 
 }

@@ -308,7 +308,8 @@ public class EntityTable<ROW extends Entity> {
                     // TODO error handling
                 });
 
-        this.composite.layout(true, true);
+        this.composite.getParent().layout(true, true);
+        PageService.updateScrolledComposite(this.composite);
     }
 
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {

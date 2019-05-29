@@ -210,6 +210,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
             // with the current attribute values
             // TODO batch here for better performance
+            // http://pretius.com/how-to-use-mybatis-effectively-perform-batch-db-operations/
             allValues.stream()
                     .map(oldValRec -> new ConfigurationValueRecord(
                             null,

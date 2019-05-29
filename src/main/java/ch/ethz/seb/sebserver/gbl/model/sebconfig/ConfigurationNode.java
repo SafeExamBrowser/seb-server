@@ -57,6 +57,7 @@ public final class ConfigurationNode implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_NAME)
     public final String name;
 
+    @Size(max = 4000, message = "configurationNode:description:size:{min}:{max}:${validatedValue}")
     @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION)
     public final String description;
 

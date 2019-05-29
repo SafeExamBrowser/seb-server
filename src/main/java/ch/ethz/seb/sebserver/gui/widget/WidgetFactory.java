@@ -281,7 +281,8 @@ public class WidgetFactory {
     }
 
     public Text textAreaInput(final Composite content) {
-        return new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+        final Text textArea = new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+        return textArea;
     }
 
     public Text textInput(final Composite content, final boolean password) {
@@ -477,7 +478,7 @@ public class WidgetFactory {
                 selection = new MultiSelectionCheckbox(parent);
                 break;
             case COLOR:
-                selection = new ColorSelection(parent, this);
+                selection = new ColorSelection(parent, this, actionLocTextPrefix);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported Selection.Type: " + type);

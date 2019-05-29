@@ -16,21 +16,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
-import ch.ethz.seb.sebserver.gui.service.ResourceService;
-import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigTableRowValues;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -78,6 +75,10 @@ public class TableContext {
                 .collect(Collectors.toList());
     }
 
+    public I18nSupport i18nSupport() {
+        return this.viewContext.i18nSupport;
+    }
+
     public InputFieldBuilderSupplier getInputFieldBuilderSupplier() {
         return this.inputFieldBuilderSupplier;
     }
@@ -100,6 +101,20 @@ public class TableContext {
 
     public List<ConfigurationAttribute> getRowAttributes() {
         return this.rowAttributes;
+    }
+
+    public List<ConfigurationAttribute> getRowAttributes(final String rowGroupId) {
+        if (StringUtils.isBlank(rowGroupId)) {
+            return getRowAttributes();
+        } else {
+            return this.rowAttributes
+                    .stream()
+                    .filter(attr -> rowGroupId.equals(ConfigurationAttribute.getDependencyValue(
+                            ConfigurationAttribute.DEPENDENCY_GROUP_ID,
+                            attr)))
+                    .sorted(rowAttributeComparator(this.viewContext))
+                    .collect(Collectors.toList());
+        }
     }
 
     public List<ConfigurationAttribute> getColumnAttributes() {
@@ -186,33 +201,6 @@ public class TableContext {
                 return -1;
             }
         };
-    }
-
-    public String getRowValue(final TableValue tableValue) {
-        if (tableValue == null || StringUtils.isBlank(tableValue.value)) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        final ConfigurationAttribute attribute = this.viewContext.getAttribute(tableValue.attributeId);
-        if (attribute != null) {
-            switch (attribute.type) {
-                case CHECKBOX: {
-                    return BooleanUtils.toBoolean(tableValue.value)
-                            ? this.viewContext.i18nSupport.getText(ResourceService.ACTIVE_TEXT_KEY)
-                            : this.viewContext.i18nSupport.getText(ResourceService.INACTIVE_TEXT_KEY);
-                }
-                case SINGLE_SELECTION: {
-                    final String key = ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
-                            attribute.getName() + "." +
-                            tableValue.value;
-                    return this.viewContext.i18nSupport.getText(key, tableValue.value);
-                }
-                default:
-                    return tableValue.value;
-            }
-        }
-
-        return tableValue.value;
     }
 
 }

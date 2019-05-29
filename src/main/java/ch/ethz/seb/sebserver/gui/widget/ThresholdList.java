@@ -36,10 +36,11 @@ public final class ThresholdList extends Composite {
     private static final long serialVersionUID = -2305091471607040280L;
     private static final int ACTION_COLUMN_WIDTH = 20;
 
-    private static final LocTextKey valueTextKey = new LocTextKey("sebserver.exam.indicator.thresholds.list.value");
-    private static final LocTextKey colorTextKey = new LocTextKey("sebserver.exam.indicator.thresholds.list.color");
-    private static final LocTextKey addTextKey = new LocTextKey("sebserver.exam.indicator.thresholds.list.add");
-    private static final LocTextKey removeTextKey = new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
+    private static final String COLOR_SELECTION_TEXT_KEY = "sebserver.exam.indicator.thresholds.select.color";
+    private static final LocTextKey VALUE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.value");
+    private static final LocTextKey COLOR_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.color");
+    private static final LocTextKey ADD_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.add");
+    private static final LocTextKey REMOVE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
 
     private final WidgetFactory widgetFactory;
     private final List<Entry> thresholds = new ArrayList<>();
@@ -62,18 +63,24 @@ public final class ThresholdList extends Composite {
 
         this.addListener(SWT.Resize, this::adaptColumnWidth);
 
-        final Label valueTitle = widgetFactory.labelLocalized(this, CustomVariant.TITLE_LABEL, valueTextKey);
+        final Label valueTitle = widgetFactory.labelLocalized(
+                this,
+                CustomVariant.TITLE_LABEL,
+                VALUE_TEXT_KEY);
         this.valueCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         valueTitle.setLayoutData(this.valueCell);
 
-        final Label colorTitle = widgetFactory.labelLocalized(this, CustomVariant.TITLE_LABEL, colorTextKey);
+        final Label colorTitle = widgetFactory.labelLocalized(
+                this,
+                CustomVariant.TITLE_LABEL,
+                COLOR_TEXT_KEY);
         this.colorCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         colorTitle.setLayoutData(this.colorCell);
 
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
-                addTextKey,
+                ADD_TEXT_KEY,
                 this::addThreshold);
         this.actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
         imageButton.setLayoutData(this.actionCell);
@@ -120,7 +127,9 @@ public final class ThresholdList extends Composite {
         final GridData valueCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         valueInput.setLayoutData(valueCell);
 
-        final Selection selector = this.widgetFactory.selectionLocalized(Type.COLOR, this, null);
+        final Selection selector = this.widgetFactory.selectionLocalized(
+                Type.COLOR, this, null, null, null,
+                COLOR_SELECTION_TEXT_KEY);
         final GridData selectorCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         selectorCell.horizontalIndent = 2;
         selector.adaptToControl().setLayoutData(selectorCell);
@@ -128,7 +137,7 @@ public final class ThresholdList extends Composite {
         final Label imageButton = this.widgetFactory.imageButton(
                 ImageIcon.REMOVE_BOX,
                 this,
-                removeTextKey,
+                REMOVE_TEXT_KEY,
                 null);
         final GridData actionCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         imageButton.setLayoutData(actionCell);

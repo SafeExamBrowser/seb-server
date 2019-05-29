@@ -8,13 +8,23 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -24,7 +34,24 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationAttribute implements Entity {
 
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationAttribute.class);
+
+    /** This configuration attribute dependency key can be used to set a specific localized text key prefix for
+     * resources. This is usually convenient if two different attributes use the same resources and to avoid
+     * to multiply the resources for each attribute with the attribute name prefix, we can set a specific
+     * resourceLocTextKey prefix to use. */
     public static final String DEPENDENCY_RESOURCE_LOC_TEXT_KEY = "resourceLocTextKey";
+
+    /** This configuration attribute dependency key indicates the group identifier for grouped COMOSITE_TYPE types */
+    public static final String DEPENDENCY_GROUP_ID = "groupId";
+
+    /** This configuration attribute dependency key indicates if a default value should be created even if the
+     * attribute is a child attribute and normally no default value is generated on creation. */
+    public static final String DEPENDENCY_CREATE_DEFAULT_VALUE = "createDefaultValue";
+
+    /** his configuration attribute dependency key indicates if the input field should be shown in the directly
+     * in the View even if the attribute is a child attribute and is usually shown in a table or composite. */
+    public static final String DEPENDENCY_SHOW_IN_VIEW = "showInView";
 
     public static final String FILTER_ATTR_PARENT_ID = "parentId";
     public static final String FILTER_ATTR_TYPE = "type";
@@ -154,6 +181,57 @@ public final class ConfigurationAttribute implements Entity {
         builder.append(this.defaultValue);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static boolean hasDependency(
+            final String dependencyName,
+            final ConfigurationAttribute attribute) {
+
+        if (StringUtils.isBlank(attribute.dependencies)) {
+            return false;
+        }
+
+        return attribute.dependencies.contains(dependencyName);
+    }
+
+    public static String getDependencyValue(
+            final String dependencyName,
+            final ConfigurationAttribute attribute) {
+
+        return getDependencyValue(dependencyName, attribute.dependencies);
+    }
+
+    public static String getDependencyValue(
+            final String dependencyName,
+            final String dependnciesString) {
+
+        if (StringUtils.isBlank(dependnciesString)) {
+            return null;
+        }
+
+        return getAttributeDependencyMap(dependnciesString).get(dependencyName);
+    }
+
+    public static Map<String, String> getAttributeDependencyMap(final ConfigurationAttribute attribute) {
+        if (StringUtils.isBlank(attribute.dependencies)) {
+            return Collections.emptyMap();
+        }
+
+        return getAttributeDependencyMap(attribute.dependencies);
+    }
+
+    public static Map<String, String> getAttributeDependencyMap(final String dependnciesString) {
+        try {
+            return Arrays.asList(StringUtils.split(dependnciesString, Constants.LIST_SEPARATOR))
+                    .stream()
+                    .map(s -> StringUtils.split(s, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
+                    .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to parse dependency map of: {}",
+                    dependnciesString,
+                    e);
+            return Collections.emptyMap();
+        }
     }
 
 }

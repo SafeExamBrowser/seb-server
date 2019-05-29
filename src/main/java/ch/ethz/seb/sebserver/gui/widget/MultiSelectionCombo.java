@@ -41,6 +41,9 @@ public final class MultiSelectionCombo extends Composite implements Selection {
     private static final long serialVersionUID = -7787134114963647332L;
     private static final int ACTION_COLUMN_WIDTH = 20;
 
+    private static final LocTextKey DEFAULT_ADD_TOOLTIP_KEY = new LocTextKey("sebserver.overall.add");
+    private static final LocTextKey DEFAULT_REMOVE_TOOLTIP_KEY = new LocTextKey("sebserver.overall.remove");
+
     private final WidgetFactory widgetFactory;
     private final Combo combo;
     private final LocTextKey addTextKey;
@@ -64,10 +67,10 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.widgetFactory = widgetFactory;
         this.addTextKey = (locTextPrefix != null)
                 ? new LocTextKey(locTextPrefix + ".add")
-                : new LocTextKey("sebserver.overall.add");
+                : DEFAULT_ADD_TOOLTIP_KEY;
         this.removeTextKey = (locTextPrefix != null)
                 ? new LocTextKey(locTextPrefix + ".remove")
-                : new LocTextKey("sebserver.overall.remove");
+                : DEFAULT_REMOVE_TOOLTIP_KEY;
 
         final GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.verticalSpacing = 1;

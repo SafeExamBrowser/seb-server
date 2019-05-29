@@ -39,7 +39,7 @@ public class BrowserViewModeRule implements ValueChangeRule {
     @Override
     public void applyRule(
             final ViewContext context,
-            final ConfigurationAttribute attribut,
+            final ConfigurationAttribute attribute,
             final ConfigurationValue value) {
 
         if (StringUtils.isBlank(value.value)) {

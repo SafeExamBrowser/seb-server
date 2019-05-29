@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl.rules;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -15,20 +18,27 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeRule;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 
 @Lazy
 @Service
 @GuiProfile
-public class AllowFlashFullscreenRule implements ValueChangeRule {
+public class ProxyPasswordRule implements ValueChangeRule {
 
-    public static final String KEY_THIRD_PART = "allowSwitchToApplications";
-    public static final String KEY_FULL_SCREEN = "allowFlashFullscreen";
+    public static final String KEY_HTTP_PWD_REQUIRED = "HTTPRequiresPassword";
+
+    private final Map<String, Tuple<String>> observed;
+
+    public ProxyPasswordRule() {
+        this.observed = new HashMap<>();
+        this.observed.put(KEY_HTTP_PWD_REQUIRED, new Tuple<>("HTTPUsername", "HTTPPassword"));
+    }
 
     @Override
     public boolean observesAttribute(final ConfigurationAttribute attribute) {
-        return KEY_THIRD_PART.equals(attribute.name);
+        return this.observed.containsKey(attribute.name);
     }
 
     @Override
@@ -37,10 +47,16 @@ public class AllowFlashFullscreenRule implements ValueChangeRule {
             final ConfigurationAttribute attribute,
             final ConfigurationValue value) {
 
-        if (BooleanUtils.toBoolean(value.value)) {
-            context.enable(KEY_FULL_SCREEN);
-        } else {
-            context.disable(KEY_FULL_SCREEN);
+        final Tuple<String> tuple = this.observed.get(attribute.name);
+        if (tuple != null) {
+            if (BooleanUtils.toBoolean(value.value)) {
+                context.enable(tuple._1);
+                context.enable(tuple._2);
+            } else {
+                context.disable(tuple._1);
+                context.disable(tuple._2);
+            }
         }
     }
+
 }

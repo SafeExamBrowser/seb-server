@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 
 public abstract class SelectionFieldBuilder {
@@ -47,11 +45,14 @@ public abstract class SelectionFieldBuilder {
             return Collections.emptyList();
         }
 
-        final Map<String, String> attributeDependencyMap = Utils.getAttributeDependencyMap(attribute);
         final String prefix =
-                (attributeDependencyMap.containsKey(ConfigurationAttribute.DEPENDENCY_RESOURCE_LOC_TEXT_KEY))
-                        ? attributeDependencyMap.get(ConfigurationAttribute.DEPENDENCY_RESOURCE_LOC_TEXT_KEY) + "."
-                        : ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".";
+                (ConfigurationAttribute.hasDependency(
+                        ConfigurationAttribute.DEPENDENCY_RESOURCE_LOC_TEXT_KEY,
+                        attribute))
+                                ? ConfigurationAttribute.getDependencyValue(
+                                        ConfigurationAttribute.DEPENDENCY_RESOURCE_LOC_TEXT_KEY,
+                                        attribute) + "."
+                                : ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".";
 
         return Arrays.asList(StringUtils.split(
                 attribute.resources,
