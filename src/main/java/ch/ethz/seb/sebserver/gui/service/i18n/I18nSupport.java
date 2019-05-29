@@ -94,4 +94,6 @@ public interface I18nSupport {
      * @return the text in current language parsed from localized text */
     String getText(String key, Locale locale, String def, Object... args);
 
+    boolean hasText(LocTextKey locTooltipKey);
+
 }

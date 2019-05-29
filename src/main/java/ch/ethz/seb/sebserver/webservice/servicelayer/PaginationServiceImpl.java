@@ -231,12 +231,6 @@ public class PaginationServiceImpl implements PaginationService {
         // Exam Table
         final Map<String, String> examTableMap = new HashMap<>();
         examTableMap.put(
-                Domain.EXAM.ATTR_INSTITUTION_ID,
-                ExamRecordDynamicSqlSupport.institutionId.name());
-        examTableMap.put(
-                Domain.EXAM.ATTR_LMS_SETUP_ID,
-                ExamRecordDynamicSqlSupport.lmsSetupId.name());
-        examTableMap.put(
                 Domain.EXAM.ATTR_TYPE,
                 ExamRecordDynamicSqlSupport.type.name());
         this.sortColumnMapping.put(

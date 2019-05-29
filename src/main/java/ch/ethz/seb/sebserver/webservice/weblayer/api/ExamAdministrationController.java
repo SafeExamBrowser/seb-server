@@ -27,9 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -140,11 +140,16 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                 Collections.reverse(exams);
             }
 
+            final int start = (pageNum - 1) * pSize;
+            int end = start + pageSize;
+            if (exams.size() < end) {
+                end = exams.size();
+            }
             return new Page<>(
                     exams.size() / pSize,
                     pageNum,
                     sort,
-                    exams.subList(pageNum * pSize, pageNum * pSize + pSize));
+                    exams.subList(start, end));
         }
     }
 

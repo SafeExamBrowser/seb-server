@@ -155,7 +155,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
         tableColumn.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         tableColumn.setText(this.i18nSupport.getText(locTextKey));
 
-        if (locTooltipKey != null) {
+        if (this.i18nSupport.hasText(locTooltipKey)) {
             tableColumn.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
             tableColumn.setToolTipText(this.i18nSupport.getText(locTooltipKey));
         }
@@ -178,7 +178,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
         tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         tabItem.setText(this.i18nSupport.getText(locTextKey));
 
-        if (locTooltipKey != null) {
+        if (this.i18nSupport.hasText(locTooltipKey)) {
             tabItem.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
             tabItem.setToolTipText(this.i18nSupport.getText(locTooltipKey));
         }

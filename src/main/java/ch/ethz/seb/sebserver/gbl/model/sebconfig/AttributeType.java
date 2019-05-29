@@ -48,7 +48,7 @@ public enum AttributeType {
 
     INLINE_TABLE(COMPOSITE_LIST),
 
-    ;
+    COMPOSITE_TABLE(COMPOSITE);
 
     public final AttributeValueType attributeValueType;
 

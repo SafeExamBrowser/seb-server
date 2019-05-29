@@ -65,11 +65,14 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     }
 
     private void buildInput(final FormBuilder builder, final Label lab) {
-
+        final String actionKey = (this.label != null) ? this.label.name + ".action" : null;
         final Selection selection = builder.widgetFactory.selectionLocalized(
                 this.type,
                 builder.formParent,
-                this.itemsSupplier);
+                this.itemsSupplier,
+                null,
+                null,
+                actionKey);
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
         ((Control) selection).setLayoutData(gridData);

@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -54,7 +53,6 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final String httpScheme;
     private final String serverAddress;
     private final String serverPort;
-    private final String sebClientAPIEndpoint;
 
     protected SebClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
@@ -64,8 +62,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final ZipService zipService,
             @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
             @Value("${server.address}") final String serverAddress,
-            @Value("${server.port}") final String serverPort,
-            @Value("${sebserver.webservice.api.exam.endpoint}") final String sebClientAPIEndpoint) {
+            @Value("${server.port}") final String serverPort) {
 
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -75,7 +72,6 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.httpScheme = httpScheme;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        this.sebClientAPIEndpoint = sebClientAPIEndpoint;
     }
 
     @Override
@@ -136,11 +132,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                 String.valueOf(config.institutionId),
                 plainClientId,
                 plainClientSecret,
-                API.OAUTH_TOKEN_ENDPOINT,
-                this.sebClientAPIEndpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
-                this.sebClientAPIEndpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
-                this.sebClientAPIEndpoint + API.EXAM_API_PING_ENDPOINT,
-                this.sebClientAPIEndpoint + API.EXAM_API_EVENT_ENDPOINT);
+                "TODO:/exam-api/discovery");
 
         PipedOutputStream pOut = null;
         PipedInputStream pIn = null;

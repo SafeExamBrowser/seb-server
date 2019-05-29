@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Objects;
-
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.springframework.context.annotation.Lazy;
@@ -20,13 +17,21 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
 @GuiProfile
 public class LabelBuilder implements InputFieldBuilder {
+
+    private final WidgetFactory widgetFactory;
+
+    protected LabelBuilder(final WidgetFactory widgetFactory) {
+        this.widgetFactory = widgetFactory;
+    }
 
     @Override
     public boolean builderFor(
@@ -46,12 +51,9 @@ public class LabelBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
-        Objects.requireNonNull(parent);
-        Objects.requireNonNull(attribute);
-        Objects.requireNonNull(viewContext);
-
-        final Label label = new Label(parent, SWT.NONE);
-        label.setText(attribute.name);
+        final Label label = this.widgetFactory.labelLocalized(
+                parent,
+                ExamConfigurationService.attributeNameLocKey(attribute));
 
         return new LabelField(
                 attribute,

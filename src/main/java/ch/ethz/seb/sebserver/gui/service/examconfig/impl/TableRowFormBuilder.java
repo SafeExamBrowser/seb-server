@@ -25,11 +25,11 @@ import org.eclipse.swt.widgets.Label;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
-import ch.ethz.seb.sebserver.gui.service.examconfig.impl.TableFieldBuilder.TableInputField;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -40,6 +40,7 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
     private final TableContext tableContext;
     private final Map<Long, TableValue> rowValues;
     private final int listIndex;
+    private final String rowGroupId;
 
     public TableRowFormBuilder(
             final TableContext tableContext,
@@ -49,6 +50,18 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
         this.tableContext = tableContext;
         this.rowValues = rowValues;
         this.listIndex = listIndex;
+        this.rowGroupId = null;
+    }
+
+    public TableRowFormBuilder(
+            final TableContext tableContext,
+            final Map<Long, TableValue> rowValues,
+            final String rowGroupId) {
+
+        this.tableContext = tableContext;
+        this.rowValues = rowValues;
+        this.listIndex = 0;
+        this.rowGroupId = rowGroupId;
     }
 
     @Override
@@ -67,9 +80,23 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
                 false);
 
         final List<InputField> inputFields = new ArrayList<>();
-        for (final ConfigurationAttribute attribute : this.tableContext.getRowAttributes()) {
+        for (final ConfigurationAttribute attribute : this.tableContext.getRowAttributes(this.rowGroupId)) {
             createLabel(grid, attribute);
             inputFields.add(createInputField(grid, attribute));
+        }
+
+        for (final InputField inputField : inputFields) {
+            final ConfigurationAttribute attribute = inputField.getAttribute();
+            this.tableContext.getValueChangeListener().notifyGUI(
+                    this.tableContext.getViewContext(),
+                    attribute,
+                    new ConfigurationValue(
+                            null,
+                            null,
+                            null,
+                            attribute.id,
+                            this.listIndex,
+                            inputField.getValue()));
         }
 
         // when the pop-up gets closed we have to remove the input fields from the view context
@@ -103,14 +130,8 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
                 attribute,
                 this.tableContext.getViewContext());
 
-        if (attribute.type == AttributeType.TABLE) {
-            ((TableInputField) inputField).initValue(new ArrayList<>(this.rowValues.values()));
-        } else {
-            inputField.initValue(
-                    this.rowValues.get(attribute.id).value,
-                    this.listIndex);
-        }
-
+        final TableValue initValue = this.rowValues.get(attribute.id);
+        inputField.initValue((initValue != null) ? initValue.value : null, this.listIndex);
         // we have to register the input field within the ViewContext to receive error messages
         this.tableContext.registerInputField(inputField);
 

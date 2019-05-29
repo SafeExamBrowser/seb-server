@@ -18,7 +18,7 @@ public interface ValueChangeRule {
 
     void applyRule(
             ViewContext context,
-            ConfigurationAttribute attribut,
+            ConfigurationAttribute attribute,
             ConfigurationValue value);
 
 }

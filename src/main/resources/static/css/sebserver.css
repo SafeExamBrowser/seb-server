@@ -233,7 +233,7 @@ Text.error {
 
 Text[MULTI] {
     padding: 5px 10px 5px 10px;
-    height: 50px;
+    height: 100px;
 }
 
 Text[BORDER], Text[MULTI][BORDER] {
@@ -250,6 +250,7 @@ Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
 Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
     Text[MULTI][BORDER]:read-only {
     box-shadow: none;
+    color: #CFCFCF;
 }
 
 
