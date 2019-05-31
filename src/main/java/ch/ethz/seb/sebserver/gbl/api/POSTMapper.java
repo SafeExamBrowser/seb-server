@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +22,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -29,6 +33,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class POSTMapper {
+
+    private static final Logger log = LoggerFactory.getLogger(POSTMapper.class);
 
     public static final POSTMapper EMPTY_MAP = new POSTMapper(null);
 
@@ -42,7 +48,16 @@ public class POSTMapper {
     }
 
     public String getString(final String name) {
-        return this.params.getFirst(name);
+        final String first = this.params.getFirst(name);
+        if (StringUtils.isNoneBlank(first)) {
+            try {
+                return URLDecoder.decode(first, "UTF-8");
+            } catch (final UnsupportedEncodingException e) {
+                log.warn("Failed to decode form URL formatted string value: ", e);
+                return first;
+            }
+        }
+        return first;
     }
 
     public char[] getCharArray(final String name) {

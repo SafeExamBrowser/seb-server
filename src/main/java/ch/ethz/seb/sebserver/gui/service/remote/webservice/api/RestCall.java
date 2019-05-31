@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -235,6 +237,17 @@ public abstract class RestCall<T> {
             if (params != null) {
                 this.queryParams.putAll(params);
             }
+            return this;
+        }
+
+        public RestCallBuilder withFormParam(final String name, final String value) {
+            if (StringUtils.isBlank(this.body)) {
+                this.body = name + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + value;
+            } else {
+                this.body = this.body + Constants.FORM_URL_ENCODED_SEPARATOR + name +
+                        Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + value;
+            }
+
             return this;
         }
 

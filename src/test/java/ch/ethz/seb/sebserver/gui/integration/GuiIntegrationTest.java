@@ -32,6 +32,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
@@ -116,6 +118,19 @@ public abstract class GuiIntegrationTest {
         }
         authorizationContext.login(name, pwd);
         return authorizationContextHolder;
+    }
+
+    protected RestServiceImpl createRestServiceForUser(
+            final String username,
+            final String password,
+            final RestCall<?>... calls) {
+
+        final OAuth2AuthorizationContextHolder authorizationContextHolder = login(username, password);
+        final RestServiceImpl restService = new RestServiceImpl(
+                authorizationContextHolder,
+                new JSONMapper(),
+                java.util.Arrays.asList(calls));
+        return restService;
     }
 
 }
