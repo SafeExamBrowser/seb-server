@@ -78,7 +78,7 @@ public interface InputFieldBuilder {
         return comp;
     }
 
-    private static boolean isOnView(final ConfigurationAttribute attribute) {
+    static boolean isOnView(final ConfigurationAttribute attribute) {
         return attribute.parentId == null || BooleanUtils.toBoolean(ConfigurationAttribute.getDependencyValue(
                 ConfigurationAttribute.DEPENDENCY_SHOW_IN_VIEW,
                 attribute));
