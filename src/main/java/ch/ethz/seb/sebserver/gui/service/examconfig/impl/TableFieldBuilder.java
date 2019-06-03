@@ -193,7 +193,8 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
             new ModalInputDialog<Map<Long, TableValue>>(
                     this.control.getShell(),
                     this.tableContext.getWidgetFactory())
-                            .setDialogWidth(500)
+                            .setDialogWidth(600)
+                            .setDialogHeight(550)
                             .open(
                                     ExamConfigurationService.getTablePopupTitleKey(
                                             this.attribute,

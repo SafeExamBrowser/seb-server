@@ -250,7 +250,7 @@ Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
 Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
     Text[MULTI][BORDER]:read-only {
     box-shadow: none;
-    color: #CFCFCF;
+    background-color: #f0f0f0;
 }
 
 
@@ -678,46 +678,6 @@ TabItem:selected:hover:first {
 }
 
 
-/* ScrollBar default theme */
-ScrollBar {
-    background-color: #c0c0c0;
-    background-image: none;
-    border: none;
-    border-radius: 0;
-    width: 10px;
-}
-
-ScrollBar-Thumb {
-    background-color: #c0c0c0;
-    border: 1px solid #bdbdbd;
-    border-radius: 15px;
-    /*background-image: url( themes/images/scrollbar/scrollbar-background.png );*/
-    min-height: 20px;
-}
-
-ScrollBar-UpButton, ScrollBar-DownButton {
-    background-color: transparent;
-    border: none;
-    border-radius: 0;
-    cursor: default;
-}
-/*
-ScrollBar-UpButton[HORIZONTAL] {
-    background-image: url( themes/images/scrollbar/right.png );
-}
-
-ScrollBar-DownButton[HORIZONTAL] {
-    background-image: url( themes/images/scrollbar/left.png );
-}
-
-ScrollBar-UpButton[VERTICAL] {
-    background-image: url( themes/images/scrollbar/down.png )
-}
-
-ScrollBar-DownButton[VERTICAL] {
-    background-image: url( themes/images/scrollbar/up.png );
-}
-*/
 
 Widget-ToolTip {
     padding: 1px 3px 2px 3px;

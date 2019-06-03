@@ -72,6 +72,8 @@ public class GridTable extends Composite {
         gridLayout.horizontalSpacing = 0;
         this.setLayout(gridLayout);
 
+        this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
         this.columns = new ArrayList<>();
         for (final ColumnDef columnDef : columnDefs) {
             final Label label = widgetFactory.labelLocalized(
@@ -85,14 +87,15 @@ public class GridTable extends Composite {
         this.addAction = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
-                new LocTextKey(locTextKeyPrefix + "removeAction"),
+                new LocTextKey(locTextKeyPrefix + "addAction"),
                 this::addRow);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, true);
         gridData.widthHint = ACTION_COLUMN_WIDTH;
         this.addAction.setLayoutData(gridData);
 
         this.rows = new ArrayList<>();
         this.addListener(SWT.Resize, this::adaptColumnWidth);
+
     }
 
     public void setListener(final Listener listener) {
@@ -198,14 +201,22 @@ public class GridTable extends Composite {
 
     private void adaptColumnWidth(final Event event) {
         try {
-//            final int currentTableWidth = this.getClientArea().width;
-//            final int dynWidth = currentTableWidth - ACTION_COLUMN_WIDTH;
-//            final int colWidth = dynWidth / this.columns.size();
-//            for (final Column column : this.columns) {
-//                column.header.widthHint = 200;// colWidth;
-//            }
+
+            // TODO the computeSize seems not to correspond with the width of of parent when display
+//            final Point computeSize = this.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+//            final int widthUnits = this.columns
+//                    .stream()
+//                    .reduce(
+//                            0,
+//                            (acc, c) -> acc + c.columnDef.widthFactor,
+//                            (acc1, acc2) -> acc1 + acc2);
+//            final int widthUnit = computeSize.x / widthUnits;
+//            this.columns
+//                    .stream()
+//                    .forEach(c -> c.header.widthHint = c.columnDef.widthFactor * widthUnit);
+
             this.columns.get(0).header.widthHint = 50;
-            this.columns.get(1).header.widthHint = 150;
+            this.columns.get(1).header.widthHint = 200;
 
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
@@ -221,9 +232,10 @@ public class GridTable extends Composite {
             this.removeAction = GridTable.this.widgetFactory.imageButton(
                     ImageIcon.REMOVE_BOX,
                     GridTable.this,
-                    new LocTextKey(GridTable.this.locTextKeyPrefix + "addAction"),
+                    new LocTextKey(GridTable.this.locTextKeyPrefix + "removeAction"),
                     event -> deleteRow(this));
-            final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false);
+            final GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+            gridData.widthHint = ACTION_COLUMN_WIDTH;
             this.removeAction.setLayoutData(gridData);
         }
 
@@ -263,7 +275,6 @@ public class GridTable extends Composite {
             this.defaultValue = defaultValue;
         }
 
-        // 2:argument:TEXT_FIELD
         public static final ColumnDef fromString(
                 final String string,
                 final Map<String, String> defaultValueMap) {
@@ -348,7 +359,7 @@ public class GridTable extends Composite {
 
         CheckBox(final Composite parent, final ColumnDef columnDef, final Listener listener) {
             this.checkbox = new Button(parent, SWT.CHECK);
-            this.checkbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            this.checkbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             this.columnDef = columnDef;
             if (listener != null) {
                 this.checkbox.addListener(SWT.Selection, listener);
@@ -385,7 +396,7 @@ public class GridTable extends Composite {
 
         TextField(final Composite parent, final ColumnDef columnDef, final Listener listener) {
             this.textField = new Text(parent, SWT.LEFT | SWT.BORDER);
-            this.textField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            this.textField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             this.columnDef = columnDef;
             this.textField.addListener(SWT.FocusOut, listener);
             this.textField.addListener(SWT.Traverse, listener);

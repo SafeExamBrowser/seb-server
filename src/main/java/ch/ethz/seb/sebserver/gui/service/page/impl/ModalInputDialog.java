@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -40,6 +41,7 @@ public class ModalInputDialog<T> extends Dialog {
 
     private final WidgetFactory widgetFactory;
     private int dialogWidth = 400;
+    private int dialogHeight = 600;
 
     public ModalInputDialog(
             final Shell parent,
@@ -52,6 +54,11 @@ public class ModalInputDialog<T> extends Dialog {
 
     public ModalInputDialog<T> setDialogWidth(final int dialogWidth) {
         this.dialogWidth = dialogWidth;
+        return this;
+    }
+
+    public ModalInputDialog<T> setDialogHeight(final int dialogHeight) {
+        this.dialogHeight = dialogHeight;
         return this;
     }
 
@@ -69,6 +76,7 @@ public class ModalInputDialog<T> extends Dialog {
         shell.setLayout(new GridLayout(2, true));
         final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, false, false);
         gridData2.widthHint = this.dialogWidth;
+        //gridData2.heightHint = this.dialogHeight;
         shell.setLayoutData(gridData2);
 
         final Composite main = new Composite(shell, SWT.NONE);
@@ -79,6 +87,9 @@ public class ModalInputDialog<T> extends Dialog {
         main.setLayoutData(gridData);
 
         final Supplier<T> valueSuppier = contentComposer.compose(main);
+
+        final Point computeSize = main.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+        gridData.heightHint = (computeSize.y < this.dialogHeight) ? computeSize.y : this.dialogHeight;
 
         final Button ok = this.widgetFactory.buttonLocalized(shell, OK_TEXT_KEY);
         GridData data = new GridData(GridData.HORIZONTAL_ALIGN_END);
