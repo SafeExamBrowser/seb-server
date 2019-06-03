@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.VIEW_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.VIEW_ENDPOINT)
 public class ViewController extends EntityController<View, View> {
 
     protected ViewController(

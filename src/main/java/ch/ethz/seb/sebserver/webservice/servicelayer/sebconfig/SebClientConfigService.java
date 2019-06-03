@@ -40,6 +40,8 @@ public interface SebClientConfigService {
                     "  </dict>\r\n" +
                     "</plist>";
 
+    String getServerURL();
+
     boolean hasSebClientConfigurationForInstitution(Long institutionId);
 
     Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
@@ -47,5 +49,7 @@ public interface SebClientConfigService {
     void exportSebClientConfiguration(
             OutputStream out,
             final String modelId);
+
+    Result<String> getEncodedClientSecret(String clientId);
 
 }

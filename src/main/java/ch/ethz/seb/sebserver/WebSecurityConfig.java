@@ -67,6 +67,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 //    private String adminEndpoint;
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
+    @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
+    private String examAPIDiscoveryEndpoint;
 
     /** Spring bean name of user password encoder */
     public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
@@ -100,9 +102,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         web
                 .ignoring()
                 .antMatchers("/error")
-        // TODO this may not be necessary, test with separated GUI and webservice server
-        //.antMatchers(this.adminEndpoint + API.INFO_ENDPOINT + "/**")
-        ;
+                .antMatchers(this.examAPIDiscoveryEndpoint);
     }
 
     @RequestMapping("/error")

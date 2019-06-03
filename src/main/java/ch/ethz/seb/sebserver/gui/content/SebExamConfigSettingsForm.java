@@ -50,11 +50,12 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SebExamConfigForm implements TemplateComposer {
+public class SebExamConfigSettingsForm implements TemplateComposer {
 
-    private static final Logger log = LoggerFactory.getLogger(SebExamConfigForm.class);
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigSettingsForm.class);
 
-    private static final String VIEW_TEXT_KEY_PREFIX = "sebserver.examconfig.props.form.views.";
+    private static final String VIEW_TEXT_KEY_PREFIX =
+            "sebserver.examconfig.props.form.views.";
     private static final String KEY_SAVE_TO_HISTORY_SUCCESS =
             "sebserver.examconfig.action.saveToHistory.success";
     private static final String KEY_UNDO_SUCCESS =
@@ -68,7 +69,7 @@ public class SebExamConfigForm implements TemplateComposer {
     private final CurrentUser currentUser;
     private final ExamConfigurationService examConfigurationService;
 
-    protected SebExamConfigForm(
+    protected SebExamConfigSettingsForm(
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,

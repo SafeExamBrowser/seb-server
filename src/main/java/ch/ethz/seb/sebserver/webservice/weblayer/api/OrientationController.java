@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.ORIENTATION_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.ORIENTATION_ENDPOINT)
 public class OrientationController extends EntityController<Orientation, Orientation> {
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;

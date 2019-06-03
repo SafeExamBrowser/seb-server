@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.INSTITUTION_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INSTITUTION_ENDPOINT)
 public class InstitutionController extends ActivatableEntityController<Institution, Institution> {
 
     private final InstitutionDAO institutionDAO;

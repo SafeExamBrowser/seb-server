@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
@@ -325,10 +326,10 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getInstitutionId(),
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
-                (plainClientId != null) ? plainClientId.toString() : null,
+                Utils.toString(plainClientId),
                 null,
                 record.getLmsUrl(),
-                (plainAccessToken != null) ? plainAccessToken.toString() : null,
+                Utils.toString(plainAccessToken),
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 

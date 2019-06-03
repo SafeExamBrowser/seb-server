@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.INFO_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INFO_ENDPOINT)
 public class InfoController {
 
     private final InstitutionDAO institutionDAO;

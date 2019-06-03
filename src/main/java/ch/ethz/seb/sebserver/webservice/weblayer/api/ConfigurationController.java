@@ -36,7 +36,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @WebServiceProfile
 @RestController
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ENDPOINT)
 public class ConfigurationController extends EntityController<Configuration, Configuration> {
 
     private final ConfigurationDAO configurationDAO;

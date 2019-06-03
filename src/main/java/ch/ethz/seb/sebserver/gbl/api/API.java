@@ -116,6 +116,6 @@ public final class API {
 
     public static final String EXAM_API_PING_ENDPOINT = "/sebping";
 
-    public static final String EXAM_API_EVENT_ENDPOINT = "/sebevent";
+    public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
 
 }

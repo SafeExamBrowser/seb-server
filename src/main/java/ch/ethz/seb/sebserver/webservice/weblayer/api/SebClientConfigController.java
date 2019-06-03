@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @WebServiceProfile
 @RestController
 @EnableAsync
-@RequestMapping("/${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
 public class SebClientConfigController extends ActivatableEntityController<SebClientConfig, SebClientConfig> {
 
     private final SebClientConfigService sebClientConfigService;

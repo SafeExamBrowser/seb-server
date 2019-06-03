@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @RestController
-@RequestMapping("${sebserver.webservice.api.exam.endpoint}")
+@RequestMapping("${sebserver.webservice.api.exam.endpoint.v1}")
 @WebServiceProfile
 public class ExamAPITestController {
 

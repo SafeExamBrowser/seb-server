@@ -293,4 +293,14 @@ public final class Utils {
         return toCharArray(CharBuffer.wrap(chars));
     }
 
+    public static String toString(final CharSequence charSequence) {
+        if (charSequence == null) {
+            return null;
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append(charSequence);
+        return builder.toString();
+    }
+
 }

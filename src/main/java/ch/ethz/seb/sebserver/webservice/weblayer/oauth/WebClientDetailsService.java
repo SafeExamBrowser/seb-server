@@ -10,8 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
 import java.util.Collections;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -23,6 +21,9 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
 
 /** A ClientDetailsService to manage different API clients of SEB Server webservice API.
  *
@@ -34,16 +35,19 @@ import ch.ethz.seb.sebserver.WebSecurityConfig;
 @Component
 public class WebClientDetailsService implements ClientDetailsService {
 
-    private static final Logger log = LoggerFactory.getLogger(WebClientDetailsService.class);
-
+    private final SebClientConfigService sebClientConfigService;
     private final AdminAPIClientDetails adminClientDetails;
     @Autowired
     @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
 
     // TODO inject a collection of BaseClientDetails here to allow multiple admin client configurations
-    public WebClientDetailsService(final AdminAPIClientDetails adminClientDetails) {
+    public WebClientDetailsService(
+            final AdminAPIClientDetails adminClientDetails,
+            final SebClientConfigService sebClientConfigService) {
+
         this.adminClientDetails = adminClientDetails;
+        this.sebClientConfigService = sebClientConfigService;
     }
 
     /** Load a client by the client id. This method must not return null.
@@ -67,25 +71,24 @@ public class WebClientDetailsService implements ClientDetailsService {
             return this.adminClientDetails;
         }
 
-        return getForExamClientAPI(clientId);
+        return getForExamClientAPI(clientId)
+                .getOrThrow();
     }
 
-    private ClientDetails getForExamClientAPI(final String clientId) {
-        // TODO create ClientDetails from matching Institution
-        if ("test".equals(clientId)) {
-            final BaseClientDetails baseClientDetails = new BaseClientDetails(
-                    clientId,
-                    WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
-                    null,
-                    "client_credentials",
-                    "");
-            baseClientDetails.setScope(Collections.emptySet());
-            baseClientDetails.setClientSecret(this.clientPasswordEncoder.encode("test"));
-            return baseClientDetails;
-        }
+    protected Result<ClientDetails> getForExamClientAPI(final String clientId) {
+        return this.sebClientConfigService.getEncodedClientSecret(clientId)
+                .map(pwd -> {
+                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
+                            Utils.toString(clientId),
+                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
+                            null,
+                            "client_credentials",
+                            "");
 
-        log.warn("ClientDetails for clientId: {} not found", clientId);
-        throw new ClientRegistrationException("clientId not found");
+                    baseClientDetails.setScope(Collections.emptySet());
+                    baseClientDetails.setClientSecret(pwd);
+                    return baseClientDetails;
+                });
     }
 
 }
