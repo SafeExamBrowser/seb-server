@@ -47,12 +47,12 @@ public class GridTable extends Composite {
 
     private static final int ACTION_COLUMN_WIDTH = 20;
 
-    private final WidgetFactory widgetFactory;
-    private final List<Column> columns;
-    private final Label addAction;
-    private final List<Row> rows;
-    private final String locTextKeyPrefix;
-    private Listener listener;
+    private final transient WidgetFactory widgetFactory;
+    private final transient List<Column> columns;
+    private final transient Label addAction;
+    private final transient List<Row> rows;
+    private final transient String locTextKeyPrefix;
+    private transient Listener listener;
 
     public GridTable(
             final Composite parent,
@@ -321,7 +321,7 @@ public class GridTable extends Composite {
         ColumnDef columnDef();
     }
 
-    private class Dummy implements ControlAdapter {
+    private static class Dummy implements ControlAdapter {
 
         private final Label label;
         private final ColumnDef columnDef;
@@ -352,7 +352,7 @@ public class GridTable extends Composite {
         }
     }
 
-    private class CheckBox implements ControlAdapter {
+    private static class CheckBox implements ControlAdapter {
 
         private final Button checkbox;
         private final ColumnDef columnDef;
@@ -389,7 +389,7 @@ public class GridTable extends Composite {
         }
     }
 
-    private class TextField implements ControlAdapter {
+    private static class TextField implements ControlAdapter {
 
         private final Text textField;
         private final ColumnDef columnDef;
