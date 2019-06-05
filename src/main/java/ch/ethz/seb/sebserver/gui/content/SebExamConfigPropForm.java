@@ -8,9 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +32,8 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.remote.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
@@ -58,15 +63,21 @@ public class SebExamConfigPropForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final DownloadService downloadService;
+    private final String downloadFileName;
 
     protected SebExamConfigPropForm(
             final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            final DownloadService downloadService,
+            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
+        this.downloadService = downloadService;
+        this.downloadFileName = downloadFileName;
     }
 
     @Override
@@ -99,6 +110,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
         }
 
         final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(examConfig);
+        final boolean readGrant = entityGrant.r();
         final boolean writeGrant = entityGrant.w();
         final boolean modifyGrant = entityGrant.m();
         final boolean isReadonly = pageContext.isReadonly();
@@ -145,6 +157,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
 
+        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
@@ -157,6 +170,18 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
+                .withEntityKey(entityKey)
+                .withExec(action -> {
+                    final String downloadURL = this.downloadService.createDownloadURL(
+                            entityKey.modelId,
+                            SebExamConfigDownload.class,
+                            this.downloadFileName);
+                    urlLauncher.openURL(downloadURL);
+                    return action;
+                })
+                .publishIf(() -> readGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
                 .withEntityKey(entityKey)

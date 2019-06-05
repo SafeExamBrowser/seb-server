@@ -80,7 +80,6 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
         final TableContext tableContext = new TableContext(
                 this.inputFieldBuilderSupplier,
                 this.widgetFactory,
-                this.restService,
                 attribute,
                 viewContext);
         return tableContext;
@@ -260,13 +259,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                     .forEach(i -> {
                         final Map<Long, TableValue> rowValues = indexMapping.get(i);
                         values.add(rowValues);
-                        // addTableRow(rowValues);
                     });
-//            for (int i = 0; i < rows.size(); i++) {
-//                final Map<Long, TableValue> rowValues = indexMapping.get(i);
-//                values.add(rowValues);
-//                addTableRow(rowValues);
-//            }
         }
 
         protected void applyFormValues(

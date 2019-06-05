@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gbl;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
@@ -41,17 +43,24 @@ public final class Constants {
             .forPattern(DEFAULT_DATE_TIME_FORMAT)
             .withZoneUTC();
 
-//    /** Date-Time formatter without milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss */
-//    // TODO check if this works with DEFAULT_DATE_TIME_FORMAT
-//    @Deprecated
-//    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_NO_MILLIS = DateTimeFormat
-//            .forPattern("yyyy-MM-dd HH:mm:ss")
-//            .withZoneUTC();
-//
-//    /** Date-Time formatter with milliseconds using UTC time-zone. Pattern is yyyy-MM-dd HH:mm:ss.S */
-//    @Deprecated
-//    public static final DateTimeFormatter DATE_TIME_PATTERN_UTC_MILLIS = DateTimeFormat
-//            .forPattern("yyyy-MM-dd HH:mm:ss.S")
-//            .withZoneUTC();
+    public static final String XML_VERSION_HEADER =
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+    public static final String XML_DOCTYPE_HEADER =
+            "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">";
+    public static final String XML_PLIST_START_V1 =
+            "<plist version=\"1.0\">";
+    public static final String XML_PLIST_END =
+            "</plist>";
+    public static final String XML_DICT_START =
+            "<dict>";
+    public static final String XML_DICT_END =
+            "</dict>";
+
+    public static final byte[] XML_VERSION_HEADER_UTF_8 = Utils.toByteArray(XML_VERSION_HEADER);
+    public static final byte[] XML_DOCTYPE_HEADER_UTF_8 = Utils.toByteArray(XML_DOCTYPE_HEADER);
+    public static final byte[] XML_PLIST_START_V1_UTF_8 = Utils.toByteArray(XML_PLIST_START_V1);
+    public static final byte[] XML_PLIST_END_UTF_8 = Utils.toByteArray(XML_PLIST_END);
+    public static final byte[] XML_DICT_START_UTF_8 = Utils.toByteArray(XML_DICT_START);
+    public static final byte[] XML_DICT_END_UTF_8 = Utils.toByteArray(XML_DICT_END);
 
 }

@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -105,32 +104,6 @@ public class ConfigurationValueController extends EntityController<Configuration
                         config.institutionId,
                         configurationId,
                         attributeId))
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.CONFIGURATION_TABLE_ROW_VALUE_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<ConfigurationValue> getTableRowValueBy(
-            @RequestParam(
-                    name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
-                    required = true) final Long attributeId,
-            @RequestParam(
-                    name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID,
-                    required = true) final Long configurationId,
-            @RequestParam(
-                    name = Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX,
-                    required = true) final Integer rowIndex) {
-
-        return this.configurationDAO.byPK(configurationId)
-                .flatMap(this.authorization::checkRead)
-                .flatMap(config -> this.configurationValueDAO.getTableRowValues(
-                        config.institutionId,
-                        configurationId,
-                        attributeId,
-                        rowIndex))
                 .getOrThrow();
     }
 

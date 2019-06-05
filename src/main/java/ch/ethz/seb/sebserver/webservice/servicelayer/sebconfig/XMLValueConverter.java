@@ -25,12 +25,13 @@ public interface XMLValueConverter {
     void convertToXML(
             OutputStream out,
             ConfigurationAttribute attribute,
-            ConfigurationValue value) throws IOException;
+            ConfigurationValue value,
+            XMLValueConverterService xmlValueConverterService) throws IOException;
 
     default String extractName(final ConfigurationAttribute attribute) {
         final int lastIndexOf = attribute.name.lastIndexOf('.');
         if (lastIndexOf > 0) {
-            return attribute.name.substring(lastIndexOf, attribute.name.length() - 1);
+            return attribute.name.substring(lastIndexOf + 1, attribute.name.length());
         } else {
             return attribute.name;
         }

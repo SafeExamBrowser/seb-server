@@ -120,12 +120,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Configuration> getFollowupConfiguration(final String configNodeId) {
+    public Result<Configuration> getFollowupConfiguration(final Long configNodeId) {
         return Result.tryCatch(() -> {
             return this.configurationRecordMapper.selectByExample()
                     .where(
                             ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(Long.parseLong(configNodeId)))
+                            isEqualTo(configNodeId))
                     .and(
                             ConfigurationRecordDynamicSqlSupport.followup,
                             isEqualTo(BooleanUtils.toInteger(true)))

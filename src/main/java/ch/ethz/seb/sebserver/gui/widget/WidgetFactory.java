@@ -75,6 +75,7 @@ public class WidgetFactory {
         YES("yes.png"),
         NO("no.png"),
         SAVE("save.png"),
+        EXPORT("export.png"),
         NEW("new.png"),
         DELETE("delete.png"),
         SEARCH("lens.png"),

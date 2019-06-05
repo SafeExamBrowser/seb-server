@@ -85,6 +85,11 @@ public class PassworFieldBuilder implements InputFieldBuilder {
             final String pwd = passwordInput.getText();
             final String confirm = confirmInput.getText();
 
+            if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
+                System.out.println("*********************************** ignore Password set");
+                return;
+            }
+
             if (StringUtils.isBlank(pwd) && StringUtils.isBlank(confirm)) {
                 return;
             }
@@ -132,7 +137,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             // TODO clarify setting some "fake" input when a password is set (like in config tool)
-            if (this.initValue != null) {
+            if (value != null) {
                 this.control.setText(value);
                 this.confirm.setText(value);
             }

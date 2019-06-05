@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
@@ -66,6 +68,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final String httpScheme;
     private final String serverAddress;
     private final String serverPort;
+    private final String discoveryEndpoint;
 
     protected SebClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
@@ -75,7 +78,8 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final ZipService zipService,
             @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
             @Value("${server.address}") final String serverAddress,
-            @Value("${server.port}") final String serverPort) {
+            @Value("${server.port}") final String serverPort,
+            @Value("${sebserver.webservice.api.exam.endpoint.discovery}") final String discoveryEndpoint) {
 
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -85,6 +89,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.httpScheme = httpScheme;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
+        this.discoveryEndpoint = discoveryEndpoint;
     }
 
     @Override
@@ -182,14 +187,22 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                 String.valueOf(config.institutionId),
                 plainClientId,
                 plainClientSecret,
-                "TODO:/exam-api/discovery");
+                this.getServerURL() + this.discoveryEndpoint);
 
         PipedOutputStream pOut = null;
         PipedInputStream pIn = null;
+
         try {
 
             // zip the plain text
-            final InputStream plainIn = IOUtils.toInputStream(plainTextConfig, "UTF-8");
+            final InputStream plainIn = IOUtils.toInputStream(
+                    Constants.XML_VERSION_HEADER +
+                            Constants.XML_DOCTYPE_HEADER +
+                            Constants.XML_PLIST_START_V1 +
+                            plainTextConfig +
+                            Constants.XML_PLIST_END,
+                    StandardCharsets.UTF_8.name());
+
             pOut = new PipedOutputStream();
             pIn = new PipedInputStream(pOut);
 

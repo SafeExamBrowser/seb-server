@@ -183,34 +183,46 @@ public class EntityTable<ROW extends Entity> {
     }
 
     public void applyFilter() {
-        updateTableRows(
-                this.pageNumber,
-                this.pageSize,
-                this.sortColumn,
-                this.sortOrder);
+        try {
+            updateTableRows(
+                    this.pageNumber,
+                    this.pageSize,
+                    this.sortColumn,
+                    this.sortOrder);
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to apply filter: ", e);
+        }
     }
 
     public void applySort(final String columnName) {
-        this.sortColumn = columnName;
-        this.sortOrder = PageSortOrder.ASCENDING;
+        try {
+            this.sortColumn = columnName;
+            this.sortOrder = PageSortOrder.ASCENDING;
 
-        updateTableRows(
-                this.pageNumber,
-                this.pageSize,
-                this.sortColumn,
-                this.sortOrder);
+            updateTableRows(
+                    this.pageNumber,
+                    this.pageSize,
+                    this.sortColumn,
+                    this.sortOrder);
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to apply sort: ", e);
+        }
     }
 
     public void changeSortOrder() {
-        this.sortOrder = (this.sortOrder == PageSortOrder.ASCENDING)
-                ? PageSortOrder.DESCENDING
-                : PageSortOrder.ASCENDING;
+        try {
+            this.sortOrder = (this.sortOrder == PageSortOrder.ASCENDING)
+                    ? PageSortOrder.DESCENDING
+                    : PageSortOrder.ASCENDING;
 
-        updateTableRows(
-                this.pageNumber,
-                this.pageSize,
-                this.sortColumn,
-                this.sortOrder);
+            updateTableRows(
+                    this.pageNumber,
+                    this.pageSize,
+                    this.sortColumn,
+                    this.sortOrder);
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to apply sort: ", e);
+        }
     }
 
     public EntityKey getSingleSelection() {

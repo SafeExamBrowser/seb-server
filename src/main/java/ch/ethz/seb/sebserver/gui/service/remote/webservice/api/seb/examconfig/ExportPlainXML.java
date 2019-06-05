@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
-import java.util.Collection;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -19,24 +17,25 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.AbstractExportCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetExamConfigTableRowValues extends RestCall<Collection<ConfigurationValue>> {
+public class ExportPlainXML extends AbstractExportCall {
 
-    protected GetExamConfigTableRowValues() {
+    protected ExportPlainXML() {
         super(new TypeKey<>(
-                CallType.GET_LIST,
-                EntityType.CONFIGURATION_VALUE,
-                new TypeReference<Collection<ConfigurationValue>>() {
+                CallType.UNDEFINED,
+                EntityType.CONFIGURATION_NODE,
+                new TypeReference<byte[]>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.CONFIGURATION_VALUE_ENDPOINT + API.CONFIGURATION_TABLE_ROW_VALUE_PATH_SEGMENT);
+                API.CONFIGURATION_NODE_ENDPOINT
+                        + API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT
+                        + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

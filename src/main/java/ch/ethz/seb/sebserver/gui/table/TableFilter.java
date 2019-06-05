@@ -292,6 +292,7 @@ public class TableFilter<ROW extends Entity> {
         }
     }
 
+    // NOTE: SWT DateTime month-number starting with 0 and joda DateTime with 1!
     private class Date extends FilterComponent {
 
         private DateTime selector;
@@ -310,7 +311,8 @@ public class TableFilter<ROW extends Entity> {
         @Override
         FilterComponent reset() {
             final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
-            this.selector.setDate(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth());
+
+            this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
             return this;
         }
 
@@ -319,8 +321,9 @@ public class TableFilter<ROW extends Entity> {
             if (this.selector != null) {
                 final org.joda.time.DateTime date = org.joda.time.DateTime.now(DateTimeZone.UTC)
                         .withYear(this.selector.getYear())
-                        .withMonthOfYear(this.selector.getMonth())
-                        .withDayOfMonth(this.selector.getDay());
+                        .withMonthOfYear(this.selector.getMonth() + 1)
+                        .withDayOfMonth(this.selector.getDay())
+                        .withTimeAtStartOfDay();
 
                 return date.toString(Constants.STANDARD_DATE_TIME_FORMATTER);
             } else {

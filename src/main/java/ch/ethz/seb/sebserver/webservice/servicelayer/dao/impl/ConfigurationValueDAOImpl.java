@@ -13,7 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -119,6 +119,35 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ConfigurationValue>> allRootAttributeValues(
+            final Long institutionId,
+            final Long configurationId) {
+
+        return Result.tryCatch(() -> this.configurationValueRecordMapper
+                .selectByExample()
+                .join(ConfigurationAttributeRecordDynamicSqlSupport.configurationAttributeRecord)
+                .on(
+                        ConfigurationAttributeRecordDynamicSqlSupport.id,
+                        SqlBuilder.equalTo(ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId))
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                        SqlBuilder.isEqualToWhenPresent(institutionId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        SqlBuilder.isEqualTo(configurationId))
+                .and(
+                        ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                        SqlBuilder.isNull())
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationValueDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -230,41 +259,72 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     }
 
     @Override
-    public Result<Collection<ConfigurationValue>> getTableRowValues(
+    @Transactional(readOnly = true)
+    public Result<List<List<ConfigurationValue>>> getOrderedTableValues(
             final Long institutionId,
             final Long configurationId,
-            final Long attributeId,
-            final Integer rowIndex) {
+            final Long attributeId) {
 
-        return attributeRecordById(attributeId)
-                .flatMap(this::getAttributeMapping)
-                .map(attributeMapping -> {
+        return Result.tryCatch(() -> {
 
-                    if (attributeMapping == null || attributeMapping.isEmpty()) {
-                        return Collections.emptyList();
-                    }
+            final List<ConfigurationAttributeRecord> attributes = this.configurationAttributeRecordMapper
+                    .selectByExample()
+                    .where(
+                            ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                            SqlBuilder.isEqualTo(attributeId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .sorted((r1, r2) -> r1.getName().compareToIgnoreCase(r2.getName()))
+                    .collect(Collectors.toList());
 
-                    // get all values of the table for specified row
-                    return this.configurationValueRecordMapper.selectByExample()
-                            .where(
-                                    ConfigurationValueRecordDynamicSqlSupport.institutionId,
-                                    isEqualTo(institutionId))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                    isEqualTo(configurationId))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                                    isEqualTo(rowIndex))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                    SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
-                            .build()
-                            .execute()
-                            .stream()
-                            .map(ConfigurationValueDAOImpl::toDomainModel)
-                            .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                            .collect(Collectors.toList());
-                });
+            final Map<Integer, Map<Long, ConfigurationValue>> indexMapping = new HashMap<>();
+            this.configurationValueRecordMapper
+                    .selectByExample()
+                    .join(ConfigurationAttributeRecordDynamicSqlSupport.configurationAttributeRecord)
+                    .on(
+                            ConfigurationAttributeRecordDynamicSqlSupport.id,
+                            SqlBuilder.equalTo(ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId))
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(institutionId))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(configurationId))
+                    .and(
+                            ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                            SqlBuilder.isEqualTo(attributeId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .forEach(rec -> {
+                        final Map<Long, ConfigurationValue> rowValues = indexMapping.computeIfAbsent(
+                                rec.getListIndex(),
+                                key -> new HashMap<>());
+                        rowValues.put(
+                                rec.getConfigurationAttributeId(),
+                                ConfigurationValueDAOImpl
+                                        .toDomainModel(rec)
+                                        .getOrThrow());
+                    });
+
+            final List<List<ConfigurationValue>> result = new ArrayList<>();
+            final List<Integer> rows = new ArrayList<>(indexMapping.keySet());
+            rows.sort((i1, i2) -> i1.compareTo(i2));
+            rows
+                    .stream()
+                    .forEach(i -> {
+
+                        final Map<Long, ConfigurationValue> rowValuesMapping = indexMapping.get(i);
+                        final List<ConfigurationValue> rowValues = attributes
+                                .stream()
+                                .map(attr -> rowValuesMapping.get(attr.getId()))
+                                .collect(Collectors.toList());
+                        result.add(rowValues);
+                    });
+
+            return result;
+        });
     }
 
     // get all attributes of the table (columns) mapped to attribute id

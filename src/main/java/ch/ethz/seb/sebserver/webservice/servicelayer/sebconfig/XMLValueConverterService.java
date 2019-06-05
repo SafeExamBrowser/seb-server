@@ -6,15 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
-
-import java.util.Collection;
+package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface ConfigurationAttributeDAO extends EntityDAO<ConfigurationAttribute, ConfigurationAttribute> {
+public interface XMLValueConverterService {
 
-    Result<Collection<ConfigurationAttribute>> getAllRootAttributes();
+    XMLValueConverter getXMLConverter(ConfigurationAttribute attribute);
 
 }

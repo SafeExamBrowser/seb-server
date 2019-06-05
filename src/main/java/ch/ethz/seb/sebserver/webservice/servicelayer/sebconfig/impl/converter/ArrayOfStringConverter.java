@@ -31,22 +31,27 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter
 @Lazy
 @Component
 @WebServiceProfile
-public class BooleanConverter implements XMLValueConverter {
+public class ArrayOfStringConverter implements XMLValueConverter {
+
+    public static final String ATTRIBUTE_NAME = "ExceptionsList";
 
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
-                    AttributeType.CHECKBOX)));
+                    AttributeType.MULTI_CHECKBOX_SELECTION,
+                    AttributeType.MULTI_SELECTION)));
 
-    private static final String TEMPLATE = "<key>%s</key><%s />";
-
-    @Override
-    public String name() {
-        return StringUtils.EMPTY;
-    }
+    private static final String TEMPLATE = "<key>%s</key><array>";
+    private static final String TEMPLATE_ENTRY = "<string>%s</string>";
+    private static final String TEMPLATE_EMPTY = "<key>%s</key><array></array>";
 
     @Override
     public Set<AttributeType> types() {
         return SUPPORTED_TYPES;
+    }
+
+    @Override
+    public String name() {
+        return ATTRIBUTE_NAME;
     }
 
     @Override
@@ -56,12 +61,19 @@ public class BooleanConverter implements XMLValueConverter {
             final ConfigurationValue value,
             final XMLValueConverterService xmlValueConverterService) throws IOException {
 
-        out.write(Utils.toByteArray(
-                String.format(
-                        TEMPLATE,
-                        extractName(attribute),
-                        (value.value != null) ? value.value : Constants.FALSE_STRING)));
-
+        final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
+        if (StringUtils.isNoneBlank(val)) {
+            final String[] values = StringUtils.split(val, Constants.LIST_SEPARATOR);
+            final StringBuilder sb = new StringBuilder();
+            sb.append(String.format(TEMPLATE, extractName(attribute)));
+            for (final String v : values) {
+                sb.append(String.format(TEMPLATE_ENTRY, v));
+            }
+            sb.append("</array>");
+            out.write(Utils.toByteArray(sb.toString()));
+        } else {
+            out.write(Utils.toByteArray(String.format(TEMPLATE_EMPTY, extractName(attribute))));
+        }
     }
 
 }

@@ -24,7 +24,7 @@ public interface ConfigurationValueValidator {
 
     default void throwValidationError(
             final ConfigurationValue value,
-            final ConfigurationAttribute attribute) {
+            final ConfigurationAttribute attribute) throws FieldValidationException {
 
         throw new FieldValidationException(
                 attribute.name,

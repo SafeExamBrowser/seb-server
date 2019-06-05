@@ -90,12 +90,21 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
     }
 
     @Override
+    public boolean hasError() {
+        if (this.errorLabel == null) {
+            return false;
+        }
+
+        return this.errorLabel.isVisible();
+    }
+
+    @Override
     public void clearError() {
         if (this.errorLabel == null) {
             return;
         }
         this.errorLabel.setVisible(false);
-        this.errorLabel.setText("rfbvgregre");
+        this.errorLabel.setText("");
 
     }
 

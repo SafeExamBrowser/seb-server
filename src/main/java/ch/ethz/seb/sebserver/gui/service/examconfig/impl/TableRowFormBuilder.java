@@ -105,11 +105,15 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
         });
 
         return () -> inputFields.stream()
-                .map(field -> new TableValue(
-                        field.getAttribute().id,
-                        this.listIndex,
-                        field.getValue()))
-                .collect(Collectors.toMap(tv -> tv.attributeId, Function.identity()));
+                .map(field -> (field.hasError())
+                        ? this.rowValues.get(field.getAttribute().id)
+                        : new TableValue(
+                                field.getAttribute().id,
+                                this.listIndex,
+                                field.getValue()))
+                .collect(Collectors.toMap(
+                        tv -> tv.attributeId,
+                        Function.identity()));
     }
 
     private InputField createInputField(

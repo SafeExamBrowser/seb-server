@@ -13,6 +13,7 @@ import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.remote.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.SebClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
@@ -65,18 +67,21 @@ public class SebClientConfigForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
-    private final SebClientConfigDownload sebClientConfigDownload;
+    private final DownloadService downloadService;
+    private final String downloadFileName;
 
     protected SebClientConfigForm(
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,
-            final SebClientConfigDownload sebClientConfigDownload) {
+            final DownloadService downloadService,
+            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
-        this.sebClientConfigDownload = sebClientConfigDownload;
+        this.downloadService = downloadService;
+        this.downloadFileName = downloadFileName;
     }
 
     @Override
@@ -169,8 +174,10 @@ public class SebClientConfigForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_EXPORT)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
-                    final String downloadURL = this.sebClientConfigDownload.downloadSEBClientConfigURL(
-                            entityKey.modelId);
+                    final String downloadURL = this.downloadService.createDownloadURL(
+                            entityKey.modelId,
+                            SebClientConfigDownload.class,
+                            this.downloadFileName);
                     urlLauncher.openURL(downloadURL);
                     return action;
                 })

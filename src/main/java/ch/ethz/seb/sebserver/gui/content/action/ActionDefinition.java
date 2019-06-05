@@ -324,7 +324,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     SEB_CLIENT_CONFIG_EXPORT(
             new LocTextKey("sebserver.clientconfig.action.export"),
-            ImageIcon.SAVE,
+            ImageIcon.EXPORT,
             PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
 
@@ -363,6 +363,11 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_SAVE(
             new LocTextKey("sebserver.examconfig.action.save"),
             ImageIcon.SAVE,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_EXPORT_PLAIN_XML(
+            new LocTextKey("sebserver.examconfig.action.export.plainxml"),
+            ImageIcon.EXPORT,
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
 

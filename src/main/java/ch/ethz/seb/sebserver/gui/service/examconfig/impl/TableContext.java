@@ -8,10 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,16 +18,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeListener;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigTableRowValues;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public class TableContext {
@@ -38,7 +32,6 @@ public class TableContext {
 
     private final InputFieldBuilderSupplier inputFieldBuilderSupplier;
     private final WidgetFactory widgetFactory;
-    private final RestService restService;
 
     public final ConfigurationAttribute attribute;
     public final Orientation orientation;
@@ -50,13 +43,11 @@ public class TableContext {
     public TableContext(
             final InputFieldBuilderSupplier inputFieldBuilderSupplier,
             final WidgetFactory widgetFactory,
-            final RestService restService,
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
         this.inputFieldBuilderSupplier = Objects.requireNonNull(inputFieldBuilderSupplier);
         this.widgetFactory = Objects.requireNonNull(widgetFactory);
-        this.restService = Objects.requireNonNull(restService);
         this.attribute = Objects.requireNonNull(attribute);
         this.viewContext = Objects.requireNonNull(viewContext);
 
@@ -150,27 +141,6 @@ public class TableContext {
             final Orientation orientation) {
 
         return this.inputFieldBuilderSupplier.getInputFieldBuilder(attribute2, orientation);
-    }
-
-    public Map<Long, TableValue> getTableRowValues(final int index) {
-        return this.restService.getBuilder(GetExamConfigTableRowValues.class)
-                .withQueryParam(
-                        Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
-                        this.attribute.getModelId())
-                .withQueryParam(
-                        Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID,
-                        String.valueOf(this.getConfigurationId()))
-                .withQueryParam(
-                        Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX,
-                        String.valueOf(index))
-                .call()
-                .get(
-                        error -> log.error("Failed to get table row values: ", error),
-                        () -> Collections.emptyList())
-                .stream()
-                .collect(Collectors.toMap(
-                        val -> val.attributeId,
-                        val -> TableValue.of(val)));
     }
 
     public void registerInputField(final InputField inputField) {

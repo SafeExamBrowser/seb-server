@@ -69,16 +69,12 @@ public final class API {
     public static final String CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT = "/save_to_history";
     public static final String CONFIGURATION_UNDO_PATH_SEGMENT = "/undo";
     public static final String CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT = "/restore";
-
     public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
     public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
-    public static final String CONFIGURATION_TABLE_ROW_VALUE_PATH_SEGMENT =
-            CONFIGURATION_TABLE_VALUE_PATH_SEGMENT + "/row";
-
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
+    public static final String CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT = "/downloadxml";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
-
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";
 
     public static final String EXAM_CONFIGURATION_MAP_ENDPOINT = "/exam_configuration_map";

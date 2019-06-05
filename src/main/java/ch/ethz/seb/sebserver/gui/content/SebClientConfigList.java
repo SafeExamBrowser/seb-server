@@ -67,7 +67,9 @@ public class SebClientConfigList implements TemplateComposer {
             new TableFilterAttribute(
                     CriteriaType.DATE,
                     SebClientConfig.FILTER_ATTR_CREATION_DATE,
-                    DateTime.now(DateTimeZone.UTC).minusYears(1).toString(Constants.DEFAULT_DATE_TIME_FORMAT));
+                    DateTime.now(DateTimeZone.UTC)
+                            .minusYears(1)
+                            .toString(Constants.DEFAULT_DATE_TIME_FORMAT));
 
     private final PageService pageService;
     private final RestService restService;

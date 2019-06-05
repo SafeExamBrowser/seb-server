@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_ATTRIBUTE;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ConfigurationAttribute implements Entity {
+public final class ConfigurationAttribute implements Entity, Comparable<ConfigurationAttribute> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationAttribute.class);
 
@@ -158,6 +158,12 @@ public final class ConfigurationAttribute implements Entity {
 
     public String getDefaultValue() {
         return this.defaultValue;
+    }
+
+    @Override
+    public int compareTo(final ConfigurationAttribute attribute) {
+        // TODO check if this is correct in reference to https://www.safeexambrowser.org/developer/seb-config-key.html
+        return this.name.compareToIgnoreCase(attribute.name);
     }
 
     @Override

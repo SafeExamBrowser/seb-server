@@ -10,13 +10,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -28,20 +30,26 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter
 @Lazy
 @Component
 @WebServiceProfile
-public class KioskModeConverter implements XMLValueConverter {
+public class IntegerConverter implements XMLValueConverter {
 
-    public static final String NAME = "kioskMode";
+    public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(
+                    AttributeType.INTEGER,
+                    AttributeType.SLIDER,
+                    AttributeType.SINGLE_SELECTION,
+                    AttributeType.RADIO_SELECTION)));
 
-    private static final String TEMPLATE = "<key>createNewDesktop</key><%s /><key>killExplorerShell</key><%s />";
-
-    @Override
-    public String name() {
-        return NAME;
-    }
+    private static final String TEMPLATE = "<key>%s</key><integer>%s</integer>";
+    private static final String TEMPLATE_EMPTY = "<key>%s</key><integer />";
 
     @Override
     public Set<AttributeType> types() {
-        return Collections.emptySet();
+        return SUPPORTED_TYPES;
+    }
+
+    @Override
+    public String name() {
+        return StringUtils.EMPTY;
     }
 
     @Override
@@ -51,12 +59,13 @@ public class KioskModeConverter implements XMLValueConverter {
             final ConfigurationValue value,
             final XMLValueConverterService xmlValueConverterService) throws IOException {
 
-        final String val = value.getValue();
-        out.write(Utils.toByteArray(
-                String.format(
-                        TEMPLATE,
-                        (val != null == "0".equals(val)) ? Constants.TRUE_STRING : Constants.FALSE_STRING,
-                        (val != null == "1".equals(val)) ? Constants.TRUE_STRING : Constants.FALSE_STRING)));
+        final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
+        if (StringUtils.isNoneBlank(val)) {
+            out.write(Utils.toByteArray(String.format(TEMPLATE, extractName(attribute), val)));
+        } else {
+            out.write(Utils.toByteArray(String.format(TEMPLATE_EMPTY, extractName(attribute))));
+        }
+
     }
 
 }

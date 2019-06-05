@@ -9,11 +9,15 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -25,10 +29,12 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNode
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -37,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
 
     private final ConfigurationDAO configurationDAO;
+    private final SebExamConfigService sebExamConfigService;
 
     protected ConfigurationNodeController(
             final AuthorizationService authorization,
@@ -45,7 +52,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ConfigurationDAO configurationDAO) {
+            final ConfigurationDAO configurationDAO,
+            final SebExamConfigService sebExamConfigService) {
 
         super(authorization,
                 bulkActionService,
@@ -55,6 +63,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 beanValidationService);
 
         this.configurationDAO = configurationDAO;
+        this.sebExamConfigService = sebExamConfigService;
     }
 
     @Override
@@ -75,16 +84,36 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Configuration getFollowup(@PathVariable final String modelId) {
+    public Configuration getFollowup(@PathVariable final Long configNodeId) {
 
         this.entityDAO
-                .byModelId(modelId)
+                .byPK(configNodeId)
                 .flatMap(this::checkModifyAccess)
                 .getOrThrow();
 
         return this.configurationDAO
-                .getFollowupConfiguration(modelId)
+                .getFollowupConfiguration(configNodeId)
                 .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<StreamingResponseBody> downloadPlainXMLConfig(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        this.entityDAO.byPK(modelId)
+                .map(this.authorization::checkRead);
+
+        final StreamingResponseBody stream = out -> this.sebExamConfigService
+                .exportPlainXML(out, institutionId, modelId);
+
+        return new ResponseEntity<>(stream, HttpStatus.OK);
     }
 
 }

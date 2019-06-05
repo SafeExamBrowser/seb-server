@@ -10,17 +10,21 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.OutputStream;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
+/** The base interface and service for all SEB Exam Configuration related functionality. */
 public interface SebExamConfigService {
 
-    void validate(ConfigurationValue value);
+    void validate(ConfigurationValue value) throws FieldValidationException;
 
-    void validate(ConfigurationTableValues tableValue);
+    void validate(ConfigurationTableValues tableValue) throws FieldValidationException;
 
-    void exportXML(OutputStream out, Long configurationNodeId);
+    void exportPlainXML(OutputStream out, Long institutionId, Long configurationNodeId);
 
     void exportForExam(OutputStream out, Long configExamMappingId);
+
+    String generateConfigKey(Long configurationNodeId);
 
 }
