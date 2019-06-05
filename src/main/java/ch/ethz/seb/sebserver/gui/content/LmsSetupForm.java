@@ -329,11 +329,11 @@ public class LmsSetupForm implements TemplateComposer {
 
         if (testResult.isOk()) {
             return onOK.apply(action);
-        } else if (StringUtils.isNoneBlank(testResult.tokenRequestError)) {
+        } else if (StringUtils.isNotBlank(testResult.tokenRequestError)) {
             throw new PageMessageException(
                     new LocTextKey("sebserver.lmssetup.action.test.tokenRequestError",
                             testResult.tokenRequestError));
-        } else if (StringUtils.isNoneBlank(testResult.quizRequestError)) {
+        } else if (StringUtils.isNotBlank(testResult.quizRequestError)) {
             throw new PageMessageException(
                     new LocTextKey("sebserver.lmssetup.action.test.quizRequestError", testResult.quizRequestError));
         } else {

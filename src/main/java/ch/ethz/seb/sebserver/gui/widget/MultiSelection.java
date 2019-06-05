@@ -85,7 +85,7 @@ public final class MultiSelection extends Composite implements Selection {
             });
             this.labels.add(label);
         }
-        if (StringUtils.isNoneBlank(selectionValue)) {
+        if (StringUtils.isNotBlank(selectionValue)) {
             select(selectionValue);
         }
     }

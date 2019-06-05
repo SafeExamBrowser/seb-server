@@ -66,7 +66,7 @@ public final class ColorSelection extends Composite implements Selection {
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.COLOR,
                 this,
-                (StringUtils.isNoneBlank(tooltipKeyPrefix)
+                (StringUtils.isNotBlank(tooltipKeyPrefix)
                         ? new LocTextKey(tooltipKeyPrefix)
                         : DEFAULT_SELECT_TOOLTIP_KEY),
                 this::addColorSelection);

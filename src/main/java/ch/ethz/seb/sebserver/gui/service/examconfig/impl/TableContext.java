@@ -51,8 +51,8 @@ public class TableContext {
         this.attribute = Objects.requireNonNull(attribute);
         this.viewContext = Objects.requireNonNull(viewContext);
 
-        this.orientation = Objects.requireNonNull(viewContext
-                .getOrientation(attribute.id));
+        this.orientation = Objects.requireNonNull(
+                viewContext.getOrientation(attribute.id));
 
         this.rowAttributes = viewContext.getChildAttributes(attribute.id)
                 .stream()

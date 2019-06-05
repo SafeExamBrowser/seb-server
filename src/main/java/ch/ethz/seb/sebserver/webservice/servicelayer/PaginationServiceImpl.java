@@ -171,10 +171,10 @@ public class PaginationServiceImpl implements PaginationService {
         final com.github.pagehelper.Page<Object> startPage =
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
-        if (table != null && StringUtils.isNoneBlank(sort)) {
+        if (table != null && StringUtils.isNotBlank(sort)) {
             final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
             final String sortColumnName = verifySortColumnName(sort, table);
-            if (StringUtils.isNoneBlank(sortColumnName)) {
+            if (StringUtils.isNotBlank(sortColumnName)) {
                 switch (sortOrder) {
                     case DESCENDING: {
                         PageHelper.orderBy(sortColumnName + " DESC");

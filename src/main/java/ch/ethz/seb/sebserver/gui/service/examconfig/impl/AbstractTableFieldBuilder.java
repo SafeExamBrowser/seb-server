@@ -67,11 +67,10 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
         final GridData gridData = new GridData(
                 SWT.FILL, SWT.FILL,
                 true, false,
-                (tableContext.orientation != null) ? tableContext.orientation.width() : 1,
-                (tableContext.orientation != null) ? tableContext.orientation.height() : 1);
-        if (tableContext.orientation.height != null) {
-            gridData.heightHint = tableContext.orientation.height * 20 + 40;
-        }
+                tableContext.orientation.width(),
+                tableContext.orientation.height());
+
+        gridData.heightHint = tableContext.orientation.height() * 20 + 40;
         table.setLayoutData(gridData);
         table.setHeaderVisible(true);
         table.addListener(SWT.Resize, event -> adaptColumnWidth(table, tableContext));

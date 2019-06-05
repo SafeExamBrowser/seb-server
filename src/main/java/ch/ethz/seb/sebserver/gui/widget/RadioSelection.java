@@ -67,7 +67,7 @@ public final class RadioSelection extends Composite implements Selection {
             this.radioButtons.put(tuple._1, button);
         }
 
-        if (StringUtils.isNoneBlank(selectionValue)) {
+        if (StringUtils.isNotBlank(selectionValue)) {
             select(selectionValue);
         }
     }
@@ -76,7 +76,7 @@ public final class RadioSelection extends Composite implements Selection {
     public void applyToolTipsForItems(final List<Tuple<String>> mapping) {
         mapping
                 .stream()
-                .filter(tuple -> StringUtils.isNoneBlank(tuple._2))
+                .filter(tuple -> StringUtils.isNotBlank(tuple._2))
                 .forEach(tuple -> {
                     final Button button = this.radioButtons.get(tuple._1);
                     if (button != null) {

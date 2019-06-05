@@ -62,7 +62,7 @@ public class ArrayOfStringConverter implements XMLValueConverter {
             final XMLValueConverterService xmlValueConverterService) throws IOException {
 
         final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
-        if (StringUtils.isNoneBlank(val)) {
+        if (StringUtils.isNotBlank(val)) {
             final String[] values = StringUtils.split(val, Constants.LIST_SEPARATOR);
             final StringBuilder sb = new StringBuilder();
             sb.append(String.format(TEMPLATE, extractName(attribute)));

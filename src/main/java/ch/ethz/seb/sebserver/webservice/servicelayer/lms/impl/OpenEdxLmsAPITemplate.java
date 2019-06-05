@@ -244,7 +244,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         EdXPage page = getEdxPage(pageURI).getBody();
         if (page != null) {
             collector.addAll(page.results);
-            while (StringUtils.isNoneBlank(page.next)) {
+            while (StringUtils.isNotBlank(page.next)) {
                 page = getEdxPage(page.next).getBody();
                 collector.addAll(page.results);
             }

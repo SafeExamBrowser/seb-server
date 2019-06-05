@@ -67,7 +67,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         log.info("No default gui entrypoint requested: {}", requestURI);
 
         final String logoImageBase64 = requestLogoImage(requestURI);
-        if (StringUtils.isNoneBlank(logoImageBase64)) {
+        if (StringUtils.isNotBlank(logoImageBase64)) {
             // forward
             request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
             final RequestDispatcher dispatcher = request.getServletContext()

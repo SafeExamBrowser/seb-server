@@ -106,7 +106,7 @@ public class ExamDAOImpl implements ExamDAO {
             final String name = filterMap.getQuizName();
             final DateTime from = filterMap.getExamFromTime();
             final Predicate<Exam> quizDataFilter = exam -> {
-                if (StringUtils.isNoneBlank(name)) {
+                if (StringUtils.isNotBlank(name)) {
                     if (!exam.name.contains(name)) {
                         return false;
                     }
@@ -396,7 +396,7 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
-            final Collection<String> supporter = (StringUtils.isNoneBlank(record.getSupporter()))
+            final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
                     : null;
 

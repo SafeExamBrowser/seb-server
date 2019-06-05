@@ -96,13 +96,13 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.serverAddress = environment.getRequiredProperty(WEB_SERVICE_SERVER_ADDRESS_KEY);
-        this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, (String) null);
+        this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, "");
         this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
 
         this.serverURLPrefix = UriComponentsBuilder.newInstance()
                 .scheme(this.httpScheme)
-                .host((StringUtils.isNoneBlank(this.serverName))
+                .host((StringUtils.isNotBlank(this.serverName))
                         ? this.serverName
                         : this.serverAddress)
                 .port(this.serverPort)

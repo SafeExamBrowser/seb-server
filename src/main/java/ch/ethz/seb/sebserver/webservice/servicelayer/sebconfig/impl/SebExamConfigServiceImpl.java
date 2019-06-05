@@ -66,7 +66,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService, XMLValueC
         this.convertersByAttributeName = new HashMap<>();
         this.convertersByAttributeType = new HashMap<>();
         for (final XMLValueConverter converter : converters) {
-            if (StringUtils.isNoneBlank(converter.name())) {
+            if (StringUtils.isNotBlank(converter.name())) {
                 this.convertersByAttributeName.put(converter.name(), converter);
             }
 

@@ -49,7 +49,7 @@ public class POSTMapper {
 
     public String getString(final String name) {
         final String first = this.params.getFirst(name);
-        if (StringUtils.isNoneBlank(first)) {
+        if (StringUtils.isNotBlank(first)) {
             try {
                 return URLDecoder.decode(first, "UTF-8");
             } catch (final UnsupportedEncodingException e) {

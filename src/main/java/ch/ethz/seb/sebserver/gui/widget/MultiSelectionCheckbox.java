@@ -70,7 +70,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
             this.checkboxes.put(tuple._1, button);
         }
 
-        if (StringUtils.isNoneBlank(selectionValue)) {
+        if (StringUtils.isNotBlank(selectionValue)) {
             select(selectionValue);
         }
     }
@@ -79,7 +79,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
     public void applyToolTipsForItems(final List<Tuple<String>> mapping) {
         mapping
                 .stream()
-                .filter(tuple -> StringUtils.isNoneBlank(tuple._2))
+                .filter(tuple -> StringUtils.isNotBlank(tuple._2))
                 .forEach(tuple -> {
                     final Button button = this.checkboxes.get(tuple._1);
                     if (button != null) {

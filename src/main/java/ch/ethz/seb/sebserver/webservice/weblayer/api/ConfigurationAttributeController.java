@@ -64,7 +64,7 @@ public class ConfigurationAttributeController extends EntityController<Configura
     public List<ConfigurationAttribute> getForIds(
             @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = false) final String modelIds) {
 
-        if (StringUtils.isNoneBlank(modelIds)) {
+        if (StringUtils.isNotBlank(modelIds)) {
             return super.getForIds(modelIds);
         }
 

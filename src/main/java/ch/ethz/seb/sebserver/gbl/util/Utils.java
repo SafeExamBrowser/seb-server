@@ -303,4 +303,14 @@ public final class Utils {
         return builder.toString();
     }
 
+    public static String preventResponseSplittingAttack(final String string) {
+        final int xni = string.indexOf('\n');
+        final int xri = string.indexOf('\r');
+        if (xni >= 0 || xri >= 0) {
+            throw new IllegalArgumentException("Illegal argument: " + string);
+        }
+
+        return string;
+    }
+
 }

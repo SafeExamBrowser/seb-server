@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public abstract class AbstractDownloadServiceHandler implements DownloadServiceHandler {
 
@@ -59,9 +60,10 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
 
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
             response.setContentLength(configFile.length);
-            response.setHeader(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + downloadFileName + "\"");
+
+            final String header =
+                    "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
 
             log.debug("Write the download data to response output");
 

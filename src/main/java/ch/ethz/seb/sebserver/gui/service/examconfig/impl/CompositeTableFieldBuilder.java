@@ -178,7 +178,7 @@ public class CompositeTableFieldBuilder extends AbstractTableFieldBuilder {
             for (final TableValue val : map.values()) {
                 final Orientation orientation = this.tableContext.getOrientation(val.attributeId);
                 final String groupId = orientation.getGroupId();
-                if (StringUtils.isNoneBlank(groupId)) {
+                if (StringUtils.isNotBlank(groupId)) {
                     final int cellIndex = this.columns.indexOf(groupId);
                     if (cellIndex >= 0) {
                         setValueToCell(

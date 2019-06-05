@@ -96,7 +96,7 @@ public final class Form implements FormBinding {
     }
 
     public void putStatic(final String name, final String value) {
-        if (StringUtils.isNoneBlank(value)) {
+        if (StringUtils.isNotBlank(value)) {
             this.staticValues.put(name, value);
         }
     }
@@ -208,7 +208,7 @@ public final class Form implements FormBinding {
     private void flush() {
         for (final Map.Entry<String, String> entry : this.staticValues.entrySet()) {
             final String value = entry.getValue();
-            if (StringUtils.isNoneBlank(value)) {
+            if (StringUtils.isNotBlank(value)) {
                 this.objectRoot.put(entry.getKey(), value);
             }
         }
@@ -216,7 +216,7 @@ public final class Form implements FormBinding {
         for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
             entry.getValue()
                     .stream()
-                    .filter(ffa -> StringUtils.isNoneBlank(ffa.getStringValue()))
+                    .filter(ffa -> StringUtils.isNotBlank(ffa.getStringValue()))
                     .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
     }
@@ -334,7 +334,7 @@ public final class Form implements FormBinding {
             final Tuple<String> tuple,
             final ObjectNode jsonNode) {
 
-        if (StringUtils.isNoneBlank(tuple._2)) {
+        if (StringUtils.isNotBlank(tuple._2)) {
             final ArrayNode arrayNode = jsonNode.putArray(tuple._1);
             final String[] split = StringUtils.split(tuple._2, Constants.LIST_SEPARATOR);
             for (int i = 0; i < split.length; i++) {
@@ -367,7 +367,7 @@ public final class Form implements FormBinding {
                 this.jsonValueAdapter = jsonValueAdapter;
             } else {
                 this.jsonValueAdapter = (tuple, jsonObject) -> {
-                    if (StringUtils.isNoneBlank(tuple._2)) {
+                    if (StringUtils.isNotBlank(tuple._2)) {
                         jsonObject.put(tuple._1, tuple._2);
                     }
                 };

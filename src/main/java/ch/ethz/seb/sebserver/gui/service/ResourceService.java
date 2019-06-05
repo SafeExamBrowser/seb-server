@@ -25,8 +25,8 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -211,7 +211,7 @@ public class ResourceService {
         return this.i18nSupport.supportedLanguages()
                 .stream()
                 .map(locale -> new Tuple<>(locale.toLanguageTag(), locale.getDisplayLanguage(currentLocale)))
-                .filter(tuple -> StringUtils.isNoneBlank(tuple._2))
+                .filter(tuple -> StringUtils.isNotBlank(tuple._2))
                 .sorted((t1, t2) -> t1._2.compareTo(t2._2))
                 .collect(Collectors.toList());
     }

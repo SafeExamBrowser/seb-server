@@ -60,7 +60,7 @@ public class IntegerConverter implements XMLValueConverter {
             final XMLValueConverterService xmlValueConverterService) throws IOException {
 
         final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
-        if (StringUtils.isNoneBlank(val)) {
+        if (StringUtils.isNotBlank(val)) {
             out.write(Utils.toByteArray(String.format(TEMPLATE, extractName(attribute), val)));
         } else {
             out.write(Utils.toByteArray(String.format(TEMPLATE_EMPTY, extractName(attribute))));

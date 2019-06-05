@@ -164,7 +164,7 @@ public class FormBuilder {
 
         template.build(this);
 
-        if (StringUtils.isNoneBlank(template.group)) {
+        if (StringUtils.isNotBlank(template.group)) {
             this.form.addToGroup(template.group, template.name);
         }
 
@@ -255,7 +255,7 @@ public class FormBuilder {
 
     Label valueLabel(final Composite parent, final String value, final int hspan) {
         final Label label = new Label(parent, SWT.NONE);
-        label.setText((StringUtils.isNoneBlank(value)) ? value : Constants.EMPTY_NOTE);
+        label.setText((StringUtils.isNotBlank(value)) ? value : Constants.EMPTY_NOTE);
         final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false, hspan, 1);
         gridData.verticalIndent = 4;
         label.setLayoutData(gridData);
