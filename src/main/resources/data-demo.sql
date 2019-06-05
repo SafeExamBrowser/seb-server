@@ -1,5 +1,5 @@
 INSERT IGNORE INTO institution VALUES
-    (1, 'ETH Zürich', 'ethz', null, null, 1),
+    (1, 'ETH Züich', 'ethz', null, null, 1),
     (2, 'Institution 2', 'inst2', null, null, 1),
     (3, 'Institution 3', 'inst3', null, null, 0),
     (4, 'Institution 4', 'inst4', null, null, 0),
@@ -17,11 +17,7 @@ INSERT IGNORE INTO user_role VALUES
     (1, 1, 'SEB_SERVER_ADMIN'),
     (2, 1, 'INSTITUTIONAL_ADMIN'),
     (3, 1, 'EXAM_ADMIN'),
-    (4, 1, 'EXAM_SUPPORTER'),
-    (5, 2, 'SEB_SERVER_ADMIN'),
-    (6, 3, 'INSTITUTIONAL_ADMIN'),
-    (7, 4, 'INSTITUTIONAL_ADMIN'),
-    (8, 5, 'EXAM_ADMIN')
+    (4, 1, 'EXAM_SUPPORTER')
     ;
 
 INSERT IGNORE INTO view VALUES
