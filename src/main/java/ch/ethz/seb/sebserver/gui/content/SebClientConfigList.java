@@ -117,28 +117,27 @@ public class SebClientConfigList implements TemplateComposer {
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
-                                        clientConfigInstitutionNameFunction(this.resourceService),
-                                        this.institutionFilter,
-                                        false))
+                                        clientConfigInstitutionNameFunction(this.resourceService))
+                                                .withFilter(this.institutionFilter))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
                                 NAME_TEXT_KEY,
-                                entity -> entity.name,
-                                this.nameFilter,
-                                true))
+                                SebClientConfig::getName)
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
                                 new LocTextKey(
                                         "sebserver.clientconfig.list.column.date",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
-                                entity -> entity.date,
-                                this.dateFilter,
-                                true))
+                                SebClientConfig::getDate)
+                                        .withFilter(this.dateFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
-                                entity -> entity.active,
-                                true))
+                                SebClientConfig::getActive)
+                                        .sortable())
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                                 .create())

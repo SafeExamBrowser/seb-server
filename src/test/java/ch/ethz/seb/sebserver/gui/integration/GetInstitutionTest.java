@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution;
+package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
@@ -14,16 +14,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.integration.GuiIntegrationTest;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
 
+@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class GetInstitutionTest extends GuiIntegrationTest {
 
     @Test

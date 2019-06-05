@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class SaveUserAccount extends RestCall<UserInfo> {
 
-    protected SaveUserAccount() {
+    public SaveUserAccount() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.USER,

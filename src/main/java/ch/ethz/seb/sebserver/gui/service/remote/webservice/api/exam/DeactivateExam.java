@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class DeactivateExam extends RestCall<EntityProcessingReport> {
 
-    protected DeactivateExam() {
+    public DeactivateExam() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_DEACTIVATE,
                 EntityType.EXAM,

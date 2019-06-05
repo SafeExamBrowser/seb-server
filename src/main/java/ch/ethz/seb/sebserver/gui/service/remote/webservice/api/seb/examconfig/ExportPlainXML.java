@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.AbstractExportCal
 @GuiProfile
 public class ExportPlainXML extends AbstractExportCall {
 
-    protected ExportPlainXML() {
+    public ExportPlainXML() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.CONFIGURATION_NODE,

@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class ActivateExam extends RestCall<EntityProcessingReport> {
 
-    protected ActivateExam() {
+    public ActivateExam() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_ACTIVATE,
                 EntityType.EXAM,

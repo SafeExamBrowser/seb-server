@@ -79,20 +79,20 @@ public class InstitutionList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_NAME,
                                 NAME_TEXT_KEY,
-                                entity -> entity.name,
-                                true))
+                                Institution::getName)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_URL_SUFFIX,
                                 URL_TEXT_KEY,
-                                entity -> entity.urlSuffix,
-                                true))
-                        .withColumn(new ColumnDefinition<>(
+                                Institution::getUrlSuffix)
+                                        .sortable())
+                        .withColumn(new ColumnDefinition<Institution>(
                                 Domain.INSTITUTION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
                                 entity -> this.pageService
                                         .getResourceService()
-                                        .localizedActivityResource().apply(entity.active),
-                                true))
+                                        .localizedActivityResource().apply(entity.active))
+                                                .sortable())
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
@@ -118,7 +118,6 @@ public class InstitutionList implements TemplateComposer {
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
         ;
-
     }
 
 }

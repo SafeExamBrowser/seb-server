@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class NewUserAccount extends RestCall<UserInfo> {
 
-    protected NewUserAccount() {
+    public NewUserAccount() {
         super(new TypeKey<>(
                 CallType.NEW,
                 EntityType.USER,

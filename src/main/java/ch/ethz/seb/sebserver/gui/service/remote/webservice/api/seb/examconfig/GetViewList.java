@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetViewList extends RestCall<List<View>> {
 
-    protected GetViewList() {
+    public GetViewList() {
         super(new TypeKey<>(
                 CallType.GET_LIST,
                 EntityType.VIEW,

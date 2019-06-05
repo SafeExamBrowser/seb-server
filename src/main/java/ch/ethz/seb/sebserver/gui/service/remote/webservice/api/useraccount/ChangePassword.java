@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class ChangePassword extends RestCall<UserInfo> {
 
-    protected ChangePassword() {
+    public ChangePassword() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.USER,

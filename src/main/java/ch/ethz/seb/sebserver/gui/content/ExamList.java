@@ -110,28 +110,28 @@ public class ExamList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
                                 columnTitleLmsSetupKey,
-                                examLmsSetupNameFunction(this.resourceService),
-                                this.lmsFilter,
-                                false))
+                                examLmsSetupNameFunction(this.resourceService))
+                                        .withFilter(this.lmsFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 columnTitleNameKey,
-                                Exam::getName,
-                                this.nameFilter,
-                                true))
+                                Exam::getName)
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
                                         "sebserver.exam.list.column.starttime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
-                                Exam::getStartTime,
-                                this.startTimeFilter,
-                                true))
+                                Exam::getStartTime)
+                                        .withFilter(this.startTimeFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 columnTitleTypeKey,
-                                this::examTypeName,
-                                true))
+                                this::examTypeName)
+                                        .sortable())
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                                 .create())

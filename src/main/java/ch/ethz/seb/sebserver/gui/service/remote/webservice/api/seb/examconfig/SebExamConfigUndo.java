@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class SebExamConfigUndo extends RestCall<Configuration> {
 
-    protected SebExamConfigUndo() {
+    public SebExamConfigUndo() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.CONFIGURATION,

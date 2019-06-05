@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public final class ExamAPIDiscovery {
@@ -28,11 +29,12 @@ public final class ExamAPIDiscovery {
     @JsonProperty("api-versions")
     public final Collection<ExamAPIVersion> versions;
 
+    @JsonCreator
     public ExamAPIDiscovery(
-            final String title,
-            final String description,
-            final String serverLocation,
-            final Collection<ExamAPIVersion> versions) {
+            @JsonProperty("title") final String title,
+            @JsonProperty("description") final String description,
+            @JsonProperty("server-location") final String serverLocation,
+            @JsonProperty("api-versions") final Collection<ExamAPIVersion> versions) {
 
         this.title = title;
         this.description = description;
@@ -61,9 +63,10 @@ public final class ExamAPIDiscovery {
         @JsonProperty("endpoints")
         public final Collection<Endpoint> endpoints;
 
+        @JsonCreator
         public ExamAPIVersion(
-                final String name,
-                final Collection<Endpoint> endpoints) {
+                @JsonProperty("name") final String name,
+                @JsonProperty("endpoints") final Collection<Endpoint> endpoints) {
 
             this.name = name;
             this.endpoints = endpoints;
@@ -92,9 +95,13 @@ public final class ExamAPIDiscovery {
         @JsonProperty("authorization")
         public final String authorization;
 
-        public Endpoint(final String name, final String descripiton, final String location,
-                final String authorization) {
-            super();
+        @JsonCreator
+        public Endpoint(
+                @JsonProperty("name") final String name,
+                @JsonProperty("descripiton") final String descripiton,
+                @JsonProperty("location") final String location,
+                @JsonProperty("authorization") final String authorization) {
+
             this.name = name;
             this.descripiton = descripiton;
             this.location = location;

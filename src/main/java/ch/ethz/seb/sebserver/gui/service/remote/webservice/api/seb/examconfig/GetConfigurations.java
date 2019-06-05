@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.PageToListCallAda
 @GuiProfile
 public class GetConfigurations extends PageToListCallAdapter<Configuration> {
 
-    protected GetConfigurations() {
+    public GetConfigurations() {
         super(
                 GetConfigurationPage.class,
                 EntityType.CONFIGURATION,

@@ -128,30 +128,30 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_LMS_SETUP_ID,
                                 LMS_TEXT_KEY,
-                                quizDataLmsSetupNameFunction(this.resourceService),
-                                this.lmsFilter,
-                                false))
+                                quizDataLmsSetupNameFunction(this.resourceService))
+                                        .withFilter(this.lmsFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 NAME_TEXT_KEY,
-                                quizData -> quizData.name,
-                                this.nameFilter,
-                                true))
+                                QuizData::getName)
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
                                         "sebserver.quizdiscovery.list.column.starttime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
-                                quizData -> quizData.startTime,
-                                this.startTimeFilter,
-                                true))
+                                QuizData::getStartTime)
+                                        .withFilter(this.startTimeFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_END_TIME,
                                 new LocTextKey(
                                         "sebserver.quizdiscovery.list.column.endtime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
-                                quizData -> quizData.endTime,
-                                true))
+                                QuizData::getEndTime)
+                                        .sortable())
                         .withDefaultAction(t -> actionBuilder
                                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                                 .withExec(action -> this.showDetails(action, t.getSelectedROWData()))

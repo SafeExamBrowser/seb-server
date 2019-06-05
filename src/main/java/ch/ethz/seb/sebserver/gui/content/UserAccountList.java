@@ -123,38 +123,44 @@ public class UserAccountList implements TemplateComposer {
                         () -> new ColumnDefinition<>(
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 INSTITUTION_TEXT_KEY,
-                                userInstitutionNameFunction(this.resourceService),
-                                this.institutionFilter,
-                                false))
+                                userInstitutionNameFunction(this.resourceService))
+                                        .withFilter(this.institutionFilter)
+                                        .widthProportion(2))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_NAME,
                         NAME_TEXT_KEY,
-                        entity -> entity.name,
-                        this.nameFilter,
-                        true))
+                        UserInfo::getName)
+                                .withFilter(this.nameFilter)
+                                .sortable()
+                                .widthProportion(2))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_USERNAME,
                         USER_NAME_TEXT_KEY,
-                        entity -> entity.username,
-                        this.usernameFilter,
-                        true))
+                        UserInfo::getUsername)
+                                .withFilter(this.usernameFilter)
+                                .sortable()
+                                .widthProportion(2))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_EMAIL,
                         MAIL_TEXT_KEY,
-                        entity -> entity.email,
-                        this.mailFilter,
-                        true))
+                        UserInfo::getEmail)
+                                .withFilter(this.mailFilter)
+                                .sortable()
+                                .widthProportion(3))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_LANGUAGE,
                         LANG_TEXT_KEY,
-                        this::getLocaleDisplayText,
-                        this.languageFilter,
-                        true, true))
+                        this::getLocaleDisplayText)
+                                .withFilter(this.languageFilter)
+                                .localized()
+                                .sortable()
+                                .widthProportion(2))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_ACTIVE,
                         ACTIVE_TEXT_KEY,
-                        entity -> entity.active,
-                        true))
+                        UserInfo::getActive)
+                                .sortable()
+                                .widthProportion(1))
                 .withDefaultAction(actionBuilder
                         .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                         .create())

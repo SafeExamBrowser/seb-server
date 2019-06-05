@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetExamConfigMappingNames extends RestCall<List<EntityName>> {
 
-    protected GetExamConfigMappingNames() {
+    public GetExamConfigMappingNames() {
         super(new TypeKey<>(
                 CallType.GET_NAMES,
                 EntityType.CONFIGURATION_NODE,

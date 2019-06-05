@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetInstitutionNames extends RestCall<List<EntityName>> {
 
-    protected GetInstitutionNames() {
+    public GetInstitutionNames() {
         super(new TypeKey<>(
                 CallType.GET_NAMES,
                 EntityType.INSTITUTION,

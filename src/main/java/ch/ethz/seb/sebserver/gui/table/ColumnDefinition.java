@@ -21,79 +21,31 @@ public final class ColumnDefinition<ROW extends Entity> {
 
     final String columnName;
     final LocTextKey displayName;
-    final LocTextKey tooltip;
-    final int widthPercent;
     final Function<ROW, ?> valueSupplier;
-    final boolean sortable;
-    final TableFilterAttribute filterAttribute;
-    final boolean localized;
+
+    private LocTextKey tooltip;
+    private int widthProportion;
+    private boolean sortable;
+    private TableFilterAttribute filterAttribute;
+    private boolean localized;
 
     public ColumnDefinition(final String columnName, final LocTextKey displayName) {
-        this(columnName, displayName, null, -1);
+        this(columnName, displayName, null);
     }
 
     public ColumnDefinition(
+            final String columnName,
+            final LocTextKey displayName,
+            final Function<ROW, ?> valueSupplier) {
+
+        this(columnName, displayName, null, -1, valueSupplier, null, false, false);
+    }
+
+    private ColumnDefinition(
             final String columnName,
             final LocTextKey displayName,
             final LocTextKey tooltip,
-            final int widthPercent) {
-
-        this(columnName, displayName, tooltip, widthPercent, null, null, false, false);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final int widthPercent) {
-
-        this(columnName, displayName, null, widthPercent, null, null, false, false);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final Function<ROW, ?> valueSupplier,
-            final boolean sortable) {
-
-        this(columnName, displayName, null, -1, valueSupplier, null, sortable, false);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final Function<ROW, ?> valueSupplier,
-            final boolean sortable,
-            final boolean localized) {
-
-        this(columnName, displayName, null, -1, valueSupplier, null, sortable, localized);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final Function<ROW, ?> valueSupplier,
-            final TableFilterAttribute tableFilterAttribute,
-            final boolean sortable) {
-
-        this(columnName, displayName, null, -1, valueSupplier, tableFilterAttribute, sortable, false);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final Function<ROW, ?> valueSupplier,
-            final TableFilterAttribute tableFilterAttribute,
-            final boolean sortable,
-            final boolean localized) {
-
-        this(columnName, displayName, null, -1, valueSupplier, tableFilterAttribute, sortable, localized);
-    }
-
-    public ColumnDefinition(
-            final String columnName,
-            final LocTextKey displayName,
-            final LocTextKey tooltip,
-            final int widthPercent,
+            final int widthProportion,
             final Function<ROW, ?> valueSupplier,
             final TableFilterAttribute filterAttribute,
             final boolean sortable,
@@ -102,11 +54,56 @@ public final class ColumnDefinition<ROW extends Entity> {
         this.columnName = columnName;
         this.displayName = displayName;
         this.tooltip = tooltip;
-        this.widthPercent = widthPercent;
+        this.widthProportion = widthProportion;
         this.valueSupplier = valueSupplier;
         this.filterAttribute = filterAttribute;
         this.sortable = sortable;
         this.localized = localized;
+    }
+
+    public ColumnDefinition<ROW> withFilter(final TableFilterAttribute filterAttribute) {
+        this.filterAttribute = filterAttribute;
+        return this;
+    }
+
+    public ColumnDefinition<ROW> withTooltip(final LocTextKey tooltip) {
+        this.tooltip = tooltip;
+        return this;
+    }
+
+    public ColumnDefinition<ROW> localized() {
+        this.localized = true;
+        return this;
+    }
+
+    public ColumnDefinition<ROW> sortable() {
+        this.sortable = true;
+        return this;
+    }
+
+    public ColumnDefinition<ROW> widthProportion(final int widthProportion) {
+        this.widthProportion = widthProportion;
+        return this;
+    }
+
+    public LocTextKey getTooltip() {
+        return this.tooltip;
+    }
+
+    public int getWidthProportion() {
+        return this.widthProportion;
+    }
+
+    public boolean isSortable() {
+        return this.sortable;
+    }
+
+    public TableFilterAttribute getFilterAttribute() {
+        return this.filterAttribute;
+    }
+
+    public boolean isLocalized() {
+        return this.localized;
     }
 
     public static final class TableFilterAttribute {

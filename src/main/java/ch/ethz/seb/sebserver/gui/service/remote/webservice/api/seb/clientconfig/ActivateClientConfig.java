@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class ActivateClientConfig extends RestCall<EntityProcessingReport> {
 
-    protected ActivateClientConfig() {
+    public ActivateClientConfig() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_ACTIVATE,
                 EntityType.SEB_CLIENT_CONFIGURATION,

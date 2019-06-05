@@ -26,8 +26,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -283,18 +283,15 @@ public class ExamForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_NODE.ATTR_NAME,
                                     CONFIG_NAME_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigName,
-                                    false))
+                                    ExamConfigurationMap::getConfigName))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                                     CONFIG_DESCRIPTION_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigDescription,
-                                    false))
+                                    ExamConfigurationMap::getConfigDescription))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_NODE.ATTR_STATUS,
                                     CONFIG_STATUS_COLUMN_KEY,
-                                    this.resourceService::localizedExamConfigStatusName,
-                                    false))
+                                    this.resourceService::localizedExamConfigStatusName))
                             .withDefaultActionIf(
                                     () -> editable,
                                     () -> actionBuilder
@@ -350,18 +347,15 @@ public class ExamForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_NAME,
                                     INDICATOR_NAME_COLUMN_KEY,
-                                    Indicator::getName,
-                                    false))
+                                    Indicator::getName))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_TYPE,
                                     INDICATOR_TYPE_COLUMN_KEY,
-                                    this::indicatorTypeName,
-                                    false))
+                                    this::indicatorTypeName))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.THRESHOLD.REFERENCE_NAME,
                                     INDICATOR_THRESHOLD_COLUMN_KEY,
-                                    ExamForm::thresholdsValue,
-                                    false))
+                                    ExamForm::thresholdsValue))
                             .withDefaultActionIf(
                                     () -> editable,
                                     () -> actionBuilder

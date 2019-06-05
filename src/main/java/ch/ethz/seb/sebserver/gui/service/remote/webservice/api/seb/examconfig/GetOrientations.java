@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.PageToListCallAda
 @GuiProfile
 public class GetOrientations extends PageToListCallAdapter<Orientation> {
 
-    protected GetOrientations() {
+    public GetOrientations() {
         super(
                 GetOrientationPage.class,
                 EntityType.ORIENTATION,

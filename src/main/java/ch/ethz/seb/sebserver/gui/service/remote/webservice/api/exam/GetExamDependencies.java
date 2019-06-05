@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetExamDependencies extends RestCall<Set<EntityKey>> {
 
-    protected GetExamDependencies() {
+    public GetExamDependencies() {
         super(new TypeKey<>(
                 CallType.GET_DEPENDENCIES,
                 EntityType.EXAM,

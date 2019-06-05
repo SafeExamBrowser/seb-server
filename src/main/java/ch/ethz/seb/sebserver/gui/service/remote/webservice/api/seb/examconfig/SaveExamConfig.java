@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class SaveExamConfig extends RestCall<ConfigurationNode> {
 
-    protected SaveExamConfig() {
+    public SaveExamConfig() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.CONFIGURATION_NODE,

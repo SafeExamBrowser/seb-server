@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetOrientationPage extends RestCall<Page<Orientation>> {
 
-    protected GetOrientationPage() {
+    public GetOrientationPage() {
         super(new TypeKey<>(
                 CallType.GET_PAGE,
                 EntityType.ORIENTATION,

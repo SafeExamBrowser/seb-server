@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetConfigurationValuePage extends RestCall<Page<ConfigurationValue>> {
 
-    protected GetConfigurationValuePage() {
+    public GetConfigurationValuePage() {
         super(new TypeKey<>(
                 CallType.GET_PAGE,
                 EntityType.CONFIGURATION_VALUE,

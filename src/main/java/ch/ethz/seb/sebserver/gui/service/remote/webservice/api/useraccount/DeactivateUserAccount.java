@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class DeactivateUserAccount extends RestCall<EntityProcessingReport> {
 
-    protected DeactivateUserAccount() {
+    public DeactivateUserAccount() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_DEACTIVATE,
                 EntityType.USER,

@@ -20,12 +20,12 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
@@ -55,20 +55,28 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEnc
 @WebServiceProfile
 public class SebClientConfigServiceImpl implements SebClientConfigService {
 
+    private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
+    private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
+    private static final String WEB_SERVICE_SERVER_ADDRESS_KEY = "server.address";
+    private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
+    private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
+            "sebserver.webservice.api.exam.endpoint.discovery";
+
     private static final Logger log = LoggerFactory.getLogger(SebClientConfigServiceImpl.class);
 
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
     private final SebConfigEncryptionService sebConfigEncryptionService;
-    @Autowired
-    @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
-    private PasswordEncoder clientPasswordEncoder;
+    private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
     private final String httpScheme;
     private final String serverAddress;
+    private final String serverName;
     private final String serverPort;
     private final String discoveryEndpoint;
+
+    private final String serverURLPrefix;
 
     protected SebClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
@@ -76,20 +84,29 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final ClientCredentialService clientCredentialService,
             final SebConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
-            @Value("${sebserver.webservice.http.scheme}") final String httpScheme,
-            @Value("${server.address}") final String serverAddress,
-            @Value("${server.port}") final String serverPort,
-            @Value("${sebserver.webservice.api.exam.endpoint.discovery}") final String discoveryEndpoint) {
+            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
+            final Environment environment) {
 
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
         this.zipService = zipService;
-        this.httpScheme = httpScheme;
-        this.serverAddress = serverAddress;
-        this.serverPort = serverPort;
-        this.discoveryEndpoint = discoveryEndpoint;
+        this.clientPasswordEncoder = clientPasswordEncoder;
+
+        this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
+        this.serverAddress = environment.getRequiredProperty(WEB_SERVICE_SERVER_ADDRESS_KEY);
+        this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, (String) null);
+        this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
+        this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
+
+        this.serverURLPrefix = UriComponentsBuilder.newInstance()
+                .scheme(this.httpScheme)
+                .host((StringUtils.isNoneBlank(this.serverName))
+                        ? this.serverName
+                        : this.serverAddress)
+                .port(this.serverPort)
+                .toUriString();
     }
 
     @Override
@@ -236,11 +253,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
     @Override
     public String getServerURL() {
-        return UriComponentsBuilder.newInstance()
-                .scheme(this.httpScheme)
-                .host(this.serverAddress)
-                .port(this.serverPort)
-                .toUriString();
+        return this.serverURLPrefix;
     }
 
     private void passwordEncryption(

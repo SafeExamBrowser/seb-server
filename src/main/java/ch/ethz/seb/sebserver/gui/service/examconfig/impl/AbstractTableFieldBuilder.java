@@ -69,7 +69,9 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                 true, false,
                 (tableContext.orientation != null) ? tableContext.orientation.width() : 1,
                 (tableContext.orientation != null) ? tableContext.orientation.height() : 1);
-        gridData.heightHint = tableContext.orientation.height * 20 + 40;
+        if (tableContext.orientation.height != null) {
+            gridData.heightHint = tableContext.orientation.height * 20 + 40;
+        }
         table.setLayoutData(gridData);
         table.setHeaderVisible(true);
         table.addListener(SWT.Resize, event -> adaptColumnWidth(table, tableContext));
@@ -267,7 +269,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                 final Map<Long, TableValue> rowValues,
                 final int index) {
 
-            if (values != null && !values.isEmpty()) {
+            if (!values.isEmpty()) {
                 values.remove(index);
                 values.add(index, rowValues);
                 applyTableRowValues(index);

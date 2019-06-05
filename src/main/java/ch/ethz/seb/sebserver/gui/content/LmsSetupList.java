@@ -113,26 +113,27 @@ public class LmsSetupList implements TemplateComposer {
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
-                                        lmsSetupInstitutionNameFunction(this.resourceService),
-                                        this.institutionFilter,
-                                        false))
+                                        lmsSetupInstitutionNameFunction(this.resourceService))
+                                                .withFilter(this.institutionFilter))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_NAME,
                                 NAME_TEXT_KEY,
-                                entity -> entity.name,
-                                (isSEBAdmin) ? this.nameFilter : null,
-                                true))
+                                LmsSetup::getName)
+                                        .withFilter((isSEBAdmin) ? this.nameFilter : null)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_LMS_TYPE,
                                 TYPE_TEXT_KEY,
-                                this::lmsSetupTypeName,
-                                (isSEBAdmin) ? this.typeFilter : null,
-                                false, true))
+                                this::lmsSetupTypeName)
+                                        .withFilter((isSEBAdmin) ? this.typeFilter : null)
+                                        .localized()
+                                        .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_ACTIVE,
                                 ACTIVITY_TEXT_KEY,
-                                entity -> entity.active,
-                                true))
+                                LmsSetup::getActive)
+                                        .sortable())
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                                 .create())

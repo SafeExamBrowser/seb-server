@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class DeleteIndicator extends RestCall<EntityProcessingReport> {
 
-    protected DeleteIndicator() {
+    public DeleteIndicator() {
         super(new TypeKey<>(
                 CallType.DELETE,
                 EntityType.INDICATOR,

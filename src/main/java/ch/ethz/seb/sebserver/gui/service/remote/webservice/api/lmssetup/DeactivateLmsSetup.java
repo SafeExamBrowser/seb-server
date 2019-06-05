@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class DeactivateLmsSetup extends RestCall<EntityProcessingReport> {
 
-    protected DeactivateLmsSetup() {
+    public DeactivateLmsSetup() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_DEACTIVATE,
                 EntityType.LMS_SETUP,

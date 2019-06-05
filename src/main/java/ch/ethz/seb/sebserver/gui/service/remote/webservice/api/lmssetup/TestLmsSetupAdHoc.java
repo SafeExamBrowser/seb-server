@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class TestLmsSetupAdHoc extends RestCall<LmsSetupTestResult> {
 
-    protected TestLmsSetupAdHoc() {
+    public TestLmsSetupAdHoc() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.LMS_SETUP,

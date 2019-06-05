@@ -111,27 +111,27 @@ public class SebExamConfigList implements TemplateComposer {
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
-                                        this.resourceService::localizedExamConfigInstitutionName,
-                                        this.institutionFilter,
-                                        false))
+                                        this.resourceService::localizedExamConfigInstitutionName)
+                                                .withFilter(this.institutionFilter)
+                                                .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.CONFIGURATION_NODE.ATTR_NAME,
                                 NAME_TEXT_KEY,
-                                entity -> entity.name,
-                                this.nameFilter,
-                                true))
+                                ConfigurationNode::getName)
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                                 DESCRIPTION_TEXT_KEY,
-                                entity -> entity.description,
-                                this.nameFilter,
-                                true))
-                        .withColumn(new ColumnDefinition<>(
+                                ConfigurationNode::getDescription)
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
+                        .withColumn(new ColumnDefinition<ConfigurationNode>(
                                 Domain.CONFIGURATION_NODE.ATTR_STATUS,
                                 STATUS_TEXT_KEY,
-                                this.resourceService::localizedExamConfigStatusName,
-                                this.statusFilter,
-                                true))
+                                this.resourceService::localizedExamConfigStatusName)
+                                        .withFilter(this.statusFilter)
+                                        .sortable())
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())

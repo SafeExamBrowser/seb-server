@@ -110,7 +110,7 @@ public class EntityTable<ROW extends Entity> {
         this.filter =
                 columns
                         .stream()
-                        .map(column -> column.filterAttribute)
+                        .map(column -> column.getFilterAttribute())
                         .filter(Objects::nonNull)
                         .findFirst()
                         .isPresent() ? new TableFilter<>(this) : null;
@@ -273,12 +273,12 @@ public class EntityTable<ROW extends Entity> {
             final TableColumn tableColumn = this.widgetFactory.tableColumnLocalized(
                     this.table,
                     column.displayName,
-                    column.tooltip);
+                    column.getTooltip());
 
             tableColumn.addListener(SWT.Resize, this::adaptColumnWidthChange);
             tableColumn.setData(COLUMN_DEFINITION, column);
 
-            if (column.sortable) {
+            if (column.isSortable()) {
                 tableColumn.addListener(SWT.Selection, event -> {
                     if (!column.columnName.equals(this.sortColumn)) {
                         applySort(column.columnName);
@@ -292,7 +292,7 @@ public class EntityTable<ROW extends Entity> {
                 });
             }
 
-            if (column.widthPercent > 0) {
+            if (column.getWidthProportion() > 0) {
                 this.columnsWithSameWidth = false;
             }
         }
@@ -355,14 +355,22 @@ public class EntityTable<ROW extends Entity> {
         try {
             final int currentTableWidth = this.table.getParent().getClientArea().width;
             int index = 0;
+
+            final int pSize = this.columns
+                    .stream()
+                    .filter(c -> c.getWidthProportion() > 0)
+                    .reduce(0,
+                            (acc, c) -> acc + c.getWidthProportion(),
+                            (acc1, acc2) -> acc1 + acc2);
+
+            final int columnSize = (pSize > 0)
+                    ? currentTableWidth / pSize
+                    : currentTableWidth / this.columns.size();
+
             for (final ColumnDefinition<ROW> column : this.columns) {
 
-                final int percentage = (this.columnsWithSameWidth)
-                        ? 100 / this.columns.size()
-                        : column.widthPercent;
-
                 final TableColumn tableColumn = this.table.getColumn(index);
-                final int newWidth = currentTableWidth / 100 * percentage;
+                final int newWidth = (pSize > 0) ? columnSize * column.getWidthProportion() : columnSize;
                 tableColumn.setWidth(newWidth);
                 if (this.filter != null) {
                     this.filter.adaptColumnWidth(this.table.indexOf(tableColumn), newWidth);
@@ -401,7 +409,7 @@ public class EntityTable<ROW extends Entity> {
         final TableColumn[] columns = table.table.getColumns();
         for (int i = 0; i < columns.length; i++) {
             final ColumnDefinition<ROW> columnDefinition = table.columns.get(i);
-            if (columnDefinition.localized) {
+            if (columnDefinition.isLocalized()) {
                 for (int j = 0; j < items.length; j++) {
                     @SuppressWarnings("unchecked")
                     final ROW rowData = (ROW) items[j].getData(TABLE_ROW_DATA);

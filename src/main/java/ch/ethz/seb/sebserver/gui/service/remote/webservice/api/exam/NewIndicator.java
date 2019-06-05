@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class NewIndicator extends RestCall<Indicator> {
 
-    protected NewIndicator() {
+    public NewIndicator() {
         super(new TypeKey<>(
                 CallType.NEW,
                 EntityType.INDICATOR,

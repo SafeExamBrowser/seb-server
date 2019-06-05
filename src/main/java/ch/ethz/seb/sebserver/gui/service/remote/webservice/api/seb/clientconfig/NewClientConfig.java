@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class NewClientConfig extends RestCall<SebClientConfig> {
 
-    protected NewClientConfig() {
+    public NewClientConfig() {
         super(new TypeKey<>(
                 CallType.NEW,
                 EntityType.SEB_CLIENT_CONFIGURATION,

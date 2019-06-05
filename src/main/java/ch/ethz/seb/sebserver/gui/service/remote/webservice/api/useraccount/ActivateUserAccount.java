@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class ActivateUserAccount extends RestCall<EntityProcessingReport> {
 
-    protected ActivateUserAccount() {
+    public ActivateUserAccount() {
         super(new TypeKey<>(
                 CallType.ACTIVATION_ACTIVATE,
                 EntityType.USER,

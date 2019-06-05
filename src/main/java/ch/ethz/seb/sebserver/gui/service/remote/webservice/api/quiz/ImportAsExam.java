@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class ImportAsExam extends RestCall<Exam> {
 
-    protected ImportAsExam() {
+    public ImportAsExam() {
         super(new TypeKey<>(
                 CallType.NEW,
                 EntityType.EXAM,

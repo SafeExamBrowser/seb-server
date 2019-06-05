@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetUserAccountNames extends RestCall<List<EntityName>> {
 
-    protected GetUserAccountNames() {
+    public GetUserAccountNames() {
         super(new TypeKey<>(
                 CallType.GET_NAMES,
                 EntityType.USER,

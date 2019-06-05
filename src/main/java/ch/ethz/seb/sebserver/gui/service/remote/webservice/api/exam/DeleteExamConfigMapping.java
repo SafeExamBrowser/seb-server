@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class DeleteExamConfigMapping extends RestCall<EntityProcessingReport> {
 
-    protected DeleteExamConfigMapping() {
+    public DeleteExamConfigMapping() {
         super(new TypeKey<>(
                 CallType.DELETE,
                 EntityType.EXAM_CONFIGURATION_MAP,

@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @GuiProfile
 public class GetLmsSetup extends RestCall<LmsSetup> {
 
-    protected GetLmsSetup() {
+    public GetLmsSetup() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.LMS_SETUP,

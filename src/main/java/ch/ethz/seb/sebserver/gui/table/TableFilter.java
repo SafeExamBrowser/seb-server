@@ -82,10 +82,10 @@ public class TableFilter<ROW extends Entity> {
         this.components.clear();
         this.components.addAll(this.entityTable.columns
                 .stream()
-                .map(column -> column.filterAttribute)
+                .map(ColumnDefinition::getFilterAttribute)
                 .map(this::createFilterComponent)
                 .map(comp -> comp.build(this.composite))
-                .map(comp -> comp.reset())
+                .map(FilterComponent::reset)
                 .collect(Collectors.toList()));
 
         final FilterComponent lastComp = this.components.get(this.components.size() - 1);
