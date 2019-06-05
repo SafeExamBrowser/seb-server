@@ -47,12 +47,12 @@ public class GridTable extends Composite {
 
     private static final int ACTION_COLUMN_WIDTH = 20;
 
-    private final transient WidgetFactory widgetFactory;
-    private final transient List<Column> columns;
-    private final transient Label addAction;
-    private final transient List<Row> rows;
-    private final transient String locTextKeyPrefix;
-    private transient Listener listener;
+    private final WidgetFactory widgetFactory;
+    private final List<Column> columns;
+    private final Label addAction;
+    private final List<Row> rows;
+    private final String locTextKeyPrefix;
+    private Listener listener;
 
     public GridTable(
             final Composite parent,
@@ -81,7 +81,7 @@ public class GridTable extends Composite {
                     new LocTextKey(locTextKeyPrefix + columnDef.name));
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
             label.setLayoutData(gridData);
-            this.columns.add(new Column(columnDef, label, gridData));
+            this.columns.add(new Column(columnDef, gridData));
         }
 
         this.addAction = widgetFactory.imageButton(
@@ -301,12 +301,10 @@ public class GridTable extends Composite {
 
     private static class Column {
         final ColumnDef columnDef;
-        final Label label;
         final GridData header;
 
-        protected Column(final ColumnDef columnDef, final Label label, final GridData header) {
+        protected Column(final ColumnDef columnDef, final GridData header) {
             this.columnDef = columnDef;
-            this.label = label;
             this.header = header;
         }
     }
