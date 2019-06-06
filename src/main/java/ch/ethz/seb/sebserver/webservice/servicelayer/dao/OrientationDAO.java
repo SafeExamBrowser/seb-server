@@ -16,6 +16,10 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface OrientationDAO extends EntityDAO<Orientation, Orientation> {
 
+    /** Use this to delete all Orientation of a defined template.
+     * 
+     * @param templateId the template identifier (PK)
+     * @return Collection of all EntityKey of Orientations that has been deleted */
     Result<Collection<EntityKey>> deleteAllOfTemplate(Long templateId);
 
 }

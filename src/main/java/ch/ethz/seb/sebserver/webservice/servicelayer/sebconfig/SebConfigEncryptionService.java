@@ -52,11 +52,21 @@ public interface SebConfigEncryptionService {
 
     }
 
+    /** This can be used to stream incoming plain text data to encrypted cipher data output stream.
+     *
+     * @param output the output data stream to write the cipher text to
+     * @param input the input stream to read the plain text from
+     * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
     void streamEncrypted(
             final OutputStream output,
             final InputStream input,
             SebConfigEncryptionContext context);
 
+    /** This can be used to stream incoming cipher data to decrypted plain text data output stream.
+     *
+     * @param output the output data stream to write encrypted plain text to
+     * @param input the input stream to read the cipher text from
+     * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
     void streamDecrypted(
             final OutputStream output,
             final InputStream input,

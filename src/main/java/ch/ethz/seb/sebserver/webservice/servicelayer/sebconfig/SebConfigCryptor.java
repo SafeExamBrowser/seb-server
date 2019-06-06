@@ -41,6 +41,13 @@ public interface SebConfigCryptor {
             final InputStream input,
             final SebConfigEncryptionContext context);
 
+    /** Decrypt an incoming cipher data stream to an outgoing plain text data stream
+     *
+     * IMPORTANT: This must run in a separated thread
+     *
+     * @param output the output stream to write the plain text data to
+     * @param input the input stream to read the cipher text from
+     * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void decrypt(
             final OutputStream output,

@@ -13,7 +13,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -87,10 +86,6 @@ public class PassworFieldBuilder implements InputFieldBuilder {
             final String confirm = confirmInput.getText();
 
             if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
-                return;
-            }
-
-            if (StringUtils.isBlank(pwd) && StringUtils.isBlank(confirm)) {
                 return;
             }
 

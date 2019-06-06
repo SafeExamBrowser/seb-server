@@ -49,21 +49,19 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class ExamList implements TemplateComposer {
 
-    private final PageService pageService;
-    private final ResourceService resourceService;
-    private final int pageSize;
-
-    private final static LocTextKey emptySelectionTextKey =
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+            new LocTextKey("sebserver.exam.list.action.no.modify.privilege");
+    private final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.info.pleaseSelect");
-    private final static LocTextKey columnTitleLmsSetupKey =
+    private final static LocTextKey COLUMN_TITLE_KEY =
             new LocTextKey("sebserver.exam.list.column.lmssetup");
-    private final static LocTextKey columnTitleNameKey =
+    private final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.exam.list.column.name");
-    private final static LocTextKey columnTitleTypeKey =
+    private final static LocTextKey COLUMN_TITLE_TYPE_KEY =
             new LocTextKey("sebserver.exam.list.column.type");
-    private final static LocTextKey noModifyOfOutDatedExams =
+    private final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
             new LocTextKey("sebserver.exam.list.modify.out.dated");
-    private final static LocTextKey emptyListTextKey =
+    private final static LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.exam.list.empty");
 
     private final TableFilterAttribute lmsFilter;
@@ -71,6 +69,10 @@ public class ExamList implements TemplateComposer {
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
     private final TableFilterAttribute startTimeFilter =
             new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
+
+    private final PageService pageService;
+    private final ResourceService resourceService;
+    private final int pageSize;
 
     protected ExamList(
             final PageService pageService,
@@ -105,17 +107,17 @@ public class ExamList implements TemplateComposer {
         // table
         final EntityTable<Exam> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
-                        .withEmptyMessage(emptyListTextKey)
+                        .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
-                                columnTitleLmsSetupKey,
+                                COLUMN_TITLE_KEY,
                                 examLmsSetupNameFunction(this.resourceService))
                                         .withFilter(this.lmsFilter)
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
-                                columnTitleNameKey,
+                                COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
@@ -129,7 +131,7 @@ public class ExamList implements TemplateComposer {
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
-                                columnTitleTypeKey,
+                                COLUMN_TITLE_TYPE_KEY,
                                 this::examTypeName)
                                         .sortable())
                         .withDefaultAction(actionBuilder
@@ -142,17 +144,17 @@ public class ExamList implements TemplateComposer {
         actionBuilder
 
                 .newAction(ActionDefinition.EXAM_IMPORT)
-                .publishIf(userGrant::im) // TODO iw instead of im?
+                .publishIf(userGrant::im)
 
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, emptySelectionTextKey)
+                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(table::hasAnyContent)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(
-                        table::getSelection,
+                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
                         action -> this.modifyExam(action, table),
-                        emptySelectionTextKey)
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }
@@ -163,7 +165,7 @@ public class ExamList implements TemplateComposer {
         if (exam.startTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);
             if (exam.startTime.isBefore(now)) {
-                throw new PageMessageException(noModifyOfOutDatedExams);
+                throw new PageMessageException(NO_MODIFY_OF_OUT_DATED_EXAMS);
             }
         }
 

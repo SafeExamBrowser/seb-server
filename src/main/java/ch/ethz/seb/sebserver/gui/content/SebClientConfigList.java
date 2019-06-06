@@ -47,6 +47,8 @@ import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 @GuiProfile
 public class SebClientConfigList implements TemplateComposer {
 
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+            new LocTextKey("sebserver.clientconfig.list.action.no.modify.privilege");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.list.empty");
     private static final LocTextKey TITLE_TEXT_KEY =
@@ -155,7 +157,9 @@ public class SebClientConfigList implements TemplateComposer {
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent());
 
     }

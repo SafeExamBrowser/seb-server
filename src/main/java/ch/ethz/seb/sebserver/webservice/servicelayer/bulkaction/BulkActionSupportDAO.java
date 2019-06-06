@@ -80,12 +80,21 @@ public interface BulkActionSupportDAO<T extends Entity> {
         throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
     }
 
+    /** This creates a collection of Results refer the given entity keys.
+     *
+     * @param keys Collection of entity keys to create Results from
+     * @return a collection of Results refer the given entity keys. */
     static Collection<Result<EntityKey>> transformResult(final Collection<EntityKey> keys) {
         return keys.stream()
                 .map(key -> Result.of(key))
                 .collect(Collectors.toList());
     }
 
+    /** This creates a list of Result refer to a given error for all given EntityKey instances.
+     *
+     * @param error the error that shall be referred by created Result's
+     * @param all all entity keys to create error Result for
+     * @return List of Result refer to a given error for all given EntityKey instances */
     static List<Result<EntityKey>> handleBulkActionError(final Throwable error, final Set<EntityKey> all) {
         return all.stream()
                 .map(key -> Result.<EntityKey> ofError(new BulkActionEntityException(key)))
@@ -97,7 +106,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * and applies the selection functions for each, collecting the resulting dependency EntityKeys
      * into one Set of all dependency keys for all source keys
      *
-     * 
+     *
      * @param bulkAction The BulkAction that defines the source keys
      * @param selectionFunction a selection functions that gives all dependency keys for a given source key
      * @return */

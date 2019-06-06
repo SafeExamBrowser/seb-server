@@ -17,6 +17,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
@@ -35,14 +37,17 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
@@ -257,6 +262,10 @@ public class EntityTable<ROW extends Entity> {
     }
 
     public Set<EntityKey> getSelection() {
+        return getSelection(null);
+    }
+
+    public Set<EntityKey> getSelection(final Predicate<ROW> grantCheck) {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null) {
             return Collections.emptySet();
@@ -264,8 +273,25 @@ public class EntityTable<ROW extends Entity> {
 
         return Arrays.asList(selection)
                 .stream()
+                .filter(item -> grantCheck == null || grantCheck.test(getRowData(item)))
                 .map(this::getRowDataId)
                 .collect(Collectors.toSet());
+    }
+
+    public Supplier<Set<EntityKey>> getGrantedSelection(
+            final CurrentUser currentUser,
+            final LocTextKey denyMessage) {
+
+        return () -> getSelection(e -> {
+            if (!(e instanceof GrantEntity)) {
+                return true;
+            }
+            if (currentUser.entityGrantCheck((GrantEntity) e).m()) {
+                return true;
+            } else {
+                throw new PageMessageException(denyMessage);
+            }
+        });
     }
 
     private void createTableColumns() {

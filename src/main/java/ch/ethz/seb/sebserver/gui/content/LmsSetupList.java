@@ -45,6 +45,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class LmsSetupList implements TemplateComposer {
 
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+            new LocTextKey("sebserver.lmssetup.list.action.no.modify.privilege");
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.info.pleaseSelect");
     private static final LocTextKey ACTIVITY_TEXT_KEY =
@@ -151,7 +153,9 @@ public class LmsSetupList implements TemplateComposer {
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }

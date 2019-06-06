@@ -174,7 +174,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
      * convert the matching EntityKey's to id's (PK's)
      *
-     * Use this if you need to transform a Collection of EntityKey into a extracted List of id's of a specified
+     * Use this if you need to transform a Collection of EntityKey into a extracted Set of id's of a specified
      * EntityType
      *
      * @param keys Collection of EntityKey of various types
@@ -198,6 +198,15 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
         }
     }
 
+    /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
+     * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
+     * convert the matching EntityKey's to id's (PK's)
+     *
+     * Use this if you need to transform a Collection of EntityKey into a extracted List of id's of a specified
+     * EntityType
+     *
+     * @param keys Collection of EntityKey of various types
+     * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
     default List<Long> extractListOfPKs(final Collection<EntityKey> keys) {
         return new ArrayList<>(extractPKsFromKeys(keys));
     }

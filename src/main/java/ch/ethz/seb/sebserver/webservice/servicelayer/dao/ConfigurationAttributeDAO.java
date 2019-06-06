@@ -15,6 +15,10 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ConfigurationAttributeDAO extends EntityDAO<ConfigurationAttribute, ConfigurationAttribute> {
 
+    /** Use this to get all ConfigurationAttribute that are root attributes and no child
+     * attributes (has no parent reference).
+     * 
+     * @return Collection of all ConfigurationAttribute that are root attributes */
     Result<Collection<ConfigurationAttribute>> getAllRootAttributes();
 
 }

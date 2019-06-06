@@ -38,16 +38,39 @@ public interface SebClientConfigService {
                     "    </dict>\r\n" +
                     "  </dict>\r\n";
 
+    /** Get the server URL prefix in form of;
+     * [scheme{http|https}]://[server-address{DNS-name|IP}]:[port]
+     *
+     * E.g.: https://seb.server.ch:8080
+     *
+     * @return the server URL prefix */
     String getServerURL();
 
+    /** Indicates if there is any SebClientConfiguration for a specified institution.
+     *
+     * @param institutionId the institution identifier
+     * @return true if there is any SebClientConfiguration for a specified institution. False otherwise */
     boolean hasSebClientConfigurationForInstitution(Long institutionId);
 
+    /** Use this to auto-generate a SebClientConfiguration for a specified institution.
+     * clientName and clientSecret are randomly generated.
+     *
+     * @param institutionId the institution identifier
+     * @return the created SebClientConfig */
     Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
 
+    /** Use this to export a specified SebClientConfiguration within a given OutputStream.
+     *
+     * @param out OutputStream to write the export to
+     * @param modelId the model identifier of the SebClientConfiguration to export */
     void exportSebClientConfiguration(
             OutputStream out,
             final String modelId);
 
+    /** Use this to get a encoded clientSecret for the SebClientConfiguration with specified clientId/clientName.
+     *
+     * @param clientId the clientId/clientName
+     * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
     Result<String> getEncodedClientSecret(String clientId);
 
 }

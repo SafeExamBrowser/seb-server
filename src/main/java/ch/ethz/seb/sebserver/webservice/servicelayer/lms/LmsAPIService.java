@@ -48,7 +48,7 @@ public interface LmsAPIService {
 
     /** This can be used to test an LmsSetup connection parameter without saving or heaving
      * an already persistent version of an LmsSetup.
-     * 
+     *
      * @param lmsSetup
      * @return */
     LmsSetupTestResult testAdHoc(LmsSetup lmsSetup);
@@ -76,7 +76,6 @@ public interface LmsAPIService {
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
             final boolean startTimeFilter = (from == null) || (q.startTime != null && q.startTime.isAfter(from));
-//            final boolean endTimeFilter = (now == null) || (q.endTime != null && q.endTime.isAfter(now));
             return nameFilter && startTimeFilter /* && endTimeFilter */;
         };
     }
