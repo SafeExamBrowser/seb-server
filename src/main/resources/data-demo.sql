@@ -1,12 +1,5 @@
 INSERT IGNORE INTO institution VALUES
-    (1, 'ETH Zürich', 'ethz', null, null, 1),
-    (2, 'Institution 2', 'inst2', null, null, 1),
-    (3, 'Institution 3', 'inst3', null, null, 0),
-    (4, 'Institution 4', 'inst4', null, null, 0),
-    (5, 'Institution 5', 'inst5', null, null, 0),
-    (6, 'Institution 6', 'inst6', null, null, 0),
-    (7, 'Institution 7', 'inst7', null, null, 0),
-    (8, 'Institution 8', 'inst8', null, null, 0)
+    (1, 'ETH Zürich', 'ethz', null, null, 1)
     ;
 
 INSERT IGNORE INTO user VALUES 
