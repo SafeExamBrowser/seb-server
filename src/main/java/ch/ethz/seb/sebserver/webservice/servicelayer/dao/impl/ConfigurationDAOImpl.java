@@ -294,6 +294,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             // get follow-up configuration id
             final ConfigurationRecord followup = getFollowupConfigurationRecord(configurationNodeId);
 
+            // delete all values of the follow-up
+            this.configurationValueRecordMapper
+                    .deleteByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(followup.getId()))
+                    .build()
+                    .execute();
+
             // restore all current values of the follow-up with historic values
             // TODO batch here for better performance
             historicValues.stream()
@@ -304,16 +313,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             historicValRec.getConfigurationAttributeId(),
                             historicValRec.getListIndex(),
                             historicValRec.getValue()))
-                    .forEach(newValRec -> this.configurationValueRecordMapper
-                            .updateByExample(newValRec)
-                            .where(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                    isEqualTo(followup.getId()))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                    isEqualTo(newValRec.getConfigurationAttributeId()))
-                            .build()
-                            .execute());
+                    .forEach(newValRec -> this.configurationValueRecordMapper.insert(newValRec));
 
             return followup;
         })

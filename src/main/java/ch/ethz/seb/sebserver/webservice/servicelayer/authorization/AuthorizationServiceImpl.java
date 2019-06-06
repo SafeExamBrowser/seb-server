@@ -83,6 +83,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withBasePrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();
 
         // grants for lms setup

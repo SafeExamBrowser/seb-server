@@ -79,11 +79,11 @@ public final class UserMod implements UserAccount {
     public final Set<String> roles;
 
     @NotNull(message = "user:newPassword:notNull")
-    @Size(min = 8, max = 255, message = "user:password:size:{min}:{max}:${validatedValue}")
+    @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
-    @NotNull(message = "user:retypedNewPassword:notNull")
+    @NotNull(message = "user:confirmNewPassword:notNull")
     @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final String confirmNewPassword;
 

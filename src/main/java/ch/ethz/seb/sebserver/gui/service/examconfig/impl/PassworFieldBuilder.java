@@ -81,12 +81,12 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 InputFieldBuilder.createErrorLabel(innerGrid));
 
         final Listener valueChangeEventListener = event -> {
+            passwordInputField.clearError();
 
             final String pwd = passwordInput.getText();
             final String confirm = confirmInput.getText();
 
             if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
-                System.out.println("*********************************** ignore Password set");
                 return;
             }
 
@@ -103,7 +103,6 @@ public class PassworFieldBuilder implements InputFieldBuilder {
 
             final String hashedPWD = passwordInputField.getValue();
             if (hashedPWD != null) {
-                passwordInputField.clearError();
                 viewContext.getValueChangeListener().valueChanged(
                         viewContext,
                         attribute,

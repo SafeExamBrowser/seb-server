@@ -13,7 +13,7 @@
     </Match>
     <Match>
       <Class name="ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery" />
-      <Bug pattern="UrF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+      <Bug pattern="UrF" />
     </Match>
     <Match>
       <Class name="ch.ethz.seb.sebserver.gui.widget.*" />
