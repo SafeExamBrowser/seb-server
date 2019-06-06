@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +37,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
+
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
     /** This Collector can be used within stream collect to get one expected singleton element from
      * the given Stream.
@@ -211,7 +216,12 @@ public final class Utils {
             return value;
         }
 
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (final UnsupportedEncodingException e) {
+            log.error("Failed to encode FormURL_UTF_8 for: {}", value, e);
+            return value;
+        }
     }
 
     public static final String decodeFormURL_UTF_8(final String value) {
@@ -219,11 +229,16 @@ public final class Utils {
             return value;
         }
 
-        return URLDecoder.decode(
-                (value.indexOf('+') >= 0)
-                        ? value.replaceAll("\\+", "%2b")
-                        : value,
-                StandardCharsets.UTF_8);
+        try {
+            return URLDecoder.decode(
+                    (value.indexOf('+') >= 0)
+                            ? value.replaceAll("\\+", "%2b")
+                            : value,
+                    StandardCharsets.UTF_8.name());
+        } catch (final UnsupportedEncodingException e) {
+            log.error("Failed to decode FormURL_UTF_8 for: {}", value, e);
+            return value;
+        }
     }
 
     public static void clearCharArray(final char[] array) {
