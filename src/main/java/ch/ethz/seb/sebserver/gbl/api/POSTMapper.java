@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,22 +46,13 @@ public class POSTMapper {
     }
 
     public String getString(final String name) {
-        final String first = this.params.getFirst(name);
-        if (StringUtils.isNotBlank(first)) {
-            try {
-                return URLDecoder.decode(first, "UTF-8");
-            } catch (final UnsupportedEncodingException e) {
-                log.warn("Failed to decode form URL formatted string value: ", e);
-                return first;
-            }
-        }
-        return first;
+        return Utils.decodeFormURL_UTF_8(this.params.getFirst(name));
     }
 
     public char[] getCharArray(final String name) {
         final String value = getString(name);
         if (value == null || value.length() <= 0) {
-            return null;
+            return new char[] {};
         }
 
         return value.toCharArray();

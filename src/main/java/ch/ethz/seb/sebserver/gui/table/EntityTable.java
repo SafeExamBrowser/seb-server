@@ -353,9 +353,14 @@ public class EntityTable<ROW extends Entity> {
 
     private void adaptColumnWidth(final Event event) {
         try {
-            final int currentTableWidth = this.table.getParent().getClientArea().width;
-            int index = 0;
+            int currentTableWidth = this.table.getParent().getClientArea().width;
+            // If we have all columns with filter we need some more space for the
+            // filter actions in the right hand side. This tweak gives enough space for that
+            if (this.filter != null && this.columns.size() == this.filter.size()) {
+                currentTableWidth -= 60;
+            }
 
+            // The proportion size, the sum of all given proportion values
             final int pSize = this.columns
                     .stream()
                     .filter(c -> c.getWidthProportion() > 0)
@@ -363,14 +368,18 @@ public class EntityTable<ROW extends Entity> {
                             (acc, c) -> acc + c.getWidthProportion(),
                             (acc1, acc2) -> acc1 + acc2);
 
-            final int columnSize = (pSize > 0)
+            // The unit size either with proportion or for a entire column if all columns are equal in size
+            final int columnUnitSize = (pSize > 0)
                     ? currentTableWidth / pSize
                     : currentTableWidth / this.columns.size();
 
+            // Apply the column width for each column
+            int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
-
                 final TableColumn tableColumn = this.table.getColumn(index);
-                final int newWidth = (pSize > 0) ? columnSize * column.getWidthProportion() : columnSize;
+                final int newWidth = (pSize > 0)
+                        ? columnUnitSize * column.getWidthProportion()
+                        : columnUnitSize;
                 tableColumn.setWidth(newWidth);
                 if (this.filter != null) {
                     this.filter.adaptColumnWidth(this.table.indexOf(tableColumn), newWidth);

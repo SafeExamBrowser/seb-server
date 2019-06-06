@@ -11,4 +11,13 @@
     <Match>
         <Package name="ch.ethz.seb.sebserver.webservice.datalayer.batis.model"/>
     </Match>
+    <Match>
+      <Class name="ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery" />
+      <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+      <Class name="ch.ethz.seb.sebserver.gui.widget.*" />
+      <Bug pattern="SE_BAD_FIELD" />
+    </Match>
+
 </FindBugsFilter>

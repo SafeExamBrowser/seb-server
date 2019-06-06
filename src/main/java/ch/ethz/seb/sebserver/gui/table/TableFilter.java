@@ -61,6 +61,10 @@ public class TableFilter<ROW extends Entity> {
         buildComponents();
     }
 
+    public int size() {
+        return this.components.size();
+    }
+
     public MultiValueMap<String, String> getFilterParameter() {
         return this.components
                 .stream()

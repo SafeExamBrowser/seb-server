@@ -241,11 +241,12 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withFormParam(final String name, final String value) {
+            final String encodedVal = Utils.encodeFormURL_UTF_8(value);
             if (StringUtils.isBlank(this.body)) {
-                this.body = name + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + value;
+                this.body = name + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + encodedVal;
             } else {
                 this.body = this.body + Constants.FORM_URL_ENCODED_SEPARATOR + name +
-                        Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + value;
+                        Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + encodedVal;
             }
 
             return this;
