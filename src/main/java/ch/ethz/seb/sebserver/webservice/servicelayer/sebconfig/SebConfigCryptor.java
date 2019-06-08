@@ -29,8 +29,7 @@ public interface SebConfigCryptor {
     Set<Strategy> strategies();
 
     /** Encrypt an incoming plain data stream to an outgoing cipher data stream
-     *
-     * IMPORTANT: This must run in a separated thread
+     * This uses Springs @Async annotation to run in a separated thread
      *
      * @param output the output stream to write encrypted data to
      * @param input the input stream to read plain data from
@@ -42,8 +41,7 @@ public interface SebConfigCryptor {
             final SebConfigEncryptionContext context);
 
     /** Decrypt an incoming cipher data stream to an outgoing plain text data stream
-     *
-     * IMPORTANT: This must run in a separated thread
+     * This uses Springs @Async annotation to run in a separated thread
      *
      * @param output the output stream to write the plain text data to
      * @param input the input stream to read the cipher text from

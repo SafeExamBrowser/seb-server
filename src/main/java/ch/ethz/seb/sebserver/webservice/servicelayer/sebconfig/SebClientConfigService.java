@@ -60,6 +60,8 @@ public interface SebClientConfigService {
     Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
 
     /** Use this to export a specified SebClientConfiguration within a given OutputStream.
+     * The SEB Client Configuration is exported in the defined SEB Configuration format
+     * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out OutputStream to write the export to
      * @param modelId the model identifier of the SebClientConfiguration to export */

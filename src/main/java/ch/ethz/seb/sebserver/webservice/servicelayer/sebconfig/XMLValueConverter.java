@@ -16,12 +16,31 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
+/** Defines the interface of a XML converter to be used to convert
+ * ConfigurationValue for defined ConfigurationAttribute */
 public interface XMLValueConverter {
 
+    /** Gives a Set of AttributeType's a concrete converter is able to
+     * handle and convert ConfigurationValue of attributes of given types.
+     * 
+     * @return a Set of supported AttributeType's of the converter */
     Set<AttributeType> types();
 
+    /** The name of the Converter. This can be used if a Converter is specific to
+     * an ConfigurationAttribute and not specific on a type of attribute.
+     * This must give either the name if a specific ConfigurationAttribute or null/emptyString
+     *
+     * @return The name of a specific ConfigurationAttribute the converter works for. */
     String name();
 
+    /** Used to convert the a given ConfigurationAttribute / ConfigurationValue
+     * pair to plain XML text for block of this SEB Configuration attribute.
+     * 
+     * @param out The output stream to write the plain XML text block to
+     * @param attribute The ConfigurationAttribute containing all attribute information
+     * @param value The ConfigurationValue containing the value
+     * @param xmlValueConverterService
+     * @throws IOException */
     void convertToXML(
             OutputStream out,
             ConfigurationAttribute attribute,

@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** Used for SEB Configuration encryption and decryption */
 public interface SebConfigEncryptionService {
 
     /** Types of encryption strategies */

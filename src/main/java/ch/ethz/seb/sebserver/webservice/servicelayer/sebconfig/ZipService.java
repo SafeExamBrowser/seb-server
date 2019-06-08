@@ -15,11 +15,24 @@ import org.springframework.scheduling.annotation.Async;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 
+/** A Zip service that can be used to compress or uncompress a given data stream. */
 public interface ZipService {
 
+    /** Use this to read uncompressed data from a given input-stream,
+     * compress this data with gzip and write the compressed data to
+     * a given output stream.
+     * 
+     * @param out the OutputStream to write the compressed data to
+     * @param in the InputStream to read the uncompressed data from */
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void write(OutputStream out, InputStream in);
 
+    /** Use this to read gzip-compressed data from a given input-stream,
+     * uncompress this data and write the uncompressed data to
+     * a given output stream.
+     * 
+     * @param out the OutputStream to write the uncompressed data to
+     * @param in the InputStream to read the compressed data from */
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void read(OutputStream out, InputStream in);
 
