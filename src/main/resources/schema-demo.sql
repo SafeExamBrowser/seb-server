@@ -1,8 +1,3 @@
-
--- -----------------------------------------------------
--- Schema SEBServer
--- -----------------------------------------------------
-
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
@@ -87,8 +82,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `exam_id` BIGINT UNSIGNED NULL,
   `status` VARCHAR(45) NOT NULL,
   `connection_token` VARCHAR(255) NOT NULL,
-  `user_name` VARCHAR(255) NOT NULL,
-  `VDI` BIT(1) NOT NULL,
+  `exam_user_session_identifer` VARCHAR(255) NOT NULL,
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
@@ -109,7 +103,6 @@ DROP TABLE IF EXISTS `client_event` ;
 CREATE TABLE IF NOT EXISTS `client_event` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `connection_id` BIGINT UNSIGNED NOT NULL,
-  `user_identifier` VARCHAR(255) NOT NULL,
   `type` INT(2) UNSIGNED NOT NULL,
   `timestamp` BIGINT UNSIGNED NOT NULL,
   `numeric_value` DECIMAL(10,4) NULL,
@@ -232,7 +225,7 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
   `configuration_id` BIGINT UNSIGNED NOT NULL,
   `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
   `list_index` INT NOT NULL DEFAULT 0,
-  `value` VARCHAR(20000) NULL,
+  `value` VARCHAR(16000) NULL,
   PRIMARY KEY (`id`),
   INDEX `configuration_value_ref_idx` (`configuration_id` ASC),
   INDEX `configuration_attribute_ref_idx` (`configuration_attribute_id` ASC),
@@ -461,22 +454,28 @@ CREATE TABLE IF NOT EXISTS `additional_attributes` (
 
 
 -- -----------------------------------------------------
--- Table `seb_client_configuration`
+-- Table `client_connection`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `seb_client_configuration` ;
+DROP TABLE IF EXISTS `client_connection` ;
 
-CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
+CREATE TABLE IF NOT EXISTS `client_connection` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
-  `name` VARCHAR(255) NOT NULL,
-  `date` DATETIME NOT NULL,
-  `client_name` VARCHAR(4000) NOT NULL,
-  `client_secret` VARCHAR(4000) NOT NULL,
-  `encrypt_secret` VARCHAR(255) NULL,
-  `active` INT(1) NOT NULL,
+  `exam_id` BIGINT UNSIGNED NULL,
+  `status` VARCHAR(45) NOT NULL,
+  `connection_token` VARCHAR(255) NOT NULL,
+  `exam_user_session_identifer` VARCHAR(255) NOT NULL,
+  `client_address` VARCHAR(45) NOT NULL,
+  `virtual_client_address` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
-  INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
-  CONSTRAINT `sebClientConfigInstitutionRef`
+  INDEX `connection_exam_ref_idx` (`exam_id` ASC),
+  INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
+  CONSTRAINT `clientConnectionExamRef`
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `clientConnectionInstitutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
@@ -495,5 +494,4 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
 ;
-
 

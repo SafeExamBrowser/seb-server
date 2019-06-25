@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.seb.PingResponse;
-import ch.ethz.seb.sebserver.gbl.model.seb.RunningExam;
+import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
+import ch.ethz.seb.sebserver.gbl.model.session.RunningExam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 

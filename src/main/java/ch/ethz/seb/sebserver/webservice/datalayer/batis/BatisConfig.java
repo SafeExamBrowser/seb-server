@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -44,7 +45,7 @@ public class BatisConfig {
     /** Name of the sql session template bean of MyBatis */
     public static final String SQL_SESSION_TEMPLATE = "sqlSessionTemplate";
     /** Name of the sql session template bean of MyBatis with BATCH enabled */
-    public static final String SQL_BATCH_SESSION_TEMPLATE = "sqlSessionTemplate";
+    public static final String SQL_BATCH_SESSION_TEMPLATE = "sqlBatchSessionTemplate";
     /** Name of the sql session factory bean of MyBatis */
     public static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
@@ -60,6 +61,7 @@ public class BatisConfig {
     /** SQL session template bean of MyBatis */
     @Lazy
     @Bean(name = SQL_SESSION_TEMPLATE)
+    @Primary
     public SqlSessionTemplate sqlSessionTemplate(final DataSource dataSource) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory(dataSource));
     }

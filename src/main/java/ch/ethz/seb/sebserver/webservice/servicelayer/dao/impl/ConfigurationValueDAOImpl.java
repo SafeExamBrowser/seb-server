@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -57,15 +56,18 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
     private final ConfigurationRecordMapper configurationRecordMapper;
+    private final ConfigurationDAOBatchService configurationDAOBatchService;
 
     protected ConfigurationValueDAOImpl(
             final ConfigurationValueRecordMapper configurationValueRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
-            final ConfigurationRecordMapper configurationRecordMapper) {
+            final ConfigurationRecordMapper configurationRecordMapper,
+            final ConfigurationDAOBatchService configurationDAOBatchService) {
 
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
         this.configurationRecordMapper = configurationRecordMapper;
+        this.configurationDAOBatchService = configurationDAOBatchService;
     }
 
     @Override
@@ -349,112 +351,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Override
     @Transactional
     public Result<ConfigurationTableValues> saveTableValues(final ConfigurationTableValues value) {
-        return checkInstitutionalIntegrity(value)
-                .map(this::checkFollowUpIntegrity)
-                .flatMap(val -> attributeRecordById(val.attributeId))
-                .map(attributeRecord -> {
-
-                    final String type = attributeRecord.getType();
-                    if (AttributeType.TABLE.name().equals(type)) {
-                        saveAsTable(value, attributeRecord);
-                    } else {
-                        saveAsComposite(value);
-                    }
-
-                    return value;
-                });
-    }
-
-    private void saveAsTable(
-            final ConfigurationTableValues value,
-            final ConfigurationAttributeRecord attributeRecord) {
-
-        final Map<Long, ConfigurationAttributeRecord> attributeMap =
-                this.configurationAttributeRecordMapper
-                        .selectByExample()
-                        .where(
-                                ConfigurationAttributeRecordDynamicSqlSupport.parentId,
-                                isEqualTo(attributeRecord.getId()))
-                        .build()
-                        .execute()
-                        .stream()
-                        .collect(Collectors.toMap(rec -> rec.getId(), Function.identity()));
-
-        final List<Long> columnAttributeIds = attributeMap.values()
-                .stream()
-                .map(a -> a.getId())
-                .collect(Collectors.toList());
-
-        // first delete all old values of this table
-        this.configurationValueRecordMapper.deleteByExample()
-                .where(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                        isEqualTo(value.configurationId))
-                .and(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                        SqlBuilder.isIn(columnAttributeIds))
-                .build()
-                .execute();
-
-        // then add the new values
-        // TODO optimize with batching
-        for (final TableValue tableValue : value.values) {
-            final ConfigurationAttributeRecord columnAttr = attributeMap.get(tableValue.attributeId);
-            final ConfigurationValueRecord valueRecord = new ConfigurationValueRecord(
-                    null,
-                    value.institutionId,
-                    value.configurationId,
-                    columnAttr.getId(),
-                    tableValue.listIndex,
-                    tableValue.value);
-
-            this.configurationValueRecordMapper.insert(valueRecord);
-        }
-    }
-
-    private void saveAsComposite(final ConfigurationTableValues value) {
-        // TODO optimize with batching
-        for (final TableValue tableValue : value.values) {
-
-            final List<Long> valuePK = this.configurationValueRecordMapper.selectIdsByExample()
-                    .where(
-                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                            isEqualTo(value.configurationId))
-                    .and(
-                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                            isEqualTo(tableValue.attributeId))
-                    .and(
-                            ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                            isEqualTo(tableValue.listIndex))
-                    .build()
-                    .execute();
-
-            if (valuePK != null && valuePK.size() > 1) {
-                throw new IllegalStateException("Expected no more then one element");
-            }
-
-            if (valuePK == null || valuePK.isEmpty()) {
-                // insert
-                this.configurationValueRecordMapper.insert(
-                        new ConfigurationValueRecord(
-                                null,
-                                value.institutionId,
-                                value.configurationId,
-                                tableValue.attributeId,
-                                tableValue.listIndex,
-                                tableValue.value));
-            } else {
-                // update
-                this.configurationValueRecordMapper.updateByPrimaryKey(
-                        new ConfigurationValueRecord(
-                                valuePK.iterator().next(),
-                                value.institutionId,
-                                value.configurationId,
-                                tableValue.attributeId,
-                                tableValue.listIndex,
-                                tableValue.value));
-            }
-        }
+        return this.configurationDAOBatchService
+                .saveNewTableValues(value)
+                .onError(TransactionHandler::rollback);
     }
 
     private Result<ConfigurationAttributeRecord> attributeRecord(final ConfigurationValue value) {
@@ -508,21 +407,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             }
             return data;
         });
-    }
-
-    private Result<ConfigurationTableValues> checkInstitutionalIntegrity(final ConfigurationTableValues data) {
-        return Result.tryCatch(() -> {
-            final ConfigurationRecord r = this.configurationRecordMapper.selectByPrimaryKey(data.configurationId);
-            if (r.getInstitutionId().longValue() != data.institutionId.longValue()) {
-                throw new IllegalArgumentException("Institutional integrity constraint violation");
-            }
-            return data;
-        });
-    }
-
-    private ConfigurationTableValues checkFollowUpIntegrity(final ConfigurationTableValues data) {
-        checkFollowUp(data.configurationId);
-        return data;
     }
 
     private ConfigurationValue checkFollowUpIntegrity(final ConfigurationValue data) {

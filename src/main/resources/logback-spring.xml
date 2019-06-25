@@ -22,6 +22,7 @@
     </root>
 
     <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <Logger name="org.apache.ibatis.datasource" level="TRACE" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
     <Logger name="org.springframework.security" level="INFO" additivity="true" />
@@ -39,6 +40,7 @@
     </root>
 
     <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
     <Logger name="org.springframework.security" level="INFO" additivity="true" />

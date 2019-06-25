@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -179,6 +180,14 @@ public class FilterMap extends POSTMapper {
 
     public static String toSQLWildcard(final String text) {
         return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
+    }
+
+    public Long getClientConnectionExamId() {
+        return getLong(ClientConnection.FILTER_ATTR_EXAM_ID);
+    }
+
+    public String getClientConnectionStatus() {
+        return getString(ClientConnection.FILTER_ATTR_STATUS);
     }
 
 }

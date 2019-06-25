@@ -1,0 +1,178 @@
+/*
+ * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+package ch.ethz.seb.sebserver.gbl.model.session;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ClientConnection implements GrantEntity {
+
+    public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
+    public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
+
+    public enum ConnectionStatus {
+        UNDEFINED,
+        CONNECTION_REQUESTED,
+        AUTHENTICATED,
+        ESTABLISHED,
+        CLOSED,
+        ABORTED,
+        RELEASED
+    }
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
+    public final Long id;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_INSTITUTION_ID)
+    public final Long institutionId;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID)
+    public final Long examId;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_STATUS)
+    public final ConnectionStatus status;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN)
+    public final String connectionToken;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER)
+    public final String userSessionId;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
+    public final String clientAddress;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS)
+    public final String virtualClientAddress;
+
+    @JsonCreator
+    public ClientConnection(
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID) final Long id,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID) final Long examId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_STATUS) final ConnectionStatus status,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER) final String userSessionId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress) {
+
+        this.id = id;
+        this.institutionId = institutionId;
+        this.examId = examId;
+        this.status = status;
+        this.connectionToken = connectionToken;
+        this.userSessionId = userSessionId;
+        this.clientAddress = clientAddress;
+        this.virtualClientAddress = virtualClientAddress;
+    }
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.CLIENT_CONNECTION;
+    }
+
+    @Override
+    public String getName() {
+        return this.userSessionId;
+    }
+
+    @Override
+    public String getModelId() {
+        return (this.id != null)
+                ? String.valueOf(this.id)
+                : null;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    @Override
+    public Long getInstitutionId() {
+        return this.institutionId;
+    }
+
+    public Long getExamId() {
+        return this.examId;
+    }
+
+    public ConnectionStatus getStatus() {
+        return this.status;
+    }
+
+    public String getConnectionToken() {
+        return this.connectionToken;
+    }
+
+    public String getClientAddress() {
+        return this.clientAddress;
+    }
+
+    public String getUserSessionId() {
+        return this.userSessionId;
+    }
+
+    public String getVirtualClientAddress() {
+        return this.virtualClientAddress;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ClientConnection other = (ClientConnection) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!this.id.equals(other.id))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ClientConnection [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", examId=");
+        builder.append(this.examId);
+        builder.append(", status=");
+        builder.append(this.status);
+        builder.append(", connectionToken=");
+        builder.append(this.connectionToken);
+        builder.append(", userSessionId=");
+        builder.append(this.userSessionId);
+        builder.append(", clientAddress=");
+        builder.append(this.clientAddress);
+        builder.append(", virtualClientAddress=");
+        builder.append(this.virtualClientAddress);
+        builder.append("]");
+        return builder.toString();
+    }
+
+}
