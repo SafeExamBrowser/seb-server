@@ -55,7 +55,6 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ConfigurationRecordMapper configurationRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
-    private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
 
     protected ConfigurationNodeDAOImpl(
@@ -68,7 +67,6 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
-        this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
         this.configurationDAOBatchService = ConfigurationDAOBatchService;
     }
 
@@ -152,41 +150,6 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return this.configurationDAOBatchService
                 .createNewConfiguration(data)
                 .onError(TransactionHandler::rollback);
-
-        /*
-         * return Result.tryCatch(() -> {
-         * 
-         * final Long count = this.configurationNodeRecordMapper.countByExample()
-         * .where(
-         * ConfigurationNodeRecordDynamicSqlSupport.name,
-         * isEqualTo(data.name))
-         * .and(
-         * ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-         * SqlBuilder.isEqualTo(data.institutionId))
-         * .build()
-         * .execute();
-         * 
-         * if (count != null && count.longValue() > 0) {
-         * throw new FieldValidationException("name", "configurationNode:name:exists");
-         * }
-         * 
-         * final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
-         * null,
-         * data.institutionId,
-         * data.templateId,
-         * data.owner,
-         * data.name,
-         * data.description,
-         * data.type.name(),
-         * (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
-         * 
-         * this.configurationNodeRecordMapper.insert(newRecord);
-         * return newRecord;
-         * })
-         * .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
-         * .flatMap(this::createInitialConfiguration)
-         * .onError(TransactionHandler::rollback);
-         */
     }
 
     @Override

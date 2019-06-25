@@ -56,6 +56,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundExcepti
 @Lazy
 @Component
 @WebServiceProfile
+/** This service is internally used to implement MyBatis batch functionality for the most
+ * intensive write operation on Configuration domain. */
 class ConfigurationDAOBatchService {
 
     private final ConfigurationNodeRecordMapper batchConfigurationNodeRecordMapper;
