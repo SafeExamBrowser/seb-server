@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,12 +17,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ClientEvent implements Entity {
+public final class ClientEvent implements Entity, IndicatorValueHolder {
+
+    public static final String FILTER_ATTR_CONECTION_ID = Domain.CLIENT_EVENT.ATTR_CONNECTION_ID;
+    public static final String FILTER_ATTR_TYPE = Domain.CLIENT_EVENT.ATTR_TYPE;
+    public static final String FILTER_ATTR_FROM_DATE = "fromDate";
 
     public static enum EventType {
-        UNKNOWN(0), LOG(1);
+        UNKNOWN(0),
+        DEBUG_LOG(1),
+        INFO_LOG(2),
+        WARN_LOG(3),
+        ERROR_LOG(4),
+
+        ;
 
         public final int id;
 
@@ -58,7 +71,7 @@ public final class ClientEvent implements Entity {
     public final String text;
 
     @JsonCreator
-    ClientEvent(
+    public ClientEvent(
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID) final Long id,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_CONNECTION_ID) final Long connectionId,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE) final EventType eventType,
@@ -111,6 +124,13 @@ public final class ClientEvent implements Entity {
         return this.numValue;
     }
 
+    @Override
+    public double getValue() {
+        return this.numValue != null
+                ? this.numValue.doubleValue()
+                : Double.NaN;
+    }
+
     public String getText() {
         return this.text;
     }
@@ -132,5 +152,15 @@ public final class ClientEvent implements Entity {
         builder.append(this.text);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static final ClientEventRecord toRecord(final ClientEvent event) {
+        return new ClientEventRecord(
+                event.id,
+                event.connectionId,
+                event.eventType.id,
+                event.timestamp,
+                (event.numValue != null) ? new BigDecimal(event.numValue) : null,
+                event.text);
     }
 }

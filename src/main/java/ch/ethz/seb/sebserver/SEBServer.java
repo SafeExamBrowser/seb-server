@@ -11,10 +11,11 @@ package ch.ethz.seb.sebserver;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 
 /** SEB-Server (Safe Exam Browser Server) is a server component to maintain and support
  * Exams running with SEB (Safe Exam Browser). TODO add link(s)
- * 
+ *
  * SEB-Server uses Spring Boot as main framework is divided into two main components,
  * a webservice component that implements the business logic, persistence management
  * and defines a REST API to expose the services over HTTP. The second component is a
@@ -25,13 +26,12 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
  * and GUI and can be used to start the components on separate servers or within the same
  * server instance. Additional to the usual profiles like dev, prod, test there are combining
  * profiles like dev-ws, dev-gui and prod-ws, prod-gui
- * 
+ *
  * TODO documentation for presets to start all-in-one server or separated gui- and webservice- server */
 @SpringBootApplication(exclude = {
-        // OAuth2ResourceServerAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class,
-        //DataSourceAutoConfiguration.class
 })
+@EnableCaching
 public class SEBServer {
 
     public static void main(final String[] args) {

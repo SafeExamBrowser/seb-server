@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
@@ -101,7 +100,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Collection<ClientConnection>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
             return this.clientConnectionRecordMapper.selectByExample()
-                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
                     .stream()

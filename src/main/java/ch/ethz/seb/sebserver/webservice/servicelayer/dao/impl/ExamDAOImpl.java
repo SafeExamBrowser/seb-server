@@ -303,6 +303,23 @@ public class ExamDAOImpl implements ExamDAO {
         }).flatMap(this::toDomainModel);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> allIdsOfInstituion(final Long institutionId) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectIdsByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(institutionId))
+                    .and(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                    .build()
+                    .execute();
+
+        });
+    }
+
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectIdsByExample()

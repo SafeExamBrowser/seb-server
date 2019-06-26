@@ -32,8 +32,26 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING,
-        ERROR_COUNT
+        LAST_PING(Names.LAST_PING),
+        ERROR_COUNT(Names.ERROR_COUNT)
+
+        ;
+
+        public final String name;
+
+        private IndicatorType(final String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
+
+        public interface Names {
+            public static final String LAST_PING = "LAST_PING";
+            public static final String ERROR_COUNT = "ERROR_COUNT";
+        }
     }
 
     @JsonProperty(INDICATOR.ATTR_ID)

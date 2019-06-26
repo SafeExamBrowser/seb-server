@@ -112,7 +112,7 @@
               <excludes>
                 <exclude>**/batis/mapper/*.java</exclude>
                 <exclude>**/batis/model/*.java</exclude>
-                <exclude name="UselessParentheses"/>
+                <exclude name="UselessParentheses" />
               </excludes>
             </configuration>
             <executions>
@@ -241,6 +241,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-cache</artifactId>
     </dependency>
     <!-- NOTE since org.springframework.security.oauth is not fully migrated 
       to spring-boot-starter-security we have to declare a separate version here. 

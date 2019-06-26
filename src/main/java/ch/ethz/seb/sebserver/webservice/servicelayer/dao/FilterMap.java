@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -27,8 +28,11 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.micrometer.core.instrument.util.StringUtils;
 
 /** A Map containing various filter criteria from a certain API request.
  * This is used as a data object that can be used to collect API request parameter
@@ -188,6 +192,34 @@ public class FilterMap extends POSTMapper {
 
     public String getClientConnectionStatus() {
         return getString(ClientConnection.FILTER_ATTR_STATUS);
+    }
+
+    public Long getClientEventConnectionId() {
+        return getLong(ClientEvent.FILTER_ATTR_CONECTION_ID);
+    }
+
+    public Integer getClientEventTypeId() {
+        final String typeName = getString(ClientEvent.FILTER_ATTR_TYPE);
+        if (StringUtils.isBlank(typeName)) {
+            return null;
+        }
+
+        try {
+            return EventType.valueOf(typeName).id;
+        } catch (final Exception e) {
+            return null;
+        }
+    }
+
+    public Long getClientEventFromDate() {
+        final DateTime dateTime = Utils.toDateTime(getString(ClientEvent.FILTER_ATTR_FROM_DATE));
+        if (dateTime == null) {
+            return null;
+        }
+
+        return dateTime
+                .withZone(DateTimeZone.UTC)
+                .getMillis();
     }
 
 }
