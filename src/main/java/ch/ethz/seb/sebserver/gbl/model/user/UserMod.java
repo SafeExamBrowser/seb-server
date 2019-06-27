@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -184,10 +185,14 @@ public final class UserMod implements UserAccount {
     @Override
     @JsonIgnore
     public EnumSet<UserRole> getUserRoles() {
-        return EnumSet.copyOf(
-                getRoles().stream()
-                        .map(r -> UserRole.valueOf(r))
-                        .collect(Collectors.toList()));
+        final List<UserRole> roles = getRoles()
+                .stream()
+                .map(r -> UserRole.valueOf(r))
+                .collect(Collectors.toList());
+        if (roles.isEmpty()) {
+            return EnumSet.noneOf(UserRole.class);
+        }
+        return EnumSet.copyOf(roles);
     }
 
     public String getRetypedNewPassword() {
