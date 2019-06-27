@@ -8,10 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -19,6 +17,7 @@ import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -101,12 +100,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
-    protected Result<Collection<UserInfo>> getAll(final FilterMap filterMap) {
-        return super.getAll(filterMap)
-                .map(result -> result
-                        .stream()
-                        .filter(this.authorization::hasRoleBasedUserAccountViewGrant)
-                        .collect(Collectors.toList()));
+    protected Result<UserInfo> checkModifyAccess(final UserInfo entity) {
+        return super.checkModifyAccess(entity)
+                .map(this::checkRoleBasedEditGrant);
+    }
+
+    private UserInfo checkRoleBasedEditGrant(final UserInfo userInfo) {
+        final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+        if (Privilege.hasRoleBasedUserAccountEditGrant(userInfo, currentUser.getUserInfo())) {
+            return userInfo;
+        } else {
+            throw new AccessDeniedException("No edit right grant for user: " + currentUser.getUsername());
+        }
     }
 
     @Override

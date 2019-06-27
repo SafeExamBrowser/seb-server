@@ -160,7 +160,7 @@ public class UserDAOImpl implements UserDAO {
                     ? predicate.and(ui -> ui.roles.contains(userRole))
                     : predicate;
 
-            return this.userRecordMapper
+            final Collection<UserInfo> userInfo = this.userRecordMapper
                     .selectByExample()
                     .where(
                             UserRecordDynamicSqlSupport.active,
@@ -187,6 +187,9 @@ public class UserDAOImpl implements UserDAO {
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(_predicate)
                     .collect(Collectors.toList());
+            ;
+
+            return userInfo;
         });
     }
 

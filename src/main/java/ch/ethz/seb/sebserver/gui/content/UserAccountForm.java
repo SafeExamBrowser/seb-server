@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -123,8 +126,13 @@ public class UserAccountForm implements TemplateComposer {
 
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
-        final boolean writeGrant = userGrantCheck.w();
-        final boolean modifyGrant = userGrantCheck.m();
+        final boolean roleBasedEditGrant = Privilege.hasRoleBasedUserAccountEditGrant(userAccount, currentUser.get());
+        final boolean writeGrant = roleBasedEditGrant && userGrantCheck.w();
+        final boolean modifyGrant = roleBasedEditGrant && userGrantCheck.m();
+        final boolean institutionalWriteGrant = currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.WRITE,
+                EntityType.USER);
+
         final boolean institutionActive = restService.getBuilder(GetInstitution.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
                 .call()
@@ -217,7 +225,7 @@ public class UserAccountForm implements TemplateComposer {
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .publishIf(() -> writeGrant && readonly && institutionActive)
+                .publishIf(() -> institutionalWriteGrant && readonly && institutionActive)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY)
                 .withEntityKey(entityKey)

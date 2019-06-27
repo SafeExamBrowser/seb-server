@@ -246,12 +246,13 @@ public class ResourceService {
 
     public List<Tuple<String>> examSupporterResources() {
         final UserInfo userInfo = this.currentUser.get();
-        return this.restService.getBuilder(GetUserAccountNames.class)
+        final List<EntityName> selection = this.restService.getBuilder(GetUserAccountNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.institutionId))
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .withQueryParam(UserInfo.FILTER_ATTR_ROLE, UserRole.EXAM_SUPPORTER.name())
                 .call()
-                .getOr(Collections.emptyList())
+                .getOr(Collections.emptyList());
+        return selection
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .collect(Collectors.toList());

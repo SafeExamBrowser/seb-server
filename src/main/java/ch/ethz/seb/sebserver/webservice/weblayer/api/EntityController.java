@@ -174,8 +174,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
-        return getAll(filterMap)
-                .getOrThrow()
+        final Collection<T> all = getAll(filterMap)
+                .getOrThrow();
+
+        return all
                 .stream()
                 .map(Entity::toName)
                 .collect(Collectors.toList());
@@ -341,9 +343,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
-        return this.entityDAO.allMatching(
+        final Result<Collection<T>> allMatching = this.entityDAO.allMatching(
                 filterMap,
                 this::hasReadAccess);
+        return allMatching;
     }
 
     protected Result<T> notifyCreated(final T entity) {

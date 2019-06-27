@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -228,33 +227,6 @@ public interface AuthorizationService {
      * @param institutionId the institution identifier for institutional privilege grant check */
     default <E extends GrantEntity> Result<E> checkWrite(final E grantEntity) {
         return check(PrivilegeType.WRITE, grantEntity);
-    }
-
-    /** Checks if the current user has role based view access to a specified user account.
-     *
-     * If user account has UserRole.SEB_SERVER_ADMIN this always gives true
-     * If user account has UserRole.INSTITUTIONAL_ADMIN this is true if the given user account has
-     * not the UserRole.SEB_SERVER_ADMIN (institutional administrators should not see SEB Server administrators)
-     * If the current user is the same as the given user account this is always true no matter if there are any
-     * user-account based privileges (every user shall see its own account)
-     *
-     * @param userAccount the user account the check role based view access
-     * @return true if the current user has role based view access to a specified user account */
-    default boolean hasRoleBasedUserAccountViewGrant(final UserInfo userAccount) {
-        final EnumSet<UserRole> userRolesOfUserAccount = userAccount.getUserRoles();
-        final SEBServerUser currentUser = getUserService().getCurrentUser();
-        final EnumSet<UserRole> userRolesOfCurrentUser = currentUser.getUserRoles();
-        if (userRolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
-            return true;
-        }
-        if (userRolesOfCurrentUser.contains(UserRole.INSTITUTIONAL_ADMIN)) {
-            return !userRolesOfUserAccount.contains(UserRole.SEB_SERVER_ADMIN);
-        }
-        if (currentUser.uuid().equals(userAccount.uuid)) {
-            return true;
-        }
-
-        return false;
     }
 
 }
