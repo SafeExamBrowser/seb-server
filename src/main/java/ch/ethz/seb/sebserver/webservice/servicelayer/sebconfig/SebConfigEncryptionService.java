@@ -14,6 +14,9 @@ import java.security.cert.Certificate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.scheduling.annotation.Async;
+
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** Used for SEB Configuration encryption and decryption */
@@ -58,6 +61,7 @@ public interface SebConfigEncryptionService {
      * @param output the output data stream to write the cipher text to
      * @param input the input stream to read the plain text from
      * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void streamEncrypted(
             final OutputStream output,
             final InputStream input,
@@ -68,6 +72,7 @@ public interface SebConfigEncryptionService {
      * @param output the output data stream to write encrypted plain text to
      * @param input the input stream to read the cipher text from
      * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void streamDecrypted(
             final OutputStream output,
             final InputStream input,

@@ -183,6 +183,37 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         });
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<ClientConnection> byConnectionToken(
+            final Long institutionId,
+            final String connectionToken) {
+
+        return Result.tryCatch(() -> {
+            final List<ClientConnectionRecord> list = this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.institutionId,
+                            SqlBuilder.isEqualTo(institutionId))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isEqualTo(connectionToken))
+                    .build()
+                    .execute();
+
+            if (list.isEmpty()) {
+                throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, "connectionToken");
+            }
+
+            if (list.size() > 1) {
+                throw new IllegalStateException("Only one ClientConnection expected but there are: " + list.size());
+            }
+
+            return list.get(0);
+        })
+                .flatMap(ClientConnectionDAOImpl::toDomainModel);
+    }
+
     private Result<ClientConnectionRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 

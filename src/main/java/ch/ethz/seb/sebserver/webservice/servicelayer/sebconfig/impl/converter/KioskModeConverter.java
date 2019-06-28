@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverterService;
 
 @Lazy
 @Component
@@ -48,8 +47,7 @@ public class KioskModeConverter implements XMLValueConverter {
     public void convertToXML(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value,
-            final XMLValueConverterService xmlValueConverterService) throws IOException {
+            final ConfigurationValue value) throws IOException {
 
         final String val = value.getValue();
         out.write(Utils.toByteArray(

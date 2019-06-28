@@ -82,7 +82,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             pin.close();
             pout.flush();
             pout.close();
-            output.flush();
 
         } catch (final IOException e) {
             log.error("Error while stream encrypted data: ", e);
@@ -135,7 +134,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             pin.close();
             pout.flush();
             pout.close();
-            output.flush();
 
         } catch (final IOException e) {
             log.error("Error while stream decrypted data: ", e);

@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 
 @Lazy
 @Service
@@ -29,21 +30,25 @@ public class ExamSessionCacheService {
 
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
+    public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
     private final ExamDAO examDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientIndicatorFactory clientIndicatorFactory;
+    private final SebExamConfigService sebExamConfigService;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final ClientIndicatorFactory clientIndicatorFactory) {
+            final ClientIndicatorFactory clientIndicatorFactory,
+            final SebExamConfigService sebExamConfigService) {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientIndicatorFactory = clientIndicatorFactory;
+        this.sebExamConfigService = sebExamConfigService;
     }
 
     @Cacheable(
@@ -123,9 +128,27 @@ public class ExamSessionCacheService {
     @CacheEvict(
             cacheNames = CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionId")
-    void evict(final Long connectionId) {
+    void evictClientConnection(final Long connectionId) {
         if (log.isDebugEnabled()) {
             log.debug("Eviction of ClientConnectionData from cache: {}", connectionId);
+        }
+    }
+
+    @Cacheable(
+            cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
+            key = "#examId",
+            unless = "#result == null")
+    InMemorySebConfig getDefaultSebConfigForExam(final Long examId) {
+        // TODO
+        return null;
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
+            key = "#examId")
+    void evictDefaultSebConfig(final Long examId) {
+        if (log.isDebugEnabled()) {
+            log.debug("Eviction of default SEB Configuration from cache for exam: {}", examId);
         }
     }
 

@@ -22,7 +22,7 @@ public interface XMLValueConverter {
 
     /** Gives a Set of AttributeType's a concrete converter is able to
      * handle and convert ConfigurationValue of attributes of given types.
-     * 
+     *
      * @return a Set of supported AttributeType's of the converter */
     Set<AttributeType> types();
 
@@ -35,7 +35,7 @@ public interface XMLValueConverter {
 
     /** Used to convert the a given ConfigurationAttribute / ConfigurationValue
      * pair to plain XML text for block of this SEB Configuration attribute.
-     * 
+     *
      * @param out The output stream to write the plain XML text block to
      * @param attribute The ConfigurationAttribute containing all attribute information
      * @param value The ConfigurationValue containing the value
@@ -44,8 +44,7 @@ public interface XMLValueConverter {
     void convertToXML(
             OutputStream out,
             ConfigurationAttribute attribute,
-            ConfigurationValue value,
-            XMLValueConverterService xmlValueConverterService) throws IOException;
+            ConfigurationValue value) throws IOException;
 
     default String extractName(final ConfigurationAttribute attribute) {
         final int lastIndexOf = attribute.name.lastIndexOf('.');
@@ -54,6 +53,13 @@ public interface XMLValueConverter {
         } else {
             return attribute.name;
         }
+    }
+
+    /** This can be overwritten if a XMLValueConverter needs the XMLValueConverterService.
+     * The XMLValueConverterService is then injected by its self on initialization.
+     * 
+     * @param xmlValueConverterService */
+    default void init(final XMLValueConverterService xmlValueConverterService) {
     }
 
 }

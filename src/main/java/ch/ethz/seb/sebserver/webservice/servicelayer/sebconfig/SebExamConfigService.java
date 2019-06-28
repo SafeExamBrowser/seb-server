@@ -48,6 +48,14 @@ public interface SebExamConfigService {
      * @param configExamMappingId The identifier of the Exam Configuration Mapping */
     void exportForExam(OutputStream out, Long configExamMappingId);
 
+    /** Used to export the default SEB Exam Configuration for a given exam identifier.
+     * either with encryption if defined or as plain text within the SEB Configuration format
+     * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
+     *
+     * @param out The output stream to write the export data to
+     * @param examId the exam identifier */
+    void exportDefaultForExam(OutputStream out, Long examId);
+
     /** TODO */
     String generateConfigKey(Long configurationNodeId);
 

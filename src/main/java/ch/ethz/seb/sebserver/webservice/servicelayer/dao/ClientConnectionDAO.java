@@ -9,7 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientConnection> {
+
+    Result<ClientConnection> byConnectionToken(Long institutionId, String connectionToken);
 
 }

@@ -54,6 +54,7 @@ public class TableConverter implements XMLValueConverter {
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
+    private XMLValueConverterService xmlValueConverterService;
 
     public TableConverter(
             final ConfigurationAttributeDAO configurationAttributeDAO,
@@ -61,6 +62,11 @@ public class TableConverter implements XMLValueConverter {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
+    }
+
+    @Override
+    public void init(final XMLValueConverterService xmlValueConverterService) {
+        this.xmlValueConverterService = xmlValueConverterService;
     }
 
     @Override
@@ -77,8 +83,7 @@ public class TableConverter implements XMLValueConverter {
     public void convertToXML(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value,
-            final XMLValueConverterService xmlValueConverterService) throws IOException {
+            final ConfigurationValue value) throws IOException {
 
         out.write(Utils.toByteArray(String.format(KEY_TEMPLATE, extractName(attribute))));
 
@@ -101,7 +106,7 @@ public class TableConverter implements XMLValueConverter {
                 out,
                 getAttributes(attribute),
                 values,
-                xmlValueConverterService);
+                this.xmlValueConverterService);
 
         if (attribute.type != AttributeType.COMPOSITE_TABLE) {
             out.write(ARRAY_END);
@@ -134,7 +139,7 @@ public class TableConverter implements XMLValueConverter {
             for (final ConfigurationValue value : rowValues) {
                 final ConfigurationAttribute attr = attributeMap.get(value.attributeId);
                 final XMLValueConverter converter = xmlValueConverterService.getXMLConverter(attr);
-                converter.convertToXML(out, attr, value, xmlValueConverterService);
+                converter.convertToXML(out, attr, value);
             }
             out.write(DICT_END);
             out.flush();
