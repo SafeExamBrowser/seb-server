@@ -58,7 +58,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
-            @Value("${sebserver.lms.openedix.api.token.request.paths}") final String alternativeTokenRequestPaths) {
+            @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths) {
 
         this.asyncService = asyncService;
         this.lmsSetupDAO = lmsSetupDAO;

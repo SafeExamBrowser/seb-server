@@ -7,8 +7,8 @@
       </encoder>
     </appender>
     
-    <appender name="DEMO" class="ch.qos.logback.core.FileAppender">
-      <file> log-${byDay}.txt </file>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+      <file>log/sebserver.log</file>
       <append>true</append>
       <encoder>
          <pattern>%d{HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
@@ -19,6 +19,7 @@
 
     <root level="INFO" additivity="true">
       <appender-ref ref="STDOUT" />
+      <appender-ref ref="FILE" />
     </root>
 
     <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />

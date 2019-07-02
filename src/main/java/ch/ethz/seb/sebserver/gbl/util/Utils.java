@@ -51,7 +51,7 @@ public final class Utils {
         return Collectors.collectingAndThen(
                 Collectors.toList(),
                 list -> {
-                    if (list == null) {
+                    if (list == null || list.size() == 0) {
                         throw new IllegalStateException(
                                 "Expected one elements in the given list but is empty");
                     }
@@ -333,6 +333,10 @@ public final class Utils {
         }
 
         return string;
+    }
+
+    public static String toSQLWildcard(final String text) {
+        return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
     }
 
 }

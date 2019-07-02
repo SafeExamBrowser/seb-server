@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.filters.RemoteIpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,15 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private String actuatorEndpoint;
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
+
+    /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
+     * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
+     *
+     * @return RemoteIpFilter instance */
+    @Bean
+    public RemoteIpFilter remoteIpFilter() {
+        return new RemoteIpFilter();
+    }
 
     @Bean
     public AccessTokenConverter accessTokenConverter() {

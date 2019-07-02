@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
@@ -128,6 +129,24 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    public Result<SebClientConfig> byClientId(final String clientId) {
+        return Result.tryCatch(() -> {
+
+            return this.sebClientConfigRecordMapper
+                    .selectByExample()
+                    .where(
+                            SebClientConfigRecordDynamicSqlSupport.clientName,
+                            isEqualTo(clientId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(SebClientConfigDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Utils.toSingleton());
         });
     }
 

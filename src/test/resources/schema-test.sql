@@ -84,21 +84,26 @@ DROP TABLE IF EXISTS `client_connection` ;
 
 CREATE TABLE IF NOT EXISTS `client_connection` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
   `exam_id` BIGINT UNSIGNED NULL,
   `status` VARCHAR(45) NOT NULL,
   `connection_token` VARCHAR(255) NOT NULL,
-  `user_name` VARCHAR(255) NOT NULL,
-  `VDI` BIT(1) NOT NULL,
+  `exam_user_session_identifer` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
+  INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `clientConnectionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-;
+    ON UPDATE NO ACTION,
+  CONSTRAINT `clientConnectionInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 
 
 -- -----------------------------------------------------

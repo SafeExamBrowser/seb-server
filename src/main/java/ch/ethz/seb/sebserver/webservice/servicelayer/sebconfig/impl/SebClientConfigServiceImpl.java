@@ -17,8 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,14 +26,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -135,46 +129,14 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     }
 
     @Override
-    public Result<String> getEncodedClientSecret(final String clientId) {
-        return Result.tryCatch(() -> {
-            final Collection<SebClientConfig> clientConfigs = this.sebClientConfigDAO.all(extractInstitution(), true)
-                    .getOrThrow();
-
-            final ClientCredentials clientCredentials = findClientCredentialsFor(clientId, clientConfigs);
-            return this.clientPasswordEncoder.encode(
-                    this.clientCredentialService.getPlainClientSecret(clientCredentials));
-
-        });
+    public Result<CharSequence> getEncodedClientSecret(final String clientId) {
+        return this.sebClientConfigDAO.byClientId(clientId)
+                .flatMap(this::getEncodedSecret);
     }
 
-    public ClientCredentials findClientCredentialsFor(final String clientId,
-            final Collection<SebClientConfig> clientConfigs) {
-        for (final SebClientConfig config : clientConfigs) {
-            try {
-                final ClientCredentials clientCredentials =
-                        this.sebClientConfigDAO.getSebClientCredentials(config.getModelId())
-                                .getOrThrow();
-                if (clientId.equals(this.clientCredentialService.getPlainClientId(clientCredentials))) {
-                    return clientCredentials;
-                }
-            } catch (final Exception e) {
-                log.error("Unexpected error while trying to fetch client credentials: ", e);
-            }
-        }
-
-        return null;
-    }
-
-    private Long extractInstitution() {
-        try {
-            final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-            final HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
-            return Long.parseLong(request.getParameter(API.PARAM_INSTITUTION_ID));
-        } catch (final Exception e) {
-            log.error(
-                    "Failed to extract institution from current request. Search client Id over all active client configurations");
-            return null;
-        }
+    private Result<CharSequence> getEncodedSecret(final SebClientConfig clientConfig) {
+        return this.sebClientConfigDAO.getSebClientCredentials(clientConfig.getModelId())
+                .map(cc -> this.clientPasswordEncoder.encode(this.clientCredentialService.getPlainClientSecret(cc)));
     }
 
     @Override
@@ -193,8 +155,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                 .getConfigPasswortCipher(config.getModelId())
                 .getOrThrow();
 
-        final CharSequence plainClientId = this.clientCredentialService
-                .getPlainClientId(sebClientCredentials);
+        final CharSequence plainClientId = sebClientCredentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService
                 .getPlainClientSecret(sebClientCredentials);
 

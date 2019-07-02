@@ -86,7 +86,7 @@ public class WebClientDetailsService implements ClientDetailsService {
                             "");
 
                     baseClientDetails.setScope(Collections.emptySet());
-                    baseClientDetails.setClientSecret(pwd);
+                    baseClientDetails.setClientSecret(Utils.toString(pwd));
                     return baseClientDetails;
                 });
     }

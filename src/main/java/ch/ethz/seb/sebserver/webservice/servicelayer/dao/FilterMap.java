@@ -13,7 +13,6 @@ import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -179,11 +178,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public String getSQLWildcard(final String name) {
-        return toSQLWildcard(this.params.getFirst(name));
-    }
-
-    public static String toSQLWildcard(final String text) {
-        return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
+        return Utils.toSQLWildcard(this.params.getFirst(name));
     }
 
     public Long getClientConnectionExamId() {

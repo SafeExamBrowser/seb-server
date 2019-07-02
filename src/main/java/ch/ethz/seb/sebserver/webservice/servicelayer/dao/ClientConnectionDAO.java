@@ -15,4 +15,6 @@ public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientC
 
     Result<ClientConnection> byConnectionToken(Long institutionId, String connectionToken);
 
+    Result<ClientConnection> byConnectionToken(String connectionToken);
+
 }

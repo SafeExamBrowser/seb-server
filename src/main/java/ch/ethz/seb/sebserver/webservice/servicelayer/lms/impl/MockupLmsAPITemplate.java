@@ -130,7 +130,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     private boolean authenticate() {
         try {
 
-            final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(this.credentials);
+            final CharSequence plainClientId = this.credentials.clientId;
             if (plainClientId == null || plainClientId.length() <= 0) {
                 throw new IllegalAccessException("Wrong client credential");
             }

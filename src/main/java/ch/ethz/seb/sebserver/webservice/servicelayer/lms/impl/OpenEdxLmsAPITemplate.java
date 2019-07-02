@@ -202,7 +202,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             final ClientCredentials credentials,
             final String accessTokenRequestPath) {
 
-        final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(credentials);
+        final CharSequence plainClientId = credentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
 
         final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();

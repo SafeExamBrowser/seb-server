@@ -64,9 +64,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
                 .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return new ClientCredentials(
-                (clientIdPlaintext != null)
-                        ? encrypt(clientIdPlaintext, secret).toString()
-                        : null,
+                clientIdPlaintext,
                 (secretPlaintext != null)
                         ? encrypt(secretPlaintext, secret).toString()
                         : null,
@@ -75,17 +73,10 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
                         : null);
     }
 
-    @Override
-    public CharSequence getPlainClientId(final ClientCredentials credentials) {
-        if (credentials == null || !credentials.hasClientId()) {
-            return null;
-        }
-
-        final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
-        return this.decrypt(credentials.clientId, secret);
-    }
+//    @Override
+//    public CharSequence getPlainClientId(final ClientCredentials credentials) {
+//        return credentials.clientId;
+//    }
 
     @Override
     public CharSequence getPlainClientSecret(final ClientCredentials credentials) {

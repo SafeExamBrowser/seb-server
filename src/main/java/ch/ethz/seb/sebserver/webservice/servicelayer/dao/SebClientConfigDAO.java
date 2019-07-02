@@ -18,6 +18,12 @@ public interface SebClientConfigDAO extends
         ActivatableEntityDAO<SebClientConfig, SebClientConfig>,
         BulkActionSupportDAO<SebClientConfig> {
 
+    /** Get a SebClientConfig by specified client identifier
+     *
+     * @param clientId the client identifier
+     * @return Result refer to the SebClientConfig for client or refer to an error if happened */
+    Result<SebClientConfig> byClientId(String clientId);
+
     /** Get the configured ClientCredentials for a given SebClientConfig.
      * The ClientCredentials are still encoded as they are on DB storage
      *

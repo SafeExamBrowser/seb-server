@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordMapper;
@@ -123,6 +124,39 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> getDefaultConfigurationForExam(final Long examId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectIdsByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ExamConfigurationMapRecordDynamicSqlSupport.userNames,
+                        SqlBuilder.isNull())
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton()));
+    }
+
+    @Override
+    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectIdsByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ExamConfigurationMapRecordDynamicSqlSupport.userNames,
+                        SqlBuilder.isLike(Utils.toSQLWildcard(userId)))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton()));
     }
 
     @Override

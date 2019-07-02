@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** The base interface and service for all SEB Exam Configuration related functionality. */
 public interface SebExamConfigService {
@@ -30,6 +31,10 @@ public interface SebExamConfigService {
      * @param tableValue The ConfigurationTableValues container
      * @throws FieldValidationException on validation exception */
     void validate(ConfigurationTableValues tableValue) throws FieldValidationException;
+
+    Result<Long> getDefaultConfigurationIdForExam(Long examId);
+
+    Result<Long> getUserConfigurationIdForExam(Long examId, String userId);
 
     /** Used to export a specified SEB Exam Configuration as plain XML
      * This exports the values of the follow-up configuration defined by a given

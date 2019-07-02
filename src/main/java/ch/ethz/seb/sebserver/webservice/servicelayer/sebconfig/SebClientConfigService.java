@@ -73,6 +73,6 @@ public interface SebClientConfigService {
      *
      * @param clientId the clientId/clientName
      * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
-    Result<String> getEncodedClientSecret(String clientId);
+    Result<CharSequence> getEncodedClientSecret(String clientId);
 
 }

@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+
 public final class RunningExam {
 
     @JsonProperty("examId")
@@ -29,6 +31,12 @@ public final class RunningExam {
         this.examId = examId;
         this.name = name;
         this.url = url;
+    }
+
+    public RunningExam(final Exam exam) {
+        this.examId = exam.getModelId();
+        this.name = exam.name;
+        this.url = exam.startURL;
     }
 
     public String getExamId() {

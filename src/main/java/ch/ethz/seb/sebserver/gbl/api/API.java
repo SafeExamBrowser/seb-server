@@ -104,13 +104,19 @@ public final class API {
 
     public static final String EXAM_API_PARAM_EXAM_ID = "examId";
 
-    public static final String EXAM_API_SEB_CONNECTION_TOKEN = "seb-connection-token";
+    public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
+
+    public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
 
     public static final String EXAM_API_HANDSHAKE_ENDPOINT = "/handshake";
 
     public static final String EXAM_API_CONFIGURATION_REQUEST_ENDPOINT = "/examconfig";
 
     public static final String EXAM_API_PING_ENDPOINT = "/sebping";
+
+    public static final String EXAM_API_PING_TIMESTAMP = "timestamp";
+
+    public static final String EXAM_API_PING_NUMBER = "ping-number";
 
     public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
 

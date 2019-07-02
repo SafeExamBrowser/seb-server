@@ -20,13 +20,12 @@ public class ClientCredentialServiceTest {
 //    @Test
 //    public void testEncryptSimpleSecret() {
 //        final Environment envMock = mock(Environment.class);
-//        when(envMock.getRequiredProperty(ClientCredentialService.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
-//                .thenReturn("secret1");
+//        when(envMock.getRequiredProperty(ClientCredentialServiceImpl.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+//                .thenReturn("internalSecret");
 //
-//        final ClientCredentialService service = new ClientCredentialService(envMock);
-//        final String encrypt = service.encrypt("text1");
-//        final String decrypt = service.decrypt(encrypt);
-//        assertEquals("text1", decrypt);
+//        final ClientCredentialService service = new ClientCredentialServiceImpl(envMock);
+//        final CharSequence encrypt = service.encrypt("test");
+//        assertEquals("", encrypt.toString());
 //    }
 
     @Test

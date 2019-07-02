@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `exam_id` BIGINT UNSIGNED NULL,
   `status` VARCHAR(45) NOT NULL,
   `connection_token` VARCHAR(255) NOT NULL,
-  `exam_user_session_identifer` VARCHAR(255) NOT NULL,
+  `exam_user_session_identifer` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),

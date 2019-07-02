@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import java.io.OutputStream;
 import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -37,5 +38,7 @@ public interface ExamSessionService {
      * @return Result referencing the list of all currently running Exams of the institution or to an error if
      *         happened. */
     Result<Collection<Exam>> getRunningExamsForInstitution(Long institutionId);
+
+    void streamDefaultExamConfig(Long institutionId, String connectionToken, OutputStream out);
 
 }

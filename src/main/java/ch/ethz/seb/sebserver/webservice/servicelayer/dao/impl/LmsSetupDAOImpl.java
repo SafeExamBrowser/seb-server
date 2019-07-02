@@ -318,15 +318,13 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsClientsecret(),
                 record.getLmsRestApiToken());
 
-        final CharSequence plainClientId = this.clientCredentialService.getPlainClientId(clientCredentials);
         final CharSequence plainAccessToken = this.clientCredentialService.getPlainAccessToken(clientCredentials);
-
         return Result.tryCatch(() -> new LmsSetup(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
-                Utils.toString(plainClientId),
+                Utils.toString(clientCredentials.clientId),
                 null,
                 record.getLmsUrl(),
                 Utils.toString(plainAccessToken),

@@ -25,7 +25,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 
@@ -38,15 +40,18 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     private final ExamConfigIO examConfigIO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
+    private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
 
     protected SebExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
+            final ExamConfigurationMapDAO examConfigurationMapDAO,
             final Collection<ConfigurationValueValidator> validators) {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
+        this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
 
     }
@@ -120,6 +125,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             }
         }
 
+    }
+
+    @Override
+    public Result<Long> getDefaultConfigurationIdForExam(final Long examId) {
+        return this.examConfigurationMapDAO.getDefaultConfigurationForExam(examId);
+    }
+
+    @Override
+    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
+        return this.examConfigurationMapDAO.getUserConfigurationIdForExam(examId, userId);
     }
 
     @Override

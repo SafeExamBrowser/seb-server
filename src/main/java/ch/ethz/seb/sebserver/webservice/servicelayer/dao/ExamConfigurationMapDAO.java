@@ -9,10 +9,15 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 public interface ExamConfigurationMapDAO extends
         EntityDAO<ExamConfigurationMap, ExamConfigurationMap>,
         BulkActionSupportDAO<ExamConfigurationMap> {
+
+    public Result<Long> getDefaultConfigurationForExam(Long examId);
+
+    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId);
 
 }

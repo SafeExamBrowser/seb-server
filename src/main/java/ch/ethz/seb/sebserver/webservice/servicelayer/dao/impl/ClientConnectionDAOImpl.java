@@ -120,7 +120,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.institutionId,
                     data.examId,
                     ConnectionStatus.CONNECTION_REQUESTED.name(),
-                    null,
+                    data.connectionToken,
                     null,
                     data.clientAddress,
                     data.virtualClientAddress);
@@ -198,6 +198,31 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .and(
                             ClientConnectionRecordDynamicSqlSupport.connectionToken,
                             SqlBuilder.isEqualTo(connectionToken))
+                    .build()
+                    .execute();
+
+            if (list.isEmpty()) {
+                throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, "connectionToken");
+            }
+
+            if (list.size() > 1) {
+                throw new IllegalStateException("Only one ClientConnection expected but there are: " + list.size());
+            }
+
+            return list.get(0);
+        })
+                .flatMap(ClientConnectionDAOImpl::toDomainModel);
+    }
+
+    @Override
+    public Result<ClientConnection> byConnectionToken(final String connectionToken) {
+        return Result.tryCatch(() -> {
+            final List<ClientConnectionRecord> list = this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isEqualTo(connectionToken))
+
                     .build()
                     .execute();
 

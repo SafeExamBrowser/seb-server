@@ -42,7 +42,7 @@ public class ClientIndicatorFactory {
     public ClientIndicatorFactory(
             final ApplicationContext applicationContext,
             final IndicatorDAO indicatorDAO,
-            @Value("${sebserver.indicator.caching}") final boolean enableCaching) {
+            @Value("${sebserver.webservice.api.exam.enable-indicator-cache:true}") final boolean enableCaching) {
 
         this.applicationContext = applicationContext;
         this.indicatorDAO = indicatorDAO;
@@ -60,9 +60,15 @@ public class ClientIndicatorFactory {
 
             for (final Indicator indicatorDef : examIndicators) {
                 try {
+
                     final ClientIndicator indicator = this.applicationContext
                             .getBean(indicatorDef.type.name(), ClientIndicator.class);
-                    indicator.init(indicatorDef, clientConnection.id, this.enableCaching);
+
+                    indicator.init(
+                            indicatorDef,
+                            clientConnection.id,
+                            this.enableCaching);
+
                     result.add(indicator);
                 } catch (final Exception e) {
                     log.warn("No Indicator with type: {} found as registered bean. Ignore this one.", indicatorDef.type,
