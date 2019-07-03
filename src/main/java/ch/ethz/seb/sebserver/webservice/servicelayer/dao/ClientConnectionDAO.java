@@ -8,13 +8,25 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientConnection> {
 
-    Result<ClientConnection> byConnectionToken(Long institutionId, String connectionToken);
+    /** Get a list of all connection tokens of all connections (no matter what state)
+     * of an exam.
+     *
+     * @param examId The exam identifier
+     * @return list of all connection tokens of all connections (no matter what state)
+     *         of an exam */
+    Result<Collection<String>> getConnectionTokens(Long examId);
 
+    /** Get a ClientConnection for a specified token.
+     *
+     * @param connectionToken the connection token
+     * @return Result refer to ClientConnection or refer to a error if happened */
     Result<ClientConnection> byConnectionToken(String connectionToken);
 
 }

@@ -65,5 +65,4 @@ public class IntegerConverter implements XMLValueConverter {
         }
 
     }
-
 }

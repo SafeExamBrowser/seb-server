@@ -58,7 +58,11 @@ public class ExamConfigIO {
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void exportPlainXML(final OutputStream out, final Long institutionId, final Long configurationNodeId) {
+    void exportPlainXML(
+            final OutputStream out,
+            final Long institutionId,
+            final Long configurationNodeId) {
+
         // get all defined root configuration attributes
         final Map<Long, ConfigurationAttribute> attributes = this.configurationAttributeDAO.getAllRootAttributes()
                 .getOrThrow()
@@ -112,7 +116,7 @@ public class ExamConfigIO {
             out.write(Constants.XML_PLIST_END_UTF_8);
             out.flush();
 
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             log.error("Unexpected error while trying to write SEB Exam Configuration XML to output stream: ", e);
             try {
                 out.flush();

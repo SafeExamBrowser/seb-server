@@ -15,6 +15,7 @@ import java.io.PipedOutputStream;
 import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -96,13 +97,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.examConfigIO.exportPlainXML(pout, institutionId, configurationNodeId);
+            this.examConfigIO.exportPlainXML(
+                    pout,
+                    institutionId,
+                    configurationNodeId);
 
             IOUtils.copyLarge(pin, out);
 
-            pin.close();
             pout.flush();
             pout.close();
+            pin.close();
 
         } catch (final IOException e) {
             log.error("Error while stream plain text SEB clonfiguration data: ", e);
@@ -127,26 +131,32 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     }
 
-    @Override
     public Result<Long> getDefaultConfigurationIdForExam(final Long examId) {
         return this.examConfigurationMapDAO.getDefaultConfigurationForExam(examId);
     }
 
-    @Override
     public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
         return this.examConfigurationMapDAO.getUserConfigurationIdForExam(examId, userId);
     }
 
     @Override
-    public void exportForExam(final OutputStream out, final Long configExamMappingId) {
-        // TODO Auto-generated method stub
+    public Long exportForExam(
+            final OutputStream out,
+            final Long institutionId,
+            final Long examId,
+            final String userId) {
 
-    }
+        final Long configurationNodeId = (StringUtils.isBlank(userId))
+                ? getDefaultConfigurationIdForExam(examId)
+                        .getOrThrow()
+                : getUserConfigurationIdForExam(examId, userId)
+                        .getOrThrow();
 
-    @Override
-    public void exportDefaultForExam(final OutputStream out, final Long examId) {
-        // TODO Auto-generated method stub
+        // TODO add header, zip and encrypt if needed
 
+        this.exportPlainXML(out, institutionId, configurationNodeId);
+
+        return configurationNodeId;
     }
 
     @Override

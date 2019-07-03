@@ -152,7 +152,7 @@ public class APIMessage implements Serializable {
 
     /** Use this as a conversion from a given FieldError of Spring to a APIMessage
      * of type field validation.
-     * 
+     *
      * @param error FieldError instance
      * @return converted APIMessage of type field validation */
     public static final APIMessage fieldValidationError(final FieldError error) {

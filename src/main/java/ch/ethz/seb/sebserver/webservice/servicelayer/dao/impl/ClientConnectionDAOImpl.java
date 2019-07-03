@@ -111,6 +111,24 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getConnectionTokens(final Long examId) {
+        return Result.tryCatch(() -> {
+            return this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(examId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ClientConnectionRecord::getConnectionToken)
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
     @Transactional
     public Result<ClientConnection> createNew(final ClientConnection data) {
         return Result.tryCatch(() -> {
@@ -140,10 +158,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     data.id,
                     null,
-                    null,
+                    data.examId,
                     data.status != null ? data.status.name() : null,
-                    data.connectionToken,
                     null,
+                    data.userSessionId,
                     data.clientAddress,
                     data.virtualClientAddress);
 
@@ -181,37 +199,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                     .collect(Collectors.toList());
         });
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Result<ClientConnection> byConnectionToken(
-            final Long institutionId,
-            final String connectionToken) {
-
-        return Result.tryCatch(() -> {
-            final List<ClientConnectionRecord> list = this.clientConnectionRecordMapper
-                    .selectByExample()
-                    .where(
-                            ClientConnectionRecordDynamicSqlSupport.institutionId,
-                            SqlBuilder.isEqualTo(institutionId))
-                    .and(
-                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
-                            SqlBuilder.isEqualTo(connectionToken))
-                    .build()
-                    .execute();
-
-            if (list.isEmpty()) {
-                throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, "connectionToken");
-            }
-
-            if (list.size() > 1) {
-                throw new IllegalStateException("Only one ClientConnection expected but there are: " + list.size());
-            }
-
-            return list.get(0);
-        })
-                .flatMap(ClientConnectionDAOImpl::toDomainModel);
     }
 
     @Override

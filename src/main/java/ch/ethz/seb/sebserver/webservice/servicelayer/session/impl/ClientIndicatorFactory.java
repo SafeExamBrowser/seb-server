@@ -52,6 +52,10 @@ public class ClientIndicatorFactory {
     public Collection<ClientIndicator> createFor(final ClientConnection clientConnection) {
         final List<ClientIndicator> result = new ArrayList<>();
 
+        if (clientConnection.examId == null) {
+            return result;
+        }
+
         try {
 
             final Collection<Indicator> examIndicators = this.indicatorDAO

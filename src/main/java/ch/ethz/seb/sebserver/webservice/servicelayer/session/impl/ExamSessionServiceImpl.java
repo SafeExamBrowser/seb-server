@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -71,7 +72,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return Result.of(exam);
         } else {
             if (exam != null) {
-                this.examSessionCacheService.evict(exam);
+                flushCache(exam);
             }
 
             log.warn("Exam {} is not currently running", examId);
@@ -92,7 +93,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public void streamDefaultExamConfig(
-            final Long institutionId,
             final String connectionToken,
             final OutputStream out) {
 
@@ -101,7 +101,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         }
 
         final ClientConnection connection = this.clientConnectionDAO
-                .byConnectionToken(institutionId, connectionToken)
+                .byConnectionToken(connectionToken)
                 .getOrThrow();
 
         if (connection == null || connection.status != ConnectionStatus.ESTABLISHED) {
@@ -111,17 +111,15 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("SEB exam configuration download request: {}", connection);
-            log.debug("Trying to get exam form InMemorySebConfig");
+            log.debug("Trying to get exam from InMemorySebConfig");
         }
 
         final InMemorySebConfig sebConfigForExam = this.examSessionCacheService
                 .getDefaultSebConfigForExam(connection.examId);
 
-        if (log.isDebugEnabled()) {
-            if (sebConfigForExam == null) {
-                log.debug("Failed to get and cache InMemorySebConfig for connection: {}", connection);
-            }
+        if (sebConfigForExam == null) {
+            log.error("Failed to get and cache InMemorySebConfig for connection: {}", connection);
+            return;
         }
 
         try {
@@ -139,6 +137,15 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         } catch (final IOException e) {
             log.error("SEB exam configuration download request, failed to write SEB exam configuration: ", e);
         }
+    }
+
+    private void flushCache(final Exam exam) {
+        this.examSessionCacheService.evict(exam);
+        this.examSessionCacheService.evictDefaultSebConfig(exam.id);
+        this.clientConnectionDAO
+                .getConnectionTokens(exam.id)
+                .getOrElse(() -> Collections.emptyList())
+                .forEach(token -> this.examSessionCacheService.evictClientConnection(token));
     }
 
 }

@@ -16,8 +16,21 @@ public interface ExamConfigurationMapDAO extends
         EntityDAO<ExamConfigurationMap, ExamConfigurationMap>,
         BulkActionSupportDAO<ExamConfigurationMap> {
 
+    /** Get the ConfigurationNode identifier of the default Exam Configuration of
+     * the Exam with specified identifier.
+     *
+     * @param examId The Exam identifier
+     * @return ConfigurationNode identifier of the default Exam Configuration of
+     *         the Exam with specified identifier */
     public Result<Long> getDefaultConfigurationForExam(Long examId);
 
+    /** Get the ConfigurationNode identifier of the Exam Configuration of
+     * the Exam for a specified user identifier.
+     *
+     * @param examId The Exam identifier
+     * @param userId the user identifier
+     * @return ConfigurationNode identifier of the Exam Configuration of
+     *         the Exam for a specified user identifier */
     public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId);
 
 }

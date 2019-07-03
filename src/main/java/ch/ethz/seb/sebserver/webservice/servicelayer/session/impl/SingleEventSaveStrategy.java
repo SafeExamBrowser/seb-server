@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 public class SingleEventSaveStrategy implements EventHandlingStrategy {
 
     private final ClientEventDAO clientEventDAO;
+    private boolean enabled = false;
 
     public SingleEventSaveStrategy(final ClientEventDAO clientEventDAO) {
         this.clientEventDAO = clientEventDAO;
@@ -37,7 +38,24 @@ public class SingleEventSaveStrategy implements EventHandlingStrategy {
 
     @Override
     public void accept(final ClientEvent event) {
-        this.clientEventDAO.save(event);
+        this.clientEventDAO
+                .createNew(event)
+                .getOrThrow();
+    }
+
+    @Override
+    public void enable() {
+        this.enabled = true;
+
+    }
+
+    @Override
+    public void disable() {
+        this.enabled = false;
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
     }
 
 }

@@ -62,6 +62,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         this.eventHandlingStrategy = applicationContext.getBean(
                 eventHandlingStrategyProperty,
                 EventHandlingStrategy.class);
+        this.eventHandlingStrategy.enable();
     }
 
     @Override
@@ -90,15 +91,23 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     null,
                     institutionId,
                     examId,
-                    ClientConnection.ConnectionStatus.CONNECTION_REQUESTED,
+                    ConnectionStatus.CONNECTION_REQUESTED,
                     connectionToken,
                     null,
                     clientAddress,
                     null))
                     .getOrThrow();
 
-            if (log.isDebugEnabled()) {
-                log.debug("New ClientConnection created: {}", clientConnection);
+            // load client connection data into cache
+            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                    .getActiveClientConnection(connectionToken);
+
+            if (activeClientConnection == null) {
+                log.warn("Failed to load ClientConnectionDataInternal into cache on update");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("New ClientConnection created: {}", clientConnection);
+                }
             }
 
             return clientConnection;
@@ -109,8 +118,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     public Result<ClientConnection> updateClientConnection(
             final String connectionToken,
             final Long institutionId,
-            final String clientAddress,
             final Long examId,
+            final String clientAddress,
             final String userSessionId) {
 
         return Result.tryCatch(() -> {
@@ -131,9 +140,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             checkExamRunning(examId);
 
-            final ClientConnection clientConnection = getClientConnection(
-                    connectionToken,
-                    institutionId);
+            final ClientConnection clientConnection = getClientConnection(connectionToken);
 
             checkInstitutionalIntegrity(
                     institutionId,
@@ -156,7 +163,15 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             virtualClientAddress))
                     .getOrThrow();
 
-            if (log.isDebugEnabled()) {
+            // evict cached ClientConnection
+            this.examSessionCacheService.evictClientConnection(connectionToken);
+            // and load updated ClientConnection into cache
+            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                    .getActiveClientConnection(connectionToken);
+
+            if (activeClientConnection == null) {
+                log.warn("Failed to load ClientConnectionDataInternal into cache on update");
+            } else if (log.isDebugEnabled()) {
                 log.debug("SEB client connection, successfully updated ClientConnection: {}",
                         updatedClientConnection);
             }
@@ -192,9 +207,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             checkExamRunning(examId);
 
-            final ClientConnection clientConnection = getClientConnection(
-                    connectionToken,
-                    institutionId);
+            final ClientConnection clientConnection = getClientConnection(connectionToken);
 
             checkInstitutionalIntegrity(
                     institutionId,
@@ -217,42 +230,40 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     clientConnection.id,
                     null,
                     examId,
-                    ClientConnection.ConnectionStatus.ESTABLISHED,
+                    ConnectionStatus.ESTABLISHED,
                     null,
                     userSessionId,
                     null,
                     virtualClientAddress);
 
             // ClientConnection integrity
-            if (establishedClientConnection.institutionId == null ||
+            if (clientConnection.institutionId == null ||
+                    clientConnection.connectionToken == null ||
                     establishedClientConnection.examId == null ||
-                    establishedClientConnection.clientAddress == null ||
-                    establishedClientConnection.connectionToken == null) {
+                    clientConnection.clientAddress == null ||
+                    establishedClientConnection.status != ConnectionStatus.ESTABLISHED) {
 
-                log.error("ClientConnection integrity violation: {}", establishedClientConnection);
-                throw new IllegalStateException("ClientConnection integrity violation: " + establishedClientConnection);
+                log.error("ClientConnection integrity violation, clientConnection: {}, establishedClientConnection: {}",
+                        clientConnection,
+                        establishedClientConnection);
+                throw new IllegalStateException("ClientConnection integrity violation");
             }
 
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(establishedClientConnection)
                     .getOrThrow();
 
-            if (updatedClientConnection.status == ConnectionStatus.ESTABLISHED) {
-                // load into cache...
-                final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                        .getActiveClientConnection(updatedClientConnection.connectionToken);
+            // evict cached ClientConnection
+            this.examSessionCacheService.evictClientConnection(connectionToken);
+            // and load updated ClientConnection into cache
+            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                    .getActiveClientConnection(connectionToken);
 
-                if (activeClientConnection == null) {
-                    log.warn("Unable to access and cache ClientConnection");
-                }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("ClientConnection: {} successfully established", clientConnection);
-                }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("ClientConnection: {} updated", clientConnection);
-                }
+            if (activeClientConnection == null) {
+                log.warn("Failed to load ClientConnectionDataInternal into cache on update");
+            } else if (log.isDebugEnabled()) {
+                log.debug("SEB client connection, successfully established ClientConnection: {}",
+                        updatedClientConnection);
             }
 
             return updatedClientConnection;
@@ -278,18 +289,14 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             }
 
             final ClientConnection clientConnection = this.clientConnectionDAO
-                    .byConnectionToken(institutionId, connectionToken)
+                    .byConnectionToken(connectionToken)
                     .getOrThrow();
-
-            // evict ClientConnection from cache
-            this.examSessionCacheService
-                    .evictClientConnection(clientConnection.connectionToken);
 
             final ClientConnection updatedClientConnection = this.clientConnectionDAO.save(new ClientConnection(
                     clientConnection.id,
                     null,
                     null,
-                    ClientConnection.ConnectionStatus.CLOSED,
+                    ConnectionStatus.CLOSED,
                     null,
                     null,
                     null,
@@ -299,6 +306,11 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 log.debug("SEB client connection: successfully closed ClientConnection: {}",
                         clientConnection);
             }
+
+            // evict cached ClientConnection
+            this.examSessionCacheService.evictClientConnection(connectionToken);
+            // and load updated ClientConnection into cache
+            this.examSessionCacheService.getActiveClientConnection(connectionToken);
 
             return updatedClientConnection;
         });
@@ -326,12 +338,27 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final String connectionToken,
             final ClientEvent event) {
 
-        this.eventHandlingStrategy.accept(event);
-
         final ClientConnectionDataInternal activeClientConnection =
                 this.examSessionCacheService.getActiveClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
+            if (activeClientConnection.clientConnection.status != ConnectionStatus.ESTABLISHED) {
+                throw new IllegalStateException("ClientConnection is not fully established or closed");
+            }
+
+            // store event
+            this.eventHandlingStrategy.accept(
+                    (event.connectionId != null)
+                            ? event
+                            : new ClientEvent(
+                                    null,
+                                    activeClientConnection.getConnectionId(),
+                                    event.eventType,
+                                    event.timestamp,
+                                    event.numValue,
+                                    event.text));
+
+            // update indicators
             activeClientConnection.getindicatorMapping(event.eventType)
                     .stream()
                     .forEach(indicator -> indicator.notifyValueChange(event));
@@ -344,9 +371,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         }
     }
 
-    private ClientConnection getClientConnection(final String connectionToken, final Long institutionId) {
+    private ClientConnection getClientConnection(final String connectionToken) {
         final ClientConnection clientConnection = this.clientConnectionDAO
-                .byConnectionToken(institutionId, connectionToken)
+                .byConnectionToken(connectionToken)
                 .getOrThrow();
         return clientConnection;
     }

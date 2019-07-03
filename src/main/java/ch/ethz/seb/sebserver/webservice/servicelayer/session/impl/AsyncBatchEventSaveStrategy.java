@@ -62,6 +62,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     private final BlockingDeque<ClientEvent> eventQueue = new LinkedBlockingDeque<>();
     private boolean workersRunning = false;
+    private boolean enabled = false;
 
     public AsyncBatchEventSaveStrategy(
             final SqlSessionFactory sqlSessionFactory,
@@ -75,9 +76,22 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    @Override
+    public void enable() {
+        this.enabled = true;
+
+    }
+
+    @Override
+    public void disable() {
+        this.enabled = false;
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     protected void recover() {
-        runWorkers();
+        if (this.enabled) {
+            runWorkers();
+        }
     }
 
     @Override

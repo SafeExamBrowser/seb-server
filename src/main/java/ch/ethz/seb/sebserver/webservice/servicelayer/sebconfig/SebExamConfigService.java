@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** The base interface and service for all SEB Exam Configuration related functionality. */
 public interface SebExamConfigService {
@@ -32,10 +31,6 @@ public interface SebExamConfigService {
      * @throws FieldValidationException on validation exception */
     void validate(ConfigurationTableValues tableValue) throws FieldValidationException;
 
-    Result<Long> getDefaultConfigurationIdForExam(Long examId);
-
-    Result<Long> getUserConfigurationIdForExam(Long examId, String userId);
-
     /** Used to export a specified SEB Exam Configuration as plain XML
      * This exports the values of the follow-up configuration defined by a given
      * ConfigurationNode (configurationNodeId)
@@ -45,21 +40,26 @@ public interface SebExamConfigService {
      * @param configurationNodeId the identifier of the ConfigurationNode to export */
     void exportPlainXML(OutputStream out, Long institutionId, Long configurationNodeId);
 
-    /** Used to export a SEB Exam Configuration within its defined Configuration Exam Mapping.
+    /** Used to export the default SEB Exam Configuration for a given exam identifier.
      * either with encryption if defined or as plain text within the SEB Configuration format
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out The output stream to write the export data to
-     * @param configExamMappingId The identifier of the Exam Configuration Mapping */
-    void exportForExam(OutputStream out, Long configExamMappingId);
+     * @param institutionId The identifier of the institution of the requesting user
+     * @param examId the exam identifier */
+    default Long exportForExam(final OutputStream out, final Long institutionId, final Long examId) {
+        return exportForExam(out, institutionId, examId, null);
+    }
 
     /** Used to export the default SEB Exam Configuration for a given exam identifier.
      * either with encryption if defined or as plain text within the SEB Configuration format
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out The output stream to write the export data to
-     * @param examId the exam identifier */
-    void exportDefaultForExam(OutputStream out, Long examId);
+     * @param institutionId The identifier of the institution of the requesting user
+     * @param examId the exam identifier
+     * @param userId the user identifier if a specific user based configuration shall be exported */
+    Long exportForExam(OutputStream out, Long institutionId, Long examId, String userId);
 
     /** TODO */
     String generateConfigKey(Long configurationNodeId);

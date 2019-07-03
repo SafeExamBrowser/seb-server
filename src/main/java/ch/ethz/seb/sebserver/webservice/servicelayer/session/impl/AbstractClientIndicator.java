@@ -51,7 +51,7 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     @Override
     public double getValue() {
-        if (this.currentValue == Double.NaN || !this.cachingEnabled) {
+        if (Double.isNaN(this.currentValue) || !this.cachingEnabled) {
             this.currentValue = computeValueAt(DateTime.now(DateTimeZone.UTC).getMillis());
         }
 

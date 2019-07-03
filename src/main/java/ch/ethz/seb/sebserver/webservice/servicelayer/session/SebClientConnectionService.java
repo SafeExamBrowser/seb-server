@@ -55,8 +55,8 @@ public interface SebClientConnectionService {
     Result<ClientConnection> updateClientConnection(
             String connectionToken,
             Long institutionId,
-            String clientAddress,
             Long examId,
+            String clientAddress,
             String userSessionId);
 
     /** This is used to establish a already created ClientConnection and set it to sate: ESTABLISHED

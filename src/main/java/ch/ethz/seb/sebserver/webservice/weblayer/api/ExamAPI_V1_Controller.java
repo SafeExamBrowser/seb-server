@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -38,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -54,17 +58,20 @@ public class ExamAPI_V1_Controller {
     private final ExamSessionService examSessionService;
     private final SebClientConnectionService sebClientConnectionService;
     private final SebClientConfigDAO sebClientConfigDAO;
+    private final JSONMapper jsonMapper;
 
     protected ExamAPI_V1_Controller(
             final ExamDAO examDAO,
             final ExamSessionService examSessionService,
             final SebClientConnectionService sebClientConnectionService,
-            final SebClientConfigDAO sebClientConfigDAO) {
+            final SebClientConfigDAO sebClientConfigDAO,
+            final JSONMapper jsonMapper) {
 
         this.examDAO = examDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
+        this.jsonMapper = jsonMapper;
     }
 
     @RequestMapping(
@@ -143,8 +150,8 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void handshakeUpdate(
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
             final Principal principal,
             final HttpServletRequest request) {
@@ -164,7 +171,7 @@ public class ExamAPI_V1_Controller {
                     remoteAddr);
         }
 
-        this.sebClientConnectionService.establishClientConnection(
+        this.sebClientConnectionService.updateClientConnection(
                 connectionToken,
                 institutionId,
                 examId,
@@ -178,8 +185,8 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void handshakeEstablish(
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
             final Principal principal,
             final HttpServletRequest request) {
@@ -210,8 +217,8 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void handshakeEstablish(
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+    public void handshakeDelete(
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             final Principal principal,
             final HttpServletRequest request) {
 
@@ -239,25 +246,30 @@ public class ExamAPI_V1_Controller {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> getConfig(
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-            final Principal principal) {
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
-        final Long institutionId = getInstitutionId(principal);
-        final StreamingResponseBody stream = out -> this.examSessionService.streamDefaultExamConfig(
-                institutionId,
-                connectionToken,
-                out);
+        final StreamingResponseBody stream = out -> {
+            try {
+                this.examSessionService
+                        .streamDefaultExamConfig(
+                                connectionToken,
+                                out);
+            } catch (final Exception e) {
+                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+                out.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+            }
+        };
 
         return new ResponseEntity<>(stream, HttpStatus.OK);
     }
 
     @RequestMapping(
             path = API.EXAM_API_PING_ENDPOINT,
-            method = RequestMethod.PUT,
+            method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public PingResponse ping(
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
 
@@ -272,9 +284,9 @@ public class ExamAPI_V1_Controller {
     @RequestMapping(
             path = API.EXAM_API_EVENT_ENDPOINT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void event(
-            @RequestParam(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestBody(required = true) final ClientEvent event) {
 
         this.sebClientConnectionService.notifyClientEvent(connectionToken, event);

@@ -61,7 +61,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             final CharSequence accessTokenPlaintext) {
 
         final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return new ClientCredentials(
                 clientIdPlaintext,
@@ -73,11 +73,6 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
                         : null);
     }
 
-//    @Override
-//    public CharSequence getPlainClientId(final ClientCredentials credentials) {
-//        return credentials.clientId;
-//    }
-
     @Override
     public CharSequence getPlainClientSecret(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasSecret()) {
@@ -85,7 +80,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
 
         final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
         return this.decrypt(credentials.secret, secret);
     }
 
@@ -96,7 +91,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
 
         final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return this.decrypt(credentials.accessToken, secret);
     }
@@ -105,7 +100,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     public CharSequence encrypt(final CharSequence text) {
 
         final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return encrypt(text, secret);
     }
@@ -114,7 +109,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     public CharSequence decrypt(final CharSequence text) {
 
         final CharSequence secret = this.environment
-                .getRequiredProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return decrypt(text, secret);
     }
@@ -122,6 +117,11 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     CharSequence encrypt(final CharSequence text, final CharSequence secret) {
         if (text == null) {
             throw new IllegalArgumentException("Text has null reference");
+        }
+
+        if (secret == null) {
+            log.warn("No internal secret supplied: skip encryption");
+            return text;
         }
 
         try {
@@ -143,6 +143,11 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     CharSequence decrypt(final CharSequence cipher, final CharSequence secret) {
         if (cipher == null) {
             throw new IllegalArgumentException("Cipher has null reference");
+        }
+
+        if (secret == null) {
+            log.warn("No internal secret supplied: skip decryption");
+            return cipher;
         }
 
         try {

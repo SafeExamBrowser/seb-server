@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
@@ -35,6 +37,16 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     @Override
     public Set<EventType> observedEvents() {
         return this.EMPTY_SET;
+    }
+
+    @JsonIgnore
+    public int getPingCount() {
+        return this.pingCount;
+    }
+
+    @JsonIgnore
+    public int getPingNumber() {
+        return this.pingNumber;
     }
 
 }

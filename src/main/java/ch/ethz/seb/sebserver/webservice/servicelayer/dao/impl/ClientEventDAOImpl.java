@@ -118,7 +118,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     (data.numValue != null) ? new BigDecimal(data.numValue) : null,
                     data.text);
 
-            this.clientEventRecordMapper.insert(newRecord);
+            this.clientEventRecordMapper.insertSelective(newRecord);
             return newRecord;
         })
                 .flatMap(ClientEventDAOImpl::toDomainModel)
