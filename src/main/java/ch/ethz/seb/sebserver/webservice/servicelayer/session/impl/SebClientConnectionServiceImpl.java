@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -337,19 +336,6 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             return updatedClientConnection;
         });
-    }
-
-    @Override
-    public Result<ClientConnectionData> getActiveConnectionData(final String connectionToken) {
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                .getActiveClientConnection(connectionToken);
-
-        if (activeClientConnection == null) {
-            return Result
-                    .ofError(new IllegalArgumentException("No active client connection found for connectionToken"));
-        } else {
-            return Result.of(activeClientConnection);
-        }
     }
 
     @Override

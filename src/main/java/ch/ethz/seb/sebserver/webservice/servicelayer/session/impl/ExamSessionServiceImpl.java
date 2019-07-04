@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -40,15 +42,18 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final ExamSessionCacheService examSessionCacheService;
     private final ExamDAO examDAO;
+    private final CacheManager cacheManager;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
             final ExamDAO examDAO,
-            final ClientConnectionDAO clientConnectionDAO) {
+            final ClientConnectionDAO clientConnectionDAO,
+            final CacheManager cacheManager) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -147,25 +152,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                .getActiveClientConnection(connectionToken);
-
-        if (activeClientConnection == null) {
-            log.error("No active ClientConnection found for token: {}", connectionToken);
-            return Result.ofError(new IllegalArgumentException("No active ClientConnection found for token"));
-        } else {
-            return Result.of(activeClientConnection);
-        }
+        return Result.tryCatch(() -> {
+            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+            return cache.get(connectionToken, ClientConnectionData.class);
+        });
     }
 
     @Override
     public Result<Collection<ClientConnectionData>> getConnectionData(final Long examId) {
-        return this.clientConnectionDAO
-                .getConnectionTokens(examId)
-                .map(all -> all
-                        .stream()
-                        .map(this.examSessionCacheService::getActiveClientConnection)
-                        .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+            return this.clientConnectionDAO
+                    .getConnectionTokens(examId)
+                    .getOrThrow()
+                    .stream()
+                    .map(token -> cache.get(token, ClientConnectionData.class))
+                    .filter(data -> data != null)
+                    .collect(Collectors.toList());
+        });
     }
 
     private void flushCache(final Exam exam) {

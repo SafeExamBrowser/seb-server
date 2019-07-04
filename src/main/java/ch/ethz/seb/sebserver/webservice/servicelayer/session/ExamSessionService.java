@@ -47,14 +47,21 @@ public interface ExamSessionService {
     void streamDefaultExamConfig(String connectionToken, OutputStream out);
 
     /** Get current ClientConnectionData for a specified active SEB client connection.
-     * 
+     *
+     * active SEB client connections are connections that were initialized by a SEB client
+     * on the particular server instance.
+     *
      * @param connectionToken the connection token of the active SEB client connection
      * @return */
     Result<ClientConnectionData> getConnectionData(String connectionToken);
 
     /** Get the collection of ClientConnectionData of all active SEB client connections
      * of a running exam.
-     * 
+     *
+     * active SEB client connections are connections that were initialized by a SEB client
+     * on the particular server instance. This may not be the all connections of an exam but
+     * a subset of them.
+     *
      * @param examId The exam identifier
      * @return collection of ClientConnectionData of all active SEB client connections
      *         of a running exam */

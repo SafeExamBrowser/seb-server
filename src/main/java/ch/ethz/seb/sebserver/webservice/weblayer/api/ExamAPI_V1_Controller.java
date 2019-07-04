@@ -259,8 +259,8 @@ public class ExamAPI_V1_Controller {
                 handshakeUpdate(connectionToken, Long.valueOf(examId), null, principal, request);
             }
 
-            final ClientConnectionData connection = this.sebClientConnectionService
-                    .getActiveConnectionData(connectionToken)
+            final ClientConnectionData connection = this.examSessionService
+                    .getConnectionData(connectionToken)
                     .getOrThrow();
 
             // exam integrity check

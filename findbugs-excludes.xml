@@ -12,9 +12,11 @@
         <Package name="ch.ethz.seb.sebserver.webservice.datalayer.batis.model"/>
     </Match>
     <Match>
-      <Class name="ch.ethz.seb.sebserver.gui.widget.MultiSelectionCombo" />
-      <Class name="ch.ethz.seb.sebserver.gui.widget.GridTable" />
+      <Package name="ch.ethz.seb.sebserver.gui.widget" />
       <Bug pattern="SE_BAD_FIELD" />
     </Match>
+    
+    
+    
 
 </FindBugsFilter>
