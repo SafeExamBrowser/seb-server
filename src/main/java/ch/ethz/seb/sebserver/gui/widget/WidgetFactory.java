@@ -72,6 +72,8 @@ public class WidgetFactory {
         SHOW("show.png"),
         ACTIVE("active.png"),
         INACTIVE("inactive.png"),
+        TOGGLE_ON("toggle_on.png"),
+        TOGGLE_OFF("toggle_off.png"),
         YES("yes.png"),
         NO("no.png"),
         SAVE("save.png"),

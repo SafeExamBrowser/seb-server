@@ -53,12 +53,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     INSTITUTION_ACTIVATE(
             new LocTextKey("sebserver.institution.action.activate"),
-            ImageIcon.INACTIVE,
+            ImageIcon.TOGGLE_OFF,
             PageStateDefinition.INSTITUTION_VIEW,
             ActionCategory.FORM),
     INSTITUTION_DEACTIVATE(
             new LocTextKey("sebserver.institution.action.deactivate"),
-            ImageIcon.ACTIVE,
+            ImageIcon.TOGGLE_ON,
             PageStateDefinition.INSTITUTION_VIEW,
             ActionCategory.FORM),
 

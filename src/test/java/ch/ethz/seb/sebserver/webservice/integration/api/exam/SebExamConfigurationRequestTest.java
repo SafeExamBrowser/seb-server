@@ -249,7 +249,6 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         assertEquals(
                 "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identider or requested exam is not running\",\"attributes\":[]}",
                 contentAsString);
-
     }
 
 }
