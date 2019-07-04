@@ -17,7 +17,7 @@
     </Match>
     <Match>
       <Class name="ch.ethz.seb.sebserver.gui.widget.*" />
-      <Bug pattern="Se" />
+      <Bug pattern="SE_BAD_FIELD" />
     </Match>
 
 </FindBugsFilter>
