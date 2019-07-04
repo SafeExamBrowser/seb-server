@@ -12,8 +12,8 @@
         <Package name="ch.ethz.seb.sebserver.webservice.datalayer.batis.model"/>
     </Match>
     <Match>
-      <Class name="ch.ethz.seb.sebserver.gui.widget.*" />
-      <Bug type="SE_BAD_FIELD" />
+      <Class name="ch.ethz.seb.sebserver.gui.widget.MultiSelectionCombo" />
+      <Bug pattern="SE_BAD_FIELD" />
     </Match>
 
 </FindBugsFilter>

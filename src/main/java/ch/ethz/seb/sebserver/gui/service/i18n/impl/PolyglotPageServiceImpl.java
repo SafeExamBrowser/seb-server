@@ -195,7 +195,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                                     .getLanguage()
                                     .equals(locale.getLanguage())));
             languageSelection.setData(RWT.CUSTOM_VARIANT, "header");
-            languageSelection.setText("|  " + locale.getLanguage().toUpperCase());
+            languageSelection.setText("|  " + locale.getLanguage().toUpperCase(locale));
             languageSelection.addListener(SWT.MouseDown, event -> {
                 this.setPageLocale(composerCtx.getRoot(), locale);
             });
