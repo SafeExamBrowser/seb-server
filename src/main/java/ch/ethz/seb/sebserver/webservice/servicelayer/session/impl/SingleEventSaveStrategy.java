@@ -49,11 +49,6 @@ public class SingleEventSaveStrategy implements EventHandlingStrategy {
 
     }
 
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
     public boolean isEnabled() {
         return this.enabled;
     }

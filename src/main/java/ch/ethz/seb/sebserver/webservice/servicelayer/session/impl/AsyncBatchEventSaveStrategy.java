@@ -82,11 +82,6 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     }
 
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
     @EventListener(ApplicationReadyEvent.class)
     protected void recover() {
         if (this.enabled) {

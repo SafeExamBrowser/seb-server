@@ -20,8 +20,8 @@ public interface EventHandlingStrategy extends Consumer<ClientEvent> {
     String EVENT_CONSUMER_STRATEGY_SINGLE_EVENT_STORE = "SINGLE_EVENT_STORE_STRATEGY";
     String EVENT_CONSUMER_STRATEGY_ASYNC_BATCH_STORE = "ASYNC_BATCH_STORE_STRATEGY";
 
+    /** This enables a certain EventHandlingStrategy to be the executing and EventHandlingStrategy
+     * and will be re-initialized on server restart */
     void enable();
-
-    void disable();
 
 }
