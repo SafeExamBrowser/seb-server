@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -138,13 +139,35 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         userSessionId);
             }
 
-            checkExamRunning(examId);
-
             final ClientConnection clientConnection = getClientConnection(connectionToken);
 
             checkInstitutionalIntegrity(
                     institutionId,
                     clientConnection);
+
+            // examId integrity check
+            if (examId != null &&
+                    clientConnection.examId != null &&
+                    !examId.equals(clientConnection.examId)) {
+
+                log.error("Exam integrity violation: another examId is already set for the connection: {}",
+                        clientConnection);
+                throw new IllegalArgumentException(
+                        "Exam integrity violation: another examId is already set for the connection");
+            }
+            checkExamRunning(examId);
+
+            // userSessionId integrity check
+            if (userSessionId != null &&
+                    clientConnection.userSessionId != null &&
+                    !userSessionId.equals(clientConnection.userSessionId)) {
+
+                log.error(
+                        "User session identifer integrity violation: another User session identifer is already set for the connection: {}",
+                        clientConnection);
+                throw new IllegalArgumentException(
+                        "User session identifer integrity violation: another User session identifer is already set for the connection");
+            }
 
             final String virtualClientAddress = getVirtualClientAddress(
                     (examId != null) ? examId : clientConnection.examId,
@@ -314,7 +337,19 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             return updatedClientConnection;
         });
+    }
 
+    @Override
+    public Result<ClientConnectionData> getActiveConnectionData(final String connectionToken) {
+        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                .getActiveClientConnection(connectionToken);
+
+        if (activeClientConnection == null) {
+            return Result
+                    .ofError(new IllegalArgumentException("No active client connection found for connectionToken"));
+        } else {
+            return Result.of(activeClientConnection);
+        }
     }
 
     @Override

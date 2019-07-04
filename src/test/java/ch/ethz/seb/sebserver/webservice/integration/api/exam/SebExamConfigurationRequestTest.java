@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
@@ -49,7 +50,8 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         // try to download Exam Configuration
         final MockHttpServletResponse configResponse = super.getExamConfig(
                 accessToken,
-                connectionToken);
+                connectionToken,
+                null);
 
         // check correct response
         assertTrue(HttpStatus.OK.value() == configResponse.getStatus());
@@ -68,6 +70,163 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
+    public void testGetExamConfigOnNoneEstablishedConnectionButExamIdExists() throws Exception {
+
+        // If an connection was created but is not yet established, the download of a configuration should
+        // work correctly as long as a examId is already defined for the connection or an examId is provided
+        // by the configuration request. This tests the first case
+
+        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        assertNotNull(accessToken);
+
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, EXAM_ID);
+        assertNotNull(createConnection);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() == createConnection.getStatus());
+
+        final String connectionToken = createConnection.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
+        assertNotNull(connectionToken);
+
+        // in this state the connection is created but no examId is set
+
+        // try to download Exam Configuration
+        final MockHttpServletResponse configResponse = super.getExamConfig(
+                accessToken,
+                connectionToken,
+                null);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() == configResponse.getStatus());
+
+        // check error
+        final String contentAsString = configResponse.getContentAsString();
+        assertNotNull(contentAsString);
+        assertTrue(contentAsString.startsWith("<?xml version=\"1.0\""));
+
+        // check connection cache
+        final Cache connectionCache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+        final ValueWrapper connection = connectionCache.get(connectionToken);
+        assertNotNull(connection);
+        final ClientConnectionDataInternal ccdi =
+                (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();
+        assertNotNull(ccdi);
+        assertNotNull(ccdi.clientConnection.examId);
+
+        // check config cache
+        final Cache cache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_SEB_CONFIG_EXAM);
+        final ValueWrapper config = cache.get(EXAM_ID);
+        assertNotNull(config);
+    }
+
+    @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
+    public void testGetExamConfigOnNoneEstablishedConnectionProvidingExamId() throws Exception {
+
+        // If an connection was created but is not yet established, the download of a configuration should
+        // work correctly as long as a examId is already defined for the connection or an examId is provided
+        // by the configuration request. This tests the second case
+
+        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        assertNotNull(accessToken);
+
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
+        assertNotNull(createConnection);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() == createConnection.getStatus());
+
+        final String connectionToken = createConnection.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
+        assertNotNull(connectionToken);
+
+        // in this state the connection is created but no examId is set
+
+        // try to download Exam Configuration
+        final MockHttpServletResponse configResponse = super.getExamConfig(
+                accessToken,
+                connectionToken,
+                EXAM_ID);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() == configResponse.getStatus());
+
+        // check error
+        final String contentAsString = configResponse.getContentAsString();
+        assertNotNull(contentAsString);
+        assertTrue(contentAsString.startsWith("<?xml version=\"1.0\""));
+
+        // check connection cache
+        final Cache connectionCache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+        final ValueWrapper connection = connectionCache.get(connectionToken);
+        assertNotNull(connection);
+        final ClientConnectionDataInternal ccdi =
+                (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();
+        assertNotNull(ccdi);
+        assertNotNull(ccdi.clientConnection.examId);
+
+        // check config cache
+        final Cache cache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_SEB_CONFIG_EXAM);
+        final ValueWrapper config = cache.get(EXAM_ID);
+        assertNotNull(config);
+    }
+
+    @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
+    public void testGetExamConfigOnNoneEstablishedConnectionNoneExamId() throws Exception {
+
+        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        assertNotNull(accessToken);
+
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
+        assertNotNull(createConnection);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() == createConnection.getStatus());
+
+        final String connectionToken = createConnection.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
+        assertNotNull(connectionToken);
+
+        // in this state the connection is created but no examId is set
+
+        // try to download Exam Configuration
+        final MockHttpServletResponse configResponse = super.getExamConfig(
+                accessToken,
+                connectionToken,
+                null);
+
+        // check correct response
+        assertTrue(HttpStatus.OK.value() != configResponse.getStatus());
+
+        // check error
+        final String contentAsString = configResponse.getContentAsString();
+        assertEquals(
+                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identider or requested exam is not running\",\"attributes\":[]}",
+                contentAsString);
+
+        // check connection cache
+        final Cache connectionCache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+        final ValueWrapper connection = connectionCache.get(connectionToken);
+        assertNotNull(connection);
+        final ClientConnectionDataInternal ccdi =
+                (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();
+        assertNotNull(ccdi);
+        assertNull(ccdi.clientConnection.examId);
+        assertTrue(ccdi.indicatorValues.isEmpty());
+
+        // check config cache
+        final Cache cache = this.cacheManager
+                .getCache(ExamSessionCacheService.CACHE_NAME_SEB_CONFIG_EXAM);
+        final ValueWrapper config = cache.get(EXAM_ID);
+        assertNull(config);
+    }
+
+    @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testGetExamConfigOnConnectionNoExamIdSouldFail() throws Exception {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
@@ -81,13 +240,14 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         // try to download Exam Configuration
         final MockHttpServletResponse configResponse = super.getExamConfig(
                 accessToken,
-                connectionToken);
+                connectionToken,
+                null);
 
         // check correct response
-        assertTrue(HttpStatus.OK.value() == configResponse.getStatus());
+        assertTrue(HttpStatus.OK.value() != configResponse.getStatus());
         final String contentAsString = configResponse.getContentAsString();
         assertEquals(
-                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Illegal connection token. No active ClientConnection found for token\",\"attributes\":[]}",
+                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identider or requested exam is not running\",\"attributes\":[]}",
                 contentAsString);
 
     }

@@ -262,13 +262,20 @@ public abstract class ExamAPIIntegrationTester {
         return result.andReturn().getResponse();
     }
 
-    protected MockHttpServletResponse getExamConfig(final String accessToken, final String connectionToken)
-            throws Exception {
+    protected MockHttpServletResponse getExamConfig(
+            final String accessToken,
+            final String connectionToken,
+            final Long examId) throws Exception {
+
         final MockHttpServletRequestBuilder builder = get(this.endpoint + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT)
                 .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .header("Authorization", "Bearer " + accessToken)
                 .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
                 .accept(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+        if (examId != null) {
+            builder.content("examId=" + examId);
+        }
 
         final ResultActions result = this.mockMvc
                 .perform(builder)

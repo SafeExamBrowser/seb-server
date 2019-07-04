@@ -126,7 +126,6 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final Exception ex,
             final WebRequest request) {
 
-        log.error("Unexpected internal error catched at the API endpoint: ", ex);
         return APIMessage.ErrorMessage.UNEXPECTED
                 .createErrorResponse(ex.getMessage());
     }

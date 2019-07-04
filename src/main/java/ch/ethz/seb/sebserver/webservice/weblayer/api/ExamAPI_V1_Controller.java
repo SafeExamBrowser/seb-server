@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExam;
@@ -246,10 +247,41 @@ public class ExamAPI_V1_Controller {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> getConfig(
-            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+            @RequestBody(required = false) final MultiValueMap<String, String> formParams,
+            final Principal principal,
+            final HttpServletRequest request) {
+
+        try {
+            // if an examId is provided with the request, update the connection first
+            if (formParams != null && formParams.containsKey(API.EXAM_API_PARAM_EXAM_ID)) {
+                final String examId = formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID);
+                handshakeUpdate(connectionToken, Long.valueOf(examId), null, principal, request);
+            }
+
+            final ClientConnectionData connection = this.sebClientConnectionService
+                    .getActiveConnectionData(connectionToken)
+                    .getOrThrow();
+
+            // exam integrity check
+            if (connection.clientConnection.examId == null ||
+                    !this.examSessionService.isExamRunning(connection.clientConnection.examId)) {
+
+                log.error("Missing exam identifer or requested exam is not running for connection: {}", connection);
+                throw new IllegalStateException("Missing exam identider or requested exam is not running");
+            }
+        } catch (final Exception e) {
+            log.error("Unexpected error: ", e);
+            final StreamingResponseBody stream = out -> {
+                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+                out.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+            };
+            return new ResponseEntity<>(stream, HttpStatus.BAD_REQUEST);
+        }
 
         final StreamingResponseBody stream = out -> {
             try {
+
                 this.examSessionService
                         .streamDefaultExamConfig(
                                 connectionToken,

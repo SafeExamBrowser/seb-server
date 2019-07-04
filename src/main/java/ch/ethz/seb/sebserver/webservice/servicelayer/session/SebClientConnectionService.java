@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -99,8 +100,23 @@ public interface SebClientConnectionService {
             Long institutionId,
             String clientAddress);
 
+    /** Get ClientConnectionData for an active connection (connection on running exam)
+     *
+     * @param connectionToken The connection token of the connection to get the ClientConnectionData from
+     * @return ClientConnectionData for an active connection (connection on running exam) */
+    Result<ClientConnectionData> getActiveConnectionData(String connectionToken);
+
+    /** Notify a ping for a certain client connection.
+     *
+     * @param connectionToken the connection token
+     * @param timestamp the ping time-stamp
+     * @param pingNumber the ping number */
     void notifyPing(String connectionToken, long timestamp, int pingNumber);
 
+    /** Notify a SEB client event for live indication and storing to database.
+     *
+     * @param connectionToken the connection token
+     * @param event The SEB client event data */
     void notifyClientEvent(String connectionToken, final ClientEvent event);
 
 }

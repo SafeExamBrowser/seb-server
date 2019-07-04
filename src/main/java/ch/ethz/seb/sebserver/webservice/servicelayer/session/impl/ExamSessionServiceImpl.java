@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -104,10 +103,16 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .byConnectionToken(connectionToken)
                 .getOrThrow();
 
-        if (connection == null || connection.status != ConnectionStatus.ESTABLISHED) {
+        if (connection == null) {
             log.warn("SEB exam configuration download request, no active ClientConnection found for token: {}",
                     connectionToken);
             throw new AccessDeniedException("Illegal connection token. No active ClientConnection found for token");
+        }
+
+        // exam integrity check
+        if (connection.examId == null || !isExamRunning(connection.examId)) {
+            log.error("Missing exam identifer or requested exam is not running for connection: {}", connection);
+            throw new IllegalStateException("Missing exam identider or requested exam is not running");
         }
 
         if (log.isDebugEnabled()) {
