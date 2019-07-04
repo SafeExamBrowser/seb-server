@@ -13,6 +13,7 @@
     </Match>
     <Match>
       <Class name="ch.ethz.seb.sebserver.gui.widget.MultiSelectionCombo" />
+      <Class name="ch.ethz.seb.sebserver.gui.widget.GridTable" />
       <Bug pattern="SE_BAD_FIELD" />
     </Match>
 
