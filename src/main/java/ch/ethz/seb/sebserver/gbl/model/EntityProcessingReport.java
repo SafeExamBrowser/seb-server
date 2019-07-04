@@ -49,6 +49,18 @@ public class EntityProcessingReport {
         return null;
     }
 
+    public Set<EntityKey> getSource() {
+        return this.source;
+    }
+
+    public Set<EntityKey> getDependencies() {
+        return this.dependencies;
+    }
+
+    public Set<ErrorEntry> getErrors() {
+        return this.errors;
+    }
+
     public static final class ErrorEntry {
 
         public final EntityKey entityKey;
@@ -63,6 +75,13 @@ public class EntityProcessingReport {
             this.errorMessage = errorMessage;
         }
 
+        public EntityKey getEntityKey() {
+            return this.entityKey;
+        }
+
+        public APIMessage getErrorMessage() {
+            return this.errorMessage;
+        }
     }
 
     @Override

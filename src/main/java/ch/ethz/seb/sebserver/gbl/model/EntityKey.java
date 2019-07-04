@@ -53,8 +53,8 @@ public class EntityKey implements ModelIdAware, Serializable {
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
-        result = prime * result + ((this.modelId == null) ? 0 : this.modelId.hashCode());
+        result = prime * result + this.entityType.hashCode();
+        result = prime * result + this.modelId.hashCode();
         this.hash = result;
     }
 

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -142,6 +143,29 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         } catch (final IOException e) {
             log.error("SEB exam configuration download request, failed to write SEB exam configuration: ", e);
         }
+    }
+
+    @Override
+    public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
+        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                .getActiveClientConnection(connectionToken);
+
+        if (activeClientConnection == null) {
+            log.error("No active ClientConnection found for token: {}", connectionToken);
+            return Result.ofError(new IllegalArgumentException("No active ClientConnection found for token"));
+        } else {
+            return Result.of(activeClientConnection);
+        }
+    }
+
+    @Override
+    public Result<Collection<ClientConnectionData>> getConnectionData(final Long examId) {
+        return this.clientConnectionDAO
+                .getConnectionTokens(examId)
+                .map(all -> all
+                        .stream()
+                        .map(this.examSessionCacheService::getActiveClientConnection)
+                        .collect(Collectors.toList()));
     }
 
     private void flushCache(final Exam exam) {

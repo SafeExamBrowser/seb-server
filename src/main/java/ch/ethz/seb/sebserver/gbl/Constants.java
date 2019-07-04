@@ -11,8 +11,6 @@ package ch.ethz.seb.sebserver.gbl;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
@@ -55,12 +53,5 @@ public final class Constants {
             "<dict>";
     public static final String XML_DICT_END =
             "</dict>";
-
-    public static final byte[] XML_VERSION_HEADER_UTF_8 = Utils.toByteArray(XML_VERSION_HEADER);
-    public static final byte[] XML_DOCTYPE_HEADER_UTF_8 = Utils.toByteArray(XML_DOCTYPE_HEADER);
-    public static final byte[] XML_PLIST_START_V1_UTF_8 = Utils.toByteArray(XML_PLIST_START_V1);
-    public static final byte[] XML_PLIST_END_UTF_8 = Utils.toByteArray(XML_PLIST_END);
-    public static final byte[] XML_DICT_START_UTF_8 = Utils.toByteArray(XML_DICT_START);
-    public static final byte[] XML_DICT_END_UTF_8 = Utils.toByteArray(XML_DICT_END);
 
 }

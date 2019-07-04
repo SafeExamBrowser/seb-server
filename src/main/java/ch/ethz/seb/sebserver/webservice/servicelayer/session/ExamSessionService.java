@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** A Service to handle running exam sessions */
@@ -44,5 +45,19 @@ public interface ExamSessionService {
      * @param connectionToken The connection token that identifiers the ClientConnection
      * @param out The OutputStream to stream the data to */
     void streamDefaultExamConfig(String connectionToken, OutputStream out);
+
+    /** Get current ClientConnectionData for a specified active SEB client connection.
+     * 
+     * @param connectionToken the connection token of the active SEB client connection
+     * @return */
+    Result<ClientConnectionData> getConnectionData(String connectionToken);
+
+    /** Get the collection of ClientConnectionData of all active SEB client connections
+     * of a running exam.
+     * 
+     * @param examId The exam identifier
+     * @return collection of ClientConnectionData of all active SEB client connections
+     *         of a running exam */
+    Result<Collection<ClientConnectionData>> getConnectionData(Long examId);
 
 }

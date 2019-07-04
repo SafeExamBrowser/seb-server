@@ -55,12 +55,7 @@ public class POSTMapper {
     }
 
     public CharSequence getCharSequence(final String name) {
-        final char[] charArray = getCharArray(name);
-        if (charArray == null) {
-            return null;
-        }
-
-        return CharBuffer.wrap(charArray);
+        return CharBuffer.wrap(getCharArray(name));
     }
 
     public Long getLong(final String name) {

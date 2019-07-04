@@ -15,6 +15,8 @@ import java.util.Collections;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
 public final class ExamAPIDiscovery {
 
     @JsonProperty("title")
@@ -55,6 +57,22 @@ public final class ExamAPIDiscovery {
                 (versions != null) ? Arrays.asList(versions) : Collections.emptyList());
     }
 
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public String getServerLocation() {
+        return this.serverLocation;
+    }
+
+    public Collection<ExamAPIVersion> getVersions() {
+        return this.versions;
+    }
+
     public static final class ExamAPIVersion {
 
         @JsonProperty("name")
@@ -69,7 +87,7 @@ public final class ExamAPIDiscovery {
                 @JsonProperty("endpoints") final Collection<Endpoint> endpoints) {
 
             this.name = name;
-            this.endpoints = endpoints;
+            this.endpoints = Utils.immutableCollectionOf(endpoints);
         }
 
         public ExamAPIVersion(
@@ -77,8 +95,19 @@ public final class ExamAPIDiscovery {
                 final Endpoint... endpoints) {
 
             this.name = name;
-            this.endpoints = (endpoints != null) ? Arrays.asList(endpoints) : Collections.emptyList();
+            this.endpoints = (endpoints != null)
+                    ? Utils.immutableCollectionOf(Arrays.asList(endpoints))
+                    : Collections.emptyList();
         }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public Collection<Endpoint> getEndpoints() {
+            return this.endpoints;
+        }
+
     }
 
     public static final class Endpoint {
@@ -108,5 +137,20 @@ public final class ExamAPIDiscovery {
             this.authorization = authorization;
         }
 
+        public String getName() {
+            return this.name;
+        }
+
+        public String getDescripiton() {
+            return this.descripiton;
+        }
+
+        public String getLocation() {
+            return this.location;
+        }
+
+        public String getAuthorization() {
+            return this.authorization;
+        }
     }
 }

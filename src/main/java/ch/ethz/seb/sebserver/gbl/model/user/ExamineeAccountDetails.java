@@ -51,7 +51,7 @@ public class ExamineeAccountDetails {
         return this.name;
     }
 
-    public String getUserName() {
+    public String getUsername() {
         return this.username;
     }
 

@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
@@ -39,6 +40,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter
 public class ExamConfigIO {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigIO.class);
+
+    private static final byte[] XML_VERSION_HEADER_UTF_8 = Utils.toByteArray(Constants.XML_VERSION_HEADER);
+    private static final byte[] XML_DOCTYPE_HEADER_UTF_8 = Utils.toByteArray(Constants.XML_DOCTYPE_HEADER);
+    private static final byte[] XML_PLIST_START_V1_UTF_8 = Utils.toByteArray(Constants.XML_PLIST_START_V1);
+    private static final byte[] XML_PLIST_END_UTF_8 = Utils.toByteArray(Constants.XML_PLIST_END);
+    private static final byte[] XML_DICT_START_UTF_8 = Utils.toByteArray(Constants.XML_DICT_START);
+    private static final byte[] XML_DICT_END_UTF_8 = Utils.toByteArray(Constants.XML_DICT_END);
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
@@ -93,12 +101,12 @@ public class ExamConfigIO {
 
         try {
             // write headers
-            out.write(Constants.XML_VERSION_HEADER_UTF_8);
-            out.write(Constants.XML_DOCTYPE_HEADER_UTF_8);
+            out.write(XML_VERSION_HEADER_UTF_8);
+            out.write(XML_DOCTYPE_HEADER_UTF_8);
 
             // plist open
-            out.write(Constants.XML_PLIST_START_V1_UTF_8);
-            out.write(Constants.XML_DICT_START_UTF_8);
+            out.write(XML_PLIST_START_V1_UTF_8);
+            out.write(XML_DICT_START_UTF_8);
 
             // write attributes
             for (final ConfigurationAttribute attribute : sortedAttributes) {
@@ -112,8 +120,8 @@ public class ExamConfigIO {
             }
 
             // plist close
-            out.write(Constants.XML_DICT_END_UTF_8);
-            out.write(Constants.XML_PLIST_END_UTF_8);
+            out.write(XML_DICT_END_UTF_8);
+            out.write(XML_PLIST_END_UTF_8);
             out.flush();
 
         } catch (final Exception e) {
