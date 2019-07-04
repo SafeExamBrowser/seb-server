@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -123,13 +125,13 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
         try {
             this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT);
-        } catch (final Exception e) {
+        } catch (final RuntimeException e) {
             if (this.restTemplate != null) {
                 this.restTemplate.setAuthenticator(new EdxOAuth2RequestAuthenticator());
             }
             try {
                 this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT);
-            } catch (final Exception ee) {
+            } catch (final RuntimeException ee) {
                 return LmsSetupTestResult.ofQuizRequestError(ee.getMessage());
             }
         }
@@ -244,9 +246,11 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         EdXPage page = getEdxPage(pageURI).getBody();
         if (page != null) {
             collector.addAll(page.results);
-            while (StringUtils.isNotBlank(page.next)) {
+            while (page != null && StringUtils.isNotBlank(page.next)) {
                 page = getEdxPage(page.next).getBody();
-                collector.addAll(page.results);
+                if (page != null) {
+                    collector.addAll(page.results);
+                }
             }
         }
 
@@ -267,6 +271,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             final CourseData courseData) {
 
         final String startURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX + courseData.id;
+        final Map<String, String> additionalAttrs = new HashMap<>();
+        additionalAttrs.put("blocks_url", courseData.blocks_url);
         return new QuizData(
                 courseData.id,
                 lmsSetup.getInstitutionId(),
@@ -291,7 +297,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     /** Maps the OpenEdX course API course data */
     static final class CourseData {
         public String id;
-        public String course_id;
         public String name;
         public String short_description;
         public String blocks_url;
@@ -312,18 +317,21 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                 AccessDeniedException,
                 OAuth2AccessDeniedException {
 
-            final ClientCredentialsResourceDetails resource = (ClientCredentialsResourceDetails) details;
-            final HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+            if (details instanceof ClientCredentialsResourceDetails) {
+                final ClientCredentialsResourceDetails resource = (ClientCredentialsResourceDetails) details;
+                final HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 
-            final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("grant_type", "client_credentials");
-            //params.add("token_type", "jwt");
-            params.add("client_id", resource.getClientId());
-            params.add("client_secret", resource.getClientSecret());
+                final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+                params.add("grant_type", "client_credentials");
+                params.add("client_id", resource.getClientId());
+                params.add("client_secret", resource.getClientSecret());
 
-            final OAuth2AccessToken retrieveToken = retrieveToken(request, resource, params, headers);
-            return retrieveToken;
+                final OAuth2AccessToken retrieveToken = retrieveToken(request, resource, params, headers);
+                return retrieveToken;
+            } else {
+                return super.obtainAccessToken(details, request);
+            }
         }
     }
 
@@ -341,8 +349,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             }
 
             request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
-
-            //request.getHeaders().set("Authorization", String.format("%s %s", "JWT", accessToken.getValue()));
         }
 
     }

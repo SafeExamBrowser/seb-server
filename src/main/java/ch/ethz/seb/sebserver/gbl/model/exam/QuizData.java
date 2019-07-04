@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,10 +25,13 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
+
+    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "ADDITIONAL_ATTRIBUTES";
 
     public static final String QUIZ_ATTR_ID = "quiz_id";
     public static final String QUIZ_ATTR_INSTITUION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
@@ -65,6 +70,9 @@ public final class QuizData implements GrantEntity {
     @JsonProperty(QUIZ_ATTR_START_URL)
     public final String startURL;
 
+    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    public final Map<String, String> additionalAttributes;
+
     @JsonCreator
     public QuizData(
             @JsonProperty(QUIZ_ATTR_ID) final String id,
@@ -75,7 +83,8 @@ public final class QuizData implements GrantEntity {
             @JsonProperty(QUIZ_ATTR_DESCRIPTION) final String description,
             @JsonProperty(QUIZ_ATTR_START_TIME) final DateTime startTime,
             @JsonProperty(QUIZ_ATTR_END_TIME) final DateTime endTime,
-            @JsonProperty(QUIZ_ATTR_START_URL) final String startURL) {
+            @JsonProperty(QUIZ_ATTR_START_URL) final String startURL,
+            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -86,6 +95,7 @@ public final class QuizData implements GrantEntity {
         this.startTime = startTime;
         this.endTime = endTime;
         this.startURL = startURL;
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
     }
 
     public QuizData(
@@ -98,6 +108,22 @@ public final class QuizData implements GrantEntity {
             final String startTime,
             final String endTime,
             final String startURL) {
+
+        this(id, institutionId, lmsSetupId, lmsType, name, description,
+                startTime, endTime, startURL, Collections.emptyMap());
+    }
+
+    public QuizData(
+            final String id,
+            final Long institutionId,
+            final Long lmsSetupId,
+            final LmsType lmsType,
+            final String name,
+            final String description,
+            final String startTime,
+            final String endTime,
+            final String startURL,
+            final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -116,6 +142,7 @@ public final class QuizData implements GrantEntity {
                         .toDateTime(DateTimeZone.UTC)
                 : null;
         this.startURL = startURL;
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
     }
 
     @Override
@@ -168,6 +195,10 @@ public final class QuizData implements GrantEntity {
 
     public String getStartURL() {
         return this.startURL;
+    }
+
+    public Map<String, String> getAdditionalAttributes() {
+        return this.additionalAttributes;
     }
 
     @Override
