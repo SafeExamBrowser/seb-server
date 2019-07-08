@@ -1,15 +1,4 @@
 -- -----------------------------------------------------
--- Schema SEBServer
--- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `SEBServer` ;
-
--- -----------------------------------------------------
--- Schema SEBServer
--- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `SEBServer` DEFAULT CHARACTER SET utf8mb4 ;
-USE `SEBServer` ;
-
--- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `institution` ;
