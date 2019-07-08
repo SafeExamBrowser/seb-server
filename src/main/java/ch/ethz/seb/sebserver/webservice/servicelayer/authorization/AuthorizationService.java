@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 
 /** A service to check authorization grants for a given user for entity-types and -instances
  *

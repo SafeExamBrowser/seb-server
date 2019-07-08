@@ -58,6 +58,8 @@ public final class API {
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
 
+    public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
+
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";

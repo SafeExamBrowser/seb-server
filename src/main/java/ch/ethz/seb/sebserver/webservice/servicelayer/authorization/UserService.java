@@ -12,6 +12,8 @@ import java.security.Principal;
 
 import org.springframework.web.bind.WebDataBinder;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+
 /** A service to get the authenticated user from current request */
 public interface UserService {
 

@@ -14,7 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 /** The Data Access Object for all User related data like get user data within UserInfo,

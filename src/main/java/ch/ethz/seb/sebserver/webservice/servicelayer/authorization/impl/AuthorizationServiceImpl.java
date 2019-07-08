@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
+package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +25,8 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 
 @Lazy
 @Service

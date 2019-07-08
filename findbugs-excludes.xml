@@ -15,6 +15,10 @@
       <Package name="ch.ethz.seb.sebserver.gui.widget" />
       <Bug pattern="SE_BAD_FIELD" />
     </Match>
+    <Match>
+      <Package name="ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation" />
+      <Bug pattern="NM_CONFUSING" />
+    </Match>
     
     
     

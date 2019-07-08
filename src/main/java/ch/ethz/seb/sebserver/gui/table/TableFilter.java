@@ -314,9 +314,13 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent reset() {
-            final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
-
-            this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            try {
+                final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
+                this.selector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
+            } catch (final Exception e) {
+                final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
+                this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            }
             return this;
         }
 

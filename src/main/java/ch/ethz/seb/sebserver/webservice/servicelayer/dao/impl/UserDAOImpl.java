@@ -54,7 +54,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;

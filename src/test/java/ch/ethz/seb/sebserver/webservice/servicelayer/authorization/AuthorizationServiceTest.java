@@ -26,6 +26,9 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.AuthorizationServiceImpl;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.UserServiceImpl;
 
 public class AuthorizationServiceTest {
 

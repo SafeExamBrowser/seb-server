@@ -39,8 +39,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserActivityLogRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;

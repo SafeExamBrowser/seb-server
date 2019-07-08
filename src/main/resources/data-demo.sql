@@ -12,6 +12,10 @@ INSERT IGNORE INTO user_role VALUES
     (3, 1, 'EXAM_ADMIN'),
     (4, 1, 'EXAM_SUPPORTER')
     ;
+    
+INSERT IGNORE INTO seb_client_configuration VALUES
+    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1)
+    ;
 
 INSERT IGNORE INTO view VALUES
     (1, 'general', 4, 1),
