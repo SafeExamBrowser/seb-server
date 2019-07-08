@@ -202,7 +202,18 @@ public class ActivitiesPane implements TemplateComposer {
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
                                 .create());
             }
+        }
 
+        // Monitoring exams
+        if (this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER)) {
+            final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActivityDefinition.MONITORING_EXAMS.displayName);
+            injectActivitySelection(
+                    clientConfig,
+                    actionBuilder
+                            .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
+                            .create());
         }
 
         // TODO other activities

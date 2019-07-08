@@ -10,10 +10,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
@@ -33,12 +35,21 @@ public interface ExamSessionService {
      * @return Result referencing the running Exam or an error if the Exam not exists or is not currently running */
     Result<Exam> getRunningExam(Long examId);
 
-    /** Gets all all currently running Exams for a particular Institution.
+    /** Gets all currently running Exams for a particular Institution.
      *
      * @param institutionId the Institution identifier
      * @return Result referencing the list of all currently running Exams of the institution or to an error if
      *         happened. */
     Result<Collection<Exam>> getRunningExamsForInstitution(Long institutionId);
+
+    /** Gets all currently running Exams for a particular FilterMap.
+     *
+     * @param filterMap the FilterMap containing the filter attributes
+     * @param predicate additional filter predicate
+     * @return Result referencing the list of all currently running Exams or to an error if happened. */
+    Result<Collection<Exam>> getFilteredRunningExams(
+            FilterMap filterMap,
+            Predicate<Exam> predicate);
 
     /** Streams the default SEB Exam Configuration to a ClientConnection with given connectionToken.
      *

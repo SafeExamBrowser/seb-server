@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -92,6 +94,18 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return this.examDAO.allIdsOfInstituion(institutionId)
                 .map(col -> col.stream()
                         .map(examId -> this.examSessionCacheService.getRunningExam(examId))
+                        .filter(exam -> exam != null)
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result<Collection<Exam>> getFilteredRunningExams(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate) {
+
+        return this.examDAO.allMatching(filterMap, predicate)
+                .map(col -> col.stream()
+                        .map(exam -> this.examSessionCacheService.getRunningExam(exam.id))
                         .filter(exam -> exam != null)
                         .collect(Collectors.toList()));
     }

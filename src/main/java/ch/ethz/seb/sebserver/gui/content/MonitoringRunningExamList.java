@@ -8,35 +8,28 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.function.Function;
-
 import org.eclipse.swt.widgets.Composite;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -46,37 +39,28 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class ExamList implements TemplateComposer {
+public class MonitoringRunningExamList implements TemplateComposer {
 
     private static final LocTextKey PAGE_TITLE_KEY =
-            new LocTextKey("sebserver.exam.list.title");
-    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
-            new LocTextKey("sebserver.exam.list.action.no.modify.privilege");
+            new LocTextKey("sebserver.monitoring.exam.list.title");
     private final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
-            new LocTextKey("sebserver.exam.info.pleaseSelect");
-    private final static LocTextKey COLUMN_TITLE_KEY =
-            new LocTextKey("sebserver.exam.list.column.lmssetup");
+            new LocTextKey("sebserver.monitoring.exam.info.pleaseSelect");
     private final static LocTextKey COLUMN_TITLE_NAME_KEY =
-            new LocTextKey("sebserver.exam.list.column.name");
+            new LocTextKey("sebserver.monitoring.exam.list.column.name");
     private final static LocTextKey COLUMN_TITLE_TYPE_KEY =
-            new LocTextKey("sebserver.exam.list.column.type");
-    private final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
-            new LocTextKey("sebserver.exam.list.modify.out.dated");
+            new LocTextKey("sebserver.monitoring.exam.list.column.type");
     private final static LocTextKey EMPTY_LIST_TEXT_KEY =
-            new LocTextKey("sebserver.exam.list.empty");
+            new LocTextKey("sebserver.monitoring.exam.list.empty");
 
-    private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
-    private final TableFilterAttribute startTimeFilter =
-            new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
     private final TableFilterAttribute typeFilter;
 
     private final PageService pageService;
     private final ResourceService resourceService;
     private final int pageSize;
 
-    protected ExamList(
+    protected MonitoringRunningExamList(
             final PageService pageService,
             final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
@@ -84,11 +68,6 @@ public class ExamList implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = pageSize;
-
-        this.lmsFilter = new TableFilterAttribute(
-                CriteriaType.SINGLE_SELECTION,
-                LmsSetup.FILTER_ATTR_LMS_SETUP,
-                this.resourceService::lmsSetupResource);
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -98,7 +77,6 @@ public class ExamList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
@@ -114,15 +92,9 @@ public class ExamList implements TemplateComposer {
 
         // table
         final EntityTable<Exam> table =
-                this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
+                this.pageService.entityTableBuilder(restService.getRestCall(GetRunningExamPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.EXAM.ATTR_LMS_SETUP_ID,
-                                COLUMN_TITLE_KEY,
-                                examLmsSetupNameFunction(this.resourceService))
-                                        .withFilter(this.lmsFilter)
-                                        .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 COLUMN_TITLE_NAME_KEY,
@@ -130,60 +102,36 @@ public class ExamList implements TemplateComposer {
                                         .withFilter(this.nameFilter)
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
-                                QuizData.QUIZ_ATTR_START_TIME,
-                                new LocTextKey(
-                                        "sebserver.exam.list.column.starttime",
-                                        i18nSupport.getUsersTimeZoneTitleSuffix()),
-                                Exam::getStartTime)
-                                        .withFilter(this.startTimeFilter)
-                                        .sortable())
-                        .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
                                 this.resourceService::examTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
+                        .withColumn(new ColumnDefinition<>(
+                                QuizData.QUIZ_ATTR_START_TIME,
+                                new LocTextKey(
+                                        "sebserver.monitoring.exam.list.column.startTime",
+                                        i18nSupport.getUsersTimeZoneTitleSuffix()),
+                                Exam::getStartTime)
+                                        .sortable())
+                        .withColumn(new ColumnDefinition<>(
+                                QuizData.QUIZ_ATTR_END_TIME,
+                                new LocTextKey(
+                                        "sebserver.monitoring.exam.list.column.endTime",
+                                        i18nSupport.getUsersTimeZoneTitleSuffix()),
+                                Exam::getEndTime)
+                                        .sortable())
                         .withDefaultAction(actionBuilder
-                                .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                                .newAction(ActionDefinition.MONITOR_EXAM)
                                 .create())
                         .compose(content);
 
-        // propagate content actions to action-pane
-        final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
 
-                .newAction(ActionDefinition.EXAM_IMPORT)
-                .publishIf(userGrant::im)
-
-                .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                .newAction(ActionDefinition.MONITOR_EXAM)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent)
+                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
 
-                .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
-                .withSelect(
-                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        action -> this.modifyExam(action, table),
-                        EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent());
-
-    }
-
-    private PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
-        final Exam exam = table.getSelectedROWData();
-
-        if (exam.startTime != null) {
-            final DateTime now = DateTime.now(DateTimeZone.UTC);
-            if (exam.startTime.isBefore(now)) {
-                throw new PageMessageException(NO_MODIFY_OF_OUT_DATED_EXAMS);
-            }
-        }
-
-        return action.withEntityKey(action.getSingleSelection());
-    }
-
-    private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {
-        return exam -> resourceService.getLmsSetupNameFunction()
-                .apply(String.valueOf(exam.lmsSetupId));
     }
 
 }

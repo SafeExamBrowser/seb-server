@@ -73,7 +73,7 @@ public class SebExamConfigList implements TemplateComposer {
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,
-            @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = restService;

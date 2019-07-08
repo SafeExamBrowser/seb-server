@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -66,6 +67,7 @@ public class LmsSetupList implements TemplateComposer {
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
     private final TableFilterAttribute typeFilter;
+    private final TableFilterAttribute activityFilter;
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -74,11 +76,11 @@ public class LmsSetupList implements TemplateComposer {
     protected LmsSetupList(
             final PageService pageService,
             final ResourceService resourceService,
-            @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
-        this.pageSize = (pageSize != null) ? pageSize : 20;
+        this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -89,6 +91,11 @@ public class LmsSetupList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Domain.LMS_SETUP.ATTR_LMS_TYPE,
                 this.resourceService::lmsTypeResources);
+
+        this.activityFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                UserInfo.FILTER_ATTR_ACTIVE,
+                this.resourceService::activityResources);
     }
 
     @Override
@@ -135,6 +142,7 @@ public class LmsSetupList implements TemplateComposer {
                                 Domain.LMS_SETUP.ATTR_ACTIVE,
                                 ACTIVITY_TEXT_KEY,
                                 LmsSetup::getActive)
+                                        .withFilter(this.activityFilter)
                                         .sortable())
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)

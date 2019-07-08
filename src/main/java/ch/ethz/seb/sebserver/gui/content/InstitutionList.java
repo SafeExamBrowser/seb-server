@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -51,15 +52,18 @@ public class InstitutionList implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final int pageSize;
 
     protected InstitutionList(
             final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
+        this.pageSize = pageSize;
     }
 
     @Override
@@ -75,7 +79,7 @@ public class InstitutionList implements TemplateComposer {
         final EntityTable<Institution> table =
                 this.pageService.entityTableBuilder(this.restService.getRestCall(GetInstitutionPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
-                        .withPaging(3)
+                        .withPaging(this.pageSize)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_NAME,
                                 NAME_TEXT_KEY,

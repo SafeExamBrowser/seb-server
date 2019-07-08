@@ -92,9 +92,10 @@ public class TableFilter<ROW extends Entity> {
                 .map(FilterComponent::reset)
                 .collect(Collectors.toList()));
 
-        final FilterComponent lastComp = this.components.get(this.components.size() - 1);
-        if (lastComp instanceof TableFilter.NullFilter) {
+        FilterComponent lastComp = this.components.get(this.components.size() - 1);
+        while (lastComp instanceof TableFilter.NullFilter) {
             this.components.remove(lastComp);
+            lastComp = this.components.get(this.components.size() - 1);
         }
 
         addActions();

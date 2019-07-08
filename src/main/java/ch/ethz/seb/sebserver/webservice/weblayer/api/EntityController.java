@@ -144,7 +144,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 pageSize,
                 sort,
                 getSQLTableOfEntity().name(),
-                () -> getAll(filterMap)).getOrThrow();
+                () -> getAll(filterMap))
+                .getOrThrow();
     }
 
     // ******************

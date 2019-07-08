@@ -21,6 +21,7 @@ public enum ActionCategory {
     INDICATOR_LIST(new LocTextKey("sebserver.exam.indicator.list.actions"), 2),
     SEB_CLIENT_CONFIG_LIST(new LocTextKey("sebserver.clientconfig.list.actions"), 1),
     SEB_EXAM_CONFIG_LIST(new LocTextKey("sebserver.examconfig.list.actions"), 1),
+    RUNNING_EXAM_LIST(new LocTextKey("sebserver.monitoring.exam.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 100),
     ;
 

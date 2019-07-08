@@ -73,6 +73,7 @@ public class UserAccountList implements TemplateComposer {
     private final TableFilterAttribute mailFilter =
             new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_EMAIL);
     private final TableFilterAttribute languageFilter;
+    private final TableFilterAttribute activityFilter;
 
     // dependencies
     private final PageService pageService;
@@ -82,11 +83,11 @@ public class UserAccountList implements TemplateComposer {
     protected UserAccountList(
             final PageService pageService,
             final ResourceService resourceService,
-            @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
-        this.pageSize = (pageSize != null) ? pageSize : 20;
+        this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -97,6 +98,11 @@ public class UserAccountList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 UserInfo.FILTER_ATTR_LANGUAGE,
                 this.resourceService::languageResources);
+
+        this.activityFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                UserInfo.FILTER_ATTR_ACTIVE,
+                this.resourceService::activityResources);
     }
 
     @Override
@@ -154,12 +160,13 @@ public class UserAccountList implements TemplateComposer {
                                 .withFilter(this.languageFilter)
                                 .localized()
                                 .sortable()
-                                .widthProportion(2))
+                                .widthProportion(1))
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_ACTIVE,
                         ACTIVE_TEXT_KEY,
                         UserInfo::getActive)
                                 .sortable()
+                                .withFilter(this.activityFilter)
                                 .widthProportion(1))
                 .withDefaultAction(actionBuilder
                         .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)

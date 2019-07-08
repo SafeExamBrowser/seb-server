@@ -120,37 +120,52 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     EntityType.EXAM,
                     institutionId);
 
-            final int pageNum = this.paginationService.getPageNumber(pageNumber);
-            final int pSize = this.paginationService.getPageSize(pageSize);
-
             final List<Exam> exams = new ArrayList<>(
-                    this.examDAO.allMatching(new FilterMap(allRequestParams)).getOrThrow());
+                    this.examDAO
+                            .allMatching(new FilterMap(allRequestParams))
+                            .getOrThrow());
 
-            if (!StringUtils.isBlank(sort)) {
-                final String sortBy = PageSortOrder.decode(sort);
-                if (sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
-                    Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
-                }
-                if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
-                    Collections.sort(exams, (exam1, exam2) -> exam1.startTime.compareTo(exam2.startTime));
-                }
-            }
-
-            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
-                Collections.reverse(exams);
-            }
-
-            final int start = (pageNum - 1) * pSize;
-            int end = start + pageSize;
-            if (exams.size() < end) {
-                end = exams.size();
-            }
-            return new Page<>(
-                    exams.size() / pSize,
-                    pageNum,
+            return buildSortedExamPage(
+                    this.paginationService.getPageNumber(pageNumber),
+                    this.paginationService.getPageSize(pageSize),
                     sort,
-                    exams.subList(start, end));
+                    exams);
         }
+    }
+
+    public static Page<Exam> buildSortedExamPage(
+            final Integer pageNumber,
+            final Integer pageSize,
+            final String sort,
+            final List<Exam> exams) {
+
+        if (!StringUtils.isBlank(sort)) {
+            final String sortBy = PageSortOrder.decode(sort);
+            if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
+            }
+            if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.type.compareTo(exam2.type));
+            }
+            if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.startTime.compareTo(exam2.startTime));
+            }
+        }
+
+        if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+            Collections.reverse(exams);
+        }
+
+        final int start = (pageNumber - 1) * pageSize;
+        int end = start + pageSize;
+        if (exams.size() < end) {
+            end = exams.size();
+        }
+        return new Page<>(
+                exams.size() / pageSize,
+                pageNumber,
+                sort,
+                exams.subList(start, end));
     }
 
     @Override

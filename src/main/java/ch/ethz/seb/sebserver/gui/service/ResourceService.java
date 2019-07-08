@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
@@ -93,6 +95,13 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> activityResources() {
+        final List<Tuple<String>> result = new ArrayList<>();
+        result.add(new Tuple<>("true", this.i18nSupport.getText("sebserver.overall.status.active")));
+        result.add(new Tuple<>("false", this.i18nSupport.getText("sebserver.overall.status.inactive")));
+        return result;
+    }
+
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.asList(LmsType.values())
                 .stream()
@@ -118,20 +127,6 @@ public class ResourceService {
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .collect(Collectors.toList());
     }
-
-//    public Function<String, String> getExamConfigurationNameFunction() {
-//        final Map<String, String> idNameMap = getExamConfigurationSelection()
-//                .getOr(Collections.emptyList())
-//                .stream()
-//                .collect(Collectors.toMap(e -> e.modelId, e -> e.name));
-//
-//        return id -> {
-//            if (!idNameMap.containsKey(id)) {
-//                return Constants.EMPTY_NOTE;
-//            }
-//            return idNameMap.get(id);
-//        };
-//    }
 
     public List<Tuple<String>> userRoleResources() {
         return UserRole.publicRolesForUser(this.currentUser.get())
@@ -229,6 +224,7 @@ public class ResourceService {
     public List<Tuple<String>> examTypeResources() {
         return Arrays.asList(ExamType.values())
                 .stream()
+                .filter(type -> type != ExamType.UNDEFINED)
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name())))
@@ -311,6 +307,15 @@ public class ResourceService {
                         ConfigurationNode.FILTER_ATTR_STATUS,
                         ConfigurationStatus.READY_TO_USE.name())
                 .call();
+    }
+
+    public String examTypeName(final Exam exam) {
+        if (exam.type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_TYPE_PREFIX + exam.type.name());
     }
 
 }

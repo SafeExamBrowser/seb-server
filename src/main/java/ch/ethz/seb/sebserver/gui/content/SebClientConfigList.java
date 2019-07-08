@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -72,6 +73,7 @@ public class SebClientConfigList implements TemplateComposer {
                     DateTime.now(DateTimeZone.UTC)
                             .minusYears(1)
                             .toString(Constants.DEFAULT_DATE_TIME_FORMAT));
+    private final TableFilterAttribute activityFilter;
 
     private final PageService pageService;
     private final RestService restService;
@@ -83,7 +85,7 @@ public class SebClientConfigList implements TemplateComposer {
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,
-            @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = restService;
@@ -95,6 +97,11 @@ public class SebClientConfigList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
                 this.resourceService::institutionResource);
+
+        this.activityFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                UserInfo.FILTER_ATTR_ACTIVE,
+                this.resourceService::activityResources);
     }
 
     @Override
@@ -139,6 +146,7 @@ public class SebClientConfigList implements TemplateComposer {
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
                                 SebClientConfig::getActive)
+                                        .withFilter(this.activityFilter)
                                         .sortable())
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)

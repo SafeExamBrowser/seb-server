@@ -281,11 +281,11 @@ Combo-Button {
     background-color: #ffffff;
     background-image: gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff));
     border: none;
-    width: 30px;
+    width: 20px;
 }
 
 Combo-Field {
-  padding: 3px 10px 1px 10px;
+  padding: 3px 0px 1px 10px;
 }
 
 Combo.error {

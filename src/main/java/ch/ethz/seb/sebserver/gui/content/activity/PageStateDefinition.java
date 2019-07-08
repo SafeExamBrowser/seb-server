@@ -16,12 +16,14 @@ import ch.ethz.seb.sebserver.gui.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.content.InstitutionList;
 import ch.ethz.seb.sebserver.gui.content.LmsSetupForm;
 import ch.ethz.seb.sebserver.gui.content.LmsSetupList;
+import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExam;
+import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
 import ch.ethz.seb.sebserver.gui.content.QuizDiscoveryList;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigForm;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigList;
-import ch.ethz.seb.sebserver.gui.content.SebExamConfigSettingsForm;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigList;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigPropForm;
+import ch.ethz.seb.sebserver.gui.content.SebExamConfigSettingsForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountChangePasswordForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountList;
@@ -61,6 +63,9 @@ public enum PageStateDefinition implements PageState {
     SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_PROP_EDIT(Type.FORM_EDIT, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_EDIT(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+
+    MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
+    MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS)
 
     ;
 

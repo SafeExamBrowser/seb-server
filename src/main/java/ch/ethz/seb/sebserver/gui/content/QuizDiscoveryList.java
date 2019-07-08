@@ -94,12 +94,12 @@ public class QuizDiscoveryList implements TemplateComposer {
     protected QuizDiscoveryList(
             final PageService pageService,
             final ResourceService resourceService,
-            @Value("${sebserver.gui.list.page.size}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
         this.resourceService = resourceService;
-        this.pageSize = (pageSize != null) ? pageSize : 20;
+        this.pageSize = pageSize;
 
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,

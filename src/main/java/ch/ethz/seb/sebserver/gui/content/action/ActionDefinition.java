@@ -388,7 +388,14 @@ public enum ActionDefinition {
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
-    ;
+    RUNNING_EXAM_VIEW_LIST(
+            new LocTextKey("sebserver.monitoring.action.list"),
+            PageStateDefinition.MONITORING_RUNNING_EXAM_LIST),
+    MONITOR_EXAM(
+            new LocTextKey("sebserver.monitoring.exam.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.MONITORING_RUNNING_EXAM,
+            ActionCategory.RUNNING_EXAM_LIST);
 
     public final LocTextKey title;
     public final ImageIcon icon;
