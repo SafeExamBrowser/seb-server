@@ -295,11 +295,11 @@ public class HTTPClientBot {
 
             try {
 
-                final ResponseEntity<Object> exchange = this.restTemplate.exchange(
+                final ResponseEntity<String> exchange = this.restTemplate.exchange(
                         this.handshakeURI,
                         HttpMethod.PUT,
                         configHeader,
-                        new ParameterizedTypeReference<>() {
+                        new ParameterizedTypeReference<String>() {
                         });
 
                 final HttpStatus statusCode = exchange.getStatusCode();
@@ -323,7 +323,7 @@ public class HTTPClientBot {
                         this.pingURI,
                         HttpMethod.POST,
                         pingHeader,
-                        new ParameterizedTypeReference<>() {
+                        new ParameterizedTypeReference<String>() {
                         });
 
                 return true;
@@ -340,7 +340,7 @@ public class HTTPClientBot {
                         this.eventURI,
                         HttpMethod.POST,
                         eventHeader,
-                        new ParameterizedTypeReference<>() {
+                        new ParameterizedTypeReference<String>() {
                         });
 
                 return true;
@@ -359,11 +359,11 @@ public class HTTPClientBot {
 
             try {
 
-                final ResponseEntity<Object> exchange = this.restTemplate.exchange(
+                final ResponseEntity<String> exchange = this.restTemplate.exchange(
                         this.handshakeURI,
                         HttpMethod.DELETE,
                         configHeader,
-                        new ParameterizedTypeReference<>() {
+                        new ParameterizedTypeReference<String>() {
                         });
 
                 final HttpStatus statusCode = exchange.getStatusCode();
