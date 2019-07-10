@@ -168,7 +168,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 new TypeReference<Collection<APIMessage>>() {
                 });
         final APIMessage error = errorMessage.iterator().next();
-        assertEquals(ErrorMessage.GENERIC.messageCode, error.messageCode);
+        assertEquals(ErrorMessage.ILLEGAL_API_ARGUMENT.messageCode, error.messageCode);
     }
 
     @Test

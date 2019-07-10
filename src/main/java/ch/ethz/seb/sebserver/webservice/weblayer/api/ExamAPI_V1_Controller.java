@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,16 +78,16 @@ public class ExamAPI_V1_Controller {
 
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
-            method = RequestMethod.GET,
+            method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<RunningExam> handshakeCreate(
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
-            @RequestBody final MultiValueMap<String, String> formParams,
+            @RequestBody(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
-            final HttpServletResponse response) {
+            final HttpServletResponse response) throws IOException {
 
         final POSTMapper mapper = new POSTMapper(formParams);
 

@@ -8,30 +8,34 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.PageToListCallAdapter;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetIndicators extends PageToListCallAdapter<Indicator> {
+public class GetIndicatorPage extends RestCall<Page<Indicator>> {
 
-    public GetIndicators() {
-        super(
-                GetIndicatorPage.class,
+    public GetIndicatorPage() {
+        super(new TypeKey<>(
+                CallType.GET_PAGE,
                 EntityType.INDICATOR,
-                new TypeReference<List<Indicator>>() {
-                },
+                new TypeReference<Page<Indicator>>() {
+                }),
+                HttpMethod.GET,
+                MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_INDICATOR_ENDPOINT);
     }
+
 }

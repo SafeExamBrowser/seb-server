@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -67,6 +68,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(valErrors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OAuth2Exception.class)
+    public ResponseEntity<Object> handleBeanValidationException(
+            final OAuth2Exception ex,
+            final WebRequest request) {
+
+        log.error("OAuth2Exception: ", ex);
+        final APIMessage message = APIMessage.ErrorMessage.UNAUTHORIZED.of(ex.getMessage());
+        return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(BeanValidationException.class)

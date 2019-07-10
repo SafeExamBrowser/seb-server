@@ -372,6 +372,13 @@ public class WidgetFactory {
 
     public TableColumn tableColumnLocalized(
             final Table table,
+            final LocTextKey locTextKey) {
+
+        return tableColumnLocalized(table, locTextKey, null);
+    }
+
+    public TableColumn tableColumnLocalized(
+            final Table table,
             final LocTextKey locTextKey,
             final LocTextKey toolTipKey) {
 

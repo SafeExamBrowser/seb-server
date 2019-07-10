@@ -101,7 +101,8 @@ public class UserActivityLogController {
                     Utils.toMilliSeconds(to),
                     activityTypes,
                     entityTypes,
-                    log -> true).getOrThrow();
+                    Utils.truePredicate())
+                    .getOrThrow();
         });
     }
 

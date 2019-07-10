@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** Defines generic interface for all Entity based Data Access Objects
  *
@@ -129,7 +130,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return Result referring to collection of all matching entities or an error if happened */
     @Transactional(readOnly = true)
     default Result<Collection<T>> allMatching(final FilterMap filterMap) {
-        return allMatching(filterMap, e -> true);
+        return allMatching(filterMap, Utils.truePredicate());
     }
 
     /** Get a (unordered) collection of all Entities that matches a given filter criteria

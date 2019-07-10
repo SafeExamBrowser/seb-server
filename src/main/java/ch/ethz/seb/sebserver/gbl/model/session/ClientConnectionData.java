@@ -16,15 +16,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ClientConnectionData {
 
-    @JsonProperty
+    @JsonProperty("clientConnection")
     public final ClientConnection clientConnection;
-    @JsonProperty
+    @JsonProperty("indicatorValues")
     public final Collection<? extends IndicatorValue> indicatorValues;
 
     @JsonCreator
     protected ClientConnectionData(
-            @JsonProperty final ClientConnection clientConnection,
-            @JsonProperty final Collection<? extends IndicatorValue> indicatorValues) {
+            @JsonProperty("clientConnection") final ClientConnection clientConnection,
+            @JsonProperty("indicatorValues") final Collection<? extends IndicatorValue> indicatorValues) {
 
         this.clientConnection = clientConnection;
         this.indicatorValues = indicatorValues;

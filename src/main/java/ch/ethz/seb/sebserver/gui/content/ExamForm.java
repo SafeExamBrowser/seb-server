@@ -50,7 +50,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamCo
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
@@ -337,7 +337,7 @@ public class ExamForm implements TemplateComposer {
                     INDICATOR_LIST_TITLE_KEY);
 
             final EntityTable<Indicator> indicatorTable =
-                    this.pageService.entityTableBuilder(restService.getRestCall(GetIndicators.class))
+                    this.pageService.entityTableBuilder(restService.getRestCall(GetIndicatorPage.class))
                             .withRestCallAdapter(builder -> builder.withQueryParam(
                                     Indicator.FILTER_ATTR_EXAM_ID,
                                     entityKey.modelId))

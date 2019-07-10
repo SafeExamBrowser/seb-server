@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.form.Form.FormFieldAccessor;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -77,7 +78,7 @@ public class FormHandle<T extends Entity> {
     public Result<T> doAPIPost() {
         // reset all errors that may still be displayed
         this.form.process(
-                name -> true,
+                Utils.truePredicate(),
                 fieldAccessor -> fieldAccessor.resetError());
 
         // post

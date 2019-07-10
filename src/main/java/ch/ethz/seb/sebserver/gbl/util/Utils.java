@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
+
+    public static final Predicate<?> TRUE_PREDICATE = v -> true;
+    public static final Predicate<?> FALSE_PREDICATE = v -> false;
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
@@ -337,6 +341,16 @@ public final class Utils {
 
     public static String toSQLWildcard(final String text) {
         return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> truePredicate() {
+        return (Predicate<T>) TRUE_PREDICATE;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> falsePredicate() {
+        return (Predicate<T>) FALSE_PREDICATE;
     }
 
 }

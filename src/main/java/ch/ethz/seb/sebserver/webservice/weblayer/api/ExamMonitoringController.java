@@ -9,12 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,8 +27,10 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
@@ -122,7 +126,7 @@ public class ExamMonitoringController {
         }
 
         final List<Exam> exams = new ArrayList<>(this.examSessionService
-                .getFilteredRunningExams(filterMap, exam -> true)
+                .getFilteredRunningExams(filterMap, Utils.truePredicate())
                 .getOrThrow());
 
         return ExamAdministrationController.buildSortedExamPage(
@@ -130,6 +134,31 @@ public class ExamMonitoringController {
                 this.paginationService.getPageSize(pageSize),
                 sort,
                 exams);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<ClientConnectionData> getConnectionData(
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+
+        // check if user has EXAM_SUPPORTER privilege.
+        final SEBServerUser currentUser = this.authorization
+                .getUserService()
+                .getCurrentUser();
+
+        if (!currentUser.getUserRoles().contains(UserRole.EXAM_SUPPORTER)) {
+            throw new PermissionDeniedException(
+                    EntityType.EXAM,
+                    PrivilegeType.READ,
+                    currentUser.getUserInfo().uuid);
+        }
+
+        return this.examSessionService
+                .getConnectionData(examId)
+                .getOrThrow();
     }
 
 }

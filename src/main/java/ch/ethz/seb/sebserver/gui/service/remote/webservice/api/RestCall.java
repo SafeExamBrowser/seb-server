@@ -27,6 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -81,7 +83,10 @@ public abstract class RestCall<T> {
 
     }
 
-    protected RestCall<T> init(final RestService restService, final JSONMapper jsonMapper) {
+    protected RestCall<T> init(
+            final RestService restService,
+            final JSONMapper jsonMapper) {
+
         this.restService = restService;
         this.jsonMapper = jsonMapper;
         return this;
@@ -92,8 +97,7 @@ public abstract class RestCall<T> {
         log.debug("Call webservice API on {} for {}", this.path, builder);
 
         try {
-            final ResponseEntity<String> responseEntity = this.restService
-                    .getWebserviceAPIRestTemplate()
+            final ResponseEntity<String> responseEntity = builder.restTemplate
                     .exchange(
                             builder.buildURI(),
                             this.httpMethod,
@@ -141,7 +145,9 @@ public abstract class RestCall<T> {
     }
 
     public RestCallBuilder newBuilder() {
-        return new RestCallBuilder();
+        return new RestCallBuilder(
+                this.restService.getWebserviceAPIRestTemplate(),
+                this.restService.getWebserviceURIBuilder());
     }
 
     public RestCall<T>.RestCallBuilder newBuilder(final RestCall<?>.RestCallBuilder builder) {
@@ -168,12 +174,16 @@ public abstract class RestCall<T> {
 
     public class RestCallBuilder {
 
+        private RestTemplate restTemplate;
+        private UriComponentsBuilder uriComponentsBuilder;
         private final HttpHeaders httpHeaders;
         private String body = null;
         private final MultiValueMap<String, String> queryParams;
         private final Map<String, String> uriVariables;
 
-        protected RestCallBuilder() {
+        protected RestCallBuilder(final RestTemplate restTemplate, final UriComponentsBuilder uriComponentsBuilder) {
+            this.restTemplate = restTemplate;
+            this.uriComponentsBuilder = uriComponentsBuilder;
             this.httpHeaders = new HttpHeaders();
             this.queryParams = new LinkedMultiValueMap<>();
             this.uriVariables = new HashMap<>();
@@ -183,10 +193,26 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder(final RestCall<?>.RestCallBuilder builder) {
+            this.restTemplate = builder.restTemplate;
+            this.uriComponentsBuilder = builder.uriComponentsBuilder;
             this.httpHeaders = builder.httpHeaders;
             this.body = builder.body;
             this.queryParams = new LinkedMultiValueMap<>(builder.queryParams);
             this.uriVariables = new HashMap<>(builder.uriVariables);
+        }
+
+        public RestTemplate getRestTemplate() {
+            return this.restTemplate;
+        }
+
+        public RestCallBuilder withRestTemplate(final RestTemplate restTemplate) {
+            this.restTemplate = restTemplate;
+            return this;
+        }
+
+        public RestCallBuilder withUriComponentsBuilder(final UriComponentsBuilder uriComponentsBuilder) {
+            this.uriComponentsBuilder = uriComponentsBuilder;
+            return this;
         }
 
         public RestCallBuilder withHeaders(final HttpHeaders headers) {
@@ -284,7 +310,8 @@ public abstract class RestCall<T> {
         }
 
         public String buildURI() {
-            return RestCall.this.restService.getWebserviceURIBuilder()
+            return this.uriComponentsBuilder
+                    .cloneBuilder()
                     .path(RestCall.this.path)
                     .queryParams(this.queryParams)
                     .toUriString();

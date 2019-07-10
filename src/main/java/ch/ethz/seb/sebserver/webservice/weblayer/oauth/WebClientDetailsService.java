@@ -10,17 +10,16 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
 import java.util.Collections;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
@@ -35,13 +34,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigSe
 @Component
 public class WebClientDetailsService implements ClientDetailsService {
 
+    private static final Logger log = LoggerFactory.getLogger(WebClientDetailsService.class);
+
     private final SebClientConfigService sebClientConfigService;
     private final AdminAPIClientDetails adminClientDetails;
-    @Autowired
-    @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
-    private PasswordEncoder clientPasswordEncoder;
 
-    // TODO inject a collection of BaseClientDetails here to allow multiple admin client configurations
     public WebClientDetailsService(
             final AdminAPIClientDetails adminClientDetails,
             final SebClientConfigService sebClientConfigService) {
@@ -72,10 +69,18 @@ public class WebClientDetailsService implements ClientDetailsService {
         }
 
         return getForExamClientAPI(clientId)
-                .getOrThrow();
+                .get(t -> {
+                    log.error("Client not found: ", t);
+                    throw new AccessDeniedException(t.getMessage());
+                });
     }
 
     protected Result<ClientDetails> getForExamClientAPI(final String clientId) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Trying to get ClientDetails for client: {}", clientId);
+        }
+
         return this.sebClientConfigService.getEncodedClientSecret(clientId)
                 .map(pwd -> {
                     final BaseClientDetails baseClientDetails = new BaseClientDetails(

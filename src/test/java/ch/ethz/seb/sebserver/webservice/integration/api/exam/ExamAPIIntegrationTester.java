@@ -136,7 +136,7 @@ public abstract class ExamAPIIntegrationTester {
             final Long institutionId,
             final Long examId) throws Exception {
 
-        final MockHttpServletRequestBuilder builder = get(this.endpoint + "/handshake")
+        final MockHttpServletRequestBuilder builder = post(this.endpoint + "/handshake")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);

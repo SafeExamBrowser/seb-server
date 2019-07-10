@@ -29,8 +29,8 @@ public abstract class AbstractExportCall extends RestCall<byte[]> {
     @Override
     protected Result<byte[]> exchange(final RestCallBuilder builder) {
         try {
-            final ResponseEntity<byte[]> responseEntity = this.restService
-                    .getWebserviceAPIRestTemplate()
+            final ResponseEntity<byte[]> responseEntity = builder
+                    .getRestTemplate()
                     .exchange(
                             builder.buildURI(),
                             this.httpMethod,

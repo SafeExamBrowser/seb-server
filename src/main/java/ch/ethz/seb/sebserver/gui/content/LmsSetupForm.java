@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -256,7 +257,7 @@ public class LmsSetupForm implements TemplateComposer {
 
         // reset previous errors
         formHandle.process(
-                name -> true,
+                Utils.truePredicate(),
                 fieldAccessor -> fieldAccessor.resetError());
 
         // first test the connection on ad hoc object

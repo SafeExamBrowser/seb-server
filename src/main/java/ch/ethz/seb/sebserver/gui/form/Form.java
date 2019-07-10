@@ -163,7 +163,7 @@ public final class Form implements FormBinding {
 
     public void allVisible() {
         process(
-                name -> true,
+                Utils.truePredicate(),
                 ffa -> ffa.setVisible(true));
     }
 
