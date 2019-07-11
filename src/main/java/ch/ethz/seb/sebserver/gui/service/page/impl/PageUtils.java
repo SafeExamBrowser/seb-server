@@ -51,8 +51,7 @@ public final class PageUtils {
                                 CallType.GET_DEPENDENCIES);
 
                 if (builder == null) {
-                    log.error("No RestCall builder found for entity type: {}", entity.entityType());
-                    return null;
+                    throw new RuntimeException("No RestCall builder found for entity type: " + entity.entityType());
                 }
 
                 final Set<EntityKey> dependencies = builder
@@ -67,7 +66,7 @@ public final class PageUtils {
                     return new LocTextKey("sebserver.dialog.confirm.deactivation.noDependencies");
                 }
             } catch (final Exception e) {
-                log.error("Failed to get dependencyies for Entity: {}", entity, e);
+                log.warn("Failed to get dependencyies for Entity: {}", entity, e);
                 return new LocTextKey("sebserver.dialog.confirm.deactivation", "");
             }
         };

@@ -22,7 +22,8 @@
       <appender-ref ref="FILE" />
     </root>
 
-    <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <Logger name="ch.ethz.seb.sebserver.gui" level="INFO" additivity="true" />
+    <Logger name="ch.ethz.seb.sebserver.webservice" level="DEBUG" additivity="true" />
     <Logger name="org.apache.ibatis.datasource" level="TRACE" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
@@ -60,4 +61,5 @@
     </root>
  
   </springProfile>
+  
 </configuration>

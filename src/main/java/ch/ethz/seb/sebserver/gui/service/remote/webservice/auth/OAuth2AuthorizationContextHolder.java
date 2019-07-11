@@ -35,7 +35,6 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenRequest;
 import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -114,17 +113,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public DisposableOAuth2RestTemplate(final OAuth2ProtectedResourceDetails resource) {
             super(
                     resource,
-                    new DefaultOAuth2ClientContext(new DefaultAccessTokenRequest()) {
-
-                        private static final long serialVersionUID = 3921115327670719271L;
-
-                        @Override
-                        public AccessTokenRequest getAccessTokenRequest() {
-                            final AccessTokenRequest accessTokenRequest = super.getAccessTokenRequest();
-                            accessTokenRequest.set("Institution", "testInstitution");
-                            return accessTokenRequest;
-                        }
-                    });
+                    new DefaultOAuth2ClientContext(new DefaultAccessTokenRequest()));
         }
 
         @Override

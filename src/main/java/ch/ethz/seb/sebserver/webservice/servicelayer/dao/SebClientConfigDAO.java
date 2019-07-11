@@ -8,10 +8,18 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+import java.util.Set;
+
+import org.springframework.cache.annotation.CacheEvict;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
 
 /** Concrete EntityDAO interface of SebClientConfig entities */
 public interface SebClientConfigDAO extends
@@ -20,9 +28,9 @@ public interface SebClientConfigDAO extends
 
     /** Get a SebClientConfig by specified client identifier
      *
-     * @param clientId the client identifier
+     * @param clientName the client name
      * @return Result refer to the SebClientConfig for client or refer to an error if happened */
-    Result<SebClientConfig> byClientId(String clientId);
+    Result<SebClientConfig> byClientName(String clientName);
 
     /** Get the configured ClientCredentials for a given SebClientConfig.
      * The ClientCredentials are still encoded as they are on DB storage
@@ -37,5 +45,40 @@ public interface SebClientConfigDAO extends
      * @param modelId the model
      * @return encrypted configuration password */
     Result<CharSequence> getConfigPasswortCipher(String modelId);
+
+    /** Get the stored encrypted configuration password from a specified SEB client configuration.
+     * The SEB client configuration password is used to encrypt a SEB Client Configuration.
+     *
+     * The SEB client configuration must be active otherwise a error is returned
+     *
+     * @param clientName the client name
+     * @return encrypted configuration password */
+    Result<CharSequence> getConfigPasswortCipherByClientName(String clientName);
+
+    @Override
+    @CacheEvict(
+            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            allEntries = true)
+    Result<SebClientConfig> save(SebClientConfig data);
+
+    @Override
+    @CacheEvict(
+            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            allEntries = true)
+    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
+
+    @Override
+    @CacheEvict(
+            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            allEntries = true)
+    Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
+
+    @Override
+    @CacheEvict(
+            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            allEntries = true)
+    default Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
+        return BulkActionSupportDAO.super.processBulkAction(bulkAction);
+    }
 
 }

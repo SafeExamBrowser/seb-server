@@ -31,6 +31,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -47,7 +48,7 @@ public class HTTPClientBot {
 
     private static final Logger log = LoggerFactory.getLogger(HTTPClientBot.class);
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20);
 
     private final List<String> scopes = Arrays.asList("read", "write");
 
@@ -68,6 +69,7 @@ public class HTTPClientBot {
     private final int connectionAttempts;
 
     public HTTPClientBot(final Map<String, String> args) {
+
         this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
         this.clientId = args.getOrDefault("clientId", "TO_SET");
@@ -76,11 +78,11 @@ public class HTTPClientBot {
         this.apiVersion = args.getOrDefault("apiVersion", "v1");
         this.examId = args.getOrDefault("examId", "2");
         this.institutionId = args.getOrDefault("institutionId", "1");
-        this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "1"));
+        this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
         this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));
         this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
-        this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "3"));
+        this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "1"));
 
         for (int i = 0; i < this.numberOfConnections; i++) {
             this.executorService.execute(new ConnectionBot("connection_" + i));
@@ -107,16 +109,16 @@ public class HTTPClientBot {
 
         private final String handshakeURI = HTTPClientBot.this.webserviceAddress +
                 HTTPClientBot.this.apiPath + "/" +
-                HTTPClientBot.this.apiVersion + "/handshake";
+                HTTPClientBot.this.apiVersion + API.EXAM_API_HANDSHAKE_ENDPOINT;
         private final String configurartionURI = HTTPClientBot.this.webserviceAddress +
                 HTTPClientBot.this.apiPath + "/" +
-                HTTPClientBot.this.apiVersion + "/configuration";
+                HTTPClientBot.this.apiVersion + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT;
         private final String pingURI = HTTPClientBot.this.webserviceAddress +
                 HTTPClientBot.this.apiPath + "/" +
-                HTTPClientBot.this.apiVersion + "/sebping";
+                HTTPClientBot.this.apiVersion + API.EXAM_API_PING_ENDPOINT;
         private final String eventURI = HTTPClientBot.this.webserviceAddress +
                 HTTPClientBot.this.apiPath + "/" +
-                HTTPClientBot.this.apiVersion + "/seblog";
+                HTTPClientBot.this.apiVersion + API.EXAM_API_EVENT_ENDPOINT;
 
         private final HttpEntity<?> connectBody;
 
@@ -161,57 +163,66 @@ public class HTTPClientBot {
                     HTTPClientBot.this.errorInterval);
 
             int attempt = 0;
+            String connectionToken = null;
 
-            while (attempt < HTTPClientBot.this.connectionAttempts) {
+            while (connectionToken == null && attempt < HTTPClientBot.this.connectionAttempts) {
                 attempt++;
                 log.info("ConnectionBot {} : Try to request access-token; attempt: {}", this.name, attempt);
                 try {
 
-                    this.restTemplate.getAccessToken();
-
-                    final String connectionToken = createConnection();
-                    if (connectionToken != null) {
-                        if (getConfig(connectionToken) && establishConnection(connectionToken)) {
-
-                            final PingEntity pingHeader = new PingEntity(connectionToken);
-                            final EventEntity eventHeader = new EventEntity(connectionToken);
-
-                            try {
-                                final long startTime = System.currentTimeMillis();
-                                final long endTime = startTime + HTTPClientBot.this.runtime;
-                                long currentTime = startTime;
-                                long lastPingTime = startTime;
-                                long lastErrorTime = startTime;
-
-                                while (currentTime < endTime) {
-                                    if (currentTime - lastPingTime >= HTTPClientBot.this.pingInterval) {
-                                        pingHeader.next();
-                                        sendPing(pingHeader);
-                                        lastPingTime = currentTime;
-                                    }
-                                    if (currentTime - lastErrorTime >= HTTPClientBot.this.errorInterval) {
-                                        eventHeader.next();
-                                        sendErrorEvent(eventHeader);
-                                        lastErrorTime = currentTime;
-                                    }
-                                    try {
-                                        Thread.sleep(50);
-                                    } catch (final Exception e) {
-                                    }
-                                    currentTime = System.currentTimeMillis();
-                                }
-                            } catch (final Throwable t) {
-                                log.error("ConnectionBot {} : Error sending events: ", this.name, t);
-                            } finally {
-                                disconnect(connectionToken);
-                            }
-                        }
-                    }
+                    final OAuth2AccessToken accessToken = this.restTemplate.getAccessToken();
+                    log.info("ConnectionBot {} : Got access token: {}", this.name, accessToken);
+                    connectionToken = createConnection();
 
                 } catch (final Exception e) {
                     log.error("ConnectionBot {} : Failed to request access-token: ", this.name, e);
                     if (attempt >= HTTPClientBot.this.connectionAttempts) {
                         log.error("ConnectionBot {} : Gave up afer {} connection attempts: ", this.name, attempt);
+                    }
+                }
+            }
+
+            final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+            headers.set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+
+            final MultiValueMap<String, String> eventHeaders = new LinkedMultiValueMap<>();
+            eventHeaders.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+            eventHeaders.set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+
+            if (connectionToken != null) {
+                if (getConfig(headers) && establishConnection(headers)) {
+
+                    final PingEntity pingHeader = new PingEntity(headers);
+                    final EventEntity eventHeader = new EventEntity(eventHeaders);
+
+                    try {
+                        final long startTime = System.currentTimeMillis();
+                        final long endTime = startTime + HTTPClientBot.this.runtime;
+                        long currentTime = startTime;
+                        long lastPingTime = startTime;
+                        long lastErrorTime = startTime;
+                        while (currentTime < endTime) {
+                            if (currentTime - lastPingTime >= HTTPClientBot.this.pingInterval) {
+                                pingHeader.next();
+                                sendPing(pingHeader);
+                                lastPingTime = currentTime;
+                            }
+                            if (currentTime - lastErrorTime >= HTTPClientBot.this.errorInterval) {
+                                eventHeader.next();
+                                sendErrorEvent(eventHeader);
+                                lastErrorTime = currentTime;
+                            }
+                            try {
+                                Thread.sleep(50);
+                            } catch (final Exception e) {
+                            }
+                            currentTime = System.currentTimeMillis();
+                        }
+                    } catch (final Throwable t) {
+                        log.error("ConnectionBot {} : Error sending events: ", this.name, t);
+                    } finally {
+                        disconnect(connectionToken);
                     }
                 }
             }
@@ -236,22 +247,22 @@ public class HTTPClientBot {
                 final Collection<RunningExam> body = exchange.getBody();
                 final String token = exchange.getHeaders().getFirst(API.EXAM_API_SEB_CONNECTION_TOKEN);
 
-                log.info("ConnectionBot {} : successfully created connection, token: {} body: {} ", token, body);
+                log.info("ConnectionBot {} : successfully created connection, token: {} body: {} ", this.name, token,
+                        body);
 
                 return token;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed to init connection", e);
+                log.error("ConnectionBot {} : Failed to init connection", this.name, e);
                 return null;
             }
         }
 
-        public boolean getConfig(final String connectionToken) {
+        public boolean getConfig(final MultiValueMap<String, String> headers) {
             final HttpEntity<?> configHeader = new HttpEntity<>(
                     API.EXAM_API_PARAM_EXAM_ID +
                             Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                            HTTPClientBot.this.examId);
-            configHeader.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            configHeader.getHeaders().set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+                            HTTPClientBot.this.examId,
+                    headers);
 
             log.info("ConnectionBot {} : get SEB Configuration", this.name);
 
@@ -271,25 +282,25 @@ public class HTTPClientBot {
                 final byte[] config = exchange.getBody();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("ConnectionBot {} : successfully requested exam config: " + Utils.toString(config));
+                    log.debug("ConnectionBot {} : successfully requested exam config: " + Utils.toString(config),
+                            this.name);
                 } else {
-                    log.info("ConnectionBot {} : successfully requested exam config");
+                    log.info("ConnectionBot {} : successfully requested exam config", this.name);
                 }
 
                 return true;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed get SEB Configuration", e);
+                log.error("ConnectionBot {} : Failed get SEB Configuration", this.name, e);
                 return false;
             }
         }
 
-        public boolean establishConnection(final String connectionToken) {
+        public boolean establishConnection(final MultiValueMap<String, String> headers) {
             final HttpEntity<?> configHeader = new HttpEntity<>(
                     API.EXAM_API_USER_SESSION_ID +
                             Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                            this.name);
-            configHeader.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            configHeader.getHeaders().set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+                            this.name,
+                    headers);
 
             log.info("ConnectionBot {} : Trying to establish SEB client connection", this.name);
 
@@ -307,11 +318,11 @@ public class HTTPClientBot {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
 
-                log.info("ConnectionBot {} : successfully established SEB client connection");
+                log.info("ConnectionBot {} : successfully established SEB client connection", this.name);
 
                 return true;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed get established SEB client connection", e);
+                log.error("ConnectionBot {} : Failed get established SEB client connection", this.name, e);
                 return false;
             }
         }
@@ -328,7 +339,7 @@ public class HTTPClientBot {
 
                 return true;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed send ping", e);
+                log.error("ConnectionBot {} : Failed send ping", this.name, e);
                 return false;
             }
         }
@@ -345,15 +356,16 @@ public class HTTPClientBot {
 
                 return true;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed send ping", e);
+                log.error("ConnectionBot {} : Failed send event", this.name, e);
                 return false;
             }
         }
 
         public boolean disconnect(final String connectionToken) {
-            final HttpEntity<?> configHeader = new HttpEntity<>(null);
-            configHeader.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            configHeader.getHeaders().set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+            final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+            headers.set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+            final HttpEntity<?> configHeader = new HttpEntity<>(headers);
 
             log.info("ConnectionBot {} : Trying to delete SEB client connection", this.name);
 
@@ -371,11 +383,11 @@ public class HTTPClientBot {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
 
-                log.info("ConnectionBot {} : successfully deleted SEB client connection");
+                log.info("ConnectionBot {} : successfully deleted SEB client connection", this.name);
 
                 return true;
             } catch (final Exception e) {
-                log.error("ConnectionBot {} : Failed get deleted SEB client connection", e);
+                log.error("ConnectionBot {} : Failed get deleted SEB client connection", this.name, e);
                 return false;
             }
         }
@@ -401,19 +413,17 @@ public class HTTPClientBot {
     private static class PingEntity extends HttpEntity<String> {
         private final String pingBodyTemplate = API.EXAM_API_PING_TIMESTAMP +
                 Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                "{}" +
+                "%s" +
                 Constants.FORM_URL_ENCODED_SEPARATOR +
                 API.EXAM_API_PING_NUMBER +
                 Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                "{}";
+                "%s";
 
         private long timestamp = 0;
         private int count = 0;
 
-        protected PingEntity(final String connectionToken) {
-            super();
-            getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            getHeaders().set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+        protected PingEntity(final MultiValueMap<String, String> headers) {
+            super(headers);
         }
 
         void next() {
@@ -434,14 +444,12 @@ public class HTTPClientBot {
 
     private static class EventEntity extends HttpEntity<String> {
         private final String eventBodyTemplate =
-                "{ \"type\": \"ERROR_LOG\", \"timestamp\": {}, \"text\": \"some error\" }";
+                "{ \"type\": \"ERROR_LOG\", \"timestamp\": %s, \"text\": \"some error\" }";
 
         private long timestamp = 0;
 
-        protected EventEntity(final String connectionToken) {
-            super();
-            getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            getHeaders().set(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
+        protected EventEntity(final MultiValueMap<String, String> headers) {
+            super(headers);
         }
 
         void next() {

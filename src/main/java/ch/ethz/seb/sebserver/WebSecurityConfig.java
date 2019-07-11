@@ -36,13 +36,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -109,21 +106,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                 .and();
     }
 
-    @Override
-    public void configure(final HttpSecurity http) throws Exception {
-        http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .antMatcher("/**")
-                .authorizeRequests()
-                .anyRequest()
-                .permitAll()
-                .and()
-                .exceptionHandling()
-                .accessDeniedHandler(new OAuth2AccessDeniedHandler());
-    }
-
     @RequestMapping("/error")
     public void handleError(final HttpServletResponse response) throws IOException {
         //response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
@@ -147,7 +129,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
         log.info("Initialize with insecure ClientHttpRequestFactory for development");
 
-        return new DevClientHttpRequestFactory();
+        final DevClientHttpRequestFactory devClientHttpRequestFactory = new DevClientHttpRequestFactory();
+        devClientHttpRequestFactory.setOutputStreaming(false);
+        return devClientHttpRequestFactory;
     }
 
     /** A ClientHttpRequestFactory used in production with TSL SSL configuration.

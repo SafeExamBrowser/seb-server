@@ -129,17 +129,17 @@ public final class ClientConnectionTable {
         for (final UpdatableTableItem uti : this.tableMapping.values()) {
             if (uti.tableItem == null) {
                 createTableItem(uti);
-                updateIndicatorValues(uti);
+                updateIndicatorValues(uti, false);
                 updateConnectionStatusColor(uti);
             } else {
-                if (!uti.connectionData.clientConnection.status
+                if (uti.previous_connectionData == null || !uti.connectionData.clientConnection.status
                         .equals(uti.previous_connectionData.clientConnection.status)) {
                     uti.tableItem.setText(0, uti.getConnectionIdentifer());
-                    uti.tableItem.setText(1, uti.getStatusName());
+                    uti.tableItem.setText(2, uti.getStatusName());
                     updateConnectionStatusColor(uti);
                 }
                 if (uti.hasStatus(ConnectionStatus.ESTABLISHED)) {
-                    updateIndicatorValues(uti);
+                    updateIndicatorValues(uti, true);
                 }
             }
             uti.tableItem.getDisplay();
@@ -163,20 +163,22 @@ public final class ClientConnectionTable {
                 column.setWidth(columnWidth);
             }
             this.table.layout(true, true);
-            //this.table.pack();
             this.tableWidth = area.width;
         }
     }
 
-    private void updateIndicatorValues(final UpdatableTableItem uti) {
-
+    private void updateIndicatorValues(final UpdatableTableItem uti, final boolean established) {
         for (final IndicatorValue iv : uti.connectionData.indicatorValues) {
             final IndicatorData indicatorData = this.indicatorMapping.get(iv.getType());
             if (indicatorData != null) {
-                uti.tableItem.setText(indicatorData.index, String.valueOf(iv.getValue()));
-                uti.tableItem.setBackground(
-                        indicatorData.index,
-                        this.getColorForValue(indicatorData, iv.getValue()));
+                if (!established && iv.getType() == IndicatorType.LAST_PING) {
+                    uti.tableItem.setText(indicatorData.index, "--");
+                } else {
+                    uti.tableItem.setText(indicatorData.index, String.valueOf(iv.getValue()));
+                    uti.tableItem.setBackground(
+                            indicatorData.index,
+                            this.getColorForValue(indicatorData, iv.getValue()));
+                }
             }
         }
     }
@@ -184,15 +186,15 @@ public final class ClientConnectionTable {
     private void updateConnectionStatusColor(final UpdatableTableItem uti) {
         switch (uti.connectionData.clientConnection.status) {
             case ESTABLISHED: {
-                uti.tableItem.setBackground(1, this.color1);
+                uti.tableItem.setBackground(2, this.color1);
                 break;
             }
             case ABORTED: {
-                uti.tableItem.setBackground(1, this.color3);
+                uti.tableItem.setBackground(2, this.color3);
                 break;
             }
             default: {
-                uti.tableItem.setBackground(1, this.color2);
+                uti.tableItem.setBackground(2, this.color2);
             }
         }
     }
@@ -200,12 +202,12 @@ public final class ClientConnectionTable {
     private Color getColorForValue(final IndicatorData indicatorData, final double value) {
 
         for (int i = 0; i < indicatorData.thresholdColor.length; i++) {
-            if (value >= indicatorData.thresholdColor[i].value) {
+            if (value < indicatorData.thresholdColor[i].value) {
                 return indicatorData.thresholdColor[i].color;
             }
         }
 
-        return this.color1;
+        return indicatorData.thresholdColor[indicatorData.thresholdColor.length - 1].color;
     }
 
     private static final class UpdatableTableItem {
@@ -239,7 +241,7 @@ public final class ClientConnectionTable {
                 return this.connectionData.clientConnection.userSessionId;
             }
 
-            return "- " + this.connectionId + " -";
+            return "--";
         }
 
         public boolean hasStatus(final ConnectionStatus status) {

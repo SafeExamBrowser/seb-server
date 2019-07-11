@@ -130,13 +130,8 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
     @Override
     public Result<CharSequence> getEncodedClientSecret(final String clientId) {
-        return this.sebClientConfigDAO.byClientId(clientId)
-                .flatMap(this::getEncodedSecret);
-    }
-
-    private Result<CharSequence> getEncodedSecret(final SebClientConfig clientConfig) {
-        return this.sebClientConfigDAO.getSebClientCredentials(clientConfig.getModelId())
-                .map(cc -> this.clientPasswordEncoder.encode(this.clientCredentialService.getPlainClientSecret(cc)));
+        return this.sebClientConfigDAO.getConfigPasswortCipherByClientName(clientId)
+                .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));
     }
 
     @Override

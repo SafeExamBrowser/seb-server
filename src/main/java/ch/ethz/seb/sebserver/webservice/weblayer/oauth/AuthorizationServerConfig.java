@@ -72,7 +72,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public void configure(final AuthorizationServerEndpointsConfigurer endpoints) {
         final JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setAccessTokenConverter(this.accessTokenConverter);
+
         endpoints
+                .tokenGranter(new SynchronizedTokenGranter(endpoints.getTokenGranter()))
                 .tokenStore(this.tokenStore)
                 .authenticationManager(this.authenticationManager)
                 .userDetailsService(this.webServiceUserDetails)

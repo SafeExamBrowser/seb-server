@@ -133,20 +133,42 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     }
 
     @Override
-    public Result<SebClientConfig> byClientId(final String clientId) {
+    public Result<SebClientConfig> byClientName(final String clientName) {
         return Result.tryCatch(() -> {
 
             return this.sebClientConfigRecordMapper
                     .selectByExample()
                     .where(
                             SebClientConfigRecordDynamicSqlSupport.clientName,
-                            isEqualTo(clientId))
+                            isEqualTo(clientName))
                     .build()
                     .execute()
                     .stream()
                     .map(SebClientConfigDAOImpl::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Utils.toSingleton());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<CharSequence> getConfigPasswortCipherByClientName(final String clientName) {
+        return Result.tryCatch(() -> {
+
+            final SebClientConfigRecord record = this.sebClientConfigRecordMapper
+                    .selectByExample()
+                    .where(
+                            SebClientConfigRecordDynamicSqlSupport.clientName,
+                            isEqualTo(clientName))
+                    .and(
+                            SebClientConfigRecordDynamicSqlSupport.active,
+                            isNotEqualTo(0))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Utils.toSingleton());
+
+            return record.getClientSecret();
         });
     }
 

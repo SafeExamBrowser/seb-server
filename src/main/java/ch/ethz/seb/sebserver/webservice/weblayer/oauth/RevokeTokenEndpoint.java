@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.http.HttpHeaders;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
@@ -48,7 +49,7 @@ public class RevokeTokenEndpoint {
     @RequestMapping(value = API.OAUTH_REVOKE_TOKEN_ENDPOINT, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void logout(final HttpServletRequest request) {
-        final String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader != null) {
             final String tokenId = authHeader.substring("Bearer".length() + 1);
             this.tokenServices.revokeToken(tokenId);

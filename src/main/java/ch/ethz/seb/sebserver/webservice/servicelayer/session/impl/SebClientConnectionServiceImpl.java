@@ -236,7 +236,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     clientConnection);
 
             // Exam integrity
-            if (clientConnection.examId != null && !examId.equals(clientConnection.examId)) {
+            if (clientConnection.examId != null && examId != null && !examId.equals(clientConnection.examId)) {
                 log.error("Exam integrity violation with examId: {} on clientConnection: {}",
                         examId,
                         clientConnection);
@@ -251,7 +251,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
                     null,
-                    examId,
+                    (examId != null) ? examId : clientConnection.examId,
                     ConnectionStatus.ESTABLISHED,
                     null,
                     userSessionId,

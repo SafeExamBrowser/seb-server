@@ -71,6 +71,10 @@ public class ExamConfigIO {
             final Long institutionId,
             final Long configurationNodeId) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Start export SEB plain XML configuration asynconously");
+        }
+
         // get all defined root configuration attributes
         final Map<Long, ConfigurationAttribute> attributes = this.configurationAttributeDAO.getAllRootAttributes()
                 .getOrThrow()
@@ -123,6 +127,10 @@ public class ExamConfigIO {
             out.write(XML_DICT_END_UTF_8);
             out.write(XML_PLIST_END_UTF_8);
             out.flush();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Finished export SEB plain XML configuration asynconously");
+            }
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to write SEB Exam Configuration XML to output stream: ", e);

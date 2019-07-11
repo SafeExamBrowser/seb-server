@@ -9,11 +9,18 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.Set;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientConnection> {
+
+    public static final String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
 
     /** Get a list of all connection tokens of all connections (no matter what state)
      * of an exam.
@@ -21,12 +28,20 @@ public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientC
      * @param examId The exam identifier
      * @return list of all connection tokens of all connections (no matter what state)
      *         of an exam */
+    @Cacheable(
+            cacheNames = CONNECTION_TOKENS_CACHE,
+            key = "#examId",
+            unless = "#result.hasError()")
     Result<Collection<String>> getConnectionTokens(Long examId);
 
-    /** Get a ClientConnection for a specified token.
-     *
-     * @param connectionToken the connection token
-     * @return Result refer to ClientConnection or refer to a error if happened */
+    @Override
+    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
+    Result<ClientConnection> createNew(ClientConnection data);
+
+    @Override
+    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
+    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
+
     Result<ClientConnection> byConnectionToken(String connectionToken);
 
 }

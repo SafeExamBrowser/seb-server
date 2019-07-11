@@ -327,7 +327,7 @@ public class ExamAPI_V1_Controller {
 
     private Long getInstitutionId(final Principal principal) {
         final String clientId = principal.getName();
-        return this.sebClientConfigDAO.byClientId(clientId)
+        return this.sebClientConfigDAO.byClientName(clientId)
                 .getOrThrow().institutionId;
     }
 

@@ -28,8 +28,9 @@ public final class API {
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";
 
-    public static final String OAUTH_TOKEN_ENDPOINT = "/oauth/token"; // TODO to config properties?
-    public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = "/oauth/revoke-token"; // TODO to config properties?
+    public static final String OAUTH_ENDPOINT = "/oauth";
+    public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token"; // TODO to config properties?
+    public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token"; // TODO to config properties?
     public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + "/me";
 
     public static final String INFO_ENDPOINT = "/info";

@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,7 +25,15 @@ public class ClientConnectionData {
     @JsonCreator
     protected ClientConnectionData(
             @JsonProperty("clientConnection") final ClientConnection clientConnection,
-            @JsonProperty("indicatorValues") final Collection<? extends IndicatorValue> indicatorValues) {
+            @JsonProperty("indicatorValues") final Collection<? extends SimpleIndicatorValue> indicatorValues) {
+
+        this.clientConnection = clientConnection;
+        this.indicatorValues = indicatorValues;
+    }
+
+    protected ClientConnectionData(
+            @JsonProperty("clientConnection") final ClientConnection clientConnection,
+            @JsonProperty("indicatorValues") final List<? extends IndicatorValue> indicatorValues) {
 
         this.clientConnection = clientConnection;
         this.indicatorValues = indicatorValues;

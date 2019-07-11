@@ -19,6 +19,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Configuration
@@ -31,6 +32,9 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
 
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
+            // OAuth entry-points
+            new AntPathRequestMatcher(API.OAUTH_REVOKE_TOKEN_ENDPOINT),
+            // GUI entry-point
             new AntPathRequestMatcher("/gui"),
             // RAP/RWT resources has to be accessible
             new AntPathRequestMatcher("/rwt-resources/**"),

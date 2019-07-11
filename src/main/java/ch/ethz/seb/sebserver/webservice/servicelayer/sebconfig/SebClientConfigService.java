@@ -10,10 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.OutputStream;
 
+import org.springframework.cache.annotation.Cacheable;
+
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface SebClientConfigService {
+
+    public static final String CLIENT_CONFIG_BY_CLIENT_ID_CHACHE = "CLIENT_CONFIG_BY_CLIENT_ID_CHACHE";
 
     static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
             "  <dict>\r\n" +
@@ -73,6 +77,10 @@ public interface SebClientConfigService {
      *
      * @param clientId the clientId/clientName
      * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
+    @Cacheable(
+            cacheNames = CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            key = "#clientId",
+            unless = "#result.hasError()")
     Result<CharSequence> getEncodedClientSecret(String clientId);
 
 }

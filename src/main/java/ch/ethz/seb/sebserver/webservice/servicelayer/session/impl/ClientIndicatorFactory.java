@@ -49,7 +49,7 @@ public class ClientIndicatorFactory {
         this.enableCaching = enableCaching;
     }
 
-    public Collection<ClientIndicator> createFor(final ClientConnection clientConnection) {
+    public List<ClientIndicator> createFor(final ClientConnection clientConnection) {
         final List<ClientIndicator> result = new ArrayList<>();
 
         if (clientConnection.examId == null) {

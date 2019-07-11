@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -25,7 +26,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
     protected ClientConnectionDataInternal(
             final ClientConnection clientConnection,
-            final Collection<ClientIndicator> clientIndicators) {
+            final List<ClientIndicator> clientIndicators) {
 
         super(clientConnection, clientIndicators);
 
