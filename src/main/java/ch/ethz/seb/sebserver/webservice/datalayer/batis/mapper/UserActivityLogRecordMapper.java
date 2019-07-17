@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface UserActivityLogRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.998+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.998+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.998+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<UserActivityLogRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -58,7 +58,7 @@ public interface UserActivityLogRecordMapper {
     })
     UserActivityLogRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -71,22 +71,22 @@ public interface UserActivityLogRecordMapper {
     })
     List<UserActivityLogRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(userActivityLogRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, userActivityLogRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, userActivityLogRecord)
                 .where(id, isEqualTo(id_))
@@ -94,7 +94,7 @@ public interface UserActivityLogRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     default int insert(UserActivityLogRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(userActivityLogRecord)
@@ -108,7 +108,7 @@ public interface UserActivityLogRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.832+02:00", comments="Source Table: user_activity_log")
     default int insertSelective(UserActivityLogRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(userActivityLogRecord)
@@ -122,19 +122,19 @@ public interface UserActivityLogRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserActivityLogRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, userUuid, timestamp, activityType, entityType, entityId, message)
                 .from(userActivityLogRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserActivityLogRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, userUuid, timestamp, activityType, entityType, entityId, message)
                 .from(userActivityLogRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default UserActivityLogRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, userUuid, timestamp, activityType, entityType, entityId, message)
                 .from(userActivityLogRecord)
@@ -143,7 +143,7 @@ public interface UserActivityLogRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(UserActivityLogRecord record) {
         return UpdateDSL.updateWithMapper(this::update, userActivityLogRecord)
                 .set(userUuid).equalTo(record::getUserUuid)
@@ -154,7 +154,7 @@ public interface UserActivityLogRecordMapper {
                 .set(message).equalTo(record::getMessage);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(UserActivityLogRecord record) {
         return UpdateDSL.updateWithMapper(this::update, userActivityLogRecord)
                 .set(userUuid).equalToWhenPresent(record::getUserUuid)
@@ -165,7 +165,7 @@ public interface UserActivityLogRecordMapper {
                 .set(message).equalToWhenPresent(record::getMessage);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:22.999+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default int updateByPrimaryKey(UserActivityLogRecord record) {
         return UpdateDSL.updateWithMapper(this::update, userActivityLogRecord)
                 .set(userUuid).equalTo(record::getUserUuid)
@@ -179,7 +179,7 @@ public interface UserActivityLogRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-06-24T16:55:23+02:00", comments="Source Table: user_activity_log")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.833+02:00", comments="Source Table: user_activity_log")
     default int updateByPrimaryKeySelective(UserActivityLogRecord record) {
         return UpdateDSL.updateWithMapper(this::update, userActivityLogRecord)
                 .set(userUuid).equalToWhenPresent(record::getUserUuid)

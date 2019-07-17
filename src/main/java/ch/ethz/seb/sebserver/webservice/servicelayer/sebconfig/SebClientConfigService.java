@@ -10,14 +10,22 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.oauth2.provider.ClientDetails;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEvent;
 
 public interface SebClientConfigService {
 
-    public static final String CLIENT_CONFIG_BY_CLIENT_ID_CHACHE = "CLIENT_CONFIG_BY_CLIENT_ID_CHACHE";
+    Logger log = LoggerFactory.getLogger(SebClientConfigService.class);
+
+    public static final String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
 
     static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
             "  <dict>\r\n" +
@@ -73,14 +81,20 @@ public interface SebClientConfigService {
             OutputStream out,
             final String modelId);
 
-    /** Use this to get a encoded clientSecret for the SebClientConfiguration with specified clientId/clientName.
+    /** Get the ClientDetails for given client name that identifies a SebClientConfig entry.
      *
-     * @param clientId the clientId/clientName
-     * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
+     * @param clientName the client name of a SebClientConfig entry
+     * @return Result refer to the ClientDetails for the specified clientName or to an error if happened */
     @Cacheable(
-            cacheNames = CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
-            key = "#clientId",
+            cacheNames = EXAM_CLIENT_DETAILS_CACHE,
+            key = "#clientName",
             unless = "#result.hasError()")
-    Result<CharSequence> getEncodedClientSecret(String clientId);
+    Result<ClientDetails> getClientConfigDetails(String clientName);
+
+    @CacheEvict(
+            cacheNames = EXAM_CLIENT_DETAILS_CACHE,
+            allEntries = true)
+    @EventListener(BulkActionEvent.class)
+    void flushClientConfigData(BulkActionEvent event);
 
 }

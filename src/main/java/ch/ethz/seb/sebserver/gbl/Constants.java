@@ -54,4 +54,9 @@ public final class Constants {
     public static final String XML_DICT_END =
             "</dict>";
 
+    public static final String OAUTH2_GRANT_TYPE_PASSWORD = "password";
+    public static final String OAUTH2_GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
+    public static final String OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
+    public static final String OAUTH2_SCOPE_READ = "read";
+    public static final String OAUTH2_SCOPE_WRITE = "write";
 }

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +28,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
@@ -105,7 +108,7 @@ public class HTTPClientBot {
     private final class ConnectionBot implements Runnable {
 
         private final String name;
-        private final OAuth2RestTemplate restTemplate = createRestTemplate();
+        private final OAuth2RestTemplate restTemplate;
 
         private final String handshakeURI = HTTPClientBot.this.webserviceAddress +
                 HTTPClientBot.this.apiPath + "/" +
@@ -124,6 +127,7 @@ public class HTTPClientBot {
 
         protected ConnectionBot(final String name) {
             this.name = name;
+            this.restTemplate = createRestTemplate(null);
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             this.connectBody = new HttpEntity<>(API.PARAM_INSTITUTION_ID +
@@ -393,19 +397,38 @@ public class HTTPClientBot {
         }
     }
 
-    private OAuth2RestTemplate createRestTemplate() {
+    private OAuth2RestTemplate createRestTemplate(final String scopes) {
         final ClientCredentialsResourceDetails clientCredentialsResourceDetails =
                 new ClientCredentialsResourceDetails();
         clientCredentialsResourceDetails.setAccessTokenUri(this.webserviceAddress + this.accessTokenEndpoint);
         clientCredentialsResourceDetails.setClientId(this.clientId);
         clientCredentialsResourceDetails.setClientSecret(this.clientSecret);
-        clientCredentialsResourceDetails.setScope(this.scopes);
+        if (StringUtils.isBlank(scopes)) {
+            clientCredentialsResourceDetails.setScope(this.scopes);
+        } else {
+            clientCredentialsResourceDetails.setScope(
+                    Arrays.asList(StringUtils.split(scopes, Constants.LIST_SEPARATOR)));
+        }
 
         final OAuth2RestTemplate restTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails);
-        restTemplate.setErrorHandler(new OAuth2ErrorHandler(clientCredentialsResourceDetails));
+        restTemplate.setErrorHandler(new OAuth2ErrorHandler(clientCredentialsResourceDetails) {
+
+            @Override
+            public void handleError(final ClientHttpResponse response) throws IOException {
+                System.out.println("********************** handleError: " + response.getStatusCode());
+                super.handleError(response);
+            }
+
+        });
         restTemplate
                 .getMessageConverters()
                 .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+        //restTemplate.setRetryBadAccessTokens(true);
+
+        final SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        simpleClientHttpRequestFactory.setReadTimeout(5000);
+        simpleClientHttpRequestFactory.setOutputStreaming(false);
+        restTemplate.setRequestFactory(simpleClientHttpRequestFactory);
 
         return restTemplate;
     }

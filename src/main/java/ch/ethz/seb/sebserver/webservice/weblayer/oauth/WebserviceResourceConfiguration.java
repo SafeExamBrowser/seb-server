@@ -39,7 +39,9 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
             final String resourceId,
             final String apiEndpoint,
             final boolean supportRefreshToken,
-            final int order) {
+            final int order,
+            final int accessTokenValiditySeconds,
+            final int refreshTokenValiditySeconds) {
 
         super();
         final ConfigurerAdapter configurerAdapter = new ConfigurerAdapter(
@@ -50,7 +52,10 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                 authenticationEntryPoint,
                 resourceId,
                 apiEndpoint,
-                supportRefreshToken);
+                supportRefreshToken,
+                accessTokenValiditySeconds,
+                refreshTokenValiditySeconds);
+
         setConfigurers(Arrays.asList(configurerAdapter));
         super.setOrder(order);
     }
@@ -76,6 +81,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         private final String resourceId;
         private final String apiEndpoint;
         private final boolean supportRefreshToken;
+        private final int accessTokenValiditySeconds;
+        private final int refreshTokenValiditySeconds;
 
         public ConfigurerAdapter(
                 final WebserviceResourceConfiguration webserviceResourceConfiguration,
@@ -85,7 +92,9 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                 final AuthenticationEntryPoint authenticationEntryPoint,
                 final String resourceId,
                 final String apiEndpoint,
-                final boolean supportRefreshToken) {
+                final boolean supportRefreshToken,
+                final int accessTokenValiditySeconds,
+                final int refreshTokenValiditySeconds) {
 
             super();
             this.webserviceResourceConfiguration = webserviceResourceConfiguration;
@@ -96,6 +105,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
             this.resourceId = resourceId;
             this.apiEndpoint = apiEndpoint;
             this.supportRefreshToken = supportRefreshToken;
+            this.accessTokenValiditySeconds = accessTokenValiditySeconds;
+            this.refreshTokenValiditySeconds = refreshTokenValiditySeconds;
         }
 
         @Override
@@ -106,6 +117,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
             tokenService.setClientDetailsService(this.webServiceClientDetails);
             tokenService.setSupportRefreshToken(this.supportRefreshToken);
             tokenService.setAuthenticationManager(this.authenticationManager);
+            tokenService.setAccessTokenValiditySeconds(this.accessTokenValiditySeconds);
+            tokenService.setRefreshTokenValiditySeconds(this.refreshTokenValiditySeconds);
             resources.tokenServices(tokenService);
         }
 

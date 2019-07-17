@@ -27,10 +27,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 
 // TODO check if DataSourceAutoConfiguration and TokenStore bean definition is really needed here
 //      or if it is possible to move them to the WebServiceSecurityConfig.
@@ -69,7 +69,7 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
     @Lazy
     @Bean
     public TokenStore tokenStore(final DataSource dataSource) {
-        return new JdbcTokenStore(dataSource);
+        return new CachableJdbcTokenStore(dataSource);
     }
 
     @Lazy

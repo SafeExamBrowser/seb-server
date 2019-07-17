@@ -32,6 +32,7 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
         INFO_LOG(2),
         WARN_LOG(3),
         ERROR_LOG(4),
+        LAST_PING(5)
 
         ;
 
@@ -154,10 +155,13 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
         return builder.toString();
     }
 
-    public static final ClientEventRecord toRecord(final ClientEvent event) {
+    public static final ClientEventRecord toRecord(
+            final ClientEvent event,
+            final Long connectionId) {
+
         return new ClientEventRecord(
                 event.id,
-                event.connectionId,
+                connectionId,
                 event.eventType.id,
                 event.timestamp,
                 (event.numValue != null) ? new BigDecimal(event.numValue) : null,

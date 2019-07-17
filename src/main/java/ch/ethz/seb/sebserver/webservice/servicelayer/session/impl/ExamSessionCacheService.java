@@ -19,12 +19,20 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 
+/** Handles caching for exam session and defines caching for following object:
+ *
+ * - Running exams (examId -> Exam)
+ * - in-memory exam configuration (examId -> InMemorySebConfig)
+ * - active client connections (connectionToken -> ClientConnectionDataInternal)
+ * - client event records for last ping store (connectionToken -> ReusableClientEventRecord) */
 @Lazy
 @Service
 @WebServiceProfile
@@ -33,6 +41,7 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
+    public static final String CACHE_NAME_PING_RECORD = "CACHE_NAME_PING_RECORD";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -108,18 +117,14 @@ public class ExamSessionCacheService {
             log.debug("Verify ClientConnection for running exam for caching by connectionToken: ", connectionToken);
         }
 
-        final Result<ClientConnection> byPK = this.clientConnectionDAO
-                .byConnectionToken(connectionToken);
-
-        if (byPK.hasError()) {
-            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken, byPK.getError());
+        final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
+        if (clientConnection == null) {
             return null;
+        } else {
+            return new ClientConnectionDataInternal(
+                    clientConnection,
+                    this.clientIndicatorFactory.createFor(clientConnection));
         }
-
-        final ClientConnection clientConnection = byPK.get();
-        return new ClientConnectionDataInternal(
-                clientConnection,
-                this.clientIndicatorFactory.createFor(clientConnection));
     }
 
     @CacheEvict(
@@ -161,6 +166,46 @@ public class ExamSessionCacheService {
         if (log.isDebugEnabled()) {
             log.debug("Eviction of default SEB Configuration from cache for exam: {}", examId);
         }
+    }
+
+    @Cacheable(
+            cacheNames = CACHE_NAME_PING_RECORD,
+            key = "#connectionToken",
+            unless = "#result == null")
+    public ClientEventRecord getPingRecord(final String connectionToken) {
+        if (log.isDebugEnabled()) {
+            log.debug("Verify ClientConnection for ping record to cache by connectionToken: ", connectionToken);
+        }
+
+        final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
+        if (clientConnection == null) {
+            return null;
+        } else {
+            final ClientEventRecord clientEventRecord = new ClientEventRecord();
+            clientEventRecord.setConnectionId(clientConnection.id);
+            clientEventRecord.setType(EventType.LAST_PING.id);
+            return clientEventRecord;
+        }
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_NAME_PING_RECORD,
+            key = "#connectionToken")
+    public void evictPingRecord(final String connectionToken) {
+        if (log.isDebugEnabled()) {
+            log.debug("Eviction of ReusableClientEventRecord from cache for connection token: {}", connectionToken);
+        }
+    }
+
+    private ClientConnection getClientConnectionByToken(final String connectionToken) {
+        final Result<ClientConnection> byPK = this.clientConnectionDAO
+                .byConnectionToken(connectionToken);
+
+        if (byPK.hasError()) {
+            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken, byPK.getError());
+            return null;
+        }
+        return byPK.get();
     }
 
 }

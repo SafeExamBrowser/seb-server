@@ -130,7 +130,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         log.info("Initialize with insecure ClientHttpRequestFactory for development");
 
         final DevClientHttpRequestFactory devClientHttpRequestFactory = new DevClientHttpRequestFactory();
-        devClientHttpRequestFactory.setOutputStreaming(false);
         return devClientHttpRequestFactory;
     }
 

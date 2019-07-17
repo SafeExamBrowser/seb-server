@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
-import java.util.Collections;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -17,11 +15,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
 
 /** A ClientDetailsService to manage different API clients of SEB Server webservice API.
@@ -68,32 +64,17 @@ public class WebClientDetailsService implements ClientDetailsService {
             return this.adminClientDetails;
         }
 
-        return getForExamClientAPI(clientId)
+        final ClientDetails clientDetails = getForExamClientAPI(clientId)
                 .get(t -> {
-                    log.error("Client not found: ", t);
+                    log.error("Active ClientConfig not found: ", t);
                     throw new AccessDeniedException(t.getMessage());
                 });
+
+        return clientDetails;
     }
 
-    protected Result<ClientDetails> getForExamClientAPI(final String clientId) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Trying to get ClientDetails for client: {}", clientId);
-        }
-
-        return this.sebClientConfigService.getEncodedClientSecret(clientId)
-                .map(pwd -> {
-                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
-                            Utils.toString(clientId),
-                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
-                            null,
-                            "client_credentials",
-                            "");
-
-                    baseClientDetails.setScope(Collections.emptySet());
-                    baseClientDetails.setClientSecret(Utils.toString(pwd));
-                    return baseClientDetails;
-                });
+    protected Result<ClientDetails> getForExamClientAPI(final String clientCongifId) {
+        return this.sebClientConfigService.getClientConfigDetails(clientCongifId);
     }
 
 }

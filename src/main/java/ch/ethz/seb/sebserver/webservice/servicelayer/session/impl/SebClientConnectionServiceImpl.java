@@ -12,9 +12,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -26,8 +24,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Service
@@ -40,29 +38,20 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     private final ExamSessionCacheService examSessionCacheService;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
+    private final PingHandlingStrategy pingHandlingStrategy;
 
     protected SebClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final ExamSessionCacheService examSessionCacheService,
             final ClientConnectionDAO clientConnectionDAO,
-            final Environment environment,
-            final ApplicationContext applicationContext) {
+            final EventHandlingStrategyFactory eventHandlingStrategyFactory,
+            final PingHandlingStrategyFactory pingHandlingStrategyFactory) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionCacheService;
         this.clientConnectionDAO = clientConnectionDAO;
-
-        String eventHandlingStrategyProperty =
-                environment.getProperty(EventHandlingStrategy.EVENT_CONSUMER_STRATEGY_CONFIG_PROPERTY_KEY);
-
-        if (StringUtils.isBlank(eventHandlingStrategyProperty)) {
-            eventHandlingStrategyProperty = EventHandlingStrategy.EVENT_CONSUMER_STRATEGY_SINGLE_EVENT_STORE;
-        }
-
-        this.eventHandlingStrategy = applicationContext.getBean(
-                eventHandlingStrategyProperty,
-                EventHandlingStrategy.class);
-        this.eventHandlingStrategy.enable();
+        this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
+        this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
     }
 
     @Override
@@ -331,6 +320,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             // evict cached ClientConnection
             this.examSessionCacheService.evictClientConnection(connectionToken);
+            // evict also cached ping record
+            this.examSessionCacheService.evictPingRecord(connectionToken);
             // and load updated ClientConnection into cache
             this.examSessionCacheService.getActiveClientConnection(connectionToken);
 
@@ -339,19 +330,15 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     }
 
     @Override
-    public void notifyPing(
+    public String notifyPing(
             final String connectionToken,
             final long timestamp,
             final int pingNumber) {
 
-        final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getActiveClientConnection(connectionToken);
+        this.pingHandlingStrategy.notifyPing(connectionToken, timestamp, pingNumber);
 
-        if (activeClientConnection != null) {
-            activeClientConnection.pingMappings
-                    .stream()
-                    .forEach(pingIndicator -> pingIndicator.notifyPing(timestamp, pingNumber));
-        }
+        // TODO here we can return a SEB instruction if available
+        return null;
     }
 
     @Override
@@ -363,21 +350,15 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 this.examSessionCacheService.getActiveClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
+
             if (activeClientConnection.clientConnection.status != ConnectionStatus.ESTABLISHED) {
-                throw new IllegalStateException("ClientConnection is not fully established or closed");
+                throw new IllegalStateException("No established SEB client connection");
             }
 
             // store event
-            this.eventHandlingStrategy.accept(
-                    (event.connectionId != null)
-                            ? event
-                            : new ClientEvent(
-                                    null,
-                                    activeClientConnection.getConnectionId(),
-                                    event.eventType,
-                                    event.timestamp,
-                                    event.numValue,
-                                    event.text));
+            this.eventHandlingStrategy.accept(ClientEvent.toRecord(
+                    event,
+                    activeClientConnection.getConnectionId()));
 
             // update indicators
             activeClientConnection.getindicatorMapping(event.eventType)

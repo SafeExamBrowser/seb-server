@@ -10,10 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 
 /** Approach 1 to handle/save client events internally
@@ -29,18 +30,21 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 @WebServiceProfile
 public class SingleEventSaveStrategy implements EventHandlingStrategy {
 
-    private final ClientEventDAO clientEventDAO;
+    private final ClientEventRecordMapper clientEventRecordMapper;
     private boolean enabled = false;
 
-    public SingleEventSaveStrategy(final ClientEventDAO clientEventDAO) {
-        this.clientEventDAO = clientEventDAO;
+    public SingleEventSaveStrategy(final ClientEventRecordMapper clientEventRecordMapper) {
+        this.clientEventRecordMapper = clientEventRecordMapper;
     }
 
     @Override
-    public void accept(final ClientEvent event) {
-        this.clientEventDAO
-                .createNew(event)
-                .getOrThrow();
+    @Transactional
+    public void accept(final ClientEventRecord record) {
+        if (record.getId() == null) {
+            this.clientEventRecordMapper.insert(record);
+        } else {
+            this.clientEventRecordMapper.updateByPrimaryKeySelective(record);
+        }
     }
 
     @Override

@@ -95,6 +95,13 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${sebserver.webservice.api.redirect.unauthorized}")
     private String unauthorizedRedirect;
 
+    @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")
+    private Integer adminAccessTokenValSec;
+    @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}")
+    private Integer adminRefreshTokenValSec;
+    @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:3600}")
+    private Integer examAccessTokenValSec;
+
     /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
      * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
      *
@@ -154,7 +161,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 this.webServiceClientDetails,
                 authenticationManagerBean(),
                 this.adminAPIEndpoint,
-                this.unauthorizedRedirect);
+                this.unauthorizedRedirect,
+                this.adminAccessTokenValSec,
+                this.adminRefreshTokenValSec);
     }
 
     @Bean
@@ -163,7 +172,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 this.tokenStore,
                 this.webServiceClientDetails,
                 authenticationManagerBean(),
-                this.examAPIEndpoint);
+                this.examAPIEndpoint,
+                this.examAccessTokenValSec);
     }
 
     @Bean
@@ -173,7 +183,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 this.webServiceClientDetails,
                 authenticationManagerBean(),
                 this.actuatorEndpoint,
-                this.unauthorizedRedirect);
+                this.unauthorizedRedirect,
+                this.adminAccessTokenValSec,
+                this.adminRefreshTokenValSec);
     }
 
     // NOTE: We need two different class types here to support Spring configuration for different
@@ -185,7 +197,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
                 final String apiEndpoint,
-                final String redirect) {
+                final String redirect,
+                final int adminAccessTokenValSec,
+                final int adminRefreshTokenValSec) {
 
             super(
                     tokenStore,
@@ -195,7 +209,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     ADMIN_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
-                    2);
+                    2,
+                    adminAccessTokenValSec,
+                    adminRefreshTokenValSec);
         }
     }
 
@@ -207,7 +223,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 final TokenStore tokenStore,
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
-                final String apiEndpoint) {
+                final String apiEndpoint,
+                final int adminAccessTokenValSec) {
 
             super(
                     tokenStore,
@@ -224,7 +241,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     EXAM_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
-                    3);
+                    3,
+                    adminAccessTokenValSec,
+                    -1);
         }
     }
 
@@ -235,7 +254,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
                 final String apiEndpoint,
-                final String redirect) {
+                final String redirect,
+                final int adminAccessTokenValSec,
+                final int adminRefreshTokenValSec) {
 
             super(
                     tokenStore,
@@ -245,7 +266,9 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     ADMIN_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
-                    4);
+                    4,
+                    adminAccessTokenValSec,
+                    adminRefreshTokenValSec);
         }
 
         @Override

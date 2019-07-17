@@ -127,9 +127,8 @@ public abstract class RestCall<T> {
                         }));
 
             } catch (final ClassCastException cce) {
-                log.error("Unexpected error-response while webservice API call for: {}", builder, cce);
-                log.error("Unexpected error-response cause: ", t);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(cce));
+                log.error("Unexpected error-response while webservice API call for: {}", builder, t);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(t));
             } catch (final RuntimeException re) {
                 log.error("Unexpected runtime error while webservice API call for: {}", builder, re);
                 log.error("Unexpected runtime error cause: ", t);

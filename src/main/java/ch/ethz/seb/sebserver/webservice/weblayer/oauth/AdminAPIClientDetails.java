@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.Constants;
 
 /** This defines the Spring's OAuth2 ClientDetails for an Administration API client. */
 @Lazy
@@ -28,14 +30,20 @@ public final class AdminAPIClientDetails extends BaseClientDetails {
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             @Value("${sebserver.webservice.api.admin.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret,
-            @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds}") final Integer accessTokenValiditySeconds,
-            @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds}") final Integer refreshTokenValiditySeconds) {
+            @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}") final Integer accessTokenValiditySeconds,
+            @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}") final Integer refreshTokenValiditySeconds) {
 
         super(
                 clientId,
                 WebserviceResourceConfiguration.ADMIN_API_RESOURCE_ID,
-                "read,write",
-                "password,refresh_token",
+                StringUtils.joinWith(
+                        Constants.LIST_SEPARATOR,
+                        Constants.OAUTH2_SCOPE_READ,
+                        Constants.OAUTH2_SCOPE_WRITE),
+                StringUtils.joinWith(
+                        Constants.LIST_SEPARATOR,
+                        Constants.OAUTH2_GRANT_TYPE_PASSWORD,
+                        Constants.OAUTH2_GRANT_TYPE_REFRESH_TOKEN),
                 null);
         super.setClientSecret(clientPasswordEncoder.encode(clientSecret));
         super.setAccessTokenValiditySeconds(accessTokenValiditySeconds);

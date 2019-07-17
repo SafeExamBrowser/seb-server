@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -32,16 +33,19 @@ public class BulkActionServiceImpl implements BulkActionService {
 
     private final Map<EntityType, BulkActionSupportDAO<?>> supporter;
     private final UserActivityLogDAO userActivityLogDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public BulkActionServiceImpl(
             final Collection<BulkActionSupportDAO<?>> supporter,
-            final UserActivityLogDAO userActivityLogDAO) {
+            final UserActivityLogDAO userActivityLogDAO,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.supporter = new HashMap<>();
         for (final BulkActionSupportDAO<?> support : supporter) {
             this.supporter.put(support.entityType(), support);
         }
         this.userActivityLogDAO = userActivityLogDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -83,6 +87,9 @@ public class BulkActionServiceImpl implements BulkActionService {
 
             processUserActivityLog(action);
             action.alreadyProcessed = true;
+
+            this.applicationEventPublisher.publishEvent(new BulkActionEvent(action));
+
             return action;
         });
     }

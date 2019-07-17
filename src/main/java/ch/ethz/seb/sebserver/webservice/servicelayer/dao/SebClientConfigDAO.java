@@ -16,7 +16,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
@@ -57,28 +56,8 @@ public interface SebClientConfigDAO extends
 
     @Override
     @CacheEvict(
-            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
-            allEntries = true)
-    Result<SebClientConfig> save(SebClientConfig data);
-
-    @Override
-    @CacheEvict(
-            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
+            cacheNames = SebClientConfigService.EXAM_CLIENT_DETAILS_CACHE,
             allEntries = true)
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
-
-    @Override
-    @CacheEvict(
-            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
-            allEntries = true)
-    Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
-
-    @Override
-    @CacheEvict(
-            cacheNames = SebClientConfigService.CLIENT_CONFIG_BY_CLIENT_ID_CHACHE,
-            allEntries = true)
-    default Collection<Result<EntityKey>> processBulkAction(final BulkAction bulkAction) {
-        return BulkActionSupportDAO.super.processBulkAction(bulkAction);
-    }
 
 }

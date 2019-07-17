@@ -28,9 +28,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 
 /** Approach 2 to handle/save client events internally
@@ -60,7 +60,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
     private final Executor executor;
     private final TransactionTemplate transactionTemplate;
 
-    private final BlockingDeque<ClientEvent> eventQueue = new LinkedBlockingDeque<>();
+    private final BlockingDeque<ClientEventRecord> eventQueue = new LinkedBlockingDeque<>();
     private boolean workersRunning = false;
     private boolean enabled = false;
 
@@ -90,13 +90,13 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
     }
 
     @Override
-    public void accept(final ClientEvent event) {
+    public void accept(final ClientEventRecord record) {
         if (!this.workersRunning) {
             log.error("Received ClientEvent on none enabled AsyncBatchEventSaveStrategy. ClientEvent is ignored");
             return;
         }
 
-        this.eventQueue.add(event);
+        this.eventQueue.add(record);
     }
 
     private void runWorkers() {
@@ -118,7 +118,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
             log.debug("Worker Thread {} running", Thread.currentThread());
 
-            final Collection<ClientEvent> events = new ArrayList<>();
+            final Collection<ClientEventRecord> events = new ArrayList<>();
             final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(
                     this.sqlSessionFactory,
                     ExecutorType.BATCH);
@@ -138,8 +138,13 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                             this.transactionTemplate
                                     .execute(status -> {
                                         events.stream()
-                                                .map(ClientEvent::toRecord)
-                                                .forEach(clientEventMapper::insert);
+                                                .forEach(rec -> {
+                                                    if (rec.getId() == null) {
+                                                        clientEventMapper.insert(rec);
+                                                    } else {
+                                                        clientEventMapper.updateByPrimaryKeySelective(rec);
+                                                    }
+                                                });
                                         return null;
                                     });
                         } else {
@@ -147,6 +152,8 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                         }
                     } catch (final Exception e) {
                         log.error("unexpected Error while trying to batch store client-events: ", e);
+                    } finally {
+                        sqlSessionTemplate.flushStatements();
                     }
 
                     try {

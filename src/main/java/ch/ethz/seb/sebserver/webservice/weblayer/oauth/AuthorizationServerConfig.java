@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
@@ -73,12 +74,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         final JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setAccessTokenConverter(this.accessTokenConverter);
 
+        final DefaultTokenServices defaultTokenServices = new DefaultTokenServicesFallback();
+        defaultTokenServices.setTokenStore(this.tokenStore);
+        defaultTokenServices.setAuthenticationManager(this.authenticationManager);
+        defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter);
+
         endpoints
-                .tokenGranter(new SynchronizedTokenGranter(endpoints.getTokenGranter()))
                 .tokenStore(this.tokenStore)
                 .authenticationManager(this.authenticationManager)
                 .userDetailsService(this.webServiceUserDetails)
-                .accessTokenConverter(jwtAccessTokenConverter);
+                .accessTokenConverter(jwtAccessTokenConverter)
+                .tokenServices(defaultTokenServices);
     }
 
 }

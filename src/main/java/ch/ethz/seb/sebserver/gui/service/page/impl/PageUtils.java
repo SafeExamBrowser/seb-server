@@ -66,7 +66,7 @@ public final class PageUtils {
                     return new LocTextKey("sebserver.dialog.confirm.deactivation.noDependencies");
                 }
             } catch (final Exception e) {
-                log.warn("Failed to get dependencyies for Entity: {}", entity, e);
+                log.info("Failed to get dependencyies for Entity: {} error: ", entity, e.getMessage());
                 return new LocTextKey("sebserver.dialog.confirm.deactivation", "");
             }
         };

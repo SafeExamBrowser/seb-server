@@ -15,6 +15,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -25,15 +26,25 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
@@ -43,6 +54,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 @Lazy
 @Service
@@ -64,6 +76,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final SebConfigEncryptionService sebConfigEncryptionService;
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
+    private final TokenStore tokenStore;
     private final String httpScheme;
     private final String serverAddress;
     private final String serverName;
@@ -78,6 +91,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final ClientCredentialService clientCredentialService,
             final SebConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
+            final TokenStore tokenStore,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             final Environment environment) {
 
@@ -87,6 +101,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.sebConfigEncryptionService = sebConfigEncryptionService;
         this.zipService = zipService;
         this.clientPasswordEncoder = clientPasswordEncoder;
+        this.tokenStore = tokenStore;
 
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.serverAddress = environment.getRequiredProperty(WEB_SERVICE_SERVER_ADDRESS_KEY);
@@ -129,9 +144,27 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     }
 
     @Override
-    public Result<CharSequence> getEncodedClientSecret(final String clientId) {
-        return this.sebClientConfigDAO.getConfigPasswortCipherByClientName(clientId)
-                .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));
+    public Result<ClientDetails> getClientConfigDetails(final String clientName) {
+        return this.getEncodedClientConfigSecret(clientName)
+                .map(pwd -> {
+
+                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
+                            Utils.toString(clientName),
+                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
+                            null,
+                            Constants.OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS,
+                            StringUtils.EMPTY);
+
+                    baseClientDetails.setScope(Collections.emptySet());
+                    baseClientDetails.setClientSecret(Utils.toString(pwd));
+                    baseClientDetails.setAccessTokenValiditySeconds(-1); // not expiring
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Created new BaseClientDetails for id: {}", clientName);
+                    }
+
+                    return baseClientDetails;
+                });
     }
 
     @Override
@@ -212,6 +245,38 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         return this.serverURLPrefix;
     }
 
+    @Override
+    public void flushClientConfigData(final BulkActionEvent event) {
+        try {
+            final BulkAction bulkAction = event.getBulkAction();
+
+            if (bulkAction.type == BulkActionType.DEACTIVATE ||
+                    bulkAction.type == BulkActionType.HARD_DELETE) {
+
+                bulkAction.extractKeys(EntityType.SEB_CLIENT_CONFIGURATION)
+                        .stream()
+                        .forEach(this::flushClientConfigData);
+            }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to flush ClientConfig data ", e);
+        }
+    }
+
+    private void flushClientConfigData(final EntityKey key) {
+        try {
+            final String clientName = this.sebClientConfigDAO.getSebClientCredentials(key.modelId)
+                    .getOrThrow()
+                    .clientIdAsString();
+
+            final Collection<OAuth2AccessToken> tokensByClientId = this.tokenStore.findTokensByClientId(clientName);
+            tokensByClientId.stream()
+                    .forEach(token -> this.tokenStore.removeAccessToken(token));
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to flush ClientConfig data for {}", key, e);
+        }
+    }
+
     private void passwordEncryption(
             final OutputStream output,
             final CharSequence encryptionPassword,
@@ -234,6 +299,15 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         if (log.isDebugEnabled()) {
             log.debug("*** Finished Seb client configuration with password based encryption");
         }
+    }
+
+    /** Get a encoded clientSecret for the SebClientConfiguration with specified clientId/clientName.
+     *
+     * @param clientId the clientId/clientName
+     * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
+    private Result<CharSequence> getEncodedClientConfigSecret(final String clientCongifId) {
+        return this.sebClientConfigDAO.getConfigPasswortCipherByClientName(clientCongifId)
+                .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));
     }
 
 }

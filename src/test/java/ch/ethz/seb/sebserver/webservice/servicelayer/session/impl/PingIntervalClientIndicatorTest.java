@@ -12,10 +12,12 @@ import static org.junit.Assert.assertEquals;
 
 import org.joda.time.DateTimeUtils;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
 
 public class PingIntervalClientIndicatorTest {
 
@@ -24,7 +26,10 @@ public class PingIntervalClientIndicatorTest {
 
         DateTimeUtils.setCurrentMillisFixed(1);
 
-        final PingIntervalClientIndicator pingIntervalClientIndicator = new PingIntervalClientIndicator();
+        final ClientEventExtentionMapper clientEventExtentionMapper = Mockito.mock(ClientEventExtentionMapper.class);
+
+        final PingIntervalClientIndicator pingIntervalClientIndicator =
+                new PingIntervalClientIndicator(clientEventExtentionMapper);
         assertEquals("0.0", String.valueOf(pingIntervalClientIndicator.getValue()));
     }
 
@@ -32,7 +37,10 @@ public class PingIntervalClientIndicatorTest {
     public void testInterval() {
         DateTimeUtils.setCurrentMillisFixed(1);
 
-        final PingIntervalClientIndicator pingIntervalClientIndicator = new PingIntervalClientIndicator();
+        final ClientEventExtentionMapper clientEventExtentionMapper = Mockito.mock(ClientEventExtentionMapper.class);
+
+        final PingIntervalClientIndicator pingIntervalClientIndicator =
+                new PingIntervalClientIndicator(clientEventExtentionMapper);
         assertEquals("0.0", String.valueOf(pingIntervalClientIndicator.getValue()));
 
         DateTimeUtils.setCurrentMillisFixed(10);
@@ -43,7 +51,11 @@ public class PingIntervalClientIndicatorTest {
     @Test
     public void testSerialization() throws JsonProcessingException {
         DateTimeUtils.setCurrentMillisFixed(1);
-        final PingIntervalClientIndicator pingIntervalClientIndicator = new PingIntervalClientIndicator();
+
+        final ClientEventExtentionMapper clientEventExtentionMapper = Mockito.mock(ClientEventExtentionMapper.class);
+
+        final PingIntervalClientIndicator pingIntervalClientIndicator =
+                new PingIntervalClientIndicator(clientEventExtentionMapper);
         final JSONMapper jsonMapper = new JSONMapper();
         final String json = jsonMapper.writeValueAsString(pingIntervalClientIndicator);
         assertEquals("{\"indicatorValue\":0.0,\"indicatorType\":\"LAST_PING\"}", json);

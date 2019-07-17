@@ -60,8 +60,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public boolean isExamRunning(final Long examId) {
-        return this.examSessionCacheService
-                .isRunning(this.examSessionCacheService.getRunningExam(examId));
+        return !getRunningExam(examId).hasError();
     }
 
     @Override
@@ -192,7 +191,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.clientConnectionDAO
                 .getConnectionTokens(exam.id)
                 .getOrElse(() -> Collections.emptyList())
-                .forEach(token -> this.examSessionCacheService.evictClientConnection(token));
+                .forEach(token -> {
+                    // evict client connection
+                    this.examSessionCacheService.evictClientConnection(token);
+                    // evict also cached ping record
+                    this.examSessionCacheService.evictPingRecord(token);
+                });
     }
 
 }

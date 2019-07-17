@@ -203,7 +203,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .execute();
 
             return ids.stream()
-                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                    .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
                     .collect(Collectors.toList());
         });
     }

@@ -17,13 +17,15 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValueHolder;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
 
 @Lazy
 @Component(IndicatorType.Names.LAST_PING)
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
-    public PingIntervalClientIndicator() {
+    public PingIntervalClientIndicator(final ClientEventExtentionMapper clientEventExtentionMapper) {
+        super(clientEventExtentionMapper);
         this.cachingEnabled = true;
         this.currentValue = computeValueAt(DateTime.now(DateTimeZone.UTC).getMillis());
     }

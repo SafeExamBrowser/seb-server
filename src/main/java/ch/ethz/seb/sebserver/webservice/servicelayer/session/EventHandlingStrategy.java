@@ -10,13 +10,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.function.Consumer;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 /** A exam session SEB client event handling strategy implements a certain strategy to
  * store ClientEvent that are coming in within the specified endpoint in height frequency. */
-public interface EventHandlingStrategy extends Consumer<ClientEvent> {
+public interface EventHandlingStrategy extends Consumer<ClientEventRecord> {
 
     String EVENT_CONSUMER_STRATEGY_CONFIG_PROPERTY_KEY = "sebserver.webservice.api.exam.event-handling-strategy";
+    String EVENT_CONSUMER_STRATEGY_VALUE_PROPERTY =
+            "${" + EVENT_CONSUMER_STRATEGY_CONFIG_PROPERTY_KEY + ":SINGLE_EVENT_STORE_STRATEGY}";
     String EVENT_CONSUMER_STRATEGY_SINGLE_EVENT_STORE = "SINGLE_EVENT_STORE_STRATEGY";
     String EVENT_CONSUMER_STRATEGY_ASYNC_BATCH_STORE = "ASYNC_BATCH_STORE_STRATEGY";
 

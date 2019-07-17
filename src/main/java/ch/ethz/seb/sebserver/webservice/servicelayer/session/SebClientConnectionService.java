@@ -103,8 +103,9 @@ public interface SebClientConnectionService {
      *
      * @param connectionToken the connection token
      * @param timestamp the ping time-stamp
-     * @param pingNumber the ping number */
-    void notifyPing(String connectionToken, long timestamp, int pingNumber);
+     * @param pingNumber the ping number
+     * @return SEB instruction if available */
+    String notifyPing(String connectionToken, long timestamp, int pingNumber);
 
     /** Notify a SEB client event for live indication and storing to database.
      *
