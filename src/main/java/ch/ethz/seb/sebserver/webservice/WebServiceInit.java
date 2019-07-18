@@ -11,8 +11,6 @@ package ch.ethz.seb.sebserver.webservice;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import javax.sql.DataSource;
-
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
@@ -26,11 +24,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 
 // TODO check if DataSourceAutoConfiguration and TokenStore bean definition is really needed here
 //      or if it is possible to move them to the WebServiceSecurityConfig.
@@ -68,12 +64,6 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
 
         // TODO whatever has to be initialized for the web-service component right after startup comes here
 
-    }
-
-    @Lazy
-    @Bean
-    public TokenStore tokenStore(final DataSource dataSource) {
-        return new CachableJdbcTokenStore(dataSource);
     }
 
     @Lazy

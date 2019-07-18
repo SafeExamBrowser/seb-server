@@ -13,6 +13,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.apache.catalina.filters.RemoteIpFilter;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -46,6 +48,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
@@ -101,6 +104,12 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private Integer adminRefreshTokenValSec;
     @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:3600}")
     private Integer examAccessTokenValSec;
+
+    @Lazy
+    @Bean
+    public TokenStore tokenStore(final DataSource dataSource) {
+        return new CachableJdbcTokenStore(dataSource);
+    }
 
     /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
      * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html

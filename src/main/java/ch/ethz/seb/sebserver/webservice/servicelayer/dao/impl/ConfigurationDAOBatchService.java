@@ -22,6 +22,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -60,6 +62,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundExcepti
  * intensive write operation on Configuration domain. */
 class ConfigurationDAOBatchService {
 
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationDAOBatchService.class);
+
     private final ConfigurationNodeRecordMapper batchConfigurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper batchConfigurationValueRecordMapper;
     private final ConfigurationAttributeRecordMapper batchConfigurationAttributeRecordMapper;
@@ -69,6 +73,9 @@ class ConfigurationDAOBatchService {
 
     protected ConfigurationDAOBatchService(
             @Qualifier(BatisConfig.SQL_BATCH_SESSION_TEMPLATE) final SqlSessionTemplate batchSqlSessionTemplate) {
+
+        log.info("Registered MyBatis Mappers: {}",
+                batchSqlSessionTemplate.getConfiguration().getMapperRegistry().getMappers());
 
         this.batchConfigurationNodeRecordMapper =
                 batchSqlSessionTemplate.getMapper(ConfigurationNodeRecordMapper.class);
