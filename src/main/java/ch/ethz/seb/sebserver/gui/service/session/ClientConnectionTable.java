@@ -133,7 +133,6 @@ public final class ClientConnectionTable {
     }
 
     public void updateGUI() {
-
         fillTable();
         if (this.needsSort) {
             sortTable();
@@ -171,12 +170,10 @@ public final class ClientConnectionTable {
             while (this.tableMapping.size() > this.table.getItemCount()) {
                 new TableItem(this.table, SWT.NONE);
             }
-            this.needsSort = true;
         } else if (this.tableMapping.size() < this.table.getItemCount()) {
             while (this.tableMapping.size() < this.table.getItemCount()) {
                 this.table.getItem(0).dispose();
             }
-            this.needsSort = true;
         }
     }
 
@@ -240,9 +237,11 @@ public final class ClientConnectionTable {
         }
 
         void updateIndicatorValues(final TableItem tableItem) {
+            if (this.connectionData == null) {
+                return;
+            }
 
-            final boolean fillEmpty = (this.connectionData == null ||
-                    this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED);
+            final boolean fillEmpty = this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED;
 
             for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
@@ -334,8 +333,12 @@ public final class ClientConnectionTable {
             this.changed = this.connectionData == null ||
                     !this.connectionData.dataEquals(connectionData);
 
-            ClientConnectionTable.this.needsSort = this.connectionData == null ||
+            final boolean statusChanged = this.connectionData == null ||
                     this.connectionData.clientConnection.status != connectionData.clientConnection.status;
+
+            if (statusChanged) {
+                ClientConnectionTable.this.needsSort = true;
+            }
 
             if (this.thresholdColorIndices == null) {
                 this.thresholdColorIndices = new int[connectionData.indicatorValues.size()];
