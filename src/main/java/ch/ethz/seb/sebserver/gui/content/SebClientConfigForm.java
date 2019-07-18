@@ -57,6 +57,8 @@ public class SebClientConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.form.title");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.name");
+    private static final LocTextKey FORM_FALLBACK_URL_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.fallback-url");
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.date");
     private static final LocTextKey FORM_ENCRYPT_SECRET_TEXT_KEY =
@@ -143,6 +145,10 @@ public class SebClientConfigForm implements TemplateComposer {
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         clientConfig.name))
+                .addField(FormBuilder.text(
+                        SebClientConfig.ATTR_FALLBACK_START_URL,
+                        FORM_FALLBACK_URL_TEXT_KEY,
+                        clientConfig.fallbackStartURL))
                 .addFieldIf(() -> !isNew,
                         () -> FormBuilder.text(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,

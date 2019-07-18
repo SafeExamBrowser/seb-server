@@ -277,6 +277,11 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         updatedClientConnection);
             }
 
+            // notify ping handler about established connection
+            this.pingHandlingStrategy.initForConnection(
+                    updatedClientConnection.id,
+                    connectionToken);
+
             return updatedClientConnection;
         });
     }

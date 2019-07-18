@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
@@ -55,13 +56,16 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
+    private final AdditionalAttributesDAOImpl additionalAttributesDAO;
 
     protected SebClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
-            final ClientCredentialService clientCredentialService) {
+            final ClientCredentialService clientCredentialService,
+            final AdditionalAttributesDAOImpl additionalAttributesDAO) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
+        this.additionalAttributesDAO = additionalAttributesDAO;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     @Transactional(readOnly = true)
     public Result<SebClientConfig> byPK(final Long id) {
         return recordById(id)
-                .flatMap(SebClientConfigDAOImpl::toDomainModel);
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -94,7 +98,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     : this.sebClientConfigRecordMapper.selectByExample().build().execute();
 
             return records.stream()
-                    .map(SebClientConfigDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
@@ -125,7 +129,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(SebClientConfigDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
@@ -144,7 +148,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(SebClientConfigDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Utils.toSingleton());
         });
@@ -227,10 +231,18 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                             getEncryptionPassword(sebClientConfig),
                             BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)));
 
-                    this.sebClientConfigRecordMapper.insert(newRecord);
+                    this.sebClientConfigRecordMapper
+                            .insert(newRecord);
+
+                    this.additionalAttributesDAO.saveAdditionalAttribute(
+                            EntityType.SEB_CLIENT_CONFIGURATION,
+                            newRecord.getId(),
+                            SebClientConfig.ATTR_FALLBACK_START_URL,
+                            sebClientConfig.fallbackStartURL);
+
                     return newRecord;
                 })
-                .flatMap(SebClientConfigDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -251,10 +263,19 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     getEncryptionPassword(sebClientConfig),
                     null);
 
-            this.sebClientConfigRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.sebClientConfigRecordMapper.selectByPrimaryKey(sebClientConfig.id);
+            this.sebClientConfigRecordMapper
+                    .updateByPrimaryKeySelective(newRecord);
+
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    newRecord.getId(),
+                    SebClientConfig.ATTR_FALLBACK_START_URL,
+                    sebClientConfig.fallbackStartURL);
+
+            return this.sebClientConfigRecordMapper
+                    .selectByPrimaryKey(sebClientConfig.id);
         })
-                .flatMap(SebClientConfigDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -286,7 +307,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(SebClientConfigDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
@@ -341,7 +362,9 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     private Result<SebClientConfigRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
-            final SebClientConfigRecord record = this.sebClientConfigRecordMapper.selectByPrimaryKey(id);
+            final SebClientConfigRecord record = this.sebClientConfigRecordMapper
+                    .selectByPrimaryKey(id);
+
             if (record == null) {
                 throw new ResourceNotFoundException(
                         EntityType.SEB_CLIENT_CONFIGURATION,
@@ -351,11 +374,22 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
         });
     }
 
-    private static Result<SebClientConfig> toDomainModel(final SebClientConfigRecord record) {
+    private Result<SebClientConfig> toDomainModel(final SebClientConfigRecord record) {
+        final String fallbackURL = this.additionalAttributesDAO.getAdditionalAttributes(
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                record.getId())
+                .getOrThrow()
+                .stream()
+                .filter(rec -> SebClientConfig.ATTR_FALLBACK_START_URL.equals(rec.getName()))
+                .findFirst()
+                .map(AdditionalAttributeRecord::getValue)
+                .orElse(null);
+
         return Result.tryCatch(() -> new SebClientConfig(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
+                fallbackURL,
                 record.getDate(),
                 null,
                 null,

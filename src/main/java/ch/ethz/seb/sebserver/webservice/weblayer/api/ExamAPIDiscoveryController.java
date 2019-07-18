@@ -21,21 +21,21 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.discovery}")
 public class ExamAPIDiscoveryController {
 
-    private final SebClientConfigService sebClientConfigService;
+    private final WebserviceInfo webserviceInfo;
     private final String examAPI_V1_Endpoint;
 
     protected ExamAPIDiscoveryController(
-            final SebClientConfigService sebClientConfigService,
+            final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.endpoint.v1}") final String examAPI_V1_Endpoint) {
 
-        this.sebClientConfigService = sebClientConfigService;
+        this.webserviceInfo = webserviceInfo;
         this.examAPI_V1_Endpoint = examAPI_V1_Endpoint;
     }
 
@@ -43,7 +43,7 @@ public class ExamAPIDiscoveryController {
 
     @PostConstruct
     void init() {
-        final String serverURL = this.sebClientConfigService.getServerURL();
+        final String serverURL = this.webserviceInfo.getServerURL();
         this.DISCOVERY_INFO = new ExamAPIDiscovery(
                 "Safe Exam Browser Server / Exam API Description",
                 "This is a description of Safe Exam Browser Server's Exam API",

@@ -1,9 +1,9 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper;
 
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.WebserviceServerInfoDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.WebserviceServerInfoRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.WebserviceServerInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.WebserviceServerInfoRecord;
 import java.util.List;
 import javax.annotation.Generated;
 import org.apache.ibatis.annotations.Arg;
@@ -31,119 +31,119 @@ import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
-public interface WebserviceServerInfoMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+public interface WebserviceServerInfoRecordMapper {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
-    int insert(InsertStatementProvider<WebserviceServerInfo> insertStatement);
+    int insert(InsertStatementProvider<WebserviceServerInfoRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="uuid", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="service_address", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
-    WebserviceServerInfo selectOne(SelectStatementProvider selectStatement);
+    WebserviceServerInfoRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="uuid", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="service_address", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
-    List<WebserviceServerInfo> selectMany(SelectStatementProvider selectStatement);
+    List<WebserviceServerInfoRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
-                .from(webserviceServerInfo);
+                .from(webserviceServerInfoRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
-        return DeleteDSL.deleteFromWithMapper(this::delete, webserviceServerInfo);
+        return DeleteDSL.deleteFromWithMapper(this::delete, webserviceServerInfoRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.838+02:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
     default int deleteByPrimaryKey(Long id_) {
-        return DeleteDSL.deleteFromWithMapper(this::delete, webserviceServerInfo)
+        return DeleteDSL.deleteFromWithMapper(this::delete, webserviceServerInfoRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default int insert(WebserviceServerInfo record) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
+    default int insert(WebserviceServerInfoRecord record) {
         return insert(SqlBuilder.insert(record)
-                .into(webserviceServerInfo)
+                .into(webserviceServerInfoRecord)
                 .map(uuid).toProperty("uuid")
                 .map(serviceAddress).toProperty("serviceAddress")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default int insertSelective(WebserviceServerInfo record) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
+    default int insertSelective(WebserviceServerInfoRecord record) {
         return insert(SqlBuilder.insert(record)
-                .into(webserviceServerInfo)
+                .into(webserviceServerInfoRecord)
                 .map(uuid).toPropertyWhenPresent("uuid", record::getUuid)
                 .map(serviceAddress).toPropertyWhenPresent("serviceAddress", record::getServiceAddress)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<WebserviceServerInfo>>> selectByExample() {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.697+02:00", comments="Source Table: webservice_server_info")
+    default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<WebserviceServerInfoRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, uuid, serviceAddress)
-                .from(webserviceServerInfo);
+                .from(webserviceServerInfoRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<WebserviceServerInfo>>> selectDistinctByExample() {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<WebserviceServerInfoRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, uuid, serviceAddress)
-                .from(webserviceServerInfo);
+                .from(webserviceServerInfoRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default WebserviceServerInfo selectByPrimaryKey(Long id_) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default WebserviceServerInfoRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, uuid, serviceAddress)
-                .from(webserviceServerInfo)
+                .from(webserviceServerInfoRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(WebserviceServerInfo record) {
-        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfo)
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(WebserviceServerInfoRecord record) {
+        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfoRecord)
                 .set(uuid).equalTo(record::getUuid)
                 .set(serviceAddress).equalTo(record::getServiceAddress);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(WebserviceServerInfo record) {
-        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfo)
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(WebserviceServerInfoRecord record) {
+        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfoRecord)
                 .set(uuid).equalToWhenPresent(record::getUuid)
                 .set(serviceAddress).equalToWhenPresent(record::getServiceAddress);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default int updateByPrimaryKey(WebserviceServerInfo record) {
-        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfo)
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default int updateByPrimaryKey(WebserviceServerInfoRecord record) {
+        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfoRecord)
                 .set(uuid).equalTo(record::getUuid)
                 .set(serviceAddress).equalTo(record::getServiceAddress)
                 .where(id, isEqualTo(record::getId))
@@ -151,9 +151,9 @@ public interface WebserviceServerInfoMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-15T11:57:33.839+02:00", comments="Source Table: webservice_server_info")
-    default int updateByPrimaryKeySelective(WebserviceServerInfo record) {
-        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfo)
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.698+02:00", comments="Source Table: webservice_server_info")
+    default int updateByPrimaryKeySelective(WebserviceServerInfoRecord record) {
+        return UpdateDSL.updateWithMapper(this::update, webserviceServerInfoRecord)
                 .set(uuid).equalToWhenPresent(record::getUuid)
                 .set(serviceAddress).equalToWhenPresent(record::getServiceAddress)
                 .where(id, isEqualTo(record::getId))
@@ -168,6 +168,6 @@ public interface WebserviceServerInfoMapper {
 
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<Long>>> selectIdsByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectIds, id)
-                        .from(webserviceServerInfo);
+                        .from(webserviceServerInfoRecord);
     }
 }

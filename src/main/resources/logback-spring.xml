@@ -31,7 +31,8 @@
 
     <Logger name="org.springframework.web" level="INFO" additivity="true" />
     <Logger name="org.springframework.security.oauth2" level="INFO" additivity="true" />
-
+    
+    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebClientConfigServiceImpl" level="DEBUG" additivity="true" />
     
   </springProfile>
   
@@ -59,6 +60,8 @@
       <appender-ref ref="STDOUT" />
       <appender-ref ref="FILE" />
     </root>
+    
+    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebClientConfigServiceImpl" level="DEBUG" additivity="true" />
  
   </springProfile>
   

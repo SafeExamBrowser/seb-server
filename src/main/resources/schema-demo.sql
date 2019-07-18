@@ -449,14 +449,13 @@ CREATE TABLE IF NOT EXISTS `user_activity_log` (
 DROP TABLE IF EXISTS `additional_attributes` ;
 
 CREATE TABLE IF NOT EXISTS `additional_attributes` (
-  `id` BIGINT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `entity_type` VARCHAR(45) NOT NULL,
   `entity_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `value` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`))
-;
-
+ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `seb_client_configuration`

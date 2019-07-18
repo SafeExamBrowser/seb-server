@@ -44,6 +44,10 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractTableFieldBuilder.class);
 
+    private static final int ROW_HEIGHT = 20;
+    private static final int NAV_HEIGHT = 40;
+    private static final int TABLE_WIDTH_SPACE = 50;
+
     protected final RestService restService;
     protected final WidgetFactory widgetFactory;
     protected InputFieldBuilderSupplier inputFieldBuilderSupplier;
@@ -70,7 +74,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                 tableContext.orientation.width(),
                 tableContext.orientation.height());
 
-        gridData.heightHint = tableContext.orientation.height() * 20 + 40;
+        gridData.heightHint = tableContext.orientation.height() * ROW_HEIGHT + NAV_HEIGHT;
         table.setLayoutData(gridData);
         table.setHeaderVisible(true);
         table.addListener(SWT.Resize, event -> adaptColumnWidth(table, tableContext));
@@ -100,7 +104,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
             final TableContext tableContext) {
 
         try {
-            final int currentTableWidth = table.getClientArea().width - 50;
+            final int currentTableWidth = table.getClientArea().width - TABLE_WIDTH_SPACE;
             final TableColumn[] columns = table.getColumns();
             final List<Orientation> orientations = tableContext
                     .getColumnAttributes()

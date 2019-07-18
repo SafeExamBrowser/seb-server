@@ -105,6 +105,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.institutionId,
                         "new client config",
                         null,
+                        null,
                         "password",
                         null,
                         null))
@@ -121,6 +122,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.id,
                         config.institutionId,
                         "new client config",
+                        null,
                         null,
                         "password",
                         "password",

@@ -92,7 +92,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private String examAPIEndpoint;
     @Value("${management.endpoints.web.base-path}")
     private String actuatorEndpoint;
-    @Value("${sebserver.webservice.api.redirect.unauthorized}")
+    @Value("${sebserver.webservice.http.redirect.gui}")
     private String unauthorizedRedirect;
 
     @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")

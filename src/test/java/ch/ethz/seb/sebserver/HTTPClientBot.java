@@ -182,6 +182,7 @@ public class HTTPClientBot {
                     log.error("ConnectionBot {} : Failed to request access-token: ", this.name, e);
                     if (attempt >= HTTPClientBot.this.connectionAttempts) {
                         log.error("ConnectionBot {} : Gave up afer {} connection attempts: ", this.name, attempt);
+                        return;
                     }
                 }
             }

@@ -44,6 +44,8 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
 
     @Autowired
     private Environment environment;
+    @Autowired
+    private WebserviceInfo webserviceInfo;
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
@@ -57,10 +59,12 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
             log.info("----> local host name: {}", InetAddress.getLocalHost().getHostName());
 
             log.info("----> remote host address: {}", InetAddress.getLoopbackAddress().getHostAddress());
-            log.info("----> remote host address: {}", InetAddress.getLoopbackAddress().getHostName());
+            log.info("----> remote host name: {}", InetAddress.getLoopbackAddress().getHostName());
         } catch (final UnknownHostException e) {
             log.error("Unknown Host: ", e);
         }
+
+        log.info("{}", this.webserviceInfo);
 
         // TODO whatever has to be initialized for the web-service component right after startup comes here
 
@@ -79,4 +83,5 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
         aes256jnCryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
         return aes256jnCryptor;
     }
+
 }

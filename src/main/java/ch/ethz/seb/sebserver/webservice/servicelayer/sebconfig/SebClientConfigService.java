@@ -32,9 +32,10 @@ public interface SebClientConfigService {
                     "    <key>sebMode</key>\r\n" +
                     "    <integer>1</integer>\r\n" +
                     "    <key>sebConfigPurpose</key>\r\n" +
-                    "    <integer>1</integer>" +
+                    "    <integer>1</integer>\r\n" +
                     "    <key>sebServerFallback</key>\r\n" +
-                    "    <true />\r\n" +
+                    "    <%s />\r\n" +
+                    "    %s" +
                     "    <key>sebServerURL</key>\r\n" +
                     "    <string>%s</string>\r\n" +
                     "    <key>sebServerConfiguration</key>\r\n" +
@@ -49,14 +50,6 @@ public interface SebClientConfigService {
                     "        <string>%s</string>\r\n" +
                     "    </dict>\r\n" +
                     "  </dict>\r\n";
-
-    /** Get the server URL prefix in form of;
-     * [scheme{http|https}]://[server-address{DNS-name|IP}]:[port]
-     *
-     * E.g.: https://seb.server.ch:8080
-     *
-     * @return the server URL prefix */
-    String getServerURL();
 
     /** Indicates if there is any SebClientConfiguration for a specified institution.
      *

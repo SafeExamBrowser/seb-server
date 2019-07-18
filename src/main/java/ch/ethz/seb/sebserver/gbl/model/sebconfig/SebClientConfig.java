@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.URL;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -26,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 public final class SebClientConfig implements GrantEntity, Activatable {
 
+    public static final String ATTR_FALLBACK_START_URL = "fallback_start_url";
     public static final String ATTR_CONFIRM_ENCRYPT_SECRET = "confirm_encrypt_secret";
 
     public static final String FILTER_ATTR_CREATION_DATE = "creation_date";
@@ -41,6 +43,10 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @Size(min = 3, max = 255, message = "clientconfig:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_NAME)
     public final String name;
+
+    @JsonProperty(ATTR_FALLBACK_START_URL)
+    @URL(message = "clientconfig:fallback_start_url:invalidURL")
+    public final String fallbackStartURL;
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE)
     public final DateTime date;
@@ -58,6 +64,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID) final Long id,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_NAME) final String name,
+            @JsonProperty(ATTR_FALLBACK_START_URL) final String fallbackStartURL,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE) final DateTime date,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET) final CharSequence encryptSecret,
             @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET) final CharSequence confirmEncryptSecret,
@@ -66,6 +73,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         this.id = id;
         this.institutionId = institutionId;
         this.name = name;
+        this.fallbackStartURL = fallbackStartURL;
         this.date = date;
         this.encryptSecret = encryptSecret;
         this.confirmEncryptSecret = confirmEncryptSecret;
@@ -76,6 +84,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         this.id = null;
         this.institutionId = institutionId;
         this.name = postParams.getString(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME);
+        this.fallbackStartURL = postParams.getString(ATTR_FALLBACK_START_URL);
         this.date = postParams.getDateTime(Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE);
         this.encryptSecret = postParams.getCharSequence(Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET);
         this.confirmEncryptSecret = postParams.getCharSequence(ATTR_CONFIRM_ENCRYPT_SECRET);
@@ -90,6 +99,10 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    public String getFallbackStartURL() {
+        return this.fallbackStartURL;
     }
 
     @Override
@@ -143,6 +156,8 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         builder.append(this.institutionId);
         builder.append(", name=");
         builder.append(this.name);
+        builder.append(", fallbackStartURL=");
+        builder.append(this.fallbackStartURL);
         builder.append(", date=");
         builder.append(this.date);
         builder.append(", encryptSecret=");
@@ -159,6 +174,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         return new SebClientConfig(
                 null,
                 institutionId,
+                null,
                 null,
                 DateTime.now(DateTimeZone.UTC),
                 null,

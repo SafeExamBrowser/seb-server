@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -351,6 +352,10 @@ public final class Utils {
     @SuppressWarnings("unchecked")
     public static <T> Predicate<T> falsePredicate() {
         return (Predicate<T>) FALSE_PREDICATE;
+    }
+
+    public static long getMillisecondsNow() {
+        return DateTime.now(DateTimeZone.UTC).getMillis();
     }
 
 }

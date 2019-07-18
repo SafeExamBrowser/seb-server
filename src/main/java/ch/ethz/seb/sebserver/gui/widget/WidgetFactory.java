@@ -370,6 +370,12 @@ public class WidgetFactory {
         return table;
     }
 
+    public Table tableLocalized(final Composite parent, final int style) {
+        final Table table = new Table(parent, style);
+        this.polyglotPageService.injectI18n(table);
+        return table;
+    }
+
     public TableColumn tableColumnLocalized(
             final Table table,
             final LocTextKey locTextKey) {

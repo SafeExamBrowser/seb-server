@@ -63,10 +63,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
     private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
-//    @Value("${sebserver.webservice.api.admin.endpoint}")
-//    private String adminEndpoint;
-    @Value("${sebserver.webservice.api.redirect.unauthorized}")
-    private String unauthorizedRedirect;
+    @Value("${sebserver.webservice.http.redirect.gui}")
+    private String guiRedirect;
     @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
     private String examAPIDiscoveryEndpoint;
 
@@ -109,7 +107,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     @RequestMapping("/error")
     public void handleError(final HttpServletResponse response) throws IOException {
         //response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        response.setHeader(HttpHeaders.LOCATION, this.unauthorizedRedirect);
+        response.setHeader(HttpHeaders.LOCATION, this.guiRedirect);
         response.flushBuffer();
     }
 

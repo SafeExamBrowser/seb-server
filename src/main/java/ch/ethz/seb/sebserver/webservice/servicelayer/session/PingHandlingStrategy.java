@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 public interface PingHandlingStrategy {
 
+    void initForConnection(Long connectionId, String connectionToken);
+
     void notifyPing(final String connectionToken, final long timestamp, final int pingNumber);
 
 }

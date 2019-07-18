@@ -38,4 +38,9 @@ public class SingleServerPingHandler implements PingHandlingStrategy {
         }
     }
 
+    @Override
+    public void initForConnection(final Long connectionId, final String connectionToken) {
+        // nothing to do here
+    }
+
 }

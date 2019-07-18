@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
@@ -28,8 +29,10 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -532,21 +535,17 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check event stored on db
         List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
+                .where(
+                        ClientEventRecordDynamicSqlSupport.type,
+                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
                 .build()
                 .execute();
 
         assertFalse(events.isEmpty());
         final ClientEventRecord clientEventRecord = events.get(0);
-        assertEquals(
-                "ClientEventRecord ["
-                        + "Hash = -1088444763, "
-                        + "id=1, "
-                        + "connectionId=1, "
-                        + "type=2, "
-                        + "timestamp=1, "
-                        + "numericValue=100.0000, "
-                        + "text=testEvent1]",
-                clientEventRecord.toString());
+        assertNotNull(clientEventRecord);
+        assertEquals(Long.valueOf(1), clientEventRecord.getTimestamp());
+        assertEquals("testEvent1", clientEventRecord.getText());
 
         // send another event
         sendEvent = super.sendEvent(

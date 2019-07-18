@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +25,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -40,7 +39,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class ClientConnectionTable {
 
-    private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
+    private static final int BOTTOM_PADDING = 20;
 
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
@@ -79,9 +78,14 @@ public final class ClientConnectionTable {
             i++;
         }
 
-        this.table = widgetFactory.tableLocalized(tableRoot);
-        this.table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        this.table.setLayout(new GridLayout());
+        this.table = widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
+        final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
+        this.table.setLayout(gridLayout);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        //gridData.heightHint = 200;
+        this.table.setLayoutData(gridData);
+        this.table.setHeaderVisible(true);
+        this.table.setLinesVisible(true);
 
         widgetFactory.tableColumnLocalized(
                 this.table,
@@ -96,9 +100,6 @@ public final class ClientConnectionTable {
             final TableColumn tc = new TableColumn(this.table, SWT.NONE);
             tc.setText(indDef.name);
         }
-
-        this.table.setHeaderVisible(true);
-        this.table.setLinesVisible(true);
 
         this.color1 = new Color(display, new RGB(0, 255, 0), 100);
         this.color2 = new Color(display, new RGB(249, 166, 2), 100);
@@ -126,26 +127,33 @@ public final class ClientConnectionTable {
     }
 
     public void updateGUI() {
+        boolean sort = false;
         for (final UpdatableTableItem uti : this.tableMapping.values()) {
             if (uti.tableItem == null) {
                 createTableItem(uti);
                 updateIndicatorValues(uti, false);
                 updateConnectionStatusColor(uti);
+                sort = true;
             } else {
                 if (uti.previous_connectionData == null || !uti.connectionData.clientConnection.status
                         .equals(uti.previous_connectionData.clientConnection.status)) {
                     uti.tableItem.setText(0, uti.getConnectionIdentifer());
                     uti.tableItem.setText(2, uti.getStatusName());
                     updateConnectionStatusColor(uti);
+                    sort = true;
                 }
                 if (uti.hasStatus(ConnectionStatus.ESTABLISHED)) {
-                    updateIndicatorValues(uti, true);
+                    sort = updateIndicatorValues(uti, true);
                 }
             }
             uti.tableItem.getDisplay();
         }
 
         adaptTableWidth();
+        if (sort) {
+            sortTable();
+        }
+        this.table.getParent().layout(true, true);
     }
 
     private void createTableItem(final UpdatableTableItem uti) {
@@ -153,21 +161,39 @@ public final class ClientConnectionTable {
         uti.tableItem.setText(0, uti.getConnectionIdentifer());
         uti.tableItem.setText(1, uti.getConnectionAddress());
         uti.tableItem.setText(2, uti.getStatusName());
+        uti.tableItem.setData("TABLE_ITEM_DATA", uti);
     }
 
     private void adaptTableWidth() {
         final Rectangle area = this.table.getParent().getClientArea();
         if (this.tableWidth != area.width) {
-            final int columnWidth = area.width / this.table.getColumnCount();
+            final int columnWidth = area.width / this.table.getColumnCount() - 5;
             for (final TableColumn column : this.table.getColumns()) {
                 column.setWidth(columnWidth);
             }
-            this.table.layout(true, true);
             this.tableWidth = area.width;
         }
+
+        // update table height
+        final GridData gridData = (GridData) this.table.getLayoutData();
+        gridData.heightHint = area.height - BOTTOM_PADDING;
     }
 
-    private void updateIndicatorValues(final UpdatableTableItem uti, final boolean established) {
+    private void sortTable() {
+        System.out.println("************** sortTable");
+//        final TableItem[] items = this.table.getItems();
+//        Arrays.sort(items, TABLE_COMPARATOR);
+//        for (final TableItem item : items) {
+//            final UpdatableTableItem uti = (UpdatableTableItem) item.getData("TABLE_ITEM_DATA");
+//            item.dispose();
+//            createTableItem(uti);
+//            updateIndicatorValues(uti, false);
+//            updateConnectionStatusColor(uti);
+//        }
+    }
+
+    private boolean updateIndicatorValues(final UpdatableTableItem uti, final boolean established) {
+        boolean sort = false;
         for (final IndicatorValue iv : uti.connectionData.indicatorValues) {
             final IndicatorData indicatorData = this.indicatorMapping.get(iv.getType());
             if (indicatorData != null) {
@@ -175,12 +201,16 @@ public final class ClientConnectionTable {
                     uti.tableItem.setText(indicatorData.index, "--");
                 } else {
                     uti.tableItem.setText(indicatorData.index, String.valueOf(iv.getValue()));
-                    uti.tableItem.setBackground(
-                            indicatorData.index,
-                            this.getColorForValue(indicatorData, iv.getValue()));
+                    final Color newColor = this.getColorForValue(indicatorData, iv.getValue());
+                    final Color background = uti.tableItem.getBackground(indicatorData.index);
+                    if (newColor != background) {
+                        uti.tableItem.setBackground(indicatorData.index, newColor);
+                        sort = true;
+                    }
                 }
             }
         }
+        return sort;
     }
 
     private void updateConnectionStatusColor(final UpdatableTableItem uti) {
@@ -212,6 +242,7 @@ public final class ClientConnectionTable {
 
     private static final class UpdatableTableItem {
 
+        @SuppressWarnings("unused")
         final Long connectionId;
         TableItem tableItem;
         ClientConnectionData previous_connectionData;
@@ -220,6 +251,10 @@ public final class ClientConnectionTable {
         private UpdatableTableItem(final Table parent, final Long connectionId) {
             this.tableItem = null;
             this.connectionId = connectionId;
+        }
+
+        public void update(final TableItem tableItem) {
+
         }
 
         public String getStatusName() {
@@ -260,6 +295,7 @@ public final class ClientConnectionTable {
 
     private static final class IndicatorData {
         final int index;
+        @SuppressWarnings("unused")
         final Indicator indicator;
         final ThresholdColor[] thresholdColor;
 
@@ -287,5 +323,22 @@ public final class ClientConnectionTable {
             this.color = new Color(display, rgb, 100);
         }
     }
+
+    private static final Comparator<TableItem> TABLE_COMPARATOR = new Comparator<>() {
+
+        @Override
+        public int compare(final TableItem o1, final TableItem o2) {
+            final String name1 = o1.getText(0);
+            final String name2 = o2.getText(0);
+            if (name1 != null) {
+                return name1.compareTo(name2);
+            } else if (name2 != null) {
+                return name2.compareTo(name1);
+            } else {
+                return -1;
+            }
+        }
+
+    };
 
 }

@@ -24,14 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -43,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
@@ -61,13 +60,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfigu
 @WebServiceProfile
 public class SebClientConfigServiceImpl implements SebClientConfigService {
 
-    private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
-    private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
-    private static final String WEB_SERVICE_SERVER_ADDRESS_KEY = "server.address";
-    private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
-    private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
-            "sebserver.webservice.api.exam.endpoint.discovery";
-
     private static final Logger log = LoggerFactory.getLogger(SebClientConfigServiceImpl.class);
 
     private final InstitutionDAO institutionDAO;
@@ -77,13 +69,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
     private final TokenStore tokenStore;
-    private final String httpScheme;
-    private final String serverAddress;
-    private final String serverName;
-    private final String serverPort;
-    private final String discoveryEndpoint;
-
-    private final String serverURLPrefix;
+    private final WebserviceInfo webserviceInfo;
 
     protected SebClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
@@ -93,7 +79,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
             final ZipService zipService,
             final TokenStore tokenStore,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
-            final Environment environment) {
+            final WebserviceInfo webserviceInfo) {
 
         this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -102,20 +88,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         this.zipService = zipService;
         this.clientPasswordEncoder = clientPasswordEncoder;
         this.tokenStore = tokenStore;
-
-        this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
-        this.serverAddress = environment.getRequiredProperty(WEB_SERVICE_SERVER_ADDRESS_KEY);
-        this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, "");
-        this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
-        this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
-
-        this.serverURLPrefix = UriComponentsBuilder.newInstance()
-                .scheme(this.httpScheme)
-                .host((StringUtils.isNotBlank(this.serverName))
-                        ? this.serverName
-                        : this.serverAddress)
-                .port(this.serverPort)
-                .toUriString();
+        this.webserviceInfo = webserviceInfo;
     }
 
     @Override
@@ -135,6 +108,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                     null,
                     institutionId,
                     institution.name + "_" + UUID.randomUUID(),
+                    null,
                     null,
                     null,
                     null,
@@ -175,25 +149,11 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         final SebClientConfig config = this.sebClientConfigDAO
                 .byModelId(modelId).getOrThrow();
 
-        final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
-                .getSebClientCredentials(config.getModelId())
-                .getOrThrow();
-
         final CharSequence encryptionPassword = this.sebClientConfigDAO
                 .getConfigPasswortCipher(config.getModelId())
                 .getOrThrow();
 
-        final CharSequence plainClientId = sebClientCredentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(sebClientCredentials);
-
-        final String plainTextConfig = String.format(
-                SEB_CLIENT_CONFIG_EXAMPLE_XML,
-                getServerURL(),
-                String.valueOf(config.institutionId),
-                plainClientId,
-                plainClientSecret,
-                this.getServerURL() + this.discoveryEndpoint);
+        final String plainTextConfig = getPlainXMLConfig(config);
 
         PipedOutputStream pOut = null;
         PipedInputStream pIn = null;
@@ -240,9 +200,48 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         }
     }
 
-    @Override
-    public String getServerURL() {
-        return this.serverURLPrefix;
+    public String getPlainXMLConfig(final SebClientConfig config) {
+
+        final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
+                .getSebClientCredentials(config.getModelId())
+                .getOrThrow();
+
+        final CharSequence plainClientId = sebClientCredentials.clientId;
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(sebClientCredentials);
+
+        final String plainTextConfig = extractXML(
+                config,
+                plainClientId,
+                plainClientSecret);
+
+        return plainTextConfig;
+    }
+
+    private String extractXML(final SebClientConfig config,
+            final CharSequence plainClientId,
+            final CharSequence plainClientSecret) {
+
+        final String plainTextConfig = String.format(
+                SEB_CLIENT_CONFIG_EXAMPLE_XML,
+                (StringUtils.isNotBlank(config.fallbackStartURL))
+                        ? "true"
+                        : "false",
+                (StringUtils.isNotBlank(config.fallbackStartURL))
+                        ? "    <key>startURL</key>\r\n" +
+                                "    <string>" + config.fallbackStartURL + "</string>\r\n"
+                        : "",
+                this.webserviceInfo.getServerURL(),
+                String.valueOf(config.institutionId),
+                plainClientId,
+                plainClientSecret,
+                this.webserviceInfo.getDiscoveryEndpointAddress());
+
+        if (log.isDebugEnabled()) {
+            log.debug("SEB client configuration export:\n {}", plainTextConfig);
+        }
+
+        return plainTextConfig;
     }
 
     @Override

@@ -137,14 +137,9 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                             sleepTime = 100;
                             this.transactionTemplate
                                     .execute(status -> {
-                                        events.stream()
-                                                .forEach(rec -> {
-                                                    if (rec.getId() == null) {
-                                                        clientEventMapper.insert(rec);
-                                                    } else {
-                                                        clientEventMapper.updateByPrimaryKeySelective(rec);
-                                                    }
-                                                });
+                                        events
+                                                .stream()
+                                                .forEach(clientEventMapper::insert);
                                         return null;
                                     });
                         } else {

@@ -40,18 +40,15 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
     private static final Logger log = LoggerFactory.getLogger(InstitutionalAuthenticationEntryPoint.class);
 
     private final String guiEntryPoint;
-    private final String guiRedirect;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactory clientHttpRequestFactory;
 
     protected InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
-            @Value("${sebserver.webservice.api.redirect.unauthorized}") final String guiRedirect,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactory clientHttpRequestFactory) {
 
         this.guiEntryPoint = guiEntryPoint;
-        this.guiRedirect = guiRedirect;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactory = clientHttpRequestFactory;
     }
@@ -77,7 +74,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         } else {
             request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.sendRedirect(this.guiRedirect);
+            response.sendRedirect(this.guiEntryPoint);
         }
     }
 

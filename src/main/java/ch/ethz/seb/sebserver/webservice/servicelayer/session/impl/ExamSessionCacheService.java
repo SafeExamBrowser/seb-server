@@ -10,18 +10,24 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
 
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -49,17 +55,20 @@ public class ExamSessionCacheService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final SebExamConfigService sebExamConfigService;
+    private final ClientEventRecordMapper clientEventRecordMapper;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientIndicatorFactory clientIndicatorFactory,
-            final SebExamConfigService sebExamConfigService) {
+            final SebExamConfigService sebExamConfigService,
+            final ClientEventRecordMapper clientEventRecordMapper) {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.sebExamConfigService = sebExamConfigService;
+        this.clientEventRecordMapper = clientEventRecordMapper;
     }
 
     @Cacheable(
@@ -83,6 +92,9 @@ public class ExamSessionCacheService {
             return null;
         }
 
+        // TODO: this is ev. a good point to trigger the LMS course restriction
+        //       for the exam with Config Key
+
         return exam;
     }
 
@@ -103,8 +115,8 @@ public class ExamSessionCacheService {
         if (exam == null) {
             return false;
         }
-        return ((exam.startTime.isEqualNow() || exam.startTime.isBeforeNow()) &&
-                exam.endTime.isAfterNow());
+
+        return exam.getStatus() == ExamStatus.RUNNING;
     }
 
     @Cacheable(
@@ -172,6 +184,7 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_PING_RECORD,
             key = "#connectionToken",
             unless = "#result == null")
+    @Transactional
     public ClientEventRecord getPingRecord(final String connectionToken) {
         if (log.isDebugEnabled()) {
             log.debug("Verify ClientConnection for ping record to cache by connectionToken: ", connectionToken);
@@ -181,10 +194,23 @@ public class ExamSessionCacheService {
         if (clientConnection == null) {
             return null;
         } else {
-            final ClientEventRecord clientEventRecord = new ClientEventRecord();
-            clientEventRecord.setConnectionId(clientConnection.id);
-            clientEventRecord.setType(EventType.LAST_PING.id);
-            return clientEventRecord;
+            try {
+                return this.clientEventRecordMapper.selectByExample()
+                        .where(
+                                ClientEventRecordDynamicSqlSupport.connectionId,
+                                SqlBuilder.isEqualTo(clientConnection.getId()))
+                        .and(
+                                ClientEventRecordDynamicSqlSupport.type,
+                                SqlBuilder.isEqualTo(EventType.LAST_PING.id))
+                        .build()
+                        .execute()
+                        .stream()
+                        .collect(Utils.toSingleton());
+
+            } catch (final Exception e) {
+                log.error("Unexpected error: ", e);
+                return null;
+            }
         }
     }
 

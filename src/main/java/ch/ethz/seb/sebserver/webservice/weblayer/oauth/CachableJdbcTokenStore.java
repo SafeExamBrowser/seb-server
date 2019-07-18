@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.sql.DataSource;
@@ -55,7 +56,9 @@ public class CachableJdbcTokenStore implements TokenStore {
             key = "#token",
             unless = "#result == null")
     public OAuth2Authentication readAuthentication(final OAuth2AccessToken token) {
-        System.out.println("********************* readAuthentication");
+        if (log.isDebugEnabled()) {
+            log.debug("Read authentication from persistent and cache if available");
+        }
 
         return this.jdbcTokenStore.readAuthentication(token);
     }
@@ -75,6 +78,10 @@ public class CachableJdbcTokenStore implements TokenStore {
             cacheNames = CACHE_NAME,
             key = "#token")
     public void removeAccessToken(final OAuth2AccessToken token) {
+        if (log.isDebugEnabled()) {
+            log.debug("Evict token from cache and remove it also from persistent store");
+        }
+
         this.jdbcTokenStore.removeAccessToken(token);
     }
 
@@ -113,11 +120,17 @@ public class CachableJdbcTokenStore implements TokenStore {
         return this.jdbcTokenStore.findTokensByClientId(clientId);
     }
 
+    /** Used do proper handle key generation on null-able authentication.
+     * If given OAuth2Authentication this returns null instead of throwing a
+     * NullPointerException. */
     private static final class KeyGenerator extends DefaultAuthenticationKeyGenerator {
 
         @Override
         public String extractKey(final OAuth2Authentication authentication) {
             if (authentication == null) {
+                log.warn("Given OAuth2Authentication is null. Should not happen. Stack is: {}",
+                        Arrays.toString(Thread.currentThread().getStackTrace()));
+
                 return null;
             }
             return super.extractKey(authentication);
