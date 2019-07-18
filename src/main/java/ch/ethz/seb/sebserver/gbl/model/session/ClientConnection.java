@@ -152,6 +152,30 @@ public final class ClientConnection implements GrantEntity {
         return true;
     }
 
+    public boolean dataEquals(final ClientConnection other) {
+        if (other == null) {
+            return true;
+        }
+        if (this.clientAddress == null) {
+            if (other.clientAddress != null)
+                return false;
+        } else if (!this.clientAddress.equals(other.clientAddress))
+            return false;
+        if (this.status != other.status)
+            return false;
+        if (this.userSessionId == null) {
+            if (other.userSessionId != null)
+                return false;
+        } else if (!this.userSessionId.equals(other.userSessionId))
+            return false;
+        if (this.virtualClientAddress == null) {
+            if (other.virtualClientAddress != null)
+                return false;
+        } else if (!this.virtualClientAddress.equals(other.virtualClientAddress))
+            return false;
+        return true;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

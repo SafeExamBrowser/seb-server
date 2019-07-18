@@ -9,18 +9,21 @@
 package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
 public class ClientConnectionData {
 
     @JsonProperty("clientConnection")
     public final ClientConnection clientConnection;
     @JsonProperty("indicatorValues")
-    public final Collection<? extends IndicatorValue> indicatorValues;
+    public final List<? extends IndicatorValue> indicatorValues;
 
     @JsonCreator
     protected ClientConnectionData(
@@ -28,7 +31,7 @@ public class ClientConnectionData {
             @JsonProperty("indicatorValues") final Collection<? extends SimpleIndicatorValue> indicatorValues) {
 
         this.clientConnection = clientConnection;
-        this.indicatorValues = indicatorValues;
+        this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
 
     protected ClientConnectionData(
@@ -36,7 +39,7 @@ public class ClientConnectionData {
             @JsonProperty("indicatorValues") final List<? extends IndicatorValue> indicatorValues) {
 
         this.clientConnection = clientConnection;
-        this.indicatorValues = indicatorValues;
+        this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
 
     @JsonIgnore
@@ -50,6 +53,28 @@ public class ClientConnectionData {
 
     public Collection<? extends IndicatorValue> getIndicatorValues() {
         return this.indicatorValues;
+    }
+
+    public boolean dataEquals(final ClientConnectionData other) {
+        if (!this.clientConnection.dataEquals(other.clientConnection)) {
+            return false;
+        }
+
+        if (this.indicatorValues.size() != other.indicatorValues.size()) {
+            return false;
+        }
+
+        final Iterator<? extends IndicatorValue> i1 = this.indicatorValues.iterator();
+        final Iterator<? extends IndicatorValue> i2 = other.indicatorValues.iterator();
+        while (i1.hasNext()) {
+            final IndicatorValue iv1 = i1.next();
+            final IndicatorValue iv2 = i2.next();
+            if (iv1.getType() != iv2.getType() || iv1.getValue() != iv2.getValue()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
