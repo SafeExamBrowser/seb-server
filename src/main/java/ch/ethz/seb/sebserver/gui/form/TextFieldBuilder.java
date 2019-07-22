@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -52,13 +53,15 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                     builder.valueLabel(builder.formParent, this.value, this.spanInput));
             builder.setFieldVisible(this.visible, this.name);
         } else {
-            final Text textInput = (this.isNumber)
-                    ? builder.widgetFactory.numberInput(builder.formParent, null)
-                    : (this.isArea)
-                            ? builder.widgetFactory.textAreaInput(builder.formParent)
-                            : builder.widgetFactory.textInput(builder.formParent, this.isPassword);
 
-            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
+            final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+            final Text textInput = (this.isNumber)
+                    ? builder.widgetFactory.numberInput(fieldGrid, null)
+                    : (this.isArea)
+                            ? builder.widgetFactory.textAreaInput(fieldGrid)
+                            : builder.widgetFactory.textInput(fieldGrid, this.isPassword);
+
+            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
             if (this.isArea) {
                 gridData.heightHint = 50;
             }
@@ -66,7 +69,9 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             if (this.value != null) {
                 textInput.setText(this.value);
             }
-            builder.form.putField(this.name, lab, textInput);
+
+            final Label errorLabel = Form.createErrorLabel(fieldGrid);
+            builder.form.putField(this.name, lab, textInput, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
         }
     }

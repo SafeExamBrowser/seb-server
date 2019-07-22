@@ -107,8 +107,10 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // User Account
-        // if current user has base or institutional read privilege for User Account, show list
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.USER)) {
+        // if current user has role seb-server admin or institutional-admin, show list
+        if (this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN) ||
+                this.currentUser.get().hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
+
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.USER_ACCOUNT.displayName);

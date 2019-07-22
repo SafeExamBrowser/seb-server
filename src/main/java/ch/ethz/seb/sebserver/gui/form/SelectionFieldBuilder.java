@@ -65,19 +65,23 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     }
 
     private void buildInput(final FormBuilder builder, final Label lab) {
+
+        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final String actionKey = (this.label != null) ? this.label.name + ".action" : null;
         final Selection selection = builder.widgetFactory.selectionLocalized(
                 this.type,
-                builder.formParent,
+                fieldGrid,
                 this.itemsSupplier,
                 null,
                 null,
                 actionKey);
 
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         ((Control) selection).setLayoutData(gridData);
         selection.select(this.value);
-        builder.form.putField(this.name, lab, selection);
+
+        final Label errorLabel = Form.createErrorLabel(fieldGrid);
+        builder.form.putField(this.name, lab, selection, errorLabel);
 
         if (this.selectionListener != null) {
             ((Control) selection).addListener(SWT.Selection, e -> {

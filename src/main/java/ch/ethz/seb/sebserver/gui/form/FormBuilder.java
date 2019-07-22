@@ -248,6 +248,7 @@ public class FormBuilder {
         final Label label = this.widgetFactory.labelLocalized(parent, locTextKey);
         final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
         gridData.verticalIndent = 4;
+        gridData.heightHint = 20;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
         return label;

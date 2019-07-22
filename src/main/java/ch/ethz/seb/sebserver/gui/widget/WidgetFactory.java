@@ -183,7 +183,7 @@ public class WidgetFactory {
         final Composite grid = new Composite(parent, SWT.NONE);
         final GridLayout layout = new GridLayout(rows, true);
         layout.horizontalSpacing = 10;
-        layout.verticalSpacing = 10;
+        //layout.verticalSpacing = 10;
         layout.marginBottom = 50;
         layout.marginLeft = 10;
         layout.marginTop = 0;
@@ -534,7 +534,12 @@ public class WidgetFactory {
             final LocTextKey locTextKey,
             final boolean readonly) {
 
-        final ImageUpload imageUpload = new ImageUpload(parent, this.serverPushService, readonly);
+        final ImageUpload imageUpload = new ImageUpload(
+                parent,
+                this.serverPushService,
+                this.i18nSupport,
+                readonly);
+
         this.polyglotPageService.injectI18n(imageUpload, locTextKey);
         return imageUpload;
     }

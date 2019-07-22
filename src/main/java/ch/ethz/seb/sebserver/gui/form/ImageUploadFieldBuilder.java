@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -23,15 +24,19 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
+
+        final Label lab = builder.labelLocalized(builder.formParent, this.label, 1);
+        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final ImageUpload imageUpload = builder.widgetFactory.imageUploadLocalized(
-                builder.formParent,
+                fieldGrid,
                 new LocTextKey("sebserver.overall.upload"),
                 builder.readonly || this.readonly);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);
-        builder.form.putField(this.name, lab, imageUpload);
+
+        final Label errorLabel = Form.createErrorLabel(fieldGrid);
+        builder.form.putField(this.name, lab, imageUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
     }
 

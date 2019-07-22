@@ -20,6 +20,10 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -39,6 +43,7 @@ import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class Form implements FormBinding {
 
@@ -112,35 +117,28 @@ public final class Form implements FormBinding {
         return !this.formFields.isEmpty();
     }
 
-    public Form putField(final String name, final Label label, final Label field) {
+    Form putField(final String name, final Label label, final Label field) {
         this.formFields.add(name, createAccessor(label, field));
         return this;
     }
 
-    public Form putField(final String name, final Label label, final Text field) {
-        this.formFields.add(name, createAccessor(label, field));
+    Form putField(final String name, final Label label, final Text field, final Label errorLabel) {
+        this.formFields.add(name, createAccessor(label, field, errorLabel));
         return this;
     }
 
-    public void putField(final String name, final Label label, final Selection field) {
-        this.formFields.add(name, createAccessor(label, field));
+    void putField(final String name, final Label label, final Selection field, final Label errorLabel) {
+        this.formFields.add(name, createAccessor(label, field, errorLabel));
     }
 
-    public void putField(final String name, final Label label, final ThresholdList field) {
-        this.formFields.add(name, createAccessor(label, field));
+    void putField(final String name, final Label label, final ThresholdList field, final Label errorLabel) {
+        this.formFields.add(name, createAccessor(label, field, errorLabel));
     }
 
-    public void putField(
-            final String name,
-            final Label label,
-            final Selection field,
-            final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
-
-        this.formFields.add(name, createAccessor(label, field, jsonValueAdapter));
-    }
-
-    public void putField(final String name, final Label label, final ImageUpload imageUpload) {
-        this.formFields.add(name, createAccessor(label, imageUpload));
+    void putField(final String name, final Label label, final ImageUpload imageUpload, final Label errorLabel) {
+        final FormFieldAccessor createAccessor = createAccessor(label, imageUpload, errorLabel);
+        imageUpload.setErrorHandler(createAccessor::setError);
+        this.formFields.add(name, createAccessor);
     }
 
     public String getFieldValue(final String attributeName) {
@@ -224,41 +222,43 @@ public final class Form implements FormBinding {
     // following are FormFieldAccessor implementations for all field types
     //@formatter:off
     private FormFieldAccessor createAccessor(final Label label, final Label field) {
-        return new FormFieldAccessor(label, field) {
+        return new FormFieldAccessor(label, field, null) {
             @Override public String getStringValue() { return null; }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final Text text) {
-        return new FormFieldAccessor(label, text) {
+    private FormFieldAccessor createAccessor(final Label label, final Text text, final Label errorLabel) {
+        return new FormFieldAccessor(label, text, errorLabel) {
             @Override public String getStringValue() { return text.getText(); }
             @Override public void setStringValue(final String value) { text.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final Selection selection) {
+    private FormFieldAccessor createAccessor(final Label label, final Selection selection, final Label errorLabel) {
         switch (selection.type()) {
             case MULTI:
             case MULTI_COMBO:
-                return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray);
-            default : return createAccessor(label, selection, null);
+                return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray, errorLabel);
+            default : return createAccessor(label, selection, null, null);
         }
     }
     private FormFieldAccessor createAccessor(
             final Label label,
             final Selection selection,
-            final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter) {
+            final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter,
+            final Label errorLabel) {
 
         return new FormFieldAccessor(
                 label,
                 selection.adaptToControl(),
                 jsonValueAdapter,
-                selection.type() != Type.SINGLE) {
+                selection.type() != Type.SINGLE,
+                errorLabel) {
             @Override public String getStringValue() { return selection.getSelectionValue(); }
             @Override public void setStringValue(final String value) { selection.select(value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList) {
-        return new FormFieldAccessor(label, thresholdList, null, true) {
+    private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList, final Label errorLabel) {
+        return new FormFieldAccessor(label, thresholdList, null, true, errorLabel) {
             @Override public String getStringValue() {
                 return ThresholdListBuilder
                         .thresholdsToFormURLEncodedStringValue(thresholdList.getThresholds());
@@ -275,8 +275,8 @@ public final class Form implements FormBinding {
             }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload) {
-        return new FormFieldAccessor(label, imageUpload) {
+    private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload, final Label errorLabel) {
+        return new FormFieldAccessor(label, imageUpload, errorLabel) {
             @Override public String getStringValue() { return imageUpload.getImageBase64(); }
         };
     }
@@ -347,22 +347,25 @@ public final class Form implements FormBinding {
 
         public final Label label;
         public final Control control;
+        private final Label errorLabel;
         private final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter;
         private boolean hasError;
         private final boolean listValue;
 
-        FormFieldAccessor(final Label label, final Control control) {
-            this(label, control, null, false);
+        FormFieldAccessor(final Label label, final Control control, final Label errorLabel) {
+            this(label, control, null, false, errorLabel);
         }
 
         FormFieldAccessor(
                 final Label label,
                 final Control control,
                 final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter,
-                final boolean listValue) {
+                final boolean listValue,
+                final Label errorLabel) {
 
             this.label = label;
             this.control = control;
+            this.errorLabel = errorLabel;
             if (jsonValueAdapter != null) {
                 this.jsonValueAdapter = jsonValueAdapter;
             } else {
@@ -390,21 +393,51 @@ public final class Form implements FormBinding {
             this.jsonValueAdapter.accept(new Tuple<>(key, getStringValue()), objectRoot);
         }
 
-        public void setError(final String errorTooltip) {
+        public void setError(final String errorMessage) {
+            if (this.errorLabel == null) {
+                return;
+            }
+
             if (!this.hasError) {
-                this.control.setData(RWT.CUSTOM_VARIANT, "error");
-                this.control.setToolTipText(errorTooltip);
-                this.hasError = true;
+                this.errorLabel.setText(errorMessage);
+                this.errorLabel.setVisible(true);
             }
         }
 
         public void resetError() {
+            if (this.errorLabel == null) {
+                return;
+            }
+
             if (this.hasError) {
-                this.control.setData(RWT.CUSTOM_VARIANT, null);
-                this.control.setToolTipText(null);
-                this.hasError = false;
+                this.errorLabel.setVisible(false);
+                this.errorLabel.setText("");
             }
         }
+    }
+
+    public static Composite createFieldGrid(final Composite parent, final int hspan) {
+        final Composite fieldGrid = new Composite(parent, SWT.NONE);
+        final GridLayout gridLayout = new GridLayout();
+        gridLayout.verticalSpacing = 0;
+        gridLayout.marginHeight = 1;
+        gridLayout.marginWidth = 0;
+        gridLayout.marginRight = 5;
+        fieldGrid.setLayout(gridLayout);
+
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        gridData.horizontalSpan = hspan;
+        fieldGrid.setLayoutData(gridData);
+
+        return fieldGrid;
+    }
+
+    public static Label createErrorLabel(final Composite innerGrid) {
+        final Label errorLabel = new Label(innerGrid, SWT.NONE);
+        errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        errorLabel.setVisible(false);
+        errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
+        return errorLabel;
     }
 
 }

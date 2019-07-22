@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -39,13 +40,17 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
             // TODO do we need a read-only view for this?
             return;
         } else {
+
+            final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
             final ThresholdList thresholdList = builder.widgetFactory.thresholdList(
-                    builder.formParent,
+                    fieldGrid,
                     this.value);
 
-            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1);
+            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
             thresholdList.setLayoutData(gridData);
-            builder.form.putField(this.name, lab, thresholdList);
+
+            final Label errorLabel = Form.createErrorLabel(fieldGrid);
+            builder.form.putField(this.name, lab, thresholdList, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
         }
 

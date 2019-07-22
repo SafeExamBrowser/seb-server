@@ -146,8 +146,4 @@ public class ClientEventController extends EntityController<ClientEvent, ClientE
                 EntityType.CLIENT_EVENT);
     }
 
-    private void noModifyAccess() {
-
-    }
-
 }

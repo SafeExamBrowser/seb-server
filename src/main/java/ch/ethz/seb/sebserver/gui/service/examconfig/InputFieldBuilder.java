@@ -9,18 +9,15 @@
 package ch.ethz.seb.sebserver.gui.service.examconfig;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.InputFieldBuilderSupplier;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public interface InputFieldBuilder {
 
@@ -82,14 +79,6 @@ public interface InputFieldBuilder {
         return attribute.parentId == null || BooleanUtils.toBoolean(ConfigurationAttribute.getDependencyValue(
                 ConfigurationAttribute.DEPENDENCY_SHOW_IN_VIEW,
                 attribute));
-    }
-
-    static Label createErrorLabel(final Composite innerGrid) {
-        final Label errorLabel = new Label(innerGrid, SWT.NONE);
-        errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-        errorLabel.setVisible(false);
-        errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
-        return errorLabel;
     }
 
 }

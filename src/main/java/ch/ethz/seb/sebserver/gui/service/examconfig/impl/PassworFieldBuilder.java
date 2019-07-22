@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -77,7 +78,7 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 orientation,
                 passwordInput,
                 confirmInput,
-                InputFieldBuilder.createErrorLabel(innerGrid));
+                Form.createErrorLabel(innerGrid));
 
         final Listener valueChangeEventListener = event -> {
             passwordInputField.clearError();
