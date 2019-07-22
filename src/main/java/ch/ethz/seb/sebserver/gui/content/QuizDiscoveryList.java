@@ -189,6 +189,7 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {
+        action.getSingleSelection();
         final QuizData selectedROWData = table.getSelectedROWData();
 
         if (selectedROWData.startTime != null) {
