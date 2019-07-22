@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 
 @Lazy
@@ -21,19 +22,24 @@ public class PingHandlingStrategyFactory {
 
     private final SingleServerPingHandler singleServerPingHandler;
     private final DistributedServerPingHandler distributedServerPingHandler;
+    private final WebserviceInfo webserviceInfo;
 
     protected PingHandlingStrategyFactory(
             final SingleServerPingHandler singleServerPingHandler,
-            final DistributedServerPingHandler distributedServerPingHandler) {
+            final DistributedServerPingHandler distributedServerPingHandler,
+            final WebserviceInfo webserviceInfo) {
 
         this.singleServerPingHandler = singleServerPingHandler;
         this.distributedServerPingHandler = distributedServerPingHandler;
+        this.webserviceInfo = webserviceInfo;
     }
 
     public PingHandlingStrategy get() {
-        // NOTE not returns always DistributedServerPingHandler for testing
-        // TODO: serve in case of distribution or single state
-        return this.distributedServerPingHandler;
+        if (this.webserviceInfo.isDistributed()) {
+            return this.distributedServerPingHandler;
+        } else {
+            return this.singleServerPingHandler;
+        }
     }
 
 }

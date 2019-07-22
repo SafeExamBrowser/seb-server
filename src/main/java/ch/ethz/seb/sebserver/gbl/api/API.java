@@ -61,6 +61,8 @@ public final class API {
 
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
 
+    public static final String SEB_CLIENT_EVENT_ENDPOINT = "/seb-client-event";
+
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
@@ -108,6 +110,7 @@ public final class API {
     public static final String EXAM_API_PARAM_EXAM_ID = "examId";
 
     public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
+    public static final String EXAM_API_SEB_CONNECTION_TOKEN_PATH = "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
 
     public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
 

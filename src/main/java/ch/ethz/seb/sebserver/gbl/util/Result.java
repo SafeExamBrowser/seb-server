@@ -164,6 +164,13 @@ public final class Result<T> {
         return this.error != null;
     }
 
+    /** Indicates whether this Result refers to a value or not.
+     *
+     * @return true if this Result refers to a value (not null) and has no error */
+    public boolean hasValue() {
+        return this.value != null && this.error == null;
+    }
+
     /** If a value is present, performs the given action with the value,
      * otherwise performs the given empty-based action.
      *

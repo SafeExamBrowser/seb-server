@@ -230,4 +230,26 @@ public interface AuthorizationService {
         return check(PrivilegeType.WRITE, grantEntity);
     }
 
+    /** Checks if the current user has a specified role.
+     * If not a PermissionDeniedException is thrown for the given EntityType
+     *
+     * @param role The UserRole to check
+     * @param institution the institution identifier
+     * @param type EntityType for PermissionDeniedException
+     * @throws PermissionDeniedException if current user don't have the specified UserRole */
+    default void checkRole(final UserRole role, final Long institution, final EntityType type) {
+        final SEBServerUser currentUser = this
+                .getUserService()
+                .getCurrentUser();
+
+        if (!currentUser.institutionId().equals(institution) ||
+                !currentUser.getUserRoles().contains(role)) {
+
+            throw new PermissionDeniedException(
+                    type,
+                    PrivilegeType.READ,
+                    currentUser.getUserInfo().uuid);
+        }
+    }
+
 }

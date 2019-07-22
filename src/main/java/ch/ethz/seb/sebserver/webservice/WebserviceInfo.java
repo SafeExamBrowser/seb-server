@@ -11,12 +11,14 @@ package ch.ethz.seb.sebserver.webservice;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Lazy
@@ -39,6 +41,8 @@ public class WebserviceInfo {
 
     private final String serverURLPrefix;
 
+    private final boolean isDistributed;
+
     public WebserviceInfo(final Environment environment) {
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.hostAddress = environment.getRequiredProperty(WEB_SERVICE_HOST_ADDRESS_KEY);
@@ -53,6 +57,10 @@ public class WebserviceInfo {
                         : this.hostAddress)
                 .port(this.serverPort)
                 .toUriString();
+
+        this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.webservice.distributed",
+                Constants.FALSE_STRING));
     }
 
     public String getHttpScheme() {
@@ -111,6 +119,10 @@ public class WebserviceInfo {
      * @return the server URL prefix */
     public String getServerURL() {
         return this.serverURLPrefix;
+    }
+
+    public boolean isDistributed() {
+        return this.isDistributed;
     }
 
     @Override

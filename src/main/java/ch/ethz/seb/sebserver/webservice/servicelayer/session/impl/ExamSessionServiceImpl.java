@@ -92,8 +92,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
         return this.examDAO.allIdsOfInstituion(institutionId)
                 .map(col -> col.stream()
-                        .map(examId -> this.examSessionCacheService.getRunningExam(examId))
-                        .filter(exam -> exam != null)
+                        .map(this::getRunningExam)
+                        .filter(Result::hasValue)
+                        .map(Result::get)
                         .collect(Collectors.toList()));
     }
 
@@ -186,17 +187,21 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     private void flushCache(final Exam exam) {
-        this.examSessionCacheService.evict(exam);
-        this.examSessionCacheService.evictDefaultSebConfig(exam.id);
-        this.clientConnectionDAO
-                .getConnectionTokens(exam.id)
-                .getOrElse(() -> Collections.emptyList())
-                .forEach(token -> {
-                    // evict client connection
-                    this.examSessionCacheService.evictClientConnection(token);
-                    // evict also cached ping record
-                    this.examSessionCacheService.evictPingRecord(token);
-                });
+        try {
+            this.examSessionCacheService.evict(exam);
+            this.examSessionCacheService.evictDefaultSebConfig(exam.id);
+            this.clientConnectionDAO
+                    .getConnectionTokens(exam.id)
+                    .getOrElse(() -> Collections.emptyList())
+                    .forEach(token -> {
+                        // evict client connection
+                        this.examSessionCacheService.evictClientConnection(token);
+                        // evict also cached ping record
+                        this.examSessionCacheService.evictPingRecord(token);
+                    });
+        } catch (Exception e) {
+            log.error("Unexpected error while trying to flush cache for exam: ", exam, e);
+        }
     }
 
 }

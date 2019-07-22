@@ -66,6 +66,11 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
 
     @Override
     public void initForConnection(final Long connectionId, final String connectionToken) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Intitalize distributed ping handler for connection: {}", connectionId);
+        }
+
         final ClientEventRecord clientEventRecord = new ClientEventRecord();
         clientEventRecord.setConnectionId(connectionId);
         clientEventRecord.setType(EventType.LAST_PING.id);

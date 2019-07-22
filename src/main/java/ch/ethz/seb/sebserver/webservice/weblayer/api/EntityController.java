@@ -323,12 +323,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
-    protected void checkReadPrivilege() {
-        this.authorization.check(
-                PrivilegeType.READ,
-                getGrantEntityType());
-    }
-
     protected void checkReadPrivilege(final Long institutionId) {
         this.authorization.check(
                 PrivilegeType.READ,

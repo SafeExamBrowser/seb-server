@@ -33,9 +33,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -70,10 +68,6 @@ public class ExamMonitoringController {
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
 
-    // ******************
-    // * GET (getAll)
-    // ******************
-
     /** Get a page of all currently running exams
      *
      * GET /{api}/{entity-type-endpoint-name}
@@ -105,17 +99,10 @@ public class ExamMonitoringController {
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
-        // check if user has EXAM_SUPPORTER privilege.
-        final SEBServerUser currentUser = this.authorization
-                .getUserService()
-                .getCurrentUser();
-
-        if (!currentUser.getUserRoles().contains(UserRole.EXAM_SUPPORTER)) {
-            throw new PermissionDeniedException(
-                    EntityType.EXAM,
-                    PrivilegeType.READ,
-                    currentUser.getUserInfo().uuid);
-        }
+        this.authorization.checkRole(
+                UserRole.EXAM_SUPPORTER,
+                institutionId,
+                EntityType.EXAM);
 
         final FilterMap filterMap = new FilterMap(allRequestParams);
 
@@ -142,22 +129,42 @@ public class ExamMonitoringController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<ClientConnectionData> getConnectionData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
 
-        // check if user has EXAM_SUPPORTER privilege.
-        final SEBServerUser currentUser = this.authorization
-                .getUserService()
-                .getCurrentUser();
-
-        if (!currentUser.getUserRoles().contains(UserRole.EXAM_SUPPORTER)) {
-            throw new PermissionDeniedException(
-                    EntityType.EXAM,
-                    PrivilegeType.READ,
-                    currentUser.getUserInfo().uuid);
-        }
+        this.authorization.checkRole(
+                UserRole.EXAM_SUPPORTER,
+                institutionId,
+                EntityType.EXAM);
 
         return this.examSessionService
                 .getConnectionData(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_API_SEB_CONNECTION_TOKEN_PATH,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ClientConnectionData getConnectionDataForSingleConnection(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        this.authorization.checkRole(
+                UserRole.EXAM_SUPPORTER,
+                institutionId,
+                EntityType.EXAM);
+
+        return this.examSessionService
+                .getConnectionData(connectionToken)
                 .getOrThrow();
     }
 
