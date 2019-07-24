@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gui.content.InstitutionForm;
 import ch.ethz.seb.sebserver.gui.content.InstitutionList;
 import ch.ethz.seb.sebserver.gui.content.LmsSetupForm;
 import ch.ethz.seb.sebserver.gui.content.LmsSetupList;
+import ch.ethz.seb.sebserver.gui.content.MonitoringClientConnection;
 import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExam;
 import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
 import ch.ethz.seb.sebserver.gui.content.QuizDiscoveryList;
@@ -65,7 +66,8 @@ public enum PageStateDefinition implements PageState {
     SEB_EXAM_CONFIG_EDIT(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
 
     MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
-    MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS)
+    MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS),
+    MONITORING_CLIENT_CONNECTION(Type.FORM_VIEW, MonitoringClientConnection.class, ActivityDefinition.MONITORING_EXAMS)
 
     ;
 

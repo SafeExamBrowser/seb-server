@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -159,6 +160,15 @@ public final class Form implements FormBinding {
         fieldAccessor.setStringValue(attributeValue);
     }
 
+    public void setFieldColor(final String attributeName, final Color color) {
+        final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
+        if (fieldAccessor == null) {
+            return;
+        }
+
+        fieldAccessor.setBackgroundColor(color);
+    }
+
     public void allVisible() {
         process(
                 Utils.truePredicate(),
@@ -204,6 +214,7 @@ public final class Form implements FormBinding {
     }
 
     private void flush() {
+        this.objectRoot.removeAll();
         for (final Map.Entry<String, String> entry : this.staticValues.entrySet()) {
             final String value = entry.getValue();
             if (StringUtils.isNotBlank(value)) {
@@ -229,7 +240,7 @@ public final class Form implements FormBinding {
     }
     private FormFieldAccessor createAccessor(final Label label, final Text text, final Label errorLabel) {
         return new FormFieldAccessor(label, text, errorLabel) {
-            @Override public String getStringValue() { return text.getText(); }
+            @Override public String getStringValue() {return text.getText();}
             @Override public void setStringValue(final String value) { text.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
@@ -378,14 +389,22 @@ public final class Form implements FormBinding {
             this.listValue = listValue;
         }
 
-        public abstract String getStringValue();
+        abstract String getStringValue();
 
         public void setStringValue(final String value) {
             throw new UnsupportedOperationException();
         }
 
+        public void setBackgroundColor(final Color color) {
+            if (this.control != null) {
+                this.control.setBackground(color);
+            }
+        }
+
         public void setVisible(final boolean visible) {
-            this.label.setVisible(visible);
+            if (this.label != null) {
+                this.label.setVisible(visible);
+            }
             this.control.setVisible(visible);
         }
 
@@ -399,8 +418,10 @@ public final class Form implements FormBinding {
             }
 
             if (!this.hasError) {
-                this.errorLabel.setText(errorMessage);
+                this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
+                this.errorLabel.setText("- " + errorMessage);
                 this.errorLabel.setVisible(true);
+                this.hasError = true;
             }
         }
 
@@ -410,8 +431,10 @@ public final class Form implements FormBinding {
             }
 
             if (this.hasError) {
+                this.control.setData(RWT.CUSTOM_VARIANT, null);
                 this.errorLabel.setVisible(false);
-                this.errorLabel.setText("");
+                this.errorLabel.setText(StringUtils.EMPTY);
+                this.hasError = false;
             }
         }
     }
@@ -420,9 +443,9 @@ public final class Form implements FormBinding {
         final Composite fieldGrid = new Composite(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout();
         gridLayout.verticalSpacing = 0;
-        gridLayout.marginHeight = 1;
+        gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
-        gridLayout.marginRight = 5;
+        gridLayout.marginRight = 0;
         fieldGrid.setLayout(gridLayout);
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -434,7 +457,8 @@ public final class Form implements FormBinding {
 
     public static Label createErrorLabel(final Composite innerGrid) {
         final Label errorLabel = new Label(innerGrid, SWT.NONE);
-        errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        errorLabel.setLayoutData(gridData);
         errorLabel.setVisible(false);
         errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
         return errorLabel;

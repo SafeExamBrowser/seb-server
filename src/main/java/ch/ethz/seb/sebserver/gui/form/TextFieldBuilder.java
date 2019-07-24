@@ -47,10 +47,15 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             return;
         }
 
-        final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
+        final Label lab = builder.labelLocalized(
+                builder.formParent,
+                this.label,
+                this.defaultLabel,
+                this.spanLabel);
+
         if (builder.readonly || this.readonly) {
             builder.form.putField(this.name, lab,
-                    builder.valueLabel(builder.formParent, this.value, this.spanInput));
+                    builder.valueLabel(builder.formParent, this.value, this.spanInput, this.centeredInput));
             builder.setFieldVisible(this.visible, this.name);
         } else {
 

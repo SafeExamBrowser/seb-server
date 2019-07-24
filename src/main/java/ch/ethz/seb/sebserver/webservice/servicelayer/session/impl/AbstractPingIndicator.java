@@ -48,10 +48,10 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         } else {
 
             final Long lastPing =
-                    this.clientEventExtentionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.timestamp)
+                    this.clientEventExtentionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
                             .where(ClientEventRecordDynamicSqlSupport.connectionId, isEqualTo(this.connectionId))
                             .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
-                            .and(ClientEventRecordDynamicSqlSupport.timestamp, isLessThan(timestamp))
+                            .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                             .build()
                             .execute();
 

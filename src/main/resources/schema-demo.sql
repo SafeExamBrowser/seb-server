@@ -109,9 +109,10 @@ CREATE TABLE IF NOT EXISTS `client_event` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `connection_id` BIGINT UNSIGNED NOT NULL,
   `type` INT(2) UNSIGNED NOT NULL,
-  `timestamp` BIGINT UNSIGNED NOT NULL,
+  `client_time` BIGINT UNSIGNED NOT NULL,
+  `server_time` BIGINT NOT NULL,
   `numeric_value` DECIMAL(10,4) NULL,
-  `text` VARCHAR(255) NULL,
+  `text` VARCHAR(512) NULL,
   PRIMARY KEY (`id`),
   INDEX `eventConnectionRef_idx` (`connection_id` ASC),
   CONSTRAINT `eventConnectionRef`

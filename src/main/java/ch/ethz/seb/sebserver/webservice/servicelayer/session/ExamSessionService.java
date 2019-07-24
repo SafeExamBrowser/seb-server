@@ -63,7 +63,7 @@ public interface ExamSessionService {
      * on the particular server instance.
      *
      * @param connectionToken the connection token of the active SEB client connection
-     * @return */
+     * @return Result refer to the ClientConnectionData instance or to an error if happened */
     Result<ClientConnectionData> getConnectionData(String connectionToken);
 
     /** Get the collection of ClientConnectionData of all active SEB client connections

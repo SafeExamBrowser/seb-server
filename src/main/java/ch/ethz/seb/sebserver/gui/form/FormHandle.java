@@ -58,6 +58,10 @@ public class FormHandle<T extends Entity> {
         return this.form;
     }
 
+    public Form getForm() {
+        return this.form;
+    }
+
     /** Process an API post request to send and save the form field values
      * to the webservice and publishes a page event to return to read-only-view
      * to indicate that the data was successfully saved or process an validation

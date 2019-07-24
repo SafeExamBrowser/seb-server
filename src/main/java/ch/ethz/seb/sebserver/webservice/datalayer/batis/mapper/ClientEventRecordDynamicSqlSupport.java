@@ -7,28 +7,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientEventRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.976+02:00", comments="Source Table: client_event")
     public static final ClientEventRecord clientEventRecord = new ClientEventRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.977+02:00", comments="Source field: client_event.id")
     public static final SqlColumn<Long> id = clientEventRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.977+02:00", comments="Source field: client_event.connection_id")
     public static final SqlColumn<Long> connectionId = clientEventRecord.connectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.978+02:00", comments="Source field: client_event.type")
     public static final SqlColumn<Integer> type = clientEventRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.timestamp")
-    public static final SqlColumn<Long> timestamp = clientEventRecord.timestamp;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.978+02:00", comments="Source field: client_event.client_time")
+    public static final SqlColumn<Long> clientTime = clientEventRecord.clientTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.numeric_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.978+02:00", comments="Source field: client_event.server_time")
+    public static final SqlColumn<Long> serverTime = clientEventRecord.serverTime;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.978+02:00", comments="Source field: client_event.numeric_value")
     public static final SqlColumn<BigDecimal> numericValue = clientEventRecord.numericValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source field: client_event.text")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.978+02:00", comments="Source field: client_event.text")
     public static final SqlColumn<String> text = clientEventRecord.text;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-18T10:59:08.652+02:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.976+02:00", comments="Source Table: client_event")
     public static final class ClientEventRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -36,7 +39,9 @@ public final class ClientEventRecordDynamicSqlSupport {
 
         public final SqlColumn<Integer> type = column("type", JDBCType.INTEGER);
 
-        public final SqlColumn<Long> timestamp = column("timestamp", JDBCType.BIGINT);
+        public final SqlColumn<Long> clientTime = column("client_time", JDBCType.BIGINT);
+
+        public final SqlColumn<Long> serverTime = column("server_time", JDBCType.BIGINT);
 
         public final SqlColumn<BigDecimal> numericValue = column("numeric_value", JDBCType.DECIMAL);
 

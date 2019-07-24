@@ -25,7 +25,12 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
 
-        final Label lab = builder.labelLocalized(builder.formParent, this.label, 1);
+        final Label lab = builder.labelLocalized(
+                builder.formParent,
+                this.label,
+                this.defaultLabel,
+                1);
+
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final ImageUpload imageUpload = builder.widgetFactory.imageUploadLocalized(
                 fieldGrid,

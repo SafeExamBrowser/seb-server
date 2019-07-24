@@ -28,6 +28,15 @@ public class ServerPushService {
 
     public void runServerPush(
             final ServerPushContext context,
+            final long intervalPause,
+            final Consumer<ServerPushContext> update) {
+
+        this.runServerPush(context, intervalPause, null, update);
+    }
+
+    public void runServerPush(
+            final ServerPushContext context,
+            final long intervalPause,
             final Consumer<ServerPushContext> business,
             final Consumer<ServerPushContext> update) {
 
@@ -38,14 +47,24 @@ public class ServerPushService {
             while (!context.isDisposed() && context.runAgain()) {
 
                 try {
-                    log.trace("Call business on Server Push Session on: {}", Thread.currentThread().getName());
-                    business.accept(context);
+                    Thread.sleep(intervalPause);
                 } catch (final Exception e) {
-                    log.error("Unexpected error while do business for server push service", e);
-                    if (context.runAgain()) {
-                        continue;
-                    } else {
-                        return;
+                    if (log.isDebugEnabled()) {
+                        log.debug("unexpected error while sleep: ", e);
+                    }
+                }
+
+                if (business != null) {
+                    try {
+                        log.trace("Call business on Server Push Session on: {}", Thread.currentThread().getName());
+                        business.accept(context);
+                    } catch (final Exception e) {
+                        log.error("Unexpected error while do business for server push service", e);
+                        if (context.runAgain()) {
+                            continue;
+                        } else {
+                            return;
+                        }
                     }
                 }
 

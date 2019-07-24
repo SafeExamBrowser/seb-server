@@ -31,15 +31,57 @@ public final class API {
     public static final String OAUTH_ENDPOINT = "/oauth";
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token"; // TODO to config properties?
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token"; // TODO to config properties?
+
     public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + "/me";
+    public static final String SELF_PATH_SEGMENT = "/self";
 
     public static final String INFO_ENDPOINT = "/info";
-
     public static final String LOGO_PATH_SEGMENT = "/logo";
     public static final String INSTITUTIONAL_LOGO_PATH = LOGO_PATH_SEGMENT + "/{urlSuffix}";
 
+    public static final String NAMES_PATH_SEGMENT = "/names";
+
+    public static final String LIST_PATH_SEGMENT = "/list";
+
+    public static final String ACTIVE_PATH_SEGMENT = "/active";
+
+    public static final String INACTIVE_PATH_SEGMENT = "/inactive";
+
+    public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";
+
+    public static final String PASSWORD_PATH_SEGMENT = "/password";
+
+    public static final String PATH_VAR_ACTIVE = MODEL_ID_VAR_PATH_SEGMENT + ACTIVE_PATH_SEGMENT;
+    public static final String PATH_VAR_INACTIVE = MODEL_ID_VAR_PATH_SEGMENT + INACTIVE_PATH_SEGMENT;
+
     public static final String PRIVILEGES_PATH_SEGMENT = "/privileges";
     public static final String PRIVILEGES_ENDPOINT = INFO_ENDPOINT + PRIVILEGES_PATH_SEGMENT;
+
+    // *************************
+    // ** SEB Client API
+    // *************************
+
+    public static final String EXAM_API_PARAM_EXAM_ID = "examId";
+
+    public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
+
+    public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
+
+    public static final String EXAM_API_HANDSHAKE_ENDPOINT = "/handshake";
+
+    public static final String EXAM_API_CONFIGURATION_REQUEST_ENDPOINT = "/examconfig";
+
+    public static final String EXAM_API_PING_ENDPOINT = "/sebping";
+
+    public static final String EXAM_API_PING_TIMESTAMP = "timestamp";
+
+    public static final String EXAM_API_PING_NUMBER = "ping-number";
+
+    public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
+
+    // *************************
+    // ** Domain Object API
+    // *************************
 
     public static final String INSTITUTION_ENDPOINT = "/institution";
 
@@ -58,10 +100,6 @@ public final class API {
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
-
-    public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
-
-    public static final String SEB_CLIENT_EVENT_ENDPOINT = "/seb-client-event";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
@@ -86,44 +124,12 @@ public final class API {
 
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";
 
-    public static final String SELF_PATH_SEGMENT = "/self";
+    public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
+    public static final String EXAM_MONITORING_EXAM_ID_PATH_SEGMENT =
+            "/{" + EXAM_API_PARAM_EXAM_ID + "}";
+    public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
+            "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
 
-    public static final String NAMES_PATH_SEGMENT = "/names";
-
-    public static final String LIST_PATH_SEGMENT = "/list";
-
-    public static final String ACTIVE_PATH_SEGMENT = "/active";
-
-    public static final String INACTIVE_PATH_SEGMENT = "/inactive";
-
-    public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";
-
-    public static final String PASSWORD_PATH_SEGMENT = "/password";
-
-    public static final String PATH_VAR_ACTIVE = MODEL_ID_VAR_PATH_SEGMENT + ACTIVE_PATH_SEGMENT;
-    public static final String PATH_VAR_INACTIVE = MODEL_ID_VAR_PATH_SEGMENT + INACTIVE_PATH_SEGMENT;
-
-    // *************************
-    // ** Exam API
-    // *************************
-
-    public static final String EXAM_API_PARAM_EXAM_ID = "examId";
-
-    public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
-    public static final String EXAM_API_SEB_CONNECTION_TOKEN_PATH = "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
-
-    public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
-
-    public static final String EXAM_API_HANDSHAKE_ENDPOINT = "/handshake";
-
-    public static final String EXAM_API_CONFIGURATION_REQUEST_ENDPOINT = "/examconfig";
-
-    public static final String EXAM_API_PING_ENDPOINT = "/sebping";
-
-    public static final String EXAM_API_PING_TIMESTAMP = "timestamp";
-
-    public static final String EXAM_API_PING_NUMBER = "ping-number";
-
-    public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
+    public static final String SEB_CLIENT_EVENT_ENDPOINT = "/seb-client-event";
 
 }

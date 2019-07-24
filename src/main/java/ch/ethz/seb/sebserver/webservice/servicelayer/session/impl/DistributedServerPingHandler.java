@@ -48,7 +48,8 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
         // store last ping in event
         final ClientEventRecord pingRecord = this.examSessionCacheService.getPingRecord(connectionToken);
         if (pingRecord != null) {
-            pingRecord.setTimestamp(timestamp);
+            pingRecord.setClientTime(timestamp);
+            pingRecord.setServerTime(Utils.getMillisecondsNow());
             pingRecord.setNumericValue(new BigDecimal(pingNumber));
             this.clientEventRecordMapper.updateByPrimaryKeySelective(pingRecord);
         }
@@ -74,7 +75,8 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
         final ClientEventRecord clientEventRecord = new ClientEventRecord();
         clientEventRecord.setConnectionId(connectionId);
         clientEventRecord.setType(EventType.LAST_PING.id);
-        clientEventRecord.setTimestamp(Utils.getMillisecondsNow());
+        clientEventRecord.setClientTime(Utils.getMillisecondsNow());
+        clientEventRecord.setServerTime(Utils.getMillisecondsNow());
         this.clientEventRecordMapper.insertSelective(clientEventRecord);
     }
 

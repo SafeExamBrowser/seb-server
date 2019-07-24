@@ -17,14 +17,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientEvent implements Entity, IndicatorValueHolder {
 
+    /** Adapt SEB API to SEB_SEB_Server API -> timestamp == clientTime */
+    public static final String ATTR_TIMESTAMP = "timestamp";
+
     public static final String FILTER_ATTR_CONECTION_ID = Domain.CLIENT_EVENT.ATTR_CONNECTION_ID;
     public static final String FILTER_ATTR_TYPE = Domain.CLIENT_EVENT.ATTR_TYPE;
-    public static final String FILTER_ATTR_FROM_DATE = "fromDate";
+
+    public static final String FILTER_ATTR_CLIENT_TIME_FROM = "clientTimeForm";
+    public static final String FILTER_ATTR_CLIENT_TIME_TO = "clientTimeTo";
+    public static final String FILTER_ATTR_CLIENT_TIME_FROM_TO = "clientTimeFromTo";
+
+    public static final String FILTER_ATTR_SERVER_TIME_FROM = "serverTimeForm";
+    public static final String FILTER_ATTR_SERVER_TIME_TO = "serverTimeTo";
+    public static final String FILTER_ATTR_SERVER_TIME_FROM_TO = "serverTimeFromTo";
+
+    public static final String FILTER_ATTR_TEXT = Domain.CLIENT_EVENT.ATTR_TEXT;
 
     public static enum EventType {
         UNKNOWN(0),
@@ -62,8 +75,11 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
     @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE)
     public final EventType eventType;
 
-    @JsonProperty(Domain.CLIENT_EVENT.ATTR_TIMESTAMP)
-    public final Long timestamp;
+    @JsonProperty(ATTR_TIMESTAMP)
+    public final Long clientTime;
+
+    @JsonProperty(Domain.CLIENT_EVENT.ATTR_SERVER_TIME)
+    public final Long serverTime;
 
     @JsonProperty(Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE)
     public final Double numValue;
@@ -76,14 +92,16 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID) final Long id,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_CONNECTION_ID) final Long connectionId,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE) final EventType eventType,
-            @JsonProperty(Domain.CLIENT_EVENT.ATTR_TIMESTAMP) final Long timestamp,
+            @JsonProperty(ATTR_TIMESTAMP) final Long clientTime,
+            @JsonProperty(Domain.CLIENT_EVENT.ATTR_SERVER_TIME) final Long serverTime,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE) final Double numValue,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_TEXT) final String text) {
 
         this.id = id;
         this.connectionId = connectionId;
         this.eventType = eventType;
-        this.timestamp = (timestamp != null) ? timestamp : System.currentTimeMillis();
+        this.clientTime = (clientTime != null) ? clientTime : 0;
+        this.serverTime = (serverTime != null) ? serverTime : Utils.getMillisecondsNow();
         this.numValue = numValue;
         this.text = text;
     }
@@ -117,8 +135,12 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
         return this.eventType;
     }
 
-    public Long getTimestamp() {
-        return this.timestamp;
+    public Long getClientTime() {
+        return this.clientTime;
+    }
+
+    public Long getServerTime() {
+        return this.serverTime;
     }
 
     public Double getNumValue() {
@@ -145,8 +167,10 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
         builder.append(this.connectionId);
         builder.append(", eventType=");
         builder.append(this.eventType);
-        builder.append(", timestamp=");
-        builder.append(this.timestamp);
+        builder.append(", clientTime=");
+        builder.append(this.clientTime);
+        builder.append(", serverTime=");
+        builder.append(this.serverTime);
         builder.append(", numValue=");
         builder.append(this.numValue);
         builder.append(", text=");
@@ -163,7 +187,8 @@ public final class ClientEvent implements Entity, IndicatorValueHolder {
                 event.id,
                 connectionId,
                 event.eventType.id,
-                event.timestamp,
+                event.clientTime,
+                event.serverTime,
                 (event.numValue != null) ? new BigDecimal(event.numValue) : null,
                 event.text);
     }

@@ -139,6 +139,11 @@ public class ClientEventController extends EntityController<ClientEvent, ClientE
                 this.authorization.getUserService().getCurrentUser().uuid());
     }
 
+    @Override
+    protected boolean hasReadAccess(final ClientEvent entity) {
+        return true;
+    }
+
     private void checkRead(final Long institution) {
         this.authorization.checkRole(
                 UserRole.EXAM_SUPPORTER,

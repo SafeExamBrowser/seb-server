@@ -35,7 +35,12 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
+        final Label lab = builder.labelLocalized(
+                builder.formParent,
+                this.label,
+                this.defaultLabel,
+                this.spanLabel);
+
         if (builder.readonly || this.readonly) {
             // TODO do we need a read-only view for this?
             return;

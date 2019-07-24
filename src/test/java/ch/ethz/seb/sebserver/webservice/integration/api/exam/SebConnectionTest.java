@@ -544,7 +544,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertFalse(events.isEmpty());
         final ClientEventRecord clientEventRecord = events.get(0);
         assertNotNull(clientEventRecord);
-        assertEquals(Long.valueOf(1), clientEventRecord.getTimestamp());
+        assertEquals(Long.valueOf(1), clientEventRecord.getClientTime());
         assertEquals("testEvent1", clientEventRecord.getText());
 
         // send another event
@@ -566,7 +566,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 .execute();
 
         assertFalse(events.isEmpty());
-        assertTrue(events.stream().filter(ev -> ev.getTimestamp().equals(2l)).findFirst().isPresent());
+        assertTrue(events.stream().filter(ev -> ev.getClientTime().equals(2l)).findFirst().isPresent());
     }
 
     @Test

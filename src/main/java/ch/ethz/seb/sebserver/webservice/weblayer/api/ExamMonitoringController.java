@@ -124,7 +124,7 @@ public class ExamMonitoringController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            path = API.EXAM_MONITORING_EXAM_ID_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -133,7 +133,7 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+            @PathVariable(name = API.EXAM_API_PARAM_EXAM_ID, required = true) final Long examId) {
 
         this.authorization.checkRole(
                 UserRole.EXAM_SUPPORTER,
@@ -146,7 +146,7 @@ public class ExamMonitoringController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_API_SEB_CONNECTION_TOKEN_PATH,
+            path = API.EXAM_MONITORING_EXAM_ID_PATH_SEGMENT + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -155,7 +155,7 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.EXAM_API_PARAM_EXAM_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         this.authorization.checkRole(

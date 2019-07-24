@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -29,7 +28,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
@@ -56,7 +54,12 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = builder.labelLocalized(builder.formParent, this.label, this.spanLabel);
+        final Label lab = builder.labelLocalized(
+                builder.formParent,
+                this.label,
+                this.defaultLabel,
+                this.spanLabel);
+
         if (builder.readonly || this.readonly) {
             buildReadOnly(builder, lab);
         } else {
@@ -105,9 +108,8 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
             composite.setLayout(gridLayout);
             if (StringUtils.isBlank(this.value)) {
                 final Label label = new Label(composite, SWT.NONE);
-                final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+                final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
                 label.setLayoutData(gridData);
-                label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
                 label.setText(this.value);
             } else {
                 final Collection<String> keys = Arrays.asList(StringUtils.split(this.value, Constants.LIST_SEPARATOR));
@@ -128,11 +130,10 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     private Label buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
         final Label label = new Label(composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.FILL, true, true, hspan, 1);
         gridData.verticalIndent = 0;
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);
-        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.SELECTION_READONLY.key);
 
         final Supplier<String> valueSupplier = () -> this.itemsSupplier.get().stream()
                 .filter(tuple -> valueKey.equals(tuple._1))

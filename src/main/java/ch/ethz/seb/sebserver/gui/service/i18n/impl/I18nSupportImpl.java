@@ -42,11 +42,12 @@ public class I18nSupportImpl implements I18nSupport {
 
     private static final Logger log = LoggerFactory.getLogger(I18nSupportImpl.class);
 
-    public static final String EMPTY_DISPLAY_VALUE = "--";
     private static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
 
     private final DateTimeFormatter timeZoneFormatter;
     private final DateTimeFormatter displayDateFormatter;
+    private final DateTimeFormatter displayDateTimeFormatter;
+    private final DateTimeFormatter displayTimeFormatter;
     private final CurrentUser currentUser;
     private final MessageSource messageSource;
     private final Locale defaultLocale = Locale.ENGLISH;
@@ -59,15 +60,29 @@ public class I18nSupportImpl implements I18nSupport {
 
         this.currentUser = currentUser;
         this.messageSource = messageSource;
+
+        this.timeZoneFormatter = DateTimeFormat
+                .forPattern(environment.getProperty(
+                        "sebserver.gui.date.displayformat.timezone",
+                        Constants.TIME_ZONE_OFFSET_TAIL_FORMAT));
+
         this.displayDateFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
                         "sebserver.gui.date.displayformat",
                         Constants.DEFAULT_DISPLAY_DATE_FORMAT))
                 .withZoneUTC();
-        this.timeZoneFormatter = DateTimeFormat
+
+        this.displayDateTimeFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
-                        "sebserver.gui.date.displayformat.timezone",
-                        Constants.TIME_ZONE_OFFSET_TAIL_FORMAT));
+                        "sebserver.gui.datetime.displayformat",
+                        Constants.DEFAULT_DIPLAY_DATE_TIME_FORMAT))
+                .withZoneUTC();
+
+        this.displayTimeFormatter = DateTimeFormat
+                .forPattern(environment.getProperty(
+                        "sebserver.gui.time.displayformat",
+                        Constants.DEFAULT_TIME_FORMAT))
+                .withZoneUTC();
 
         final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.gui.multilingual",
@@ -131,22 +146,17 @@ public class I18nSupportImpl implements I18nSupport {
 
     @Override
     public String formatDisplayDate(final DateTime date) {
-        if (date == null) {
-            return EMPTY_DISPLAY_VALUE;
-        }
+        return formatDisplayDate(date, this.displayDateFormatter);
+    }
 
-        final String dateTimeStringUTC = date
-                .toLocalDateTime()
-                .toString(this.displayDateFormatter);
+    @Override
+    public String formatDisplayDateTime(final DateTime date) {
+        return formatDisplayDate(date, this.displayDateTimeFormatter);
+    }
 
-        final UserInfo userInfo = this.currentUser.get();
-        if (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
-            return dateTimeStringUTC + date
-                    .withZone(userInfo.timeZone)
-                    .toString(this.timeZoneFormatter);
-        } else {
-            return dateTimeStringUTC;
-        }
+    @Override
+    public String formatDisplayTime(final DateTime date) {
+        return formatDisplayDate(date, this.displayTimeFormatter);
     }
 
     @Override
@@ -176,6 +186,30 @@ public class I18nSupportImpl implements I18nSupport {
         }
 
         return getText(key.name, (String) null) != null;
+    }
+
+    private String formatDisplayDate(final DateTime date, final DateTimeFormatter formatter) {
+        if (date == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        DateTime dateUTC = date;
+        if (date.getZone() != DateTimeZone.UTC) {
+            log.warn("Date that has not UTC timezone used. "
+                    + "Reset to UTC timezone with any change on time instance for further processing");
+            dateUTC = date.withZone(DateTimeZone.UTC);
+        }
+
+        final String dateTimeStringUTC = dateUTC.toString(formatter);
+        final UserInfo userInfo = this.currentUser.get();
+        if (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
+
+            return dateTimeStringUTC + dateUTC
+                    .withZone(userInfo.timeZone)
+                    .toString(this.timeZoneFormatter);
+        } else {
+            return dateTimeStringUTC;
+        }
     }
 
 }

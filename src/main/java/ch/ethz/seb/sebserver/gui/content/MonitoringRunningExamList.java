@@ -122,13 +122,13 @@ public class MonitoringRunningExamList implements TemplateComposer {
                                 Exam::getEndTime)
                                         .sortable())
                         .withDefaultAction(actionBuilder
-                                .newAction(ActionDefinition.MONITOR_EXAM)
+                                .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                                 .create())
                         .compose(content);
 
         actionBuilder
 
-                .newAction(ActionDefinition.MONITOR_EXAM)
+                .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
 

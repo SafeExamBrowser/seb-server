@@ -76,8 +76,23 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         ClientEventRecordDynamicSqlSupport.type,
                         isEqualToWhenPresent(filterMap.getClientEventTypeId()))
                 .and(
-                        ClientEventRecordDynamicSqlSupport.timestamp,
-                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventFromDate()))
+                        ClientEventRecordDynamicSqlSupport.type,
+                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.clientTime,
+                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.clientTime,
+                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeTo()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.serverTime,
+                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeFrom()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.serverTime,
+                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeTo()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        SqlBuilder.isLikeWhenPresent(filterMap.getClientEventText()))
                 .build()
                 .execute()
                 .stream()
@@ -114,7 +129,8 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     null,
                     data.connectionId,
                     (eventType != null) ? eventType.id : EventType.UNKNOWN.id,
-                    data.timestamp,
+                    data.clientTime,
+                    data.serverTime,
                     (data.numValue != null) ? new BigDecimal(data.numValue) : null,
                     data.text);
 
@@ -162,7 +178,8 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     record.getId(),
                     record.getConnectionId(),
                     (type != null) ? EventType.byId(type) : EventType.UNKNOWN,
-                    record.getTimestamp(),
+                    record.getClientTime(),
+                    record.getServerTime(),
                     (numericValue != null) ? numericValue.doubleValue() : null,
                     record.getText());
         });

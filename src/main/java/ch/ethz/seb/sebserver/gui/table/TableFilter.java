@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -38,7 +39,8 @@ public class TableFilter<ROW extends Entity> {
     public static enum CriteriaType {
         TEXT,
         SINGLE_SELECTION,
-        DATE
+        DATE,
+        DATE_RANGE
     }
 
     private final Composite composite;
@@ -113,6 +115,8 @@ public class TableFilter<ROW extends Entity> {
                 return new SelectionFilter(attribute);
             case DATE:
                 return new Date(attribute);
+            case DATE_RANGE:
+                return new DateRange(attribute);
             default:
                 throw new IllegalArgumentException("Unsupported FilterAttributeType: " + attribute.type);
         }
@@ -347,6 +351,78 @@ public class TableFilter<ROW extends Entity> {
             return super.adaptWidth(width + 25);
         }
 
+    }
+
+    // NOTE: SWT DateTime month-number starting with 0 and joda DateTime with 1!
+    private class DateRange extends FilterComponent {
+
+        private Composite innerComposite;
+        private final GridData rw1 = new GridData();
+        private DateTime fromSelector;
+        private DateTime toSelector;
+
+        DateRange(final TableFilterAttribute attribute) {
+            super(attribute);
+        }
+
+        @Override
+        FilterComponent build(final Composite parent) {
+            this.innerComposite = new Composite(parent, SWT.NONE);
+            final GridLayout gridLayout = new GridLayout(2, true);
+            gridLayout.marginHeight = 0;
+            gridLayout.marginWidth = 0;
+            this.innerComposite.setLayout(gridLayout);
+            this.innerComposite.setLayoutData(this.rowData);
+            this.fromSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
+            this.fromSelector.setLayoutData(this.rw1);
+            this.toSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
+            this.toSelector.setLayoutData(this.rw1);
+            return this;
+        }
+
+        @Override
+        FilterComponent reset() {
+            final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
+            try {
+                final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
+                this.fromSelector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
+            } catch (final Exception e) {
+                this.fromSelector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            }
+            this.toSelector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            return this;
+        }
+
+        @Override
+        String getValue() {
+            if (this.fromSelector != null && this.toSelector != null) {
+                final org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                        .withYear(this.fromSelector.getYear())
+                        .withMonthOfYear(this.fromSelector.getMonth() + 1)
+                        .withDayOfMonth(this.fromSelector.getDay())
+                        .withTimeAtStartOfDay();
+                final org.joda.time.DateTime toDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                        .withYear(this.toSelector.getYear())
+                        .withMonthOfYear(this.toSelector.getMonth() + 1)
+                        .withDayOfMonth(this.toSelector.getDay())
+                        .withTimeAtStartOfDay();
+
+                return fromDate.toString(Constants.STANDARD_DATE_TIME_FORMATTER) +
+                        Constants.EMBEDDED_LIST_SEPARATOR +
+                        toDate.toString(Constants.STANDARD_DATE_TIME_FORMATTER);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        boolean adaptWidth(final int width) {
+            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
+            //       this is to adjust selection filter criteria to the list column width
+            this.rw1.widthHint = (width - 10) / 2;
+            return super.adaptWidth(width + 25);
+
+        }
     }
 
 }

@@ -120,7 +120,7 @@ public final class ImageUpload extends Composite {
 
                     ImageUpload.this.serverPushService.runServerPush(
                             new ServerPushContext(ImageUpload.this, ImageUpload::uploadInProgress),
-                            ImageUpload::wait,
+                            200,
                             ImageUpload::update);
                 }
 
@@ -164,15 +164,6 @@ public final class ImageUpload extends Composite {
     private static final boolean uploadInProgress(final ServerPushContext context) {
         final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
         return imageUpload.loadNewImage && !imageUpload.imageLoaded;
-    }
-
-    private static final void wait(final ServerPushContext context) {
-        try {
-            Thread.sleep(200);
-        } catch (final InterruptedException e) {
-            log.info("InterruptedException while wait for image uplaod. Just ignore it");
-        }
-
     }
 
     private static final void update(final ServerPushContext context) {

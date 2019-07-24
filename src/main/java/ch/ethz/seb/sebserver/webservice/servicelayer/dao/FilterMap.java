@@ -8,11 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -31,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import io.micrometer.core.instrument.util.StringUtils;
 
 /** A Map containing various filter criteria from a certain API request.
  * This is used as a data object that can be used to collect API request parameter
@@ -206,15 +206,62 @@ public class FilterMap extends POSTMapper {
         }
     }
 
-    public Long getClientEventFromDate() {
-        final DateTime dateTime = Utils.toDateTime(getString(ClientEvent.FILTER_ATTR_FROM_DATE));
-        if (dateTime == null) {
-            return null;
+    public Long getClientEventClientTimeFrom() {
+        return getFromToValue(
+                ClientEvent.FILTER_ATTR_CLIENT_TIME_FROM_TO,
+                ClientEvent.FILTER_ATTR_CLIENT_TIME_FROM,
+                true);
+    }
+
+    public Long getClientEventClientTimeTo() {
+        return getFromToValue(
+                ClientEvent.FILTER_ATTR_CLIENT_TIME_FROM_TO,
+                ClientEvent.FILTER_ATTR_CLIENT_TIME_TO,
+                false);
+    }
+
+    public Long getClientEventServerTimeFrom() {
+        return getFromToValue(
+                ClientEvent.FILTER_ATTR_SERVER_TIME_FROM_TO,
+                ClientEvent.FILTER_ATTR_SERVER_TIME_FROM,
+                true);
+    }
+
+    public Long getClientEventServerTimeTo() {
+        return getFromToValue(
+                ClientEvent.FILTER_ATTR_SERVER_TIME_FROM_TO,
+                ClientEvent.FILTER_ATTR_SERVER_TIME_TO,
+                false);
+    }
+
+    public String getClientEventText() {
+        return getSQLWildcard(ClientEvent.FILTER_ATTR_TEXT);
+    }
+
+    private Long getFromToValue(final String nameCombi, final String name, final boolean from) {
+        final Long value = getFromToValue(nameCombi, from);
+        if (value != null) {
+            return value;
         }
 
-        return dateTime
-                .withZone(DateTimeZone.UTC)
-                .getMillis();
+        return Utils.toTimestampUTC(getString(name));
+    }
+
+    private Long getFromToValue(final String nameCombi, final boolean from) {
+        final String fromTo = getString(nameCombi);
+        if (StringUtils.isNotBlank(fromTo)) {
+            try {
+                final String[] split = StringUtils.split(
+                        fromTo,
+                        Constants.EMBEDDED_LIST_SEPARATOR);
+                return Utils.toDateTimeUTC(split[(from) ? 0 : 1])
+                        .getMillis();
+            } catch (final Exception e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
 }

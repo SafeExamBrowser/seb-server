@@ -97,8 +97,8 @@ public class UserActivityLogController {
             return this.userActivityLogDAO.all(
                     institutionId,
                     userId,
-                    Utils.toMilliSeconds(from),
-                    Utils.toMilliSeconds(to),
+                    Utils.toTimestamp(from),
+                    Utils.toTimestamp(to),
                     activityTypes,
                     entityTypes,
                     Utils.truePredicate())

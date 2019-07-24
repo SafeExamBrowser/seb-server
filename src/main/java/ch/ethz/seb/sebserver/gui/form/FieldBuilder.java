@@ -20,6 +20,8 @@ public abstract class FieldBuilder<T> {
     String group = null;
     boolean readonly = false;
     boolean visible = true;
+    String defaultLabel = null;
+    boolean centeredInput = false;
 
     final String name;
     final LocTextKey label;
@@ -29,6 +31,16 @@ public abstract class FieldBuilder<T> {
         this.name = name;
         this.label = label;
         this.value = value;
+    }
+
+    public FieldBuilder<T> withCenteredInput() {
+        this.centeredInput = true;
+        return this;
+    }
+
+    public FieldBuilder<T> withDefaultLabel(final String defaultLabel) {
+        this.defaultLabel = defaultLabel;
+        return this;
     }
 
     public FieldBuilder<T> withLabelSpan(final int span) {

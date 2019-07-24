@@ -22,6 +22,7 @@ public enum ActionCategory {
     SEB_CLIENT_CONFIG_LIST(new LocTextKey("sebserver.clientconfig.list.actions"), 1),
     SEB_EXAM_CONFIG_LIST(new LocTextKey("sebserver.examconfig.list.actions"), 1),
     RUNNING_EXAM_LIST(new LocTextKey("sebserver.monitoring.exam.list.actions"), 1),
+    CLIENT_EVENT_LIST(new LocTextKey("sebserver.monitoring.exam.connection.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 100),
     ;
 

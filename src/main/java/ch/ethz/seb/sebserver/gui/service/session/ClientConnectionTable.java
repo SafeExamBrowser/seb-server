@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.session;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Iterator;
@@ -16,10 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -28,19 +27,29 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class ClientConnectionTable {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
     private static final int BOTTOM_PADDING = 20;
 
@@ -53,14 +62,14 @@ public final class ClientConnectionTable {
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status");
 
+    private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
+
     private final WidgetFactory widgetFactory;
     private final Exam exam;
+    private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
     private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
     private final Table table;
-
-    private final Color color1;
-    private final Color color2;
-    private final Color color3;
+    private final StatusData statusData;
 
     private int tableWidth;
     private boolean needsSort = false;
@@ -70,19 +79,20 @@ public final class ClientConnectionTable {
             final WidgetFactory widgetFactory,
             final Composite tableRoot,
             final Exam exam,
-            final Collection<Indicator> indicators) {
+            final Collection<Indicator> indicators,
+            final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
 
         this.widgetFactory = widgetFactory;
         this.exam = exam;
+        this.restCallBuilder = restCallBuilder;
 
         final Display display = tableRoot.getDisplay();
+        this.statusData = new StatusData(display);
 
-        this.indicatorMapping = new EnumMap<>(IndicatorType.class);
-        int i = 3;
-        for (final Indicator indicator : indicators) {
-            this.indicatorMapping.put(indicator.type, new IndicatorData(indicator, i, display));
-            i++;
-        }
+        this.indicatorMapping = IndicatorData.createFormIndicators(
+                indicators,
+                display,
+                NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
         this.table = widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
@@ -104,12 +114,11 @@ public final class ClientConnectionTable {
                 CONNECTION_STATUS_TEXT_KEY);
         for (final Indicator indDef : indicators) {
             final TableColumn tc = new TableColumn(this.table, SWT.NONE);
-            tc.setText(indDef.name);
+            final String indicatorName = widgetFactory.getI18nSupport().getText(
+                    "sebserver.monitoring.connection.list.column.indicator." + indDef.name,
+                    indDef.name);
+            tc.setText(indicatorName);
         }
-
-        this.color1 = new Color(display, new RGB(0, 255, 0), 100);
-        this.color2 = new Color(display, new RGB(249, 166, 2), 100);
-        this.color3 = new Color(display, new RGB(255, 0, 0), 100);
 
         this.tableMapping = new LinkedHashMap<>();
         this.table.layout();
@@ -123,13 +132,54 @@ public final class ClientConnectionTable {
         return this.exam;
     }
 
-    public void updateValues(final Collection<ClientConnectionData> connectionInfo) {
-        for (final ClientConnectionData data : connectionInfo) {
-            final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
-                    data.getConnectionId(),
-                    userIdentifier -> new UpdatableTableItem(data.getConnectionId()));
-            tableItem.push(data);
+    public void withDefaultAction(final PageAction pageAction, final PageService pageService) {
+        this.table.addListener(SWT.MouseDoubleClick, event -> {
+            final Tuple<String> selection = getSingleSelection();
+            if (selection == null) {
+                return;
+            }
+
+            final PageAction copyOfPageAction = PageAction.copyOf(pageAction);
+            copyOfPageAction.withEntityKey(new EntityKey(
+                    selection._1,
+                    EntityType.CLIENT_CONNECTION));
+            copyOfPageAction.withAttribute(
+                    Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                    selection._2);
+            pageService.executePageAction(copyOfPageAction);
+        });
+
+    }
+
+    public Tuple<String> getSingleSelection() {
+        final int[] selectionIndices = this.table.getSelectionIndices();
+        if (selectionIndices == null || selectionIndices.length < 1) {
+            return null;
         }
+
+        final UpdatableTableItem updatableTableItem =
+                new ArrayList<>(this.tableMapping.values()).get(selectionIndices[0]);
+        return new Tuple<>(
+                (updatableTableItem.connectionId != null)
+                        ? String.valueOf(updatableTableItem.connectionId)
+                        : null,
+                updatableTableItem.connectionData.clientConnection.connectionToken);
+    }
+
+    public void updateValues() {
+        this.restCallBuilder
+                .call()
+                .get(error -> {
+                    log.error("Error poll connection data: ", error);
+                    return Collections.emptyList();
+                })
+                .stream()
+                .forEach(data -> {
+                    final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
+                            data.getConnectionId(),
+                            userIdentifier -> new UpdatableTableItem(data.getConnectionId()));
+                    tableItem.push(data);
+                });
     }
 
     public void updateGUI() {
@@ -189,7 +239,6 @@ public final class ClientConnectionTable {
 
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
 
-        @SuppressWarnings("unused")
         final Long connectionId;
         private boolean changed = false;
         private ClientConnectionData connectionData;
@@ -221,19 +270,9 @@ public final class ClientConnectionTable {
         }
 
         void updateConnectionStatusColor(final TableItem tableItem) {
-            switch (this.connectionData.clientConnection.status) {
-                case ESTABLISHED: {
-                    tableItem.setBackground(2, ClientConnectionTable.this.color1);
-                    break;
-                }
-                case ABORTED: {
-                    tableItem.setBackground(2, ClientConnectionTable.this.color3);
-                    break;
-                }
-                default: {
-                    tableItem.setBackground(2, ClientConnectionTable.this.color2);
-                }
-            }
+            tableItem.setBackground(
+                    2,
+                    ClientConnectionTable.this.statusData.getStatusColor(this.connectionData));
         }
 
         void updateIndicatorValues(final TableItem tableItem) {
@@ -271,23 +310,7 @@ public final class ClientConnectionTable {
         }
 
         int statusWeight() {
-            if (this.connectionData == null) {
-                return 100;
-            }
-
-            switch (this.connectionData.clientConnection.status) {
-                case ABORTED:
-                    return 0;
-                case CONNECTION_REQUESTED:
-                case AUTHENTICATED:
-                    return 1;
-                case ESTABLISHED:
-                    return 2;
-                case CLOSED:
-                    return 3;
-                default:
-                    return 10;
-            }
+            return ClientConnectionTable.this.statusData.statusWeight(this.connectionData);
         }
 
         int thresholdsWeight() {
@@ -350,7 +373,7 @@ public final class ClientConnectionTable {
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
                 final double value = indicatorValue.getValue();
-                final int colorIndex = getColorIndex(indicatorData, value);
+                final int colorIndex = IndicatorData.getColorIndex(indicatorData, value);
                 if (this.thresholdColorIndices[i] != colorIndex) {
                     ClientConnectionTable.this.needsSort = true;
                 }
@@ -362,59 +385,4 @@ public final class ClientConnectionTable {
 
     }
 
-    private static final int getColorIndex(final IndicatorData indicatorData, final double value) {
-        for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
-            if (value < indicatorData.thresholdColor[j].value) {
-                return j;
-            }
-        }
-
-        return indicatorData.thresholdColor.length - 1;
-    }
-
-    private static final class IndicatorData {
-        final int index;
-        @SuppressWarnings("unused")
-        final Indicator indicator;
-        final Color defaultColor;
-        final ThresholdColor[] thresholdColor;
-
-        protected IndicatorData(final Indicator indicator, final int index, final Display display) {
-            this.indicator = indicator;
-            this.index = index;
-
-            if (StringUtils.isNotBlank(indicator.defaultColor)) {
-                final RGB rgb = new RGB(
-                        Integer.parseInt(indicator.defaultColor.substring(0, 2), 16),
-                        Integer.parseInt(indicator.defaultColor.substring(2, 4), 16),
-                        Integer.parseInt(indicator.defaultColor.substring(4, 6), 16));
-                this.defaultColor = new Color(display, rgb, 100);
-            } else {
-                this.defaultColor = new Color(display, new RGB(255, 255, 255), 100);
-            }
-
-            this.thresholdColor = new ThresholdColor[indicator.thresholds.size()];
-            for (int i = 0; i < indicator.thresholds.size(); i++) {
-                this.thresholdColor[i] = new ThresholdColor(indicator.thresholds.get(i), display);
-            }
-        }
-    }
-
-    private static final class ThresholdColor {
-        final double value;
-        final Color color;
-
-        protected ThresholdColor(final Threshold threshold, final Display display) {
-            this.value = threshold.value;
-            if (StringUtils.isNotBlank(threshold.color)) {
-                final RGB rgb = new RGB(
-                        Integer.parseInt(threshold.color.substring(0, 2), 16),
-                        Integer.parseInt(threshold.color.substring(2, 4), 16),
-                        Integer.parseInt(threshold.color.substring(4, 6), 16));
-                this.color = new Color(display, rgb, 100);
-            } else {
-                this.color = new Color(display, new RGB(255, 255, 255), 100);
-            }
-        }
-    }
 }

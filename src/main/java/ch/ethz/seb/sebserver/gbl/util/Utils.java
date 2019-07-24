@@ -28,6 +28,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.graphics.RGB;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -189,12 +190,33 @@ public final class Utils {
         return DateTime.parse(dateString, Constants.STANDARD_DATE_TIME_FORMATTER);
     }
 
-    public static Long toMilliSeconds(final String dateString) {
+    public static DateTime toDateTimeUTC(final String dateString) {
+        final DateTime dateTime = toDateTime(dateString);
+        if (dateTime == null) {
+            return dateTime;
+        }
+
+        return dateTime.withZone(DateTimeZone.UTC);
+    }
+
+    public static DateTime toDateTimeUTC(final long timestamp) {
+        return new DateTime(timestamp, DateTimeZone.UTC);
+    }
+
+    public static Long toTimestamp(final String dateString) {
         if (StringUtils.isBlank(dateString)) {
             return null;
         }
 
         return toDateTime(dateString).getMillis();
+    }
+
+    public static Long toTimestampUTC(final String dateString) {
+        if (StringUtils.isBlank(dateString)) {
+            return null;
+        }
+
+        return toDateTimeUTC(dateString).getMillis();
     }
 
     public static String toJsonArray(final String string) {
@@ -356,6 +378,17 @@ public final class Utils {
 
     public static long getMillisecondsNow() {
         return DateTime.now(DateTimeZone.UTC).getMillis();
+    }
+
+    public static final RGB toRGB(final String rgbString) {
+        if (StringUtils.isNotBlank(rgbString)) {
+            return new RGB(
+                    Integer.parseInt(rgbString.substring(0, 2), 16),
+                    Integer.parseInt(rgbString.substring(2, 4), 16),
+                    Integer.parseInt(rgbString.substring(4, 6), 16));
+        } else {
+            return new RGB(255, 255, 255);
+        }
     }
 
 }

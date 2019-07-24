@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -468,7 +469,7 @@ public class HTTPClientBot {
 
     private static class EventEntity extends HttpEntity<String> {
         private final String eventBodyTemplate =
-                "{ \"type\": \"ERROR_LOG\", \"timestamp\": %s, \"text\": \"some error\" }";
+                "{ \"type\": \"ERROR_LOG\", \"timestamp\": %s, \"text\": \"some error " + UUID.randomUUID() + " \" }";
 
         private long timestamp = 0;
 

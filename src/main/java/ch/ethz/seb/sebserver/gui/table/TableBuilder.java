@@ -97,7 +97,7 @@ public class TableBuilder<ROW extends Entity> {
     }
 
     public TableBuilder<ROW> withDefaultAction(final PageAction action) {
-        this.defaultActionFunction = table -> action;
+        this.defaultActionFunction = table -> PageAction.copyOf(action);
         return this;
     }
 

@@ -24,10 +24,16 @@ Label {
     cursor: default;
     opacity: 1;
     text-shadow: none;
+    padding: 0px 0px 0px 0px;
 }
 
 Label.head {
     font: bold 12px Arial, Helvetica, sans-serif;
+    padding: 0px 0px 0px 0px;
+}
+
+Label.form-center {
+    padding: 5px 0px 0px 0px;
 }
 
 Label.action {
@@ -78,10 +84,6 @@ Label:hover.imageButton {
 
 Label.selection {
     padding: 4px 6px 3px 6px;
-}
-
-Label.selectionReadonly {
-    padding: 4px 6px 3px 0px;
 }
 
 Label:hover.selection {
@@ -164,7 +166,7 @@ Composite.login {
 }
 
 Composite.error {
-    background-color: #82BE1E;
+    background-color: #aa0000;
     margin: 0 0 0 0;
 }
 
@@ -225,10 +227,7 @@ Text {
 }
 
 Text.error {
-    background-repeat: repeat;
-    background-position: left top;
-    background-color: #82BE1E;
-    background-image: none;
+    border: 1px solid #aa0000;
 }
 
 Text[MULTI] {
@@ -238,6 +237,12 @@ Text[MULTI] {
 
 Text[BORDER], Text[MULTI][BORDER] {
     border: 1px solid #aaaaaa;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+Text[BORDER].error, Text[MULTI][BORDER].error {
+    border: 1px solid #aa0000;
     border-radius: 0;
     box-shadow: none;
 }
@@ -288,11 +293,9 @@ Combo-Field {
   padding: 3px 0px 1px 10px;
 }
 
-Combo.error {
-    background-repeat: repeat;
-    background-position: left top;
-    background-color: #82BE1E;
-    background-image: none;
+Combo.error, , Combo[BORDER].error {
+    border: 1px solid #aa0000;
+    border-radius: 0 2px 2px 0;
 }
 
 /* DateTime default theme */

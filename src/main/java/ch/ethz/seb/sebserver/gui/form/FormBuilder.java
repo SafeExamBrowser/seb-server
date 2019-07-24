@@ -38,6 +38,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class FormBuilder {
 
+    private static final int FORM_ROW_HEIGHT = 25;
+
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
     final I18nSupport i18nSupport;
@@ -244,21 +246,40 @@ public class FormBuilder {
         return new ImageUploadFieldBuilder(name, label, value);
     }
 
-    Label labelLocalized(final Composite parent, final LocTextKey locTextKey, final int hspan) {
-        final Label label = this.widgetFactory.labelLocalized(parent, locTextKey);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
-        gridData.verticalIndent = 4;
-        gridData.heightHint = 20;
+    Label labelLocalized(
+            final Composite parent,
+            final LocTextKey locTextKey,
+            final String defaultText,
+            final int hspan) {
+
+        final Label label = this.widgetFactory.labelLocalized(parent, locTextKey, defaultText);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, true, hspan, 1);
+        gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
         return label;
     }
 
-    Label valueLabel(final Composite parent, final String value, final int hspan) {
+    Label valueLabel(
+            final Composite parent,
+            final String value,
+            final int hspan,
+            final boolean centered) {
+
         final Label label = new Label(parent, SWT.NONE);
         label.setText((StringUtils.isNotBlank(value)) ? value : Constants.EMPTY_NOTE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false, hspan, 1);
-        gridData.verticalIndent = 4;
+        final GridData gridData = new GridData(
+                (centered) ? SWT.FILL : SWT.FILL,
+                (centered) ? SWT.CENTER : SWT.TOP,
+                true, true,
+                hspan, 1);
+
+        if (centered) {
+            label.setAlignment(SWT.CENTER);
+            label.setData(RWT.CUSTOM_VARIANT, CustomVariant.FORM_CENTER.key);
+        }
+
+        gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         return label;
     }

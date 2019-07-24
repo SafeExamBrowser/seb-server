@@ -26,9 +26,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetConnectionData extends RestCall<Collection<ClientConnectionData>> {
+public class GetClientConnectionDataList extends RestCall<Collection<ClientConnectionData>> {
 
-    public GetConnectionData() {
+    public GetClientConnectionDataList() {
         super(new TypeKey<>(
                 CallType.GET_LIST,
                 EntityType.CLIENT_CONNECTION,
@@ -36,7 +36,7 @@ public class GetConnectionData extends RestCall<Collection<ClientConnectionData>
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_MONITORING_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
+                API.EXAM_MONITORING_ENDPOINT + API.EXAM_MONITORING_EXAM_ID_PATH_SEGMENT);
     }
 
 }

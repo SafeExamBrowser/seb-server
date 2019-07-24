@@ -266,7 +266,7 @@ public class UserDAOImpl implements UserDAO {
                             userInfo.name,
                             userInfo.username,
                             null,
-                            userInfo.email,
+                            (userInfo.email == null) ? "" : userInfo.email,
                             userInfo.language.toLanguageTag(),
                             userInfo.timeZone.getID(),
                             null);

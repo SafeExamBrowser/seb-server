@@ -29,11 +29,34 @@ public interface I18nSupport {
     void setSessionLocale(Locale locale);
 
     /** Format a DateTime to a text format to display.
+     * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
+     * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
-     * @param date
-     * @param addTimeZone indicates whether the time zone shall be added or not
-     * @return */
+     * Adds time-zone information if the currents user time-zone is different form UTC
+     *
+     * @param date the DateTime instance
+     * @return date formatted date String to display */
     String formatDisplayDate(DateTime date);
+
+    /** Format a DateTime to a text format to display.
+     * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.displayformat'
+     * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
+     *
+     * Adds time-zone information if the currents user time-zone is different form UTC
+     *
+     * @param date the DateTime instance
+     * @return date formatted date time String to display */
+    String formatDisplayDateTime(DateTime date);
+
+    /** Format a DateTime to a text format to display.
+     * This uses the date-format defined by either the attribute 'sebserver.gui.time.displayformat'
+     * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
+     *
+     * Adds time-zone information if the currents user time-zone is different form UTC
+     *
+     * @param date the DateTime instance
+     * @return date formatted time String to display */
+    String formatDisplayTime(DateTime date);
 
     /** If the current user has another time zone then UTC this will return a tile suffix that describes
      * a date/time column title with adding (UTC|{usersTimeZone}) that can be added to the title.
@@ -55,7 +78,7 @@ public interface I18nSupport {
      * @param key LocTextKey instance
      * @return the text in current language parsed from localized text */
     default String getText(final LocTextKey key) {
-        return getText(key.name, "missing:" + key.name, key.args);
+        return getText(key.name, key.name, key.args);
     }
 
     /** Get localized text of specified key for currently set Locale.
@@ -94,6 +117,6 @@ public interface I18nSupport {
      * @return the text in current language parsed from localized text */
     String getText(String key, Locale locale, String def, Object... args);
 
-    boolean hasText(LocTextKey locTooltipKey);
+    boolean hasText(LocTextKey locTextKey);
 
 }

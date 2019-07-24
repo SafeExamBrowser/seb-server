@@ -21,7 +21,10 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -104,6 +107,7 @@ public class EntityTable<ROW extends Entity> {
         final GridLayout layout = new GridLayout();
         layout.horizontalSpacing = 0;
         layout.verticalSpacing = 0;
+        layout.marginHeight = 0;
         this.composite.setLayout(layout);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         this.composite.setLayoutData(gridData);
@@ -149,6 +153,25 @@ public class EntityTable<ROW extends Entity> {
                 });
             }
         }
+        this.table.addListener(SWT.MouseDown, event -> {
+            if (event.button == 1) {
+                return;
+            }
+            final Rectangle bounds = event.getBounds();
+            final Point point = new Point(bounds.x, bounds.y);
+            final TableItem item = this.table.getItem(point);
+            if (item == null) {
+                return;
+            }
+
+            for (int i = 0; i < columns.size(); i++) {
+                final Rectangle itemBoundes = item.getBounds(i);
+                if (itemBoundes.contains(point)) {
+                    handleCellSelection(item, i);
+                    return;
+                }
+            }
+        });
 
         this.navigator = new TableNavigator(this);
 
@@ -366,6 +389,7 @@ public class EntityTable<ROW extends Entity> {
 
         for (final ROW row : page.content) {
             final TableItem item = new TableItem(this.table, SWT.NONE);
+            item.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
             item.setData(TABLE_ROW_DATA, row);
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
@@ -474,6 +498,10 @@ public class EntityTable<ROW extends Entity> {
         } else {
             item.setImage(index, ImageIcon.NO.getImage(item.getDisplay()));
         }
+    }
+
+    private void handleCellSelection(final TableItem item, final int index) {
+        // TODO handle selection tool-tips on cell level
     }
 
 }

@@ -114,9 +114,9 @@ public class WidgetFactory {
         IMAGE_BUTTON("imageButton"),
         TEXT_ACTION("action"),
 
+        FORM_CENTER("form-center"),
         SELECTION("selection"),
         SELECTED("selected"),
-        SELECTION_READONLY("selectionReadonly"),
 
         FOOTER("footer"),
         TITLE_LABEL("head"),
@@ -183,8 +183,8 @@ public class WidgetFactory {
         final Composite grid = new Composite(parent, SWT.NONE);
         final GridLayout layout = new GridLayout(rows, true);
         layout.horizontalSpacing = 10;
-        //layout.verticalSpacing = 10;
-        layout.marginBottom = 50;
+        layout.verticalSpacing = 10;
+        layout.marginBottom = 10;
         layout.marginLeft = 10;
         layout.marginTop = 0;
         grid.setLayout(layout);
@@ -231,6 +231,16 @@ public class WidgetFactory {
     public Label labelLocalized(final Composite parent, final String locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(label, new LocTextKey(locTextKey));
+        return label;
+    }
+
+    public Label labelLocalized(final Composite parent, final LocTextKey locTextKey, final String defaultText) {
+        final Label label = new Label(parent, SWT.NONE);
+        if (this.i18nSupport.hasText(locTextKey)) {
+            this.polyglotPageService.injectI18n(label, locTextKey);
+        } else {
+            label.setText(defaultText);
+        }
         return label;
     }
 

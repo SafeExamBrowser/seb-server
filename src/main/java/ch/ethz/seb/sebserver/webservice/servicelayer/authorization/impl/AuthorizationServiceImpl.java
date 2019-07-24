@@ -173,7 +173,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .create();
 
         // grants for SEB client connections
-        addPrivilege(EntityType.SEB_CLIENT_CONFIGURATION)
+        addPrivilege(EntityType.CLIENT_CONNECTION)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
                 .withBasePrivilege(PrivilegeType.READ)
                 .forRole(UserRole.INSTITUTIONAL_ADMIN)

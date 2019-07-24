@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -60,6 +61,7 @@ public class ResourceService {
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
+    public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
     public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
     public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
 
@@ -107,8 +109,24 @@ public class ResourceService {
                 .stream()
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
-                        this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name())))
+                        this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
                 .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> clientEventTypeResources() {
+        return Arrays.asList(EventType.values())
+                .stream()
+                .map(eventType -> new Tuple<>(
+                        eventType.name(),
+                        getEventTypeName(eventType)))
+                .collect(Collectors.toList());
+    }
+
+    public String getEventTypeName(final EventType eventType) {
+        if (eventType == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return this.i18nSupport.getText(CLIENT_EVENT_TYPE_PREFIX + eventType.name(), eventType.name());
     }
 
     public List<Tuple<String>> indicatorTypeResources() {
@@ -116,7 +134,7 @@ public class ResourceService {
                 .stream()
                 .map(type -> new Tuple<>(
                         type.name(),
-                        this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name())))
+                        this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name())))
                 .collect(Collectors.toList());
     }
 

@@ -51,7 +51,7 @@ public final class ErrorCountClientIndicator extends AbstractClientIndicator {
         final Long errors = this.clientEventRecordMapper.countByExample()
                 .where(ClientEventRecordDynamicSqlSupport.connectionId, isEqualTo(this.connectionId))
                 .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(ClientEvent.EventType.ERROR_LOG.id))
-                .and(ClientEventRecordDynamicSqlSupport.timestamp, isLessThan(timestamp))
+                .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                 .build()
                 .execute();
 

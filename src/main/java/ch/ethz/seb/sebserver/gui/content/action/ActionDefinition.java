@@ -391,11 +391,23 @@ public enum ActionDefinition {
     RUNNING_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.monitoring.action.list"),
             PageStateDefinition.MONITORING_RUNNING_EXAM_LIST),
-    MONITOR_EXAM(
+    MONITOR_EXAM_FROM_LIST(
             new LocTextKey("sebserver.monitoring.exam.action.list.view"),
             ImageIcon.SHOW,
             PageStateDefinition.MONITORING_RUNNING_EXAM,
-            ActionCategory.RUNNING_EXAM_LIST);
+            ActionCategory.RUNNING_EXAM_LIST),
+    MONITOR_CLIENT_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.CLIENT_EVENT_LIST),
+    MONITOR_EXAM_FROM_DETAILS(
+            new LocTextKey("sebserver.monitoring.exam.action.detail.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.MONITORING_RUNNING_EXAM,
+            ActionCategory.VARIA),
+
+    ;
 
     public final LocTextKey title;
     public final ImageIcon icon;

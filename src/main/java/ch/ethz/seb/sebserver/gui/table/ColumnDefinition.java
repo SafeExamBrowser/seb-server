@@ -28,6 +28,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     private boolean sortable;
     private TableFilterAttribute filterAttribute;
     private boolean localized;
+    private boolean withCellTooltip = false;
 
     public ColumnDefinition(final String columnName, final LocTextKey displayName) {
         this(columnName, displayName, null);
@@ -59,6 +60,11 @@ public final class ColumnDefinition<ROW extends Entity> {
         this.filterAttribute = filterAttribute;
         this.sortable = sortable;
         this.localized = localized;
+    }
+
+    public ColumnDefinition<ROW> withCellTooltip() {
+        this.withCellTooltip = true;
+        return this;
     }
 
     public ColumnDefinition<ROW> withFilter(final TableFilterAttribute filterAttribute) {
@@ -106,6 +112,10 @@ public final class ColumnDefinition<ROW extends Entity> {
         return this.localized;
     }
 
+    public boolean hasTooltip() {
+        return this.withCellTooltip;
+    }
+
     public static final class TableFilterAttribute {
 
         public final CriteriaType type;
@@ -146,4 +156,5 @@ public final class ColumnDefinition<ROW extends Entity> {
         }
 
     }
+
 }

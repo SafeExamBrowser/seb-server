@@ -173,4 +173,17 @@ public final class PageAction {
         return action.withEntityKey(action.getSingleSelection());
     }
 
+    public static PageAction copyOf(final PageAction source) {
+        return new PageAction(
+                source.definition,
+                source.confirm,
+                source.successMessage,
+                source.selectionSupplier,
+                source.noSelectionMessage,
+                source.pageContext.copy(),
+                source.exec,
+                source.fireActionEvent,
+                source.ignoreMoveAwayFromEdit);
+    }
+
 }

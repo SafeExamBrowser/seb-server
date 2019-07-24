@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
@@ -278,6 +279,27 @@ public class PaginationServiceImpl implements PaginationService {
         this.defaultSortColumn.put(
                 ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.name(),
                 Domain.CONFIGURATION_NODE.ATTR_ID);
+
+        // ClientEvent table
+        final Map<String, String> clientEventTableMap = new HashMap<>();
+        clientEventTableMap.put(
+                Domain.CLIENT_EVENT.ATTR_TYPE,
+                ClientEventRecordDynamicSqlSupport.type.name());
+        clientEventTableMap.put(
+                Domain.CLIENT_EVENT.ATTR_CLIENT_TIME,
+                ClientEventRecordDynamicSqlSupport.clientTime.name());
+        clientEventTableMap.put(
+                Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
+                ClientEventRecordDynamicSqlSupport.serverTime.name());
+        clientEventTableMap.put(
+                Domain.CLIENT_EVENT.ATTR_TEXT,
+                ClientEventRecordDynamicSqlSupport.text.name());
+        this.sortColumnMapping.put(
+                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                clientEventTableMap);
+        this.defaultSortColumn.put(
+                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                Domain.CLIENT_EVENT.ATTR_ID);
 
         // User Activity Log Table
         final Map<String, String> userActivityLogTableMap = new HashMap<>();
