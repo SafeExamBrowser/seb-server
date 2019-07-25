@@ -31,6 +31,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationException;
@@ -51,7 +52,10 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.error("Unexpected generic error catched at the API endpoint: ", ex);
         final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
-        return new ResponseEntity<>(errors, status);
+        return new ResponseEntity<>(
+                errors,
+                Utils.createJsonContentHeader(),
+                status);
     }
 
     @Override
@@ -67,7 +71,10 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(field -> APIMessage.fieldValidationError(field))
                 .collect(Collectors.toList());
 
-        return new ResponseEntity<>(valErrors, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(
+                valErrors,
+                Utils.createJsonContentHeader(),
+                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(OAuth2Exception.class)
@@ -77,7 +84,10 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.error("OAuth2Exception: ", ex);
         final APIMessage message = APIMessage.ErrorMessage.UNAUTHORIZED.of(ex.getMessage());
-        return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(
+                message,
+                Utils.createJsonContentHeader(),
+                HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(BeanValidationException.class)
@@ -91,7 +101,10 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .map(field -> APIMessage.fieldValidationError(field))
                 .collect(Collectors.toList());
 
-        return new ResponseEntity<>(valErrors, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(
+                valErrors,
+                Utils.createJsonContentHeader(),
+                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -149,6 +162,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(
                 ex.getAPIMessages(),
+                Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -159,6 +173,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(
                 Arrays.asList(ex.apiMessage),
+                Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
     }
 

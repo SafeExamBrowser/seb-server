@@ -11,12 +11,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 
 /** Interface of a SEB Exam Configuration XML conversion service */
-public interface XMLValueConverterService {
+public interface AttributeValueConverterService {
 
     /** Use this to get a XMLValueConverter for a given ConfigurationAttribute.
      *
      * @param attribute The ConfigurationAttribute instance
      * @return a XMLValueConverter for a given ConfigurationAttribute */
-    XMLValueConverter getXMLConverter(ConfigurationAttribute attribute);
+    AttributeValueConverter getAttributeValueConverter(ConfigurationAttribute attribute);
 
 }

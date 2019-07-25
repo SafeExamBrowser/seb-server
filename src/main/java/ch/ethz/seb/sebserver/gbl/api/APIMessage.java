@@ -86,12 +86,18 @@ public class APIMessage implements Serializable {
 
         public ResponseEntity<List<APIMessage>> createErrorResponse() {
             final APIMessage message = of();
-            return new ResponseEntity<>(Arrays.asList(message), this.httpStatus);
+            return new ResponseEntity<>(
+                    Arrays.asList(message),
+                    Utils.createJsonContentHeader(),
+                    this.httpStatus);
         }
 
         public ResponseEntity<Object> createErrorResponse(final String details, final String... attributes) {
             final APIMessage message = of(details, attributes);
-            return new ResponseEntity<>(Arrays.asList(message), this.httpStatus);
+            return new ResponseEntity<>(
+                    Arrays.asList(message),
+                    Utils.createJsonContentHeader(),
+                    this.httpStatus);
         }
     }
 

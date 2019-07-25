@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -32,7 +33,8 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverterService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 
 @Lazy
 @Component
@@ -51,18 +53,18 @@ public class ExamConfigIO {
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final ConfigurationDAO configurationDAO;
-    private final XMLValueConverterService xmlValueConverterService;
+    private final AttributeValueConverterService attributeValueConverterService;
 
     protected ExamConfigIO(
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ConfigurationDAO configurationDAO,
-            final XMLValueConverterService xmlValueConverterService) {
+            final AttributeValueConverterService attributeValueConverterService) {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.configurationDAO = configurationDAO;
-        this.xmlValueConverterService = xmlValueConverterService;
+        this.attributeValueConverterService = attributeValueConverterService;
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
@@ -75,17 +77,11 @@ public class ExamConfigIO {
             log.debug("Start export SEB plain XML configuration asynconously");
         }
 
-        // get all defined root configuration attributes
-        final Map<Long, ConfigurationAttribute> attributes = this.configurationAttributeDAO.getAllRootAttributes()
+        // get all defined root configuration attributes prepared and sorted
+        final List<ConfigurationAttribute> sortedAttributes = this.configurationAttributeDAO.getAllRootAttributes()
                 .getOrThrow()
                 .stream()
-                .collect(Collectors.toMap(
-                        ConfigurationAttribute::getId,
-                        Function.identity()));
-
-        final List<ConfigurationAttribute> sortedAttributes = attributes
-                .values()
-                .stream()
+                .flatMap(this::convertAttribute)
                 .sorted()
                 .collect(Collectors.toList());
 
@@ -94,14 +90,8 @@ public class ExamConfigIO {
                 .getFollowupConfiguration(configurationNodeId)
                 .getOrThrow().id;
 
-        // get all values for that attributes for given configurationId
-        final Map<Long, ConfigurationValue> values = this.configurationValueDAO
-                .allRootAttributeValues(institutionId, configurationId)
-                .getOrThrow()
-                .stream()
-                .collect(Collectors.toMap(
-                        ConfigurationValue::getAttributeId,
-                        Function.identity()));
+        final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =
+                getConfigurationValueSupplier(institutionId, configurationId);
 
         try {
             // write headers
@@ -114,13 +104,10 @@ public class ExamConfigIO {
 
             // write attributes
             for (final ConfigurationAttribute attribute : sortedAttributes) {
-                final ConfigurationValue configurationValue = values.get(attribute.id);
-                if (configurationValue != null) {
-                    this.xmlValueConverterService.getXMLConverter(attribute).convertToXML(
-                            out,
-                            attribute,
-                            configurationValue);
-                }
+                this.attributeValueConverterService.getAttributeValueConverter(attribute).convertToXML(
+                        out,
+                        attribute,
+                        configurationValueSupplier);
             }
 
             // plist close
@@ -144,9 +131,34 @@ public class ExamConfigIO {
         }
     }
 
+    private Stream<ConfigurationAttribute> convertAttribute(final ConfigurationAttribute attr) {
+        final AttributeValueConverter attributeValueConverter =
+                this.attributeValueConverterService.getAttributeValueConverter(attr);
+        if (attributeValueConverter != null) {
+            return attributeValueConverter.convertAttribute(attr);
+        } else {
+            return Stream.of(attr);
+        }
+    }
+
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void importPlainXML(final InputStream in, final Long institutionId, final Long configurationNodeId) {
         // TODO version 1
+    }
+
+    private Function<ConfigurationAttribute, ConfigurationValue> getConfigurationValueSupplier(
+            final Long institutionId,
+            final Long configurationId) {
+
+        final Map<Long, ConfigurationValue> mapping = this.configurationValueDAO
+                .allRootAttributeValues(institutionId, configurationId)
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toMap(
+                        ConfigurationValue::getAttributeId,
+                        Function.identity()));
+
+        return attr -> mapping.get(attr.id);
     }
 
 }

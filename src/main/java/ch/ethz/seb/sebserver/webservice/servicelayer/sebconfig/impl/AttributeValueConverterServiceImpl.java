@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -21,26 +20,26 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverterService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class XMLValueConverterServiceImpl implements XMLValueConverterService {
+public class AttributeValueConverterServiceImpl implements AttributeValueConverterService {
 
-    private static final Logger log = LoggerFactory.getLogger(XMLValueConverterServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(AttributeValueConverterServiceImpl.class);
 
-    private final Map<String, XMLValueConverter> convertersByAttributeName;
-    private final Map<AttributeType, XMLValueConverter> convertersByAttributeType;
+    private final Map<String, AttributeValueConverter> convertersByAttributeName;
+    private final Map<AttributeType, AttributeValueConverter> convertersByAttributeType;
 
-    public XMLValueConverterServiceImpl(final Collection<XMLValueConverter> converters) {
+    public AttributeValueConverterServiceImpl(final Collection<AttributeValueConverter> converters) {
         this.convertersByAttributeName = new HashMap<>();
         this.convertersByAttributeType = new HashMap<>();
-        for (final XMLValueConverter converter : converters) {
+        for (final AttributeValueConverter converter : converters) {
             converter.init(this);
-            if (StringUtils.isNotBlank(converter.name())) {
-                this.convertersByAttributeName.put(converter.name(), converter);
+            for (final String attributeName : converter.names()) {
+                this.convertersByAttributeName.put(attributeName, converter);
             }
 
             for (final AttributeType aType : converter.types()) {
@@ -56,7 +55,7 @@ public class XMLValueConverterServiceImpl implements XMLValueConverterService {
     }
 
     @Override
-    public XMLValueConverter getXMLConverter(final ConfigurationAttribute attribute) {
+    public AttributeValueConverter getAttributeValueConverter(final ConfigurationAttribute attribute) {
         if (this.convertersByAttributeName.containsKey(attribute.name)) {
             return this.convertersByAttributeName.get(attribute.name);
         }

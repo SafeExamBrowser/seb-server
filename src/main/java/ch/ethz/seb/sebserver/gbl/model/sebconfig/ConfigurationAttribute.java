@@ -8,8 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,10 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 public final class ConfigurationAttribute implements Entity, Comparable<ConfigurationAttribute> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationAttribute.class);
+
+    /** This is used to compare the attribute names for sorting used to generate the Config-Key
+     * See: https://www.safeexambrowser.org/developer/seb-config-key.html */
+    private static final Collator CULTURE_INVARIANT_COLLATOR = Collator.getInstance(Locale.ROOT);
 
     /** This configuration attribute dependency key can be used to set a specific localized text key prefix for
      * resources. This is usually convenient if two different attributes use the same resources and to avoid
@@ -162,8 +168,9 @@ public final class ConfigurationAttribute implements Entity, Comparable<Configur
 
     @Override
     public int compareTo(final ConfigurationAttribute attribute) {
-        // TODO check if this is correct in reference to https://www.safeexambrowser.org/developer/seb-config-key.html
-        return this.name.compareToIgnoreCase(attribute.name);
+        return CULTURE_INVARIANT_COLLATOR.compare(
+                this.name,
+                attribute.name);
     }
 
     @Override

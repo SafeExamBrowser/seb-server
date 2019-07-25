@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -25,23 +25,19 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class BooleanConverter implements XMLValueConverter {
+public class BooleanConverter implements AttributeValueConverter {
 
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
                     AttributeType.CHECKBOX)));
 
-    private static final String TEMPLATE = "<key>%s</key><%s />";
-
-    @Override
-    public String name() {
-        return StringUtils.EMPTY;
-    }
+    private static final String XML_TEMPLATE = "<key>%s</key><%s />";
+    private static final String JSON_TEMPLATE = "\"%s\":%s";
 
     @Override
     public Set<AttributeType> types() {
@@ -52,14 +48,31 @@ public class BooleanConverter implements XMLValueConverter {
     public void convertToXML(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value) throws IOException {
+            final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
+
+        convert(out, attribute, valueSupplier.apply(attribute), XML_TEMPLATE);
+    }
+
+    @Override
+    public void convertToJSON(
+            final OutputStream out,
+            final ConfigurationAttribute attribute,
+            final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
+
+        convert(out, attribute, valueSupplier.apply(attribute), JSON_TEMPLATE);
+    }
+
+    private void convert(
+            final OutputStream out,
+            final ConfigurationAttribute attribute,
+            final ConfigurationValue value,
+            final String template) throws IOException {
 
         out.write(Utils.toByteArray(
                 String.format(
-                        TEMPLATE,
+                        template,
                         extractName(attribute),
                         (value.value != null) ? value.value : Constants.FALSE_STRING)));
-
     }
 
 }

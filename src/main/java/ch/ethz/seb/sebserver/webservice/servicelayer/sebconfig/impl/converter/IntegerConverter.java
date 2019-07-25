@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +26,14 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.XMLValueConverter;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class IntegerConverter implements XMLValueConverter {
+public class IntegerConverter implements AttributeValueConverter {
+
+    private static final Logger log = LoggerFactory.getLogger(IntegerConverter.class);
 
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
@@ -38,8 +42,8 @@ public class IntegerConverter implements XMLValueConverter {
                     AttributeType.SINGLE_SELECTION,
                     AttributeType.RADIO_SELECTION)));
 
-    private static final String TEMPLATE = "<key>%s</key><integer>%s</integer>";
-    private static final String TEMPLATE_EMPTY = "<key>%s</key><integer />";
+    private static final String XML_TEMPLATE = "<key>%s</key><integer>%s</integer>";
+    private static final String JSON_TEMPLATE = "\"%s\":%s";
 
     @Override
     public Set<AttributeType> types() {
@@ -47,22 +51,43 @@ public class IntegerConverter implements XMLValueConverter {
     }
 
     @Override
-    public String name() {
-        return StringUtils.EMPTY;
-    }
-
-    @Override
     public void convertToXML(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value) throws IOException {
+            final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
+
+        convert(out, attribute, valueSupplier.apply(attribute), XML_TEMPLATE);
+    }
+
+    @Override
+    public void convertToJSON(
+            final OutputStream out,
+            final ConfigurationAttribute attribute,
+            final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
+
+        convert(out, attribute, valueSupplier.apply(attribute), JSON_TEMPLATE);
+    }
+
+    private void convert(
+            final OutputStream out,
+            final ConfigurationAttribute attribute,
+            final ConfigurationValue value,
+            final String template) throws IOException {
 
         final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
-        if (StringUtils.isNotBlank(val)) {
-            out.write(Utils.toByteArray(String.format(TEMPLATE, extractName(attribute), val)));
-        } else {
-            out.write(Utils.toByteArray(String.format(TEMPLATE_EMPTY, extractName(attribute))));
+        int intVal = 0;
+
+        try {
+            intVal = Integer.parseInt(val);
+        } catch (final NumberFormatException nfe) {
+            log.error("Failed to convert SEB configuration attribute value of type integer: {}", val, nfe);
+            intVal = 0;
         }
 
+        out.write(Utils.toByteArray(String.format(
+                template,
+                extractName(attribute),
+                intVal)));
     }
+
 }

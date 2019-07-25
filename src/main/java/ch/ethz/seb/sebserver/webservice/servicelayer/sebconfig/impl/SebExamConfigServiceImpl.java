@@ -161,6 +161,9 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     @Override
     public String generateConfigKey(final Long configurationNodeId) {
+
+        //DigestUtils.sha1Hex(data)
+
         // TODO https://www.safeexambrowser.org/developer/seb-config-key.html
         throw new UnsupportedOperationException("TODO");
     }

@@ -33,6 +33,9 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -389,6 +392,14 @@ public final class Utils {
         } else {
             return new RGB(255, 255, 255);
         }
+    }
+
+    public static final MultiValueMap<String, String> createJsonContentHeader() {
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.set(
+                HttpHeaders.CONTENT_TYPE,
+                org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
+        return headers;
     }
 
 }
