@@ -198,6 +198,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
+                .noEventPropagation()
                 .publishIf(() -> readGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
