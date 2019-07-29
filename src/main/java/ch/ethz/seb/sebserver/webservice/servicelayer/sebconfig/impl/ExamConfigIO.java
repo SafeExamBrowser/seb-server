@@ -11,9 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 
 @Lazy
 @Component
@@ -49,6 +52,9 @@ public class ExamConfigIO {
     private static final byte[] XML_PLIST_END_UTF_8 = Utils.toByteArray(Constants.XML_PLIST_END);
     private static final byte[] XML_DICT_START_UTF_8 = Utils.toByteArray(Constants.XML_DICT_START);
     private static final byte[] XML_DICT_END_UTF_8 = Utils.toByteArray(Constants.XML_DICT_END);
+    private static final byte[] JSON_START = Utils.toByteArray("{");
+    private static final byte[] JSON_END = Utils.toByteArray("}");
+    private static final byte[] JSON_SEPARATOR = Utils.toByteArray(Constants.LIST_SEPARATOR);
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
@@ -68,7 +74,8 @@ public class ExamConfigIO {
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void exportPlainXML(
+    void exportPlain(
+            final ConfigurationFormat exportFormat,
             final OutputStream out,
             final Long institutionId,
             final Long configurationNodeId) {
@@ -82,6 +89,7 @@ public class ExamConfigIO {
                 .getOrThrow()
                 .stream()
                 .flatMap(this::convertAttribute)
+                .filter(exportFormatBasedAttributeFilter(exportFormat))
                 .sorted()
                 .collect(Collectors.toList());
 
@@ -94,25 +102,39 @@ public class ExamConfigIO {
                 getConfigurationValueSupplier(institutionId, configurationId);
 
         try {
-            // write headers
-            out.write(XML_VERSION_HEADER_UTF_8);
-            out.write(XML_DOCTYPE_HEADER_UTF_8);
 
-            // plist open
-            out.write(XML_PLIST_START_V1_UTF_8);
-            out.write(XML_DICT_START_UTF_8);
+            writeHeader(exportFormat, out);
 
             // write attributes
-            for (final ConfigurationAttribute attribute : sortedAttributes) {
-                this.attributeValueConverterService.getAttributeValueConverter(attribute).convertToXML(
-                        out,
-                        attribute,
-                        configurationValueSupplier);
+            final Iterator<ConfigurationAttribute> iterator = sortedAttributes.iterator();
+            while (iterator.hasNext()) {
+
+                final ConfigurationAttribute attribute = iterator.next();
+                final AttributeValueConverter attributeValueConverter =
+                        this.attributeValueConverterService.getAttributeValueConverter(attribute);
+
+                switch (exportFormat) {
+                    case XML: {
+                        attributeValueConverter.convertToXML(
+                                out,
+                                attribute,
+                                configurationValueSupplier);
+                        break;
+                    }
+                    case JSON: {
+                        attributeValueConverter.convertToJSON(
+                                out,
+                                attribute,
+                                configurationValueSupplier);
+                        if (iterator.hasNext()) {
+                            out.write(JSON_SEPARATOR);
+                        }
+                        break;
+                    }
+                }
             }
 
-            // plist close
-            out.write(XML_DICT_END_UTF_8);
-            out.write(XML_PLIST_END_UTF_8);
+            writeFooter(exportFormat, out);
             out.flush();
 
             if (log.isDebugEnabled()) {
@@ -129,6 +151,49 @@ public class ExamConfigIO {
         } finally {
             IOUtils.closeQuietly(out);
         }
+    }
+
+    private Predicate<ConfigurationAttribute> exportFormatBasedAttributeFilter(final ConfigurationFormat format) {
+        // Filter originatorVersion according to: https://www.safeexambrowser.org/developer/seb-config-key.html
+        return attr -> !("originatorVersion".equals(attr.getName()) && format == ConfigurationFormat.JSON);
+    }
+
+    private void writeFooter(
+            final ConfigurationFormat exportFormat,
+            final OutputStream out) throws IOException {
+
+        if (exportFormat == ConfigurationFormat.XML) {
+            // plist close
+            out.write(XML_DICT_END_UTF_8);
+            out.write(XML_PLIST_END_UTF_8);
+        } else {
+            out.write(JSON_END);
+        }
+    }
+
+    private void writeHeader(
+            final ConfigurationFormat exportFormat,
+            final OutputStream out) throws IOException {
+
+        if (exportFormat == ConfigurationFormat.XML) {
+            writeXMLHeaderInformation(out);
+        } else {
+            writeJSONHeaderInformation(out);
+        }
+    }
+
+    private void writeJSONHeaderInformation(final OutputStream out) throws IOException {
+        out.write(JSON_START);
+    }
+
+    private void writeXMLHeaderInformation(final OutputStream out) throws IOException {
+        // write headers
+        out.write(XML_VERSION_HEADER_UTF_8);
+        out.write(XML_DOCTYPE_HEADER_UTF_8);
+
+        // plist open
+        out.write(XML_PLIST_START_V1_UTF_8);
+        out.write(XML_DICT_START_UTF_8);
     }
 
     private Stream<ConfigurationAttribute> convertAttribute(final ConfigurationAttribute attr) {

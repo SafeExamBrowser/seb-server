@@ -8,9 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.Function;
+
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -32,15 +37,19 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -59,6 +68,9 @@ public class SebExamConfigPropForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.description");
     private static final LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.status");
+
+    private static final LocTextKey CONFIG_KEY_TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.config-key.title");
 
     private final PageService pageService;
     private final RestService restService;
@@ -183,6 +195,11 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 })
                 .publishIf(() -> readGrant && isReadonly)
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
+                .publishIf(() -> readGrant && isReadonly)
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
@@ -196,6 +213,39 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         ActionDefinition.SEB_EXAM_CONFIG_LIST))
                 .publishIf(() -> !isReadonly);
 
+    }
+
+    public static Function<PageAction, PageAction> getConfigKeyFunction(final PageService pageService) {
+        final RestService restService = pageService.getResourceService().getRestService();
+        return action -> {
+            final ConfigKey configKey = restService.getBuilder(ExportConfigKey.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                    .call()
+                    .getOrThrow();
+
+            final WidgetFactory widgetFactory = pageService.getWidgetFactory();
+            final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
+                    action.pageContext().getParent().getShell(),
+                    widgetFactory);
+
+            dialog.open(
+                    CONFIG_KEY_TITLE_TEXT_KEY,
+                    action.pageContext(),
+                    pc -> {
+                        final Composite content = widgetFactory.defaultPageLayout(
+                                pc.getParent());
+
+                        widgetFactory.labelLocalized(
+                                content,
+                                CustomVariant.TEXT_H3,
+                                CONFIG_KEY_TITLE_TEXT_KEY);
+
+                        final Text text = new Text(content, SWT.NONE);
+                        text.setEditable(false);
+                        text.setText(configKey.key);
+                    });
+            return action;
+        };
     }
 
 }

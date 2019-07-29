@@ -10,9 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -35,15 +32,23 @@ public class IntegerConverter implements AttributeValueConverter {
 
     private static final Logger log = LoggerFactory.getLogger(IntegerConverter.class);
 
-    public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList(
-                    AttributeType.INTEGER,
-                    AttributeType.SLIDER,
-                    AttributeType.SINGLE_SELECTION,
-                    AttributeType.RADIO_SELECTION)));
+    public static final Set<String> SUPPORTED_ATTR_NAMES = Utils.immutableSetOf(
+            "taskBarHeight",
+            "allowedDisplaysMaxNumber");
+
+    public static final Set<AttributeType> SUPPORTED_TYPES = Utils.immutableSetOf(
+            AttributeType.INTEGER,
+            AttributeType.SLIDER,
+            AttributeType.SINGLE_SELECTION,
+            AttributeType.RADIO_SELECTION);
 
     private static final String XML_TEMPLATE = "<key>%s</key><integer>%s</integer>";
     private static final String JSON_TEMPLATE = "\"%s\":%s";
+
+    @Override
+    public Set<String> names() {
+        return SUPPORTED_ATTR_NAMES;
+    }
 
     @Override
     public Set<AttributeType> types() {

@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** The base interface and service for all SEB Exam Configuration related functionality. */
 public interface SebExamConfigService {
@@ -40,13 +41,25 @@ public interface SebExamConfigService {
      * @param configurationNodeId the identifier of the ConfigurationNode to export */
     void exportPlainXML(OutputStream out, Long institutionId, Long configurationNodeId);
 
+    /** Used to export a specified SEB Exam Configuration as plain JSON
+     * This exports the values of the follow-up configuration defined by a given
+     * ConfigurationNode (configurationNodeId) and sorts the attributes recording to
+     * the SEB configuration JSON specification to create a Config-Key as
+     * described here: https://www.safeexambrowser.org/developer/seb-config-key.html
+     *
+     * @param out The output stream to write the plain JSON text to.
+     * @param institutionId The identifier of the institution of the requesting user
+     * @param configurationNodeId the identifier of the ConfigurationNode to export */
+    void exportPlainJSON(OutputStream out, Long institutionId, Long configurationNodeId);
+
     /** Used to export the default SEB Exam Configuration for a given exam identifier.
      * either with encryption if defined or as plain text within the SEB Configuration format
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out The output stream to write the export data to
      * @param institutionId The identifier of the institution of the requesting user
-     * @param examId the exam identifier */
+     * @param examId the exam identifier
+     * @return The configuration node identifier (PK) */
     default Long exportForExam(final OutputStream out, final Long institutionId, final Long examId) {
         return exportForExam(out, institutionId, examId, null);
     }
@@ -58,10 +71,11 @@ public interface SebExamConfigService {
      * @param out The output stream to write the export data to
      * @param institutionId The identifier of the institution of the requesting user
      * @param examId the exam identifier
-     * @param userId the user identifier if a specific user based configuration shall be exported */
+     * @param userId the user identifier if a specific user based configuration shall be exported
+     * @return The configuration node identifier (PK) */
     Long exportForExam(OutputStream out, Long institutionId, Long examId, String userId);
 
     /** TODO */
-    String generateConfigKey(Long configurationNodeId);
+    Result<String> generateConfigKey(Long institutionId, Long configurationNodeId);
 
 }

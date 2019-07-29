@@ -44,7 +44,7 @@ public class StringConverter implements AttributeValueConverter {
     private static final String XML_TEMPLATE_EMPTY = "<key>%s</key><string />";
 
     private static final String JSON_TEMPLATE = "\"%s\":\"%s\"";
-    private static final String JSON_TEMPLATE_EMPTY = "\"%s\":";
+    private static final String JSON_TEMPLATE_EMPTY = "\"%s\":\"\"";
 
     @Override
     public Set<AttributeType> types() {

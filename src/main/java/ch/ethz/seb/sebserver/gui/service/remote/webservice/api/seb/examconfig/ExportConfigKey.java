@@ -17,25 +17,26 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.AbstractExportCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class ExportPlainXML extends AbstractExportCall {
+public class ExportConfigKey extends RestCall<ConfigKey> {
 
-    public ExportPlainXML() {
+    public ExportConfigKey() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.CONFIGURATION_NODE,
-                new TypeReference<byte[]>() {
+                new TypeReference<ConfigKey>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.CONFIGURATION_NODE_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT);
+                        + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT);
     }
 
 }

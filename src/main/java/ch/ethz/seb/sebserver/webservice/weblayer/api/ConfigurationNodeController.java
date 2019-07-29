@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -84,20 +85,42 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Configuration getFollowup(@PathVariable final Long configNodeId) {
+    public Configuration getFollowup(@PathVariable final Long modelId) {
 
         this.entityDAO
-                .byPK(configNodeId)
+                .byPK(modelId)
                 .flatMap(this::checkModifyAccess)
                 .getOrThrow();
 
         return this.configurationDAO
-                .getFollowupConfiguration(configNodeId)
+                .getFollowupConfiguration(modelId)
                 .getOrThrow();
     }
 
     @RequestMapping(
-            path = API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ConfigKey getConfigKey(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkRead);
+
+        final String configKey = this.sebExamConfigService
+                .generateConfigKey(institutionId, modelId)
+                .getOrThrow();
+
+        return new ConfigKey(configKey);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadPlainXMLConfig(
@@ -108,7 +131,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         this.entityDAO.byPK(modelId)
-                .map(this.authorization::checkRead);
+                .flatMap(this.authorization::checkRead);
 
         final StreamingResponseBody stream = out -> this.sebExamConfigService
                 .exportPlainXML(out, institutionId, modelId);

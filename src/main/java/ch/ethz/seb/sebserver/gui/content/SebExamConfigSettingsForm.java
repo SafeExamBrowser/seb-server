@@ -167,6 +167,10 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .withSuccess(KEY_UNDO_SUCCESS)
                     .publishIf(() -> examConfigGrant.iw())
 
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
+                    .withEntityKey(entityKey)
+                    .publish()
+
             ;
 
         } catch (final Exception e) {

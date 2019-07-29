@@ -385,7 +385,13 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
+                    .withEntityKey(entityKey)
+                    .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
+                    .publishIf(() -> userGrantCheck.r());
+            ;
         }
     }
 

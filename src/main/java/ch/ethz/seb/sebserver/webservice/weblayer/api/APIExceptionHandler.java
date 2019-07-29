@@ -78,7 +78,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(OAuth2Exception.class)
-    public ResponseEntity<Object> handleBeanValidationException(
+    public ResponseEntity<Object> handleOAuth2Exception(
             final OAuth2Exception ex,
             final WebRequest request) {
 

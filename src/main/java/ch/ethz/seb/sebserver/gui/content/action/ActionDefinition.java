@@ -177,7 +177,6 @@ public enum ActionDefinition {
     QUIZ_DISCOVERY_SHOW_DETAILS(
             new LocTextKey("sebserver.quizdiscovery.action.details"),
             ImageIcon.SHOW,
-            null,
             ActionCategory.QUIZ_LIST),
     QUIZ_DISCOVERY_EXAM_IMPORT(
             new LocTextKey("sebserver.quizdiscovery.action.import"),
@@ -340,6 +339,12 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
+    SEB_EXAM_CONFIG_VIEW_PROP(
+            new LocTextKey("sebserver.examconfig.action.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
+
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,
@@ -370,6 +375,10 @@ public enum ActionDefinition {
             ImageIcon.EXPORT,
             PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_GET_CONFIG_KEY(
+            new LocTextKey("sebserver.examconfig.action.get-config-key"),
+            ImageIcon.SECURE,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify"),
@@ -381,12 +390,12 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.saveToHistory"),
             ImageIcon.SAVE,
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
-            ActionCategory.SEB_EXAM_CONFIG_LIST),
+            ActionCategory.FORM),
     SEB_EXAM_CONFIG_UNDO(
             new LocTextKey("sebserver.examconfig.action.undo"),
             ImageIcon.UNDO,
             PageStateDefinition.SEB_EXAM_CONFIG_EDIT,
-            ActionCategory.SEB_EXAM_CONFIG_LIST),
+            ActionCategory.FORM),
 
     RUNNING_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.monitoring.action.list"),
@@ -420,6 +429,14 @@ public enum ActionDefinition {
 
     private ActionDefinition(final LocTextKey title, final ImageIcon icon, final PageState targetState) {
         this(title, icon, targetState, ActionCategory.VARIA);
+    }
+
+    private ActionDefinition(
+            final LocTextKey title,
+            final ImageIcon icon,
+            final ActionCategory category) {
+
+        this(title, icon, null, category);
     }
 
     private ActionDefinition(
