@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.async;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -36,6 +37,11 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
     @Override
     public Executor getAsyncExecutor() {
         return threadPoolTaskExecutor();
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new AsyncExceptionHandler();
     }
 
 }

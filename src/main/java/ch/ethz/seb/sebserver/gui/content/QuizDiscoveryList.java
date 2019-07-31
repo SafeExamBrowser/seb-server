@@ -202,7 +202,7 @@ public class QuizDiscoveryList implements TemplateComposer {
         return action
                 .withEntityKey(action.getSingleSelection())
                 .withParentEntityKey(new EntityKey(selectedROWData.lmsSetupId, EntityType.LMS_SETUP))
-                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, "true");
+                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, "true");
     }
 
     private PageAction showDetails(final PageAction action, final QuizData quizData) {

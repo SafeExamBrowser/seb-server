@@ -66,7 +66,6 @@ public class PasswordEncryptor implements SebConfigCryptor {
 
             input.close();
             encryptOutput.flush();
-            encryptOutput.close();
 
         } catch (final CryptorException e) {
             log.error("Error while trying to stream and encrypt data: ", e);

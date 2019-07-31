@@ -138,11 +138,7 @@ public final class PageAction {
             PageAction.this.pageContext.publishPageMessage(pme);
             return Result.ofError(pme);
         } catch (final RestCallError restCallError) {
-            if (restCallError.isFieldValidationError()) {
-                PageAction.this.pageContext.publishPageMessage(
-                        new LocTextKey("sebserver.form.validation.error.title"),
-                        new LocTextKey("sebserver.form.validation.error.message"));
-            } else {
+            if (!restCallError.isFieldValidationError()) {
                 log.error("Failed to execute action: {}", PageAction.this, restCallError);
                 PageAction.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
             }

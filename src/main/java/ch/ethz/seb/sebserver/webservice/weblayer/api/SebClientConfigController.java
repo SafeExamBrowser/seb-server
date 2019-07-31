@@ -26,10 +26,12 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -76,10 +78,20 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
             @PathVariable final String modelId) {
 
         this.entityDAO.byModelId(modelId)
-                .map(this.authorization::checkWrite);
+                .flatMap(this.authorization::checkWrite)
+                .map(this.userActivityLogDAO::logExport);
 
-        final StreamingResponseBody stream = out -> this.sebClientConfigService
-                .exportSebClientConfiguration(out, modelId);
+        this.userActivityLogDAO.log(
+                UserLogActivityType.EXPORT,
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                modelId,
+                "Export of SEB Client Configuration");
+
+        final StreamingResponseBody stream = out -> {
+            this.sebClientConfigService.exportSebClientConfiguration(
+                    out,
+                    modelId);
+        };
 
         return new ResponseEntity<>(stream, HttpStatus.OK);
     }

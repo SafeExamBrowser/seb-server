@@ -47,7 +47,7 @@ public class ModalInputDialog<T> extends Dialog {
             final Shell parent,
             final WidgetFactory widgetFactory) {
 
-        super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL);
+        super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.CLOSE);
         this.widgetFactory = widgetFactory;
 
     }

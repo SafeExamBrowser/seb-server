@@ -166,8 +166,8 @@ Composite.login {
 }
 
 Composite.error {
-    background-color: #aa0000;
-    margin: 0 0 0 0;
+    border: 1px solid #aa0000;
+    border-radius: 1px;
 }
 
 *.header {
@@ -230,11 +230,6 @@ Text.error {
     border: 1px solid #aa0000;
 }
 
-Text[MULTI] {
-    padding: 5px 10px 5px 10px;
-    height: 100px;
-}
-
 Text[BORDER], Text[MULTI][BORDER] {
     border: 1px solid #aaaaaa;
     border-radius: 0;
@@ -252,10 +247,13 @@ Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
     box-shadow: none;
 }
 
-Text[BORDER]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only,
-    Text[MULTI][BORDER]:read-only {
+Text:disabled, Text:read-only, Text[BORDER]:disabled, Text[MULTI]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only, Text[MULTI]:read-only, Text[MULTI][BORDER]:read-only {
     box-shadow: none;
-    background-color: #f0f0f0;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 0;
+    color: #4a4a4a;
+    padding: 0px 0px 0px 0px;
 }
 
 
@@ -374,6 +372,12 @@ Shell-Titlebar.message {
   text-shadow: none;
 }
 
+Shell-CloseButton:hover.message {
+    background-color: #82BE1E;
+    background-gradient-color: #82BE1E;
+    background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
+}
+
 Button {
     font: 12px Arial, Helvetica, sans-serif;
     padding: 5px 6px 5px 6px;
@@ -488,7 +492,7 @@ Tree[BORDER] {
     border: 1px solid #eceeef;
 }
 
-TreeItem {
+TreeItem, TreeItem.treesection, Tree-RowOverlay:hover.treesection, Tree-RowOverlay:selected.treesection, Tree-RowOverlay:selected:hover.treesection {
     font: bold 14px Arial, Helvetica, sans-serif;
     color: #1f407a;
     background-color: transparent;
@@ -514,6 +518,7 @@ Tree-RowOverlay:hover {
     background-color: #82be1e;
     color: #1F407A;
 }
+
 
 Tree-RowOverlay:selected {
     background-color: #82be1e;
@@ -563,30 +568,7 @@ Tree-RowOverlay:selected.actions {
     color: #4a4a4a;
 }
 
-Tree-Indent {
-    width: 16px;
-    background-image: none;
-}
 
-Tree-Indent:collapsed {
-    background-image: none;
-}
-
-Tree-Indent:collapsed:hover {
-    background-image: none;
-}
-
-Tree-Indent:expanded {
-    background-image: none;
-}
-
-Tree-Indent:expanded:hover {
-    background-image: none;
-}
-
-Tree-Indent:line {
-    background-image: none;
-}
 
 /* TabFolder default theme */
 

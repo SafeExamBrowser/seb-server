@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gui.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,6 +26,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -35,7 +38,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -56,12 +61,28 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
  * combo-box content. */
 public class ResourceService {
 
+    public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = (t1, t2) -> t1._2.compareTo(t2._2);
+
+    public static final EnumSet<EntityType> ENTITY_TYPE_EXCLUDE_MAP = EnumSet.of(
+            EntityType.ADDITIONAL_ATTRIBUTES,
+            EntityType.CLIENT_CONNECTION,
+            EntityType.CLIENT_EVENT,
+            EntityType.CONFIGURATION_ATTRIBUTE,
+            EntityType.CONFIGURATION_VALUE,
+            EntityType.CONFIGURATION,
+            EntityType.ORIENTATION,
+            EntityType.USER_ACTIVITY_LOG,
+            EntityType.USER_ROLE,
+            EntityType.WEBSERVICE_SERVER_INFO);
+
     public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
     public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
+    public static final String USER_ACTIVITY_TYPE_PREFIX = "sebserver.overall.types.activityType.";
+    public static final String ENTITY_TYPE_PREFIX = "sebserver.overall.types.entityType.";
     public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
     public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
 
@@ -110,6 +131,7 @@ public class ResourceService {
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -119,6 +141,7 @@ public class ResourceService {
                 .map(eventType -> new Tuple<>(
                         eventType.name(),
                         getEventTypeName(eventType)))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -135,6 +158,7 @@ public class ResourceService {
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name())))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -143,6 +167,7 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -152,6 +177,7 @@ public class ResourceService {
                 .map(ur -> new Tuple<>(
                         ur.name(),
                         this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name())))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -162,6 +188,7 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -191,6 +218,7 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -213,6 +241,45 @@ public class ResourceService {
         };
     }
 
+    public List<Tuple<String>> entityTypeResources() {
+        return Arrays.asList(EntityType.values())
+                .stream()
+                .filter(type -> !ENTITY_TYPE_EXCLUDE_MAP.contains(type))
+                .map(type -> new Tuple<>(type.name(), getEntityTypeName(type)))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public String getEntityTypeName(final EntityType type) {
+        if (type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return this.i18nSupport.getText(ENTITY_TYPE_PREFIX + type.name());
+    }
+
+    public String getEntityTypeName(final UserActivityLog userLog) {
+        return getEntityTypeName(userLog.entityType);
+    }
+
+    public List<Tuple<String>> userActivityTypeResources() {
+        return Arrays.asList(UserLogActivityType.values())
+                .stream()
+                .map(type -> new Tuple<>(type.name(), getUserActivityTypeName(type)))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public String getUserActivityTypeName(final UserLogActivityType type) {
+        if (type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return this.i18nSupport.getText(USER_ACTIVITY_TYPE_PREFIX + type.name());
+    }
+
+    public String getUserActivityTypeName(final UserActivityLog userLog) {
+        return getUserActivityTypeName(userLog.activityType);
+    }
+
     /** Get a list of language key/name tuples for all supported languages in the
      * language of the current users locale.
      *
@@ -225,7 +292,7 @@ public class ResourceService {
                 .stream()
                 .map(locale -> new Tuple<>(locale.toLanguageTag(), locale.getDisplayLanguage(currentLocale)))
                 .filter(tuple -> StringUtils.isNotBlank(tuple._2))
-                .sorted((t1, t2) -> t1._2.compareTo(t2._2))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -235,7 +302,7 @@ public class ResourceService {
                 .getAvailableIDs()
                 .stream()
                 .map(id -> new Tuple<>(id, DateTimeZone.forID(id).getName(0, currentLocale) + " (" + id + ")"))
-                .sorted((t1, t2) -> t1._2.compareTo(t2._2))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -246,6 +313,7 @@ public class ResourceService {
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -255,6 +323,7 @@ public class ResourceService {
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -269,6 +338,7 @@ public class ResourceService {
         return selection
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
@@ -281,6 +351,7 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 

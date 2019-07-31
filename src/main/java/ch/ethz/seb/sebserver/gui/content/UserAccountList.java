@@ -47,6 +47,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class UserAccountList implements TemplateComposer {
 
     // localized text keys
+    private static final LocTextKey EMPTY_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.empty");
     private static final LocTextKey INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.list.column.institution");
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
@@ -121,9 +123,9 @@ public class UserAccountList implements TemplateComposer {
         // table
         final EntityTable<UserInfo> table = this.pageService.entityTableBuilder(
                 restService.getRestCall(GetUserAccountPage.class))
-
-                .withEmptyMessage(new LocTextKey("sebserver.useraccount.list.empty"))
+                .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
+
                 .withColumnIf(
                         isSEBAdmin,
                         () -> new ColumnDefinition<>(
@@ -132,6 +134,7 @@ public class UserAccountList implements TemplateComposer {
                                 userInstitutionNameFunction(this.resourceService))
                                         .withFilter(this.institutionFilter)
                                         .widthProportion(2))
+
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_NAME,
                         NAME_TEXT_KEY,
@@ -139,6 +142,7 @@ public class UserAccountList implements TemplateComposer {
                                 .withFilter(this.nameFilter)
                                 .sortable()
                                 .widthProportion(2))
+
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_USERNAME,
                         USER_NAME_TEXT_KEY,
@@ -146,6 +150,7 @@ public class UserAccountList implements TemplateComposer {
                                 .withFilter(this.usernameFilter)
                                 .sortable()
                                 .widthProportion(2))
+
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_EMAIL,
                         MAIL_TEXT_KEY,
@@ -153,6 +158,7 @@ public class UserAccountList implements TemplateComposer {
                                 .withFilter(this.mailFilter)
                                 .sortable()
                                 .widthProportion(3))
+
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_LANGUAGE,
                         LANG_TEXT_KEY,
@@ -161,6 +167,7 @@ public class UserAccountList implements TemplateComposer {
                                 .localized()
                                 .sortable()
                                 .widthProportion(1))
+
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_ACTIVE,
                         ACTIVE_TEXT_KEY,
@@ -168,6 +175,7 @@ public class UserAccountList implements TemplateComposer {
                                 .sortable()
                                 .withFilter(this.activityFilter)
                                 .widthProportion(1))
+
                 .withDefaultAction(actionBuilder
                         .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                         .create())

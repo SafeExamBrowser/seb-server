@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tomcat.util.buf.StringUtils;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -102,6 +105,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.configuration.list.column.description");
     private final static LocTextKey CONFIG_STATUS_COLUMN_KEY =
             new LocTextKey("sebserver.exam.configuration.list.column.status");
+    private final static LocTextKey CONFIG_EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.pleaseSelect");
 
     private final static LocTextKey INDICATOR_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.indicator.list.title");
@@ -133,7 +138,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
         final boolean importFromQuizData = BooleanUtils.toBoolean(
-                pageContext.getAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
+                pageContext.getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
 
         // get or create model data
         final Exam exam = (importFromQuizData
@@ -244,7 +249,7 @@ public class ExamForm implements TemplateComposer {
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
         // propagate content actions to action-pane
         actionBuilder
 
@@ -259,7 +264,7 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA, String.valueOf(importFromQuizData))
+                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this::cancelModify)
                 .publishIf(() -> !readonly);
 
@@ -318,17 +323,18 @@ public class ExamForm implements TemplateComposer {
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(
-                            () -> {
-                                final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
-                                if (firstRowData == null) {
-                                    return Collections.emptySet();
-                                } else {
-                                    return new HashSet<>(Arrays.asList(firstRowData.getEntityKey()));
-                                }
-                            },
+                            getConfigMappingSelection(configurationTable),
                             this::deleteExamConfigMapping,
-                            null)
-                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable);
+                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
+                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable)
+
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
+                    .withSelect(
+                            getConfigSelection(configurationTable),
+                            this::getExamConfigKey,
+                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
+                    .noEventPropagation()
+                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent());
 
             // List of Indicators
             widgetFactory.labelLocalized(
@@ -385,15 +391,33 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
-
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
-                    .withEntityKey(entityKey)
-                    .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
-                    .noEventPropagation()
-                    .publishIf(() -> userGrantCheck.r());
-            ;
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
         }
+    }
+
+    private Supplier<Set<EntityKey>> getConfigMappingSelection(
+            final EntityTable<ExamConfigurationMap> configurationTable) {
+        return () -> {
+            final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
+            if (firstRowData == null) {
+                return Collections.emptySet();
+            } else {
+                return new HashSet<>(Arrays.asList(firstRowData.getEntityKey()));
+            }
+        };
+    }
+
+    private Supplier<Set<EntityKey>> getConfigSelection(final EntityTable<ExamConfigurationMap> configurationTable) {
+        return () -> {
+            final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
+            if (firstRowData == null) {
+                return Collections.emptySet();
+            } else {
+                return new HashSet<>(Arrays.asList(new EntityKey(
+                        firstRowData.configurationNodeId,
+                        EntityType.CONFIGURATION_NODE)));
+            }
+        };
     }
 
     private PageAction deleteSelectedIndicator(final PageAction action) {
@@ -402,6 +426,18 @@ public class ExamForm implements TemplateComposer {
                 .getBuilder(DeleteIndicator.class)
                 .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
                 .call();
+        return action;
+    }
+
+    private PageAction getExamConfigKey(final PageAction action) {
+        final EntityKey examConfigMappingKey = action.getSingleSelection();
+        if (examConfigMappingKey != null) {
+            action.withEntityKey(examConfigMappingKey);
+            return SebExamConfigPropForm
+                    .getConfigKeyFunction(this.pageService)
+                    .apply(action);
+        }
+
         return action;
     }
 
@@ -457,7 +493,7 @@ public class ExamForm implements TemplateComposer {
 
     private PageAction cancelModify(final PageAction action) {
         final boolean importFromQuizData = BooleanUtils.toBoolean(
-                action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZZ_DATA));
+                action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
         if (importFromQuizData) {
             final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(action.pageContext());
             final PageAction activityHomeAction = actionBuilder

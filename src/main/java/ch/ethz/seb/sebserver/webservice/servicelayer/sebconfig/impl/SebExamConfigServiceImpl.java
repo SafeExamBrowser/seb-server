@@ -203,7 +203,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
             return Result.of(configKey);
 
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             log.error("Error while stream plain JSON SEB clonfiguration data for Config-Key generation: ", e);
             return Result.ofError(e);
         } finally {
@@ -254,7 +254,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             pout.close();
             pin.close();
 
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             log.error("Error while stream plain text SEB clonfiguration data: ", e);
         } finally {
             try {

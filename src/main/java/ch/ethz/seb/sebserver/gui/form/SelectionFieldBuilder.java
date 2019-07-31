@@ -21,6 +21,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -100,7 +101,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
-            gridLayout.verticalSpacing = 0;
+            gridLayout.verticalSpacing = 5;
             gridLayout.horizontalSpacing = 0;
             gridLayout.marginLeft = 0;
             gridLayout.marginHeight = 0;
@@ -120,7 +121,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                         .forEach(v -> buildReadonlyLabel(composite, v, 0));
             }
         } else {
-            builder.form.putField(
+            builder.form.putReadonlyField(
                     this.name,
                     lab,
                     buildReadonlyLabel(builder.formParent, this.value, this.spanInput));
@@ -128,9 +129,9 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         }
     }
 
-    private Label buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
-        final Label label = new Label(composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.FILL, true, true, hspan, 1);
+    private Text buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
+        final Text label = new Text(composite, SWT.READ_ONLY);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
         gridData.verticalIndent = 0;
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);

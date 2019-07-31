@@ -20,7 +20,10 @@ public enum ActivityDefinition implements Activity {
     SEB_CONFIGURATION(new LocTextKey("sebserver.sebconfig.activity.name")),
     SEB_CLIENT_CONFIG(new LocTextKey("sebserver.clientconfig.action.list")),
     SEB_EXAM_CONFIG(new LocTextKey("sebserver.examconfig.action.list")),
-    MONITORING_EXAMS(new LocTextKey("sebserver.monitoring.action.list"));
+    MONITORING_EXAMS(new LocTextKey("sebserver.monitoring.action.list")),
+    LOGS(new LocTextKey("sebserver.logs.activity.main")),
+    USER_ACTIVITY_LOGS(new LocTextKey("sebserver.logs.activity.userlogs")),
+    SEB_CLIENT_LOGS(new LocTextKey("sebserver.logs.activity.seblogs"));
 
     public final LocTextKey displayName;
 

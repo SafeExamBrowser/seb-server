@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -65,10 +66,10 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
         return new ClientCredentials(
                 clientIdPlaintext,
-                (secretPlaintext != null)
+                (StringUtils.isNoneBlank(secretPlaintext))
                         ? encrypt(secretPlaintext, secret).toString()
                         : null,
-                (accessTokenPlaintext != null)
+                (StringUtils.isNoneBlank(accessTokenPlaintext))
                         ? encrypt(accessTokenPlaintext, secret).toString()
                         : null);
     }

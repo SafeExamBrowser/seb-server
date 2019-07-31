@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,7 +33,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -48,7 +51,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4&institutionId=2")
-                                .header("Authorization", "Bearer " + token))
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -60,7 +64,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         // for a user in the same institution no institution is needed
         logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user2")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -83,7 +88,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(
                         get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2)
-                                .header("Authorization", "Bearer " + token))
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -96,7 +102,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from="
                                 + sec2 + "&to=" + sec4)
-                                        .header("Authorization", "Bearer " + token))
+                                        .header("Authorization", "Bearer " + token)
+                                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -110,7 +117,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2
                                         + "&to=" + sec5)
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -124,7 +133,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2
                                         + "&to=" + sec6)
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -139,7 +150,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?activity_types=CREATE")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -153,7 +165,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?activity_types=CREATE,MODIFY")
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -168,7 +182,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?institutionId=2&activity_types=CREATE,MODIFY")
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -184,7 +200,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?entity_types=INSTITUTION")
-                                .header("Authorization", "Bearer " + token))
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -198,7 +215,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?entity_types=INSTITUTION,EXAM")
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -212,7 +231,9 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?entity_types=INSTITUTION,EXAM&institutionId=2")
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -227,7 +248,8 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getAdminInstitution1Access();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -243,18 +265,21 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         // no privilege at all
         this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
-                .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                 .andExpect(status().isForbidden());
         // no privilege at all
         this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4")
-                .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                 .andExpect(status().isForbidden());
 
         // no privilege to query logs of users of other institution
         token = getAdminInstitution1Access();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {

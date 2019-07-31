@@ -8,12 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
 public final class TextFieldBuilder extends FieldBuilder<String> {
@@ -47,37 +49,39 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             return;
         }
 
+        final boolean readonly = builder.readonly || this.readonly;
         final Label lab = builder.labelLocalized(
                 builder.formParent,
                 this.label,
                 this.defaultLabel,
                 this.spanLabel);
 
-        if (builder.readonly || this.readonly) {
-            builder.form.putField(this.name, lab,
-                    builder.valueLabel(builder.formParent, this.value, this.spanInput, this.centeredInput));
-            builder.setFieldVisible(this.visible, this.name);
+        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Text textInput = (this.isNumber)
+                ? builder.widgetFactory.numberInput(fieldGrid, null)
+                : (this.isArea)
+                        ? builder.widgetFactory.textAreaInput(fieldGrid)
+                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword);
+
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        if (this.isArea && !readonly) {
+            gridData.heightHint = 50;
+        }
+        textInput.setLayoutData(gridData);
+        if (StringUtils.isNoneBlank(this.value)) {
+            textInput.setText(this.value);
+        } else if (readonly) {
+            textInput.setText(Constants.EMPTY_NOTE);
+        }
+
+        if (readonly) {
+            textInput.setEditable(false);
+            builder.form.putReadonlyField(this.name, lab, textInput);
         } else {
-
-            final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
-            final Text textInput = (this.isNumber)
-                    ? builder.widgetFactory.numberInput(fieldGrid, null)
-                    : (this.isArea)
-                            ? builder.widgetFactory.textAreaInput(fieldGrid)
-                            : builder.widgetFactory.textInput(fieldGrid, this.isPassword);
-
-            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-            if (this.isArea) {
-                gridData.heightHint = 50;
-            }
-            textInput.setLayoutData(gridData);
-            if (this.value != null) {
-                textInput.setText(this.value);
-            }
-
             final Label errorLabel = Form.createErrorLabel(fieldGrid);
             builder.form.putField(this.name, lab, textInput, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
         }
+
     }
 }

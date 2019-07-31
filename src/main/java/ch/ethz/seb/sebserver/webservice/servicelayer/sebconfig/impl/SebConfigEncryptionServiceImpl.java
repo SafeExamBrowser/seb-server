@@ -73,6 +73,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             }
 
             pout.write(strategy.header);
+
             getEncryptor(strategy)
                     .getOrThrow()
                     .encrypt(pout, input, context);
@@ -91,12 +92,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
                     pin.close();
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
-            }
-            try {
-                if (pout != null)
-                    pout.close();
-            } catch (final IOException e1) {
-                log.error("Failed to close PipedOutputStream: ", e1);
             }
         }
     }

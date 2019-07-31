@@ -114,10 +114,13 @@ public class WidgetFactory {
         TEXT_H3("h3"),
         IMAGE_BUTTON("imageButton"),
         TEXT_ACTION("action"),
+        TEXT_READONLY("readonlyText"),
 
         FORM_CENTER("form-center"),
         SELECTION("selection"),
         SELECTED("selected"),
+
+        ACTIVITY_TREE_SECTION("treesection"),
 
         FOOTER("footer"),
         TITLE_LABEL("head"),
@@ -532,8 +535,12 @@ public class WidgetFactory {
         return selection;
     }
 
-    public ThresholdList thresholdList(final Composite parent, final Collection<Threshold> values) {
-        final ThresholdList thresholdList = new ThresholdList(parent, this);
+    public ThresholdList thresholdList(
+            final Composite parent,
+            final Composite updateAnchor,
+            final Collection<Threshold> values) {
+
+        final ThresholdList thresholdList = new ThresholdList(parent, updateAnchor, this);
         if (values != null) {
             thresholdList.setThresholds(values);
         }

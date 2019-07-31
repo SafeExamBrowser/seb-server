@@ -68,6 +68,7 @@ public class FormBuilder {
 
         this.formParent = this.widgetFactory
                 .formGrid(pageContext.getParent(), rows);
+        this.formParent.setData("TEST");
     }
 
     public FormBuilder readonly(final boolean readonly) {
@@ -271,7 +272,7 @@ public class FormBuilder {
         final GridData gridData = new GridData(
                 (centered) ? SWT.FILL : SWT.FILL,
                 (centered) ? SWT.CENTER : SWT.TOP,
-                true, true,
+                true, false,
                 hspan, 1);
 
         if (centered) {
@@ -279,7 +280,7 @@ public class FormBuilder {
             label.setData(RWT.CUSTOM_VARIANT, CustomVariant.FORM_CENTER.key);
         }
 
-        gridData.heightHint = FORM_ROW_HEIGHT;
+        //     gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         return label;
     }

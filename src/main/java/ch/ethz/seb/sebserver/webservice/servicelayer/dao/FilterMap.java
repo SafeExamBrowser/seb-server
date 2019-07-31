@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -231,6 +232,20 @@ public class FilterMap extends POSTMapper {
         return getFromToValue(
                 ClientEvent.FILTER_ATTR_SERVER_TIME_FROM_TO,
                 ClientEvent.FILTER_ATTR_SERVER_TIME_TO,
+                false);
+    }
+
+    public Long getUserLogFrom(final String filterAttrFrom) {
+        return getFromToValue(
+                UserActivityLog.FILTER_ATTR_FROM_TO,
+                UserActivityLog.FILTER_ATTR_FROM,
+                true);
+    }
+
+    public Long getUserLofTo(final String filterAttrTo) {
+        return getFromToValue(
+                UserActivityLog.FILTER_ATTR_FROM_TO,
+                UserActivityLog.FILTER_ATTR_TO,
                 false);
     }
 

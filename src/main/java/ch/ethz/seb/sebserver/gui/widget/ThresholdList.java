@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
@@ -48,10 +49,21 @@ public final class ThresholdList extends Composite {
     private final GridData valueCell;
     private final GridData colorCell;
     private final GridData actionCell;
+    private final Composite updateAnchor;
 
     ThresholdList(final Composite parent, final WidgetFactory widgetFactory) {
+        this(parent, parent, widgetFactory);
+    }
+
+    ThresholdList(
+            final Composite parent,
+            final Composite updateAnchor,
+            final WidgetFactory widgetFactory) {
+
         super(parent, SWT.NONE);
+        this.updateAnchor = updateAnchor;
         this.widgetFactory = widgetFactory;
+        super.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         final GridLayout gridLayout = new GridLayout(3, false);
         gridLayout.verticalSpacing = 1;
@@ -154,7 +166,8 @@ public final class ThresholdList extends Composite {
         final Entry entry = new Entry(valueInput, selector, imageButton);
         this.thresholds.add(entry);
 
-        this.getParent().layout();
+        this.updateAnchor.layout();
+        PageService.updateScrolledComposite(this);
     }
 
     private void removeThreshold(final Entry entry) {
@@ -162,7 +175,8 @@ public final class ThresholdList extends Composite {
             entry.dispose();
         }
 
-        this.getParent().layout();
+        this.updateAnchor.layout();
+        PageService.updateScrolledComposite(this);
     }
 
     private void adaptColumnWidth(final Event event) {

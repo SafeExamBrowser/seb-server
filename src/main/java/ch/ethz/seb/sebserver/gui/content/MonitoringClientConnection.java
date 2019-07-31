@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -78,6 +79,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final ServerPushService serverPushService;
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final I18nSupport i18nSupport;
     private final long pollInterval;
     private final int pageSize;
 
@@ -95,6 +97,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.serverPushService = serverPushService;
         this.pageService = pageService;
         this.resourceService = resourceService;
+        this.i18nSupport = resourceService.getI18nSupport();
         this.pollInterval = pollInterval;
         this.pageSize = pageSize;
 
@@ -222,8 +225,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             return Constants.EMPTY_NOTE;
         }
 
-        return this.pageService
-                .getI18nSupport()
+        return this.i18nSupport
                 .formatDisplayTime(Utils.toDateTimeUTC(event.getClientTime()));
     }
 
@@ -232,8 +234,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             return Constants.EMPTY_NOTE;
         }
 
-        return this.pageService
-                .getI18nSupport()
+        return this.i18nSupport
                 .formatDisplayTime(Utils.toDateTimeUTC(event.getServerTime()));
     }
 

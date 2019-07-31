@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
-
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,12 +23,11 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @WebServiceProfile
@@ -57,53 +56,50 @@ public class UserActivityLogController {
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    /** Rest endpoint to get a Page UserActivityLog.
+     *
+     * GET /{api}/{entity-type-endpoint-name}
+     *
+     * GET /admin-api/v1/useractivity
+     * GET /admin-api/v1/useractivity?page_number=2&page_size=10&sort=-name
+     * GET /admin-api/v1/useractivity?name=seb&active=true
+     *
+     * @param institutionId The institution identifier of the request.
+     *            Default is the institution identifier of the institution of the current user
+     * @param pageNumber the number of the page that is requested
+     * @param pageSize the size of the page that is requested
+     * @param sort the sort parameter to sort the list of entities before paging
+     *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     *            descending sort order
+     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
+     * @return Page of domain-model-entities of specified type */
+    @RequestMapping(
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Page<UserActivityLog> getPage(
             @RequestParam(
-                    name = UserActivityLog.FILTER_ATTR_INSTITUTION,
+                    name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = UserActivityLog.FILTER_ATTR_USER, required = false) final String userId,
-            @RequestParam(name = UserActivityLog.FILTER_ATTR_FROM, required = false) final String from,
-            @RequestParam(name = UserActivityLog.FILTER_ATTR_TO, required = false) final String to,
-            @RequestParam(name = UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
-                    required = false) final String activityTypes,
-            @RequestParam(name = UserActivityLog.FILTER_ATTR_ENTITY_TYPES, required = false) final String entityTypes,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
+        // at least current user must have read access for specified entity type within its own institution
         checkBaseReadPrivilege(institutionId);
-        return this.paginationService.getPage(
+
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+        filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
+        return this.paginationService.<UserActivityLog> getPage(
                 pageNumber,
                 pageSize,
                 sort,
                 UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.name(),
-                () -> _getAll(institutionId, userId, from, to, activityTypes, entityTypes)).getOrThrow();
-    }
-
-    private Result<Collection<UserActivityLog>> _getAll(
-            final Long institutionId,
-            final String userId,
-            final String from,
-            final String to,
-            final String activityTypes,
-            final String entityTypes) {
-
-        return Result.tryCatch(() -> {
-
-            this.paginationService.setDefaultLimitIfNotSet();
-
-            return this.userActivityLogDAO.all(
-                    institutionId,
-                    userId,
-                    Utils.toTimestamp(from),
-                    Utils.toTimestamp(to),
-                    activityTypes,
-                    entityTypes,
-                    Utils.truePredicate())
-                    .getOrThrow();
-        });
+                () -> this.userActivityLogDAO.allMatching(filterMap))
+                .getOrThrow();
     }
 
     private void checkBaseReadPrivilege(final Long institutionId) {

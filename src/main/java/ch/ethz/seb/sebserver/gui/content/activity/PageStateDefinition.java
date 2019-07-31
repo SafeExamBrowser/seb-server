@@ -22,12 +22,14 @@ import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
 import ch.ethz.seb.sebserver.gui.content.QuizDiscoveryList;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigForm;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigList;
+import ch.ethz.seb.sebserver.gui.content.SebClientLogs;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigList;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigPropForm;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigSettingsForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountChangePasswordForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountList;
+import ch.ethz.seb.sebserver.gui.content.UserActivityLogs;
 import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.service.page.Activity;
 import ch.ethz.seb.sebserver.gui.service.page.PageState;
@@ -67,7 +69,10 @@ public enum PageStateDefinition implements PageState {
 
     MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
     MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS),
-    MONITORING_CLIENT_CONNECTION(Type.FORM_VIEW, MonitoringClientConnection.class, ActivityDefinition.MONITORING_EXAMS)
+    MONITORING_CLIENT_CONNECTION(Type.FORM_VIEW, MonitoringClientConnection.class, ActivityDefinition.MONITORING_EXAMS),
+
+    USER_ACTIVITY_LOGS(Type.LIST_VIEW, UserActivityLogs.class, ActivityDefinition.USER_ACTIVITY_LOGS),
+    SEB_CLIENT_LOGS(Type.LIST_VIEW, SebClientLogs.class, ActivityDefinition.SEB_CLIENT_LOGS)
 
     ;
 

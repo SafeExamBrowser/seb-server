@@ -381,11 +381,7 @@ public class EntityTable<ROW extends Entity> {
         }
 
         final GridData gridData = (GridData) this.table.getLayoutData();
-        if (page.numberOfPages > 1) {
-            gridData.heightHint = (this.pageSize + 1) * 27;
-        } else {
-            gridData.heightHint = (page.content.size() + 1) * 27;
-        }
+        gridData.heightHint = (page.content.size() * 25) + 40;
 
         for (final ROW row : page.content) {
             final TableItem item = new TableItem(this.table, SWT.NONE);

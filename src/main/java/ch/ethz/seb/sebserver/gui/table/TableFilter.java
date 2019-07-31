@@ -36,6 +36,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class TableFilter<ROW extends Entity> {
 
+    private static final LocTextKey DATE_FROM_TEXT = new LocTextKey("sebserver.overall.date.from");
+    private static final LocTextKey DATE_TO_TEXT = new LocTextKey("sebserver.overall.date.to");
+
     public static enum CriteriaType {
         TEXT,
         SINGLE_SELECTION,
@@ -54,6 +57,8 @@ public class TableFilter<ROW extends Entity> {
         final RowLayout layout = new RowLayout(SWT.HORIZONTAL);
         layout.spacing = 5;
         layout.wrap = false;
+        layout.center = false;
+        layout.fill = true;
         this.composite.setLayout(layout);
 
 // TODO just for debugging, remove when tested
@@ -135,32 +140,46 @@ public class TableFilter<ROW extends Entity> {
     }
 
     private void addActions() {
-        this.entityTable.widgetFactory.imageButton(
+        final Composite inner = new Composite(this.composite, SWT.NONE);
+        final GridLayout gridLayout = new GridLayout(2, true);
+        gridLayout.horizontalSpacing = 5;
+        gridLayout.verticalSpacing = 0;
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
+        inner.setLayout(gridLayout);
+        inner.setLayoutData(new RowData());
+
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+
+        final Label imageButton = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.SEARCH,
-                this.composite,
+                inner,
                 new LocTextKey("sebserver.overall.action.filter"),
                 event -> {
                     this.entityTable.applyFilter();
                 });
-        this.entityTable.widgetFactory.imageButton(
+        imageButton.setLayoutData(gridData);
+        final Label imageButton2 = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.CANCEL,
-                this.composite,
+                inner,
                 new LocTextKey("sebserver.overall.action.filter.clear"),
                 event -> {
                     reset();
                     this.entityTable.applyFilter();
                 });
+        imageButton2.setLayoutData(gridData);
     }
 
     private static abstract class FilterComponent {
 
-        static final int CELL_WIDTH_ADJUSTMENT = -30;
+        static final int CELL_WIDTH_ADJUSTMENT = -5;
 
-        protected final RowData rowData = new RowData();
+        protected final RowData rowData;
         final TableFilterAttribute attribute;
 
         FilterComponent(final TableFilterAttribute attribute) {
             this.attribute = attribute;
+            this.rowData = new RowData();
         }
 
         LinkedMultiValueMap<String, String> putFilterParameter(
@@ -187,6 +206,18 @@ public class TableFilter<ROW extends Entity> {
             }
 
             return false;
+        }
+
+        protected Composite createInnerComposite(final Composite parent) {
+            final Composite inner = new Composite(parent, SWT.NONE);
+            final GridLayout gridLayout = new GridLayout(1, true);
+            gridLayout.horizontalSpacing = 0;
+            gridLayout.verticalSpacing = 0;
+            gridLayout.marginHeight = 0;
+            gridLayout.marginWidth = 0;
+            inner.setLayout(gridLayout);
+            inner.setLayoutData(this.rowData);
+            return inner;
         }
     }
 
@@ -239,8 +270,11 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent build(final Composite parent) {
-            this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(parent, false);
-            this.textInput.setLayoutData(this.rowData);
+            final Composite innerComposite = createInnerComposite(parent);
+            final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
+
+            this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(innerComposite);
+            this.textInput.setLayoutData(gridData);
             return this;
         }
 
@@ -265,14 +299,17 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent build(final Composite parent) {
+            final Composite innerComposite = createInnerComposite(parent);
+            final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
+
             this.selector = TableFilter.this.entityTable.widgetFactory
                     .selectionLocalized(
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
-                            parent,
+                            innerComposite,
                             this.attribute.resourceSupplier);
             this.selector
                     .adaptToControl()
-                    .setLayoutData(this.rowData);
+                    .setLayoutData(gridData);
             return this;
         }
 
@@ -292,13 +329,6 @@ public class TableFilter<ROW extends Entity> {
 
             return null;
         }
-
-        @Override
-        boolean adaptWidth(final int width) {
-            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
-            //       this is to adjust selection filter criteria to the list column width
-            return super.adaptWidth(width + 25);
-        }
     }
 
     // NOTE: SWT DateTime month-number starting with 0 and joda DateTime with 1!
@@ -312,8 +342,11 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent build(final Composite parent) {
-            this.selector = new DateTime(parent, SWT.DATE | SWT.BORDER);
-            this.selector.setLayoutData(this.rowData);
+            final Composite innerComposite = createInnerComposite(parent);
+            final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
+
+            this.selector = new DateTime(innerComposite, SWT.DATE | SWT.BORDER);
+            this.selector.setLayoutData(gridData);
             return this;
         }
 
@@ -346,9 +379,9 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         boolean adaptWidth(final int width) {
-            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
-            //       this is to adjust selection filter criteria to the list column width
-            return super.adaptWidth(width + 25);
+            // NOTE: for some unknown reason RWT acts differently on width-property for date selector
+            //       this is to adjust date filter criteria to the list column width
+            return super.adaptWidth(width - 5);
         }
 
     }
@@ -357,7 +390,7 @@ public class TableFilter<ROW extends Entity> {
     private class DateRange extends FilterComponent {
 
         private Composite innerComposite;
-        private final GridData rw1 = new GridData();
+        private final GridData rw1 = new GridData(SWT.FILL, SWT.FILL, true, true);
         private DateTime fromSelector;
         private DateTime toSelector;
 
@@ -368,15 +401,24 @@ public class TableFilter<ROW extends Entity> {
         @Override
         FilterComponent build(final Composite parent) {
             this.innerComposite = new Composite(parent, SWT.NONE);
-            final GridLayout gridLayout = new GridLayout(2, true);
+            final GridLayout gridLayout = new GridLayout(2, false);
             gridLayout.marginHeight = 0;
             gridLayout.marginWidth = 0;
+            gridLayout.horizontalSpacing = 5;
+            gridLayout.verticalSpacing = 3;
             this.innerComposite.setLayout(gridLayout);
             this.innerComposite.setLayoutData(this.rowData);
+
+            TableFilter.this.entityTable.widgetFactory
+                    .labelLocalized(this.innerComposite, DATE_FROM_TEXT);
             this.fromSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
             this.fromSelector.setLayoutData(this.rw1);
+
+            TableFilter.this.entityTable.widgetFactory
+                    .labelLocalized(this.innerComposite, DATE_TO_TEXT);
             this.toSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
             this.toSelector.setLayoutData(this.rw1);
+
             return this;
         }
 
@@ -405,7 +447,7 @@ public class TableFilter<ROW extends Entity> {
                         .withYear(this.toSelector.getYear())
                         .withMonthOfYear(this.toSelector.getMonth() + 1)
                         .withDayOfMonth(this.toSelector.getDay())
-                        .withTimeAtStartOfDay();
+                        .withTime(23, 59, 59, 0);
 
                 return fromDate.toString(Constants.STANDARD_DATE_TIME_FORMATTER) +
                         Constants.EMBEDDED_LIST_SEPARATOR +
@@ -413,15 +455,6 @@ public class TableFilter<ROW extends Entity> {
             } else {
                 return null;
             }
-        }
-
-        @Override
-        boolean adaptWidth(final int width) {
-            // NOTE: for some unknown reason RWT acts differently on width-property for text inputs and selectors
-            //       this is to adjust selection filter criteria to the list column width
-            this.rw1.widthHint = (width - 10) / 2;
-            return super.adaptWidth(width + 25);
-
         }
     }
 

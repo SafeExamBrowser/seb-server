@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -68,8 +69,6 @@ public class ExamList implements TemplateComposer {
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
-    private final TableFilterAttribute startTimeFilter =
-            new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
     private final TableFilterAttribute typeFilter;
 
     private final PageService pageService;
@@ -135,7 +134,12 @@ public class ExamList implements TemplateComposer {
                                         "sebserver.exam.list.column.starttime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
-                                        .withFilter(this.startTimeFilter)
+                                        .withFilter(new TableFilterAttribute(
+                                                CriteriaType.DATE,
+                                                QuizData.FILTER_ATTR_START_TIME,
+                                                Utils.toDateTimeUTC(Utils.getMillisecondsNow())
+                                                        .minusYears(1)
+                                                        .toString()))
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,

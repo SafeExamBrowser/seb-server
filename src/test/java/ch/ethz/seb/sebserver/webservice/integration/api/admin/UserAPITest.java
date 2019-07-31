@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -466,7 +467,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc.perform(
                         get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/" + createdUser.uuid)
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                .header("Authorization", "Bearer " + token))
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<UserInfo>() {
@@ -482,7 +484,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?user=user1&activity_types=CREATE")
-                                                .header("Authorization", "Bearer " + token))
+                                                .header("Authorization", "Bearer " + token)
+                                                .header(HttpHeaders.CONTENT_TYPE,
+                                                        MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -1003,7 +1007,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                 + "?user=user1&from=" + timeNow)
-                                        .header("Authorization", "Bearer " + sebAdminToken))
+                                        .header("Authorization", "Bearer " + sebAdminToken)
+                                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {

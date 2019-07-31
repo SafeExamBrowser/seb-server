@@ -49,6 +49,7 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
             final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
             final ThresholdList thresholdList = builder.widgetFactory.thresholdList(
                     fieldGrid,
+                    fieldGrid.getParent().getParent(),
                     this.value);
 
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);

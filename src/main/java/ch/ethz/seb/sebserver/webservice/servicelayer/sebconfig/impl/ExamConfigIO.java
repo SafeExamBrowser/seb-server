@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -78,30 +78,30 @@ public class ExamConfigIO {
             final ConfigurationFormat exportFormat,
             final OutputStream out,
             final Long institutionId,
-            final Long configurationNodeId) {
+            final Long configurationNodeId) throws Exception {
 
         if (log.isDebugEnabled()) {
             log.debug("Start export SEB plain XML configuration asynconously");
         }
 
-        // get all defined root configuration attributes prepared and sorted
-        final List<ConfigurationAttribute> sortedAttributes = this.configurationAttributeDAO.getAllRootAttributes()
-                .getOrThrow()
-                .stream()
-                .flatMap(this::convertAttribute)
-                .filter(exportFormatBasedAttributeFilter(exportFormat))
-                .sorted()
-                .collect(Collectors.toList());
-
-        // get follow-up configurationId for given configurationNodeId
-        final Long configurationId = this.configurationDAO
-                .getFollowupConfiguration(configurationNodeId)
-                .getOrThrow().id;
-
-        final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =
-                getConfigurationValueSupplier(institutionId, configurationId);
-
         try {
+
+            // get all defined root configuration attributes prepared and sorted
+            final List<ConfigurationAttribute> sortedAttributes = this.configurationAttributeDAO.getAllRootAttributes()
+                    .getOrThrow()
+                    .stream()
+                    .flatMap(this::convertAttribute)
+                    .filter(exportFormatBasedAttributeFilter(exportFormat))
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            // get follow-up configurationId for given configurationNodeId
+            final Long configurationId = this.configurationDAO
+                    .getFollowupConfiguration(configurationNodeId)
+                    .getOrThrow().id;
+
+            final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =
+                    getConfigurationValueSupplier(institutionId, configurationId);
 
             writeHeader(exportFormat, out);
 
@@ -135,7 +135,6 @@ public class ExamConfigIO {
             }
 
             writeFooter(exportFormat, out);
-            out.flush();
 
             if (log.isDebugEnabled()) {
                 log.debug("Finished export SEB plain XML configuration asynconously");
@@ -143,12 +142,13 @@ public class ExamConfigIO {
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to write SEB Exam Configuration XML to output stream: ", e);
+            throw e;
+        } finally {
             try {
                 out.flush();
             } catch (final IOException e1) {
                 log.error("Unable to flush output stream after error");
             }
-        } finally {
             IOUtils.closeQuietly(out);
         }
     }

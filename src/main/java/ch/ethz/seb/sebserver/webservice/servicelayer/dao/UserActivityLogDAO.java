@@ -35,6 +35,12 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logImport(E entity);
 
+    /** Create a user activity log entry for the current user of activity type EXPORT
+     *
+     * @param entity the Entity
+     * @return Result of the Entity or referring to an Error id happened */
+    public <E extends Entity> Result<E> logExport(E entity);
+
     /** Create a user activity log entry for the current user of activity type MODIFY
      *
      * @param entity the Entity

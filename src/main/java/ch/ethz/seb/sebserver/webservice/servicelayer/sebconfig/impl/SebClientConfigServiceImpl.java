@@ -183,6 +183,10 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                         EncryptionContext.contextOfPlainText());
             }
 
+            if (log.isDebugEnabled()) {
+                log.debug("*** Finished Seb client configuration download streaming composition");
+            }
+
         } catch (final Exception e) {
             log.error("Error while zip and encrypt seb client config stream: ", e);
             try {
@@ -218,7 +222,8 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         return plainTextConfig;
     }
 
-    private String extractXML(final SebClientConfig config,
+    private String extractXML(
+            final SebClientConfig config,
             final CharSequence plainClientId,
             final CharSequence plainClientSecret) {
 
@@ -294,10 +299,6 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                 EncryptionContext.contextOf(
                         Strategy.PASSWORD_PSWD,
                         encryptionPasswordPlaintext));
-
-        if (log.isDebugEnabled()) {
-            log.debug("*** Finished Seb client configuration with password based encryption");
-        }
     }
 
     /** Get a encoded clientSecret for the SebClientConfiguration with specified clientId/clientName.

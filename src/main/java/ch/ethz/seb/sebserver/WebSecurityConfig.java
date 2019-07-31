@@ -187,6 +187,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                 final String httpMethod) throws IOException {
 
             super.prepareConnection(connection, httpMethod);
+            super.setBufferRequestBody(false);
             connection.setInstanceFollowRedirects(false);
         }
     }

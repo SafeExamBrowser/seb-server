@@ -33,9 +33,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(MockupLmsAPITemplate.class);
 
-    public static final String MOCKUP_LMS_CLIENT_NAME = "mockupLmsClientName";
-    public static final String MOCKUP_LMS_CLIENT_SECRET = "mockupLmsClientSecret";
-
     private final ClientCredentialService clientCredentialService;
     private final LmsSetup lmsSetup;
     private final ClientCredentials credentials;

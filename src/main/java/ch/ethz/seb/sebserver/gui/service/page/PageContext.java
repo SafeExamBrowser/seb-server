@@ -36,12 +36,12 @@ public interface PageContext {
         public static final String ENTITY_TYPE = "ENTITY_TYPE";
         public static final String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
 
-        public static final String IMPORT_FROM_QUIZZ_DATA = "IMPORT_FROM_QUIZZ_DATA";
+        public static final String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
 
     }
 
     /** Get the I18nSupport service
-     * 
+     *
      * @return the I18nSupport service */
     I18nSupport getI18nSupport();
 

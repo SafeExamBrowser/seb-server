@@ -242,6 +242,10 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_GET_CONFIG_KEY(
+            new LocTextKey("sebserver.examconfig.action.get-config-key"),
+            ImageIcon.SECURE,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_SAVE(
             new LocTextKey("sebserver.exam.configuration.action.save"),
             ImageIcon.SAVE,
@@ -415,6 +419,22 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinition.MONITORING_RUNNING_EXAM,
             ActionCategory.VARIA),
+
+    LOGS_USER_ACTIVITY_LIST(
+            new LocTextKey("sebserver.logs.activity.userlogs"),
+            PageStateDefinition.USER_ACTIVITY_LOGS),
+    LOGS_USER_ACTIVITY_SHOW_DETAILS(
+            new LocTextKey("sebserver.logs.activity.userlogs.details"),
+            ImageIcon.SHOW,
+            ActionCategory.LOGS_USER_ACTIVITY_LIST),
+
+    LOGS_SEB_CLIENT(
+            new LocTextKey("sebserver.logs.activity.seblogs"),
+            PageStateDefinition.SEB_CLIENT_LOGS),
+    LOGS_SEB_CLIENT_SHOW_DETAILS(
+            new LocTextKey("sebserver.logs.activity.seblogs.details"),
+            ImageIcon.SHOW,
+            ActionCategory.LOGS_SEB_CLIENT_LIST),
 
     ;
 

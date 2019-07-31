@@ -445,7 +445,7 @@ CREATE TABLE IF NOT EXISTS `user_activity_log` (
   `activity_type` VARCHAR(45) NOT NULL,
   `entity_type` VARCHAR(45) NOT NULL,
   `entity_id` VARCHAR(255) NOT NULL,
-  `message` VARCHAR(255) NULL,
+  `message` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`))
 ;
 

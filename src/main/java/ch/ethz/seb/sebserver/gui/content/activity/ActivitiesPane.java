@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Event;
@@ -176,34 +177,46 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean examConfigRead = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
                 EntityType.CONFIGURATION_NODE);
-        if (clientConfigRead || examConfigRead) {
-            final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
+
+        TreeItem sebConfigs = null;
+        if (clientConfigRead && examConfigRead) {
+            sebConfigs = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.SEB_CONFIGURATION.displayName);
+            sebConfigs.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
 
-            // SEB Client Config
-            if (clientConfigRead) {
-                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
-                        sebConfigs,
-                        ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
-                injectActivitySelection(
-                        clientConfig,
-                        actionBuilder
-                                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_LIST)
-                                .create());
-            }
+        }
 
-            // SEB Exam Config
-            if (examConfigRead) {
-                final TreeItem examConfig = this.widgetFactory.treeItemLocalized(
-                        sebConfigs,
-                        ActivityDefinition.SEB_EXAM_CONFIG.displayName);
-                injectActivitySelection(
-                        examConfig,
-                        actionBuilder
-                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
-                                .create());
-            }
+        // SEB Client Config
+        if (clientConfigRead) {
+            final TreeItem clientConfig = (sebConfigs != null)
+                    ? this.widgetFactory.treeItemLocalized(
+                            sebConfigs,
+                            ActivityDefinition.SEB_CLIENT_CONFIG.displayName)
+                    : this.widgetFactory.treeItemLocalized(
+                            navigation,
+                            ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
+            injectActivitySelection(
+                    clientConfig,
+                    actionBuilder
+                            .newAction(ActionDefinition.SEB_CLIENT_CONFIG_LIST)
+                            .create());
+        }
+
+        // SEB Exam Config
+        if (examConfigRead) {
+            final TreeItem examConfig = (sebConfigs != null)
+                    ? this.widgetFactory.treeItemLocalized(
+                            sebConfigs,
+                            ActivityDefinition.SEB_EXAM_CONFIG.displayName)
+                    : this.widgetFactory.treeItemLocalized(
+                            navigation,
+                            ActivityDefinition.SEB_EXAM_CONFIG.displayName);
+            injectActivitySelection(
+                    examConfig,
+                    actionBuilder
+                            .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                            .create());
         }
 
         // Monitoring exams
@@ -218,10 +231,68 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
+        // Logs
+        final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.READ,
+                EntityType.USER_ACTIVITY_LOG);
+        final boolean viewSebClientLogs = false;
+//        this.currentUser.hasInstitutionalPrivilege(
+//                PrivilegeType.READ,
+//                EntityType.EXAM);
+
+        TreeItem logRoot = null;
+        if (viewUserActivityLogs && viewSebClientLogs) {
+            logRoot = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActivityDefinition.LOGS.displayName);
+            logRoot.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
+        }
+
+        // User Activity Logs
+        if (viewUserActivityLogs) {
+            final TreeItem activityLogs = (logRoot != null)
+                    ? this.widgetFactory.treeItemLocalized(
+                            logRoot,
+                            ActivityDefinition.USER_ACTIVITY_LOGS.displayName)
+                    : this.widgetFactory.treeItemLocalized(
+                            navigation,
+                            ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
+            injectActivitySelection(
+                    activityLogs,
+                    actionBuilder
+                            .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
+                            .create());
+        }
+
+        // SEB Client Logs
+        if (viewSebClientLogs) {
+            final TreeItem sebLogs = (logRoot != null)
+                    ? this.widgetFactory.treeItemLocalized(
+                            logRoot,
+                            ActivityDefinition.SEB_CLIENT_LOGS.displayName)
+                    : this.widgetFactory.treeItemLocalized(
+                            navigation,
+                            ActivityDefinition.SEB_CLIENT_LOGS.displayName);
+            injectActivitySelection(
+                    sebLogs,
+                    actionBuilder
+                            .newAction(ActionDefinition.LOGS_SEB_CLIENT)
+                            .create());
+        }
+
         // TODO other activities
 
         // register page listener and initialize navigation data
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
+        navigation.addListener(SWT.Expand, event -> {
+            final Tree tree = (Tree) event.widget;
+            final TreeItem treeItem = (TreeItem) event.item;
+            final TreeItem[] selection = tree.getSelection();
+            if (selection != null && selection.length >= 1 && selection[0].getParentItem() == treeItem) {
+                tree.setSelection(selection[0]);
+                //tree.select(selection[0]);
+            }
+        });
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ActivitiesActionEventListener(navigation));
@@ -247,8 +318,16 @@ public class ActivitiesPane implements TemplateComposer {
         // if there is no form action associated with the treeItem and the treeItem has sub items, toggle the item state
         if (action == null) {
             if (treeItem.getItemCount() > 0) {
-                treeItem.setExpanded(!treeItem.getExpanded());
+                treeItem.setExpanded(true);
+                final PageState currentState = this.pageService.getCurrentState();
+                final TreeItem currentSelection = findItemByActionDefinition(tree.getItems(), currentState);
+                if (currentSelection != null) {
+                    tree.select(currentSelection);
+                } else {
+                    tree.deselectAll();
+                }
             }
+            tree.layout();
             return;
         }
         this.pageService.executePageAction(
@@ -279,6 +358,12 @@ public class ActivitiesPane implements TemplateComposer {
         for (final TreeItem item : items) {
             final PageAction action = getActivitySelection(item);
             if (action == null) {
+                if (item.getItemCount() > 0) {
+                    final TreeItem found = findItemByActionDefinition(item.getItems(), activity, modelId);
+                    if (found != null) {
+                        return found;
+                    }
+                }
                 continue;
             }
 

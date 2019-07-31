@@ -131,7 +131,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkRead);
+                .flatMap(this.authorization::checkRead)
+                .map(this.userActivityLogDAO::logExport);
 
         final StreamingResponseBody stream = out -> this.sebExamConfigService
                 .exportPlainXML(out, institutionId, modelId);

@@ -82,6 +82,7 @@ public final class Form implements FormBinding {
                 .forEach(entry -> {
                     entry.getValue()
                             .stream()
+                            .filter(Form::valueApplicationFilter)
                             .forEach(ffa -> {
                                 if (ffa.listValue) {
                                     appendFormUrlEncodedValue(
@@ -118,8 +119,8 @@ public final class Form implements FormBinding {
         return !this.formFields.isEmpty();
     }
 
-    Form putField(final String name, final Label label, final Label field) {
-        this.formFields.add(name, createAccessor(label, field));
+    Form putReadonlyField(final String name, final Label label, final Text field) {
+        this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
     }
 
@@ -225,14 +226,18 @@ public final class Form implements FormBinding {
         for (final Map.Entry<String, List<FormFieldAccessor>> entry : this.formFields.entrySet()) {
             entry.getValue()
                     .stream()
-                    .filter(ffa -> StringUtils.isNotBlank(ffa.getStringValue()))
+                    .filter(Form::valueApplicationFilter)
                     .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
     }
 
+    private static boolean valueApplicationFilter(final FormFieldAccessor ffa) {
+        return ffa.getStringValue() != null;
+    }
+
     // following are FormFieldAccessor implementations for all field types
     //@formatter:off
-    private FormFieldAccessor createAccessor(final Label label, final Label field) {
+    private FormFieldAccessor createReadonlyAccessor(final Label label, final Text field) {
         return new FormFieldAccessor(label, field, null) {
             @Override public String getStringValue() { return null; }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
@@ -241,7 +246,7 @@ public final class Form implements FormBinding {
     private FormFieldAccessor createAccessor(final Label label, final Text text, final Label errorLabel) {
         return new FormFieldAccessor(label, text, errorLabel) {
             @Override public String getStringValue() {return text.getText();}
-            @Override public void setStringValue(final String value) { text.setText( (value == null) ? StringUtils.EMPTY : value); }
+            @Override public void setStringValue(final String value) {text.setText(value);}
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Selection selection, final Label errorLabel) {
@@ -381,7 +386,7 @@ public final class Form implements FormBinding {
                 this.jsonValueAdapter = jsonValueAdapter;
             } else {
                 this.jsonValueAdapter = (tuple, jsonObject) -> {
-                    if (StringUtils.isNotBlank(tuple._2)) {
+                    if (tuple._2 != null) {
                         jsonObject.put(tuple._1, tuple._2);
                     }
                 };
@@ -448,7 +453,7 @@ public final class Form implements FormBinding {
         gridLayout.marginRight = 0;
         fieldGrid.setLayout(gridLayout);
 
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.horizontalSpan = hspan;
         fieldGrid.setLayoutData(gridData);
 
