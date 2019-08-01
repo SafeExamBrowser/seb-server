@@ -64,17 +64,17 @@ public class PasswordEncryptor implements SebConfigCryptor {
 
             IOUtils.copyLarge(input, encryptOutput);
 
-            input.close();
-            encryptOutput.flush();
-
         } catch (final CryptorException e) {
             log.error("Error while trying to stream and encrypt data: ", e);
         } catch (final IOException e) {
             log.error("Error while trying to read/write form/to streams: ", e);
         } finally {
             try {
-                if (encryptOutput != null)
+                input.close();
+                if (encryptOutput != null) {
+                    encryptOutput.flush();
                     encryptOutput.close();
+                }
             } catch (final IOException e) {
                 log.error("Failed to close AES256JNCryptorOutputStream: ", e);
             }

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -247,11 +246,14 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<StreamingResponseBody> getConfig(
+    public void getConfig(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestBody(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
-            final HttpServletRequest request) {
+            final HttpServletRequest request,
+            final HttpServletResponse response) throws IOException {
+
+        final ServletOutputStream outputStream = response.getOutputStream();
 
         try {
             // if an examId is provided with the request, update the connection first
@@ -272,28 +274,35 @@ public class ExamAPI_V1_Controller {
                 throw new IllegalStateException("Missing exam identider or requested exam is not running");
             }
         } catch (final Exception e) {
+
             log.error("Unexpected error: ", e);
-            final StreamingResponseBody stream = out -> {
-                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-                out.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-            };
-            return new ResponseEntity<>(stream, HttpStatus.BAD_REQUEST);
+
+            final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+            outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            outputStream.flush();
+            outputStream.close();
+            return;
         }
 
-        final StreamingResponseBody stream = out -> {
-            try {
+        try {
 
-                this.examSessionService
-                        .streamDefaultExamConfig(
-                                connectionToken,
-                                out);
-            } catch (final Exception e) {
-                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-                out.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-            }
-        };
+            this.examSessionService
+                    .streamDefaultExamConfig(
+                            connectionToken,
+                            outputStream);
 
-        return new ResponseEntity<>(stream, HttpStatus.OK);
+            response.setStatus(HttpStatus.OK.value());
+
+        } catch (final Exception e) {
+            final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+            outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+        } finally {
+            outputStream.flush();
+            outputStream.close();
+        }
     }
 
     @RequestMapping(

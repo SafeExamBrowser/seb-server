@@ -72,7 +72,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
                 log.debug("Password encryption with strategy: {}", strategy);
             }
 
-            pout.write(strategy.header);
+            output.write(strategy.header);
 
             getEncryptor(strategy)
                     .getOrThrow()
@@ -80,16 +80,19 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
             IOUtils.copyLarge(pin, output);
 
-            pin.close();
-            pout.flush();
-            pout.close();
-
         } catch (final IOException e) {
             log.error("Error while stream encrypted data: ", e);
         } finally {
             try {
-                if (pin != null)
+                if (pin != null) {
                     pin.close();
+                }
+                if (pout != null) {
+                    pout.flush();
+                    pout.close();
+                }
+                output.flush();
+                output.close();
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
@@ -126,22 +129,23 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
             IOUtils.copyLarge(pin, output);
 
-            pin.close();
-            pout.flush();
-            pout.close();
-
         } catch (final IOException e) {
             log.error("Error while stream decrypted data: ", e);
         } finally {
             try {
-                if (pin != null)
+                if (pin != null) {
                     pin.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
             try {
-                if (pout != null)
+                if (pout != null) {
+                    pout.flush();
                     pout.close();
+                }
+                output.flush();
+                output.close();
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }

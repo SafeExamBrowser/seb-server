@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -286,6 +287,10 @@ public class HTTPClientBot {
                 }
 
                 final byte[] config = exchange.getBody();
+
+                if (ArrayUtils.isEmpty(config)) {
+                    log.error("No Exam config get from API. processing anyway");
+                }
 
                 if (log.isDebugEnabled()) {
                     log.debug("ConnectionBot {} : successfully requested exam config: " + Utils.toString(config),

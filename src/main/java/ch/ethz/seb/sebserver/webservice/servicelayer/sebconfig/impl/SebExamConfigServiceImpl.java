@@ -197,10 +197,6 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
             final String configKey = DigestUtils.sha256Hex(pin);
 
-            pout.flush();
-            pout.close();
-            pin.close();
-
             return Result.of(configKey);
 
         } catch (final Exception e) {
@@ -208,14 +204,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             return Result.ofError(e);
         } finally {
             try {
-                if (pin != null)
+                if (pin != null) {
                     pin.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
             try {
-                if (pout != null)
+                if (pout != null) {
                     pout.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }
@@ -250,22 +248,21 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
             IOUtils.copyLarge(pin, out);
 
-            pout.flush();
-            pout.close();
-            pin.close();
-
         } catch (final Exception e) {
             log.error("Error while stream plain text SEB clonfiguration data: ", e);
         } finally {
             try {
-                if (pin != null)
+                if (pin != null) {
                     pin.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
             try {
-                if (pout != null)
+                if (pout != null) {
+                    pout.flush();
                     pout.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }

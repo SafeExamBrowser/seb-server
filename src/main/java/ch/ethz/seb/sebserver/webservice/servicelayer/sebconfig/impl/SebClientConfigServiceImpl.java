@@ -190,14 +190,16 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
         } catch (final Exception e) {
             log.error("Error while zip and encrypt seb client config stream: ", e);
             try {
-                if (pIn != null)
+                if (pIn != null) {
                     pIn.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedInputStream: ", e1);
             }
             try {
-                if (pOut != null)
+                if (pOut != null) {
                     pOut.close();
+                }
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }

@@ -39,7 +39,6 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -280,8 +279,7 @@ public abstract class ExamAPIIntegrationTester {
         }
 
         final ResultActions result = this.mockMvc
-                .perform(builder)
-                .andDo(MvcResult::getAsyncResult);
+                .perform(builder);
 
         return result.andReturn().getResponse();
     }

@@ -8,16 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -42,6 +47,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_NODE_ENDPOINT)
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
+
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationNodeController.class);
 
     private final ConfigurationDAO configurationDAO;
     private final SebExamConfigService sebExamConfigService;
@@ -123,21 +130,34 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<StreamingResponseBody> downloadPlainXMLConfig(
+    public void downloadPlainXMLConfig(
             @PathVariable final Long modelId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletResponse response) throws IOException {
 
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
                 .map(this.userActivityLogDAO::logExport);
 
-        final StreamingResponseBody stream = out -> this.sebExamConfigService
-                .exportPlainXML(out, institutionId, modelId);
+        final ServletOutputStream outputStream = response.getOutputStream();
 
-        return new ResponseEntity<>(stream, HttpStatus.OK);
+        try {
+            this.sebExamConfigService.exportPlainXML(
+                    outputStream,
+                    institutionId,
+                    modelId);
+
+            response.setStatus(HttpStatus.OK.value());
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to downstream exam config: ", e);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        } finally {
+            outputStream.flush();
+            outputStream.close();
+        }
     }
 
 }

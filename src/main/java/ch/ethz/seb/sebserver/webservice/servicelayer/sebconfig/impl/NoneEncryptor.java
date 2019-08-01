@@ -54,17 +54,15 @@ public class NoneEncryptor implements SebConfigCryptor {
 
             IOUtils.copyLarge(input, output);
 
-            input.close();
-            output.flush();
-            output.close();
-
         } catch (final IOException e) {
             log.error("Error while streaming plain data to output: ", e);
         } finally {
             try {
                 input.close();
+                output.flush();
+                output.close();
             } catch (final IOException e) {
-                log.error("Failed to close InputStream");
+                log.error("Failed to close InputStream and OutputStream");
             }
 
             if (log.isDebugEnabled()) {

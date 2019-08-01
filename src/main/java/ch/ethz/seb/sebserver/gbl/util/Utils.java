@@ -323,6 +323,10 @@ public final class Utils {
     }
 
     public static String toString(final byte[] byteArray) {
+        if (byteArray == null) {
+            return null;
+        }
+
         return toString(ByteBuffer.wrap(byteArray));
     }
 

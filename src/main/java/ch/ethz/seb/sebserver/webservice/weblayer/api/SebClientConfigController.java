@@ -8,30 +8,34 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -74,26 +78,43 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
             path = API.SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<StreamingResponseBody> downloadSEBConfig(
-            @PathVariable final String modelId) {
+    public void downloadSEBConfig(
+            @PathVariable final String modelId,
+            final HttpServletResponse response) throws IOException {
 
         this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
                 .map(this.userActivityLogDAO::logExport);
 
-        this.userActivityLogDAO.log(
-                UserLogActivityType.EXPORT,
-                EntityType.SEB_CLIENT_CONFIGURATION,
-                modelId,
-                "Export of SEB Client Configuration");
+        final ServletOutputStream outputStream = response.getOutputStream();
+        PipedOutputStream pout = null;
+        PipedInputStream pin = null;
+        try {
+            pout = new PipedOutputStream();
+            pin = new PipedInputStream(pout);
 
-        final StreamingResponseBody stream = out -> {
             this.sebClientConfigService.exportSebClientConfiguration(
-                    out,
+                    pout,
                     modelId);
-        };
 
-        return new ResponseEntity<>(stream, HttpStatus.OK);
+            IOUtils.copyLarge(pin, outputStream);
+
+            response.setStatus(HttpStatus.OK.value());
+
+            outputStream.flush();
+
+        } finally {
+            outputStream.flush();
+            outputStream.close();
+        }
+
+//        final StreamingResponseBody stream = out -> {
+//            this.sebClientConfigService.exportSebClientConfiguration(
+//                    out,
+//                    modelId);
+//        };
+//
+//        return new ResponseEntity<>(stream, HttpStatus.OK);
     }
 
     @Override

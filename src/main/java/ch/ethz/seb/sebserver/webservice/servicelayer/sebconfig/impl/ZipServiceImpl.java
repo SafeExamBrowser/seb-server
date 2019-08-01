@@ -43,16 +43,17 @@ public class ZipServiceImpl implements ZipService {
 
             IOUtils.copyLarge(in, zipOutputStream);
 
-            in.close();
-            zipOutputStream.flush();
-            zipOutputStream.close();
-
         } catch (final IOException e) {
             log.error("Error while streaming data to zipped output: ", e);
         } finally {
             try {
-                if (zipOutputStream != null)
+                in.close();
+                if (zipOutputStream != null) {
+                    zipOutputStream.flush();
                     zipOutputStream.close();
+                }
+                out.flush();
+                out.close();
             } catch (final IOException e) {
                 log.error("Failed to close ZipOutputStream: ", e);
             }

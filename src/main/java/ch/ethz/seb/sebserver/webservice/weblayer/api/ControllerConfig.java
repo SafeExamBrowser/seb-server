@@ -25,7 +25,7 @@ public class ControllerConfig implements WebMvcConfigurer {
     @Override
     public void configureAsyncSupport(final AsyncSupportConfigurer configurer) {
         configurer.setTaskExecutor(threadPoolTaskExecutor());
-        configurer.setDefaultTimeout(30_000);
+        configurer.setDefaultTimeout(30000);
     }
 
     public AsyncTaskExecutor threadPoolTaskExecutor() {
