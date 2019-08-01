@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig;
 
+import java.io.InputStream;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -29,7 +31,7 @@ public class ExportClientConfig extends AbstractExportCall {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.SEB_CLIENT_CONFIGURATION,
-                new TypeReference<byte[]>() {
+                new TypeReference<InputStream>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,

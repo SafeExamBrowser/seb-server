@@ -8,6 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +28,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ex
 @GuiProfile
 public class SebExamConfigDownload extends AbstractDownloadServiceHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigDownload.class);
+
     private final RestService restService;
 
     protected SebExamConfigDownload(final RestService restService) {
@@ -28,11 +37,27 @@ public class SebExamConfigDownload extends AbstractDownloadServiceHandler {
     }
 
     @Override
-    protected byte[] webserviceCall(final String modelId) {
-        return this.restService.getBuilder(ExportPlainXML.class)
+    protected void webserviceCall(final String modelId, final OutputStream downloadOut) {
+
+        final InputStream input = this.restService.getBuilder(ExportPlainXML.class)
                 .withURIVariable(API.PARAM_MODEL_ID, modelId)
                 .call()
                 .getOrThrow();
+
+        try {
+            IOUtils.copyLarge(input, downloadOut);
+        } catch (final IOException e) {
+            log.error(
+                    "Unexpected error while streaming incomming config data from web-service to output-stream of download response: ",
+                    e);
+        } finally {
+            try {
+                downloadOut.flush();
+                downloadOut.close();
+            } catch (final IOException e) {
+                log.error("Unexpected error while trying to close download output-stream");
+            }
+        }
     }
 
 }

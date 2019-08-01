@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote;
 
+import java.io.OutputStream;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -49,25 +51,32 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
                     configId,
                     downloadFileName);
 
-            final byte[] configFile = webserviceCall(configId);
-
-            if (configFile == null) {
-                log.error("No or empty download received from webservice. Download request is ignored");
-                return;
-            }
-
-            log.debug("Sucessfully downloaded from webservice. File size: {}", configFile.length);
-
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            response.setContentLength(configFile.length);
-
             final String header =
                     "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-            log.debug("Write the download data to response output");
+            webserviceCall(configId, response.getOutputStream());
 
-            response.getOutputStream().write(configFile);
+//            final byte[] configFile = webserviceCall(configId);
+//
+//            if (configFile == null) {
+//                log.error("No or empty download received from webservice. Download request is ignored");
+//                return;
+//            }
+//
+//            log.debug("Sucessfully downloaded from webservice. File size: {}", configFile.length);
+//
+//            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+//            response.setContentLength(configFile.length);
+//
+//            final String header =
+//                    "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
+//            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
+//
+//            log.debug("Write the download data to response output");
+//
+//            response.getOutputStream().write(configFile);
 
         } catch (final Exception e) {
             log.error(
@@ -76,6 +85,6 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
         }
     }
 
-    protected abstract byte[] webserviceCall(String configId);
+    protected abstract void webserviceCall(String configId, OutputStream downloadOut);
 
 }

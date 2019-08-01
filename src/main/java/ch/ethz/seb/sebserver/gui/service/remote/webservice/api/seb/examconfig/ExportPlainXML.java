@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
+import java.io.InputStream;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -29,7 +31,7 @@ public class ExportPlainXML extends AbstractExportCall {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.CONFIGURATION_NODE,
-                new TypeReference<byte[]>() {
+                new TypeReference<InputStream>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
