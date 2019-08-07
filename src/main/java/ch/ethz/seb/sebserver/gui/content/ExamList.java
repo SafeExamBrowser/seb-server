@@ -175,6 +175,10 @@ public class ExamList implements TemplateComposer {
     private PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
         final Exam exam = table.getSelectedROWData();
 
+        if (exam == null) {
+            throw new PageMessageException(EMPTY_SELECTION_TEXT_KEY);
+        }
+
         if (exam.startTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);
             if (exam.startTime.isBefore(now)) {
