@@ -94,7 +94,7 @@ public class ActivitiesPane implements TemplateComposer {
                             .newAction(ActionDefinition.INSTITUTION_VIEW_LIST)
                             .create());
 
-        } else {
+        } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
             // otherwise show the form of the institution for current user
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
                     navigation,

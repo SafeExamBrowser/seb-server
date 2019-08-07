@@ -240,7 +240,7 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         boolean adaptWidth(final int width) {
-            return super.adaptWidth(width - CELL_WIDTH_ADJUSTMENT);
+            return super.adaptWidth(width - 2 * CELL_WIDTH_ADJUSTMENT);
         }
 
         @Override
@@ -252,6 +252,7 @@ public class TableFilter<ROW extends Entity> {
         String getValue() {
             return null;
         }
+
     }
 
     private class TextFilter extends FilterComponent {

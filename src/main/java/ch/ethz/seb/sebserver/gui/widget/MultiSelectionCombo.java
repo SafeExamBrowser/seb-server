@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public final class MultiSelectionCombo extends Composite implements Selection {
@@ -55,13 +56,15 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
     private final GridData comboCell;
     private final GridData actionCell;
+    private final Composite updateAnchor;
 
     private Listener listener = null;
 
     MultiSelectionCombo(
             final Composite parent,
             final WidgetFactory widgetFactory,
-            final String locTextPrefix) {
+            final String locTextPrefix,
+            final Composite updateAnchor) {
 
         super(parent, SWT.NONE);
         this.widgetFactory = widgetFactory;
@@ -94,6 +97,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
         this.actionCell.widthHint = ACTION_COLUMN_WIDTH;
         imageButton.setLayoutData(this.actionCell);
+        this.updateAnchor = updateAnchor;
     }
 
     @Override
@@ -202,7 +206,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.selectionControls.add(new Tuple<>(label, imageButton));
 
         this.combo.remove(itemName);
-        this.getParent().layout();
+        this.updateAnchor.layout();
+        PageService.updateScrolledComposite(this);
     }
 
     private void removeComboSelection(final Event event) {
@@ -228,7 +233,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         final Tuple<String> value = this.selectedValues.remove(indexOf);
         this.combo.add(value._2, this.combo.getItemCount());
 
-        this.getParent().layout();
+        this.updateAnchor.layout();
+        PageService.updateScrolledComposite(this);
         if (this.listener != null) {
             this.listener.handleEvent(event);
         }

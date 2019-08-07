@@ -58,12 +58,12 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final Text textInput = (this.isNumber)
-                ? builder.widgetFactory.numberInput(fieldGrid, null)
+                ? builder.widgetFactory.numberInput(fieldGrid, null, readonly)
                 : (this.isArea)
-                        ? builder.widgetFactory.textAreaInput(fieldGrid)
-                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword);
+                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly)
+                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly);
 
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         if (this.isArea) {
             gridData.minimumHeight = 35;
         }

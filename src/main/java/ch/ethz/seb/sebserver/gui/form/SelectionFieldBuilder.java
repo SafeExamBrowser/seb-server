@@ -109,7 +109,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
             composite.setLayout(gridLayout);
             if (StringUtils.isBlank(this.value)) {
                 final Label label = new Label(composite, SWT.NONE);
-                final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+                final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
                 label.setLayoutData(gridData);
                 label.setText(this.value);
             } else {
@@ -131,7 +131,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     private Text buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
         final Text label = new Text(composite, SWT.READ_ONLY);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, true, hspan, 1);
         gridData.verticalIndent = 0;
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);
@@ -141,7 +141,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 .findFirst()
                 .map(tuple -> tuple._2)
                 .orElse(Constants.EMPTY_NOTE);
-        final Consumer<Label> updateFunction = l -> l.setText(valueSupplier.get());
+        final Consumer<Text> updateFunction = t -> t.setText(valueSupplier.get());
 
         label.setText(valueSupplier.get());
         label.setData(PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);

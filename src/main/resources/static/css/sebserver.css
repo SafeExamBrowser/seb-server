@@ -247,7 +247,14 @@ Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
     box-shadow: none;
 }
 
-Text:disabled, Text:read-only, Text[BORDER]:disabled, Text[MULTI]:disabled, Text[MULTI][BORDER]:disabled, Text[BORDER]:read-only, Text[MULTI]:read-only, Text[MULTI][BORDER]:read-only {
+Text:disabled, 
+Text:read-only, 
+Text[BORDER]:disabled, 
+Text[BORDER]:read-only,
+Text[MULTI]:disabled, 
+Text[MULTI]:read-only,
+Text[MULTI][BORDER]:disabled, 
+Text[MULTI][BORDER]:read-only {
     box-shadow: none;
     background-color: #ffffff;
     border: none;

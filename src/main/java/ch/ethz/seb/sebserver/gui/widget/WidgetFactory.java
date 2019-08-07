@@ -308,25 +308,40 @@ public class WidgetFactory {
     }
 
     public Text textInput(final Composite content) {
-        return textInput(content, false);
+        return textInput(content, false, false);
+    }
+
+    public Text textLabel(final Composite content) {
+        return textInput(content, false, true);
     }
 
     public Text passwordInput(final Composite content) {
-        return textInput(content, true);
+        return textInput(content, true, false);
     }
 
-    public Text textAreaInput(final Composite content) {
-        final Text textArea = new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
-        return textArea;
+    public Text textAreaInput(final Composite content, final boolean readonly) {
+        return readonly
+                ? new Text(content, SWT.LEFT | SWT.MULTI)
+                : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
     }
 
-    public Text textInput(final Composite content, final boolean password) {
-        return new Text(content, (password)
-                ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
-                : SWT.LEFT | SWT.BORDER);
+    public Text textInput(final Composite content, final boolean password, final boolean readonly) {
+        return readonly
+                ? new Text(content, SWT.LEFT | SWT.BORDER)
+                : new Text(content, (password)
+                        ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
+                        : SWT.LEFT | SWT.BORDER);
     }
 
     public Text numberInput(final Composite content, final Consumer<String> numberCheck) {
+        return numberInput(content, numberCheck, false);
+    }
+
+    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final boolean readonly) {
+        if (readonly) {
+            return new Text(content, SWT.RIGHT | SWT.READ_ONLY);
+        }
+
         final Text numberInput = new Text(content, SWT.RIGHT | SWT.BORDER);
         if (numberCheck != null) {
             numberInput.addListener(SWT.Verify, event -> {
@@ -520,7 +535,11 @@ public class WidgetFactory {
                 selection = new MultiSelection(parent);
                 break;
             case MULTI_COMBO:
-                selection = new MultiSelectionCombo(parent, this, actionLocTextPrefix);
+                selection = new MultiSelectionCombo(
+                        parent,
+                        this,
+                        actionLocTextPrefix,
+                        parent);
                 break;
             case MULTI_CHECKBOX:
                 selection = new MultiSelectionCheckbox(parent);
