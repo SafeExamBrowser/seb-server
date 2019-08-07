@@ -128,13 +128,13 @@ public class LmsSetupList implements TemplateComposer {
                                 Domain.LMS_SETUP.ATTR_NAME,
                                 NAME_TEXT_KEY,
                                 LmsSetup::getName)
-                                        .withFilter((isSEBAdmin) ? this.nameFilter : null)
+                                        .withFilter(this.nameFilter)
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_LMS_TYPE,
                                 TYPE_TEXT_KEY,
                                 this::lmsSetupTypeName)
-                                        .withFilter((isSEBAdmin) ? this.typeFilter : null)
+                                        .withFilter(this.typeFilter)
                                         .localized()
                                         .sortable())
 

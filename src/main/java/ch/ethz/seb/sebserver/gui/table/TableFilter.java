@@ -239,11 +239,6 @@ public class TableFilter<ROW extends Entity> {
         }
 
         @Override
-        boolean adaptWidth(final int width) {
-            return super.adaptWidth(width - 2 * CELL_WIDTH_ADJUSTMENT);
-        }
-
-        @Override
         FilterComponent reset() {
             return this;
         }
