@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -146,7 +145,7 @@ public class ResourceService {
     public List<Tuple<String>> clientEventTypeResources() {
         return Arrays.asList(EventType.values())
                 .stream()
-                .filter(Predicate.not(CLIENT_EVENT_TYPE_EXCLUDE_MAP::contains))
+                .filter(eventType -> !CLIENT_EVENT_TYPE_EXCLUDE_MAP.contains(eventType))
                 .map(eventType -> new Tuple<>(
                         eventType.name(),
                         getEventTypeName(eventType)))
