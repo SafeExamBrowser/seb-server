@@ -181,7 +181,7 @@ public final class ImageUpload extends Composite {
             context.layout();
             imageUpload.layout();
             imageUpload.loadNewImage = false;
-            imageUpload.errorHandler.accept("");
+            imageUpload.errorHandler.accept(null);
         }
     }
 

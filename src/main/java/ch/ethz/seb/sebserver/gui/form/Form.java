@@ -422,6 +422,11 @@ public final class Form implements FormBinding {
                 return;
             }
 
+            if (errorMessage == null) {
+                resetError();
+                return;
+            }
+
             if (!this.hasError) {
                 this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
                 this.errorLabel.setText("- " + errorMessage);
