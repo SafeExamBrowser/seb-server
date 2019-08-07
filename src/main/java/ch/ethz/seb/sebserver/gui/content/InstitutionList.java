@@ -100,7 +100,7 @@ public class InstitutionList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);

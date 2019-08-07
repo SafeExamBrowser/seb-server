@@ -36,8 +36,6 @@ public class ClientConnectionDetails {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionDetails.class);
 
-    private final static String STATUS_LOC_TEXT_KEY_PREFIX = "sebserver.monitoring.connection.status.";
-
     private final static LocTextKey EXAM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.examname");
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
@@ -163,14 +161,10 @@ public class ClientConnectionDetails {
     }
 
     String getStatusName() {
-        String name;
-        if (this.connectionData != null && this.connectionData.clientConnection.status != null) {
-            name = this.connectionData.clientConnection.status.name();
-        } else {
-            name = ConnectionStatus.UNDEFINED.name();
-        }
-        return this.pageService.getI18nSupport()
-                .getText(STATUS_LOC_TEXT_KEY_PREFIX + name, name);
+        return this.pageService.getResourceService().localizedClientConnectionStatusName(
+                (this.connectionData != null && this.connectionData.clientConnection != null)
+                        ? this.connectionData.clientConnection.status
+                        : ConnectionStatus.UNDEFINED);
     }
 
 }

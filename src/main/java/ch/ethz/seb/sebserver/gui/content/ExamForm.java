@@ -303,7 +303,7 @@ public class ExamForm implements TemplateComposer {
                                             .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
                                             .create())
 
-                            .compose(content);
+                            .compose(pageContext.copyOf(content));
 
             final EntityKey configMapKey = (configurationTable.hasAnyContent())
                     ? configurationTable.getFirstRowData().getEntityKey()
@@ -369,7 +369,7 @@ public class ExamForm implements TemplateComposer {
                                             .withParentEntityKey(entityKey)
                                             .create())
 
-                            .compose(content);
+                            .compose(pageContext.copyOf(content));
 
             actionBuilder
 

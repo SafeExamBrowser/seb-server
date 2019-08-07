@@ -200,6 +200,11 @@ public class FormBuilder {
         return new TextFieldBuilder(name, label, value);
     }
 
+    public static TextFieldBuilder text(final String name, final LocTextKey label,
+            final Supplier<String> valueSupplier) {
+        return new TextFieldBuilder(name, label, valueSupplier.get());
+    }
+
     public static SelectionFieldBuilder singleSelection(
             final String name,
             final LocTextKey label,

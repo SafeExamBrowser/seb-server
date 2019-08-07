@@ -8,8 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+import java.util.function.Predicate;
+
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
+
+    Result<Collection<ExtendedClientEvent>> allMatchingExtended(
+            FilterMap filterMap,
+            Predicate<ExtendedClientEvent> predicate);
 
 }

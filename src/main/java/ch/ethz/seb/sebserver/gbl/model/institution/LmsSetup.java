@@ -18,11 +18,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
@@ -162,6 +164,20 @@ public final class LmsSetup implements GrantEntity, Activatable {
     }
 
     @Override
+    public Entity printSecureCopy() {
+        return new LmsSetup(
+                this.id,
+                this.institutionId,
+                this.name,
+                this.lmsType,
+                this.lmsAuthName,
+                Constants.EMPTY_NOTE,
+                this.lmsApiUrl,
+                Constants.EMPTY_NOTE,
+                this.active);
+    }
+
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LmsSetup [id=");
@@ -174,8 +190,6 @@ public final class LmsSetup implements GrantEntity, Activatable {
         builder.append(this.lmsType);
         builder.append(", lmsAuthName=");
         builder.append(this.lmsAuthName);
-        builder.append(", lmsAuthSecret=");
-        builder.append(this.lmsAuthSecret);
         builder.append(", lmsApiUrl=");
         builder.append(this.lmsApiUrl);
         builder.append(", lmsRestApiToken=");
@@ -188,8 +202,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     public static EntityName toName(final LmsSetup lmsSetup) {
         return new EntityName(
-                EntityType.LMS_SETUP,
                 String.valueOf(lmsSetup.id),
+                EntityType.LMS_SETUP,
                 lmsSetup.name);
     }
 

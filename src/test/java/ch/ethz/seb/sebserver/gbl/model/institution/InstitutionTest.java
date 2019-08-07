@@ -58,7 +58,7 @@ public class InstitutionTest {
 
         json = jsonMapper.writeValueAsString(namesList);
         assertEquals(
-                "[{\"entityType\":\"INSTITUTION\",\"modelId\":\"1\",\"name\":\"InstOne\"},{\"entityType\":\"INSTITUTION\",\"modelId\":\"2\",\"name\":\"InstTwo\"},{\"entityType\":\"INSTITUTION\",\"modelId\":\"3\",\"name\":\"InstThree\"}]",
+                "[{\"modelId\":\"1\",\"entityType\":\"INSTITUTION\",\"name\":\"InstOne\"},{\"modelId\":\"2\",\"entityType\":\"INSTITUTION\",\"name\":\"InstTwo\"},{\"modelId\":\"3\",\"entityType\":\"INSTITUTION\",\"name\":\"InstThree\"}]",
                 json);
     }
 

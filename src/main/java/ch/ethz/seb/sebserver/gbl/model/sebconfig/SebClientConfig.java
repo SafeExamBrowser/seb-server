@@ -15,14 +15,17 @@ import org.hibernate.validator.constraints.URL;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 public final class SebClientConfig implements GrantEntity, Activatable {
@@ -60,6 +63,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonCreator
     public SebClientConfig(
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID) final Long id,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID) final Long institutionId,
@@ -130,10 +134,12 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         return this.date;
     }
 
+    @JsonIgnore
     public CharSequence getEncryptSecret() {
         return this.encryptSecret;
     }
 
+    @JsonIgnore
     public CharSequence getConfirmEncryptSecret() {
         return this.confirmEncryptSecret;
     }
@@ -145,6 +151,19 @@ public final class SebClientConfig implements GrantEntity, Activatable {
 
     public Boolean getActive() {
         return this.active;
+    }
+
+    @Override
+    public Entity printSecureCopy() {
+        return new SebClientConfig(
+                this.id,
+                this.institutionId,
+                this.name,
+                this.fallbackStartURL,
+                this.date,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
+                this.active);
     }
 
     @Override
@@ -160,10 +179,6 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         builder.append(this.fallbackStartURL);
         builder.append(", date=");
         builder.append(this.date);
-        builder.append(", encryptSecret=");
-        builder.append(this.encryptSecret);
-        builder.append(", confirmEncryptSecret=");
-        builder.append(this.confirmEncryptSecret);
         builder.append(", active=");
         builder.append(this.active);
         builder.append("]");

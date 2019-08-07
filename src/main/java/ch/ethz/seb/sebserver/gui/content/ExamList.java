@@ -144,13 +144,13 @@ public class ExamList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
-                                this.resourceService::examTypeName)
+                                this.resourceService::localizedExamTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);

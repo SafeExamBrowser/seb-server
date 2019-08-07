@@ -15,11 +15,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_CONFIGURATION_MAP;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 
@@ -143,10 +145,12 @@ public final class ExamConfigurationMap implements GrantEntity {
         return this.userNames;
     }
 
+    @JsonIgnore
     public CharSequence getEncryptSecret() {
         return this.encryptSecret;
     }
 
+    @JsonIgnore
     public CharSequence getConfirmEncryptSecret() {
         return this.confirmEncryptSecret;
     }
@@ -166,6 +170,21 @@ public final class ExamConfigurationMap implements GrantEntity {
 
     public ConfigurationStatus getConfigStatus() {
         return this.configStatus;
+    }
+
+    @Override
+    public Entity printSecureCopy() {
+        return new ExamConfigurationMap(
+                this.id,
+                this.institutionId,
+                this.examId,
+                this.configurationNodeId,
+                this.userNames,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
+                this.configName,
+                this.configDescription,
+                this.configStatus);
     }
 
     @Override

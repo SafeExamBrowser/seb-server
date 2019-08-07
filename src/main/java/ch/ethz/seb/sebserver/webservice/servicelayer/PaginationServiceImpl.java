@@ -94,8 +94,8 @@ public class PaginationServiceImpl implements PaginationService {
     }
 
     @Override
-    public void setDefaultLimit(final String sort, final SqlTable table) {
-        setPagination(1, this.maxPageSize, sort, table);
+    public void setDefaultLimit(final String sort, final String tableName) {
+        setPagination(1, this.maxPageSize, sort, tableName);
     }
 
     @Override
@@ -131,9 +131,9 @@ public class PaginationServiceImpl implements PaginationService {
             final Supplier<Result<Collection<T>>> delegate) {
 
         return Result.tryCatch(() -> {
-            final SqlTable table = SqlTable.of(tableName);
+            //final SqlTable table = SqlTable.of(tableName);
             final com.github.pagehelper.Page<Object> page =
-                    setPagination(pageNumber, pageSize, sort, table);
+                    setPagination(pageNumber, pageSize, sort, tableName);
 
             final Collection<T> list = delegate.get().getOrThrow();
 
@@ -145,36 +145,36 @@ public class PaginationServiceImpl implements PaginationService {
         });
     }
 
-    private String verifySortColumnName(final String sort, final SqlTable table) {
+    private String verifySortColumnName(final String sort, final String columnName) {
 
         if (StringUtils.isBlank(sort)) {
-            return this.defaultSortColumn.get(table.name());
+            return this.defaultSortColumn.get(columnName);
         }
 
-        final Map<String, String> mapping = this.sortColumnMapping.get(table.name());
+        final Map<String, String> mapping = this.sortColumnMapping.get(columnName);
         if (mapping != null) {
             final String sortColumn = PageSortOrder.decode(sort);
             if (StringUtils.isBlank(sortColumn)) {
-                return this.defaultSortColumn.get(table.name());
+                return this.defaultSortColumn.get(columnName);
             }
             return mapping.get(sortColumn);
         }
 
-        return this.defaultSortColumn.get(table.name());
+        return this.defaultSortColumn.get(columnName);
     }
 
     private com.github.pagehelper.Page<Object> setPagination(
             final Integer pageNumber,
             final Integer pageSize,
             final String sort,
-            final SqlTable table) {
+            final String sortMappingName) {
 
         final com.github.pagehelper.Page<Object> startPage =
                 PageHelper.startPage(getPageNumber(pageNumber), getPageSize(pageSize), true, true, false);
 
-        if (table != null && StringUtils.isNotBlank(sort)) {
+        if (StringUtils.isNotBlank(sortMappingName) && StringUtils.isNotBlank(sort)) {
             final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
-            final String sortColumnName = verifySortColumnName(sort, table);
+            final String sortColumnName = verifySortColumnName(sort, sortMappingName);
             if (StringUtils.isNotBlank(sortColumnName)) {
                 switch (sortOrder) {
                     case DESCENDING: {

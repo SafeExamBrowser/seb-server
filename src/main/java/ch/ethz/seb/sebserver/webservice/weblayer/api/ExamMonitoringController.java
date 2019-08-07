@@ -100,9 +100,9 @@ public class ExamMonitoringController {
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
         this.authorization.checkRole(
-                UserRole.EXAM_SUPPORTER,
                 institutionId,
-                EntityType.EXAM);
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER);
 
         final FilterMap filterMap = new FilterMap(allRequestParams);
 
@@ -136,9 +136,9 @@ public class ExamMonitoringController {
             @PathVariable(name = API.EXAM_API_PARAM_EXAM_ID, required = true) final Long examId) {
 
         this.authorization.checkRole(
-                UserRole.EXAM_SUPPORTER,
                 institutionId,
-                EntityType.EXAM);
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER);
 
         return this.examSessionService
                 .getConnectionData(examId)
@@ -159,9 +159,9 @@ public class ExamMonitoringController {
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         this.authorization.checkRole(
-                UserRole.EXAM_SUPPORTER,
                 institutionId,
-                EntityType.EXAM);
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER);
 
         return this.examSessionService
                 .getConnectionData(connectionToken)

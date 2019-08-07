@@ -15,11 +15,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -106,10 +106,10 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
-    public EntityTable<ROW> compose(final Composite parent) {
+    public EntityTable<ROW> compose(final PageContext pageContext) {
         return new EntityTable<>(
                 this.type,
-                parent,
+                pageContext,
                 this.restCall,
                 this.restCallAdapter,
                 this.pageService,

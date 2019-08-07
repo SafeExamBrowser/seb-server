@@ -29,6 +29,10 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logCreate(E entity);
 
+    public <E extends Entity> Result<E> logSaveToHistory(E entity);
+
+    public <E extends Entity> Result<E> logUndo(E entity);
+
     /** Create a user activity log entry for the current user of activity type IMPORT
      *
      * @param entity the Entity
@@ -46,24 +50,6 @@ public interface UserActivityLogDAO extends
      * @param entity the Entity
      * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logModify(E entity);
-
-    /** Create a user activity log entry for the current user of activity type ACTIVATE
-     *
-     * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logActivate(E entity);
-
-    /** Create a user activity log entry for the current user of activity type DEACTIVATE
-     *
-     * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logDeactivate(E entity);
-
-    /** Create a user activity log entry for the current user of activity type DELETE
-     *
-     * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logDelete(E entity);
 
     /** Creates a user activity log entry for the current user.
      *

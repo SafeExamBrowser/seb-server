@@ -142,13 +142,13 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                                                 .forEach(clientEventMapper::insert);
                                         return null;
                                     });
+
+                            sqlSessionTemplate.flushStatements();
                         } else {
                             sleepTime += 100;
                         }
                     } catch (final Exception e) {
                         log.error("unexpected Error while trying to batch store client-events: ", e);
-                    } finally {
-                        sqlSessionTemplate.flushStatements();
                     }
 
                     try {

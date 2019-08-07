@@ -157,7 +157,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                                 .withExec(action -> this.showDetails(action, t.getSelectedROWData()))
                                 .noEventPropagation()
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck lmsSetupGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
@@ -221,7 +221,11 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private void createDetailsForm(final QuizData quizData, final PageContext pc) {
-        this.pageService.formBuilder(pc, 3)
+
+        final Composite parent = pc.getParent();
+        final Composite grid = this.widgetFactory.createPopupScrollComposite(parent);
+
+        this.pageService.formBuilder(pc.copyOf(grid), 3)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.singleSelection(
@@ -251,7 +255,6 @@ public class QuizDiscoveryList implements TemplateComposer {
                         QUIZ_DETAILS_URL_TEXT_KEY,
                         quizData.startURL))
                 .build();
-        this.widgetFactory.labelSeparator(pc.getParent());
     }
 
 }

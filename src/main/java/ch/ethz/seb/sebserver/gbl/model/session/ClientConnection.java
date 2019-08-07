@@ -19,9 +19,6 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientConnection implements GrantEntity {
 
-    public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
-    public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
-
     public enum ConnectionStatus {
         UNDEFINED,
         CONNECTION_REQUESTED,
@@ -31,6 +28,20 @@ public final class ClientConnection implements GrantEntity {
         ABORTED,
         RELEASED
     }
+
+    public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
+            -1L,
+            -1L,
+            -1L,
+            ConnectionStatus.UNDEFINED,
+            null,
+            null,
+            null,
+            null);
+
+    public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
+    public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
+    public static final String FILTER_ATTR_SESSION_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;

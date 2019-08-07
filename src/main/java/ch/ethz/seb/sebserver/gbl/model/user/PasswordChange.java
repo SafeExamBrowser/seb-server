@@ -14,6 +14,7 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -83,6 +84,15 @@ public class PasswordChange implements Entity {
     @Override
     public String getName() {
         return "PasswordChange";
+    }
+
+    @Override
+    public Entity printSecureCopy() {
+        return new PasswordChange(
+                this.userId,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE);
     }
 
 }

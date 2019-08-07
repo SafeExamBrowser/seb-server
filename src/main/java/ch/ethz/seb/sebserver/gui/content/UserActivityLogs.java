@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.userlogs.GetUserLogPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -54,8 +54,10 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.list.column.dateTime");
     private static final LocTextKey ACTIVITY_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.activityType");
-    private static final LocTextKey ENTITY_TEXT_KEY =
+    private static final LocTextKey ENTITY_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.entityType");
+    private static final LocTextKey ENTITY_ID_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.list.column.entityId");
     private static final LocTextKey MESSAGE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.message");
     private final static LocTextKey EMPTY_SELECTION_TEXT =
@@ -73,12 +75,11 @@ public class UserActivityLogs implements TemplateComposer {
 
     public UserActivityLogs(
             final PageService pageService,
-            final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
-        this.i18nSupport = resourceService.getI18nSupport();
+        this.resourceService = pageService.getResourceService();
+        this.i18nSupport = this.resourceService.getI18nSupport();
         this.widgetFactory = pageService.getWidgetFactory();
         this.pageSize = pageSize;
 
@@ -133,7 +134,7 @@ public class UserActivityLogs implements TemplateComposer {
 
                 .withColumn(new ColumnDefinition<UserActivityLog>(
                         Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_ID,
-                        ENTITY_TEXT_KEY,
+                        ENTITY_TYPE_TEXT_KEY,
                         this.resourceService::getEntityTypeName)
                                 .withFilter(this.entityFilter)
                                 .sortable())
@@ -156,7 +157,7 @@ public class UserActivityLogs implements TemplateComposer {
                         .noEventPropagation()
                         .create())
 
-                .compose(content);
+                .compose(pageContext.copyOf(content));
 
         actionBuilder
                 .newAction(ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS)
@@ -185,6 +186,7 @@ public class UserActivityLogs implements TemplateComposer {
                 action.pageContext().getParent().getShell(),
                 this.widgetFactory);
 
+        //dialog.setDialogHeight(400);
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
                 action.pageContext(),
@@ -194,7 +196,11 @@ public class UserActivityLogs implements TemplateComposer {
     }
 
     private void createDetailsForm(final UserActivityLog userActivityLog, final PageContext pc) {
-        this.pageService.formBuilder(pc, 3)
+
+        final Composite parent = pc.getParent();
+        final Composite grid = this.widgetFactory.createPopupScrollComposite(parent);
+
+        this.pageService.formBuilder(pc.copyOf(grid), 3)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(
@@ -206,9 +212,13 @@ public class UserActivityLogs implements TemplateComposer {
                         ACTIVITY_TEXT_KEY,
                         this.resourceService.getUserActivityTypeName(userActivityLog)))
                 .addField(FormBuilder.text(
-                        Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_ID,
-                        ENTITY_TEXT_KEY,
+                        Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE,
+                        ENTITY_TYPE_TEXT_KEY,
                         this.resourceService.getEntityTypeName(userActivityLog)))
+                .addField(FormBuilder.text(
+                        Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_ID,
+                        ENTITY_ID_TEXT_KEY,
+                        userActivityLog.entityId))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
                         DATE_TEXT_KEY,
@@ -217,10 +227,9 @@ public class UserActivityLogs implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_MESSAGE,
                         MESSAGE_TEXT_KEY,
-                        String.valueOf(userActivityLog.message).replace(",", ",\n"))
+                        String.valueOf(userActivityLog.message))
                         .asArea())
                 .build();
-        this.widgetFactory.labelSeparator(pc.getParent());
     }
 
 }

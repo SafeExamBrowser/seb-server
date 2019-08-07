@@ -405,5 +405,4 @@ public final class Utils {
                 org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
         return headers;
     }
-
 }

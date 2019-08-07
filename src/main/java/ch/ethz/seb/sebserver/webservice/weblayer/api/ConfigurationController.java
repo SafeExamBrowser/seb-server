@@ -12,7 +12,6 @@ import java.util.Collection;
 
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,9 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
@@ -37,7 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ENDPOINT)
-public class ConfigurationController extends EntityController<Configuration, Configuration> {
+public class ConfigurationController extends ReadonlyEntityController<Configuration, Configuration> {
 
     private final ConfigurationDAO configurationDAO;
 
@@ -69,6 +66,7 @@ public class ConfigurationController extends EntityController<Configuration, Con
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkModifyAccess)
                 .flatMap(config -> this.configurationDAO.saveToHistory(config.configurationNodeId))
+                .flatMap(this.userActivityLogDAO::logSaveToHistory)
                 .getOrThrow();
     }
 
@@ -82,6 +80,7 @@ public class ConfigurationController extends EntityController<Configuration, Con
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkModifyAccess)
                 .flatMap(config -> this.configurationDAO.undo(config.configurationNodeId))
+                .flatMap(this.userActivityLogDAO::logUndo)
                 .getOrThrow();
     }
 
@@ -102,21 +101,6 @@ public class ConfigurationController extends EntityController<Configuration, Con
 
     @Override
     public Collection<EntityKey> getDependencies(final String modelId, final BulkActionType bulkActionType) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Configuration create(final MultiValueMap<String, String> allRequestParams, final Long institutionId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public EntityProcessingReport hardDelete(final String modelId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected Configuration createNew(final POSTMapper postParams) {
         throw new UnsupportedOperationException();
     }
 

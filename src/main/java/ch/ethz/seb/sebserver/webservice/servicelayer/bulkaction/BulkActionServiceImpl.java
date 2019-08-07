@@ -19,7 +19,10 @@ import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
@@ -34,11 +37,13 @@ public class BulkActionServiceImpl implements BulkActionService {
     private final Map<EntityType, BulkActionSupportDAO<?>> supporter;
     private final UserActivityLogDAO userActivityLogDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final JSONMapper jsonMapper;
 
     public BulkActionServiceImpl(
             final Collection<BulkActionSupportDAO<?>> supporter,
             final UserActivityLogDAO userActivityLogDAO,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher,
+            final JSONMapper jsonMapper) {
 
         this.supporter = new HashMap<>();
         for (final BulkActionSupportDAO<?> support : supporter) {
@@ -46,6 +51,7 @@ public class BulkActionServiceImpl implements BulkActionService {
         }
         this.userActivityLogDAO = userActivityLogDAO;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -123,11 +129,12 @@ public class BulkActionServiceImpl implements BulkActionService {
         }
 
         for (final EntityKey key : action.dependencies) {
+
             this.userActivityLogDAO.log(
                     activityType,
                     key.entityType,
                     key.modelId,
-                    "bulk action dependency");
+                    "Bulk Action - Dependency : " + toLogMessage(key));
         }
 
         for (final EntityKey key : action.sources) {
@@ -135,8 +142,20 @@ public class BulkActionServiceImpl implements BulkActionService {
                     activityType,
                     key.entityType,
                     key.modelId,
-                    "bulk action source");
+                    "Bulk Action - Source : " + toLogMessage(key));
         }
+    }
+
+    private String toLogMessage(final EntityKey key) {
+        String entityAsString;
+        try {
+            entityAsString = this.jsonMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(key);
+        } catch (final JsonProcessingException e) {
+            entityAsString = key.toString();
+        }
+        return entityAsString;
     }
 
     private List<BulkActionSupportDAO<?>> getDependancySupporter(final BulkAction action) {

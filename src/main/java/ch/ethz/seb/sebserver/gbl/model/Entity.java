@@ -50,9 +50,19 @@ public interface Entity extends ModelIdAware {
      * @return EntityName instance created form given Entity */
     default EntityName toName() {
         return new EntityName(
-                this.entityType(),
                 this.getModelId(),
+                this.entityType(),
                 this.getName());
+    }
+
+    /** This can be overwritten if an entity contains security sensitive data
+     * Returns a representation of the entity that has no security sensitive data
+     * and an be print out to user logs or error messages
+     *
+     * @return representation of the entity that has no security sensitive data */
+
+    default Entity printSecureCopy() {
+        return this;
     }
 
 }

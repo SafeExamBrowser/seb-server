@@ -18,7 +18,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -136,15 +136,14 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
 
     private Result<EntityProcessingReport> setActive(final String modelId, final boolean active) {
         final EntityType entityType = this.entityDAO.entityType();
-        final BulkAction bulkAction = new BulkAction(
-                (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
-                entityType,
-                new EntityKey(modelId, entityType));
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
                 .flatMap(this::validForActivation)
-                .flatMap(entity -> this.bulkActionService.createReport(bulkAction));
+                .flatMap(entity -> this.bulkActionService.createReport(new BulkAction(
+                        (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
+                        entityType,
+                        new EntityName(modelId, entityType, entity.getName()))));
     }
 
     protected Result<T> validForActivation(final T entity) {

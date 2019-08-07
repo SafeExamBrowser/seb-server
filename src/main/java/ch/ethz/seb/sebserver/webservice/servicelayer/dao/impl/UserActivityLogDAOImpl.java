@@ -29,8 +29,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -59,15 +62,18 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     private final UserActivityLogRecordMapper userLogRecordMapper;
     private final UserRecordMapper userRecordMapper;
     private final UserService userService;
+    private final JSONMapper jsonMapper;
 
     public UserActivityLogDAOImpl(
             final UserActivityLogRecordMapper userLogRecordMapper,
             final UserRecordMapper userRecordMapper,
-            final UserService userService) {
+            final UserService userService,
+            final JSONMapper jsonMapper) {
 
         this.userLogRecordMapper = userLogRecordMapper;
         this.userRecordMapper = userRecordMapper;
         this.userService = userService;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -79,6 +85,18 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional
     public <E extends Entity> Result<E> logCreate(final E entity) {
         return log(UserLogActivityType.CREATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logSaveToHistory(final E entity) {
+        return log(UserLogActivityType.MODIFY, entity, "SEB Exam Configuration : Save To History");
+    }
+
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> logUndo(final E entity) {
+        return log(UserLogActivityType.MODIFY, entity, "SEB Exam Configuration : Undo");
     }
 
     @Override
@@ -101,24 +119,6 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public <E extends Entity> Result<E> logActivate(final E entity) {
-        return log(UserLogActivityType.ACTIVATE, entity);
-    }
-
-    @Override
-    @Transactional
-    public <E extends Entity> Result<E> logDeactivate(final E entity) {
-        return log(UserLogActivityType.DEACTIVATE, entity);
-    }
-
-    @Override
-    @Transactional
-    public <E extends Entity> Result<E> logDelete(final E entity) {
-        return log(UserLogActivityType.DELETE, entity);
-    }
-
-    @Override
-    @Transactional
     public <E extends Entity> Result<E> log(
             final UserLogActivityType activityType,
             final E entity,
@@ -130,7 +130,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public <E extends Entity> Result<E> log(final UserLogActivityType activityType, final E entity) {
-        return log(this.userService.getCurrentUser(), activityType, entity, null);
+        return log(this.userService.getCurrentUser(), activityType, entity, toMessage(entity));
     }
 
     @Override
@@ -273,8 +273,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
         return all(
                 filterMap.getInstitutionId(),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_USER),
-                filterMap.getUserLogFrom(UserActivityLog.FILTER_ATTR_FROM),
-                filterMap.getUserLofTo(UserActivityLog.FILTER_ATTR_TO),
+                filterMap.getUserLogFrom(),
+                filterMap.getUserLofTo(),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ENTITY_TYPES),
                 predicate);
@@ -312,7 +312,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                                     SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
                             .where(
                                     UserRecordDynamicSqlSupport.institutionId,
-                                    SqlBuilder.isEqualTo(institutionId))
+                                    SqlBuilder.isEqualToWhenPresent(institutionId))
                             .and(
                                     UserActivityLogRecordDynamicSqlSupport.userUuid,
                                     SqlBuilder.isEqualToWhenPresent(userId))
@@ -478,6 +478,22 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     record.getEntityId(),
                     record.getMessage());
         });
+    }
+
+    private String toMessage(final Entity entity) {
+        if (entity == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        String entityAsString;
+        try {
+            entityAsString = entity.getName() + " = " + this.jsonMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(entity.printSecureCopy());
+        } catch (final JsonProcessingException e) {
+            entityAsString = entity.toString();
+        }
+        return entityAsString;
     }
 
 }

@@ -151,7 +151,7 @@ public class SebClientConfigList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         final GrantCheck clientConfigGrant = this.currentUser.grantCheck(EntityType.SEB_CLIENT_CONFIGURATION);
 

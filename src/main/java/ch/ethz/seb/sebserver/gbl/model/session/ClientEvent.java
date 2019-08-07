@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ClientEvent implements Entity, IndicatorValueHolder {
+public class ClientEvent implements Entity, IndicatorValueHolder {
 
     /** Adapt SEB API to SEB_SEB_Server API -> timestamp == clientTime */
     public static final String ATTR_TIMESTAMP = "timestamp";

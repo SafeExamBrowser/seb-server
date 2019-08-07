@@ -179,7 +179,7 @@ public class UserAccountList implements TemplateComposer {
                 .withDefaultAction(actionBuilder
                         .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                         .create())
-                .compose(content);
+                .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.USER);

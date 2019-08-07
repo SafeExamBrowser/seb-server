@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -235,14 +236,14 @@ public class FilterMap extends POSTMapper {
                 false);
     }
 
-    public Long getUserLogFrom(final String filterAttrFrom) {
+    public Long getUserLogFrom() {
         return getFromToValue(
                 UserActivityLog.FILTER_ATTR_FROM_TO,
                 UserActivityLog.FILTER_ATTR_FROM,
                 true);
     }
 
-    public Long getUserLofTo(final String filterAttrTo) {
+    public Long getUserLofTo() {
         return getFromToValue(
                 UserActivityLog.FILTER_ATTR_FROM_TO,
                 UserActivityLog.FILTER_ATTR_TO,
@@ -251,6 +252,10 @@ public class FilterMap extends POSTMapper {
 
     public String getClientEventText() {
         return getSQLWildcard(ClientEvent.FILTER_ATTR_TEXT);
+    }
+
+    public Long getClientEventExamId() {
+        return getLong(ExtendedClientEvent.FILTER_ATTRIBUTE_EXAM);
     }
 
     private Long getFromToValue(final String nameCombi, final String name, final boolean from) {

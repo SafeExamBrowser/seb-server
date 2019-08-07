@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
@@ -302,11 +304,17 @@ public class TableFilter<ROW extends Entity> {
             final Composite innerComposite = createInnerComposite(parent);
             final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
 
+            Supplier<List<Tuple<String>>> resourceSupplier = this.attribute.resourceSupplier;
+            if (this.attribute.resourceFunction != null) {
+                resourceSupplier = () -> this.attribute.resourceFunction.apply(TableFilter.this.entityTable);
+            }
+
             this.selector = TableFilter.this.entityTable.widgetFactory
                     .selectionLocalized(
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             innerComposite,
-                            this.attribute.resourceSupplier);
+                            resourceSupplier);
+
             this.selector
                     .adaptToControl()
                     .setLayoutData(gridData);

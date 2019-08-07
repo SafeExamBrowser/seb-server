@@ -279,7 +279,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return this.checkCreateAccess(requestModel)
                 .flatMap(this::validForCreate)
                 .flatMap(this.entityDAO::createNew)
-                .flatMap(this.userActivityLogDAO::logCreate)
+                .flatMap(this::logCreate)
                 .flatMap(this::notifyCreated)
                 .getOrThrow();
     }
@@ -297,7 +297,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return this.checkModifyAccess(modifyData)
                 .flatMap(this::validForSave)
                 .flatMap(this.entityDAO::save)
-                .flatMap(this.userActivityLogDAO::logModify)
+                .flatMap(this::logModify)
                 .flatMap(this::notifySaved)
                 .getOrThrow();
     }
@@ -311,15 +311,16 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
+
         final EntityType entityType = this.entityDAO.entityType();
-        final BulkAction bulkAction = new BulkAction(
-                BulkActionType.HARD_DELETE,
-                entityType,
-                new EntityKey(modelId, entityType));
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
-                .flatMap(entity -> this.bulkActionService.createReport(bulkAction))
+                .flatMap(entity -> this.bulkActionService.createReport(new BulkAction(
+                        BulkActionType.HARD_DELETE,
+                        entityType,
+                        new EntityName(modelId, entityType, entity.getName()))))
+                .flatMap(this::logBulkAction)
                 .getOrThrow();
     }
 
@@ -449,6 +450,33 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @return the EntityType of the GrantEntity that is used for grant checks of the concrete Entity */
     protected EntityType getGrantEntityType() {
         return this.entityDAO.entityType();
+    }
+
+    /** Makes a CREATE user activity log for the specified entity.
+     * This may be overwritten if the create user activity log should be skipped.
+     *
+     * @param entity
+     * @return Result of entity */
+    protected Result<T> logCreate(final T entity) {
+        return this.userActivityLogDAO.logCreate(entity);
+    }
+
+    /** Makes a MODIFY user activity log for the specified entity.
+     * This may be overwritten if the create user activity log should be skipped.
+     *
+     * @param entity
+     * @return */
+    protected Result<T> logModify(final T entity) {
+        return this.userActivityLogDAO.logModify(entity);
+    }
+
+    /** Makes user activity log for a bulk action.
+     *
+     * @param bulkActionReport the EntityProcessingReport
+     * @return Result of entity */
+    protected Result<EntityProcessingReport> logBulkAction(final EntityProcessingReport bulkActionReport) {
+        // TODO
+        return Result.of(bulkActionReport);
     }
 
     /** Implements the creation of a new entity from the post parameters given within the POSTMapper

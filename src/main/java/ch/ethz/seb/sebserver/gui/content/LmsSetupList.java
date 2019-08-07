@@ -147,7 +147,7 @@ public class LmsSetupList implements TemplateComposer {
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.LMS_SETUP);

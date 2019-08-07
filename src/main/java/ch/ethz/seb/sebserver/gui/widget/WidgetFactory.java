@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
 @Lazy
@@ -193,6 +194,23 @@ public class WidgetFactory {
         layout.marginTop = 0;
         grid.setLayout(layout);
         grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        return grid;
+    }
+
+    /** Use this to create a scrolled Composite for usual popup forms
+     *
+     * @param parent The parent Composite
+     * @return the scrolled Composite to add the form content */
+    public Composite createPopupScrollComposite(final Composite parent) {
+        final Composite grid = PageService.createManagedVScrolledComposite(
+                parent,
+                scrolledComposite -> {
+                    final Composite g = new Composite(scrolledComposite, SWT.NONE);
+                    g.setLayout(new GridLayout());
+                    g.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+                    return g;
+                },
+                false);
         return grid;
     }
 

@@ -13,12 +13,14 @@ import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
 /** A EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
  * A EntityKey consists of the model identifier of a domain entity and the type of the entity. */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityKey implements ModelIdAware, Serializable {
 
     private static final long serialVersionUID = -2368065921846821061L;

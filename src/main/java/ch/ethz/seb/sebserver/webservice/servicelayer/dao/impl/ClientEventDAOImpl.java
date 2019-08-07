@@ -25,10 +25,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper.ConnectionEventJoinRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -44,9 +49,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class ClientEventDAOImpl implements ClientEventDAO {
 
     private final ClientEventRecordMapper clientEventRecordMapper;
+    private final ClientEventExtentionMapper clientEventExtentionMapper;
 
-    protected ClientEventDAOImpl(final ClientEventRecordMapper clientEventRecordMapper) {
+    protected ClientEventDAOImpl(
+            final ClientEventRecordMapper clientEventRecordMapper,
+            final ClientEventExtentionMapper clientEventExtentionMapper) {
+
         this.clientEventRecordMapper = clientEventRecordMapper;
+        this.clientEventExtentionMapper = clientEventExtentionMapper;
     }
 
     @Override
@@ -100,7 +110,54 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
+    }
 
+    @Override
+    public Result<Collection<ExtendedClientEvent>> allMatchingExtended(
+            final FilterMap filterMap,
+            final Predicate<ExtendedClientEvent> predicate) {
+
+        return Result.tryCatch(() -> this.clientEventExtentionMapper.selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        isEqualToWhenPresent(filterMap.getClientEventExamId()))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examUserSessionIdentifer,
+                        SqlBuilder.isLikeWhenPresent(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_SESSION_ID)))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.connectionId,
+                        isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.type,
+                        isEqualToWhenPresent(filterMap.getClientEventTypeId()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.type,
+                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.clientTime,
+                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.clientTime,
+                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeTo()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.serverTime,
+                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeFrom()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.serverTime,
+                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeTo()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        SqlBuilder.isLikeWhenPresent(filterMap.getClientEventText()))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientEventDAOImpl::toDomainModelExtended)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .filter(predicate)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -183,7 +240,23 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     (numericValue != null) ? numericValue.doubleValue() : null,
                     record.getText());
         });
+    }
 
+    private static Result<ExtendedClientEvent> toDomainModelExtended(final ConnectionEventJoinRecord record) {
+        return Result.tryCatch(() -> {
+
+            return new ExtendedClientEvent(
+                    record.institution_id,
+                    record.exam_id,
+                    record.exam_user_session_identifer,
+                    record.id,
+                    record.connection_id,
+                    (record.type != null) ? EventType.byId(record.type) : EventType.UNKNOWN,
+                    record.client_time,
+                    record.server_time,
+                    (record.numeric_value != null) ? record.numeric_value.doubleValue() : null,
+                    record.text);
+        });
     }
 
 }

@@ -169,10 +169,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withRestCallAdapter(restCallBuilder -> restCallBuilder.withQueryParam(
                         ClientEvent.FILTER_ATTR_CONECTION_ID,
                         entityKey.modelId))
-                .withColumn(new ColumnDefinition<>(
+                .withColumn(new ColumnDefinition<ClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_TYPE,
                         LIST_COLUMN_TYPE_KEY,
-                        this::getEventTypeName)
+                        this.resourceService::getEventTypeName)
                                 .withFilter(this.typeFilter)
                                 .sortable()
                                 .widthProportion(2))
@@ -202,7 +202,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .sortable()
                                 .widthProportion(1))
 
-                .compose(content);
+                .compose(pageContext.copyOf(content));
 
         this.pageService
                 .pageActionBuilder(
@@ -214,10 +214,6 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withEntityKey(parentEntityKey)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
 
-    }
-
-    public String getEventTypeName(final ClientEvent clientEvent) {
-        return this.resourceService.getEventTypeName(clientEvent.eventType);
     }
 
     private final String getClientTime(final ClientEvent event) {

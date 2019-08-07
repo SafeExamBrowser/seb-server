@@ -70,6 +70,12 @@ public class ConfigurationValueController extends EntityController<Configuration
     }
 
     @Override
+    protected Result<ConfigurationValue> logModify(final ConfigurationValue entity) {
+        // Skip the modify logging for each individual ConfigurationValue
+        return Result.of(entity);
+    }
+
+    @Override
     protected ConfigurationValue createNew(final POSTMapper postParams) {
         final Long institutionId = postParams.getLong(API.PARAM_INSTITUTION_ID);
         return new ConfigurationValue(institutionId, postParams);

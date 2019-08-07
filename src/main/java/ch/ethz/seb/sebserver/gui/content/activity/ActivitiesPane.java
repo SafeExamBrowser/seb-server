@@ -235,10 +235,9 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
                 EntityType.USER_ACTIVITY_LOG);
-        final boolean viewSebClientLogs = false;
-//        this.currentUser.hasInstitutionalPrivilege(
-//                PrivilegeType.READ,
-//                EntityType.EXAM);
+        final boolean viewSebClientLogs = this.currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.READ,
+                EntityType.EXAM);
 
         TreeItem logRoot = null;
         if (viewUserActivityLogs && viewSebClientLogs) {
@@ -384,6 +383,9 @@ public class ActivitiesPane implements TemplateComposer {
     }
 
     static final TreeItem findItemByActionDefinition(final TreeItem[] items, final PageState pageState) {
+        if (pageState == null) {
+            return null;
+        }
         return findItemByActionDefinition(items, pageState.activityAnchor(), null);
     }
 

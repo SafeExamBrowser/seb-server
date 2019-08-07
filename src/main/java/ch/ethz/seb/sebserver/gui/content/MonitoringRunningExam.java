@@ -151,10 +151,6 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return pageAction;
                 })
-//                .withSelect(
-//                        () -> clientTable.getSelection(),
-//                        PageAction::applySingleSelection,
-//                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
     }
 

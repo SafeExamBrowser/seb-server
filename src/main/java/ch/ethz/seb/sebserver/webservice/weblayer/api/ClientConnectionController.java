@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,44 +8,57 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Collection;
+
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
 @RestController
-@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACTIVITY_LOG_ENDPOINT)
-public class UserActivityLogController extends ReadonlyEntityController<UserActivityLog, UserActivityLog> {
+@RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONNECTION_ENDPOINT)
+public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
 
-    protected UserActivityLogController(
+    protected ClientConnectionController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
-            final EntityDAO<UserActivityLog, UserActivityLog> entityDAO,
+            final ClientConnectionDAO clientConnectionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService) {
 
-        super(
-                authorization,
+        super(authorization,
                 bulkActionService,
-                entityDAO,
+                clientConnectionDAO,
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
+    }
+
+    @Override
+    public Collection<EntityKey> getDependencies(final String modelId, final BulkActionType bulkActionType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected SqlTable getSQLTableOfEntity() {
+        return ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord;
     }
 
     @Override
@@ -54,26 +67,23 @@ public class UserActivityLogController extends ReadonlyEntityController<UserActi
     }
 
     @Override
-    protected Result<UserActivityLog> checkReadAccess(final UserActivityLog entity) {
-        return Result.of(entity);
+    protected Result<ClientConnection> checkReadAccess(final ClientConnection entity) {
+        return Result.tryCatch(() -> {
+            checkRead(entity.institutionId);
+            return entity;
+        });
     }
 
     @Override
-    protected boolean hasReadAccess(final UserActivityLog entity) {
-        return true;
-    }
-
-    @Override
-    protected SqlTable getSQLTableOfEntity() {
-        return UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord;
+    protected boolean hasReadAccess(final ClientConnection entity) {
+        return checkReadAccess(entity).hasValue();
     }
 
     private void checkRead(final Long institution) {
         this.authorization.checkRole(
                 institution,
-                EntityType.USER_ACTIVITY_LOG,
-                UserRole.SEB_SERVER_ADMIN,
-                UserRole.INSTITUTIONAL_ADMIN);
+                EntityType.CLIENT_EVENT,
+                UserRole.EXAM_ADMIN,
+                UserRole.EXAM_SUPPORTER);
     }
-
 }

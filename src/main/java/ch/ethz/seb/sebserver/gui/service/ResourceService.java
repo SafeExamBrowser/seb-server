@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -49,6 +52,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
@@ -75,6 +79,9 @@ public class ResourceService {
             EntityType.USER_ROLE,
             EntityType.WEBSERVICE_SERVER_INFO);
 
+    public static final EnumSet<EventType> CLIENT_EVENT_TYPE_EXCLUDE_MAP = EnumSet.of(
+            EventType.LAST_PING);
+
     public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
@@ -83,6 +90,7 @@ public class ResourceService {
     public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
     public static final String USER_ACTIVITY_TYPE_PREFIX = "sebserver.overall.types.activityType.";
     public static final String ENTITY_TYPE_PREFIX = "sebserver.overall.types.entityType.";
+    public static final String SEB_CONNECTION_STATUS_KEY_PREFIX = "sebserver.monitoring.exam.connection.status.";
     public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
     public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
 
@@ -138,11 +146,19 @@ public class ResourceService {
     public List<Tuple<String>> clientEventTypeResources() {
         return Arrays.asList(EventType.values())
                 .stream()
+                .filter(Predicate.not(CLIENT_EVENT_TYPE_EXCLUDE_MAP::contains))
                 .map(eventType -> new Tuple<>(
                         eventType.name(),
                         getEventTypeName(eventType)))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+    }
+
+    public String getEventTypeName(final ClientEvent event) {
+        if (event == null) {
+            return getEventTypeName(EventType.UNKNOWN);
+        }
+        return getEventTypeName(event.eventType);
     }
 
     public String getEventTypeName(final EventType eventType) {
@@ -384,6 +400,51 @@ public class ResourceService {
                 .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
     }
 
+    public String localizedClientConnectionStatusName(final ConnectionStatus status) {
+        String name;
+        if (status != null) {
+            name = status.name();
+        } else {
+            name = ConnectionStatus.UNDEFINED.name();
+        }
+        return this.i18nSupport
+                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + name, name);
+    }
+
+    public String localizedExamTypeName(final Exam exam) {
+        if (exam.type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_TYPE_PREFIX + exam.type.name());
+    }
+
+    public List<Tuple<String>> getExamResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExamNames.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public Map<Long, String> getExamNameMapping() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExamNames.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(k -> StringUtils.isNotBlank(k.modelId))
+                .collect(Collectors.toMap(
+                        k -> Long.valueOf(k.modelId),
+                        k -> k.name));
+    }
+
     private Result<List<EntityName>> getExamConfigurationSelection() {
         return this.restService.getBuilder(GetExamConfigMappingNames.class)
                 .withQueryParam(
@@ -396,15 +457,6 @@ public class ResourceService {
                         ConfigurationNode.FILTER_ATTR_STATUS,
                         ConfigurationStatus.READY_TO_USE.name())
                 .call();
-    }
-
-    public String examTypeName(final Exam exam) {
-        if (exam.type == null) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        return this.i18nSupport
-                .getText(ResourceService.EXAM_TYPE_PREFIX + exam.type.name());
     }
 
 }

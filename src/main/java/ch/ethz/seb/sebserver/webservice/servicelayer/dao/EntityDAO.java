@@ -88,8 +88,8 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
                     .getOrThrow()
                     .stream()
                     .map(entity -> new EntityName(
-                            entity.entityType(),
                             entity.getModelId(),
+                            entity.entityType(),
                             entity.getName()))
                     .collect(Collectors.toList());
         });

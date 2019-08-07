@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -233,17 +236,21 @@ public interface AuthorizationService {
     /** Checks if the current user has a specified role.
      * If not a PermissionDeniedException is thrown for the given EntityType
      *
-     * @param role The UserRole to check
+     * @param roles The UserRoles to check if any of them matches to current users roles
      * @param institution the institution identifier
      * @param type EntityType for PermissionDeniedException
      * @throws PermissionDeniedException if current user don't have the specified UserRole */
-    default void checkRole(final UserRole role, final Long institution, final EntityType type) {
+    default void checkRole(final Long institution, final EntityType type, final UserRole... roles) {
         final SEBServerUser currentUser = this
                 .getUserService()
                 .getCurrentUser();
 
+        final List<UserRole> rolesList = (roles == null)
+                ? Collections.emptyList()
+                : Arrays.asList(roles);
+
         if (!currentUser.institutionId().equals(institution) ||
-                !currentUser.getUserRoles().contains(role)) {
+                Collections.disjoint(currentUser.getUserRoles(), rolesList)) {
 
             throw new PermissionDeniedException(
                     type,

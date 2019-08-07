@@ -122,9 +122,10 @@ public final class ColumnDefinition<ROW extends Entity> {
         public final String columnName;
         public final String initValue;
         public final Supplier<List<Tuple<String>>> resourceSupplier;
+        public final Function<EntityTable<?>, List<Tuple<String>>> resourceFunction;
 
         public TableFilterAttribute(final CriteriaType type, final String columnName) {
-            this(type, columnName, "", null);
+            this(type, columnName, "", (Supplier<List<Tuple<String>>>) null);
         }
 
         public TableFilterAttribute(
@@ -140,7 +141,7 @@ public final class ColumnDefinition<ROW extends Entity> {
                 final String columnName,
                 final String initValue) {
 
-            this(type, columnName, initValue, null);
+            this(type, columnName, initValue, (Supplier<List<Tuple<String>>>) null);
         }
 
         public TableFilterAttribute(
@@ -153,6 +154,20 @@ public final class ColumnDefinition<ROW extends Entity> {
             this.columnName = columnName;
             this.initValue = initValue;
             this.resourceSupplier = resourceSupplier;
+            this.resourceFunction = null;
+        }
+
+        public TableFilterAttribute(
+                final CriteriaType type,
+                final String columnName,
+                final String initValue,
+                final Function<EntityTable<?>, List<Tuple<String>>> resourceFunction) {
+
+            this.type = type;
+            this.columnName = columnName;
+            this.initValue = initValue;
+            this.resourceSupplier = null;
+            this.resourceFunction = resourceFunction;
         }
 
     }

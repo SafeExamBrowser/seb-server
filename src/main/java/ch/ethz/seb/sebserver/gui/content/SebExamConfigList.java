@@ -137,7 +137,7 @@ public class SebExamConfigList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
         pageActionBuilder

@@ -41,12 +41,12 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(logs);
-        assertTrue(2 == logs.content.size());
+        assertTrue(5 == logs.content.size());
     }
 
     @Test
-    public void getAllAsSEBAdminForUser() throws Exception {
-        final String token = getSebAdminAccess();
+    public void getAllAsInstAdmin2ForUser() throws Exception {
+        final String token = getAdminInstitution2Access();
         // for a user in another institution, the institution has to be defined
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
@@ -63,7 +63,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         // for a user in the same institution no institution is needed
         logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user2")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user3")
                         .header("Authorization", "Bearer " + token)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
@@ -76,7 +76,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
-    public void getAllAsSEBAdminInTimeRange() throws Exception {
+    public void getAllAsInst2AdminInTimeRange() throws Exception {
         final DateTime zeroDate = DateTime.parse("1970-01-01T00:00:00Z", Constants.STANDARD_DATE_TIME_FORMATTER);
         assertEquals("0", String.valueOf(zeroDate.getMillis()));
         final String sec2 = zeroDate.plus(1000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
@@ -84,7 +84,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String sec5 = zeroDate.plus(5000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
         final String sec6 = zeroDate.plus(6000).toString(Constants.STANDARD_DATE_TIME_FORMATTER);
 
-        final String token = getSebAdminAccess();
+        final String token = getAdminInstitution2Access();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc.perform(
                         get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=2&from=" + sec2)
@@ -149,9 +149,23 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
     public void getAllAsSEBAdminForActivityType() throws Exception {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?activity_types=CREATE")
-                        .header("Authorization", "Bearer " + token)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                this.mockMvc.perform(
+                        get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?activity_types=CREATE")
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                new TypeReference<Page<UserActivityLog>>() {
+                });
+
+        assertNotNull(logs);
+        assertTrue(3 == logs.content.size());
+
+        logs = this.jsonMapper.readValue(
+                this.mockMvc.perform(
+                        get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?institutionId=1&activity_types=CREATE")
+                                .header("Authorization", "Bearer " + token)
+                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -164,7 +178,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
-                                        + "?activity_types=CREATE,MODIFY")
+                                        + "?institutionId=1&activity_types=CREATE,MODIFY")
                                                 .header("Authorization", "Bearer " + token)
                                                 .header(HttpHeaders.CONTENT_TYPE,
                                                         MediaType.APPLICATION_FORM_URLENCODED_VALUE))
@@ -177,12 +191,13 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(2 == logs.content.size());
 
         // for other institution (2)
+        final String adminInstitution2Access = getAdminInstitution2Access();
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?institutionId=2&activity_types=CREATE,MODIFY")
-                                                .header("Authorization", "Bearer " + token)
+                                                .header("Authorization", "Bearer " + adminInstitution2Access)
                                                 .header(HttpHeaders.CONTENT_TYPE,
                                                         MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
@@ -199,9 +214,10 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         final String token = getSebAdminAccess();
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?entity_types=INSTITUTION")
-                                .header("Authorization", "Bearer " + token)
-                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
+                                + "?institutionId=1&entity_types=INSTITUTION")
+                                        .header("Authorization", "Bearer " + token)
+                                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -214,7 +230,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
-                                        + "?entity_types=INSTITUTION,EXAM")
+                                        + "?institutionId=1&entity_types=INSTITUTION,EXAM")
                                                 .header("Authorization", "Bearer " + token)
                                                 .header(HttpHeaders.CONTENT_TYPE,
                                                         MediaType.APPLICATION_FORM_URLENCODED_VALUE))
@@ -226,12 +242,13 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(logs);
         assertTrue(2 == logs.content.size());
 
+        final String adminInstitution2Access = getAdminInstitution2Access();
         logs = this.jsonMapper.readValue(
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
                                         + "?entity_types=INSTITUTION,EXAM&institutionId=2")
-                                                .header("Authorization", "Bearer " + token)
+                                                .header("Authorization", "Bearer " + adminInstitution2Access)
                                                 .header(HttpHeaders.CONTENT_TYPE,
                                                         MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())

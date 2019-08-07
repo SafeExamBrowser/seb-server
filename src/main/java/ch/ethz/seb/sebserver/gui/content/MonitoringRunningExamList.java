@@ -104,7 +104,7 @@ public class MonitoringRunningExamList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
-                                this.resourceService::examTypeName)
+                                this.resourceService::localizedExamTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
                         .withColumn(new ColumnDefinition<>(
@@ -124,7 +124,7 @@ public class MonitoringRunningExamList implements TemplateComposer {
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                                 .create())
-                        .compose(content);
+                        .compose(pageContext.copyOf(content));
 
         actionBuilder
 

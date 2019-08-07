@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.userlogs;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,25 +17,25 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetUserLogPage extends RestCall<Page<UserActivityLog>> {
+public class GetClientConnection extends RestCall<ClientConnection> {
 
-    public GetUserLogPage() {
+    public GetClientConnection() {
         super(new TypeKey<>(
-                CallType.GET_PAGE,
-                EntityType.USER_ACTIVITY_LOG,
-                new TypeReference<Page<UserActivityLog>>() {
+                CallType.GET_SINGLE,
+                EntityType.CLIENT_CONNECTION,
+                new TypeReference<ClientConnection>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.USER_ACTIVITY_LOG_ENDPOINT);
+                API.SEB_CLIENT_CONNECTION_ENDPOINT
+                        + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

@@ -63,9 +63,9 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                         ? builder.widgetFactory.textAreaInput(fieldGrid)
                         : builder.widgetFactory.textInput(fieldGrid, this.isPassword);
 
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-        if (this.isArea && !readonly) {
-            gridData.heightHint = 50;
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        if (this.isArea) {
+            gridData.minimumHeight = 35;
         }
         textInput.setLayoutData(gridData);
         if (StringUtils.isNoneBlank(this.value)) {

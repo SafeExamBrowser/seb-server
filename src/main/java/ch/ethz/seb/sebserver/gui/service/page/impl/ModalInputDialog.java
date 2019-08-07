@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,6 +41,7 @@ public class ModalInputDialog<T> extends Dialog {
     private final WidgetFactory widgetFactory;
     private int dialogWidth = 400;
     private int dialogHeight = 600;
+    private final int buttonWidth = 100;
 
     public ModalInputDialog(
             final Shell parent,
@@ -75,25 +75,21 @@ public class ModalInputDialog<T> extends Dialog {
         shell.setText(this.widgetFactory.getI18nSupport().getText(title));
         shell.setLayout(new GridLayout(2, true));
         final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, false, false);
-        gridData2.widthHint = this.dialogWidth;
-        //gridData2.heightHint = this.dialogHeight;
         shell.setLayoutData(gridData2);
 
         final Composite main = new Composite(shell, SWT.NONE);
         main.setLayout(new GridLayout());
-        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, false, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.horizontalSpan = 2;
         gridData.widthHint = this.dialogWidth;
         main.setLayoutData(gridData);
 
         final Supplier<T> valueSuppier = contentComposer.compose(main);
-
-        final Point computeSize = main.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-        gridData.heightHint = (computeSize.y < this.dialogHeight) ? computeSize.y : this.dialogHeight;
+        gridData.heightHint = calcDialogHeight(main);
 
         final Button ok = this.widgetFactory.buttonLocalized(shell, OK_TEXT_KEY);
         GridData data = new GridData(GridData.HORIZONTAL_ALIGN_END);
-        data.widthHint = 100;
+        data.widthHint = this.buttonWidth;
         ok.setLayoutData(data);
         ok.addListener(SWT.Selection, event -> {
             if (valueSuppier != null) {
@@ -109,7 +105,7 @@ public class ModalInputDialog<T> extends Dialog {
 
         final Button cancel = this.widgetFactory.buttonLocalized(shell, CANCEL_TEXT_KEY);
         data = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        data.widthHint = 100;
+        data.widthHint = this.buttonWidth;
         cancel.setLayoutData(data);
         cancel.addListener(SWT.Selection, event -> {
             if (cancelCallback != null) {
@@ -132,18 +128,22 @@ public class ModalInputDialog<T> extends Dialog {
         shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
         shell.setText(this.widgetFactory.getI18nSupport().getText(title));
         shell.setLayout(new GridLayout());
-        shell.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, true, true);
+
+        shell.setLayoutData(gridData2);
 
         final Composite main = new Composite(shell, SWT.NONE);
         main.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
+        gridData.widthHint = this.dialogWidth;
         main.setLayoutData(gridData);
-        final PageContext internalPageContext = pageContext.copyOf(main);
-        contentComposer.accept(internalPageContext);
+
+        contentComposer.accept(pageContext.copyOf(main));
+        gridData.heightHint = calcDialogHeight(main);
 
         final Button close = this.widgetFactory.buttonLocalized(shell, CLOSE_TEXT_KEY);
         final GridData data = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-        data.widthHint = 100;
+        data.widthHint = this.buttonWidth;
         close.setLayoutData(data);
         close.addListener(SWT.Selection, event -> {
             shell.close();
@@ -162,6 +162,18 @@ public class ModalInputDialog<T> extends Dialog {
         shell.setBounds(bounds);
 
         shell.open();
+    }
+
+    private int calcDialogHeight(final Composite main) {
+        final int actualHeight = main.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+        final int displayHeight = main.getDisplay().getClientArea().height;
+        final int availableHeight = (displayHeight < actualHeight + 100)
+                ? displayHeight - 100
+                : actualHeight;
+        final int height = (availableHeight > this.dialogHeight)
+                ? this.dialogHeight
+                : availableHeight;
+        return height;
     }
 
 }

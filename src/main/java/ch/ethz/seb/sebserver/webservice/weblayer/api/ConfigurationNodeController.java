@@ -140,7 +140,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .map(this.userActivityLogDAO::logExport);
+                .flatMap(this.userActivityLogDAO::logExport);
 
         final ServletOutputStream outputStream = response.getOutputStream();
 

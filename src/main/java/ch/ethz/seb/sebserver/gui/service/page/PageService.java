@@ -121,14 +121,14 @@ public interface PageService {
      * @param pageContext the PageContext on that the FormBuilder should work
      * @param rows the number of rows of the from
      * @return a FormBuilder instance for the given PageContext and with number of rows */
-    FormBuilder formBuilder(final PageContext pageContext, final int rows);
+    FormBuilder formBuilder(PageContext pageContext, int rows);
 
     /** Get an new TableBuilder for specified page based RestCall.
      *
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall);
+    <T extends Entity> TableBuilder<T> entityTableBuilder(RestCall<Page<T>> apiCall);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *

@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
@@ -66,6 +67,7 @@ public class EntityTable<ROW extends Entity> {
     final RestCall<Page<ROW>> restCall;
     final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
     final I18nSupport i18nSupport;
+    final PageContext pageContext;
 
     final List<ColumnDefinition<ROW>> columns;
     final LocTextKey emptyMessage;
@@ -84,7 +86,7 @@ public class EntityTable<ROW extends Entity> {
 
     EntityTable(
             final int type,
-            final Composite parent,
+            final PageContext pageContext,
             final RestCall<Page<ROW>> restCall,
             final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter,
             final PageService pageService,
@@ -94,9 +96,10 @@ public class EntityTable<ROW extends Entity> {
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
             final boolean hideNavigation) {
 
-        this.composite = new Composite(parent, type);
+        this.composite = new Composite(pageContext.getParent(), type);
         this.pageService = pageService;
         this.i18nSupport = pageService.getI18nSupport();
+        this.pageContext = pageContext;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restCall = restCall;
         this.restCallAdapter = (restCallAdapter != null) ? restCallAdapter : Function.identity();
@@ -365,9 +368,7 @@ public class EntityTable<ROW extends Entity> {
                 .call()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
-                .onError(t -> {
-                    // TODO error handling
-                });
+                .onError(this.pageContext::notifyError);
 
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);

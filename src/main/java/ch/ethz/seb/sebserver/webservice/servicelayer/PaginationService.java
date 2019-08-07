@@ -37,7 +37,7 @@ public interface PaginationService {
 
     void setDefaultLimit();
 
-    void setDefaultLimit(final String sort, final SqlTable table);
+    void setDefaultLimit(final String sort, final String tableName);
 
     int getPageNumber(final Integer pageNumber);
 
