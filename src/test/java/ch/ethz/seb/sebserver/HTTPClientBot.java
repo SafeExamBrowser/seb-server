@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -73,6 +74,8 @@ public class HTTPClientBot {
     private final long runtime;
     private final int connectionAttempts;
 
+    private final Random random = new Random();
+
     public HTTPClientBot(final Map<String, String> args) {
 
         this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
@@ -90,10 +93,18 @@ public class HTTPClientBot {
         this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "1"));
 
         for (int i = 0; i < this.numberOfConnections; i++) {
-            this.executorService.execute(new ConnectionBot("connection_" + i));
+            this.executorService.execute(new ConnectionBot("connection_" + getRandomName()));
         }
 
         this.executorService.shutdown();
+    }
+
+    private String getRandomName() {
+        final StringBuilder sb = new StringBuilder(String.valueOf(this.random.nextInt(100)));
+        while (sb.length() < 3) {
+            sb.insert(0, "0");
+        }
+        return sb.toString();
     }
 
     public static void main(final String[] args) {

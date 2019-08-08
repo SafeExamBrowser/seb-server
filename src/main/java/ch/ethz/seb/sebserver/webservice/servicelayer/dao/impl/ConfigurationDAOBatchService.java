@@ -212,7 +212,8 @@ class ConfigurationDAOBatchService {
                             oldValRec.getValue()))
                     .forEach(newValRec -> this.batchConfigurationValueRecordMapper.insert(newValRec));
 
-            return newFollowup;
+            return this.batchConfigurationRecordMapper
+                    .selectByPrimaryKey(configUpdate.getId());
 
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel);

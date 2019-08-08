@@ -90,13 +90,19 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional
     public <E extends Entity> Result<E> logSaveToHistory(final E entity) {
-        return log(UserLogActivityType.MODIFY, entity, "SEB Exam Configuration : Save To History");
+        return log(
+                UserLogActivityType.MODIFY,
+                entity,
+                "SEB Exam Configuration : Save To History : " + toMessage(entity));
     }
 
     @Override
     @Transactional
     public <E extends Entity> Result<E> logUndo(final E entity) {
-        return log(UserLogActivityType.MODIFY, entity, "SEB Exam Configuration : Undo");
+        return log(
+                UserLogActivityType.MODIFY,
+                entity,
+                "SEB Exam Configuration : Undo : " + toMessage(entity));
     }
 
     @Override

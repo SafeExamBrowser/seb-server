@@ -50,7 +50,7 @@ public interface SEBServerAuthorizationContext {
      * @return Result of logged in user data or of an error on fail */
     Result<UserInfo> getLoggedInUser();
 
-    void refreshUser();
+    void refreshUser(UserInfo userInfo);
 
     /** Returns true if a current logged in user has the specified role.
      *

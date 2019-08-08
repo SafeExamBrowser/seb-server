@@ -28,8 +28,8 @@ import org.springframework.web.context.WebApplicationContext;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege.RoleTypeKey;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -99,7 +99,8 @@ public class CurrentUser {
         if (loadPrivileges()) {
             try {
                 final UserInfo userInfo = get();
-                return userInfo.getRoles()
+                return userInfo
+                        .getRoles()
                         .stream()
                         .map(roleName -> UserRole.valueOf(roleName))
                         .map(role -> new RoleTypeKey(entityType, role))
@@ -156,8 +157,8 @@ public class CurrentUser {
         return this.authContext != null && this.authContext.isLoggedIn();
     }
 
-    public void refresh() {
-        this.authContext.refreshUser();
+    public void refresh(final UserInfo userInfo) {
+        this.authContext.refreshUser(userInfo);
     }
 
     private void updateContext() {

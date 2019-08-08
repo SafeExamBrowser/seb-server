@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -25,6 +24,8 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration implements GrantEntity {
+
+    public static final String FOLLOW_UP_VERSION_NAME = "[TIP]";
 
     public static final String FILTER_ATTR_CONFIGURATION_NODE_ID = "configurationNodeId";
     public static final String FILTER_ATTR_FROM_DATE = "fromDate";
@@ -87,7 +88,9 @@ public final class Configuration implements GrantEntity {
     public String getName() {
         return (this.version != null)
                 ? this.version
-                : this.versionDate.toString(Constants.DEFAULT_DISPLAY_DATE_FORMAT);
+                : (this.followup)
+                        ? FOLLOW_UP_VERSION_NAME
+                        : null;
     }
 
     @Override

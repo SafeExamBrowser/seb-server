@@ -29,8 +29,16 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logCreate(E entity);
 
+    /** Creates a user activity log entry for SEB Exam Configuration save in history action
+     * 
+     * @param entity the Entity
+     * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logSaveToHistory(E entity);
 
+    /** Creates a user activity log entry for SEB Exam Configuration undoy action
+     * 
+     * @param entity the Entity
+     * @return Result of the Entity or referring to an Error id happened */
     public <E extends Entity> Result<E> logUndo(E entity);
 
     /** Create a user activity log entry for the current user of activity type IMPORT

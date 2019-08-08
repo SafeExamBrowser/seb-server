@@ -227,16 +227,23 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         }
 
         @Override
-        public void refreshUser() {
+        public void refreshUser(final UserInfo userInfo) {
             // delete the access-token (and refresh-token) on authentication server side
             this.restTemplate.delete(this.revokeTokenURI);
             // delete the access-token within the RestTemplate
             this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
+            // check if username has changed
+            if (!userInfo.username.equals(getLoggedInUser().get().username)) {
+                // Set new username to be able to request new access token
+                this.resource.setUsername(userInfo.username);
+            }
+
             // and request new access token
             this.restTemplate.getAccessToken();
             // and reset logged in user by getting actual one from webservice
             this.loggedInUser = null;
-            getLoggedInUser();
+            getLoggedInUser()
+                    .getOrThrow();
         }
 
         @Override

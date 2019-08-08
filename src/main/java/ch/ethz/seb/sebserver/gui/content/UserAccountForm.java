@@ -39,7 +39,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -249,12 +248,15 @@ public class UserAccountForm implements TemplateComposer {
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
-                    final PageAction saveAction = formHandle.processFormSave(action);
-                    if (ownAccount) {
-                        currentUser.refresh();
-                        pageContext.forwardToMainPage();
-                    }
-                    return saveAction;
+                    return formHandle.handleFormPost(formHandle.doAPIPost()
+                            .map(userInfo -> {
+                                if (ownAccount) {
+                                    currentUser.refresh(userInfo);
+                                    pageContext.forwardToMainPage();
+                                }
+                                return userInfo;
+                            }),
+                            action);
                 })
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
