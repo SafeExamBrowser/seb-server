@@ -12,7 +12,6 @@ import javax.validation.Valid;
 
 import org.springframework.util.MultiValueMap;
 
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -70,7 +69,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     @Override
     protected void checkModifyPrivilege(final Long institutionId) {
         throw new PermissionDeniedException(
-                EntityType.CLIENT_EVENT,
+                getGrantEntityType(),
                 PrivilegeType.MODIFY,
                 this.authorization.getUserService().getCurrentUser().uuid());
     }
@@ -78,7 +77,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     @Override
     protected Result<T> checkModifyAccess(final T entity) {
         throw new PermissionDeniedException(
-                EntityType.CLIENT_EVENT,
+                getGrantEntityType(),
                 PrivilegeType.MODIFY,
                 this.authorization.getUserService().getCurrentUser().uuid());
     }
@@ -86,7 +85,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     @Override
     protected Result<T> checkWriteAccess(final T entity) {
         throw new PermissionDeniedException(
-                EntityType.CLIENT_EVENT,
+                getGrantEntityType(),
                 PrivilegeType.WRITE,
                 this.authorization.getUserService().getCurrentUser().uuid());
     }
@@ -94,7 +93,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     @Override
     protected Result<M> checkCreateAccess(final M entity) {
         throw new PermissionDeniedException(
-                EntityType.CLIENT_EVENT,
+                getGrantEntityType(),
                 PrivilegeType.WRITE,
                 this.authorization.getUserService().getCurrentUser().uuid());
     }

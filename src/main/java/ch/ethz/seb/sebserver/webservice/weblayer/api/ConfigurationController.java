@@ -64,7 +64,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     public Configuration saveToHistory(@PathVariable final String modelId) {
 
         return this.entityDAO.byModelId(modelId)
-                .flatMap(this::checkModifyAccess)
+                .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.saveToHistory(config.configurationNodeId))
                 .flatMap(this.userActivityLogDAO::logSaveToHistory)
                 .getOrThrow();
@@ -78,7 +78,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     public Configuration undo(@PathVariable final String modelId) {
 
         return this.entityDAO.byModelId(modelId)
-                .flatMap(this::checkModifyAccess)
+                .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.undo(config.configurationNodeId))
                 .flatMap(this.userActivityLogDAO::logUndo)
                 .getOrThrow();
@@ -94,7 +94,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             @RequestParam(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long configurationNodeId) {
 
         return this.entityDAO.byModelId(modelId)
-                .flatMap(this::checkModifyAccess)
+                .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.restoreToVersion(configurationNodeId, config.getId()))
                 .getOrThrow();
     }
