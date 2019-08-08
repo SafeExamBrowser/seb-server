@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
@@ -129,7 +130,9 @@ public class InstitutionForm implements TemplateComposer {
                 .addField(FormBuilder.imageUpload(
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         FORM_LOGO_IMAGE_TEXT_KEY,
-                        institution.logoImage))
+                        institution.logoImage)
+                        .withMaxWidth(DefaultPageLayout.LOGO_IMAGE_MAX_WIDTH)
+                        .withMaxHeight(DefaultPageLayout.LOGO_IMAGE_MAX_HEIGHT))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewInstitution.class)
                         : this.restService.getRestCall(SaveInstitution.class));

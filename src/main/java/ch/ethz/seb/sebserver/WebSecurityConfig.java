@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.DevGuiProfile;
 import ch.ethz.seb.sebserver.gbl.profile.DevWebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -67,6 +68,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     private String guiRedirect;
     @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
     private String examAPIDiscoveryEndpoint;
+    @Value("${sebserver.webservice.api.admin.endpoint}")
+    private String adminAPIEndpoint;
 
     /** Spring bean name of user password encoder */
     public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
@@ -101,6 +104,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                 .ignoring()
                 .antMatchers("/error")
                 .antMatchers(this.examAPIDiscoveryEndpoint)
+                .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**")
                 .and();
     }
 

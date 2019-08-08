@@ -32,6 +32,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -54,6 +55,9 @@ public final class ImageUpload extends Composite {
 
     private final Composite imageCanvas;
     private final FileUpload fileUpload;
+    private final int maxWidth;
+    private final int maxHeight;
+
     private Consumer<String> errorHandler;
     private String imageBase64 = null;
     private boolean loadNewImage = false;
@@ -63,12 +67,16 @@ public final class ImageUpload extends Composite {
             final Composite parent,
             final ServerPushService serverPushService,
             final I18nSupport i18nSupport,
-            final boolean readonly) {
+            final boolean readonly,
+            final int maxWidth,
+            final int maxHeight) {
 
         super(parent, SWT.NONE);
         super.setLayout(new GridLayout(1, false));
 
         this.serverPushService = serverPushService;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
 
         if (!readonly) {
             this.fileUpload = new FileUpload(this, SWT.NONE);
@@ -189,8 +197,14 @@ public final class ImageUpload extends Composite {
         imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
 
         final Image image = new Image(imageUpload.imageCanvas.getDisplay(), input);
-        final ImageData imageData = image.getImageData().scaledTo(200, 100);
-
+        final Rectangle imageBounds = image.getBounds();
+        final int width = (imageBounds.width > imageUpload.maxWidth)
+                ? imageUpload.maxWidth
+                : imageBounds.width;
+        final int height = (imageBounds.height > imageUpload.maxHeight)
+                ? imageUpload.maxHeight
+                : imageBounds.height;
+        final ImageData imageData = image.getImageData().scaledTo(width, height);
         imageUpload.imageCanvas.setBackgroundImage(new Image(imageUpload.imageCanvas.getDisplay(), imageData));
     }
 

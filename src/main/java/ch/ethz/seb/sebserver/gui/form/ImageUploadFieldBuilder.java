@@ -18,8 +18,21 @@ import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
 
 public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
+    private int maxWidth = 100;
+    private int maxHeight = 100;
+
     ImageUploadFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
+    }
+
+    public ImageUploadFieldBuilder withMaxWidth(final int width) {
+        this.maxWidth = width;
+        return this;
+    }
+
+    public ImageUploadFieldBuilder withMaxHeight(final int height) {
+        this.maxHeight = height;
+        return this;
     }
 
     @Override
@@ -35,7 +48,9 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
         final ImageUpload imageUpload = builder.widgetFactory.imageUploadLocalized(
                 fieldGrid,
                 new LocTextKey("sebserver.overall.upload"),
-                builder.readonly || this.readonly);
+                builder.readonly || this.readonly,
+                this.maxWidth,
+                this.maxHeight);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);

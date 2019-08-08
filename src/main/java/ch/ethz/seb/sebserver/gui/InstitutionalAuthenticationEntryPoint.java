@@ -65,21 +65,25 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
 
         final String logoImageBase64 = requestLogoImage(requestURI);
         if (StringUtils.isNotBlank(logoImageBase64)) {
-            // forward
             request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
-            final RequestDispatcher dispatcher = request.getServletContext()
-                    .getRequestDispatcher(this.guiEntryPoint);
-            dispatcher.forward(request, response);
-            // redirect
         } else {
             request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.sendRedirect(this.guiEntryPoint);
         }
+
+        final RequestDispatcher dispatcher = request.getServletContext()
+                .getRequestDispatcher(this.guiEntryPoint);
+        dispatcher.forward(request, response);
     }
 
     private String requestLogoImage(final String requestURI) {
         log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
+
+        final String instPrefix = requestURI.replaceAll("/", "");
+        if (StringUtils.isBlank(instPrefix)) {
+            return null;
+        }
+
         try {
 
             final RestTemplate restTemplate = new RestTemplate();
@@ -93,7 +97,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
                             HttpMethod.GET,
                             HttpEntity.EMPTY,
                             String.class,
-                            requestURI.replaceAll("/", ""));
+                            instPrefix);
 
             if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                 return exchange.getBody();

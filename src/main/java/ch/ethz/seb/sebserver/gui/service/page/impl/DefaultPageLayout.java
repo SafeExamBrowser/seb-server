@@ -17,11 +17,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
@@ -48,6 +51,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 public class DefaultPageLayout implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultPageLayout.class);
+
+    public static final int LOGO_IMAGE_MAX_WIDTH = 400;
+    public static final int LOGO_IMAGE_MAX_HEIGHT = 80;
 
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
@@ -155,9 +161,9 @@ public class DefaultPageLayout implements TemplateComposer {
 
         final Composite logo = new Composite(logoBar, SWT.NONE);
         final GridData logoCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
-        logoCell.minimumHeight = 80;
-        logoCell.heightHint = 80;
-        logoCell.minimumWidth = 400;
+        logoCell.minimumHeight = LOGO_IMAGE_MAX_HEIGHT;
+        logoCell.heightHint = LOGO_IMAGE_MAX_HEIGHT;
+        logoCell.minimumWidth = LOGO_IMAGE_MAX_WIDTH;
         logoCell.horizontalIndent = 50;
         logo.setLayoutData(logoCell);
 
@@ -283,8 +289,19 @@ public class DefaultPageLayout implements TemplateComposer {
                     new ByteArrayInputStream(imageBase64.getBytes(StandardCharsets.UTF_8)),
                     false);
 
+            final Display display = pageContext.getShell().getDisplay();
+            final Image image = new Image(display, input);
+            final Rectangle imageBounds = image.getBounds();
+            final int width = (imageBounds.width > LOGO_IMAGE_MAX_WIDTH)
+                    ? LOGO_IMAGE_MAX_WIDTH
+                    : imageBounds.width;
+            final int height = (imageBounds.height > LOGO_IMAGE_MAX_HEIGHT)
+                    ? LOGO_IMAGE_MAX_HEIGHT
+                    : imageBounds.height;
+            final ImageData imageData = image.getImageData().scaledTo(width, height);
+
             logo.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
-            logo.setBackgroundImage(new Image(pageContext.getShell().getDisplay(), input));
+            logo.setBackgroundImage(new Image(display, imageData));
 
         } catch (final Exception e) {
             log.warn("Get institutional logo failed: {}", e.getMessage());

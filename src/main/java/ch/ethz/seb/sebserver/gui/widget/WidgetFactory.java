@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
 @Lazy
@@ -584,16 +585,33 @@ public class WidgetFactory {
         return thresholdList;
     }
 
-    public ImageUpload imageUploadLocalized(
+    public ImageUpload logoImageUploadLocalized(
             final Composite parent,
             final LocTextKey locTextKey,
             final boolean readonly) {
+
+        return imageUploadLocalized(
+                parent,
+                locTextKey,
+                readonly,
+                DefaultPageLayout.LOGO_IMAGE_MAX_WIDTH,
+                DefaultPageLayout.LOGO_IMAGE_MAX_HEIGHT);
+    }
+
+    public ImageUpload imageUploadLocalized(
+            final Composite parent,
+            final LocTextKey locTextKey,
+            final boolean readonly,
+            final int maxWidth,
+            final int maxHeight) {
 
         final ImageUpload imageUpload = new ImageUpload(
                 parent,
                 this.serverPushService,
                 this.i18nSupport,
-                readonly);
+                readonly,
+                maxWidth,
+                maxHeight);
 
         this.polyglotPageService.injectI18n(imageUpload, locTextKey);
         return imageUpload;

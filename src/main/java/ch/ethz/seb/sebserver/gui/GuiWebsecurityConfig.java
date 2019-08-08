@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,12 +31,15 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private InstitutionalAuthenticationEntryPoint institutionalAuthenticationEntryPoint;
 
+    @Value("${sebserver.gui.entrypoint:/gui}")
+    private String guiEntryPoint;
+
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
             // OAuth entry-points
             new AntPathRequestMatcher(API.OAUTH_REVOKE_TOKEN_ENDPOINT),
             // GUI entry-point
-            new AntPathRequestMatcher("/gui"),
+//            new AntPathRequestMatcher(guiEntryPoint),
             // RAP/RWT resources has to be accessible
             new AntPathRequestMatcher("/rwt-resources/**"),
             // project specific static resources
@@ -47,7 +51,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(final WebSecurity web) {
         web
                 .ignoring()
-                .requestMatchers(PUBLIC_URLS);
+                .requestMatchers(PUBLIC_URLS)
+                .antMatchers(this.guiEntryPoint);
     }
 
     @Override
