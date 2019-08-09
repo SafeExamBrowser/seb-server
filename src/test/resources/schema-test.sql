@@ -397,9 +397,9 @@ CREATE TABLE IF NOT EXISTS `oauth_access_token` (
   `user_name` VARCHAR(255) NULL,
   `client_id` VARCHAR(255) NULL,
   `authentication` BLOB NULL,
-  `refresh_token` VARCHAR(255) NULL)
+  `refresh_token` VARCHAR(255) NULL,
+  UNIQUE INDEX `authentication_id_UNIQUE` (`authentication_id` ASC))
 ;
-
 
 -- -----------------------------------------------------
 -- Table `oauth_refresh_token`

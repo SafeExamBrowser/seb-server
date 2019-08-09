@@ -15,6 +15,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -27,6 +30,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private final ClientEventExtentionMapper clientEventExtentionMapper;
 
+    protected long pingLatency;
     protected int pingCount = 0;
     protected int pingNumber = 0;
 
@@ -35,14 +39,16 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         this.clientEventExtentionMapper = clientEventExtentionMapper;
     }
 
-    public void notifyPing(final long timestamp, final int pingNumber) {
-        super.currentValue = timestamp;
+    public final void notifyPing(final long timestamp, final int pingNumber) {
+        final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+        this.pingLatency = now - timestamp;
+        super.currentValue = now;
         this.pingCount++;
         this.pingNumber = pingNumber;
     }
 
     @Override
-    public double computeValueAt(final long timestamp) {
+    public final double computeValueAt(final long timestamp) {
         if (this.cachingEnabled) {
             return timestamp;
         } else {
