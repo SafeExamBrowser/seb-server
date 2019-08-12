@@ -66,7 +66,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     @Autowired
     public OAuth2AuthorizationContextHolder(
             @Value("${sebserver.webservice.api.admin.clientId}") final String guiClientId,
-            @Value("${sebserver.webservice.api.admin.clientId}") final String guiClientSecret,
+            @Value("${sebserver.webservice.api.admin.clientSecret}") final String guiClientSecret,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactory clientHttpRequestFactory) {
 

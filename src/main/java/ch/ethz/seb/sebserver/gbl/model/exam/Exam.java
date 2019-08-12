@@ -51,7 +51,7 @@ public final class Exam implements GrantEntity, Activatable {
     // TODO make this a configurable exam attribute
     /** The number of hours to add at the start- and end-time of the exam
      * To add a expanded time-frame in which the exam state is running on SEB-Server side */
-    public static final int EXAM_RUN_TIME_EXPAND_HOURS = 2;
+    public static final int EXAM_RUN_TIME_EXPAND_HOURS = 1;
 
     public static final String ATTR_STATUS = "examStatus";
     public static final String FILTER_ATTR_TYPE = "type";
