@@ -50,7 +50,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
@@ -82,7 +81,6 @@ public class MonitoringRunningExam implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final Exam exam = restService.getBuilder(GetExam.class)
@@ -113,7 +111,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         .withURIVariable(API.EXAM_API_PARAM_EXAM_ID, exam.getModelId());
 
         final ClientConnectionTable clientTable = new ClientConnectionTable(
-                widgetFactory,
+                this.pageService,
                 tablePane,
                 exam,
                 indicators,

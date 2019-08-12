@@ -56,7 +56,8 @@ public final class ClientConnectionTable {
 
     private static final int BOTTOM_PADDING = 20;
 
-    private final static String STATUS_LOC_TEXT_KEY_PREFIX = "sebserver.monitoring.connection.status.";
+    private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
+            "sebserver.monitoring.connection.list.column.indicator.";
 
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
@@ -67,6 +68,7 @@ public final class ClientConnectionTable {
 
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
+    private final PageService pageService;
     private final WidgetFactory widgetFactory;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
@@ -80,13 +82,14 @@ public final class ClientConnectionTable {
     private final Set<String> sessionIds;
 
     public ClientConnectionTable(
-            final WidgetFactory widgetFactory,
+            final PageService pageService,
             final Composite tableRoot,
             final Exam exam,
             final Collection<Indicator> indicators,
             final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
 
-        this.widgetFactory = widgetFactory;
+        this.pageService = pageService;
+        this.widgetFactory = pageService.getWidgetFactory();
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
 
@@ -98,7 +101,7 @@ public final class ClientConnectionTable {
                 display,
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
-        this.table = widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
+        this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
         this.table.setLayout(gridLayout);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -107,19 +110,19 @@ public final class ClientConnectionTable {
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
 
-        widgetFactory.tableColumnLocalized(
+        this.widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_ID_TEXT_KEY);
-        widgetFactory.tableColumnLocalized(
+        this.widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_ADDRESS_TEXT_KEY);
-        widgetFactory.tableColumnLocalized(
+        this.widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_STATUS_TEXT_KEY);
         for (final Indicator indDef : indicators) {
             final TableColumn tc = new TableColumn(this.table, SWT.NONE);
-            final String indicatorName = widgetFactory.getI18nSupport().getText(
-                    "sebserver.monitoring.connection.list.column.indicator." + indDef.name,
+            final String indicatorName = this.widgetFactory.getI18nSupport().getText(
+                    INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name,
                     indDef.name);
             tc.setText(indicatorName);
         }
@@ -343,15 +346,10 @@ public final class ClientConnectionTable {
         }
 
         String getStatusName() {
-
-            String name;
-            if (this.connectionData != null && this.connectionData.clientConnection.status != null) {
-                name = this.connectionData.clientConnection.status.name();
-            } else {
-                name = ConnectionStatus.UNDEFINED.name();
-            }
-            return ClientConnectionTable.this.widgetFactory.getI18nSupport()
-                    .getText(STATUS_LOC_TEXT_KEY_PREFIX + name, name);
+            return ClientConnectionTable.this.pageService.getResourceService().localizedClientConnectionStatusName(
+                    (this.connectionData != null && this.connectionData.clientConnection != null)
+                            ? this.connectionData.clientConnection.status
+                            : ConnectionStatus.UNDEFINED);
         }
 
         String getConnectionAddress() {
