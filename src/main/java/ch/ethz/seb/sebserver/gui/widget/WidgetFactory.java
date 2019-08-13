@@ -540,7 +540,8 @@ public class WidgetFactory {
                         parent,
                         this,
                         actionLocTextPrefix,
-                        parent);
+                        // NOTE parent would work for firefox but on IE and Chrome only parent.getParent().getParent() works
+                        parent.getParent().getParent());
                 break;
             case MULTI_CHECKBOX:
                 selection = new MultiSelectionCheckbox(parent);

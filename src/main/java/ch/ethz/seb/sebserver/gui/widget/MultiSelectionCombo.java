@@ -206,8 +206,9 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.selectionControls.add(new Tuple<>(label, imageButton));
 
         this.combo.remove(itemName);
-        this.updateAnchor.layout();
         PageService.updateScrolledComposite(this);
+        this.updateAnchor.layout(true, true);
+
     }
 
     private void removeComboSelection(final Event event) {
@@ -233,8 +234,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         final Tuple<String> value = this.selectedValues.remove(indexOf);
         this.combo.add(value._2, this.combo.getItemCount());
 
-        this.updateAnchor.layout();
         PageService.updateScrolledComposite(this);
+        this.updateAnchor.layout(true, true);
         if (this.listener != null) {
             this.listener.handleEvent(event);
         }
