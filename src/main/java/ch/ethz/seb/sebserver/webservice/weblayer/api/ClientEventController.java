@@ -27,7 +27,6 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -127,7 +126,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                     .byPK(entity.connectionId)
                     .getOrThrow();
 
-            checkRead(clientConnection.institutionId);
+            this.authorization.checkRead(clientConnection);
             return entity;
         });
     }
@@ -137,12 +136,11 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
         return true;
     }
 
-    private void checkRead(final Long institution) {
-        this.authorization.checkRole(
-                institution,
-                EntityType.CLIENT_EVENT,
-                UserRole.EXAM_ADMIN,
-                UserRole.EXAM_SUPPORTER);
+    private void checkRead(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.CLIENT_CONNECTION,
+                institutionId);
     }
 
 }

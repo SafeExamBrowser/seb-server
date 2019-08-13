@@ -71,7 +71,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new PermissionDeniedException(
                 getGrantEntityType(),
                 PrivilegeType.MODIFY,
-                this.authorization.getUserService().getCurrentUser().uuid());
+                this.authorization.getUserService().getCurrentUser().getUserInfo());
     }
 
     @Override
@@ -79,7 +79,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new PermissionDeniedException(
                 getGrantEntityType(),
                 PrivilegeType.MODIFY,
-                this.authorization.getUserService().getCurrentUser().uuid());
+                this.authorization.getUserService().getCurrentUser().getUserInfo());
     }
 
     @Override
@@ -87,7 +87,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new PermissionDeniedException(
                 getGrantEntityType(),
                 PrivilegeType.WRITE,
-                this.authorization.getUserService().getCurrentUser().uuid());
+                this.authorization.getUserService().getCurrentUser().getUserInfo());
     }
 
     @Override
@@ -95,7 +95,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new PermissionDeniedException(
                 getGrantEntityType(),
                 PrivilegeType.WRITE,
-                this.authorization.getUserService().getCurrentUser().uuid());
+                this.authorization.getUserService().getCurrentUser().getUserInfo());
     }
 
 }

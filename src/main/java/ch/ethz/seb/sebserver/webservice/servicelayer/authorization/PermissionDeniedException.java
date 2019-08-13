@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 
 /** Permission denied exception that refers to the checked entity type, privilege and
  * the user identifier of the user that did request the permission */
@@ -28,12 +29,12 @@ public class PermissionDeniedException extends RuntimeException {
     public PermissionDeniedException(
             final EntityType entityType,
             final PrivilegeType grantType,
-            final String userId) {
+            final UserAccount userAccount) {
 
-        super("No grant: " + grantType + " on type: " + entityType + " for user: " + userId);
+        super("No grant: " + grantType + " on type: " + entityType + " for user: " + userAccount.getUsername());
         this.entityType = entityType;
         this.privilegeType = grantType;
-        this.userId = userId;
+        this.userId = userAccount.getUsername();
     }
 
     public PermissionDeniedException(

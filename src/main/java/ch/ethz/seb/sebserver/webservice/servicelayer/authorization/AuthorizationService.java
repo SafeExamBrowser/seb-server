@@ -181,7 +181,7 @@ public interface AuthorizationService {
             throw new PermissionDeniedException(
                     entityType,
                     privilegeType,
-                    getUserService().getCurrentUser().getUserInfo().uuid);
+                    getUserService().getCurrentUser().getUserInfo());
         }
     }
 
@@ -255,7 +255,7 @@ public interface AuthorizationService {
             throw new PermissionDeniedException(
                     type,
                     PrivilegeType.READ,
-                    currentUser.getUserInfo().uuid);
+                    currentUser.getUserInfo());
         }
     }
 
