@@ -137,11 +137,11 @@ public interface AuthorizationService {
                 currentUser.getUserRoles());
     }
 
-    /** Check read-only grant for a given Entity instance and current user.
+    /** Check read grant for a given Entity instance and current user.
      *
      * @param grantEntity Entity instance
-     * @return true if the current user has read-only grant on given Entity instance or false on deny */
-    default boolean hasReadonlyGrant(final GrantEntity grantEntity) {
+     * @return true if the current user has read grant on given Entity instance or false on deny */
+    default boolean hasReadGrant(final GrantEntity grantEntity) {
         return hasGrant(PrivilegeType.READ, grantEntity);
     }
 

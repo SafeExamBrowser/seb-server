@@ -381,7 +381,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     protected boolean hasReadAccess(final T entity) {
         final GrantEntity grantEntity = toGrantEntity(entity);
         if (grantEntity != null) {
-            return this.authorization.hasReadonlyGrant(grantEntity);
+            return this.authorization.hasReadGrant(grantEntity);
         }
 
         return true;

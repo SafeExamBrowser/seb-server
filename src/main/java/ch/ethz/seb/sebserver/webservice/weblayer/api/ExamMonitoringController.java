@@ -30,9 +30,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -113,7 +113,9 @@ public class ExamMonitoringController {
         }
 
         final List<Exam> exams = new ArrayList<>(this.examSessionService
-                .getFilteredRunningExams(filterMap, Utils.truePredicate())
+                .getFilteredRunningExams(
+                        filterMap,
+                        exam -> this.hasRunningExamPrivilege(exam, institutionId))
                 .getOrThrow());
 
         return ExamAdministrationController.buildSortedExamPage(
@@ -135,10 +137,19 @@ public class ExamMonitoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.EXAM_API_PARAM_EXAM_ID, required = true) final Long examId) {
 
+        // check overall privilege
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
                 UserRole.EXAM_SUPPORTER);
+
+        // check running exam privilege for specified exam
+        if (!hasRunningExamPrivilege(examId, institutionId)) {
+            throw new PermissionDeniedException(
+                    EntityType.EXAM,
+                    PrivilegeType.READ,
+                    this.authorization.getUserService().getCurrentUser().getUserInfo());
+        }
 
         return this.examSessionService
                 .getConnectionData(examId)
@@ -158,14 +169,36 @@ public class ExamMonitoringController {
             @PathVariable(name = API.EXAM_API_PARAM_EXAM_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
+        // check overall privilege
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
                 UserRole.EXAM_SUPPORTER);
 
+        // check running exam privilege for specified exam
+        if (!hasRunningExamPrivilege(examId, institutionId)) {
+            throw new PermissionDeniedException(
+                    EntityType.EXAM,
+                    PrivilegeType.READ,
+                    this.authorization.getUserService().getCurrentUser().getUserInfo());
+        }
+
         return this.examSessionService
                 .getConnectionData(connectionToken)
                 .getOrThrow();
+    }
+
+    private boolean hasRunningExamPrivilege(final Long examId, final Long institution) {
+        return hasRunningExamPrivilege(
+                this.examSessionService.getRunningExam(examId).getOr(null),
+                institution);
+    }
+
+    private boolean hasRunningExamPrivilege(final Exam exam, final Long institution) {
+        if (exam == null) {
+            return false;
+        }
+        return exam.institutionId.equals(institution) && this.authorization.hasReadGrant(exam);
     }
 
 }

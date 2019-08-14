@@ -42,7 +42,7 @@ public class AuthorizationServiceTest {
 
         final GrantEntity institution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertTrue(service.hasReadonlyGrant(institution));
+        assertTrue(service.hasReadGrant(institution));
         assertTrue(service.hasModifyGrant(institution));
         assertTrue(service.hasWriteGrant(institution));
     }
@@ -57,13 +57,13 @@ public class AuthorizationServiceTest {
 
         final GrantEntity ownInstitution = entityOf(EntityType.INSTITUTION, 1L, "");
 
-        assertTrue(service.hasReadonlyGrant(ownInstitution));
+        assertTrue(service.hasReadGrant(ownInstitution));
         assertTrue(service.hasModifyGrant(ownInstitution));
         assertFalse(service.hasWriteGrant(ownInstitution));
 
         final GrantEntity otherInstitution = entityOf(EntityType.INSTITUTION, 2L, "");
 
-        assertFalse(service.hasReadonlyGrant(otherInstitution));
+        assertFalse(service.hasReadGrant(otherInstitution));
         assertFalse(service.hasModifyGrant(otherInstitution));
         assertFalse(service.hasWriteGrant(otherInstitution));
     }
