@@ -117,7 +117,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     @Override
     protected Result<UserMod> validForCreate(final UserMod userInfo) {
         return super.validForCreate(userInfo)
-                .flatMap(this::additionalConsistencyChecks);
+                .flatMap(this::additionalConsistencyChecks)
+                .flatMap(this::passwordMatch);
     }
 
     @Override
@@ -149,6 +150,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
             return userInfo;
         });
+    }
+
+    private <T extends UserAccount> Result<UserMod> passwordMatch(final UserMod userInfo) {
+        if (!userInfo.newPasswordMatch()) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            "passwordChange",
+                            PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
+                            "user:confirmNewPassword:password.mismatch")));
+        }
+
+        return Result.of(userInfo);
     }
 
     /** Additional consistency checks that has to be checked before create and save actions */
@@ -217,7 +230,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     new FieldError(
                             "passwordChange",
                             PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
-                            "user:retypedNewPassword:password.mismatch")));
+                            "user:confirmNewPassword:password.mismatch")));
         }
 
         return info;
