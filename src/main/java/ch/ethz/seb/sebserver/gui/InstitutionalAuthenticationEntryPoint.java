@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.gui;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -16,6 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.WebClient;
+import org.eclipse.rap.rwt.internal.application.ApplicationContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gui.RAPConfiguration.RAPSpringEntryPointFactory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
 @Lazy
@@ -59,28 +65,50 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
             final HttpServletResponse response,
             final AuthenticationException authException) throws IOException, ServletException {
 
-        final String requestURI = request.getRequestURI();
+        final String institutionalEndpoint = extractInstitutionalEndpoint(request);
 
-        log.info("No default gui entrypoint requested: {}", requestURI);
+        log.info("No default gui entrypoint requested: {}", institutionalEndpoint);
 
-        final String logoImageBase64 = requestLogoImage(requestURI);
+        final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
         if (StringUtils.isNotBlank(logoImageBase64)) {
             request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
+            request.getSession().setAttribute("themeId", "sms");
+            forwardToEntryPoint(request, response, this.guiEntryPoint);
         } else {
             request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            forwardToEntryPoint(request, response, this.guiEntryPoint);
         }
 
-        final RequestDispatcher dispatcher = request.getServletContext()
-                .getRequestDispatcher(this.guiEntryPoint);
+    }
+
+    private void forwardToEntryPoint(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final String entryPoint) throws ServletException, IOException {
+
+        final RequestDispatcher dispatcher = request
+                .getServletContext()
+                .getRequestDispatcher(entryPoint);
+
         dispatcher.forward(request, response);
     }
 
-    private String requestLogoImage(final String requestURI) {
+    private String extractInstitutionalEndpoint(final HttpServletRequest request) {
+        final String requestURI = request.getRequestURI();
+
         log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
 
         final String instPrefix = requestURI.replaceAll("/", "");
         if (StringUtils.isBlank(instPrefix)) {
+            return null;
+        }
+
+        return instPrefix;
+    }
+
+    private String requestLogoImage(final String institutionalEndpoint) {
+        if (StringUtils.isBlank(institutionalEndpoint)) {
             return null;
         }
 
@@ -97,18 +125,39 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
                             HttpMethod.GET,
                             HttpEntity.EMPTY,
                             String.class,
-                            instPrefix);
+                            institutionalEndpoint);
 
             if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                 return exchange.getBody();
             } else {
-                log.error("Failed to verify insitution from requested entrypoint url: {}, response: {}", requestURI,
+                log.error("Failed to verify insitution from requested entrypoint url: {}, response: {}",
+                        institutionalEndpoint,
                         exchange);
             }
         } catch (final Exception e) {
-            log.error("Failed to verify insitution from requested entrypoint url: {}", requestURI, e);
+            log.error("Failed to verify insitution from requested entrypoint url: {}",
+                    institutionalEndpoint,
+                    e);
         }
 
         return null;
     }
+
+    private boolean initInstitutionalBasedThemeEntryPoint(final String institutionalEndpoint) {
+        try {
+            final ApplicationContextImpl appContext = (ApplicationContextImpl) RWT.getApplicationContext();
+            final Map<String, String> properties = new HashMap<>();
+            properties.put(WebClient.THEME_ID, "sms");
+            appContext.getEntryPointManager().register(
+                    institutionalEndpoint,
+                    new RAPSpringEntryPointFactory(),
+                    properties);
+
+            return true;
+        } catch (final Exception e) {
+            log.warn("Failed to dynamically set entry point for institution: {}", institutionalEndpoint, e);
+            return false;
+        }
+    }
+
 }

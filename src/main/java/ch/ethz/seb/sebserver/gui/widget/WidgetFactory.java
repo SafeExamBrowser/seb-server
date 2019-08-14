@@ -107,7 +107,6 @@ public class WidgetFactory {
 
             return new Image(device, this.image);
         }
-
     }
 
     public enum CustomVariant {
