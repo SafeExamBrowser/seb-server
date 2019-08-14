@@ -59,8 +59,10 @@ public class EntityTable<ROW extends Entity> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
-    static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
-    static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
+    private static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
+    private static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
+    private static final int HEADER_HEIGHT = 40;
+    private static final int ROW_HEIGHT = 25;
 
     final PageService pageService;
     final WidgetFactory widgetFactory;
@@ -143,6 +145,7 @@ public class EntityTable<ROW extends Entity> {
 
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
+        this.table.setData(RWT.CUSTOM_ITEM_HEIGHT, ROW_HEIGHT);
 
         if (defaultActionFunction != null) {
             final PageAction defaultAction = defaultActionFunction.apply(this);
@@ -377,17 +380,18 @@ public class EntityTable<ROW extends Entity> {
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {
         if (page.isEmpty()) {
             final GridData gridData = (GridData) this.table.getLayoutData();
-            gridData.heightHint = 30;
+            gridData.heightHint = ROW_HEIGHT;
             return page;
         }
 
         final GridData gridData = (GridData) this.table.getLayoutData();
-        gridData.heightHint = (page.content.size() * 25) + 40;
+        gridData.heightHint = (page.content.size() * ROW_HEIGHT) + HEADER_HEIGHT;
 
         for (final ROW row : page.content) {
             final TableItem item = new TableItem(this.table, SWT.NONE);
             item.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
             item.setData(TABLE_ROW_DATA, row);
+
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
                 setValueToCell(item, index, column.valueSupplier.apply(row));
