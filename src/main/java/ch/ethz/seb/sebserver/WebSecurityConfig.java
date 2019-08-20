@@ -20,6 +20,7 @@ import java.security.cert.CertificateException;
 import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -137,12 +138,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
     /** A ClientHttpRequestFactory used in production with TSL SSL configuration.
      *
-     * NOTE:
-     * environment property: sebserver.gui.truststore.pwd is expected to have the correct truststore password set
-     * environment property: sebserver.gui.truststore.type is expected to set to the correct type of truststore
-     * truststore.jks is expected to be on the classpath containing all trusted certificates for request
-     * to SSL secured SEB Server webservice
-     *
      * @return ClientHttpRequestFactory with TLS / SSL configuration
      * @throws IOException
      * @throws FileNotFoundException
@@ -158,16 +153,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
 
         log.info("Initialize with secure ClientHttpRequestFactory for production");
 
+        final String truststoreFilePath = env
+                .getProperty("javax.net.ssl.trustStore", "");
+
+        if (StringUtils.isBlank(truststoreFilePath)) {
+            throw new IllegalArgumentException("Missing trust-store file path");
+        }
+
+        final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
+
         final char[] password = env
-                .getProperty("sebserver.gui.truststore.pwd", "")
+                .getProperty("javax.net.ssl.trustStorePassword", "")
                 .toCharArray();
 
         if (password.length < 3) {
             log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
             throw new IllegalArgumentException("Missing or incorrect trust-store password");
         }
-
-        final File trustStoreFile = ResourceUtils.getFile("classpath:truststore.jks");
 
         final SSLContext sslContext = SSLContextBuilder
                 .create()

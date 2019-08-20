@@ -1,0 +1,53 @@
+version: '3'
+services:
+  selfsigned:
+    build:
+        context: ./gencerts
+        dockerfile: Dockerfile
+    container_name: gencerts
+    volumes:
+        - ./certs:/certs
+    environment:
+        - KEYSTORE_PWD=[TO SET]
+  
+  mariadb: 
+    image: "mariadb/server:10.3"
+    container_name: seb-server-mariadb
+    volumes:
+        - .:/etc/mysql/conf.d
+        - ./certs:/etc/mysql/certs
+        - seb-server-mariadb-data:/var/lib/mysql
+    environment:
+        - MYSQL_ROOT_PASSWORD=[TO SET]
+    ports:
+        - 3306:3306
+    networks:
+        - seb-server-network
+    depends_on:
+      - "selfsigned"
+
+  seb-server:
+      build:
+          context: .
+          args:
+              - GIT_TAG=v0.4.0-beta
+              - SEBSERVER_VERSION=0.4.0-SNAPSHOT
+      container_name: seb-server
+      environment:
+          - SERVER_ADDRESS
+          - SERVER_PORT
+          - DBSERVER_ADDRESS
+          - DBSERVER_PORT
+          - KEYSTORE_PWD=[TO SET]
+      ports:
+          - 80:80
+      networks:
+          - seb-server-network
+      depends_on:
+          - "mariadb"
+            
+networks:
+  seb-server-network:
+
+volumes:
+  seb-server-mariadb-data:

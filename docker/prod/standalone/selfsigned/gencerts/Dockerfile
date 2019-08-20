@@ -10,9 +10,6 @@ ENV OPENSSL_CA="${OPENSSL_SUBJ}/CN=demo-CA"
 ENV OPENSSL_SERVER="${OPENSSL_SUBJ}/CN=${SERVER_CN}"
 ENV OPENSSL_CLIENT="${OPENSSL_SUBJ}/CN=${CLIENT_CN}"
 
-COPY gencerts.sh /
-RUN chmod +x /gencerts.sh
-
 VOLUME /certs
 
 WORKDIR /certs
@@ -31,6 +28,3 @@ CMD openssl genrsa -out ca-key.pem 2048 \
     && openssl pkcs12 -export -out client-cert.pkcs12 -in client-cert.pem -inkey client-key.pem -passout pass:"${KEYSTORE_PWD}" \
     && keytool -importkeystore -destkeystore seb-server-keystore.pkcs12 -deststorepass "${KEYSTORE_PWD}" -srckeystore client-cert.pkcs12 -srcstoretype PKCS12 -srcstorepass "${KEYSTORE_PWD}" \
     && keytool -import -file ca.pem -keystore seb-server-truststore.pkcs12 -storepass "${KEYSTORE_PWD}" -srcstoretype PKCS12 -noprompt
-
-# This doesn't work on windows!?
-#CMD /gencerts.sh

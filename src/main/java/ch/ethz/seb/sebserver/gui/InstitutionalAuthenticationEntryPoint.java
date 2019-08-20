@@ -143,6 +143,12 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         return null;
     }
 
+    /** TODO this seems not to work as expected. Different Theme is only possible in RAP on different
+     * entry-points and since entry-points are statically defined within the RAPConficuration
+     * there is no possibility to apply them dynamically within an institution so far.
+     * 
+     * @param institutionalEndpoint
+     * @return */
     private boolean initInstitutionalBasedThemeEntryPoint(final String institutionalEndpoint) {
         try {
             final ApplicationContextImpl appContext = (ApplicationContextImpl) RWT.getApplicationContext();
