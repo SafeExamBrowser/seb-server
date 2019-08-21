@@ -3,10 +3,8 @@ services:
   mariadb: 
     image: "mariadb/server:10.3"
     container_name: seb-server-mariadb
-    volumes:
-        - seb-server-mariadb-data:/var/lib/mysql
     environment:
-        - MYSQL_ROOT_PASSWORD=[TO SET]
+        MYSQL_ROOT_PASSWORD: somePW
     ports:
         - 3306:3306
     networks:
@@ -24,9 +22,9 @@ services:
           - SERVER_PORT=8080
           - DBSERVER_ADDRESS=seb-server-mariadb
           - DBSERVER_PORT=3306
-          - ENV DBSERVER_PWD=[TO SET]
-          - ENV GUICLIENT_PWD=[TO SET]
-          - ENV INTERNAL_PWD=[TO SET]
+          - DBSERVER_PWD=somePW
+          - GUICLIENT_PWD=somePW
+          - INTERNAL_PWD=somePW
       ports:
           - 8080:8080
       networks:
@@ -36,6 +34,3 @@ services:
             
 networks:
   ralph:
-
-volumes:
-  seb-server-mariadb-data:

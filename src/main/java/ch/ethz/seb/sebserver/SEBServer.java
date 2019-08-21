@@ -12,6 +12,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Import;
+
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
 
 /** SEB-Server (Safe Exam Browser Server) is a server component to maintain and support
  * Exams running with SEB (Safe Exam Browser). TODO add link(s)
@@ -32,6 +35,7 @@ import org.springframework.cache.annotation.EnableCaching;
         UserDetailsServiceAutoConfiguration.class,
 })
 @EnableCaching
+@Import(BatisConfig.class)
 public class SEBServer {
 
     public static void main(final String[] args) {

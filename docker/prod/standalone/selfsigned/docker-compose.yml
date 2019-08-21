@@ -8,7 +8,7 @@ services:
     volumes:
         - ./certs:/certs
     environment:
-        - KEYSTORE_PWD=[TO SET]
+        - KEYSTORE_PWD=somePW
   
   mariadb: 
     image: "mariadb/server:10.3"
