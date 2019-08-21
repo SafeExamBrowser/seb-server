@@ -3,7 +3,9 @@ FROM alpine/git
 ARG GIT_TAG
 
 WORKDIR /demo
-RUN git clone -b "$GIT_TAG" --depth 1 https://github.com/SafeExamBrowser/seb-server.git
+RUN if [ "x$arg" = "x" ] ; \
+    then git clone --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; \
+    else git clone -b "$GIT_TAG" --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; fi
 
 FROM maven:3.5-jdk-8-alpine
 
@@ -16,13 +18,20 @@ RUN mvn clean install -e -P Demo -DskipTests
 FROM openjdk:8-jre-alpine
 
 ARG SEBSERVER_VERSION
-ENV SEBSERVER_VERSION ${SEBSERVER_VERSION}
+ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
+ENV SERVER_ADDRESS=0.0.0.0
+ENV SERVER_PORT=8080
+ENV DBSERVER_ADDRESS=seb-server-mariadb
+ENV DBSERVER_PORT=3306
+ENV DBSERVER_PWD=
+ENV GUICLIENT_PWD=
+ENV INTERNAL_PWD=
 
 WORKDIR /demo
 COPY --from=1 /demo/target/seb-server-"$SEBSERVER_VERSION".jar /demo
 
 ENTRYPOINT ["sh", "-c"]
 
-CMD ["java -jar seb-server-${SEBSERVER_VERSION}.jar --spring.config.location=classpath:/config/,file:/demo/externalResources/ --server.address=0.0.0.0 --spring.profiles.active=demo"]
+CMD ["java -jar seb-server-${SEBSERVER_VERSION}.jar --server.address=${SERVER_ADDRESS} --server.port=${SERVER_PORT} --spring.config.location=classpath:/config/,file:/demo/externalResources/ --datastore.mariadb.server.address=${DBSERVER_ADDRESS} --datastore.mariadb.server.port${DBSERVER_PORT} --spring.profiles.active=demo --spring.datasource.password=${DBSERVER_PWD} --sebserver.webservice.api.admin.clientSecret={GUICLIENT_PWD} --sebserver.webservice.internalSecret=${INTERNAL_PWD}"]
 
 EXPOSE 8080
