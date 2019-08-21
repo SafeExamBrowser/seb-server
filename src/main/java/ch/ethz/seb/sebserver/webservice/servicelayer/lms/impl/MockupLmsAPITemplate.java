@@ -132,11 +132,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 throw new IllegalAccessException("Wrong client credential");
             }
 
-            final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(this.credentials);
-            if (plainClientSecret == null || plainClientSecret.length() <= 0) {
-                throw new IllegalAccessException("Wrong client credential");
-            }
-
             return true;
         } catch (final Exception e) {
             log.info("Authentication failed: ", e);

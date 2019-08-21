@@ -31,7 +31,7 @@ INSERT IGNORE INTO view VALUES
     (11, 'hooked_keys', 12, 11);
     
 INSERT IGNORE INTO lms_setup VALUES
-    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', '8d14b78ecdcbec1d010d414a7208dbe5c411f1fa735c35c7427d840453093a3730d1bc0abe13b9b1a8', null, 1)
+    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, 1)
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES
