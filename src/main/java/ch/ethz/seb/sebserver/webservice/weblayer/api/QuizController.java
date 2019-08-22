@@ -85,8 +85,12 @@ public class QuizController {
                 EntityType.EXAM,
                 institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams)
-                .putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId));
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+        // if current user has no read access for specified entity type within other institution
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ, EntityType.EXAM)) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
 
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)

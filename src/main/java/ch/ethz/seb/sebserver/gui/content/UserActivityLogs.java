@@ -8,14 +8,20 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -31,6 +37,8 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -48,6 +56,8 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.list.title");
     private static final LocTextKey EMPTY_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.empty");
+    private static final LocTextKey INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.list.column.institution");
     private static final LocTextKey USER_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.user");
     private static final LocTextKey DATE_TEXT_KEY =
@@ -101,6 +111,7 @@ public class UserActivityLogs implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final RestService restService = this.resourceService.getRestService();
         // content page layout with title
@@ -113,11 +124,34 @@ public class UserActivityLogs implements TemplateComposer {
                         .clearEntityKeys()
                         .clearAttributes());
 
+        final BooleanSupplier isSebAdmin =
+                () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+
+        final Function<UserActivityLog, String> institutionNameFunction =
+                this.resourceService.getInstitutionNameFunction()
+                        .compose(log -> {
+                            try {
+                                final UserInfo user = restService.getBuilder(GetUserAccount.class)
+                                        .withURIVariable(API.PARAM_MODEL_ID, log.getUserUuid())
+                                        .call().getOrThrow();
+                                return String.valueOf(user.getInstitutionId());
+                            } catch (final Exception e) {
+                                return Constants.EMPTY_NOTE;
+                            }
+                        });
+
         // table
         final EntityTable<UserActivityLog> table = this.pageService.entityTableBuilder(
                 restService.getRestCall(GetUserLogPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
+
+                .withColumnIf(
+                        isSebAdmin,
+                        () -> new ColumnDefinition<>(
+                                UserActivityLog.FILTER_ATTR_INSTITUTION,
+                                INSTITUTION_TEXT_KEY,
+                                institutionNameFunction))
 
                 .withColumn(new ColumnDefinition<>(
                         UserActivityLog.ATTR_USER_NAME,

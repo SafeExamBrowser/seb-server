@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
@@ -18,9 +19,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -61,6 +64,8 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.details.description");
     private static final LocTextKey QUIZ_DETAILS_NAME_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.name");
+    private static final LocTextKey QUIZ_DETAILS_INSTITUION_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.institution");
     private static final LocTextKey QUIZ_DETAILS_LMS_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.lms");
     private static final LocTextKey TITLE_TEXT_KEY =
@@ -69,6 +74,8 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.list.empty");
     private final static LocTextKey EMPTY_SELECTION_TEXT =
             new LocTextKey("sebserver.quizdiscovery.info.pleaseSelect");
+    private final static LocTextKey INSTITUION_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.list.column.institution");
     private final static LocTextKey LMS_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.column.lmssetup");
     private final static LocTextKey NAME_TEXT_KEY =
@@ -79,6 +86,7 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
 
     // filter attribute models
+    private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
@@ -101,6 +109,11 @@ public class QuizDiscoveryList implements TemplateComposer {
         this.resourceService = resourceService;
         this.pageSize = pageSize;
 
+        this.institutionFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
+
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_SETUP,
@@ -118,25 +131,44 @@ public class QuizDiscoveryList implements TemplateComposer {
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
-        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
+        final PageActionBuilder actionBuilder =
+                this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
+
+        final BooleanSupplier isSebAdmin =
+                () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+
+        final Function<String, String> institutionNameFunction =
+                this.resourceService.getInstitutionNameFunction();
 
         // table
         final EntityTable<QuizData> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetQuizPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+
+                        .withColumnIf(
+                                isSebAdmin,
+                                () -> new ColumnDefinition<QuizData>(
+                                        QuizData.QUIZ_ATTR_INSTITUION_ID,
+                                        INSTITUION_TEXT_KEY,
+                                        quiz -> institutionNameFunction
+                                                .apply(String.valueOf(quiz.institutionId)))
+                                                        .withFilter(this.institutionFilter))
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_LMS_SETUP_ID,
                                 LMS_TEXT_KEY,
                                 quizDataLmsSetupNameFunction(this.resourceService))
                                         .withFilter(this.lmsFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 NAME_TEXT_KEY,
                                 QuizData::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
@@ -145,6 +177,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                                 QuizData::getStartTime)
                                         .withFilter(this.startTimeFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_END_TIME,
                                 new LocTextKey(
@@ -152,11 +185,16 @@ public class QuizDiscoveryList implements TemplateComposer {
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 QuizData::getEndTime)
                                         .sortable())
+
                         .withDefaultAction(t -> actionBuilder
                                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
-                                .withExec(action -> this.showDetails(action, t.getSelectedROWData()))
+                                .withExec(action -> this.showDetails(
+                                        action,
+                                        t.getSelectedROWData(),
+                                        institutionNameFunction))
                                 .noEventPropagation()
                                 .create())
+
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
@@ -170,7 +208,10 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
-                        action -> this.showDetails(action, table.getSelectedROWData()),
+                        action -> this.showDetails(
+                                action,
+                                table.getSelectedROWData(),
+                                institutionNameFunction),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
                 .publishIf(table::hasAnyContent)
@@ -205,7 +246,11 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, "true");
     }
 
-    private PageAction showDetails(final PageAction action, final QuizData quizData) {
+    private PageAction showDetails(
+            final PageAction action,
+            final QuizData quizData,
+            final Function<String, String> institutionNameFunction) {
+
         action.getSingleSelection();
 
         final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
@@ -215,12 +260,15 @@ public class QuizDiscoveryList implements TemplateComposer {
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
                 action.pageContext(),
-                pc -> createDetailsForm(quizData, pc));
+                pc -> createDetailsForm(quizData, pc, institutionNameFunction));
 
         return action;
     }
 
-    private void createDetailsForm(final QuizData quizData, final PageContext pc) {
+    private void createDetailsForm(
+            final QuizData quizData,
+            final PageContext pc,
+            final Function<String, String> institutionNameFunction) {
 
         final Composite parent = pc.getParent();
         final Composite grid = this.widgetFactory.createPopupScrollComposite(parent);
@@ -228,6 +276,12 @@ public class QuizDiscoveryList implements TemplateComposer {
         this.pageService.formBuilder(pc.copyOf(grid), 3)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
+                .addFieldIf(
+                        () -> this.resourceService.getCurrentUser().get().hasRole(UserRole.SEB_SERVER_ADMIN),
+                        () -> FormBuilder.text(
+                                QuizData.QUIZ_ATTR_INSTITUION_ID,
+                                QUIZ_DETAILS_INSTITUION_TEXT_KEY,
+                                institutionNameFunction.apply(quizData.getModelId())))
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,
                         QUIZ_DETAILS_LMS_TEXT_KEY,

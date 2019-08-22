@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
@@ -19,9 +20,11 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -55,7 +58,9 @@ public class ExamList implements TemplateComposer {
             new LocTextKey("sebserver.exam.list.action.no.modify.privilege");
     private final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.info.pleaseSelect");
-    private final static LocTextKey COLUMN_TITLE_KEY =
+    private final static LocTextKey COLUMN_TITLE_INSTITUTION_KEY =
+            new LocTextKey("sebserver.exam.list.column.institution");
+    private final static LocTextKey COLUMN_TITLE_LMS_KEY =
             new LocTextKey("sebserver.exam.list.column.lmssetup");
     private final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.exam.list.column.name");
@@ -66,6 +71,7 @@ public class ExamList implements TemplateComposer {
     private final static LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.exam.list.empty");
 
+    private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
@@ -83,6 +89,11 @@ public class ExamList implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = pageSize;
+
+        this.institutionFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
 
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -111,23 +122,41 @@ public class ExamList implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
+        final BooleanSupplier isSebAdmin =
+                () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+
+        final Function<String, String> institutionNameFunction =
+                this.resourceService.getInstitutionNameFunction();
+
         // table
         final EntityTable<Exam> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+
+                        .withColumnIf(
+                                isSebAdmin,
+                                () -> new ColumnDefinition<Exam>(
+                                        Domain.EXAM.ATTR_INSTITUTION_ID,
+                                        COLUMN_TITLE_INSTITUTION_KEY,
+                                        exam -> institutionNameFunction
+                                                .apply(String.valueOf(exam.getInstitutionId())))
+                                                        .withFilter(this.institutionFilter))
+
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
-                                COLUMN_TITLE_KEY,
+                                COLUMN_TITLE_LMS_KEY,
                                 examLmsSetupNameFunction(this.resourceService))
                                         .withFilter(this.lmsFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
@@ -141,15 +170,18 @@ public class ExamList implements TemplateComposer {
                                                         .minusYears(1)
                                                         .toString()))
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
                                 this.resourceService::localizedExamTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
+
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                                 .create())
+
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane

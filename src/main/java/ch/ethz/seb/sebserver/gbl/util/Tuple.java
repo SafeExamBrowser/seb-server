@@ -22,6 +22,14 @@ public class Tuple<T> {
         this._2 = _2;
     }
 
+    public T get_1() {
+        return this._1;
+    }
+
+    public T get_2() {
+        return this._2;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
