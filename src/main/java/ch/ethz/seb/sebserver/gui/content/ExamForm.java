@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -98,6 +99,8 @@ public class ExamForm implements TemplateComposer {
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
 
+    private final static LocTextKey CONFIG_ACTION_NO_CONFIG_MESSAGE =
+            new LocTextKey("sebserver.exam.configuration.action.noconfig.message");
     private final static LocTextKey CONFIG_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.configuration.list.title");
     private final static LocTextKey CONFIG_NAME_COLUMN_KEY =
@@ -324,10 +327,20 @@ public class ExamForm implements TemplateComposer {
                             EntityType.CONFIGURATION_NODE)
                     : null;
 
+            final boolean noConfigsAvailable = this.resourceService
+                    .examConfigurationSelectionResources()
+                    .isEmpty();
+
             actionBuilder
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_NEW)
                     .withParentEntityKey(entityKey)
+                    .withExec(action -> {
+                        if (noConfigsAvailable) {
+                            throw new PageMessageException(CONFIG_ACTION_NO_CONFIG_MESSAGE);
+                        }
+                        return action;
+                    })
                     .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)

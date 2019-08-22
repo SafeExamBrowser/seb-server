@@ -129,6 +129,7 @@ public class ExamSebConfigMapForm implements TemplateComposer {
                 .putStaticValue(
                         Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID,
                         String.valueOf(examConfigurationMap.examId))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID,
                         CONFIG_MAPPING_NAME_TEXT_KEY,
