@@ -177,13 +177,30 @@ public interface AuthorizationService {
      * @param entityType the type of the entity to check the given privilege type on
      * @param institutionId the institution identifier for institutional privilege grant check */
     default void check(final PrivilegeType privilegeType, final EntityType entityType, final Long institutionId) {
-        if (!hasGrant(privilegeType, entityType, institutionId)) {
-            throw new PermissionDeniedException(
-                    entityType,
-                    privilegeType,
-                    getUserService().getCurrentUser().getUserInfo());
+        // check institutional grant
+        if (hasGrant(privilegeType, entityType, institutionId)) {
+            return;
         }
+
+        // if there is no institutional grant the user may have owner based grant on the specified realm
+        if (hasOwnerPrivilege(privilegeType, entityType, institutionId)) {
+            return;
+        }
+
+        throw new PermissionDeniedException(
+                entityType,
+                privilegeType,
+                getUserService().getCurrentUser().getUserInfo());
+
     }
+
+    /** Indicates if the current user has an owner privilege for this give entity type and institution
+     *
+     * @param privilegeType the privilege type to check
+     * @param entityType entityType the type of the entity to check ownership privilege
+     * @param institutionId the institution identifier for institutional privilege grant check
+     * @return true if the current user has owner privilege */
+    boolean hasOwnerPrivilege(final PrivilegeType privilegeType, final EntityType entityType, Long institutionId);
 
     /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or return the given grantEntity within a Result on successful grant.

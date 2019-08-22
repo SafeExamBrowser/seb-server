@@ -141,7 +141,7 @@ public class SebClientLogs implements TemplateComposer {
         this.examFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ExtendedClientEvent.FILTER_ATTRIBUTE_EXAM,
-                this.resourceService::getExamResources);
+                this.resourceService::getExamLogSelectionResources);
 
         this.clientSessionFilter = new TableFilterAttribute(
                 CriteriaType.TEXT,

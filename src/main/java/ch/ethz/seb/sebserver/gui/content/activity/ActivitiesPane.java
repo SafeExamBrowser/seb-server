@@ -109,8 +109,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         // User Account
         // if current user has role seb-server admin or institutional-admin, show list
-        if (this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN) ||
-                this.currentUser.get().hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
+        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     navigation,
@@ -146,10 +145,10 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // Exam (Quiz Discovery)
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM)) {
+        if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
+                this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM)) {
 
             // Quiz Discovery
-            // TODO discussion if this should be visible on Activity Pane or just over the Exam activity and Import action
             final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.QUIZ_DISCOVERY.displayName);
@@ -220,7 +219,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         // Monitoring exams
-        if (this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER)) {
+        if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
             final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.MONITORING_EXAMS.displayName);
@@ -237,7 +236,8 @@ public class ActivitiesPane implements TemplateComposer {
                 EntityType.USER_ACTIVITY_LOG);
         final boolean viewSebClientLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
-                EntityType.EXAM);
+                EntityType.EXAM) ||
+                this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
 
         TreeItem logRoot = null;
         if (viewUserActivityLogs && viewSebClientLogs) {

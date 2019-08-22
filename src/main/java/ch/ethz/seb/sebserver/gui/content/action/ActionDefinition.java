@@ -109,7 +109,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     USER_ACCOUNT_CHANGE_PASSOWRD(
             new LocTextKey("sebserver.useraccount.action.change.password"),
-            ImageIcon.EDIT,
+            ImageIcon.SECURE,
             PageStateDefinition.USER_ACCOUNT_PASSWORD_CHANGE,
             ActionCategory.FORM),
     USER_ACCOUNT_CHANGE_PASSOWRD_SAVE(
@@ -236,6 +236,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.exam.configuration.action.list.modify"),
             ImageIcon.EDIT,
             PageStateDefinition.EXAM_CONFIG_MAP_EDIT,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP(
+            new LocTextKey("sebserver.examconfig.action.view"),
+            ImageIcon.SHOW,
+            PageStateDefinition.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_DELETE_FROM_LIST(
             new LocTextKey("sebserver.exam.configuration.action.list.delete"),

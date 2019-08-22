@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -171,7 +172,9 @@ public class ExamForm implements TemplateComposer {
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean modifyGrant = userGrantCheck.m();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean editable = examStatus == ExamStatus.UP_COMING;
+        final boolean editable = examStatus == ExamStatus.UP_COMING ||
+                examStatus == ExamStatus.RUNNING &&
+                        currentUser.get().hasRole(UserRole.EXAM_ADMIN);
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
@@ -299,14 +302,26 @@ public class ExamForm implements TemplateComposer {
                                     this.resourceService::localizedExamConfigStatusName))
                             .withDefaultActionIf(
                                     () -> editable,
-                                    () -> actionBuilder
-                                            .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
+                                    t -> actionBuilder
+                                            .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
+                                            .withSelectionSupplier(() -> {
+                                                final ExamConfigurationMap selectedROWData = t.getSelectedROWData();
+                                                final HashSet<EntityKey> result = new HashSet<>();
+                                                if (selectedROWData != null) {
+                                                    result.add(new EntityKey(
+                                                            selectedROWData.configurationNodeId,
+                                                            EntityType.CONFIGURATION_NODE));
+                                                }
+                                                return result;
+                                            })
                                             .create())
 
                             .compose(pageContext.copyOf(content));
 
             final EntityKey configMapKey = (configurationTable.hasAnyContent())
-                    ? configurationTable.getFirstRowData().getEntityKey()
+                    ? new EntityKey(
+                            configurationTable.getFirstRowData().configurationNodeId,
+                            EntityType.CONFIGURATION_NODE)
                     : null;
 
             actionBuilder
@@ -315,7 +330,7 @@ public class ExamForm implements TemplateComposer {
                     .withParentEntityKey(entityKey)
                     .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
 
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                     .withParentEntityKey(entityKey)
                     .withEntityKey(configMapKey)
                     .publishIf(() -> modifyGrant && editable && configurationTable.hasAnyContent())

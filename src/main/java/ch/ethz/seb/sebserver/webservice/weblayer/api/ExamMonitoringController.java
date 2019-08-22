@@ -198,7 +198,9 @@ public class ExamMonitoringController {
         if (exam == null) {
             return false;
         }
-        return exam.institutionId.equals(institution) && this.authorization.hasReadGrant(exam);
+
+        final String userId = this.authorization.getUserService().getCurrentUser().getUserInfo().uuid;
+        return exam.institutionId.equals(institution) && exam.isOwner(userId);
     }
 
 }

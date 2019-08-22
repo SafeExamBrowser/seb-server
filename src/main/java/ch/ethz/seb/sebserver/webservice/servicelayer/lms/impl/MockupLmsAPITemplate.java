@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -33,18 +32,15 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(MockupLmsAPITemplate.class);
 
-    private final ClientCredentialService clientCredentialService;
     private final LmsSetup lmsSetup;
     private final ClientCredentials credentials;
     private final Collection<QuizData> mockups;
 
     MockupLmsAPITemplate(
             final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ClientCredentialService clientCredentialService) {
+            final ClientCredentials credentials) {
 
         this.lmsSetup = lmsSetup;
-        this.clientCredentialService = clientCredentialService;
         this.credentials = credentials;
 
         final Long lmsSetupId = lmsSetup.id;
@@ -68,7 +64,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 "2018-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz6", institutionId, lmsSetupId, lmsType, "Demo Quiz 6", "Demo Quit Mockup",
-                "2018-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
+                "2019-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz7", institutionId, lmsSetupId, lmsType, "Demo Quiz 7", "Demo Quit Mockup",
                 "2018-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));

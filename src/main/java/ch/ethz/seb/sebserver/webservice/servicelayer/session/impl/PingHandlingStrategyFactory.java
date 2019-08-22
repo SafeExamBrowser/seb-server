@@ -41,5 +41,4 @@ public class PingHandlingStrategyFactory {
             return this.singleServerPingHandler;
         }
     }
-
 }

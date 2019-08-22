@@ -101,6 +101,17 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withDefaultActionIf(
+            final BooleanSupplier condition,
+            final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
+
+        if (condition.getAsBoolean()) {
+            return withDefaultAction(defaultActionFunction);
+        }
+
+        return this;
+    }
+
     public TableBuilder<ROW> withDefaultAction(final Function<EntityTable<ROW>, PageAction> defaultActionFunction) {
         this.defaultActionFunction = defaultActionFunction;
         return this;

@@ -8,11 +8,13 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -205,9 +207,25 @@ public final class Exam implements GrantEntity, Activatable {
         return this.institutionId;
     }
 
+    public boolean isOwner(final String userId) {
+        if (StringUtils.isBlank(userId)) {
+            return false;
+        }
+
+        if (userId.equals(this.owner)) {
+            return true;
+        }
+
+        return this.supporter.contains(userId);
+    }
+
     @Override
     public String getOwnerId() {
-        return this.owner;
+        final ArrayList<String> owners = new ArrayList<>(this.supporter);
+        if (!StringUtils.isBlank(this.owner)) {
+            owners.add(this.owner);
+        }
+        return StringUtils.join(owners, Constants.LIST_SEPARATOR);
     }
 
     public Long getLmsSetupId() {
@@ -261,7 +279,7 @@ public final class Exam implements GrantEntity, Activatable {
             return ExamStatus.UP_COMING;
         }
 
-        // expand time frame
+        // expanded time frame
         final DateTime expStartTime = this.startTime.minusHours(EXAM_RUN_TIME_EXPAND_HOURS);
         final DateTime expEndTime = (this.endTime != null)
                 ? this.endTime.plusHours(EXAM_RUN_TIME_EXPAND_HOURS) : null;

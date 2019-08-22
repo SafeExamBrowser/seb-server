@@ -23,19 +23,20 @@ import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -45,7 +46,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_EVENT_ENDPOINT)
 public class ClientEventController extends ReadonlyEntityController<ClientEvent, ClientEvent> {
 
-    private final ClientConnectionDAO clientConnectionDAO;
+    private final ExamDAO examDAO;
     private final ClientEventDAO clientEventDAO;
 
     protected ClientEventController(
@@ -55,7 +56,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ClientConnectionDAO clientConnectionDAO) {
+            final ExamDAO examDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -64,7 +65,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 paginationService,
                 beanValidationService);
 
-        this.clientConnectionDAO = clientConnectionDAO;
+        this.examDAO = examDAO;
         this.clientEventDAO = entityDAO;
     }
 
@@ -83,7 +84,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams) {
 
-        // at least current user must have read access for specified entity type within its own institution
+        // at least current user must have base read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams);
@@ -114,33 +115,21 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     }
 
     @Override
+    protected GrantEntity toGrantEntity(final ClientEvent entity) {
+        return this.examDAO
+                .byClientConnection(entity.connectionId)
+                .getOrThrow();
+    }
+
+    @Override
     protected void checkReadPrivilege(final Long institutionId) {
-        checkRead(institutionId);
-    }
-
-    @Override
-    protected Result<ClientEvent> checkReadAccess(final ClientEvent entity) {
-        return Result.tryCatch(() -> {
-
-            final ClientConnection clientConnection = this.clientConnectionDAO
-                    .byPK(entity.connectionId)
-                    .getOrThrow();
-
-            this.authorization.checkRead(clientConnection);
-            return entity;
-        });
-    }
-
-    @Override
-    protected boolean hasReadAccess(final ClientEvent entity) {
-        return true;
-    }
-
-    private void checkRead(final Long institutionId) {
-        this.authorization.check(
-                PrivilegeType.READ,
-                EntityType.CLIENT_CONNECTION,
-                institutionId);
+        final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+        if (currentUser.institutionId().longValue() != institutionId.longValue()) {
+            throw new PermissionDeniedException(
+                    EntityType.CLIENT_EVENT,
+                    PrivilegeType.READ,
+                    currentUser.getUserInfo());
+        }
     }
 
 }

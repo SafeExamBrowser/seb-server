@@ -8,11 +8,15 @@
 
 package ch.ethz.seb.sebserver.gbl.api.authorization;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -95,7 +99,8 @@ public final class Privilege {
      * @param privilegeType the type of privilege to check (READ_ONLY, MODIFY, WRITE...)
      * @param institutionId the institution identifier of an Entity for the institutional grant check,
      *            may be null in case the institutional grant check should be skipped
-     * @param ownerId the owner identifier of an Entity for ownership grant check, may be null in case
+     * @param ownerId the owner identifier of an Entity for ownership grant check.
+     *            This can be a single id or a comma-separated list of user ids and may be null in case
      *            the ownership grant check should be skipped
      * @return true if there is any grant within the given context or false on deny */
     public final boolean hasGrant(
@@ -111,7 +116,16 @@ public final class Privilege {
                                 && userInstitutionId.longValue() == institutionId
                                         .longValue())
                         || (this.hasOwnershipPrivilege(privilegeType)
-                                && userId.equals(ownerId)));
+                                && isOwner(ownerId, userId)));
+    }
+
+    private boolean isOwner(final String ownerId, final String userId) {
+        if (StringUtils.isBlank(ownerId)) {
+            return false;
+        }
+
+        return Arrays.asList(StringUtils.split(ownerId, Constants.LIST_SEPARATOR))
+                .contains(userId);
     }
 
     @Override

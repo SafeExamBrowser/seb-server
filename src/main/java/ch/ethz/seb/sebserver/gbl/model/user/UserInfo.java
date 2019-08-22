@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -22,6 +23,7 @@ import javax.validation.constraints.Size;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -199,6 +201,13 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
             return false;
         }
         return this.roles.contains(userRole.name());
+    }
+
+    public boolean hasAnyRole(final UserRole... userRole) {
+        if (userRole == null) {
+            return false;
+        }
+        return CollectionUtils.containsAny(getUserRoles(), Arrays.asList(userRole));
     }
 
     @JsonIgnore

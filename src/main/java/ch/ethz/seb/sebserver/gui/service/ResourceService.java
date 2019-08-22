@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
@@ -52,6 +53,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
@@ -417,6 +419,20 @@ public class ResourceService {
 
         return this.i18nSupport
                 .getText(ResourceService.EXAM_TYPE_PREFIX + exam.type.name());
+    }
+
+    public List<Tuple<String>> getExamLogSelectionResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExams.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(exam -> exam != null
+                        && (exam.getStatus() == ExamStatus.RUNNING || exam.getStatus() == ExamStatus.FINISHED))
+                .map(exam -> new Tuple<>(exam.getModelId(), exam.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
     }
 
     public List<Tuple<String>> getExamResources() {

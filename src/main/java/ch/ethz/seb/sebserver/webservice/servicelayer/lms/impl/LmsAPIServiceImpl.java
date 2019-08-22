@@ -195,8 +195,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             case MOCKUP:
                 return new MockupLmsAPITemplate(
                         lmsSetup,
-                        credentials,
-                        this.clientCredentialService);
+                        credentials);
             case OPEN_EDX:
                 return new OpenEdxLmsAPITemplate(
                         this.asyncService,

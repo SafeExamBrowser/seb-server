@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
@@ -54,13 +55,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;
+    private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final LmsAPIService lmsAPIService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
+            final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final LmsAPIService lmsAPIService) {
 
         this.examRecordMapper = examRecordMapper;
+        this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -74,6 +78,17 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Exam> byPK(final Long id) {
         return recordById(id)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Exam> byClientConnection(final Long connectionId) {
+        return Result.tryCatch(() -> {
+            return this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
+        })
+                .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

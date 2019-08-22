@@ -111,7 +111,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
         // grants for configuration node
@@ -181,7 +181,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .withOwnerPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for user activity logs
@@ -215,6 +215,27 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                         ownerId))
                 .findFirst()
                 .isPresent();
+    }
+
+    @Override
+    public boolean hasOwnerPrivilege(
+            final PrivilegeType privilegeType,
+            final EntityType entityType,
+            final Long institutionId) {
+
+        final SEBServerUser currentUser = this.getUserService().getCurrentUser();
+        if (!currentUser.institutionId().equals(institutionId)) {
+            return false;
+        }
+
+        return currentUser.getUserRoles()
+                .stream()
+                .map(role -> new RoleTypeKey(entityType, role))
+                .map(key -> this.privileges.get(key))
+                .filter(priv -> (priv != null) && priv.hasOwnershipPrivilege(privilegeType))
+                .findFirst()
+                .isPresent();
+
     }
 
     private PrivilegeBuilder addPrivilege(final EntityType entityType) {

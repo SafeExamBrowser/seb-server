@@ -122,7 +122,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
 
             final List<Exam> exams = new ArrayList<>(
                     this.examDAO
-                            .allMatching(new FilterMap(allRequestParams))
+                            .allMatching(new FilterMap(allRequestParams), this::hasReadAccess)
                             .getOrThrow());
 
             return buildSortedExamPage(
