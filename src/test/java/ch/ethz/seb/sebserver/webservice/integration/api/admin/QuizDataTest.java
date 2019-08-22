@@ -50,7 +50,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         assertNotNull(lmsSetup2);
         assertFalse(lmsSetup2.isActive());
 
-        // for the active LmsSetup we should get the quizzes page but only the quizzes from LmsSetup of seb-admin
+        // for the active LmsSetup we should get the quizzes page
         Page<QuizData> quizzes = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
@@ -81,16 +81,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<EntityProcessingReport>() {
                 });
-        new RestAPITestHelper()
-                .withAccessToken(getAdminInstitution2Access())
-                .withPath(API.LMS_SETUP_ENDPOINT)
-                .withPath(String.valueOf(lmsSetup2.id)).withPath("/active")
-                .withMethod(HttpMethod.POST)
-                .withExpectedStatus(HttpStatus.OK)
-                .getAsObject(new TypeReference<EntityProcessingReport>() {
-                });
 
-        // now we should not get any quizzes for the seb-admin
         quizzes = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
@@ -100,6 +91,25 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(quizzes);
         assertTrue(quizzes.content.size() == 0);
+
+        new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution2Access())
+                .withPath(API.LMS_SETUP_ENDPOINT)
+                .withPath(String.valueOf(lmsSetup2.id)).withPath("/active")
+                .withMethod(HttpMethod.POST)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<EntityProcessingReport>() {
+                });
+
+        quizzes = new RestAPITestHelper()
+                .withAccessToken(getSebAdminAccess())
+                .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Page<QuizData>>() {
+                });
+
+        assertNotNull(quizzes);
+        assertTrue(quizzes.content.size() == 7);
 
         // but for the now active lmsSetup2 we should get the quizzes
         quizzes = new RestAPITestHelper()

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -73,7 +74,9 @@ public class UserActivityLogs implements TemplateComposer {
     private final static LocTextKey EMPTY_SELECTION_TEXT =
             new LocTextKey("sebserver.userlogs.info.pleaseSelect");
 
-    private final TableFilterAttribute userFilter;
+    private final TableFilterAttribute institutionFilter;
+    private final TableFilterAttribute userNameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, UserActivityLog.FILTER_ATTR_USER_NAME);
     private final TableFilterAttribute activityFilter;
     private final TableFilterAttribute entityFilter;
 
@@ -93,10 +96,10 @@ public class UserActivityLogs implements TemplateComposer {
         this.widgetFactory = pageService.getWidgetFactory();
         this.pageSize = pageSize;
 
-        this.userFilter = new TableFilterAttribute(
+        this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
-                UserActivityLog.FILTER_ATTR_USER,
-                this.resourceService::userResources);
+                Entity.FILTER_ATTR_INSTITUTION,
+                this.resourceService::institutionResource);
 
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -151,13 +154,14 @@ public class UserActivityLogs implements TemplateComposer {
                         () -> new ColumnDefinition<>(
                                 UserActivityLog.FILTER_ATTR_INSTITUTION,
                                 INSTITUTION_TEXT_KEY,
-                                institutionNameFunction))
+                                institutionNameFunction)
+                                        .withFilter(this.institutionFilter))
 
                 .withColumn(new ColumnDefinition<>(
                         UserActivityLog.ATTR_USER_NAME,
                         USER_TEXT_KEY,
                         UserActivityLog::getUsername)
-                                .withFilter(this.userFilter))
+                                .withFilter(this.userNameFilter))
 
                 .withColumn(new ColumnDefinition<UserActivityLog>(
                         Domain.USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE,

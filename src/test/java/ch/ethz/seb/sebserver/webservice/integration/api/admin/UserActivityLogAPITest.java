@@ -50,9 +50,10 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
         // for a user in another institution, the institution has to be defined
         Page<UserActivityLog> logs = this.jsonMapper.readValue(
                 this.mockMvc
-                        .perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4&institutionId=2")
-                                .header("Authorization", "Bearer " + token)
-                                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                        .perform(get(
+                                this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?username=examAdmin1&institutionId=2")
+                                        .header("Authorization", "Bearer " + token)
+                                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 new TypeReference<Page<UserActivityLog>>() {
@@ -63,7 +64,7 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         // for a user in the same institution no institution is needed
         logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user3")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?username=inst2Admin")
                         .header("Authorization", "Bearer " + token)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())
@@ -291,10 +292,10 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                 .andExpect(status().isForbidden());
 
-        // no privilege to query logs of users of other institution
+        // no privilege to query logs of users of other institution for institutional admin
         token = getAdminInstitution1Access();
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
-                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?user=user4")
+                this.mockMvc.perform(get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "?username=examAdmin1")
                         .header("Authorization", "Bearer " + token)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE))
                         .andExpect(status().isOk())

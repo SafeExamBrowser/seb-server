@@ -77,39 +77,42 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             final FilterMap filterMap,
             final Predicate<ClientEvent> predicate) {
 
-        return Result.tryCatch(() -> this.clientEventRecordMapper
-                .selectByExample()
-                .where(
-                        ClientEventRecordDynamicSqlSupport.connectionId,
-                        isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.type,
-                        isEqualToWhenPresent(filterMap.getClientEventTypeId()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.clientTime,
-                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.clientTime,
-                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeTo()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.serverTime,
-                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeFrom()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.serverTime,
-                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeTo()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.text,
-                        SqlBuilder.isLikeWhenPresent(filterMap.getClientEventText()))
-                .build()
-                .execute()
-                .stream()
-                .map(ClientEventDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            return this.clientEventRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientEventRecordDynamicSqlSupport.connectionId,
+                            isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.type,
+                            isEqualToWhenPresent(filterMap.getClientEventTypeId()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.type,
+                            SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.clientTime,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.clientTime,
+                            SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeTo()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.serverTime,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeFrom()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.serverTime,
+                            SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeTo()))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.text,
+                            SqlBuilder.isLikeWhenPresent(filterMap.getClientEventText()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ClientEventDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

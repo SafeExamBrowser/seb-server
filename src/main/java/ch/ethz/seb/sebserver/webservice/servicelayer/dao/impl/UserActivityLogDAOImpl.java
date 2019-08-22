@@ -278,7 +278,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         return all(
                 filterMap.getInstitutionId(),
-                filterMap.getString(UserActivityLog.FILTER_ATTR_USER),
+                filterMap.getString(UserActivityLog.FILTER_ATTR_USER_NAME),
                 filterMap.getUserLogFrom(),
                 filterMap.getUserLofTo(),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES),
@@ -290,7 +290,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> all(
             final Long institutionId,
-            final String userId,
+            final String userName,
             final Long from,
             final Long to,
             final String activityTypes,
@@ -305,37 +305,39 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     ? Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))
                     : null;
 
-            final Predicate<UserActivityLog> _predicate = (predicate != null)
+            Predicate<UserActivityLog> _predicate = (predicate != null)
                     ? predicate
                     : model -> true;
 
-            return this.toDomainModel(
-                    institutionId,
-                    this.userLogRecordMapper.selectByExample()
-                            .join(UserRecordDynamicSqlSupport.userRecord)
-                            .on(
-                                    UserRecordDynamicSqlSupport.uuid,
-                                    SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
-                            .where(
-                                    UserRecordDynamicSqlSupport.institutionId,
-                                    SqlBuilder.isEqualToWhenPresent(institutionId))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
-                                    SqlBuilder.isEqualToWhenPresent(userId))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.timestamp,
-                                    SqlBuilder.isLessThanWhenPresent(to))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.activityType,
-                                    SqlBuilder.isInCaseInsensitiveWhenPresent(_activityTypes))
-                            .and(
-                                    UserActivityLogRecordDynamicSqlSupport.entityType,
-                                    SqlBuilder.isInCaseInsensitiveWhenPresent(_entityTypes))
-                            .build()
-                            .execute())
+            if (StringUtils.isNotBlank(userName)) {
+                _predicate = _predicate.and(model -> model.getUsername().contains(userName));
+            }
+
+            final List<UserActivityLogRecord> records = this.userLogRecordMapper
+                    .selectByExample()
+                    .leftJoin(UserRecordDynamicSqlSupport.userRecord)
+                    .on(
+                            UserRecordDynamicSqlSupport.uuid,
+                            SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
+                    .where(
+                            UserRecordDynamicSqlSupport.institutionId,
+                            SqlBuilder.isEqualToWhenPresent(institutionId))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isLessThanWhenPresent(to))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.activityType,
+                            SqlBuilder.isInCaseInsensitiveWhenPresent(_activityTypes))
+                    .and(
+                            UserActivityLogRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isInCaseInsensitiveWhenPresent(_entityTypes))
+                    .build()
+                    .execute();
+
+            return this.toDomainModel(institutionId, records)
                     .stream()
                     .filter(_predicate)
                     .collect(Collectors.toList());

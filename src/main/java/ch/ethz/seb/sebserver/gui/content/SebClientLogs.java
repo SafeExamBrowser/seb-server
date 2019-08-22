@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Map;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
@@ -27,7 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -45,7 +43,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -67,8 +64,6 @@ public class SebClientLogs implements TemplateComposer {
     private static final LocTextKey EMPTY_TEXT_KEY =
             new LocTextKey("sebserver.seblogs.list.empty");
 
-    private static final LocTextKey INSTITUTION_TEXT_KEY =
-            new LocTextKey("sebserver.seblogs.list.column.institution");
     private static final LocTextKey EXAM_TEXT_KEY =
             new LocTextKey("sebserver.seblogs.list.column.exam");
     private static final LocTextKey CLIENT_SESSION_TEXT_KEY =
@@ -160,7 +155,6 @@ public class SebClientLogs implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final RestService restService = this.resourceService.getRestService();
         // content page layout with title
@@ -173,34 +167,11 @@ public class SebClientLogs implements TemplateComposer {
                         .clearEntityKeys()
                         .clearAttributes());
 
-        final BooleanSupplier isSebAdmin =
-                () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
-
-        final Function<ExtendedClientEvent, String> institutionNameFunction =
-                this.resourceService.getInstitutionNameFunction()
-                        .compose(log -> {
-                            try {
-                                final ClientConnection connection = restService.getBuilder(GetClientConnection.class)
-                                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(log.getConnectionId()))
-                                        .call().getOrThrow();
-                                return String.valueOf(connection.getInstitutionId());
-                            } catch (final Exception e) {
-                                return Constants.EMPTY_NOTE;
-                            }
-                        });
         // table
         final EntityTable<ExtendedClientEvent> table = this.pageService.entityTableBuilder(
                 restService.getRestCall(GetExtendedClientEventPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
-
-                .withColumnIf(
-                        isSebAdmin,
-                        () -> new ColumnDefinition<>(
-                                Domain.INSTITUTION.ATTR_NAME,
-                                INSTITUTION_TEXT_KEY,
-                                institutionNameFunction)
-                                        .widthProportion(2))
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_CONNECTION.ATTR_EXAM_ID,

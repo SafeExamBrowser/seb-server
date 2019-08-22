@@ -483,7 +483,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
-                                        + "?user=user1&activity_types=CREATE")
+                                        + "?username=admin&activity_types=CREATE")
                                                 .header("Authorization", "Bearer " + token)
                                                 .header(HttpHeaders.CONTENT_TYPE,
                                                         MediaType.APPLICATION_FORM_URLENCODED_VALUE))

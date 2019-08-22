@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
@@ -68,12 +68,11 @@ public class UserActivityLogController extends ReadonlyEntityController<UserActi
         return UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord;
     }
 
-    private void checkRead(final Long institution) {
-        this.authorization.checkRole(
-                institution,
+    private void checkRead(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.READ,
                 EntityType.USER_ACTIVITY_LOG,
-                UserRole.SEB_SERVER_ADMIN,
-                UserRole.INSTITUTIONAL_ADMIN);
+                institutionId);
     }
 
 }

@@ -18,7 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 public class UserActivityLog implements Entity {
 
     public static final String ATTR_USER_NAME = "username";
-    public static final String FILTER_ATTR_USER = "user";
+    public static final String FILTER_ATTR_USER_NAME = ATTR_USER_NAME;
     public static final String FILTER_ATTR_FROM = "from";
     public static final String FILTER_ATTR_TO = "to";
     public static final String FILTER_ATTR_FROM_TO = "from_to";
