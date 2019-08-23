@@ -36,7 +36,7 @@ public final class Institution implements GrantEntity, Activatable {
     public final String name;
 
     @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX)
-    @Pattern(regexp = "(^$|.{3,255})", message = "institution:urlSuffix:size:{min}:{max}:${validatedValue}")
+    @Pattern(regexp = "(^$|.{3,255})", message = "institution:urlSuffix:size:3:255:${validatedValue}")
     public final String urlSuffix;
 
     @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE)
