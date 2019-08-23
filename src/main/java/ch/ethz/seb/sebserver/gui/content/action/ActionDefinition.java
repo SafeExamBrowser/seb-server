@@ -99,12 +99,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     USER_ACCOUNT_ACTIVATE(
             new LocTextKey("sebserver.useraccount.action.activate"),
-            ImageIcon.INACTIVE,
+            ImageIcon.TOGGLE_OFF,
             PageStateDefinition.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
     USER_ACCOUNT_DEACTIVATE(
             new LocTextKey("sebserver.useraccount.action.deactivate"),
-            ImageIcon.ACTIVE,
+            ImageIcon.TOGGLE_ON,
             PageStateDefinition.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
     USER_ACCOUNT_CHANGE_PASSOWRD(
@@ -162,12 +162,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     LMS_SETUP_ACTIVATE(
             new LocTextKey("sebserver.lmssetup.action.activate"),
-            ImageIcon.INACTIVE,
+            ImageIcon.TOGGLE_OFF,
             PageStateDefinition.LMS_SETUP_VIEW,
             ActionCategory.FORM),
     LMS_SETUP_DEACTIVATE(
             new LocTextKey("sebserver.lmssetup.action.deactivate"),
-            ImageIcon.ACTIVE,
+            ImageIcon.TOGGLE_ON,
             PageStateDefinition.LMS_SETUP_VIEW,
             ActionCategory.FORM),
 
@@ -218,12 +218,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     EXAM_ACTIVATE(
             new LocTextKey("sebserver.exam.action.activate"),
-            ImageIcon.INACTIVE,
+            ImageIcon.TOGGLE_OFF,
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.FORM),
     EXAM_DEACTIVATE(
             new LocTextKey("sebserver.exam.action.deactivate"),
-            ImageIcon.ACTIVE,
+            ImageIcon.TOGGLE_ON,
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.FORM),
 
@@ -322,12 +322,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     SEB_CLIENT_CONFIG_ACTIVATE(
             new LocTextKey("sebserver.clientconfig.action.activate"),
-            ImageIcon.INACTIVE,
+            ImageIcon.TOGGLE_OFF,
             PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
     SEB_CLIENT_CONFIG_DEACTIVATE(
             new LocTextKey("sebserver.clientconfig.action.deactivate"),
-            ImageIcon.ACTIVE,
+            ImageIcon.TOGGLE_ON,
             PageStateDefinition.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
     SEB_CLIENT_CONFIG_EXPORT(

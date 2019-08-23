@@ -4,7 +4,7 @@ services:
     image: "mariadb/server:10.3"
     container_name: seb-server-mariadb
     environment:
-        MYSQL_ROOT_PASSWORD: somePW
+        MYSQL_ROOT_PASSWORD: 
     ports:
         - 3306:3306
     networks:
@@ -22,9 +22,9 @@ services:
           - SERVER_PORT=8080
           - DBSERVER_ADDRESS=seb-server-mariadb
           - DBSERVER_PORT=3306
-          - DBSERVER_PWD=somePW
-          - GUICLIENT_PWD=somePW
-          - INTERNAL_PWD=somePW
+          - DBSERVER_PWD=
+          - GUICLIENT_PWD=
+          - INTERNAL_PWD=
       ports:
           - 8080:8080
       networks:
