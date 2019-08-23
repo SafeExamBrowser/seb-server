@@ -49,7 +49,9 @@ public final class ImageUpload extends Composite {
     private static final Logger log = LoggerFactory.getLogger(ImageUpload.class);
 
     public static final Set<String> SUPPORTED_IMAGE_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            ".png")));
+            ".png",
+            ".jpg",
+            ".jpeg")));
 
     private final ServerPushService serverPushService;
 
@@ -211,7 +213,7 @@ public final class ImageUpload extends Composite {
     private static boolean fileSupported(final String fileName) {
         return SUPPORTED_IMAGE_FILES
                 .stream()
-                .filter(fileType -> fileName.endsWith(fileType))
+                .filter(fileType -> fileName.toUpperCase().endsWith(fileType.toUpperCase()))
                 .findFirst()
                 .isPresent();
     }
