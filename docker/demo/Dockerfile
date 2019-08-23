@@ -1,11 +1,12 @@
 FROM alpine/git
 
+ARG GIT_TAG
 ARG SEBSERVER_VERSION
 
 WORKDIR /demo
-RUN if [ "x${SEBSERVER_VERSION}" = "x" ] ; \
+RUN if [ "x${GIT_TAG}" = "x" ] ; \
     then git clone --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; \
-    else git clone -b "v$SEBSERVER_VERSION" --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; fi
+    else git clone -b "v$GIT_TAG" --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; fi
 
 FROM maven:3.5-jdk-8-alpine
 
