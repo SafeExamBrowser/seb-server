@@ -57,6 +57,8 @@ public class BatisConfig {
 
         factory.getConfiguration()
                 .addMappers("ch.ethz.seb.sebserver.webservice.datalayer.batis");
+        factory.getConfiguration()
+                .addMappers("ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper");
 
         return factory;
     }
