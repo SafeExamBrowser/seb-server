@@ -76,12 +76,26 @@ class ConfigurationDAOBatchService {
     protected ConfigurationDAOBatchService(
             @Qualifier(BatisConfig.SQL_BATCH_SESSION_TEMPLATE) final SqlSessionTemplate batchSqlSessionTemplate) {
 
-        log.info("Registered MyBatis Mappers: {}",
-                batchSqlSessionTemplate.getConfiguration().getMapperRegistry().getMappers());
+        final org.apache.ibatis.session.Configuration batisConfig =
+                batchSqlSessionTemplate.getConfiguration();
+
+        log.info("Registered MyBatis Mappers: {}", batisConfig.getMapperRegistry().getMappers());
 
         // NOTE: sometimes this mapper was not registered on startup. No reason why. Force loading if absent.
-        if (!batchSqlSessionTemplate.getConfiguration().hasMapper(ConfigurationNodeRecordMapper.class)) {
-            batchSqlSessionTemplate.getConfiguration().addMapper(ConfigurationNodeRecordMapper.class);
+        if (!batisConfig.hasMapper(ConfigurationNodeRecordMapper.class)) {
+            batisConfig.addMapper(ConfigurationNodeRecordMapper.class);
+        }
+
+        if (!batisConfig.hasMapper(ConfigurationValueRecordMapper.class)) {
+            batisConfig.addMapper(ConfigurationValueRecordMapper.class);
+        }
+
+        if (!batisConfig.hasMapper(ConfigurationAttributeRecordMapper.class)) {
+            batisConfig.addMapper(ConfigurationAttributeRecordMapper.class);
+        }
+
+        if (!batisConfig.hasMapper(ConfigurationRecordMapper.class)) {
+            batisConfig.addMapper(ConfigurationRecordMapper.class);
         }
 
         this.batchConfigurationNodeRecordMapper =
