@@ -19,7 +19,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
@@ -50,7 +49,6 @@ public class BatisConfig {
     public static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
     /** Transaction manager bean for MyBatis based Spring controlled transactions */
-    @Lazy
     @Bean(name = SQL_SESSION_FACTORY)
     public SqlSessionFactory sqlSessionFactory(final DataSource dataSource) throws Exception {
         final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
@@ -59,7 +57,6 @@ public class BatisConfig {
     }
 
     /** SQL session template bean of MyBatis */
-    @Lazy
     @Bean(name = SQL_SESSION_TEMPLATE)
     @Primary
     public SqlSessionTemplate sqlSessionTemplate(final DataSource dataSource) throws Exception {
@@ -67,7 +64,6 @@ public class BatisConfig {
     }
 
     /** SQL session template bean of MyBatis with BATCH enabled */
-    @Lazy
     @Bean(name = SQL_BATCH_SESSION_TEMPLATE)
     public SqlSessionTemplate sqlBatchSessionTemplate(final DataSource dataSource) throws Exception {
         return new SqlSessionTemplate(
@@ -76,7 +72,6 @@ public class BatisConfig {
     }
 
     /** SQL session factory bean of MyBatis */
-    @Lazy
     @Bean(name = TRANSACTION_MANAGER)
     public DataSourceTransactionManager transactionManager(final DataSource dataSource) {
         final DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
