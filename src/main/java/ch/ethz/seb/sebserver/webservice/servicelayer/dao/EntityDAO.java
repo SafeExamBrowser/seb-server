@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  *
  * @param <T> The specific type of the Entity domain model
  * @param <M> The specific type of the Entity domain model to create a new Entity */
+@DependsOn("batisConfig")
 public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     Logger log = LoggerFactory.getLogger(EntityDAO.class);

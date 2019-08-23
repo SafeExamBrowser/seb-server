@@ -25,6 +25,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -55,11 +56,12 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecor
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 
+/** This service is internally used to implement MyBatis batch functionality for the most
+ * intensive write operation on Configuration domain. */
 @Lazy
 @Component
 @WebServiceProfile
-/** This service is internally used to implement MyBatis batch functionality for the most
- * intensive write operation on Configuration domain. */
+@DependsOn("batisConfig")
 class ConfigurationDAOBatchService {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationDAOBatchService.class);
