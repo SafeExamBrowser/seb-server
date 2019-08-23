@@ -14,8 +14,8 @@ services:
       build:
           context: .
           args:
-              - GIT_TAG=v0.4.1-beta
-              - SEBSERVER_VERSION=0.4.1-SNAPSHOT
+              - GIT_TAG=
+              - SEBSERVER_VERSION=0.4.1-beta
       container_name: seb-server
       environment:
           - SERVER_ADDRESS=0.0.0.0
