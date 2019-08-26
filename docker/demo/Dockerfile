@@ -31,8 +31,14 @@ ENV INTERNAL_PWD="[TO_SET]"
 WORKDIR /demo
 COPY --from=1 /demo/target/seb-server-"$SEBSERVER_VERSION"-SNAPSHOT.jar /demo
 
-ENTRYPOINT ["sh", "-c"]
-
-CMD ["java -jar seb-server-${SEBSERVER_VERSION}-SNAPSHOT.jar --server.address=${SERVER_ADDRESS} --server.port=${SERVER_PORT} --spring.config.location=classpath:/config/ --datastore.mariadb.server.address=${DBSERVER_ADDRESS} --datastore.mariadb.server.port${DBSERVER_PORT} --spring.profiles.active=demo --spring.datasource.password=${DBSERVER_PWD} --sebserver.webservice.api.admin.clientSecret=${GUICLIENT_PWD} --sebserver.webservice.internalSecret=${INTERNAL_PWD}"]
+ENTRYPOINT exec java -jar seb-server-"${SEBSERVER_VERSION}"-SNAPSHOT.jar \
+    --server.port="${SERVER_PORT}" \
+    --spring.config.location=classpath:/config/ \
+    --datastore.mariadb.server.address="${DBSERVER_ADDRESS}" \
+    --datastore.mariadb.server.port="${DBSERVER_PORT}" \
+    --spring.profiles.active=demo \
+    --spring.datasource.password="${DBSERVER_PWD}" \
+    --sebserver.webservice.api.admin.clientSecret="${GUICLIENT_PWD}" \
+    --sebserver.webservice.internalSecret="${INTERNAL_PWD}"
 
 EXPOSE 8080

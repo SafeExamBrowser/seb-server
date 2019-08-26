@@ -67,4 +67,13 @@
  
   </springProfile>
   
+  <springProfile name="prod">
+
+    <root level="INFO" additivity="true">
+      <appender-ref ref="STDOUT" />
+      <appender-ref ref="FILE" />
+    </root>
+    
+  </springProfile>
+  
 </configuration>

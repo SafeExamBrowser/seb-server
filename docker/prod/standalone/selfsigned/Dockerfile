@@ -4,7 +4,7 @@ FROM alpine/git
 ARG GIT_TAG
 
 WORKDIR /sebserver
-RUN if [ "x$arg" = "x" ] ; \
+RUN if [ "x${GIT_TAG}" = "x" ] ; \
     then git clone --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; \
     else git clone -b "$GIT_TAG" --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; fi
 
@@ -30,11 +30,28 @@ ENV SERVER_ADDRESS=0.0.0.0
 ENV SERVER_PORT=80
 ENV DBSERVER_ADDRESS=localhost
 ENV DBSERVER_PORT=3306
+ENV DBSERVER_PWD=
+ENV GUICLIENT_PWD=
+ENV INTERNAL_PWD=
 ENV KEYSTORE_PWD=
 
-ENTRYPOINT ["sh", "-c"]
+ENTRYPOINT exec java \
+    -Dfile.encoding=UTF-8 \
+    -Djavax.net.ssl.keyStore=seb-server-keystore.pkcs12 \
+    -Djavax.net.ssl.keyStorePassword="${KEYSTORE_PWD}" \
+    -Djavax.net.ssl.trustStore=seb-server-truststore.pkcs12 \
+    -Djavax.net.ssl.trustStorePassword="${KEYSTORE_PWD}" \
+    -jar seb-server-"${SEBSERVER_VERSION}".jar \
+    --server.port="${SERVER_PORT}" \
+    --spring.config.location=classpath:/config/ \
+    --datastore.mariadb.server.address="${DBSERVER_ADDRESS}" \
+    --datastore.mariadb.server.port="${DBSERVER_PORT}" \
+    --spring.profiles.active=prod \
+    --spring.datasource.password="${DBSERVER_PWD}" \
+    --sebserver.webservice.api.admin.clientSecret="${GUICLIENT_PWD}" \
+    --sebserver.webservice.internalSecret="${INTERNAL_PWD}"
 
-CMD ["java -jar seb-server-${SEBSERVER_VERSION}.jar --spring.config.location=classpath:/config/,file:/sebserver/ --server.address=${SERVER_ADDRESS} --spring.profiles.active=dev"]
+#CMD ["java -jar seb-server-${SEBSERVER_VERSION}-SNAPSHOT.jar --server.address=${SERVER_ADDRESS} --server.port=${SERVER_PORT} --spring.config.location=classpath:/config/ --datastore.mariadb.server.address=${DBSERVER_ADDRESS} --datastore.mariadb.server.port${DBSERVER_PORT} --spring.profiles.active=demo --spring.datasource.password=${DBSERVER_PWD} --sebserver.webservice.api.admin.clientSecret=${GUICLIENT_PWD} --sebserver.webservice.internalSecret=${INTERNAL_PWD}"]
 
 # CMD java \
 #    -Dfile.encoding=UTF-8 \
