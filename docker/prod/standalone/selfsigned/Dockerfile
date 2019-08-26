@@ -46,7 +46,7 @@ ENTRYPOINT exec java \
     --spring.config.location=classpath:/config/ \
     --datastore.mariadb.server.address="${DBSERVER_ADDRESS}" \
     --datastore.mariadb.server.port="${DBSERVER_PORT}" \
-    --spring.profiles.active=prod \
+    --spring.profiles.active=dev \
     --spring.datasource.password="${DBSERVER_PWD}" \
     --sebserver.webservice.api.admin.clientSecret="${GUICLIENT_PWD}" \
     --sebserver.webservice.internalSecret="${INTERNAL_PWD}"
