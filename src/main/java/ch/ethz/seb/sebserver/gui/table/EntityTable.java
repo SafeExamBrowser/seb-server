@@ -189,6 +189,14 @@ public class EntityTable<ROW extends Entity> {
                 this.sortOrder);
     }
 
+    public PageContext getPageContext() {
+        if (this.pageContext == null) {
+            return null;
+        }
+
+        return this.pageContext.copy();
+    }
+
     public boolean hasAnyContent() {
         return this.table.getItemCount() > 0;
     }

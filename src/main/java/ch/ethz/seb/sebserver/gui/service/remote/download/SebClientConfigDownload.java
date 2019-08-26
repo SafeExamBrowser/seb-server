@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote;
+package ch.ethz.seb.sebserver.gui.service.remote.download;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +43,7 @@ public class SebClientConfigDownload extends AbstractDownloadServiceHandler {
     }
 
     @Override
-    protected void webserviceCall(final String modelId, final OutputStream downloadOut) {
+    protected void webserviceCall(final String modelId, final String parentModelId, final OutputStream downloadOut) {
 
         final InputStream input = this.restService.getBuilder(ExportClientConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, modelId)

@@ -128,6 +128,43 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<ExamConfigurationMap> byMapping(final Long examId, final Long configurationNodeId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                        SqlBuilder.isEqualTo(configurationNodeId))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Utils.toSingleton()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<CharSequence> getConfigPasswortCipher(final Long examId, final Long configurationNodeId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                        SqlBuilder.isEqualTo(configurationNodeId))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton()))
+                .map(ExamConfigurationMapRecord::getEncryptSecret);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Long> getDefaultConfigurationForExam(final Long examId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()

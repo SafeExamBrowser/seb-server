@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote;
+package ch.ethz.seb.sebserver.gui.service.remote.download;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -81,6 +81,15 @@ public class DownloadService implements ServiceHandler {
             final Class<? extends DownloadServiceHandler> handlerClass,
             final String downloadFileName) {
 
+        return createDownloadURL(modelId, null, handlerClass, downloadFileName);
+    }
+
+    public String createDownloadURL(
+            final String modelId,
+            final String parentModelId,
+            final Class<? extends DownloadServiceHandler> handlerClass,
+            final String downloadFileName) {
+
         final StringBuilder url = new StringBuilder()
                 .append(RWT.getServiceManager()
                         .getServiceHandlerUrl(DownloadService.DOWNLOAD_SERVICE_NAME))
@@ -96,6 +105,14 @@ public class DownloadService implements ServiceHandler {
                 .append(DownloadService.DOWNLOAD_FILE_NAME)
                 .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
                 .append(downloadFileName);
+
+        if (StringUtils.isNotBlank(parentModelId)) {
+            url.append(Constants.FORM_URL_ENCODED_SEPARATOR)
+                    .append(API.PARAM_PARENT_MODEL_ID)
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(parentModelId);
+        }
+
         return url.toString();
     }
 

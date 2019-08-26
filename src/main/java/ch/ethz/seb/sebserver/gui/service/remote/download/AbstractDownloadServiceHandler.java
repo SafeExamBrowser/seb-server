@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote;
+package ch.ethz.seb.sebserver.gui.service.remote.download;
 
 import java.io.OutputStream;
 
@@ -39,44 +39,34 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
 
             log.debug("download requested... trying to get needed parameter from request");
 
-            final String configId = request.getParameter(API.PARAM_MODEL_ID);
-            if (StringUtils.isBlank(configId)) {
+            final String modelId = request.getParameter(API.PARAM_MODEL_ID);
+            if (StringUtils.isBlank(modelId)) {
                 log.error(
                         "Mandatory modelId parameter not found within HttpServletRequest. Download request is ignored");
                 return;
             }
 
-            log.debug(
-                    "Found modelId: {} for {} download. Trying to request webservice...",
-                    configId,
-                    downloadFileName);
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Found modelId: {} for {} download. Trying to request webservice...",
+                        modelId,
+                        downloadFileName);
+            }
+
+            final String parentModelId = request.getParameter(API.PARAM_PARENT_MODEL_ID);
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Found parentModelId: {} for {} download. Trying to request webservice...",
+                        modelId,
+                        downloadFileName);
+            }
 
             final String header =
                     "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-            webserviceCall(configId, response.getOutputStream());
-
-//            final byte[] configFile = webserviceCall(configId);
-//
-//            if (configFile == null) {
-//                log.error("No or empty download received from webservice. Download request is ignored");
-//                return;
-//            }
-//
-//            log.debug("Sucessfully downloaded from webservice. File size: {}", configFile.length);
-//
-//            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-//            response.setContentLength(configFile.length);
-//
-//            final String header =
-//                    "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
-//            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
-//
-//            log.debug("Write the download data to response output");
-//
-//            response.getOutputStream().write(configFile);
+            webserviceCall(modelId, parentModelId, response.getOutputStream());
 
         } catch (final Exception e) {
             log.error(
@@ -85,6 +75,6 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
         }
     }
 
-    protected abstract void webserviceCall(String configId, OutputStream downloadOut);
+    protected abstract void webserviceCall(String modelId, String parentModelId, OutputStream downloadOut);
 
 }

@@ -61,7 +61,7 @@ public interface SebExamConfigService {
      * @param examId the exam identifier
      * @return The configuration node identifier (PK) */
     default Long exportForExam(final OutputStream out, final Long institutionId, final Long examId) {
-        return exportForExam(out, institutionId, examId, null);
+        return exportForExam(out, institutionId, examId, (String) null);
     }
 
     /** Used to export the default SEB Exam Configuration for a given exam identifier.
@@ -75,7 +75,23 @@ public interface SebExamConfigService {
      * @return The configuration node identifier (PK) */
     Long exportForExam(OutputStream out, Long institutionId, Long examId, String userId);
 
-    /** TODO */
+    /** Used to export the default SEB Exam Configuration for a given exam identifier.
+     * either with encryption if defined or as plain text within the SEB Configuration format
+     * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
+     *
+     * @param out The output stream to write the export data to
+     * @param institutionId The identifier of the institution of the requesting user
+     * @param examId the exam identifier that defines the mapping
+     * @param configurationNodeId the configurationNodeId that defines the mapping
+     * @return The configuration node identifier (PK) */
+    Long exportForExam(OutputStream out, Long institutionId, Long examId, Long configurationNodeId);
+
+    /** Generates a Config-Key form the SEB exam configuration defined by configurationNodeId.
+     * See https://www.safeexambrowser.org/developer/seb-config-key.html for more information about the Config-Key
+     *
+     * @param institutionId the institutional id
+     * @param configurationNodeId the configurationNodeId
+     * @return Result refer to the generated Config-Key or to an error if happened. */
     Result<String> generateConfigKey(Long institutionId, Long configurationNodeId);
 
 }

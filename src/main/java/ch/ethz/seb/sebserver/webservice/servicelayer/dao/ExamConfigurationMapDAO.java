@@ -16,6 +16,20 @@ public interface ExamConfigurationMapDAO extends
         EntityDAO<ExamConfigurationMap, ExamConfigurationMap>,
         BulkActionSupportDAO<ExamConfigurationMap> {
 
+    /** Get a specific ExamConfigurationMap by the mapping identifiers
+     *
+     * @param examId The Exam mapping identifier
+     * @param configurationNodeId the ConfigurationNode mapping identifier
+     * @return Result refer to the ExamConfigurationMap with specified mapping or to an exception if happened */
+    public Result<ExamConfigurationMap> byMapping(Long examId, Long configurationNodeId);
+
+    /** Get the password cipher of a specific ExamConfigurationMap by the mapping identifiers
+     *
+     * @param examId The Exam mapping identifier
+     * @param configurationNodeId the ConfigurationNode mapping identifier
+     * @return Result refer to the password cipher of specified mapping or to an exception if happened */
+    public Result<CharSequence> getConfigPasswortCipher(Long examId, Long configurationNodeId);
+
     /** Get the ConfigurationNode identifier of the default Exam Configuration of
      * the Exam with specified identifier.
      *

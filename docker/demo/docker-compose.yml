@@ -5,6 +5,8 @@ services:
     container_name: seb-server-mariadb
     environment:
         MYSQL_ROOT_PASSWORD: somePW
+    volumes:
+        - seb-server-mariadb-data:/var/lib/mysql
     ports:
         - 3306:3306
     networks:
@@ -34,3 +36,6 @@ services:
             
 networks:
   ralph:
+  
+volumes:
+  seb-server-mariadb-data:

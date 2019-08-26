@@ -55,11 +55,6 @@ public class BatisConfig {
         factoryBean.setDataSource(dataSource);
         final SqlSessionFactory factory = factoryBean.getObject();
 
-        factory.getConfiguration()
-                .addMappers("ch.ethz.seb.sebserver.webservice.datalayer.batis");
-        factory.getConfiguration()
-                .addMappers("ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper");
-
         return factory;
     }
 

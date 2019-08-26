@@ -247,8 +247,13 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinition.EXAM_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
+    EXAM_CONFIGURATION_EXPORT(
+            new LocTextKey("sebserver.exam.configuration.action.export-config"),
+            ImageIcon.EXPORT,
+            PageStateDefinition.EXAM_VIEW,
+            ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_GET_CONFIG_KEY(
-            new LocTextKey("sebserver.examconfig.action.get-config-key"),
+            new LocTextKey("sebserver.exam.configuration.action.get-config-key"),
             ImageIcon.SECURE,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_SAVE(

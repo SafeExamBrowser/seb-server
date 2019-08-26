@@ -27,6 +27,7 @@ public final class API {
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";
+    public static final String PARENT_MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_PARENT_MODEL_ID + "}";
 
     public static final String OAUTH_ENDPOINT = "/oauth";
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token"; // TODO to config properties?
@@ -100,6 +101,7 @@ public final class API {
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
+    public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/downloadConfig";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 

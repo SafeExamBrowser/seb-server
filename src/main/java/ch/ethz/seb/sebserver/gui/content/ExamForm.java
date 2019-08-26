@@ -17,9 +17,12 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tomcat.util.buf.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +53,8 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
@@ -72,9 +77,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
-
-    private final PageService pageService;
-    private final ResourceService resourceService;
 
     private static final LocTextKey CONFIG_EMPTY_LIST_MESSAGE =
             new LocTextKey("sebserver.exam.configuration.list.empty");
@@ -123,12 +125,21 @@ public class ExamForm implements TemplateComposer {
     private final static LocTextKey INDICATOR_EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
 
+    private final PageService pageService;
+    private final ResourceService resourceService;
+    private final DownloadService downloadService;
+    private final String downloadFileName;
+
     protected ExamForm(
             final PageService pageService,
-            final ResourceService resourceService) {
+            final ResourceService resourceService,
+            final DownloadService downloadService,
+            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
+        this.downloadService = downloadService;
+        this.downloadFileName = downloadFileName;
     }
 
     @Override
@@ -305,19 +316,7 @@ public class ExamForm implements TemplateComposer {
                                     this.resourceService::localizedExamConfigStatusName))
                             .withDefaultActionIf(
                                     () -> editable,
-                                    t -> actionBuilder
-                                            .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
-                                            .withSelectionSupplier(() -> {
-                                                final ExamConfigurationMap selectedROWData = t.getSelectedROWData();
-                                                final HashSet<EntityKey> result = new HashSet<>();
-                                                if (selectedROWData != null) {
-                                                    result.add(new EntityKey(
-                                                            selectedROWData.configurationNodeId,
-                                                            EntityType.CONFIGURATION_NODE));
-                                                }
-                                                return result;
-                                            })
-                                            .create())
+                                    this::viewExamConfigPageAction)
 
                             .compose(pageContext.copyOf(content));
 
@@ -355,6 +354,15 @@ public class ExamForm implements TemplateComposer {
                             this::deleteExamConfigMapping,
                             CONFIG_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable)
+
+                    .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
+                    .withParentEntityKey(entityKey)
+                    .withSelect(
+                            getConfigSelection(configurationTable),
+                            this::downloadExamConfigAction,
+                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
+                    .noEventPropagation()
+                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent())
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                     .withSelect(
@@ -421,6 +429,41 @@ public class ExamForm implements TemplateComposer {
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
         }
+    }
+
+    private PageAction viewExamConfigPageAction(final EntityTable<ExamConfigurationMap> table) {
+
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(table.getPageContext()
+                .clearEntityKeys()
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+
+        return actionBuilder
+                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
+                .withSelectionSupplier(() -> {
+                    final ExamConfigurationMap selectedROWData = table.getSelectedROWData();
+                    final HashSet<EntityKey> result = new HashSet<>();
+                    if (selectedROWData != null) {
+                        result.add(new EntityKey(
+                                selectedROWData.configurationNodeId,
+                                EntityType.CONFIGURATION_NODE));
+                    }
+                    return result;
+                })
+                .create();
+    }
+
+    private PageAction downloadExamConfigAction(final PageAction action) {
+        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
+        final EntityKey selection = action.getSingleSelection();
+        if (selection != null) {
+            final String downloadURL = this.downloadService.createDownloadURL(
+                    selection.modelId,
+                    action.pageContext().getParentEntityKey().modelId,
+                    SebExamConfigDownload.class,
+                    this.downloadFileName);
+            urlLauncher.openURL(downloadURL);
+        }
+        return action;
     }
 
     private Supplier<Set<EntityKey>> getConfigMappingSelection(

@@ -33,11 +33,16 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
 
 @Lazy
 @Service
@@ -50,17 +55,26 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
+    private final ClientCredentialService clientCredentialService;
+    private final ZipService zipService;
+    private final SebConfigEncryptionService sebConfigEncryptionService;
 
     protected SebExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final Collection<ConfigurationValueValidator> validators) {
+            final Collection<ConfigurationValueValidator> validators,
+            final ClientCredentialService clientCredentialService,
+            final ZipService zipService,
+            final SebConfigEncryptionService sebConfigEncryptionService) {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
+        this.clientCredentialService = clientCredentialService;
+        this.zipService = zipService;
+        this.sebConfigEncryptionService = sebConfigEncryptionService;
 
     }
 
@@ -114,7 +128,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             final Long institutionId,
             final Long configurationNodeId) {
 
-        this.exportPlain(ConfigurationFormat.XML, out, institutionId, configurationNodeId);
+        this.exportPlainOnly(ConfigurationFormat.XML, out, institutionId, configurationNodeId);
     }
 
     @Override
@@ -123,7 +137,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             final Long institutionId,
             final Long configurationNodeId) {
 
-        this.exportPlain(ConfigurationFormat.JSON, out, institutionId, configurationNodeId);
+        this.exportPlainOnly(ConfigurationFormat.JSON, out, institutionId, configurationNodeId);
     }
 
     public Result<Long> getDefaultConfigurationIdForExam(final Long examId) {
@@ -147,9 +161,83 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                 : getUserConfigurationIdForExam(examId, userId)
                         .getOrThrow();
 
-        // TODO add header, zip and encrypt if needed
+        return exportForExam(out, institutionId, examId, configurationNodeId);
+    }
 
-        this.exportPlainXML(out, institutionId, configurationNodeId);
+    @Override
+    public Long exportForExam(
+            final OutputStream out,
+            final Long institutionId,
+            final Long examId,
+            final Long configurationNodeId) {
+
+        final CharSequence passwordCipher = this.examConfigurationMapDAO
+                .getConfigPasswortCipher(examId, configurationNodeId)
+                .getOr(null);
+
+        if (StringUtils.isNotBlank(passwordCipher)) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("*** Seb exam configuration with password based encryption");
+            }
+
+            final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
+                    .decrypt(passwordCipher);
+
+            PipedOutputStream plainOut = null;
+            PipedInputStream zipIn = null;
+
+            PipedOutputStream zipOut = null;
+            PipedInputStream cryptIn = null;
+
+            PipedOutputStream cryptOut = null;
+            PipedInputStream in = null;
+
+            try {
+
+                plainOut = new PipedOutputStream();
+                zipIn = new PipedInputStream(plainOut);
+
+                zipOut = new PipedOutputStream();
+                cryptIn = new PipedInputStream(zipOut);
+
+                cryptOut = new PipedOutputStream();
+                in = new PipedInputStream(cryptOut);
+
+                // streaming...
+                // export plain text
+                this.examConfigIO.exportPlain(
+                        ConfigurationFormat.XML,
+                        plainOut,
+                        institutionId,
+                        configurationNodeId);
+                // zip the plain text
+                this.zipService.write(zipOut, zipIn);
+                // encrypt the zipped plain text
+                this.sebConfigEncryptionService.streamEncrypted(
+                        cryptOut,
+                        cryptIn,
+                        EncryptionContext.contextOf(
+                                Strategy.PASSWORD_PSWD,
+                                encryptionPasswordPlaintext));
+
+                // copy to output
+                IOUtils.copyLarge(in, out);
+
+            } catch (final Exception e) {
+                log.error("Error while zip and encrypt seb exam config stream: ", e);
+            } finally {
+                IOUtils.closeQuietly(zipIn);
+                IOUtils.closeQuietly(plainOut);
+                IOUtils.closeQuietly(cryptIn);
+                IOUtils.closeQuietly(zipOut);
+                IOUtils.closeQuietly(in);
+                IOUtils.closeQuietly(cryptOut);
+            }
+        } else {
+            // just export in plain text XML format
+            this.exportPlainXML(out, institutionId, configurationNodeId);
+        }
 
         return configurationNodeId;
     }
@@ -224,7 +312,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
         }
     }
 
-    private void exportPlain(
+    private void exportPlainOnly(
             final ConfigurationFormat exportFormat,
             final OutputStream out,
             final Long institutionId,

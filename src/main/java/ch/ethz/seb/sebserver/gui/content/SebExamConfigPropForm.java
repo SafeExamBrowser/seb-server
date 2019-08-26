@@ -39,8 +39,8 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.SebExamConfigDownload;
+import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
@@ -188,7 +188,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withExec(action -> {
                     final String downloadURL = this.downloadService.createDownloadURL(
                             entityKey.modelId,
-                            SebExamConfigDownload.class,
+                            SebExamConfigPlaintextDownload.class,
                             this.downloadFileName);
                     urlLauncher.openURL(downloadURL);
                     return action;

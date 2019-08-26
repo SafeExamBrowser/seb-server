@@ -8,17 +8,25 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,6 +58,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -57,9 +66,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
 public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
 
+    private static final Logger log = LoggerFactory.getLogger(ExamAdministrationController.class);
+
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final LmsAPIService lmsAPIService;
+    private final SebExamConfigService sebExamConfigService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -69,7 +81,8 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final BulkActionService bulkActionService,
             final BeanValidationService beanValidationService,
             final LmsAPIService lmsAPIService,
-            final UserDAO userDAO) {
+            final UserDAO userDAO,
+            final SebExamConfigService sebExamConfigService) {
 
         super(authorization,
                 bulkActionService,
@@ -81,6 +94,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         this.examDAO = examDAO;
         this.userDAO = userDAO;
         this.lmsAPIService = lmsAPIService;
+        this.sebExamConfigService = sebExamConfigService;
     }
 
     @Override
@@ -130,6 +144,46 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
                     this.paginationService.getPageSize(pageSize),
                     sort,
                     exams);
+        }
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT
+                    + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public void downloadPlainXMLConfig(
+            @PathVariable final Long modelId,
+            @PathVariable final Long parentModelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletResponse response) throws IOException {
+
+        this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(this.userActivityLogDAO::logExport);
+
+        final ServletOutputStream outputStream = response.getOutputStream();
+
+        try {
+
+            this.sebExamConfigService.exportForExam(
+                    outputStream,
+                    institutionId,
+                    parentModelId,
+                    modelId);
+
+            response.setStatus(HttpStatus.OK.value());
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to downstream exam config: ", e);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        } finally {
+            outputStream.flush();
+            outputStream.close();
         }
     }
 
