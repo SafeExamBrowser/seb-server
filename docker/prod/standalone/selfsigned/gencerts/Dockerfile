@@ -3,8 +3,8 @@ FROM openjdk:11-jre-stretch
 RUN  apt-get update && apt-get install -y openssl
 
 ENV KEYSTORE_PWD=
-ENV SERVER_CN="localhost"
-ENV CLIENT_CN="localhost"
+ENV SERVER_CN="seb-server-mariadb"
+ENV CLIENT_CN="seb-server-mariadb"
 ENV OPENSSL_SUBJ="/C=CH/ST=Zuerich/L=Zuerich"
 ENV OPENSSL_CA="${OPENSSL_SUBJ}/CN=demo-CA"
 ENV OPENSSL_SERVER="${OPENSSL_SUBJ}/CN=${SERVER_CN}"

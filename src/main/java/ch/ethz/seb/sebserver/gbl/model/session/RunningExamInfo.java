@@ -12,8 +12,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 
-public final class RunningExam {
+public final class RunningExamInfo {
 
     @JsonProperty("examId")
     public final String examId;
@@ -21,22 +22,27 @@ public final class RunningExam {
     public final String name;
     @JsonProperty("url")
     public final String url;
+    @JsonProperty("lmsType")
+    public final String lmsType;
 
     @JsonCreator
-    public RunningExam(
+    public RunningExamInfo(
             @JsonProperty("examId") final String examId,
             @JsonProperty("name") final String name,
-            @JsonProperty("url") final String url) {
+            @JsonProperty("url") final String url,
+            @JsonProperty("lmsType") final String lmsType) {
 
         this.examId = examId;
         this.name = name;
         this.url = url;
+        this.lmsType = lmsType;
     }
 
-    public RunningExam(final Exam exam) {
+    public RunningExamInfo(final Exam exam, final LmsType lmsType) {
         this.examId = exam.getModelId();
         this.name = exam.name;
         this.url = exam.startURL;
+        this.lmsType = (lmsType == null) ? "" : lmsType.name();
     }
 
     public String getExamId() {
@@ -51,6 +57,10 @@ public final class RunningExam {
         return this.url;
     }
 
+    public String getLmsType() {
+        return this.lmsType;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -60,6 +70,8 @@ public final class RunningExam {
         builder.append(this.name);
         builder.append(", url=");
         builder.append(this.url);
+        builder.append(", lmsType=");
+        builder.append(this.lmsType);
         builder.append("]");
         return builder.toString();
     }

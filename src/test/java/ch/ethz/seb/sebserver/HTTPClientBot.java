@@ -43,7 +43,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.session.RunningExam;
+import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class HTTPClientBot {
@@ -252,11 +252,11 @@ public class HTTPClientBot {
             log.info("ConnectionBot {} : init connection", this.name);
 
             try {
-                final ResponseEntity<Collection<RunningExam>> exchange = this.restTemplate.exchange(
+                final ResponseEntity<Collection<RunningExamInfo>> exchange = this.restTemplate.exchange(
                         this.handshakeURI,
                         HttpMethod.POST,
                         this.connectBody,
-                        new ParameterizedTypeReference<Collection<RunningExam>>() {
+                        new ParameterizedTypeReference<Collection<RunningExamInfo>>() {
                         });
 
                 final HttpStatus statusCode = exchange.getStatusCode();
@@ -264,7 +264,7 @@ public class HTTPClientBot {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
 
-                final Collection<RunningExam> body = exchange.getBody();
+                final Collection<RunningExamInfo> body = exchange.getBody();
                 final String token = exchange.getHeaders().getFirst(API.EXAM_API_SEB_CONNECTION_TOKEN);
 
                 log.info("ConnectionBot {} : successfully created connection, token: {} body: {} ", this.name, token,

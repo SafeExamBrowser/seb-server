@@ -8,6 +8,8 @@ services:
     volumes:
         - ./certs:/certs
     environment:
+        - SERVER_CN=seb-server-mariadb
+        - CLIENT_CN=seb-server-mariadb
         - KEYSTORE_PWD=[SET_PWD]
   
   mariadb: 
@@ -35,6 +37,7 @@ services:
       container_name: seb-server
       volumes:
         - .:/config
+        - ./certs:/certs
       ports:
           - 80:80
       networks:

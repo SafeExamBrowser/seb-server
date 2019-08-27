@@ -62,7 +62,8 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct response
         assertTrue(HttpStatus.OK.value() == createConnection.getStatus());
         final String contentAsString = createConnection.getContentAsString();
-        assertEquals("[{\"examId\":\"2\",\"name\":\"Demo Quiz 6\",\"url\":\"http://lms.mockup.com/api/\"}]",
+        assertEquals(
+                "[{\"examId\":\"2\",\"name\":\"Demo Quiz 6\",\"url\":\"http://lms.mockup.com/api/\",\"lmsType\":\"MOCKUP\"}]",
                 contentAsString);
 
         // check connection token
@@ -109,7 +110,8 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct response
         assertTrue(HttpStatus.OK.value() == createConnection.getStatus());
         final String contentAsString = createConnection.getContentAsString();
-        assertEquals("[{\"examId\":\"2\",\"name\":\"Demo Quiz 6\",\"url\":\"http://lms.mockup.com/api/\"}]",
+        assertEquals(
+                "[{\"examId\":\"2\",\"name\":\"Demo Quiz 6\",\"url\":\"http://lms.mockup.com/api/\",\"lmsType\":\"MOCKUP\"}]",
                 contentAsString);
 
         // check connection token

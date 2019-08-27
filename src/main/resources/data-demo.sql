@@ -14,7 +14,7 @@ INSERT IGNORE INTO user_role VALUES
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES
-    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1)
+    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '20faa63098beb54053d228d078d9471a6b35bde8cf2e91a879789e721e54c6535660d8d69e4670484a87977a', null, 1)
     ;
 
 INSERT IGNORE INTO view VALUES

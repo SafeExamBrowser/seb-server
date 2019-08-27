@@ -40,10 +40,11 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
-import ch.ethz.seb.sebserver.gbl.model.session.RunningExam;
+import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
@@ -56,6 +57,7 @@ public class ExamAPI_V1_Controller {
     private static final Logger log = LoggerFactory.getLogger(ExamAPI_V1_Controller.class);
 
     private final ExamDAO examDAO;
+    private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
     private final SebClientConnectionService sebClientConnectionService;
     private final SebClientConfigDAO sebClientConfigDAO;
@@ -63,12 +65,14 @@ public class ExamAPI_V1_Controller {
 
     protected ExamAPI_V1_Controller(
             final ExamDAO examDAO,
+            final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SebClientConnectionService sebClientConnectionService,
             final SebClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper) {
 
         this.examDAO = examDAO;
+        this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -80,7 +84,7 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<RunningExam> handshakeCreate(
+    public Collection<RunningExamInfo> handshakeCreate(
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
             @RequestBody(required = false) final MultiValueMap<String, String> formParams,
@@ -116,18 +120,18 @@ public class ExamAPI_V1_Controller {
                     remoteAddr);
         }
 
-        List<RunningExam> result;
+        List<RunningExamInfo> result;
         if (examId == null) {
             result = this.examSessionService.getRunningExamsForInstitution(institutionId)
                     .getOrThrow()
                     .stream()
-                    .map(exam -> new RunningExam(exam))
+                    .map(this::createRunningExamInfo)
                     .collect(Collectors.toList());
         } else {
             final Exam exam = this.examDAO.byPK(examId)
                     .getOrThrow();
 
-            result = Arrays.asList(new RunningExam(exam));
+            result = Arrays.asList(createRunningExamInfo(exam));
         }
 
         if (result.isEmpty()) {
@@ -144,6 +148,14 @@ public class ExamAPI_V1_Controller {
                 clientConnection.connectionToken);
 
         return result;
+    }
+
+    private RunningExamInfo createRunningExamInfo(final Exam exam) {
+        return new RunningExamInfo(
+                exam,
+                this.lmsSetupDAO.byPK(exam.lmsSetupId)
+                        .map(lms -> lms.lmsType)
+                        .getOr(null));
     }
 
     @RequestMapping(

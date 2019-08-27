@@ -20,8 +20,8 @@ public class ClientCredentialServiceTest {
 //    @Test
 //    public void testEncryptSimpleSecret() {
 //        final Environment envMock = mock(Environment.class);
-//        when(envMock.getRequiredProperty(ClientCredentialServiceImpl.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
-//                .thenReturn("internalSecret");
+//        when(envMock.getProperty(ClientCredentialServiceImpl.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+//                .thenReturn("somePW");
 //
 //        final ClientCredentialService service = new ClientCredentialServiceImpl(envMock);
 //        final CharSequence encrypt = service.encrypt("test");
