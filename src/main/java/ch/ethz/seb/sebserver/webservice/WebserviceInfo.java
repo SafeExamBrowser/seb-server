@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @WebServiceProfile
 public class WebserviceInfo {
 
+    private static final String WEB_SERVICE_TEST_PROPERTY = "sebserver.test.property";
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
     private static final String WEB_SERVICE_HOST_ADDRESS_KEY = "server.address";
@@ -33,6 +34,7 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
             "sebserver.webservice.api.exam.endpoint.discovery";
 
+    private final String testProperty;
     private final String httpScheme;
     private final String hostAddress; // internal
     private final String serverName; // external
@@ -44,6 +46,7 @@ public class WebserviceInfo {
     private final boolean isDistributed;
 
     public WebserviceInfo(final Environment environment) {
+        this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.hostAddress = environment.getRequiredProperty(WEB_SERVICE_HOST_ADDRESS_KEY);
         this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, "");
@@ -61,6 +64,10 @@ public class WebserviceInfo {
         this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.distributed",
                 Constants.FALSE_STRING));
+    }
+
+    public String getTestProperty() {
+        return this.testProperty;
     }
 
     public String getHttpScheme() {
@@ -128,7 +135,9 @@ public class WebserviceInfo {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("WebserviceInfo [httpScheme=");
+        builder.append("WebserviceInfo [testProperty=");
+        builder.append(this.testProperty);
+        builder.append(", httpScheme=");
         builder.append(this.httpScheme);
         builder.append(", hostAddress=");
         builder.append(this.hostAddress);
@@ -140,14 +149,8 @@ public class WebserviceInfo {
         builder.append(this.discoveryEndpoint);
         builder.append(", serverURLPrefix=");
         builder.append(this.serverURLPrefix);
-        builder.append(", getLocalHostName()=");
-        builder.append(getLocalHostName());
-        builder.append(", getLocalHostAddress()=");
-        builder.append(getLocalHostAddress());
-        builder.append(", getLoopbackHostName()=");
-        builder.append(getLoopbackHostName());
-        builder.append(", getLoopbackHostAddress()=");
-        builder.append(getLoopbackHostAddress());
+        builder.append(", isDistributed=");
+        builder.append(this.isDistributed);
         builder.append("]");
         return builder.toString();
     }
