@@ -34,7 +34,7 @@ services:
               - SEBSERVER_VERSION=0.4.1-beta-SNAPSHOT
       container_name: seb-server
       volumes:
-        - .:/sebserver
+        - .:/config
       ports:
           - 80:80
       networks:

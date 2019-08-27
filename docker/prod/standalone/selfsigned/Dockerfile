@@ -20,13 +20,11 @@ RUN mvn clean install -DskipTests
 FROM openjdk:11-jre-stretch
 
 ARG SEBSERVER_VERSION
+ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
 
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-ARG SEBSERVER_VERSION
-ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
+ENTRYPOINT exec java -jar seb-server-"${SEBSERVER_VERSION}".jar --spring.config.location=classpath:/config/,file:/config
 
-ENTRYPOINT exec java -jar seb-server-"${SEBSERVER_VERSION}".jar --spring.config.location=classpath:/config/,file:.
-
-EXPOSE $PORT
+EXPOSE 80
