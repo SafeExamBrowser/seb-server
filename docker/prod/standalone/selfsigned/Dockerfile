@@ -44,26 +44,11 @@ ENTRYPOINT exec java \
     -jar seb-server-"${SEBSERVER_VERSION}".jar \
     --server.port="${SERVER_PORT}" \
     --spring.config.location=classpath:/config/ \
+    --spring.profiles.active=prod \
     --datastore.mariadb.server.address="${DBSERVER_ADDRESS}" \
     --datastore.mariadb.server.port="${DBSERVER_PORT}" \
-    --spring.profiles.active=prod \
     --spring.datasource.password="${DBSERVER_PWD}" \
     --sebserver.webservice.api.admin.clientSecret="${GUICLIENT_PWD}" \
     --sebserver.webservice.internalSecret="${INTERNAL_PWD}"
-
-#CMD ["java -jar seb-server-${SEBSERVER_VERSION}-SNAPSHOT.jar --server.address=${SERVER_ADDRESS} --server.port=${SERVER_PORT} --spring.config.location=classpath:/config/ --datastore.mariadb.server.address=${DBSERVER_ADDRESS} --datastore.mariadb.server.port${DBSERVER_PORT} --spring.profiles.active=demo --spring.datasource.password=${DBSERVER_PWD} --sebserver.webservice.api.admin.clientSecret=${GUICLIENT_PWD} --sebserver.webservice.internalSecret=${INTERNAL_PWD}"]
-
-# CMD java \
-#    -Dfile.encoding=UTF-8 \
-#    -Djavax.net.ssl.keyStore=seb-server-keystore.pkcs12 \
-#    -Djavax.net.ssl.keyStorePassword="${KEYSTORE_PWD}" \
-#    -Djavax.net.ssl.trustStore=seb-server-truststore.pkcs12 \
-#    -Djavax.net.ssl.trustStorePassword="${KEYSTORE_PWD}" \
-#    -jar seb-server-"${SEBSERVER_VERSION}".jar \
-#    --spring.config.location=classpath:/config/,file:/sebserver/ \
-#    --server.address="${SERVER_ADDRESS}" \
-#    --spring.profiles.active=dev \
-#    --datastore.mariadb.server.address="${DBSERVER_ADDRESS}" \
-#    --datastore.mariadb.server.port="${DBSERVER_PORT}"
 
 EXPOSE $PORT
