@@ -174,6 +174,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         final SSLContext sslContext = SSLContextBuilder
                 .create()
                 .loadTrustMaterial(trustStoreFile, password)
+                .setKeyStoreType("pkcs12")
                 .build();
 
         final HttpClient client = HttpClients.custom()

@@ -25,6 +25,6 @@ ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-ENTRYPOINT exec java -jar seb-server-"${SEBSERVER_VERSION}".jar --spring.profiles.active=prod --spring.config.location=file:/config/,classpath:/config/
+ENTRYPOINT exec java -Djavax.net.debug=SSL -jar seb-server-"${SEBSERVER_VERSION}".jar --spring.profiles.active=prod --spring.config.location=file:/config/,classpath:/config/
 
-EXPOSE 80
+EXPOSE 443

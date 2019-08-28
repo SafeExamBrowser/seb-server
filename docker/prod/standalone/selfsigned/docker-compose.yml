@@ -2,11 +2,12 @@ version: '3'
 services:
   selfsigned:
     build:
-        context: ./gencerts
-        dockerfile: Dockerfile
+        context: .
+        dockerfile: certs.Dockerfile
     container_name: gencerts
     volumes:
         - ./certs:/certs
+        - .:/certs/config
     environment:
         - SERVER_CN=seb-server-mariadb
         - CLIENT_CN=seb-server-mariadb
@@ -31,6 +32,7 @@ services:
   seb-server:
       build:
           context: .
+          dockerfile: sebserver.Dockerfile
           args:
               - GIT_TAG=
               - SEBSERVER_VERSION=0.4.1-beta-SNAPSHOT
@@ -39,7 +41,7 @@ services:
         - .:/config
         - ./certs:/certs
       ports:
-          - 80:80
+          - 443:443
       networks:
           - seb-server-network
       depends_on:
