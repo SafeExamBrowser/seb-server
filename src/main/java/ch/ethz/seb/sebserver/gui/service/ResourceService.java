@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -98,15 +99,18 @@ public class ResourceService {
     private final I18nSupport i18nSupport;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final boolean mock_lms_enabled;
 
     protected ResourceService(
             final I18nSupport i18nSupport,
             final RestService restService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            @Value("${sebserver.gui.webservice.mock-lms-enabled:true}") final boolean mock_lms_enabled) {
 
         this.i18nSupport = i18nSupport;
         this.restService = restService;
         this.currentUser = currentUser;
+        this.mock_lms_enabled = mock_lms_enabled;
     }
 
     public I18nSupport getI18nSupport() {
@@ -137,6 +141,7 @@ public class ResourceService {
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.asList(LmsType.values())
                 .stream()
+                .filter(lmsType -> lmsType != LmsType.MOCKUP || this.mock_lms_enabled)
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))

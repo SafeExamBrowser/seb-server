@@ -25,6 +25,15 @@ ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-ENTRYPOINT exec java -Djavax.net.debug=SSL -jar seb-server-"${SEBSERVER_VERSION}".jar --spring.profiles.active=prod --spring.config.location=file:/config/,classpath:/config/
+RUN export $(grep -v '^#' secrets | xargs)
+
+ENTRYPOINT exec java \
+        -Djavax.net.debug=SSL \
+        -jar seb-server-"${SEBSERVER_VERSION}".jar \
+        --spring.profiles.active=prod \
+        --spring.config.location=file:/config/,classpath:/config/ \
+        --sebserver.certs.password="${KEYSTORE_PWD}" \ 
+        --sebserver.mariadb.password="${MYSQL_ROOT_PASSWORD}" \
+        --sebserver.password="${SEBSERVER_PWD}" \
 
 EXPOSE 443

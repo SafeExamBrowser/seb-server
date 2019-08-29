@@ -7,11 +7,11 @@ services:
     container_name: gencerts
     volumes:
         - ./certs:/certs
-        - .:/certs/config
+        - ./certs.cnf:/certs/certs.cnf
+        - ./secrets:/certs/secrets
     environment:
         - SERVER_CN=seb-server-mariadb
         - CLIENT_CN=seb-server-mariadb
-        - KEYSTORE_PWD=[SET_PWD]
   
   mariadb: 
     image: "mariadb/server:10.3"
@@ -20,8 +20,8 @@ services:
         - .:/etc/mysql/conf.d
         - ./certs:/etc/mysql/certs
         - seb-server-mariadb-data:/var/lib/mysql
-    environment:
-        - MYSQL_ROOT_PASSWORD=[SET_PWD]
+    env_file:
+        - secrets
     ports:
         - 3306:3306
     networks:

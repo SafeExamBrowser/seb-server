@@ -154,7 +154,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         log.info("Initialize with secure ClientHttpRequestFactory for production");
 
         final String truststoreFilePath = env
-                .getProperty("javax.net.ssl.trustStore", "");
+                .getProperty("server.ssl.trust-store", "");
 
         if (StringUtils.isBlank(truststoreFilePath)) {
             throw new IllegalArgumentException("Missing trust-store file path");
@@ -163,13 +163,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
 
         final char[] password = env
-                .getProperty("javax.net.ssl.trustStorePassword", "")
+                .getProperty("server.ssl.trust-store-password", "")
                 .toCharArray();
 
         if (password.length < 3) {
             log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
             throw new IllegalArgumentException("Missing or incorrect trust-store password");
         }
+
+        // Set the specified trust-store also on javax.net.ssl level
+        System.setProperty("javax.net.ssl.trustStore", truststoreFilePath);
+        System.setProperty("javax.net.ssl.trustStorePassword", String.valueOf(password));
 
         final SSLContext sslContext = SSLContextBuilder
                 .create()
