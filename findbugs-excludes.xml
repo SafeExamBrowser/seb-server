@@ -19,7 +19,10 @@
       <Package name="ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation" />
       <Bug pattern="NM_CONFUSING" />
     </Match>
-    
+    <Match>
+      <Package name="ch.ethz.seb.sebserver" />
+      <Bug pattern="REC_CATCH_EXCEPTION" />
+    </Match>
     
     
 

@@ -62,10 +62,6 @@ public class TableFilter<ROW extends Entity> {
         layout.center = false;
         layout.fill = true;
         this.composite.setLayout(layout);
-
-// TODO just for debugging, remove when tested
-//        this.composite.setBackground(new Color(entityTable.composite.getDisplay(), new RGB(0, 0, 200)));
-
         this.entityTable = entityTable;
         buildComponents();
     }
@@ -356,12 +352,14 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent reset() {
-            try {
-                final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
-                this.selector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
-            } catch (final Exception e) {
-                final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
-                this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            if (this.selector != null) {
+                try {
+                    final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
+                    this.selector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
+                } catch (final Exception e) {
+                    final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
+                    this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+                }
             }
             return this;
         }
@@ -429,13 +427,28 @@ public class TableFilter<ROW extends Entity> {
         @Override
         FilterComponent reset() {
             final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
-            try {
-                final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
-                this.fromSelector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
-            } catch (final Exception e) {
-                this.fromSelector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            if (this.fromSelector != null) {
+                try {
+                    final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
+
+                    this.fromSelector.setDate(
+                            parse.getYear(),
+                            parse.getMonthOfYear() - 1,
+                            parse.getDayOfMonth());
+
+                } catch (final Exception e) {
+                    this.fromSelector.setDate(
+                            now.getYear(),
+                            now.getMonthOfYear() - 1,
+                            now.getDayOfMonth());
+                }
             }
-            this.toSelector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
+            if (this.toSelector != null) {
+                this.toSelector.setDate(
+                        now.getYear(),
+                        now.getMonthOfYear() - 1,
+                        now.getDayOfMonth());
+            }
             return this;
         }
 

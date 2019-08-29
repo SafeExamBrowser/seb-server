@@ -14,6 +14,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.CheckReturnValue;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -174,6 +175,7 @@ public class FormBuilder {
         return this;
     }
 
+    @CheckReturnValue
     public <T extends Entity> FormHandle<T> build() {
         return buildFor(null);
     }

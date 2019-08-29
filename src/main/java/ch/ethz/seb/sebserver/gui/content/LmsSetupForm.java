@@ -178,7 +178,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
                         FORM_CLIENTNAME_LMS_TEXT_KEY,
-                        (lmsSetup.getLmsAuthName() != null) ? lmsSetup.getLmsAuthName().toString() : null))
+                        (lmsSetup.getLmsAuthName() != null) ? lmsSetup.getLmsAuthName() : null))
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                         FORM_SECRET_LMS_TEXT_KEY)

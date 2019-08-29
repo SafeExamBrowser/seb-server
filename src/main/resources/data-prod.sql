@@ -139,7 +139,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (203, 'URLFilterRules.active', 'CHECKBOX', 202, null, null, null, 'true'),
     (204, 'URLFilterRules.regex', 'CHECKBOX', 202, null, null, null, 'false'),
     (205, 'URLFilterRules.expression', 'TEXT_FIELD', 202, null, null, null, ''),
-    (206, 'URLFilterRules.action', 'SINGLE_SELECTION', 202, '0,1', null, null, ''),
+    (206, 'URLFilterRules.action', 'SINGLE_SELECTION', 202, '0,1', null, null, '0'),
     
     (210, 'proxySettingsPolicy', 'RADIO_SELECTION', null, '0,1', null, null, '0'),
     (220, 'proxies', 'COMPOSITE_TABLE', null, 'active,TABLE_ENTRY|autoDiscovery,autoConfiguration,http,https,ftp,socks,rtsp', null, null, null),
