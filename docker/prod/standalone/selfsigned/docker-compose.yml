@@ -45,6 +45,7 @@ services:
       ports:
           - 443:443
           - 80:8080
+          - 9090:9090
       logging:
         driver: "json-file"
         options:

@@ -16,19 +16,6 @@ INSERT IGNORE INTO user_role VALUES
 INSERT IGNORE INTO seb_client_configuration VALUES
     (1, 1, 'test', '2019-07-02 09:22:50', 'test', '20faa63098beb54053d228d078d9471a6b35bde8cf2e91a879789e721e54c6535660d8d69e4670484a87977a', null, 1)
     ;
-
-INSERT IGNORE INTO view VALUES
-    (1, 'general', 4, 1),
-    (2, 'user_interface', 12, 2),
-    (3, 'browser', 12, 3),
-    (4, 'down_upload', 12, 4),
-    (5, 'exam', 12, 5),
-    (6, 'applications', 12, 6), 
-    (7, 'resources', 12, 7), 
-    (8, 'network', 12, 8), 
-    (9, 'security', 12, 9),
-    (10, 'registry', 12, 10),
-    (11, 'hooked_keys', 12, 11);
     
 INSERT IGNORE INTO lms_setup VALUES
     (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, 1)

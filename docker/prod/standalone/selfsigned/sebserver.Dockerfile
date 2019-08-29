@@ -24,13 +24,22 @@ ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
 ENV KEYSTORE_PWD=
 ENV MYSQL_ROOT_PASSWORD=
 ENV SEBSERVER_PWD=
-ENV JAVA_NET_DEBUG="ssl:handshake"
 
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
 ENTRYPOINT exec java \
-        -Djavax.net.debug="${JAVA_NET_DEBUG}" \
+        -Xms64M \
+        -Xmx1G \
+# Set this propertie to enable SSL debuging
+#        -Djavax.net.debug=ssl \
+# Set this properties to enable JMX profiling
+#        -Dcom.sun.management.jmxremote \
+#        -Dcom.sun.management.jmxremote.port=9090 \
+#        -Dcom.sun.management.jmxremote.rmi.port=9090 \
+#        -Djava.rmi.server.hostname=127.0.0.1 \
+#        -Dcom.sun.management.jmxremote.ssl=false \
+#        -Dcom.sun.management.jmxremote.authenticate=false \
         -jar seb-server-"${SEBSERVER_VERSION}".jar \
         --spring.profiles.active=prod \
         --spring.config.location=file:/sebserver/,classpath:/config/ \
@@ -38,4 +47,4 @@ ENTRYPOINT exec java \
         --sebserver.mariadb.password="${MYSQL_ROOT_PASSWORD}" \
         --sebserver.password="${SEBSERVER_PWD}"
 
-EXPOSE 443 8080
+EXPOSE 443 8080 9090
