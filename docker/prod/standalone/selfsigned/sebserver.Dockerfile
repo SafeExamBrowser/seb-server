@@ -21,19 +21,21 @@ FROM openjdk:11-jre-stretch
 
 ARG SEBSERVER_VERSION
 ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
+ENV KEYSTORE_PWD=
+ENV MYSQL_ROOT_PASSWORD=
+ENV SEBSERVER_PWD=
+ENV JAVA_NET_DEBUG="ssl:handshake"
 
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-RUN export $(grep -v '^#' secrets | xargs)
-
 ENTRYPOINT exec java \
-        -Djavax.net.debug=SSL \
+        -Djavax.net.debug="${JAVA_NET_DEBUG}" \
         -jar seb-server-"${SEBSERVER_VERSION}".jar \
         --spring.profiles.active=prod \
-        --spring.config.location=file:/config/,classpath:/config/ \
+        --spring.config.location=file:/sebserver/,classpath:/config/ \
         --sebserver.certs.password="${KEYSTORE_PWD}" \ 
         --sebserver.mariadb.password="${MYSQL_ROOT_PASSWORD}" \
-        --sebserver.password="${SEBSERVER_PWD}" \
+        --sebserver.password="${SEBSERVER_PWD}"
 
-EXPOSE 443
+EXPOSE 443 8080

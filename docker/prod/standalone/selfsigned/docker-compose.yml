@@ -7,11 +7,8 @@ services:
     container_name: gencerts
     volumes:
         - ./certs:/certs
-        - ./certs.cnf:/certs/certs.cnf
-        - ./secrets:/certs/secrets
-    environment:
-        - SERVER_CN=seb-server-mariadb
-        - CLIENT_CN=seb-server-mariadb
+    env_file:
+        - secrets
   
   mariadb: 
     image: "mariadb/server:10.3"
@@ -37,11 +34,22 @@ services:
               - GIT_TAG=
               - SEBSERVER_VERSION=0.4.1-beta-SNAPSHOT
       container_name: seb-server
+      env_file:
+        - secrets
+      environment:
+        - ADDITIONAL_DNS=dns:127.0.0.1,dns:seb-server
       volumes:
-        - .:/config
+        - ./application-prod.properties:/sebserver/application-prod.properties
         - ./certs:/certs
+        - ./secrets:/sebserver/secrets
       ports:
           - 443:443
+          - 8080:80
+      logging:
+        driver: "json-file"
+        options:
+            max-size: "200k"
+            max-file: "10"
       networks:
           - seb-server-network
       depends_on:

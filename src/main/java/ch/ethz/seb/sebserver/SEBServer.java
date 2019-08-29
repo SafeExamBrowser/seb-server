@@ -92,9 +92,10 @@ public class SEBServer {
 
     private Connector redirectConnector(final Environment env) {
         final String sslPort = env.getRequiredProperty("server.port");
+        final String httpPort = env.getProperty("sebserver.ssl.redirect.html.port", "80");
         final Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
         connector.setScheme("http");
-        connector.setPort(80);
+        connector.setPort(Integer.valueOf(httpPort));
         connector.setSecure(false);
         connector.setRedirectPort(Integer.valueOf(sslPort));
         return connector;
