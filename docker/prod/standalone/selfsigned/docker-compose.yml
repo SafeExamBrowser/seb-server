@@ -44,7 +44,7 @@ services:
         - ./secrets:/sebserver/secrets
       ports:
           - 443:443
-          - 8080:80
+          - 80:8080
       logging:
         driver: "json-file"
         options:
