@@ -6,22 +6,22 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ViewRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.921+02:00", comments="Source Table: view")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.696+02:00", comments="Source Table: view")
     public static final ViewRecord viewRecord = new ViewRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.921+02:00", comments="Source field: view.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.696+02:00", comments="Source field: view.id")
     public static final SqlColumn<Long> id = viewRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.922+02:00", comments="Source field: view.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.696+02:00", comments="Source field: view.name")
     public static final SqlColumn<String> name = viewRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.922+02:00", comments="Source field: view.columns")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.697+02:00", comments="Source field: view.columns")
     public static final SqlColumn<Integer> columns = viewRecord.columns;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.922+02:00", comments="Source field: view.position")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.697+02:00", comments="Source field: view.position")
     public static final SqlColumn<Integer> position = viewRecord.position;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.921+02:00", comments="Source Table: view")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.696+02:00", comments="Source Table: view")
     public static final class ViewRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

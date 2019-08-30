@@ -6,28 +6,28 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ExamConfigurationMapRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.960+02:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.723+02:00", comments="Source Table: exam_configuration_map")
     public static final ExamConfigurationMapRecord examConfigurationMapRecord = new ExamConfigurationMapRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.id")
     public static final SqlColumn<Long> id = examConfigurationMapRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.institution_id")
     public static final SqlColumn<Long> institutionId = examConfigurationMapRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.exam_id")
     public static final SqlColumn<Long> examId = examConfigurationMapRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.configuration_node_id")
     public static final SqlColumn<Long> configurationNodeId = examConfigurationMapRecord.configurationNodeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.user_names")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.user_names")
     public static final SqlColumn<String> userNames = examConfigurationMapRecord.userNames;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source field: exam_configuration_map.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.724+02:00", comments="Source field: exam_configuration_map.encrypt_secret")
     public static final SqlColumn<String> encryptSecret = examConfigurationMapRecord.encryptSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-07-24T09:00:54.961+02:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-08-30T11:23:17.723+02:00", comments="Source Table: exam_configuration_map")
     public static final class ExamConfigurationMapRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

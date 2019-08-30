@@ -1,9 +1,5 @@
 
 -- -----------------------------------------------------
--- Schema SEBServer
--- -----------------------------------------------------
-
--- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `institution` ;
@@ -91,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `exam_user_session_identifer` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
+  `creation_time` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
@@ -103,7 +100,8 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
+    ON UPDATE NO ACTION)
+;
 
 
 -- -----------------------------------------------------
@@ -237,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
   `configuration_id` BIGINT UNSIGNED NOT NULL,
   `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
   `list_index` INT NOT NULL DEFAULT 0,
-  `value` VARCHAR(20000) NULL,
+  `value` VARCHAR(16000) NULL,
   PRIMARY KEY (`id`),
   INDEX `configuration_value_ref_idx` (`configuration_id` ASC),
   INDEX `configuration_attribute_ref_idx` (`configuration_attribute_id` ASC),
@@ -401,6 +399,7 @@ CREATE TABLE IF NOT EXISTS `oauth_access_token` (
   UNIQUE INDEX `authentication_id_UNIQUE` (`authentication_id` ASC))
 ;
 
+
 -- -----------------------------------------------------
 -- Table `oauth_refresh_token`
 -- -----------------------------------------------------
@@ -456,7 +455,7 @@ CREATE TABLE IF NOT EXISTS `user_activity_log` (
 DROP TABLE IF EXISTS `additional_attributes` ;
 
 CREATE TABLE IF NOT EXISTS `additional_attributes` (
-  `id` BIGINT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `entity_type` VARCHAR(45) NOT NULL,
   `entity_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -500,5 +499,3 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
 ;
-
-

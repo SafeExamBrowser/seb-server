@@ -37,6 +37,7 @@ public final class ClientConnection implements GrantEntity {
             null,
             null,
             null,
+            null,
             null);
 
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -67,6 +68,9 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS)
     public final String virtualClientAddress;
 
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME)
+    private final Long creationTime;
+
     @JsonCreator
     public ClientConnection(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID) final Long id,
@@ -76,7 +80,8 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER) final String userSessionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTim) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -86,6 +91,7 @@ public final class ClientConnection implements GrantEntity {
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
         this.virtualClientAddress = virtualClientAddress;
+        this.creationTime = creationTim;
     }
 
     @Override
@@ -136,6 +142,10 @@ public final class ClientConnection implements GrantEntity {
 
     public String getVirtualClientAddress() {
         return this.virtualClientAddress;
+    }
+
+    public Long getCreationTime() {
+        return this.creationTime;
     }
 
     @Override
@@ -206,6 +216,8 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.clientAddress);
         builder.append(", virtualClientAddress=");
         builder.append(this.virtualClientAddress);
+        builder.append(", creationTime=");
+        builder.append(this.creationTime);
         builder.append("]");
         return builder.toString();
     }

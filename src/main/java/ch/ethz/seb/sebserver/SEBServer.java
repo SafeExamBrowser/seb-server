@@ -8,11 +8,8 @@
 
 package ch.ethz.seb.sebserver;
 
-import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.tomcat.util.descriptor.web.SecurityCollection;
-import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
@@ -75,17 +72,7 @@ public class SEBServer {
             return new TomcatServletWebServerFactory();
         }
 
-        final TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {
-            @Override
-            protected void postProcessContext(final Context context) {
-                final SecurityConstraint securityConstraint = new SecurityConstraint();
-                securityConstraint.setUserConstraint("CONFIDENTIAL");
-                final SecurityCollection collection = new SecurityCollection();
-                collection.addPattern("/*");
-                securityConstraint.addCollection(collection);
-                context.addConstraint(securityConstraint);
-            }
-        };
+        final TomcatServletWebServerFactory tomcat = new HTTPSRedirectServerFactory();
         tomcat.addAdditionalTomcatConnectors(redirectConnector(env));
         return tomcat;
     }
@@ -95,9 +82,9 @@ public class SEBServer {
         final String httpPort = env.getProperty("sebserver.ssl.redirect.html.port", "80");
         final Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
         connector.setScheme("http");
-        connector.setPort(Integer.valueOf(httpPort));
+        connector.setPort(Integer.parseInt(httpPort));
         connector.setSecure(false);
-        connector.setRedirectPort(Integer.valueOf(sslPort));
+        connector.setRedirectPort(Integer.parseInt(sslPort));
         return connector;
     }
 

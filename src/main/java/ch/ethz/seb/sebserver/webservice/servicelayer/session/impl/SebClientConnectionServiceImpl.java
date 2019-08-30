@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -84,7 +85,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     connectionToken,
                     null,
                     clientAddress,
-                    null))
+                    null,
+                    Utils.getMillisecondsNow()))
                     .getOrThrow();
 
             // load client connection data into cache
@@ -171,7 +173,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             null,
                             userSessionId,
                             null,
-                            virtualClientAddress))
+                            virtualClientAddress,
+                            null))
                     .getOrThrow();
 
             // evict cached ClientConnection
@@ -245,7 +248,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     null,
                     userSessionId,
                     null,
-                    virtualClientAddress);
+                    virtualClientAddress,
+                    null);
 
             // ClientConnection integrity
             if (clientConnection.institutionId == null ||
@@ -313,6 +317,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     null,
                     null,
                     ConnectionStatus.CLOSED,
+                    null,
                     null,
                     null,
                     null,

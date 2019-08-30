@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -141,7 +142,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.connectionToken,
                     null,
                     data.clientAddress,
-                    data.virtualClientAddress);
+                    data.virtualClientAddress,
+                    Utils.getMillisecondsNow());
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -163,7 +165,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     data.userSessionId,
                     data.clientAddress,
-                    data.virtualClientAddress);
+                    data.virtualClientAddress,
+                    null);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -254,7 +257,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getConnectionToken(),
                     record.getExamUserSessionIdentifer(),
                     record.getClientAddress(),
-                    record.getVirtualClientAddress());
+                    record.getVirtualClientAddress(),
+                    record.getCreationTime());
         });
 
     }

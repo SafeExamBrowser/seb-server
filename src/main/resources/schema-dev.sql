@@ -18,6 +18,7 @@ DROP SCHEMA IF EXISTS `SEBServer` ;
 CREATE SCHEMA IF NOT EXISTS `SEBServer` DEFAULT CHARACTER SET utf8mb4 ;
 USE `SEBServer` ;
 
+
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
@@ -91,6 +92,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
     ON UPDATE NO ACTION)
 ;
 
+
 -- -----------------------------------------------------
 -- Table `client_connection`
 -- -----------------------------------------------------
@@ -105,6 +107,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `exam_user_session_identifer` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
+  `creation_time` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
@@ -117,7 +120,8 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
+    ON UPDATE NO ACTION)
+;
 
 
 -- -----------------------------------------------------
@@ -416,7 +420,6 @@ CREATE TABLE IF NOT EXISTS `oauth_access_token` (
 ;
 
 
-
 -- -----------------------------------------------------
 -- Table `oauth_refresh_token`
 -- -----------------------------------------------------
@@ -478,7 +481,7 @@ CREATE TABLE IF NOT EXISTS `additional_attributes` (
   `name` VARCHAR(255) NOT NULL,
   `value` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+;
 
 
 -- -----------------------------------------------------
@@ -516,7 +519,6 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
 ;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
