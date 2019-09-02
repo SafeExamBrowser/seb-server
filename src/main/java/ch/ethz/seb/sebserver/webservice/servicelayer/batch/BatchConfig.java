@@ -8,36 +8,29 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.batch;
 
-import org.quartz.CronScheduleBuilder;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BatchConfig {
 
-    @Bean
-    public JobDetail jobADetails() {
-        return JobBuilder
-                .newJob(SimpleBatchJob.class)
-                .withIdentity("sampleJobA")
-                .build();
-    }
-
-    @Bean
-    public Trigger jobATrigger(final JobDetail jobADetails) {
-
-        return TriggerBuilder
-                .newTrigger()
-                .forJob(jobADetails)
-                .withIdentity("sampleTriggerA")
-
-                .withSchedule(CronScheduleBuilder.cronSchedule("0/30 0 0 ? * * *"))
-                .startNow()
-                .build();
-    }
+//    @Bean
+//    public JobDetail jobADetails() {
+//        return JobBuilder
+//                .newJob(SimpleBatchJob.class)
+//                .withIdentity("sampleJobA")
+//                .build();
+//    }
+//
+//    @Bean
+//    public Trigger jobATrigger(final JobDetail jobADetails) {
+//
+//        return TriggerBuilder
+//                .newTrigger()
+//                .forJob(jobADetails)
+//                .withIdentity("sampleTriggerA")
+//
+//                .withSchedule(CronScheduleBuilder.cronSchedule("0/30 0 0 ? * * *"))
+//                .build();
+//    }
 
 }

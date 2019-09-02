@@ -216,7 +216,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
         assertEquals("2", String.valueOf(clientConnectionRecord.getExamId()));
-        assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
+        assertEquals("AUTHENTICATED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionIdentifer());

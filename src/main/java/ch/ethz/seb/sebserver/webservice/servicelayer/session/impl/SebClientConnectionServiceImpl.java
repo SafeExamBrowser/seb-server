@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.security.Principal;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -23,10 +24,12 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
 @Service
@@ -40,28 +43,50 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
     private final PingHandlingStrategy pingHandlingStrategy;
+    private final SebClientConfigDAO sebClientConfigDAO;
 
     protected SebClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final ExamSessionCacheService examSessionCacheService,
             final ClientConnectionDAO clientConnectionDAO,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
-            final PingHandlingStrategyFactory pingHandlingStrategyFactory) {
+            final PingHandlingStrategyFactory pingHandlingStrategyFactory,
+            final SebClientConfigDAO sebClientConfigDAO) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionCacheService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
+        this.sebClientConfigDAO = sebClientConfigDAO;
     }
 
     @Override
     public Result<ClientConnection> createClientConnection(
+            final Principal principal,
             final Long institutionId,
             final String clientAddress,
             final Long examId) {
 
         return Result.tryCatch(() -> {
+
+            final Long clientsInstitution = getInstitutionId(principal);
+            if (!clientsInstitution.equals(institutionId)) {
+                log.error("Institutional integrity violation: requested institution: {} authenticated institution: {}",
+                        institutionId,
+                        clientsInstitution);
+                throw new APIConstraintViolationException("Institutional integrity violation");
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Request received on Exam Client Connection create endpoint: "
+                        + "institution: {} "
+                        + "exam: {} "
+                        + "client-address: {}",
+                        institutionId,
+                        examId,
+                        clientAddress);
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("SEB client connection attempt, create ClientConnection for "
@@ -131,21 +156,16 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             final ClientConnection clientConnection = getClientConnection(connectionToken);
 
-            checkInstitutionalIntegrity(
-                    institutionId,
-                    clientConnection);
+            checkInstitutionalIntegrity(institutionId, clientConnection);
+            checkExamIntegrity(examId, clientConnection);
 
-            // examId integrity check
-            if (examId != null &&
-                    clientConnection.examId != null &&
-                    !examId.equals(clientConnection.examId)) {
-
-                log.error("Exam integrity violation: another examId is already set for the connection: {}",
+            // connection integrity check
+            if (clientConnection.status != ConnectionStatus.CONNECTION_REQUESTED) {
+                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
-                        "Exam integrity violation: another examId is already set for the connection");
+                        "ClientConnection integrity violation: client connection is not in expected state");
             }
-            checkExamRunning(examId);
 
             // userSessionId integrity check
             if (userSessionId != null &&
@@ -169,7 +189,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             clientConnection.id,
                             null,
                             examId,
-                            null,
+                            (userSessionId != null) ? ConnectionStatus.AUTHENTICATED : null,
                             null,
                             userSessionId,
                             null,
@@ -219,20 +239,21 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         userSessionId);
             }
 
-            checkExamRunning(examId);
-
             final ClientConnection clientConnection = getClientConnection(connectionToken);
+            checkInstitutionalIntegrity(institutionId, clientConnection);
+            checkExamIntegrity(examId, clientConnection);
 
-            checkInstitutionalIntegrity(
-                    institutionId,
-                    clientConnection);
-
-            // Exam integrity
-            if (clientConnection.examId != null && examId != null && !examId.equals(clientConnection.examId)) {
-                log.error("Exam integrity violation with examId: {} on clientConnection: {}",
-                        examId,
+            // connection integrity check
+            if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
+                // TODO discuss if we need a flag on exam domain level that indicates whether unauthenticated connection
+                //      are allowed or not
+                log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
                         clientConnection);
-                throw new IllegalAccessError("Exam integrity violation");
+            } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
+                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+                        clientConnection);
+                throw new IllegalArgumentException(
+                        "ClientConnection integrity violation: client connection is not in expected state");
             }
 
             final String virtualClientAddress = getVirtualClientAddress(
@@ -240,6 +261,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     clientAddress,
                     clientConnection.clientAddress);
 
+            // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
                     null,
@@ -312,20 +334,26 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     .byConnectionToken(connectionToken)
                     .getOrThrow();
 
-            final ClientConnection updatedClientConnection = this.clientConnectionDAO.save(new ClientConnection(
-                    clientConnection.id,
-                    null,
-                    null,
-                    ConnectionStatus.CLOSED,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null)).getOrThrow();
+            ClientConnection updatedClientConnection;
+            if (clientConnection.status != ConnectionStatus.CLOSED) {
+                updatedClientConnection = this.clientConnectionDAO.save(new ClientConnection(
+                        clientConnection.id,
+                        null,
+                        null,
+                        ConnectionStatus.CLOSED,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null)).getOrThrow();
 
-            if (log.isDebugEnabled()) {
-                log.debug("SEB client connection: successfully closed ClientConnection: {}",
-                        clientConnection);
+                if (log.isDebugEnabled()) {
+                    log.debug("SEB client connection: successfully closed ClientConnection: {}",
+                            clientConnection);
+                }
+            } else {
+                log.warn("SEB client connection is already closed: {}", clientConnection);
+                updatedClientConnection = clientConnection;
             }
 
             // evict cached ClientConnection
@@ -390,9 +418,10 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         return clientConnection;
     }
 
-    private void checkInstitutionalIntegrity(final Long institutionId, final ClientConnection clientConnection)
-            throws IllegalAccessError {
-        // Institutional integrity
+    private void checkInstitutionalIntegrity(
+            final Long institutionId,
+            final ClientConnection clientConnection) throws IllegalAccessError {
+
         if (!institutionId.equals(clientConnection.institutionId)) {
             log.error("Instituion integrity violation with institution: {} on clientConnection: {}",
                     institutionId,
@@ -435,6 +464,25 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         return this.examSessionService.getRunningExam(examId)
                 .getOrThrow()
                 .getType() == ExamType.VDI;
+    }
+
+    private Long getInstitutionId(final Principal principal) {
+        final String clientId = principal.getName();
+        return this.sebClientConfigDAO.byClientName(clientId)
+                .getOrThrow().institutionId;
+    }
+
+    private void checkExamIntegrity(final Long examId, final ClientConnection clientConnection) {
+        if (examId != null &&
+                clientConnection.examId != null &&
+                !examId.equals(clientConnection.examId)) {
+
+            log.error("Exam integrity violation: another examId is already set for the connection: {}",
+                    clientConnection);
+            throw new IllegalArgumentException(
+                    "Exam integrity violation: another examId is already set for the connection");
+        }
+        checkExamRunning(examId);
     }
 
 }

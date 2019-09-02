@@ -59,6 +59,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public ExamDAO getExamDAO() {
+        return this.examDAO;
+    }
+
+    @Override
     public boolean isExamRunning(final Long examId) {
         return !getRunningExam(examId).hasError();
     }
@@ -199,7 +204,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         // evict also cached ping record
                         this.examSessionCacheService.evictPingRecord(token);
                     });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Unexpected error while trying to flush cache for exam: ", exam, e);
         }
     }

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import java.security.Principal;
+
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -25,12 +27,14 @@ public interface SebClientConnectionService {
      * A connection-token to identify the connection is generated and stored within the
      * returned ClientConnection.
      *
+     * @param principal the client connection Principal from REST controller interface
      * @param institutionId The institution identifier
      * @param clientAddress The clients remote IP address
      * @param examId the exam identifier (can be null)
      * @return A Result refer to the newly created ClientConnection in state: CONNECTION_REQUESTED, or refer to an error
      *         if happened */
     Result<ClientConnection> createClientConnection(
+            Principal principal,
             Long institutionId,
             String clientAddress,
             Long examId);

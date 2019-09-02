@@ -81,7 +81,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER) final String userSessionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTim) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -91,7 +91,7 @@ public final class ClientConnection implements GrantEntity {
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
         this.virtualClientAddress = virtualClientAddress;
-        this.creationTime = creationTim;
+        this.creationTime = creationTime;
     }
 
     @Override

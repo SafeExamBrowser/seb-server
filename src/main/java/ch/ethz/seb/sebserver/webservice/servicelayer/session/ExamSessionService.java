@@ -15,10 +15,16 @@ import java.util.function.Predicate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
+
+    /** Get the underling ExamDAO service.
+     *
+     * @return the underling ExamDAO service. */
+    ExamDAO getExamDAO();
 
     /** Indicates whether an Exam is currently running or not.
      *

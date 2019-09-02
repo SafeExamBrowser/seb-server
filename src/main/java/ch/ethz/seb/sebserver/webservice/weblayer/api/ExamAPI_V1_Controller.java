@@ -43,7 +43,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -56,7 +55,6 @@ public class ExamAPI_V1_Controller {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAPI_V1_Controller.class);
 
-    private final ExamDAO examDAO;
     private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
     private final SebClientConnectionService sebClientConnectionService;
@@ -64,14 +62,12 @@ public class ExamAPI_V1_Controller {
     private final JSONMapper jsonMapper;
 
     protected ExamAPI_V1_Controller(
-            final ExamDAO examDAO,
             final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SebClientConnectionService sebClientConnectionService,
             final SebClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper) {
 
-        this.examDAO = examDAO;
         this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
@@ -101,25 +97,17 @@ public class ExamAPI_V1_Controller {
         final Long examId = (examIdRequestParam != null)
                 ? examIdRequestParam
                 : mapper.getLong(API.EXAM_API_PARAM_EXAM_ID);
-        final Long clientsInstitution = getInstitutionId(principal);
 
-        if (!clientsInstitution.equals(institutionId)) {
-            log.error("Institutional integrity violation: requested institution: {} authenticated institution: {}",
-                    institutionId,
-                    clientsInstitution);
-            throw new APIConstraintViolationException("Institutional integrity violation");
-        }
+        // Create and get new ClientConnection if all integrity checks passes
+        final ClientConnection clientConnection = this.sebClientConnectionService
+                .createClientConnection(principal, institutionId, remoteAddr, examId)
+                .getOrThrow();
 
-        if (log.isDebugEnabled()) {
-            log.debug("Request received on Exam Client Connection create endpoint: "
-                    + "institution: {} "
-                    + "exam: {} "
-                    + "client-address: {}",
-                    institutionId,
-                    examId,
-                    remoteAddr);
-        }
+        response.setHeader(
+                API.EXAM_API_SEB_CONNECTION_TOKEN,
+                clientConnection.connectionToken);
 
+        // Crate list of running exams
         List<RunningExamInfo> result;
         if (examId == null) {
             result = this.examSessionService.getRunningExamsForInstitution(institutionId)
@@ -128,7 +116,7 @@ public class ExamAPI_V1_Controller {
                     .map(this::createRunningExamInfo)
                     .collect(Collectors.toList());
         } else {
-            final Exam exam = this.examDAO.byPK(examId)
+            final Exam exam = this.examSessionService.getExamDAO().byPK(examId)
                     .getOrThrow();
 
             result = Arrays.asList(createRunningExamInfo(exam));
@@ -139,23 +127,7 @@ public class ExamAPI_V1_Controller {
             throw new IllegalStateException("There are no currently running exams");
         }
 
-        final ClientConnection clientConnection = this.sebClientConnectionService
-                .createClientConnection(institutionId, remoteAddr, examId)
-                .getOrThrow();
-
-        response.setHeader(
-                API.EXAM_API_SEB_CONNECTION_TOKEN,
-                clientConnection.connectionToken);
-
         return result;
-    }
-
-    private RunningExamInfo createRunningExamInfo(final Exam exam) {
-        return new RunningExamInfo(
-                exam,
-                this.lmsSetupDAO.byPK(exam.lmsSetupId)
-                        .map(lms -> lms.lmsType)
-                        .getOr(null));
     }
 
     @RequestMapping(
@@ -350,6 +322,14 @@ public class ExamAPI_V1_Controller {
         final String clientId = principal.getName();
         return this.sebClientConfigDAO.byClientName(clientId)
                 .getOrThrow().institutionId;
+    }
+
+    private RunningExamInfo createRunningExamInfo(final Exam exam) {
+        return new RunningExamInfo(
+                exam,
+                this.lmsSetupDAO.byPK(exam.lmsSetupId)
+                        .map(lms -> lms.lmsType)
+                        .getOr(null));
     }
 
 }
