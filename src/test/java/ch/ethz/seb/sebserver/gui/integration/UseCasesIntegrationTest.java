@@ -56,7 +56,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetInstitution());
 
         final Result<Institution> result = restService.getBuilder(NewInstitution.class)
-                .withQueryParam(Domain.INSTITUTION.ATTR_NAME, "Test Institution")
+                .withFormParam(Domain.INSTITUTION.ATTR_NAME, "Test Institution")
                 .call();
 
         assertNotNull(result);
