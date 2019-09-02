@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.Activ
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
@@ -94,7 +95,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "admin",
                 "admin",
                 new GetInstitution(),
-                new GetInstitutionNames());
+                new GetInstitutionNames(),
+                new NewUserAccount());
 
         final String instId = restService.getBuilder(GetInstitutionNames.class)
                 .call()
@@ -105,6 +107,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .get().modelId;
 
         assertNotNull(instId);
+
+        //restService.getBuilder(NewUserAccount.class)
+
     }
 
 }

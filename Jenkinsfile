@@ -24,7 +24,7 @@ pipeline {
             steps {
                 pmd canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/target/pmd.xml', thresholdLimit: 'high', unHealthy: ''
                 findbugs canComputeNew: false, defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', isRankActivated: true, pattern: '**/target/findbugsXml.xml', unHealthy: ''
-                jacoco classPattern: '**/build/classes/*/main/', execPattern: '**/target/jacoco.exec', sourcePattern: '**/src/main/java'
+                jacoco classPattern: '**/build/classes/*/main/', execPattern: '**/target/*.exec', sourcePattern: '**/src/main/java', inclusionPattern: '**/*.class'
             }        
         }
         
