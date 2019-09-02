@@ -199,7 +199,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                                     createNew(data);
                                     return getByProperties(data)
-                                            .orElseThrow();
+                                            .orElseThrow(() -> new ResourceNotFoundException(
+                                                    EntityType.CONFIGURATION_VALUE,
+                                                    String.valueOf(data.attributeId)));
 
                                 });
                     } else {
