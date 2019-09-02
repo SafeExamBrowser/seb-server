@@ -20,6 +20,9 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
@@ -108,7 +111,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(instId);
 
-        //restService.getBuilder(NewUserAccount.class)
+        final UserInfo userInfo = restService.getBuilder(NewUserAccount.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
+                .withFormParam(Domain.USER.ATTR_NAME, "TestInstAdmin")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "TestInstAdmin")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.INSTITUTIONAL_ADMIN.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678")
+                .call()
+                .getOrThrow();
+
+        assertNotNull(userInfo);
 
     }
 
