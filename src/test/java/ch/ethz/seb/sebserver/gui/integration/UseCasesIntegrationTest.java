@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.integration;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.springframework.core.annotation.Order;
 import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -27,10 +28,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewIn
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Test
+    @Order(1)
     public void bigUseCasesTest() {
 
         // *************************************
         // Use Case 1: SEB Administrator creates a new institution and activate this new institution
+
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
@@ -64,13 +67,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         institution = resultGet.get();
         assertEquals("Test Institution", institution.name);
         assertTrue(institution.active);
-        
+
         // *************************************
         // Use Case 2: SEB Administrator creates a new Institutional Administrator user for the
         // newly created institution and activate this user
-        
+
         // TODO do as much use cases as possible within this integration test
-        
 
     }
 
