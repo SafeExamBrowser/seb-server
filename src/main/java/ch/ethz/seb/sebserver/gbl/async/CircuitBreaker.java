@@ -102,6 +102,26 @@ public final class CircuitBreaker<T> {
         this.timeToRecover = timeToRecover;
     }
 
+    public int getMaxFailingAttempts() {
+        return this.maxFailingAttempts;
+    }
+
+    public long getMaxBlockingTime() {
+        return this.maxBlockingTime;
+    }
+
+    public long getTimeToRecover() {
+        return this.timeToRecover;
+    }
+
+    public AtomicInteger getFailingCount() {
+        return this.failingCount;
+    }
+
+    public long getLastSuccessTime() {
+        return this.lastSuccessTime;
+    }
+
     public Result<T> protectedRun(final Supplier<T> supplier) {
         final long currentTime = System.currentTimeMillis();
 

@@ -54,21 +54,42 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
     private final Supplier<T> supplier;
 
     private final boolean memoizing;
+    private final long maxMemoizingTime;
+    private long lastMemoizingTime = 0;
     private Result<T> cached = null;
 
     /** Create new CircuitBreakerSupplier.
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
      * @param supplier The Supplier function that can fail or block for a long time
-     * @param memoizing whether the memoizing functionality is on or off */
+     * @param memoizing whether the memoizing functionality is on or off
+     * @param maxMemoizingTime the maximal time memorized data is valid */
     MemoizingCircuitBreaker(
             final AsyncRunner asyncRunner,
             final Supplier<T> supplier,
-            final boolean memoizing) {
+            final boolean memoizing,
+            final long maxMemoizingTime) {
 
         this.delegate = new CircuitBreaker<>(asyncRunner);
         this.supplier = supplier;
         this.memoizing = memoizing;
+        this.maxMemoizingTime = maxMemoizingTime;
+    }
+
+    public CircuitBreaker<T> getDelegate() {
+        return this.delegate;
+    }
+
+    public boolean isMemoizing() {
+        return this.memoizing;
+    }
+
+    public long getMaxMemoizingTime() {
+        return this.maxMemoizingTime;
+    }
+
+    public long getLastMemoizingTime() {
+        return this.lastMemoizingTime;
     }
 
     /** Create new CircuitBreakerSupplier.
@@ -79,14 +100,16 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
      * @param maxBlockingTime the maximal time that an call attempt can block until an error is responded
      * @param timeToRecover the time the circuit breaker needs to cool-down on OPEN-STATE before going back to HALF_OPEN
      *            state
-     * @param memoizing whether the memoizing functionality is on or off */
+     * @param memoizing whether the memoizing functionality is on or off
+     * @param maxMemoizingTime the maximal time memorized data is valid */
     MemoizingCircuitBreaker(
             final AsyncRunner asyncRunner,
             final Supplier<T> supplier,
             final int maxFailingAttempts,
             final long maxBlockingTime,
             final long timeToRecover,
-            final boolean memoizing) {
+            final boolean memoizing,
+            final long maxMemoizingTime) {
 
         this.delegate = new CircuitBreaker<>(
                 asyncRunner,
@@ -95,6 +118,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
                 timeToRecover);
         this.supplier = supplier;
         this.memoizing = memoizing;
+        this.maxMemoizingTime = maxMemoizingTime;
     }
 
     @Override
@@ -102,10 +126,15 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
         final Result<T> result = this.delegate.protectedRun(this.supplier);
         if (result.hasError()) {
             if (this.memoizing && this.cached != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Return cached at: {}", System.currentTimeMillis());
+                final long currentTimeMillis = System.currentTimeMillis();
+                if (currentTimeMillis - this.lastMemoizingTime > this.maxMemoizingTime) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Max memoizing time reached. Return original error");
+                    }
+                    return result;
                 }
 
+                log.warn("Return cached at: {}", System.currentTimeMillis());
                 return this.cached;
             }
 
@@ -117,6 +146,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
                 }
 
                 this.cached = result;
+                this.lastMemoizingTime = System.currentTimeMillis();
             }
             return result;
         }

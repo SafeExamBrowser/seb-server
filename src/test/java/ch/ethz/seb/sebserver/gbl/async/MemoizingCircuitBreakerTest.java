@@ -42,7 +42,7 @@ public class MemoizingCircuitBreakerTest {
     @Test
     public void roundtrip1() throws InterruptedException {
         final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createMemoizingCircuitBreaker(
-                tester(100, 5, 10), 3, 500, 1000, true);
+                tester(100, 5, 10), 3, 500, 1000, true, 1000);
 
         assertNull(circuitBreaker.getChached());
 
@@ -84,13 +84,39 @@ public class MemoizingCircuitBreakerTest {
 
     }
 
+    @Test
+    public void failing() throws InterruptedException {
+        final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createMemoizingCircuitBreaker(
+                tester(50, 1, 10), 3, 100, 100, true, 1000);
+
+        assertNull(circuitBreaker.getChached());
+
+        // fist call okay.. for memoizing
+        Result<String> result = circuitBreaker.get(); // 1. call...
+        assertFalse(result.hasError());
+        assertEquals("Hello", result.get());
+        assertTrue(circuitBreaker.getLastMemoizingTime() > 0);
+
+        // second call is okay from memoizing
+        Thread.sleep(100);
+        result = circuitBreaker.get(); // 2. call...
+        assertFalse(result.hasError());
+        assertEquals("Hello", result.get());
+        assertTrue(circuitBreaker.getLastMemoizingTime() > 0);
+
+        // third call is failing because of memoizing timeout
+        Thread.sleep(1000);
+        result = circuitBreaker.get(); // 3. call...
+        assertTrue(result.hasError());
+    }
+
     private Supplier<String> tester(final long delay, final int unavailableAfter, final int unavailableUntil) {
         final AtomicInteger count = new AtomicInteger(0);
         final AtomicBoolean wasUnavailable = new AtomicBoolean(false);
         return () -> {
             final int attempts = count.getAndIncrement();
 
-            log.info("tester answers {} {}", attempts, Thread.currentThread());
+            log.debug("tester answers {} {}", attempts, Thread.currentThread());
 
             try {
                 Thread.sleep(delay);
@@ -106,7 +132,5 @@ public class MemoizingCircuitBreakerTest {
             return (wasUnavailable.get()) ? "Hello back again" : "Hello";
         };
     }
-
-    // TODO timeout test: test also the behavior on timeout, is the thread being interrupted and released or not (should!)
 
 }

@@ -40,18 +40,23 @@ public class AsyncService {
                 timeToRecover);
     }
 
-    public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
-            final Supplier<T> blockingSupplier) {
-
-        return new MemoizingCircuitBreaker<>(this.asyncRunner, blockingSupplier, true);
-    }
+//    public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
+//            final Supplier<T> blockingSupplier) {
+//
+//        return new MemoizingCircuitBreaker<>(
+//                this.asyncRunner,
+//                blockingSupplier,
+//                true,
+//                Constants.HOUR_IN_MILLIS);
+//    }
 
     public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
             final Supplier<T> blockingSupplier,
             final int maxFailingAttempts,
             final long maxBlockingTime,
             final long timeToRecover,
-            final boolean momoized) {
+            final boolean momoized,
+            final long maxMemoizingTime) {
 
         return new MemoizingCircuitBreaker<>(
                 this.asyncRunner,
@@ -59,7 +64,8 @@ public class AsyncService {
                 maxFailingAttempts,
                 maxBlockingTime,
                 timeToRecover,
-                momoized);
+                momoized,
+                maxMemoizingTime);
     }
 
 }

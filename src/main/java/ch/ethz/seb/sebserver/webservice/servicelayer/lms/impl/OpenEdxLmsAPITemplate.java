@@ -46,6 +46,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
@@ -97,7 +98,13 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             this.knownTokenAccessPaths.addAll(Arrays.asList(alternativeTokenRequestPaths));
         }
 
-        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(allQuizzesSupplier());
+        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(
+                allQuizzesSupplier(),
+                3,
+                Constants.MINUTE_IN_MILLIS,
+                Constants.MINUTE_IN_MILLIS,
+                true,
+                Constants.HOUR_IN_MILLIS);
     }
 
     @Override
