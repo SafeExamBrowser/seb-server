@@ -20,15 +20,15 @@ services:
               - SEBSERVER_VERSION=0.4.1-beta
       container_name: seb-server
       environment:
-          - SERVER_ADDRESS=0.0.0.0
           - SERVER_PORT=8080
-          - DBSERVER_ADDRESS=seb-server-mariadb
-          - DBSERVER_PORT=3306
           - DBSERVER_PWD=somePW
           - GUICLIENT_PWD=somePW
           - INTERNAL_PWD=somePW
+      volumes:
+        - ./application-demo.properties:/sebserver/application-demo.properties
       ports:
           - 8080:8080
+          - 9090:9090
       networks:
           - ralph
       depends_on:
