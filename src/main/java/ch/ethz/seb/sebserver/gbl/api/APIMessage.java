@@ -156,6 +156,21 @@ public class APIMessage implements Serializable {
         return this.attributes;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("APIMessage [messageCode=");
+        builder.append(this.messageCode);
+        builder.append(", systemMessage=");
+        builder.append(this.systemMessage);
+        builder.append(", details=");
+        builder.append(this.details);
+        builder.append(", attributes=");
+        builder.append(this.attributes);
+        builder.append("]");
+        return builder.toString();
+    }
+
     /** Use this as a conversion from a given FieldError of Spring to a APIMessage
      * of type field validation.
      *

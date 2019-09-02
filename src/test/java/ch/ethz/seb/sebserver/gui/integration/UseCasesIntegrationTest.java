@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import java.util.Locale;
+
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -111,7 +114,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(instId);
 
-        final UserInfo userInfo = restService.getBuilder(NewUserAccount.class)
+        final Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
                 .withFormParam(Domain.USER.ATTR_NAME, "TestInstAdmin")
                 .withFormParam(Domain.USER.ATTR_USERNAME, "TestInstAdmin")
@@ -119,9 +122,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.INSTITUTIONAL_ADMIN.name())
                 .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
                 .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678")
-                .call()
-                .getOrThrow();
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
 
+        assertFalse(result.hasError());
+        final UserInfo userInfo = result.get();
         assertNotNull(userInfo);
 
     }
