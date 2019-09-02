@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @Lazy
 @Component
@@ -183,13 +184,13 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         }
 
         @Override
-        public boolean login(final String username, final String password) {
+        public boolean login(final String username, final CharSequence password) {
             if (!this.valid || this.isLoggedIn()) {
                 return false;
             }
 
             this.resource.setUsername(username);
-            this.resource.setPassword(password);
+            this.resource.setPassword(Utils.toString(password));
 
             log.debug("Trying to login for user: {}", username);
 

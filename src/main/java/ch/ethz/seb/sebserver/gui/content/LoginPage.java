@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -83,41 +84,70 @@ public class LoginPage implements TemplateComposer {
                 .getAuthorizationContext(RWT.getUISession().getHttpSession());
 
         button.addListener(SWT.Selection, event -> {
-            final String username = loginName.getText();
-            try {
-
-                final boolean loggedIn = authorizationContext.login(
-                        username,
-                        loginPassword.getText());
-
-                if (loggedIn) {
-                    // Set users locale on page after successful login
-                    this.i18nSupport.setSessionLocale(
-                            authorizationContext
-                                    .getLoggedInUser()
-                                    .getOrThrow().language);
-
-                    pageContext.forwardToMainPage();
-
-                } else {
-                    loginError(pageContext, "sebserver.login.failed.message");
-                }
-            } catch (final Exception e) {
-                log.error("Unexpected error while trying to login with user: {}", username, e);
-                loginError(pageContext, "Unexpected Error. Please call an Administrator");
-            }
+            login(
+                    pageContext,
+                    loginName.getText(),
+                    loginPassword.getText(),
+                    authorizationContext);
         });
         loginName.addListener(SWT.KeyDown, event -> {
             if (event.character == '\n' || event.character == '\r') {
-                loginPassword.setFocus();
+                if (StringUtils.isNotBlank(loginPassword.getText())) {
+                    login(
+                            pageContext,
+                            loginName.getText(),
+                            loginPassword.getText(),
+                            authorizationContext);
+                } else {
+                    loginPassword.setFocus();
+                }
             }
         });
         loginPassword.addListener(SWT.KeyDown, event -> {
             if (event.character == '\n' || event.character == '\r') {
-                button.setFocus();
+                if (StringUtils.isNotBlank(loginName.getText())) {
+                    login(
+                            pageContext,
+                            loginName.getText(),
+                            loginPassword.getText(),
+                            authorizationContext);
+                } else {
+                    loginName.setFocus();
+                }
             }
         });
 
+    }
+
+    private void login(
+            final PageContext pageContext,
+            final String loginName,
+            final CharSequence loginPassword,
+            final SEBServerAuthorizationContext authorizationContext) {
+
+        final String username = loginName;
+        try {
+
+            final boolean loggedIn = authorizationContext.login(
+                    username,
+                    loginPassword);
+
+            if (loggedIn) {
+                // Set users locale on page after successful login
+                this.i18nSupport.setSessionLocale(
+                        authorizationContext
+                                .getLoggedInUser()
+                                .getOrThrow().language);
+
+                pageContext.forwardToMainPage();
+
+            } else {
+                loginError(pageContext, "sebserver.login.failed.message");
+            }
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to login with user: {}", username, e);
+            loginError(pageContext, "Unexpected Error. Please call an Administrator");
+        }
     }
 
     private void loginError(

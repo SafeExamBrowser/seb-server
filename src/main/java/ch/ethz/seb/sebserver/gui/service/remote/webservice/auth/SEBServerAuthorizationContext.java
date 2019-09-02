@@ -35,7 +35,7 @@ public interface SEBServerAuthorizationContext {
      * @param username the username for login
      * @param password the password for login
      * @return */
-    boolean login(String username, String password);
+    boolean login(String username, CharSequence password);
 
     /** Requests a logout on SEB Server webservice if a user is currently logged in
      * This uses OAuth 2 and Springs OAuth2RestTemplate to make a revoke token request for the
