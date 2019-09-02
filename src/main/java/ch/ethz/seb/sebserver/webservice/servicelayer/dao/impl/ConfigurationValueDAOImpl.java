@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -33,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableV
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
@@ -189,20 +189,19 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                     final Long id;
                     if (data.id == null) {
-                        id = this.configurationValueRecordMapper.selectIdsByExample()
-                                .where(
-                                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                        isEqualTo(data.configurationId))
-                                .and(
-                                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                        isEqualTo(data.attributeId))
-                                .and(
-                                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                                        isEqualTo(data.listIndex))
-                                .build()
-                                .execute()
-                                .stream()
-                                .collect(Utils.toSingleton());
+
+                        id = getByProperties(data)
+                                .orElseGet(() -> {
+                                    log.warn("Missing SEB exam configuration attrribute value for: {}", data);
+                                    log.info("Use self-healing strategy to recover from missing SEB exam configuration "
+                                            + "attrribute value\n**** Create new AttributeValue for: {}",
+                                            data);
+
+                                    createNew(data);
+                                    return getByProperties(data)
+                                            .orElseThrow();
+
+                                });
                     } else {
                         id = data.id;
                     }
@@ -444,6 +443,23 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         }
 
         return data;
+    }
+
+    private Optional<Long> getByProperties(final ConfigurationValue data) {
+        return this.configurationValueRecordMapper.selectIdsByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(data.configurationId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                        isEqualTo(data.attributeId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                        isEqualTo(data.listIndex))
+                .build()
+                .execute()
+                .stream()
+                .findFirst();
     }
 
 }

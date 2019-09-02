@@ -206,6 +206,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (314, 'allowDisplayMirroring', 'CHECKBOX', null, null, null, null, 'false'),
     (315, 'allowedDisplaysMaxNumber', 'COMBO_SELECTION', null, '1,2,3', null, null, '1'),
     (316, 'allowedDisplayBuiltin', 'CHECKBOX', null, null, null, null, 'true'),
+    (317, 'logLevel', 'SINGLE_SELECTION', null, '0,1,2,3,4', null, null, '1'),
     
     (400, 'insideSebEnableSwitchUser', 'CHECKBOX', null, null, null, null, 'false'),
     (401, 'insideSebEnableLockThisComputer', 'CHECKBOX', null, null, null, null, 'false'),
@@ -420,6 +421,7 @@ INSERT IGNORE INTO orientation VALUES
     (314, 314, 0, 9, 'macSettings', 7, 7, 5, 1, 'NONE'),
     (315, 315, 0, 9, 'macSettings', 7, 9, 5, 1, 'TOP'),
     (316, 316, 0, 9, 'macSettings', 7, 10, 5, 1, 'NONE'),
+    (317, 317, 0, 9, 'logging', 3, 11, 4, 1, 'LEFT_SPAN'),
     
     (400, 400, 0, 10, 'registry', 0, 1, 4, 1, 'NONE'),
     (401, 401, 0, 10, 'registry', 0, 2, 4, 1, 'NONE'),

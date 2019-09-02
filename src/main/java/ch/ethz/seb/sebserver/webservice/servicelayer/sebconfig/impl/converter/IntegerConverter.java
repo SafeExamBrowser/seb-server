@@ -79,7 +79,9 @@ public class IntegerConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final String template) throws IOException {
 
-        final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
+        final String val = (value != null && value.value != null)
+                ? value.value
+                : attribute.getDefaultValue();
         int intVal = 0;
 
         try {

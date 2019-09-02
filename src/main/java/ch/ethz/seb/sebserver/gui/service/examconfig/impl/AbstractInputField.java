@@ -117,7 +117,10 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
                     initValue(v.value, v.listIndex);
                     return v;
                 })
-                .orElse(null);
+                .orElseGet(() -> {
+                    initValue(this.attribute.defaultValue, 0);
+                    return null;
+                });
     }
 
     @Override
