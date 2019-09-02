@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -291,4 +292,50 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
                 userInfo.roles);
     }
 
+    /** Use this to create a copy of a given UserInfo by overriding available arguments.
+     *
+     * @param userInfo UserInfo instance to copy
+     * @param name new name or null if the name of given userInfo should be taken
+     * @param username new username or null if the username of given userInfo should be taken
+     * @param email new email or null if the email of given userInfo should be taken
+     * @param language new language or null if the language of given userInfo should be taken
+     * @param timeZone new timeZone or null if the timeZone of given userInfo should be taken
+     * @param roles new timeZone or null if the roles of given userInfo should be taken
+     * @return copied UserInfo instance with the given attributes */
+    public static final UserInfo of(
+            final UserInfo userInfo,
+            final String name,
+            final String username,
+            final String email,
+            final Locale language,
+            final DateTimeZone timeZone,
+            final String... roles) {
+
+        return new UserInfo(
+                userInfo.getUuid(),
+                userInfo.getInstitutionId(),
+                (name != null) ? name : userInfo.getName(),
+                (username != null) ? username : userInfo.getUsername(),
+                (email != null) ? email : userInfo.getEmail(),
+                userInfo.getActive(),
+                (language != null) ? language : userInfo.getLanguage(),
+                (timeZone != null) ? timeZone : userInfo.getTimeZone(),
+                (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles);
+    }
+
+    public static final UserInfo withName(final UserInfo userInfo, final String name) {
+        return of(userInfo, name, null, null, null, null, (String[]) null);
+    }
+
+    public static final UserInfo withUserName(final UserInfo userInfo, final String username) {
+        return of(userInfo, null, username, null, null, null, (String[]) null);
+    }
+
+    public static final UserInfo withEMail(final UserInfo userInfo, final String email) {
+        return of(userInfo, null, null, email, null, null, (String[]) null);
+    }
+
+    public static final UserInfo withRoles(final UserInfo userInfo, final String... roles) {
+        return of(userInfo, null, null, null, null, null, roles);
+    }
 }

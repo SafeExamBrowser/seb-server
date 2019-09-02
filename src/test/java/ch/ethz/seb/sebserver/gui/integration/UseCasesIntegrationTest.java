@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 
 import org.joda.time.DateTimeZone;
@@ -21,18 +23,25 @@ import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
@@ -95,14 +104,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 2: SEB Administrator creates a new Institutional Administrator user for the
     // newly created institution and activate this user
-
     public void testUsecase2() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
                 new GetInstitution(),
                 new GetInstitutionNames(),
-                new NewUserAccount());
+                new NewUserAccount(),
+                new ActivateUserAccount(),
+                new GetUserAccount());
 
         final String instId = restService.getBuilder(GetInstitutionNames.class)
                 .call()
@@ -114,7 +124,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(instId);
 
-        final Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
+        Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
                 .withFormParam(Domain.USER.ATTR_NAME, "TestInstAdmin")
                 .withFormParam(Domain.USER.ATTR_USERNAME, "TestInstAdmin")
@@ -127,9 +137,121 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call();
 
         assertFalse(result.hasError());
-        final UserInfo userInfo = result.get();
+        UserInfo userInfo = result.get();
         assertNotNull(userInfo);
+        assertEquals("TestInstAdmin", userInfo.name);
+        assertEquals("TestInstAdmin", userInfo.username);
+        assertEquals("test@test.ch", userInfo.email);
+        assertEquals("[INSTITUTIONAL_ADMIN]", String.valueOf(userInfo.getRoles()));
+        assertEquals(Locale.ENGLISH, userInfo.language);
+        assertEquals(DateTimeZone.UTC, userInfo.timeZone);
+        assertFalse(userInfo.isActive());
 
+        final Result<EntityProcessingReport> activation = restService.getBuilder(ActivateUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userInfo.uuid))
+                .call();
+
+        assertFalse(activation.hasError());
+        final EntityProcessingReport entityProcessingReport = activation.get();
+        assertTrue(entityProcessingReport.getErrors().isEmpty());
+
+        result = restService.getBuilder(GetUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userInfo.uuid))
+                .call();
+
+        assertFalse(result.hasError());
+        userInfo = result.get();
+        assertTrue(userInfo.isActive());
+    }
+
+    @Test
+    @Order(3)
+    // *************************************
+    // Use Case 3: Login with the new TestInstAdmin and check that only its institution is available
+    // check also that it is not possible to change to SEB Administrator role
+    // check also this it is possible to change the password and after that a new login is needed
+    // check also that property changes are possible. E.g: email
+    public void testUsecase3() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "12345678",
+                new GetInstitutionNames(),
+                new SaveUserAccount(),
+                new ChangePassword(),
+                new GetUserAccount(),
+                new GetUserAccountNames());
+
+        final List<EntityName> institutions = restService.getBuilder(GetInstitutionNames.class)
+                .call()
+                .getOrThrow();
+
+        assertTrue(institutions.size() == 1);
+        assertEquals("Test Institution", institutions.get(0).name);
+
+        final List<EntityName> userNames = restService.getBuilder(GetUserAccountNames.class)
+                .call()
+                .getOrThrow();
+
+        assertTrue(userNames.size() == 1);
+        assertEquals("TestInstAdmin", userNames.get(0).name);
+
+        final String userId = userNames.get(0).modelId;
+
+        UserInfo userInfo = restService.getBuilder(GetUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, userId)
+                .call()
+                .getOrThrow();
+
+        // change email (should work properly)
+        assertEquals("test@test.ch", userInfo.email);
+        userInfo = UserInfo.withEMail(userInfo, "newMail@test.ch");
+        userInfo = restService.getBuilder(SaveUserAccount.class)
+                .withBody(userInfo)
+                .call()
+                .getOrThrow();
+
+        assertEquals("newMail@test.ch", userInfo.email);
+
+        // adding new role that is lower should work (example Exam Admin)
+        userInfo = UserInfo.withRoles(userInfo, UserRole.INSTITUTIONAL_ADMIN.name(), UserRole.EXAM_ADMIN.name());
+        userInfo = restService.getBuilder(SaveUserAccount.class)
+                .withBody(userInfo)
+                .call()
+                .getOrThrow();
+
+        assertEquals(
+                "[EXAM_ADMIN, INSTITUTIONAL_ADMIN]",
+                String.valueOf(new LinkedHashSet<>(userInfo.getRoles())));
+
+        // adding new role that is higher shouldn't work
+        userInfo = UserInfo.withRoles(userInfo, UserRole.INSTITUTIONAL_ADMIN.name(), UserRole.SEB_SERVER_ADMIN.name());
+        final Result<UserInfo> call = restService.getBuilder(SaveUserAccount.class)
+                .withBody(userInfo)
+                .call();
+
+        assertTrue(call.hasError());
+        assertEquals("Unexpected error while rest call", call.getError().getMessage());
+        RestCallError error = (RestCallError) call.getError();
+        assertEquals(
+                "[APIMessage [messageCode=1100, systemMessage=Unexpected intenral server-side error, details=No edit right grant for user: TestInstAdmin, attributes=[]]]",
+                String.valueOf(error.getErrorMessages()));
+
+        // change password
+        final Result<UserInfo> passwordChange = restService.getBuilder(ChangePassword.class)
+                .withBody(new PasswordChange(userId, "12345678", "987654321", "987654321"))
+                .call();
+
+        assertFalse(passwordChange.hasError());
+        userInfo = passwordChange.get();
+
+        // is the login still valid (should not)
+        final Result<List<EntityName>> instNames = restService.getBuilder(GetInstitutionNames.class)
+                .call();
+        assertTrue(instNames.hasError());
+        error = (RestCallError) instNames.getError();
+        assertEquals(
+                "UNAUTHORIZED",
+                String.valueOf(error.getErrorMessages().get(0).getSystemMessage()));
     }
 
 }

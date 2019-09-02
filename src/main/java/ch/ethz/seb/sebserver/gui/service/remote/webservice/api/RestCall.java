@@ -159,10 +159,18 @@ public abstract class RestCall<T> {
         final RestCallError restCallError =
                 new RestCallError("Response Entity: " + responseEntity.toString());
 
-        restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
-                responseEntity.getBody(),
-                new TypeReference<List<APIMessage>>() {
-                }));
+        try {
+            restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
+                    responseEntity.getBody(),
+                    new TypeReference<List<APIMessage>>() {
+                    }));
+        } catch (final JsonParseException jpe) {
+            if (responseEntity.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                restCallError.errors.add(APIMessage.ErrorMessage.UNAUTHORIZED.of(responseEntity.getBody()));
+            } else {
+                restCallError.errors.add(APIMessage.ErrorMessage.GENERIC.of(responseEntity.getBody()));
+            }
+        }
 
         log.debug(
                 "Webservice answered with well defined error- or validation-failure-response: ",
