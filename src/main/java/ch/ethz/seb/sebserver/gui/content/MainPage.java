@@ -42,7 +42,7 @@ public class MainPage implements TemplateComposer {
 
     static final Logger log = LoggerFactory.getLogger(MainPage.class);
 
-    private static final int ACTIVITY_PANE_WEIGHT = 15;
+    private static final int ACTIVITY_PANE_WEIGHT = 18;
     private static final int CONTENT_PANE_WEIGHT = 65;
     private static final int ACTION_PANE_WEIGHT = 20;
     private static final int[] DEFAULT_SASH_WEIGHTS = new int[] {

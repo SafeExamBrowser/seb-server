@@ -12,17 +12,19 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.Activity;
 
 public enum ActivityDefinition implements Activity {
+    SEB_ADMINISTRATION(new LocTextKey("sebserver.overall.activity.title.serveradmin")),
     INSTITUTION(new LocTextKey("sebserver.institution.action.list")),
     USER_ACCOUNT(new LocTextKey("sebserver.useraccount.action.list")),
+    USER_ACTIVITY_LOGS(new LocTextKey("sebserver.logs.activity.userlogs")),
     LMS_SETUP(new LocTextKey("sebserver.lmssetup.action.list")),
     QUIZ_DISCOVERY(new LocTextKey("sebserver.quizdiscovery.action.list")),
+    EXAM_ADMINISTRATION(new LocTextKey("sebserver.overall.activity.title.examadmin")),
     EXAM(new LocTextKey("sebserver.exam.action.list")),
-    SEB_CONFIGURATION(new LocTextKey("sebserver.sebconfig.activity.name")),
+    SEB_CONFIGURATION(new LocTextKey("sebserver.overall.activity.title.sebconfig")),
     SEB_CLIENT_CONFIG(new LocTextKey("sebserver.clientconfig.action.list")),
     SEB_EXAM_CONFIG(new LocTextKey("sebserver.examconfig.action.list")),
+    MONITORING(new LocTextKey("sebserver.overall.activity.title.monitoring")),
     MONITORING_EXAMS(new LocTextKey("sebserver.monitoring.action.list")),
-    LOGS(new LocTextKey("sebserver.logs.activity.main")),
-    USER_ACTIVITY_LOGS(new LocTextKey("sebserver.logs.activity.userlogs")),
     SEB_CLIENT_LOGS(new LocTextKey("sebserver.logs.activity.seblogs"));
 
     public final LocTextKey displayName;

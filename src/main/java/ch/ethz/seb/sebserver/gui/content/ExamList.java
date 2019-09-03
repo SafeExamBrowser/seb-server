@@ -211,9 +211,9 @@ public class ExamList implements TemplateComposer {
             throw new PageMessageException(EMPTY_SELECTION_TEXT_KEY);
         }
 
-        if (exam.startTime != null) {
+        if (exam.endTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            if (exam.startTime.isBefore(now)) {
+            if (exam.endTime.isBefore(now)) {
                 throw new PageMessageException(NO_MODIFY_OF_OUT_DATED_EXAMS);
             }
         }

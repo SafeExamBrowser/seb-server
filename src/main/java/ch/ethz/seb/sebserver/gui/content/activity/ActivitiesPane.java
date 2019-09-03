@@ -8,7 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
-import org.eclipse.rap.rwt.RWT;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Event;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -43,6 +43,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Lazy
 @Component
 public class ActivitiesPane implements TemplateComposer {
+
+    private static final String SKIP_EXPAND = "SKIP_EXPAND";
 
     private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
 
@@ -81,12 +83,20 @@ public class ActivitiesPane implements TemplateComposer {
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext);
 
+        //--------------------------------------------------------------------------------------
+        // ---- SEB ADMIN ----------------------------------------------------------------------
+
+        // SEB Server Administration
+        final TreeItem sebadmin = this.widgetFactory.treeItemLocalized(
+                navigation,
+                ActivityDefinition.SEB_ADMINISTRATION.displayName);
+
         // Institution
         // If current user has SEB Server Admin role, show the Institution list
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    navigation,
+                    sebadmin,
                     ActivityDefinition.INSTITUTION.displayName);
             injectActivitySelection(
                     institutions,
@@ -97,7 +107,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
             // otherwise show the form of the institution for current user
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    navigation,
+                    sebadmin,
                     ActivityDefinition.INSTITUTION.displayName);
             injectActivitySelection(
                     institutions,
@@ -112,7 +122,7 @@ public class ActivitiesPane implements TemplateComposer {
         if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                    navigation,
+                    sebadmin,
                     ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(
                     userAccounts,
@@ -122,7 +132,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else {
             // otherwise show the user account form for current user
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                    navigation,
+                    sebadmin,
                     ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(
                     userAccounts,
@@ -132,42 +142,27 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
-        // LMS Setup
-        if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.LMS_SETUP)) {
-            final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
-                    navigation,
-                    ActivityDefinition.LMS_SETUP.displayName);
+        // User Activity Logs
+        final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
+                PrivilegeType.READ,
+                EntityType.USER_ACTIVITY_LOG);
+        if (viewUserActivityLogs) {
+            final TreeItem activityLogs = this.widgetFactory.treeItemLocalized(
+                    sebadmin,
+                    ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
             injectActivitySelection(
-                    lmsSetup,
+                    activityLogs,
                     actionBuilder
-                            .newAction(ActionDefinition.LMS_SETUP_VIEW_LIST)
+                            .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
                             .create());
         }
 
-        // Exam (Quiz Discovery)
-        if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
-                this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM)) {
+        sebadmin.setExpanded(true);
+        // ---- SEB ADMIN ----------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
 
-            // Quiz Discovery
-            final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
-                    navigation,
-                    ActivityDefinition.QUIZ_DISCOVERY.displayName);
-            injectActivitySelection(
-                    quizDiscovery,
-                    actionBuilder
-                            .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
-                            .create());
-
-            // Exam
-            final TreeItem exam = this.widgetFactory.treeItemLocalized(
-                    navigation,
-                    ActivityDefinition.EXAM.displayName);
-            injectActivitySelection(
-                    exam,
-                    actionBuilder
-                            .newAction(ActionDefinition.EXAM_VIEW_LIST)
-                            .create());
-        }
+        //--------------------------------------------------------------------------------------
+        // ---- SEB CONFIGURATION --------------------------------------------------------------
 
         // SEB Configurations
         final boolean clientConfigRead = this.currentUser.hasInstitutionalPrivilege(
@@ -177,120 +172,175 @@ public class ActivitiesPane implements TemplateComposer {
                 PrivilegeType.READ,
                 EntityType.CONFIGURATION_NODE);
 
-        TreeItem sebConfigs = null;
-        if (clientConfigRead && examConfigRead) {
-            sebConfigs = this.widgetFactory.treeItemLocalized(
+        if (clientConfigRead || examConfigRead) {
+            final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.SEB_CONFIGURATION.displayName);
-            sebConfigs.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
+            //sebConfigs.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
 
+            // SEB Client Config
+            if (clientConfigRead) {
+                final TreeItem clientConfig = (sebConfigs != null)
+                        ? this.widgetFactory.treeItemLocalized(
+                                sebConfigs,
+                                ActivityDefinition.SEB_CLIENT_CONFIG.displayName)
+                        : this.widgetFactory.treeItemLocalized(
+                                navigation,
+                                ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
+                injectActivitySelection(
+                        clientConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_LIST)
+                                .create());
+            }
+
+            // SEB Exam Config
+            if (examConfigRead) {
+                final TreeItem examConfig = (sebConfigs != null)
+                        ? this.widgetFactory.treeItemLocalized(
+                                sebConfigs,
+                                ActivityDefinition.SEB_EXAM_CONFIG.displayName)
+                        : this.widgetFactory.treeItemLocalized(
+                                navigation,
+                                ActivityDefinition.SEB_EXAM_CONFIG.displayName);
+                injectActivitySelection(
+                        examConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                                .create());
+            }
+            sebConfigs.setExpanded(true);
         }
 
-        // SEB Client Config
-        if (clientConfigRead) {
-            final TreeItem clientConfig = (sebConfigs != null)
-                    ? this.widgetFactory.treeItemLocalized(
-                            sebConfigs,
-                            ActivityDefinition.SEB_CLIENT_CONFIG.displayName)
-                    : this.widgetFactory.treeItemLocalized(
-                            navigation,
-                            ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
-            injectActivitySelection(
-                    clientConfig,
-                    actionBuilder
-                            .newAction(ActionDefinition.SEB_CLIENT_CONFIG_LIST)
-                            .create());
+        // ---- SEB CONFIGURATION --------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------
+        // ---- EXAM ADMINISTRATION ------------------------------------------------------------
+
+        final boolean lmsRead = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.LMS_SETUP);
+        final boolean examRead = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
+                this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM);
+
+        // Exam Administration
+        final TreeItem examadmin = this.widgetFactory.treeItemLocalized(
+                navigation,
+                ActivityDefinition.EXAM_ADMINISTRATION.displayName);
+
+        if (examRead || lmsRead) {
+            // LMS Setup
+            if (lmsRead) {
+                final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
+                        examadmin,
+                        ActivityDefinition.LMS_SETUP.displayName);
+                injectActivitySelection(
+                        lmsSetup,
+                        actionBuilder
+                                .newAction(ActionDefinition.LMS_SETUP_VIEW_LIST)
+                                .create());
+            }
+
+            // Exam (Quiz Discovery)
+            if (examRead) {
+
+                // Quiz Discovery
+                final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
+                        examadmin,
+                        ActivityDefinition.QUIZ_DISCOVERY.displayName);
+                injectActivitySelection(
+                        quizDiscovery,
+                        actionBuilder
+                                .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                                .create());
+
+                // Exam
+                final TreeItem exam = this.widgetFactory.treeItemLocalized(
+                        examadmin,
+                        ActivityDefinition.EXAM.displayName);
+                injectActivitySelection(
+                        exam,
+                        actionBuilder
+                                .newAction(ActionDefinition.EXAM_VIEW_LIST)
+                                .create());
+            }
+
+            examadmin.setExpanded(true);
         }
 
-        // SEB Exam Config
-        if (examConfigRead) {
-            final TreeItem examConfig = (sebConfigs != null)
-                    ? this.widgetFactory.treeItemLocalized(
-                            sebConfigs,
-                            ActivityDefinition.SEB_EXAM_CONFIG.displayName)
-                    : this.widgetFactory.treeItemLocalized(
-                            navigation,
-                            ActivityDefinition.SEB_EXAM_CONFIG.displayName);
-            injectActivitySelection(
-                    examConfig,
-                    actionBuilder
-                            .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
-                            .create());
-        }
+        // ---- EXAM ADMINISTRATION ------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
 
-        // Monitoring exams
-        if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
-            final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
-                    navigation,
-                    ActivityDefinition.MONITORING_EXAMS.displayName);
-            injectActivitySelection(
-                    clientConfig,
-                    actionBuilder
-                            .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
-                            .create());
-        }
+        //--------------------------------------------------------------------------------------
+        // ---- MONITORING ---------------------------------------------------------------------
 
-        // Logs
-        final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
-                PrivilegeType.READ,
-                EntityType.USER_ACTIVITY_LOG);
+        final boolean isSupporter = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER);
         final boolean viewSebClientLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
                 EntityType.EXAM) ||
                 this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
 
-        TreeItem logRoot = null;
-        if (viewUserActivityLogs && viewSebClientLogs) {
-            logRoot = this.widgetFactory.treeItemLocalized(
+        if (isSupporter || viewSebClientLogs) {
+            // Monitoring
+            final TreeItem monitoring = this.widgetFactory.treeItemLocalized(
                     navigation,
-                    ActivityDefinition.LOGS.displayName);
-            logRoot.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
+                    ActivityDefinition.MONITORING.displayName);
+
+            // Monitoring exams
+            if (isSupporter) {
+                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+                        monitoring,
+                        ActivityDefinition.MONITORING_EXAMS.displayName);
+                injectActivitySelection(
+                        clientConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
+                                .create());
+            }
+
+            // SEB Client Logs
+            if (viewSebClientLogs) {
+                final TreeItem sebLogs = (monitoring != null)
+                        ? this.widgetFactory.treeItemLocalized(
+                                monitoring,
+                                ActivityDefinition.SEB_CLIENT_LOGS.displayName)
+                        : this.widgetFactory.treeItemLocalized(
+                                navigation,
+                                ActivityDefinition.SEB_CLIENT_LOGS.displayName);
+                injectActivitySelection(
+                        sebLogs,
+                        actionBuilder
+                                .newAction(ActionDefinition.LOGS_SEB_CLIENT)
+                                .create());
+            }
+
+            monitoring.setExpanded(true);
         }
 
-        // User Activity Logs
-        if (viewUserActivityLogs) {
-            final TreeItem activityLogs = (logRoot != null)
-                    ? this.widgetFactory.treeItemLocalized(
-                            logRoot,
-                            ActivityDefinition.USER_ACTIVITY_LOGS.displayName)
-                    : this.widgetFactory.treeItemLocalized(
-                            navigation,
-                            ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
-            injectActivitySelection(
-                    activityLogs,
-                    actionBuilder
-                            .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
-                            .create());
-        }
-
-        // SEB Client Logs
-        if (viewSebClientLogs) {
-            final TreeItem sebLogs = (logRoot != null)
-                    ? this.widgetFactory.treeItemLocalized(
-                            logRoot,
-                            ActivityDefinition.SEB_CLIENT_LOGS.displayName)
-                    : this.widgetFactory.treeItemLocalized(
-                            navigation,
-                            ActivityDefinition.SEB_CLIENT_LOGS.displayName);
-            injectActivitySelection(
-                    sebLogs,
-                    actionBuilder
-                            .newAction(ActionDefinition.LOGS_SEB_CLIENT)
-                            .create());
-        }
-
-        // TODO other activities
+        // ---- MONITORING ---------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
 
         // register page listener and initialize navigation data
         navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
         navigation.addListener(SWT.Expand, event -> {
+            final TreeItem item = (TreeItem) event.item;
+            selectCurrentItem(navigation, item);
+        });
+        navigation.addListener(SWT.Collapse, event -> {
             final Tree tree = (Tree) event.widget;
-            final TreeItem treeItem = (TreeItem) event.item;
+            tree.setData(SKIP_EXPAND, true);
+        });
+        navigation.addListener(SWT.MouseUp, event -> {
+            final Tree tree = (Tree) event.widget;
             final TreeItem[] selection = tree.getSelection();
-            if (selection != null && selection.length >= 1 && selection[0].getParentItem() == treeItem) {
-                tree.setSelection(selection[0]);
-                //tree.select(selection[0]);
+            if (ArrayUtils.isNotEmpty(selection)) {
+                final TreeItem item = selection[0];
+                final boolean skipExpand = BooleanUtils.isTrue((Boolean) tree.getData(SKIP_EXPAND));
+                if (item.getItemCount() > 0 && !item.getExpanded() && !skipExpand) {
+                    item.setExpanded(true);
+                    handleParentSelection(tree, item);
+                }
             }
+            tree.setData(SKIP_EXPAND, false);
         });
         navigation.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
@@ -300,43 +350,58 @@ public class ActivitiesPane implements TemplateComposer {
         final PageState state = this.pageService.getCurrentState();
         if (state == null) {
             final TreeItem item = navigation.getItem(0);
-            final PageAction activityAction = getActivitySelection(item);
+            final TreeItem actionItem = getActionItem(item);
+            final PageAction activityAction = getActivitySelection(actionItem);
             this.pageService.executePageAction(activityAction);
         } else {
-            final TreeItem item = findItemByActionDefinition(navigation.getItems(), state);
+            final TreeItem item = findItemByActionDefinition(
+                    navigation.getItems(),
+                    state.activityAnchor());
             if (item != null) {
                 navigation.select(item);
             }
         }
     }
 
+    private void selectCurrentItem(final Tree navigation, final TreeItem item) {
+        final PageState currentState = this.pageService.getCurrentState();
+        final TreeItem currentItem = findItemByActionDefinition(
+                item.getItems(),
+                currentState.activityAnchor());
+        if (currentItem != null) {
+            navigation.select(currentItem);
+        }
+    }
+
     private void handleSelection(final PageContext composerCtx, final Event event) {
         final Tree tree = (Tree) event.widget;
         final TreeItem treeItem = (TreeItem) event.item;
+
+        if (treeItem.getItemCount() > 0 && !treeItem.getExpanded()) {
+            return;
+        }
+
         final PageAction action = getActivitySelection(treeItem);
         // if there is no form action associated with the treeItem and the treeItem has sub items, toggle the item state
         if (action == null) {
-            if (treeItem.getItemCount() > 0) {
-                treeItem.setExpanded(true);
-                final PageState currentState = this.pageService.getCurrentState();
-                final TreeItem currentSelection = findItemByActionDefinition(tree.getItems(), currentState);
-                if (currentSelection != null) {
-                    tree.select(currentSelection);
-                } else {
-                    tree.deselectAll();
-                }
-            }
-            tree.layout();
+            handleParentSelection(tree, treeItem);
             return;
         }
+
+        final PageState currentState = this.pageService.getCurrentState();
+        if (currentState == action.definition.targetState) {
+            return;
+        }
+
         this.pageService.executePageAction(
                 action,
                 result -> {
                     if (result.hasError()) {
                         tree.deselect(treeItem);
-                        final PageState currentState = this.pageService.getCurrentState();
                         if (currentState != null) {
-                            final TreeItem item = findItemByActionDefinition(tree.getItems(), currentState);
+                            final TreeItem item = findItemByActionDefinition(
+                                    tree.getItems(),
+                                    currentState.activityAnchor());
                             if (item != null) {
                                 tree.select(item);
                             }
@@ -345,10 +410,58 @@ public class ActivitiesPane implements TemplateComposer {
                 });
     }
 
+    private void handleParentSelection(final Tree tree, final TreeItem treeItem) {
+        if (treeItem.getItemCount() > 0) {
+            final PageState currentState = this.pageService.getCurrentState();
+            final TreeItem currentSelection = findItemByActionDefinition(
+                    tree.getItems(),
+                    currentState.activityAnchor());
+            if (currentSelection != null) {
+                if (isInSubTree(treeItem, currentSelection)) {
+                    tree.setSelection(currentSelection);
+                } else {
+                    selectFirstChild(tree, treeItem);
+                }
+            } else {
+                tree.deselectAll();
+            }
+        }
+
+        tree.layout();
+    }
+
+    private void selectFirstChild(final Tree tree, final TreeItem treeItem) {
+        final TreeItem actionItem = ActivitiesPane.getActionItem(treeItem);
+        final PageAction activitySelection = getActivitySelection(actionItem);
+        this.pageService.executePageAction(activitySelection, result -> {
+            if (!result.hasError()) {
+                tree.setSelection(actionItem);
+            }
+        });
+    }
+
+    private static final boolean isInSubTree(final TreeItem treeItem, final TreeItem currentSelection) {
+        if (treeItem == null) {
+            return false;
+        }
+
+        final TreeItem[] items = treeItem.getItems();
+        if (ArrayUtils.isEmpty(items)) {
+            return false;
+        }
+
+        for (final TreeItem item : items) {
+            if (item == currentSelection) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static final TreeItem findItemByActionDefinition(
             final TreeItem[] items,
-            final Activity activity,
-            final String modelId) {
+            final Activity activity) {
 
         if (items == null) {
             return null;
@@ -358,7 +471,7 @@ public class ActivitiesPane implements TemplateComposer {
             final PageAction action = getActivitySelection(item);
             if (action == null) {
                 if (item.getItemCount() > 0) {
-                    final TreeItem found = findItemByActionDefinition(item.getItems(), activity, modelId);
+                    final TreeItem found = findItemByActionDefinition(item.getItems(), activity);
                     if (found != null) {
                         return found;
                     }
@@ -367,13 +480,11 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             final Activity activityAnchor = action.definition.targetState.activityAnchor();
-            final EntityKey entityKey = action.getEntityKey();
-            if (activityAnchor.name().equals(activity.name()) &&
-                    (entityKey == null || (modelId != null && modelId.equals(entityKey.modelId)))) {
+            if (activityAnchor.name().equals(activity.name())) {
                 return item;
             }
 
-            final TreeItem _item = findItemByActionDefinition(item.getItems(), activity, modelId);
+            final TreeItem _item = findItemByActionDefinition(item.getItems(), activity);
             if (_item != null) {
                 return _item;
             }
@@ -382,27 +493,23 @@ public class ActivitiesPane implements TemplateComposer {
         return null;
     }
 
-    static final TreeItem findItemByActionDefinition(final TreeItem[] items, final PageState pageState) {
-        if (pageState == null) {
-            return null;
-        }
-        return findItemByActionDefinition(items, pageState.activityAnchor(), null);
-    }
-
-    static final void expand(final TreeItem item) {
-        if (item == null) {
-            return;
+    private static final TreeItem getActionItem(final TreeItem item) {
+        final PageAction action = (PageAction) item.getData(ATTR_ACTIVITY_SELECTION);
+        if (action == null && item.getItemCount() > 0) {
+            final TreeItem firstChild = item.getItem(0);
+            if (firstChild != null) {
+                return firstChild;
+            }
         }
 
-        item.setExpanded(true);
-        expand(item.getParentItem());
+        return item;
     }
 
-    public static PageAction getActivitySelection(final TreeItem item) {
+    private static final PageAction getActivitySelection(final TreeItem item) {
         return (PageAction) item.getData(ATTR_ACTIVITY_SELECTION);
     }
 
-    public static void injectActivitySelection(final TreeItem item, final PageAction action) {
+    private final static void injectActivitySelection(final TreeItem item, final PageAction action) {
         item.setData(ATTR_ACTIVITY_SELECTION, action);
     }
 
@@ -415,12 +522,9 @@ public class ActivitiesPane implements TemplateComposer {
 
         @Override
         public void notify(final ActionEvent event) {
-            final EntityKey entityKey = event.action.getEntityKey();
-            final String modelId = (entityKey != null) ? entityKey.modelId : null;
             final TreeItem item = findItemByActionDefinition(
                     this.navigation.getItems(),
-                    event.action.definition.targetState.activityAnchor(),
-                    modelId);
+                    event.action.definition.targetState.activityAnchor());
             if (item != null) {
                 this.navigation.select(item);
             }
