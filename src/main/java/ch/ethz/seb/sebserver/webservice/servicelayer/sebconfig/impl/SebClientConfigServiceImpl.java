@@ -242,7 +242,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                 String.valueOf(config.institutionId),
                 plainClientId,
                 plainClientSecret,
-                this.webserviceInfo.getDiscoveryEndpointAddress());
+                this.webserviceInfo.getDiscoveryEndpoint());
 
         if (log.isDebugEnabled()) {
             log.debug("SEB client configuration export:\n {}", plainTextConfig);
