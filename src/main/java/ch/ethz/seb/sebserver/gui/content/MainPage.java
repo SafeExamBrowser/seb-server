@@ -68,7 +68,6 @@ public class MainPage implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        this.pageStateService.clearState();
 
         final Composite parent = pageContext.getParent();
         parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
