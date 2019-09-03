@@ -54,16 +54,13 @@ public class MainPage implements TemplateComposer {
 
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
-    private final PageService pageStateService;
 
     public MainPage(
             final WidgetFactory widgetFactory,
-            final PolyglotPageService polyglotPageService,
-            final PageService pageStateService) {
+            final PolyglotPageService polyglotPageService) {
 
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
-        this.pageStateService = pageStateService;
     }
 
     @Override

@@ -25,7 +25,11 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -36,6 +40,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.Activ
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.DeactivateLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -172,7 +183,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // check also this it is possible to change the password and after that a new login is needed
     // check also that property changes are possible. E.g: email
     public void testUsecase3() {
-        final RestServiceImpl restService = createRestServiceForUser(
+        RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "12345678",
                 new GetInstitutionNames(),
@@ -181,14 +192,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetUserAccount(),
                 new GetUserAccountNames());
 
-        final List<EntityName> institutions = restService.getBuilder(GetInstitutionNames.class)
+        final List<EntityName> institutions = restService
+                .getBuilder(GetInstitutionNames.class)
                 .call()
                 .getOrThrow();
 
         assertTrue(institutions.size() == 1);
         assertEquals("Test Institution", institutions.get(0).name);
 
-        final List<EntityName> userNames = restService.getBuilder(GetUserAccountNames.class)
+        final List<EntityName> userNames = restService
+                .getBuilder(GetUserAccountNames.class)
                 .call()
                 .getOrThrow();
 
@@ -237,7 +250,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 String.valueOf(error.getErrorMessages()));
 
         // change password
-        final Result<UserInfo> passwordChange = restService.getBuilder(ChangePassword.class)
+        final Result<UserInfo> passwordChange = restService
+                .getBuilder(ChangePassword.class)
                 .withBody(new PasswordChange(userId, "12345678", "987654321", "987654321"))
                 .call();
 
@@ -245,13 +259,236 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         userInfo = passwordChange.get();
 
         // is the login still valid (should not)
-        final Result<List<EntityName>> instNames = restService.getBuilder(GetInstitutionNames.class)
+        final Result<List<EntityName>> instNames = restService
+                .getBuilder(GetInstitutionNames.class)
                 .call();
         assertTrue(instNames.hasError());
         error = (RestCallError) instNames.getError();
         assertEquals(
                 "UNAUTHORIZED",
                 String.valueOf(error.getErrorMessages().get(0).getSystemMessage()));
+
+        // login again with the new password and check roles
+        restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new GetInstitutionNames(),
+                new SaveUserAccount(),
+                new ChangePassword(),
+                new GetUserAccount(),
+                new GetUserAccountNames());
+
+        userInfo = restService.getBuilder(GetUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, userId)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(userInfo);
+        assertEquals("[EXAM_ADMIN, INSTITUTIONAL_ADMIN]", String.valueOf(userInfo.getRoles()));
+    }
+
+    @Test
+    @Order(4)
+    // *************************************
+    // Use Case 4:
+    // - login as TestInstAdmin
+    // - create a new user-account (examAdmin1) with Exam Administrator role
+    // - create a new user-account (examSupport1) with Exam Supporter role
+    // - create a new user-account (examSupport2) with Exam Administrator and Exam Supporter role
+    public void testUsecase4() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "12345678",
+                new GetInstitutionNames(),
+                new SaveUserAccount(),
+                new ChangePassword(),
+                new GetUserAccount(),
+                new GetUserAccountNames());
+
+    }
+
+    @Test
+    @Order(5)
+    // *************************************
+    // Use Case 5: Login as TestInstAdmin and create new LMS Mockup and activate
+    //  - login as TestInstAdmin : 987654321
+    //  - check there are no LMS Setup and Quizzes currently available for the user
+    //  - create new LMS Setup Mockup (no activation)
+    //  - check the LMS Setup was created but there are still no quizzes available
+    //  - activate LMS Setup
+    //  - check now active and quizzes are available
+    //  - change name of active LMS and check modification update
+    //  - deactivate LMS Setup and check no quizzes are available
+    //  - activate again for following tests
+    public void testUsecase5() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new NewLmsSetup(),
+                new GetLmsSetupNames(),
+                new GetLmsSetup(),
+                new SaveLmsSetup(),
+                new ActivateLmsSetup(),
+                new DeactivateLmsSetup(),
+                new GetQuizPage());
+
+        // check there are currently no LMS Setup defined for this user
+        Result<List<EntityName>> lmsNames = restService
+                .getBuilder(GetLmsSetupNames.class)
+                .call();
+        assertNotNull(lmsNames);
+        assertFalse(lmsNames.hasError());
+        List<EntityName> list = lmsNames.get();
+        assertTrue(list.isEmpty());
+
+        // check also there are currently no quizzes available for this user
+        Result<Page<QuizData>> quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        Page<QuizData> quizPage = quizPageCall.get();
+        assertTrue(quizPage.isEmpty());
+
+        // create new LMS Setup Mockup
+        Result<LmsSetup> newLMSCall = restService
+                .getBuilder(NewLmsSetup.class)
+                .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test LMS Mockup")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        LmsSetup lmsSetup = newLMSCall.get();
+        assertEquals("Test LMS Mockup", lmsSetup.name);
+        assertFalse(lmsSetup.isActive());
+
+        // check is available now
+        lmsNames = restService
+                .getBuilder(GetLmsSetupNames.class)
+                .call();
+
+        assertNotNull(lmsNames);
+        assertFalse(lmsNames.hasError());
+        list = lmsNames.get();
+        assertFalse(list.isEmpty());
+
+        // check still no quizzes available form the LMS (not active now)
+        quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        quizPage = quizPageCall.get();
+        assertTrue(quizPage.isEmpty());
+
+        // activate lms setup
+        Result<EntityProcessingReport> activation = restService
+                .getBuilder(ActivateLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
+
+        assertNotNull(activation);
+        assertFalse(activation.hasError());
+
+        // check lms setup is now active
+        newLMSCall = restService
+                .getBuilder(GetLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        lmsSetup = newLMSCall.get();
+        assertEquals("Test LMS Mockup", lmsSetup.name);
+        assertTrue(lmsSetup.isActive());
+
+        // check quizzes are available now
+        quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        quizPage = quizPageCall.get();
+        assertFalse(quizPage.isEmpty());
+
+        // change the name of LMS Setup and check modification update
+        newLMSCall = restService
+                .getBuilder(SaveLmsSetup.class)
+                .withBody(new LmsSetup(
+                        lmsSetup.id,
+                        lmsSetup.institutionId,
+                        "Test LMS Name Changed",
+                        lmsSetup.lmsType,
+                        lmsSetup.lmsAuthName,
+                        lmsSetup.lmsAuthSecret,
+                        lmsSetup.lmsApiUrl,
+                        lmsSetup.lmsRestApiToken,
+                        lmsSetup.active))
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        lmsSetup = newLMSCall.get();
+        assertEquals("Test LMS Name Changed", lmsSetup.name);
+        assertTrue(lmsSetup.isActive());
+
+        // check quizzes are still available
+        quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        quizPage = quizPageCall.get();
+        assertFalse(quizPage.isEmpty());
+
+        // deactivate
+        final Result<EntityProcessingReport> deactivation = restService
+                .getBuilder(DeactivateLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
+
+        assertNotNull(deactivation);
+        assertFalse(deactivation.hasError());
+
+        // check lms setup is now active
+        newLMSCall = restService
+                .getBuilder(GetLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        lmsSetup = newLMSCall.get();
+        assertEquals("Test LMS Name Changed", lmsSetup.name);
+        assertFalse(lmsSetup.isActive());
+
+        // check quizzes are not available anymore
+        quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        quizPage = quizPageCall.get();
+        assertTrue(quizPage.isEmpty());
+
+        // activate LMS Setup again for following tests
+        activation = restService
+                .getBuilder(ActivateLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
+
+        assertNotNull(activation);
+        assertFalse(activation.hasError());
+
+        // check lms setup is now active
+        newLMSCall = restService
+                .getBuilder(GetLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call();
     }
 
 }

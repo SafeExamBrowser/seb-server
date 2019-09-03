@@ -115,8 +115,8 @@ public final class ExamAPIDiscovery {
         @JsonProperty("name")
         public final String name;
 
-        @JsonProperty("descripiton")
-        public final String descripiton;
+        @JsonProperty("description")
+        public final String description;
 
         @JsonProperty("location")
         public final String location;
@@ -127,12 +127,12 @@ public final class ExamAPIDiscovery {
         @JsonCreator
         public Endpoint(
                 @JsonProperty("name") final String name,
-                @JsonProperty("descripiton") final String descripiton,
+                @JsonProperty("description") final String description,
                 @JsonProperty("location") final String location,
                 @JsonProperty("authorization") final String authorization) {
 
             this.name = name;
-            this.descripiton = descripiton;
+            this.description = description;
             this.location = location;
             this.authorization = authorization;
         }
@@ -141,8 +141,8 @@ public final class ExamAPIDiscovery {
             return this.name;
         }
 
-        public String getDescripiton() {
-            return this.descripiton;
+        public String getDescription() {
+            return this.description;
         }
 
         public String getLocation() {
