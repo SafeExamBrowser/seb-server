@@ -358,7 +358,10 @@ public class ActivitiesPane implements TemplateComposer {
                     navigation.getItems(),
                     state.activityAnchor());
             if (item != null) {
-                navigation.select(item);
+                final PageAction action = getActivitySelection(item);
+                this.pageService.executePageAction(action, result -> {
+                    navigation.select(item);
+                });
             }
         }
     }
