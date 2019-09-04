@@ -15,11 +15,14 @@ import javax.servlet.ServletException;
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
@@ -46,6 +49,12 @@ public class RAPSpringConfig {
     @Bean
     public ServletRegistrationBean<RWTServlet> servletRegistrationBean() {
         return new ServletRegistrationBean<>(new RWTServlet(), this.entrypoint + "/*");
+    }
+
+    @Bean
+    @ConfigurationProperties("spring.messages")
+    public MessageSource messageSource() {
+        return new ReloadableResourceBundleMessageSource();
     }
 
     private static class RAPServletContextInitializer implements ServletContextInitializer {
