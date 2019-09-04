@@ -26,6 +26,7 @@ services:
           - INTERNAL_PWD=somePW
       volumes:
         - ./application-demo.properties:/sebserver/application-demo.properties
+        - ./messages_en.properties:/sebserver/messages_en.properties
       ports:
           - 8080:8080
           - 9090:9090
