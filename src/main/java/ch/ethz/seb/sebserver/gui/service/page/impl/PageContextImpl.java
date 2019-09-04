@@ -258,9 +258,12 @@ public class PageContextImpl implements PageContext {
     public void publishPageMessage(final LocTextKey title, final LocTextKey message) {
         final MessageBox messageBox = new Message(
                 getShell(),
-                this.i18nSupport.getText(title),
+                (title != null)
+                        ? this.i18nSupport.getText(title)
+                        : "",
                 this.i18nSupport.getText(message),
                 SWT.NONE);
+
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);
     }
@@ -334,4 +337,5 @@ public class PageContextImpl implements PageContext {
             this.onOK.accept(false);
         }
     }
+
 }

@@ -15,6 +15,7 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -51,6 +53,14 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 public class DefaultPageLayout implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultPageLayout.class);
+
+    private static final LocTextKey ABOUT_TEXT_KEY = new LocTextKey("sebserver.overall.about");
+    private static final LocTextKey IMPRINT_TEXT_KEY = new LocTextKey("sebserver.overall.imprint");
+    private static final LocTextKey HELP_TEXT_KEY = new LocTextKey("sebserver.overall.help");
+
+    private static final LocTextKey ABOUT_MARKUP_TEXT_KEY = new LocTextKey("sebserver.overall.about.markup");
+    private static final LocTextKey IMPRINT_MARKUP_TEXT_KEY = new LocTextKey("sebserver.overall.imprint.markup");
+    private static final LocTextKey HELP_LINK_TEXT_KEY = new LocTextKey("sebserver.overall.help.link");
 
     public static final int LOGO_IMAGE_MAX_WIDTH = 400;
     public static final int LOGO_IMAGE_MAX_HEIGHT = 80;
@@ -259,14 +269,54 @@ public class DefaultPageLayout implements TemplateComposer {
         rowLayout.marginRight = 20;
         footerRight.setLayout(rowLayout);
 
-        this.widgetFactory.labelLocalized(
-                footerLeft,
-                CustomVariant.FOOTER,
-                new LocTextKey("sebserver.overall.imprint"));
-        this.widgetFactory.labelLocalized(
-                footerLeft,
-                CustomVariant.FOOTER,
-                new LocTextKey("sebserver.overall.about"));
+        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
+        if (StringUtils.isNoneBlank(i18nSupport.getText(IMPRINT_TEXT_KEY, ""))) {
+            final Label imprint = this.widgetFactory.labelLocalized(
+                    footerLeft,
+                    CustomVariant.FOOTER,
+                    IMPRINT_TEXT_KEY);
+
+            imprint.addListener(SWT.MouseUp, event -> {
+                try {
+                    pageContext.publishPageMessage(IMPRINT_TEXT_KEY, IMPRINT_MARKUP_TEXT_KEY);
+                } catch (final Exception e) {
+                    log.error("Invalid markup for 'Imprint'", e);
+                }
+            });
+        }
+        if (StringUtils.isNoneBlank(i18nSupport.getText(ABOUT_TEXT_KEY, ""))) {
+            final Label about = this.widgetFactory.labelLocalized(
+                    footerLeft,
+                    CustomVariant.FOOTER,
+                    ABOUT_TEXT_KEY);
+
+            about.addListener(SWT.MouseUp, event -> {
+                try {
+                    pageContext.publishPageMessage(ABOUT_TEXT_KEY, ABOUT_MARKUP_TEXT_KEY);
+                } catch (final Exception e) {
+                    log.error("Invalid markup for 'About'", e);
+                }
+            });
+        }
+        if (StringUtils.isNoneBlank(i18nSupport.getText(HELP_TEXT_KEY, ""))) {
+            final Label help = this.widgetFactory.labelLocalized(
+                    footerLeft,
+                    CustomVariant.FOOTER,
+                    HELP_TEXT_KEY);
+
+            help.addListener(SWT.MouseUp, event -> {
+                try {
+                    final String link = i18nSupport.getText(HELP_LINK_TEXT_KEY, "");
+                    if (StringUtils.isNoneBlank(link)) {
+                        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
+                        urlLauncher.openURL(link);
+                    }
+                } catch (final Exception e) {
+
+                }
+            });
+
+        }
         this.widgetFactory.labelLocalized(
                 footerRight,
                 CustomVariant.FOOTER,
