@@ -305,6 +305,27 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetUserAccount(),
                 new GetUserAccountNames());
 
+        final String instId = restService.getBuilder(GetInstitutionNames.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .filter(inst -> "Test Institution".equals(inst.name))
+                .findFirst()
+                .get().modelId;
+
+        assertNotNull(instId);
+
+        final Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
+                .withFormParam(Domain.USER.ATTR_NAME, "TestInstAdmin")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "TestInstAdmin")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.INSTITUTIONAL_ADMIN.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
     }
 
     @Test

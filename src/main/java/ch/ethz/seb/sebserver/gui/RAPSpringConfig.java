@@ -14,6 +14,8 @@ import javax.servlet.ServletException;
 
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -28,6 +30,8 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 @Configuration
 @GuiProfile
 public class RAPSpringConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(RAPSpringConfig.class);
 
     @Value("${sebserver.gui.entrypoint}")
     private String entrypoint;
@@ -57,6 +61,8 @@ public class RAPSpringConfig {
     public MessageSource messageSource() {
         final ReloadableResourceBundleMessageSource reloadableResourceBundleMessageSource =
                 new ReloadableResourceBundleMessageSource();
+
+        log.info(" +++ Register external messages resources form: {}", this.externalMessagesPath);
 
         reloadableResourceBundleMessageSource.setBasenames(
                 this.externalMessagesPath,
