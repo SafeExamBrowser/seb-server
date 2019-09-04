@@ -233,9 +233,9 @@ public class QuizDiscoveryList implements TemplateComposer {
         action.getSingleSelection();
         final QuizData selectedROWData = table.getSelectedROWData();
 
-        if (selectedROWData.startTime != null) {
+        if (selectedROWData.endTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            if (selectedROWData.startTime.isBefore(now)) {
+            if (selectedROWData.endTime.isBefore(now)) {
                 throw new PageMessageException(NO_IMPORT_OF_OUT_DATED_QUIZ);
             }
         }

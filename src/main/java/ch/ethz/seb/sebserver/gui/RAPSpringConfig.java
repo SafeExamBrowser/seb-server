@@ -15,7 +15,6 @@ import javax.servlet.ServletException;
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -32,6 +31,9 @@ public class RAPSpringConfig {
 
     @Value("${sebserver.gui.entrypoint}")
     private String entrypoint;
+
+    @Value("${sebserver.gui.external.messages:messages}")
+    private String externalMessagesPath;
 
     @Bean
     public ServletContextInitializer initializer() {
@@ -52,9 +54,15 @@ public class RAPSpringConfig {
     }
 
     @Bean
-    @ConfigurationProperties("spring.messages")
     public MessageSource messageSource() {
-        return new ReloadableResourceBundleMessageSource();
+        final ReloadableResourceBundleMessageSource reloadableResourceBundleMessageSource =
+                new ReloadableResourceBundleMessageSource();
+
+        reloadableResourceBundleMessageSource.setBasenames(
+                this.externalMessagesPath,
+                "classpath:messages");
+
+        return reloadableResourceBundleMessageSource;
     }
 
     private static class RAPServletContextInitializer implements ServletContextInitializer {

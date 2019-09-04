@@ -25,10 +25,12 @@
     <Logger name="ch.ethz.seb.sebserver.gui" level="INFO" additivity="true" />
     <Logger name="ch.ethz.seb.sebserver.webservice" level="INFO" additivity="true" />
     <Logger name="org.apache.ibatis.datasource" level="INFO" additivity="true" />
-    <Logger name="org.mybatis" level="DEBUG" additivity="true" />
+    <Logger name="org.mybatis" level="INFO" additivity="true" />
     <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
     <Logger name="org.springframework.security" level="INFO" additivity="true" />
+    
+    <Logger name="org.springframework.context.support.ResourceBundleMessageSource" level="DEBUG" additivity="true" />
 
     <Logger name="org.springframework.web" level="INFO" additivity="true" />
     <Logger name="org.springframework.security.oauth2" level="INFO" additivity="true" />
