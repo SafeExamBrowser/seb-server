@@ -54,28 +54,28 @@ public class ExamAPIDiscoveryController {
                                 new ExamAPIDiscovery.Endpoint(
                                         "access-token-endpoint",
                                         "request OAuth2 access token with client credentials grant",
-                                        serverURL + API.OAUTH_TOKEN_ENDPOINT,
+                                        API.OAUTH_TOKEN_ENDPOINT,
                                         "Basic"),
                                 new ExamAPIDiscovery.Endpoint(
                                         "seb-handshake-endpoint",
                                         "endpoint to establish SEB - SEB Server connection",
-                                        serverURL + this.examAPI_V1_Endpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
+                                        this.examAPI_V1_Endpoint + API.EXAM_API_HANDSHAKE_ENDPOINT,
                                         "Bearer"),
                                 new ExamAPIDiscovery.Endpoint(
                                         "seb-configuration-endpoint",
                                         "endpoint to get SEB exam configuration in exchange of connection-token and exam identifier",
-                                        serverURL + this.examAPI_V1_Endpoint
+                                        this.examAPI_V1_Endpoint
                                                 + API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
                                         "Bearer"),
                                 new ExamAPIDiscovery.Endpoint(
                                         "seb-ping-endpoint",
                                         "endpoint to send pings to while running exam",
-                                        serverURL + this.examAPI_V1_Endpoint + API.EXAM_API_PING_ENDPOINT,
+                                        this.examAPI_V1_Endpoint + API.EXAM_API_PING_ENDPOINT,
                                         "Bearer"),
                                 new ExamAPIDiscovery.Endpoint(
                                         "seb-ping-endpoint",
                                         "endpoint to send log events to while running exam",
-                                        serverURL + this.examAPI_V1_Endpoint + API.EXAM_API_EVENT_ENDPOINT,
+                                        this.examAPI_V1_Endpoint + API.EXAM_API_EVENT_ENDPOINT,
                                         "Bearer")))));
     }
 

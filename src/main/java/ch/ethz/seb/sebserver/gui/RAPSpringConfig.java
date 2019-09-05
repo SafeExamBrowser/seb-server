@@ -62,7 +62,7 @@ public class RAPSpringConfig {
         final ReloadableResourceBundleMessageSource reloadableResourceBundleMessageSource =
                 new ReloadableResourceBundleMessageSource();
 
-        log.info(" +++ Register external messages resources form: {}", this.externalMessagesPath);
+        log.info(" +++ Register external messages resources from: {}", this.externalMessagesPath);
 
         reloadableResourceBundleMessageSource.setBasenames(
                 this.externalMessagesPath,

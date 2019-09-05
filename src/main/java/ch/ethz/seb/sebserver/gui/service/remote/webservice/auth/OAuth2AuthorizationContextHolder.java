@@ -300,8 +300,13 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
             @Override
             public boolean hasError(final ClientHttpResponse response) throws IOException {
-                final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
-                return (statusCode != null && statusCode.series().equals(HttpStatus.Series.SERVER_ERROR));
+                try {
+                    final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
+                    return (statusCode != null && statusCode.series().equals(HttpStatus.Series.SERVER_ERROR));
+                } catch (final Exception e) {
+                    log.error("Unexpected: ", e);
+                    return super.hasError(response);
+                }
             }
         }
 

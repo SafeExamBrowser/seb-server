@@ -150,6 +150,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(result.hasError());
         UserInfo userInfo = result.get();
         assertNotNull(userInfo);
+        assertEquals(instId, String.valueOf(userInfo.institutionId));
         assertEquals("TestInstAdmin", userInfo.name);
         assertEquals("TestInstAdmin", userInfo.username);
         assertEquals("test@test.ch", userInfo.email);
@@ -292,18 +293,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 4:
     // - login as TestInstAdmin
-    // - create a new user-account (examAdmin1) with Exam Administrator role
+    // - create a new user-account (examAdmin2) with Exam Administrator role
     // - create a new user-account (examSupport1) with Exam Supporter role
     // - create a new user-account (examSupport2) with Exam Administrator and Exam Supporter role
     public void testUsecase4() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
-                "12345678",
+                "987654321",
                 new GetInstitutionNames(),
-                new SaveUserAccount(),
-                new ChangePassword(),
-                new GetUserAccount(),
-                new GetUserAccountNames());
+                new NewUserAccount());
 
         final String instId = restService.getBuilder(GetInstitutionNames.class)
                 .call()
@@ -315,17 +313,51 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(instId);
 
-        final Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
+        Result<UserInfo> result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
-                .withFormParam(Domain.USER.ATTR_NAME, "TestInstAdmin")
-                .withFormParam(Domain.USER.ATTR_USERNAME, "TestInstAdmin")
+                .withFormParam(Domain.USER.ATTR_NAME, "examAdmin2")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "examAdmin2")
                 .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
-                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.INSTITUTIONAL_ADMIN.name())
-                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "12345678")
-                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "12345678")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_ADMIN.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examAdmin2")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examAdmin2")
                 .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
                 .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
                 .call();
+
+        assertNotNull(result);
+        assertFalse(result.hasError());
+
+        result = restService.getBuilder(NewUserAccount.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
+                .withFormParam(Domain.USER.ATTR_NAME, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examSupport2")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
+
+        assertNotNull(result);
+        assertFalse(result.hasError());
+
+        result = restService.getBuilder(NewUserAccount.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
+                .withFormParam(Domain.USER.ATTR_NAME, "examSupport1")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "examSupport1")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examSupport1")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examSupport1")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
+
+        assertNotNull(result);
+        assertFalse(result.hasError());
+
     }
 
     @Test
