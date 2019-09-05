@@ -8,17 +8,17 @@ services:
     volumes:
         - ./certs:/certs
     env_file:
-        - secrets
+        - ./config/secrets
   
   mariadb: 
     image: "mariadb/server:10.3"
     container_name: seb-server-mariadb
     volumes:
-        - .:/etc/mysql/conf.d
+        - ./config:/etc/mysql/conf.d
         - ./certs:/etc/mysql/certs
         - seb-server-mariadb-data:/var/lib/mysql
     env_file:
-        - secrets
+        - ./config/secrets
     ports:
         - 3306:3306
     networks:
@@ -34,14 +34,14 @@ services:
               - GIT_TAG=
               - SEBSERVER_VERSION=0.4.1-beta-SNAPSHOT
       container_name: seb-server
+      
+      volumes:
+        - ./config:/sebserver/config
+        - ./certs:/certs
       env_file:
-        - secrets
+        - ./config/secrets
       environment:
         - ADDITIONAL_DNS=dns:127.0.0.1,dns:seb-server
-      volumes:
-        - ./application-prod.properties:/sebserver/application-prod.properties
-        - ./certs:/certs
-        - ./secrets:/sebserver/secrets
       ports:
           - 443:443
           - 80:8080

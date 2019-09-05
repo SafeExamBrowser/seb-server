@@ -42,7 +42,7 @@ ENTRYPOINT exec java \
 #        -Dcom.sun.management.jmxremote.authenticate=false \
         -jar seb-server-"${SEBSERVER_VERSION}".jar \
         --spring.profiles.active=prod \
-        --spring.config.location=file:/sebserver/,classpath:/config/ \
+        --spring.config.location=file:/sebserver/config/,classpath:/config/ \
         --sebserver.certs.password="${KEYSTORE_PWD}" \ 
         --sebserver.mariadb.password="${MYSQL_ROOT_PASSWORD}" \
         --sebserver.password="${SEBSERVER_PWD}"

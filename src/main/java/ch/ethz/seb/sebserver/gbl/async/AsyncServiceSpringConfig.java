@@ -31,6 +31,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         executor.setQueueCapacity(11);
         executor.setThreadNamePrefix("asyncService-");
         executor.initialize();
+        executor.setWaitForTasksToCompleteOnShutdown(true);
         return executor;
     }
 

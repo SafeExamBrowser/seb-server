@@ -14,6 +14,8 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -87,6 +89,12 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
         if (this.enabled) {
             runWorkers();
         }
+    }
+
+    @PreDestroy
+    protected void shutdown() {
+        log.info("Reset workersRunning flag to stop worker after event queue is empty");
+        this.workersRunning = false;
     }
 
     @Override

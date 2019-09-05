@@ -38,7 +38,7 @@ ENTRYPOINT exec java \
     -jar seb-server-"${SEBSERVER_VERSION}"-SNAPSHOT.jar \
     --server.port="${SERVER_PORT}" \
     --spring.profiles.active=demo \
-    --spring.config.location=file:/sebserver/,classpath:/config/ \
+    --spring.config.location=file:/sebserver/config/,classpath:/config/ \
     --spring.datasource.password="${DBSERVER_PWD}" \
     --sebserver.webservice.api.admin.clientSecret="${GUICLIENT_PWD}" \
     --sebserver.webservice.internalSecret="${INTERNAL_PWD}"
