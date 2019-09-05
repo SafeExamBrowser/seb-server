@@ -73,7 +73,7 @@ public class ExamAPIDiscoveryController {
                                         this.examAPI_V1_Endpoint + API.EXAM_API_PING_ENDPOINT,
                                         "Bearer"),
                                 new ExamAPIDiscovery.Endpoint(
-                                        "seb-ping-endpoint",
+                                        "seb-log-endpoint",
                                         "endpoint to send log events to while running exam",
                                         this.examAPI_V1_Endpoint + API.EXAM_API_EVENT_ENDPOINT,
                                         "Bearer")))));
