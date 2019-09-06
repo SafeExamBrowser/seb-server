@@ -22,7 +22,7 @@ CMD cp -a /host/config/. /config/ \
     && openssl x509 -req -in client-req.pem -days 3600 -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem \
     && openssl verify -CAfile ca.pem server-cert.pem client-cert.pem \
     && openssl pkcs12 -export -out client-cert.pkcs12 -in client-cert.pem -inkey client-key.pem -passout pass:${secret} \
-    && keytool -genkeypair -alias sebserver -dname "CN=localhost, OU=ETHZ, O=ETHZ, L=Zurich, S=Zurich, C=CH" -ext san="${ADDITIONAL_DNS}" -keyalg RSA -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore seb-server-keystore.pkcs12 -storepass ${secret} -validity 3650 \
+    && keytool -genkeypair -alias sebserver -dname "CN=localhost, OU=ETHZ, O=ETHZ, L=Zurich, S=Zurich, C=CH" -ext san="${ADDITIONAL_DNS}" -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore seb-server-keystore.pkcs12 -storepass ${secret} -validity 3650 \
     && keytool -export -alias sebserver -keystore seb-server-keystore.pkcs12 -rfc -file sebserver.cert -storetype PKCS12 -storepass ${secret} -noprompt \
     && keytool -importcert -trustcacerts -alias sebserver -file sebserver.cert -keystore seb-server-truststore.pkcs12 -storetype PKCS12 -storepass ${secret} -noprompt \
     && keytool -import -alias mariadb-ca -file ca.pem -keystore seb-server-truststore.pkcs12 -storepass ${secret} -srcstoretype PKCS12 -noprompt \

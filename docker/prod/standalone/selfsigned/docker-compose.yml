@@ -40,6 +40,7 @@ services:
         - seb-server-certs:/certs
       environment:
         - ADDITIONAL_DNS=dns:127.0.0.1,dns:seb-server
+        - DEBUG_MODE=false
       ports:
           - 443:443
           - 80:8080

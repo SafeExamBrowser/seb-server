@@ -21,20 +21,21 @@ FROM openjdk:11-jre-stretch
 
 ARG SEBSERVER_VERSION
 ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
+ENV DEBUG_MODE=false
 
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-CMD secret=$(cat /sebserver/config/secret) \
-        && exec java \
+CMD if [ "${DEBUG_MODE}" = "true" ] ; \
+        then secret=$(cat /sebserver/config/secret) && exec java \
             -Xms64M \
             -Xmx1G \
-# Set this for SSL debunging
-#            -Djavax.net.debug=ssl \
+            -Djavax.net.debug=ssl \
             -Dcom.sun.management.jmxremote \
             -Dcom.sun.management.jmxremote.port=9090 \
             -Dcom.sun.management.jmxremote.rmi.port=9090 \
             -Djava.rmi.server.hostname=127.0.0.1 \
+# TODO secure the JMX connection (cueenrtly there is a premission problem with the secret file
             -Dcom.sun.management.jmxremote.ssl=false \
             -Dcom.sun.management.jmxremote.authenticate=false \
             -jar seb-server-"${SEBSERVER_VERSION}".jar \
@@ -42,7 +43,16 @@ CMD secret=$(cat /sebserver/config/secret) \
             --spring.config.location=file:/sebserver/config/,classpath:/config/ \
             --sebserver.certs.password="${secret}" \ 
             --sebserver.mariadb.password="${secret}" \
-            --sebserver.password="${secret}"
-        
+            --sebserver.password="${secret}" ; \
+        else secret=$(cat /sebserver/config/secret) && exec java \
+            -Xms64M \
+            -Xmx1G \
+            -jar seb-server-"${SEBSERVER_VERSION}".jar \
+            --spring.profiles.active=prod \
+            --spring.config.location=file:/sebserver/config/,classpath:/config/ \
+            --sebserver.certs.password="${secret}" \ 
+            --sebserver.mariadb.password="${secret}" \
+            --sebserver.password="${secret}" ; \
+        fi
 
 EXPOSE 443 8080 9090
