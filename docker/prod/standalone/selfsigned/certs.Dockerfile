@@ -8,11 +8,10 @@ ENV OPENSSL_SERVER="${OPENSSL_SUBJ}/CN=localhost"
 ENV OPENSSL_CLIENT="${OPENSSL_SUBJ}/CN=localhost"
 ENV ADDITIONAL_DNS="dns:localhost,dns:127.0.0.1,dns:seb-server"
 
-VOLUME /certs
 WORKDIR /certs
 
-CMD secret=$(cat /config/secret) \
-    && echo ${secret} \
+CMD cp -a /host/config/. /config/ \
+    && secret=$(cat /config/secret) \
     && openssl genrsa -out ca-key.pem 2048 \
     && openssl req -new -x509 -key ca-key.pem -nodes -days 3600 -subj "${OPENSSL_CA}" -out ca.pem \
     && openssl req -newkey rsa:2048 -days 3600 -nodes -subj "${OPENSSL_SERVER}" -keyout server-key.pem -out server-req.pem \
@@ -29,3 +28,7 @@ CMD secret=$(cat /config/secret) \
     && keytool -import -alias mariadb-ca -file ca.pem -keystore seb-server-truststore.pkcs12 -storepass ${secret} -srcstoretype PKCS12 -noprompt \
     && keytool -import -alias mariadb-client -file client-cert.pem -keystore seb-server-truststore.pkcs12 -storepass ${secret} -srcstoretype PKCS12 -noprompt \
     && keytool -import -alias mariadb-server -file server-cert.pem -keystore seb-server-keystore.pkcs12 -storepass ${secret} -srcstoretype PKCS12 -noprompt \
+    && chmod 777 -R . \
+    && cp seb-server-keystore.pkcs12 /host/config/ \
+    && cp seb-server-truststore.pkcs12 /host/config/ \
+    && rm /host/config/secret

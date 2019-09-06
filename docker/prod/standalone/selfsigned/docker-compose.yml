@@ -6,15 +6,16 @@ services:
         dockerfile: certs.Dockerfile
     container_name: gencerts
     volumes:
-        - ./certs:/certs
-        - ./config:/config
+        - seb-server-certs:/certs
+        - seb-server-config:/config
+        - ./config:/host/config
   
   mariadb: 
     image: "mariadb/server:10.3"
     container_name: seb-server-mariadb
     volumes:
-        - ./config:/etc/mysql/conf.d
-        - ./certs:/etc/mysql/certs
+        - seb-server-config:/etc/mysql/conf.d
+        - seb-server-certs:/etc/mysql/certs
         - seb-server-mariadb-data:/var/lib/mysql
     environment:
         - MYSQL_ROOT_PASSWORD_FILE=/etc/mysql/conf.d/secret
@@ -35,8 +36,8 @@ services:
       container_name: seb-server
       
       volumes:
-        - ./config:/sebserver/config
-        - ./certs:/certs
+        - seb-server-config:/sebserver/config
+        - seb-server-certs:/certs
       environment:
         - ADDITIONAL_DNS=dns:127.0.0.1,dns:seb-server
       ports:
@@ -58,3 +59,5 @@ networks:
 
 volumes:
   seb-server-mariadb-data:
+  seb-server-certs:
+  seb-server-config:

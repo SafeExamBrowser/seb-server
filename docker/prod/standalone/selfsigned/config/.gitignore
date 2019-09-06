@@ -1,3 +1,5 @@
 /secrets
 /secret
 /.secret
+/seb-server-keystore.pkcs12
+/seb-server-truststore.pkcs12

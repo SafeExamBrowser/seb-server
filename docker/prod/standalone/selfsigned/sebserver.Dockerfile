@@ -26,7 +26,6 @@ WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
 CMD secret=$(cat /sebserver/config/secret) \
-        && echo ${secret} \
         && exec java \
             -Xms64M \
             -Xmx1G \
@@ -43,6 +42,7 @@ CMD secret=$(cat /sebserver/config/secret) \
             --spring.config.location=file:/sebserver/config/,classpath:/config/ \
             --sebserver.certs.password="${secret}" \ 
             --sebserver.mariadb.password="${secret}" \
-            --sebserver.password="${secret}" 
+            --sebserver.password="${secret}"
+        
 
 EXPOSE 443 8080 9090
