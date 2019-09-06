@@ -21,14 +21,13 @@ FROM openjdk:11-jre-stretch
 
 ARG SEBSERVER_VERSION
 ENV SEBSERVER_VERSION=${SEBSERVER_VERSION}
-ENV KEYSTORE_PWD=
-ENV MYSQL_ROOT_PASSWORD=
-ENV SEBSERVER_PWD=
 
 WORKDIR /sebserver
 COPY --from=1 /sebserver/target/seb-server-"$SEBSERVER_VERSION".jar /sebserver
 
-ENTRYPOINT exec java \
+CMD secret=$(cat /sebserver/config/secret) \
+        && echo ${secret} \
+        && exec java \
             -Xms64M \
             -Xmx1G \
 # Set this for SSL debunging
@@ -42,8 +41,8 @@ ENTRYPOINT exec java \
             -jar seb-server-"${SEBSERVER_VERSION}".jar \
             --spring.profiles.active=prod \
             --spring.config.location=file:/sebserver/config/,classpath:/config/ \
-            --sebserver.certs.password="${KEYSTORE_PWD}" \ 
-            --sebserver.mariadb.password="${MYSQL_ROOT_PASSWORD}" \
-            --sebserver.password="${SEBSERVER_PWD}" 
+            --sebserver.certs.password="${secret}" \ 
+            --sebserver.mariadb.password="${secret}" \
+            --sebserver.password="${secret}" 
 
 EXPOSE 443 8080 9090

@@ -7,8 +7,7 @@ services:
     container_name: gencerts
     volumes:
         - ./certs:/certs
-    env_file:
-        - ./config/secrets
+        - ./config:/config
   
   mariadb: 
     image: "mariadb/server:10.3"
@@ -17,8 +16,8 @@ services:
         - ./config:/etc/mysql/conf.d
         - ./certs:/etc/mysql/certs
         - seb-server-mariadb-data:/var/lib/mysql
-    env_file:
-        - ./config/secrets
+    environment:
+        - MYSQL_ROOT_PASSWORD_FILE=/etc/mysql/conf.d/secret
     ports:
         - 3306:3306
     networks:
@@ -38,8 +37,6 @@ services:
       volumes:
         - ./config:/sebserver/config
         - ./certs:/certs
-      env_file:
-        - ./config/secrets
       environment:
         - ADDITIONAL_DNS=dns:127.0.0.1,dns:seb-server
       ports:
