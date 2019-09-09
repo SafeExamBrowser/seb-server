@@ -170,8 +170,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private Result<LmsSetup> initRestTemplateAndRequestAccessToken() {
 
-        log.info("Initialize Rest Template for OpenEdX API access. LmsSetup: {}", this.lmsSetup);
-
         return Result.tryCatch(() -> {
             if (this.restTemplate != null) {
                 try {
@@ -184,6 +182,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                     this.restTemplate = null;
                 }
             }
+
+            log.info("Initialize Rest Template for OpenEdX API access. LmsSetup: {}", this.lmsSetup);
 
             final Iterator<String> tokenAccessPaths = this.knownTokenAccessPaths.iterator();
             while (tokenAccessPaths.hasNext()) {

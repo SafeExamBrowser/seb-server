@@ -23,6 +23,11 @@
       <Package name="ch.ethz.seb.sebserver" />
       <Bug pattern="REC_CATCH_EXCEPTION" />
     </Match>
+    <Match>
+      <Package name="ch.ethz.seb.sebserver.gui" />
+      <Bug pattern="SE_BAD_FIELD" />
+    </Match>
+    
     
     
 
