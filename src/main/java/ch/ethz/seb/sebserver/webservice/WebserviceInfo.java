@@ -10,9 +10,14 @@ package ch.ethz.seb.sebserver.webservice;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,8 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @WebServiceProfile
 public class WebserviceInfo {
 
+    private static final Logger log = LoggerFactory.getLogger(WebserviceInfo.class);
+
     private static final String WEB_SERVICE_TEST_PROPERTY = "sebserver.test.property";
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
@@ -33,6 +40,7 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
             "sebserver.webservice.api.exam.endpoint.discovery";
+    private static final String WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS = "sebserver.webservice.lms.address.alias";
 
     private final String testProperty;
     private final String httpScheme;
@@ -42,8 +50,9 @@ public class WebserviceInfo {
     private final String discoveryEndpoint;
 
     private final String serverURLPrefix;
-
     private final boolean isDistributed;
+
+    private Map<String, String> externalAddressAlias;
 
     public WebserviceInfo(final Environment environment) {
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
@@ -64,6 +73,25 @@ public class WebserviceInfo {
         this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.distributed",
                 Constants.FALSE_STRING));
+
+        final String addressAlias = environment.getProperty(WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS, "");
+        if (StringUtils.isNotBlank(addressAlias)) {
+            try {
+                final String[] aliass = StringUtils.split(addressAlias, Constants.LIST_SEPARATOR);
+                final Map<String, String> mapping = new LinkedHashMap<>();
+                for (final String alias : aliass) {
+                    final String[] nameValue =
+                            StringUtils.split(alias, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+                    mapping.put(nameValue[0], nameValue[1]);
+                }
+                this.externalAddressAlias = Collections.unmodifiableMap(mapping);
+            } catch (final Exception e) {
+                log.error("Failed to parse sebserver.webservice.lms.address.alias: ", e);
+                this.externalAddressAlias = Collections.emptyMap();
+            }
+        } else {
+            this.externalAddressAlias = Collections.emptyMap();
+        }
     }
 
     public String getTestProperty() {
@@ -132,6 +160,20 @@ public class WebserviceInfo {
         return this.isDistributed;
     }
 
+    public Map<String, String> getExternalAddressAlias() {
+        return this.externalAddressAlias;
+    }
+
+    public String getExternalAddressAlias(final String internalAddress) {
+        return this.externalAddressAlias
+                .entrySet()
+                .stream()
+                .filter(entry -> internalAddress.contains(entry.getKey()))
+                .findFirst()
+                .map(entry -> entry.getValue())
+                .orElse(null);
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -147,6 +189,8 @@ public class WebserviceInfo {
         builder.append(this.serverPort);
         builder.append(", discoveryEndpoint=");
         builder.append(this.discoveryEndpoint);
+        builder.append(", externalAddressAlias=");
+        builder.append(this.externalAddressAlias);
         builder.append(", serverURLPrefix=");
         builder.append(this.serverURLPrefix);
         builder.append(", isDistributed=");

@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -50,6 +51,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactory clientHttpRequestFactory;
     private final String[] openEdxAlternativeTokenRequestPaths;
+    private final WebserviceInfo webserviceInfo;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
@@ -58,12 +60,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
+            final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths) {
 
         this.asyncService = asyncService;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.webserviceInfo = webserviceInfo;
 
         this.openEdxAlternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
@@ -203,7 +207,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         credentials,
                         this.clientCredentialService,
                         this.clientHttpRequestFactory,
-                        this.openEdxAlternativeTokenRequestPaths);
+                        this.openEdxAlternativeTokenRequestPaths,
+                        this.webserviceInfo);
             default:
                 throw new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType);
         }

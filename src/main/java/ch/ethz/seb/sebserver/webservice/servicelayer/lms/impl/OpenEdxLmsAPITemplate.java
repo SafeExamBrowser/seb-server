@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,6 +55,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -76,6 +78,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private final ClientHttpRequestFactory clientHttpRequestFactory;
     private final ClientCredentialService clientCredentialService;
     private final Set<String> knownTokenAccessPaths;
+    private final WebserviceInfo webserviceInfo;
 
     private OAuth2RestTemplate restTemplate = null;
     private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesSupplier;
@@ -86,12 +89,14 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             final ClientCredentials credentials,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactory clientHttpRequestFactory,
-            final String[] alternativeTokenRequestPaths) {
+            final String[] alternativeTokenRequestPaths,
+            final WebserviceInfo webserviceInfo) {
 
         this.lmsSetup = lmsSetup;
         this.clientCredentialService = clientCredentialService;
         this.credentials = credentials;
         this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.webserviceInfo = webserviceInfo;
         this.knownTokenAccessPaths = new HashSet<>();
         this.knownTokenAccessPaths.add(OPEN_EDX_DEFAULT_TOKEN_REQUEST_PATH);
         if (alternativeTokenRequestPaths != null) {
@@ -234,18 +239,41 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final LmsSetup lmsSetup) {
+        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
         return collectAllCourses(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT)
                 .stream()
                 .reduce(
                         new ArrayList<QuizData>(),
                         (list, courseData) -> {
-                            list.add(quizDataOf(lmsSetup, courseData));
+                            list.add(quizDataOf(lmsSetup, courseData, externalStartURI));
                             return list;
                         },
                         (list1, list2) -> {
                             list1.addAll(list2);
                             return list1;
                         });
+    }
+
+    private String getExternalLMSServerAddress(final LmsSetup lmsSetup) {
+        final String externalAddressAlias = this.webserviceInfo.getExternalAddressAlias(lmsSetup.lmsApiUrl);
+        String _externalStartURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX;
+        if (StringUtils.isNoneBlank(externalAddressAlias)) {
+            try {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Found external address alias: {}", externalAddressAlias);
+                }
+
+                final URL url = new URL(lmsSetup.lmsApiUrl);
+                final int port = url.getPort();
+                _externalStartURI = this.webserviceInfo.getHttpScheme() + "://" + externalAddressAlias + ":" + port;
+
+                log.info("Use external address for course access: {}", _externalStartURI);
+            } catch (final Exception e) {
+                log.error("Failed to create external address from alias: ", e);
+            }
+        }
+        return _externalStartURI;
     }
 
     private List<CourseData> collectAllCourses(final String pageURI) {
@@ -275,9 +303,10 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private static QuizData quizDataOf(
             final LmsSetup lmsSetup,
-            final CourseData courseData) {
+            final CourseData courseData,
+            final String uriPrefix) {
 
-        final String startURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX + courseData.id;
+        final String startURI = uriPrefix + courseData.id;
         final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.put("blocks_url", courseData.blocks_url);
         return new QuizData(
