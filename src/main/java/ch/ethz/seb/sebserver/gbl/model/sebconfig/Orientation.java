@@ -136,11 +136,11 @@ public final class Orientation implements Entity {
         return this.groupId;
     }
 
-    public Integer getXPosition() {
+    public Integer getxPosition() {
         return this.xPosition;
     }
 
-    public Integer getYPosition() {
+    public Integer getyPosition() {
         return this.yPosition;
     }
 

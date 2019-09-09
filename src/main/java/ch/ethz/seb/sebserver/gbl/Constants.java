@@ -30,6 +30,9 @@ public final class Constants {
     public static final String EMPTY_NOTE = "--";
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
+    public static final String URL_PORT_SEPARATOR = ":";
+    public static final String URL_ADDRESS_SEPARATOR = "://";
+    public static final String URL_PATH_SEPARATOR = "/";
 
     public static final String PERCENTAGE = "%";
 

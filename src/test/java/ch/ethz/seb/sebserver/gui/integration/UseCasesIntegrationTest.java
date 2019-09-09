@@ -26,6 +26,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -34,8 +36,12 @@ import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
@@ -46,7 +52,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -301,7 +309,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "TestInstAdmin",
                 "987654321",
                 new GetInstitutionNames(),
-                new NewUserAccount());
+                new NewUserAccount(),
+                new ActivateUserAccount());
 
         final String instId = restService.getBuilder(GetInstitutionNames.class)
                 .call()
@@ -328,6 +337,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(result);
         assertFalse(result.hasError());
 
+        Result<EntityProcessingReport> activation = restService.getBuilder(ActivateUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
+                .call();
+        assertNotNull(activation);
+        assertFalse(activation.hasError());
+
         result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
                 .withFormParam(Domain.USER.ATTR_NAME, "examSupport2")
@@ -343,6 +358,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(result);
         assertFalse(result.hasError());
 
+        activation = restService.getBuilder(ActivateUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
+                .call();
+        assertNotNull(activation);
+        assertFalse(activation.hasError());
+
         result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
                 .withFormParam(Domain.USER.ATTR_NAME, "examSupport1")
@@ -357,6 +378,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(result);
         assertFalse(result.hasError());
+
+        activation = restService.getBuilder(ActivateUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
+                .call();
+        assertNotNull(activation);
+        assertFalse(activation.hasError());
 
     }
 
@@ -542,6 +569,98 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
                 .call();
+    }
+
+    @Test
+    @Order(6)
+    // *************************************
+    // Use Case 6: Login as examAdmin2
+    // - Check if there are some quizzes form previous LMS Setup
+    // - Import a quiz as Exam
+    // - get exam page and check the exam is there
+    // - edit exam property and save again
+    public void testUsecase6() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetUserAccountNames(),
+                new NewLmsSetup(),
+                new GetQuizPage(),
+                new GetQuizData(),
+                new ImportAsExam(),
+                new SaveExam(),
+                new GetExam(),
+                new GetExamPage());
+
+        final Result<List<EntityName>> userNamesResult = restService
+                .getBuilder(GetUserAccountNames.class)
+                .call();
+
+        assertNotNull(userNamesResult);
+        assertFalse(userNamesResult.hasError());
+
+        final String userId = userNamesResult.get()
+                .stream()
+                .filter(userName -> "examSupport2".equals(userName.name))
+                .findFirst()
+                .map(EntityName::getModelId)
+                .orElse(null);
+
+        // check quizzes are defines
+        final Result<Page<QuizData>> quizPageCall = restService
+                .getBuilder(GetQuizPage.class)
+                .call();
+
+        assertNotNull(quizPageCall);
+        assertFalse(quizPageCall.hasError());
+        final Page<QuizData> quizzes = quizPageCall.get();
+        assertFalse(quizzes.isEmpty());
+        final QuizData quizData = quizzes.content.get(0);
+        assertNotNull(quizData);
+        assertEquals("Demo Quiz 1", quizData.name);
+
+        // import quiz as exam
+        final Result<Exam> newExamResult = restService
+                .getBuilder(ImportAsExam.class)
+                .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
+                .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
+                .call();
+
+        assertNotNull(newExamResult);
+        assertFalse(newExamResult.hasError());
+        final Exam newExam = newExamResult.get();
+
+        assertEquals("Demo Quiz 1", newExam.name);
+        assertEquals(ExamType.UNDEFINED, newExam.type);
+        assertTrue(newExam.supporter.isEmpty());
+
+        // create Exam with type and supporter examSupport2
+        final Exam examForSave = new Exam(
+                newExam.id,
+                newExam.institutionId,
+                newExam.lmsSetupId,
+                newExam.externalId,
+                newExam.name,
+                newExam.description,
+                newExam.startTime,
+                newExam.endTime,
+                newExam.startURL,
+                ExamType.MANAGED,
+                null, null, null,
+                Utils.immutableCollectionOf(userId),
+                true);
+
+        final Result<Exam> savedExamResult = restService
+                .getBuilder(SaveExam.class)
+                .withBody(examForSave)
+                .call();
+
+        assertNotNull(savedExamResult);
+        assertFalse(savedExamResult.hasError());
+        final Exam savedExam = savedExamResult.get();
+
+        assertEquals(ExamType.MANAGED, savedExam.type);
+        assertFalse(savedExam.supporter.isEmpty());
     }
 
 }

@@ -267,11 +267,11 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                 final URL url = new URL(lmsSetup.lmsApiUrl);
                 final int port = url.getPort();
                 _externalStartURI = this.webserviceInfo.getHttpScheme() +
-                        "://" + externalAddressAlias +
+                        Constants.URL_ADDRESS_SEPARATOR + externalAddressAlias +
                         ((port >= 0)
-                                ? ":" + port
-                                : "")
-                        + "/";
+                                ? Constants.URL_PORT_SEPARATOR + port
+                                : StringUtils.EMPTY)
+                        + Constants.URL_PATH_SEPARATOR;
 
                 log.info("Use external address for course access: {}", _externalStartURI);
             } catch (final Exception e) {

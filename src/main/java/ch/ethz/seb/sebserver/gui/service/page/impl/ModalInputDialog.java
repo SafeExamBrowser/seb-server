@@ -41,7 +41,7 @@ public class ModalInputDialog<T> extends Dialog {
     private final WidgetFactory widgetFactory;
     private int dialogWidth = 400;
     private int dialogHeight = 600;
-    private final int buttonWidth = 100;
+    private int buttonWidth = 100;
 
     public ModalInputDialog(
             final Shell parent,
@@ -59,6 +59,11 @@ public class ModalInputDialog<T> extends Dialog {
 
     public ModalInputDialog<T> setDialogHeight(final int dialogHeight) {
         this.dialogHeight = dialogHeight;
+        return this;
+    }
+
+    public ModalInputDialog<T> setButtonWidth(final int buttonWidth) {
+        this.buttonWidth = buttonWidth;
         return this;
     }
 
