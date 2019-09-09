@@ -278,17 +278,15 @@ public class HTTPClientBot {
         }
 
         public boolean getConfig(final MultiValueMap<String, String> headers) {
-            final HttpEntity<?> configHeader = new HttpEntity<>(
-                    API.EXAM_API_PARAM_EXAM_ID +
-                            Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                            HTTPClientBot.this.examId,
-                    headers);
+            final HttpEntity<?> configHeader = new HttpEntity<>(headers);
 
             log.info("ConnectionBot {} : get SEB Configuration", this.name);
 
             try {
                 final ResponseEntity<byte[]> exchange = this.restTemplate.exchange(
-                        this.configurartionURI,
+                        this.configurartionURI + "?" + API.EXAM_API_PARAM_EXAM_ID +
+                                Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
+                                HTTPClientBot.this.examId,
                         HttpMethod.GET,
                         configHeader,
                         new ParameterizedTypeReference<byte[]>() {

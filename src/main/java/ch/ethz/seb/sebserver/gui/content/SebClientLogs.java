@@ -181,7 +181,7 @@ public class SebClientLogs implements TemplateComposer {
                                 .widthProportion(2))
 
                 .withColumn(new ColumnDefinition<>(
-                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER,
+                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         CLIENT_SESSION_TEXT_KEY,
                         ExtendedClientEvent::getUserSessionId)
                                 .withFilter(this.clientSessionFilter)
@@ -307,7 +307,7 @@ public class SebClientLogs implements TemplateComposer {
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(
-                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER,
+                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         FORM_SESSION_ID_TEXT_KEY,
                         connection.userSessionId))
                 .addField(FormBuilder.text(

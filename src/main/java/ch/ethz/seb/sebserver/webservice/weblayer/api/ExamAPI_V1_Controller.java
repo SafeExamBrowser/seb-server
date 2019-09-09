@@ -228,11 +228,10 @@ public class ExamAPI_V1_Controller {
     @RequestMapping(
             path = API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void getConfig(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-            @RequestBody(required = false) final MultiValueMap<String, String> formParams,
+            @RequestParam(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
             final HttpServletResponse response) throws IOException {

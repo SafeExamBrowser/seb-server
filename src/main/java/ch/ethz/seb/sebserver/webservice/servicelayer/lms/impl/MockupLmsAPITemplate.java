@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -139,10 +138,9 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                     log.debug("Found external address alias: {}", externalAddressAlias);
                 }
 
-                final URL url = new URL(this.lmsSetup.lmsApiUrl);
-                final int port = url.getPort();
                 final String _externalStartURI =
-                        this.webserviceInfo.getHttpScheme() + "://" + externalAddressAlias + ":" + port + "/api/";
+                        this.webserviceInfo.getHttpScheme() +
+                                "://" + externalAddressAlias + "/api/";
 
                 log.info("Use external address for course access: {}", _externalStartURI);
 

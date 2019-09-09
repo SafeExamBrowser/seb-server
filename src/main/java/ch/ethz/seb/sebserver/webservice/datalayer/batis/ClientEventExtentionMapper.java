@@ -76,7 +76,7 @@ public interface ClientEventExtentionMapper {
 
                 ClientConnectionRecordDynamicSqlSupport.institutionId.as("institution_id"),
                 ClientConnectionRecordDynamicSqlSupport.examId.as("exam_id"),
-                ClientConnectionRecordDynamicSqlSupport.examUserSessionIdentifer.as("exam_user_session_identifer"))
+                ClientConnectionRecordDynamicSqlSupport.examUserSessionId.as("exam_user_session_identifer"))
 
                 .from(ClientEventRecordDynamicSqlSupport.clientEventRecord)
 

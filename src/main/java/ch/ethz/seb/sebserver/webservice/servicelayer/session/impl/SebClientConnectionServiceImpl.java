@@ -243,32 +243,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
-
-            if (StringUtils.isNoneBlank(userSessionId)) {
-                if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
-                    log.error(
-                            "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
-                            userSessionId, clientConnection);
-                    throw new IllegalArgumentException(
-                            "ClientConnection integrity violation: clientConnection has already a userSessionId");
-                }
-
-                // create new ClientConnection for update
-                final ClientConnection authenticatedClientConnection = new ClientConnection(
-                        clientConnection.id,
-                        null,
-                        null,
-                        ConnectionStatus.AUTHENTICATED,
-                        null,
-                        userSessionId,
-                        null,
-                        null,
-                        null);
-
-                clientConnection = this.clientConnectionDAO
-                        .save(authenticatedClientConnection)
-                        .getOrThrow();
-            }
+            clientConnection = updateUserSessionId(userSessionId, clientConnection);
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
@@ -510,6 +485,35 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     "Exam integrity violation: another examId is already set for the connection");
         }
         checkExamRunning(examId);
+    }
+
+    private ClientConnection updateUserSessionId(final String userSessionId, ClientConnection clientConnection) {
+        if (StringUtils.isNoneBlank(userSessionId)) {
+            if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
+                log.error(
+                        "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
+                        userSessionId, clientConnection);
+                throw new IllegalArgumentException(
+                        "ClientConnection integrity violation: clientConnection has already a userSessionId");
+            }
+
+            // create new ClientConnection for update
+            final ClientConnection authenticatedClientConnection = new ClientConnection(
+                    clientConnection.id,
+                    null,
+                    null,
+                    ConnectionStatus.AUTHENTICATED,
+                    null,
+                    userSessionId,
+                    null,
+                    null,
+                    null);
+
+            clientConnection = this.clientConnectionDAO
+                    .save(authenticatedClientConnection)
+                    .getOrThrow();
+        }
+        return clientConnection;
     }
 
 }

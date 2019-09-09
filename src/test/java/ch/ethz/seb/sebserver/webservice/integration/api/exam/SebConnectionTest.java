@@ -83,7 +83,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertNull(clientConnectionRecord.getExamUserSessionIdentifer());
+        assertNull(clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check caching
@@ -131,7 +131,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertNull(clientConnectionRecord.getExamUserSessionIdentifer());
+        assertNull(clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
     }
 
@@ -219,7 +219,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("AUTHENTICATED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionIdentifer());
+        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache after update
@@ -298,7 +298,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("ESTABLISHED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionIdentifer());
+        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache after update
@@ -359,7 +359,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertNull(clientConnectionRecord.getExamUserSessionIdentifer());
+        assertNull(clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache fail remains the same
@@ -420,7 +420,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("CLOSED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertNull(clientConnectionRecord.getExamUserSessionIdentifer());
+        assertNull(clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache after update

@@ -23,14 +23,14 @@ public final class ExtendedClientEvent extends ClientEvent {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID)
     public final Long examId;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER)
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
     public final String userSessionId;
 
     @JsonCreator
     public ExtendedClientEvent(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID) final Long examId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER) final String userSessionId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID) final Long id,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_CONNECTION_ID) final Long connectionId,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE) final EventType eventType,

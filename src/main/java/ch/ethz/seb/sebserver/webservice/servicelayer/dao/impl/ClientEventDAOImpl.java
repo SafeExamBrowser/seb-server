@@ -128,7 +128,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         isEqualToWhenPresent(filterMap.getClientEventExamId()))
                 .and(
-                        ClientConnectionRecordDynamicSqlSupport.examUserSessionIdentifer,
+                        ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
                         SqlBuilder.isLikeWhenPresent(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_SESSION_ID)))
                 .and(
                         ClientEventRecordDynamicSqlSupport.connectionId,

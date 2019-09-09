@@ -255,7 +255,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                             ? ConnectionStatus.valueOf(status)
                             : ConnectionStatus.UNDEFINED,
                     record.getConnectionToken(),
-                    record.getExamUserSessionIdentifer(),
+                    record.getExamUserSessionId(),
                     record.getClientAddress(),
                     record.getVirtualClientAddress(),
                     record.getCreationTime());

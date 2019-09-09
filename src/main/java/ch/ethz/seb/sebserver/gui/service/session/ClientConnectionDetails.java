@@ -80,7 +80,7 @@ public class ClientConnectionDetails {
                         EXAM_NAME_TEXT_KEY,
                         this.exam.getName()))
                 .addField(FormBuilder.text(
-                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER,
+                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         CONNECTION_ID_TEXT_KEY,
                         Constants.EMPTY_NOTE))
                 .addField(FormBuilder.text(
@@ -128,7 +128,7 @@ public class ClientConnectionDetails {
 
         final Form form = this.formhandle.getForm();
         form.setFieldValue(
-                Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_IDENTIFER,
+                Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                 this.connectionData.clientConnection.userSessionId);
 
         form.setFieldValue(
