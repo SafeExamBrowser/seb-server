@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.security.Principal;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -239,9 +240,35 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         userSessionId);
             }
 
-            final ClientConnection clientConnection = getClientConnection(connectionToken);
+            ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
+
+            if (StringUtils.isNoneBlank(userSessionId)) {
+                if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
+                    log.error(
+                            "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
+                            userSessionId, clientConnection);
+                    throw new IllegalArgumentException(
+                            "ClientConnection integrity violation: clientConnection has already a userSessionId");
+                }
+
+                // create new ClientConnection for update
+                final ClientConnection authenticatedClientConnection = new ClientConnection(
+                        clientConnection.id,
+                        null,
+                        null,
+                        ConnectionStatus.AUTHENTICATED,
+                        null,
+                        userSessionId,
+                        null,
+                        null,
+                        null);
+
+                clientConnection = this.clientConnectionDAO
+                        .save(authenticatedClientConnection)
+                        .getOrThrow();
+            }
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
