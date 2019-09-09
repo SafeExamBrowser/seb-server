@@ -8,12 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -35,13 +38,16 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     private final LmsSetup lmsSetup;
     private final ClientCredentials credentials;
     private final Collection<QuizData> mockups;
+    private final WebserviceInfo webserviceInfo;
 
     MockupLmsAPITemplate(
             final LmsSetup lmsSetup,
-            final ClientCredentials credentials) {
+            final ClientCredentials credentials,
+            final WebserviceInfo webserviceInfo) {
 
         this.lmsSetup = lmsSetup;
         this.credentials = credentials;
+        this.webserviceInfo = webserviceInfo;
 
         final Long lmsSetupId = lmsSetup.id;
         final Long institutionId = lmsSetup.getInstitutionId();
@@ -100,7 +106,9 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 throw new IllegalArgumentException("Wrong clientId or secret");
             }
 
-            final List<QuizData> quizzes = this.mockups.stream()
+            final List<QuizData> quizzes = this.mockups
+                    .stream()
+                    .map(this::getExternalAddressAlias)
                     .filter(LmsAPIService.quizFilterFunction(filterMap))
                     .collect(Collectors.toList());
 
@@ -114,10 +122,41 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
             throw new IllegalArgumentException("Wrong clientId or secret");
         }
 
-        return this.mockups.stream()
+        return this.mockups
+                .stream()
+                .map(this::getExternalAddressAlias)
                 .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
                 .collect(Collectors.toList());
+    }
+
+    private QuizData getExternalAddressAlias(final QuizData quizData) {
+        final String externalAddressAlias = this.webserviceInfo.getExternalAddressAlias(this.lmsSetup.lmsApiUrl);
+        if (StringUtils.isNoneBlank(externalAddressAlias)) {
+            try {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Found external address alias: {}", externalAddressAlias);
+                }
+
+                final URL url = new URL(this.lmsSetup.lmsApiUrl);
+                final int port = url.getPort();
+                final String _externalStartURI =
+                        this.webserviceInfo.getHttpScheme() + "://" + externalAddressAlias + ":" + port + "/api/";
+
+                log.info("Use external address for course access: {}", _externalStartURI);
+
+                return new QuizData(
+                        quizData.id, quizData.institutionId, quizData.lmsSetupId, quizData.lmsType,
+                        quizData.name, quizData.description, quizData.startTime,
+                        quizData.endTime, _externalStartURI, quizData.additionalAttributes);
+            } catch (final Exception e) {
+                log.error("Failed to create external address from alias: ", e);
+                return quizData;
+            }
+        } else {
+            return quizData;
+        }
     }
 
     private boolean authenticate() {
