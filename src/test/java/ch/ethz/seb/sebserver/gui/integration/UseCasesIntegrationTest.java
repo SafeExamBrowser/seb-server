@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +30,9 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -40,8 +45,13 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
@@ -661,6 +671,90 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertEquals(ExamType.MANAGED, savedExam.type);
         assertFalse(savedExam.supporter.isEmpty());
+    }
+
+    @Test
+    @Order(7)
+    // *************************************
+    // Use Case 7: Login as examAdmin2
+    // - Get imported exam
+    // - add new indicator for exam
+    // - save exam with new indicator and test
+    // - create some thresholds for the new indicator
+    public void testUsecase7() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetExam(),
+                new GetExamNames(),
+                new NewIndicator(),
+                new SaveIndicator(),
+                new GetIndicator(),
+                new GetIndicatorPage());
+
+        final Result<List<EntityName>> examNamesResult = restService
+                .getBuilder(GetExamNames.class)
+                .call();
+
+        assertNotNull(examNamesResult);
+        assertFalse(examNamesResult.hasError());
+        final List<EntityName> exams = examNamesResult.get();
+        assertFalse(exams.isEmpty());
+        final EntityName examName = exams.get(0);
+        assertEquals("Demo Quiz 1", examName.name);
+
+        final Result<Exam> examResult = restService
+                .getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examName.modelId)
+                .call();
+
+        assertNotNull(examResult);
+        assertFalse(examResult.hasError());
+        final Exam exam = examResult.get();
+
+        final Result<Indicator> newIndicatorResult = restService
+                .getBuilder(NewIndicator.class)
+                .withFormParam(Domain.INDICATOR.ATTR_EXAM_ID, exam.getModelId())
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Ping")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.LAST_PING.name)
+                .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
+                .call();
+
+        assertNotNull(newIndicatorResult);
+        assertFalse(newIndicatorResult.hasError());
+        final Indicator newIndicator = newIndicatorResult.get();
+
+        assertEquals("Ping", newIndicator.name);
+        assertEquals("000001", newIndicator.defaultColor);
+
+        final Indicator indicatorToSave = new Indicator(
+                newIndicator.id, newIndicator.examId, newIndicator.name, newIndicator.type, newIndicator.defaultColor,
+                Utils.immutableCollectionOf(
+                        new Indicator.Threshold(2000d, "000011"),
+                        new Indicator.Threshold(5000d, "001111")));
+
+        final Result<Indicator> savedIndicatorResult = restService
+                .getBuilder(SaveIndicator.class)
+                .withBody(indicatorToSave)
+                .call();
+
+        assertNotNull(savedIndicatorResult);
+        assertFalse(savedIndicatorResult.hasError());
+        final Indicator savedIndicator = savedIndicatorResult.get();
+
+        assertEquals("Ping", savedIndicator.name);
+        assertEquals("000001", savedIndicator.defaultColor);
+        final Collection<Threshold> thresholds = savedIndicator.getThresholds();
+        assertFalse(thresholds.isEmpty());
+        assertTrue(thresholds.size() == 2);
+        final Iterator<Threshold> iterator = thresholds.iterator();
+        final Threshold t1 = iterator.next();
+        final Threshold t2 = iterator.next();
+
+        assertTrue(2000d - t1.value < .0001);
+        assertEquals("000011", t1.color);
+        assertTrue(5000d - t2.value < .0001);
+        assertEquals("001111", t2.color);
     }
 
 }

@@ -151,6 +151,9 @@ public class RAPConfiguration implements ApplicationConfiguration {
                 return WebApplicationContextUtils
                         .getRequiredWebApplicationContext(servletContext);
 
+            } catch (final RuntimeException e) {
+                log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
+                throw e;
             } catch (final Exception e) {
                 log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
                 throw new RuntimeException("Failed to initialize Spring-Context on HttpSession: " + httpSession);
