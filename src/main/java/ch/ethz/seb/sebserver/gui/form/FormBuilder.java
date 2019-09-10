@@ -275,7 +275,7 @@ public class FormBuilder {
         final Label label = new Label(parent, SWT.NONE);
         label.setText((StringUtils.isNotBlank(value)) ? value : Constants.EMPTY_NOTE);
         final GridData gridData = new GridData(
-                (centered) ? SWT.FILL : SWT.FILL,
+                SWT.FILL,
                 (centered) ? SWT.CENTER : SWT.TOP,
                 true, false,
                 hspan, 1);
@@ -285,7 +285,6 @@ public class FormBuilder {
             label.setData(RWT.CUSTOM_VARIANT, CustomVariant.FORM_CENTER.key);
         }
 
-        //     gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         return label;
     }

@@ -91,8 +91,7 @@ public class ClientConnectionDetails {
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         CONNECTION_STATUS_TEXT_KEY,
-                        Constants.EMPTY_NOTE)
-                        .withCenteredInput())
+                        Constants.EMPTY_NOTE))
                 .addEmptyCell();
 
         this.indicatorMapping
@@ -103,8 +102,7 @@ public class ClientConnectionDetails {
                             indData.indicator.name,
                             new LocTextKey(indData.indicator.name),
                             Constants.EMPTY_NOTE)
-                            .withDefaultLabel(indData.indicator.name)
-                            .withCenteredInput())
+                            .withDefaultLabel(indData.indicator.name))
                             .addEmptyCell();
                 });
 

@@ -64,6 +64,10 @@ public class BrowserViewModeRule implements ValueChangeRule {
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);
                     break;
                 }
+                default: {
+                    context.disable(KEY_TOUCH_EXIT);
+                    break;
+                }
             }
         } catch (final Exception e) {
             log.warn("Failed to apply rule: ", e);

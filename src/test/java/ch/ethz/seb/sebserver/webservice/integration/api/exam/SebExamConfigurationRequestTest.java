@@ -172,6 +172,12 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
                 .getCache(ExamSessionCacheService.CACHE_NAME_SEB_CONFIG_EXAM);
         final ValueWrapper config = cache.get(EXAM_ID);
         assertNotNull(config);
+
+        // check connection has examId
+
+        final MockHttpServletResponse establishConnectionResponse = super.establishConnection(
+                accessToken, connectionToken, null, "test");
+        assertTrue(HttpStatus.OK.value() == establishConnectionResponse.getStatus());
     }
 
     @Test

@@ -151,7 +151,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
 
         final CharSequence encryptionPassword = this.sebClientConfigDAO
                 .getConfigPasswortCipher(config.getModelId())
-                .getOrThrow();
+                .getOr(null);
 
         final String plainTextConfig = getPlainXMLConfig(config);
 

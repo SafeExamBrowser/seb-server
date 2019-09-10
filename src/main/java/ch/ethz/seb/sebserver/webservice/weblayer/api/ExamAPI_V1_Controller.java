@@ -236,14 +236,27 @@ public class ExamAPI_V1_Controller {
             final HttpServletRequest request,
             final HttpServletResponse response) throws IOException {
 
+        // if an examId is provided with the request, update the connection first
+        if (formParams != null && formParams.containsKey(API.EXAM_API_PARAM_EXAM_ID)) {
+            final String examId = formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID);
+            final Long institutionId = getInstitutionId(principal);
+            final ClientConnection connection = this.sebClientConnectionService.updateClientConnection(
+                    connectionToken,
+                    institutionId,
+                    Long.valueOf(examId),
+                    null,
+                    null)
+                    .getOrThrow();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Updated connection: {}", connection);
+            }
+            //handshakeUpdate(connectionToken, Long.valueOf(examId), null, principal, request);
+        }
+
         final ServletOutputStream outputStream = response.getOutputStream();
 
         try {
-            // if an examId is provided with the request, update the connection first
-            if (formParams != null && formParams.containsKey(API.EXAM_API_PARAM_EXAM_ID)) {
-                final String examId = formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID);
-                handshakeUpdate(connectionToken, Long.valueOf(examId), null, principal, request);
-            }
 
             final ClientConnectionData connection = this.examSessionService
                     .getConnectionData(connectionToken)

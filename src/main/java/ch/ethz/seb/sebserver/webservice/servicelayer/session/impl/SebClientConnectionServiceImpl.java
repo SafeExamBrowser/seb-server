@@ -447,15 +447,10 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final String requestClientAddress,
             final String existingClientAddress) {
 
-        if (examId == null) {
-            return null;
-        }
-
-        if (requestClientAddress.equals(existingClientAddress)) {
-            return null;
-        }
-
-        if (!isVDI(examId)) {
+        if (examId == null ||
+                requestClientAddress == null ||
+                requestClientAddress.equals(existingClientAddress) ||
+                !isVDI(examId)) {
             return null;
         }
 

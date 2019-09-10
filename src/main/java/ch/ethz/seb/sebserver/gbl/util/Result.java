@@ -255,7 +255,9 @@ public final class Result<T> {
      * @param value resulting value
      * @return Result instance contains a resulting value and no error */
     public static <T> Result<T> of(final T value) {
-        assert value != null : "value has null reference";
+        if (value == null) {
+            throw new IllegalArgumentException("value has null reference");
+        }
         return new Result<>(value);
     }
 

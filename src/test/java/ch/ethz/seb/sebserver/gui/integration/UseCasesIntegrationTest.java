@@ -10,12 +10,15 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -25,6 +28,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -37,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -65,6 +70,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsS
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -755,6 +767,103 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("000011", t1.color);
         assertTrue(5000d - t2.value < .0001);
         assertEquals("001111", t2.color);
+    }
+
+    @Test
+    @Order(8)
+    // *************************************
+    // Use Case 8: Login as TestInstAdmin and create a SEB Client Configuration
+    // - create one with and one without password
+    // - activate one config
+    // - export both configurations
+    public void testUsecase8() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new GetClientConfig(),
+                new GetClientConfigPage(),
+                new NewClientConfig(),
+                new SaveClientConfig(),
+                new ActivateClientConfig(),
+                new DeactivateClientConfig(),
+                new ExportClientConfig());
+
+        // create SEB Client Config without password protection
+        final Result<SebClientConfig> newConfigResponse = restService
+                .getBuilder(NewClientConfig.class)
+                .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .call();
+
+        assertNotNull(newConfigResponse);
+        assertFalse(newConfigResponse.hasError());
+        final SebClientConfig sebClientConfig = newConfigResponse.get();
+        assertEquals("No Password Protection", sebClientConfig.name);
+        assertFalse(sebClientConfig.isActive());
+        assertEquals("http://fallback.com/fallback", sebClientConfig.fallbackStartURL);
+
+        // activate the new Client Configuration
+        final Result<EntityProcessingReport> activationResponse = restService
+                .getBuilder(ActivateClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        assertNotNull(activationResponse);
+        assertFalse(activationResponse.hasError());
+
+        final Result<SebClientConfig> getConfigResponse = restService
+                .getBuilder(GetClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        assertNotNull(getConfigResponse);
+        assertFalse(getConfigResponse.hasError());
+        final SebClientConfig activeConfig = getConfigResponse.get();
+        assertTrue(activeConfig.isActive());
+
+        // create a config with password protection
+        final Result<SebClientConfig> configWithPasswordResponse = restService
+                .getBuilder(NewClientConfig.class)
+                .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "With Password Protection")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET, "123")
+                .withFormParam(SebClientConfig.ATTR_CONFIRM_ENCRYPT_SECRET, "123")
+                .call();
+
+        assertNotNull(configWithPasswordResponse);
+        assertFalse(configWithPasswordResponse.hasError());
+        final SebClientConfig configWithPassword = configWithPasswordResponse.get();
+        assertEquals("With Password Protection", configWithPassword.name);
+        assertFalse(configWithPassword.isActive());
+        assertEquals("http://fallback.com/fallback", configWithPassword.fallbackStartURL);
+
+        // export client config No Password Protection
+        Result<InputStream> exportResponse = restService
+                .getBuilder(ExportClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        assertNotNull(exportResponse);
+        assertFalse(exportResponse.hasError());
+
+        List<String> readLines = IOUtils.readLines(exportResponse.get(), "UTF-8");
+        assertNotNull(readLines);
+        assertFalse(readLines.isEmpty());
+        assertTrue(readLines.get(0).startsWith("plnd"));
+
+        // export client config With Password Protection
+        exportResponse = restService
+                .getBuilder(ExportClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configWithPassword.getModelId())
+                .call();
+
+        assertNotNull(exportResponse);
+        assertFalse(exportResponse.hasError());
+
+        readLines = IOUtils.readLines(exportResponse.get(), "UTF-8");
+        assertNotNull(readLines);
+        assertFalse(readLines.isEmpty());
+        assertTrue(readLines.get(0).startsWith("pswd"));
     }
 
 }

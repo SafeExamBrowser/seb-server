@@ -28,11 +28,12 @@ public enum ActionCategory {
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 100),
     ;
 
+    public final LocTextKey title;
+    public final int slotPosition;
+
     private ActionCategory(final LocTextKey title, final int slotPosition) {
         this.title = title;
         this.slotPosition = slotPosition;
     }
 
-    public final LocTextKey title;
-    public final int slotPosition;
 }

@@ -63,7 +63,7 @@ public class SliderFieldBuilder implements InputFieldBuilder {
 
             slider.setMinimum(Integer.parseInt(split[0]));
             slider.setMaximum(Integer.parseInt(split[1]));
-        } catch (final Exception e) {
+        } catch (final NumberFormatException e) {
             slider.setMinimum(0);
             slider.setMaximum(100);
         }

@@ -157,7 +157,9 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
-        sebadmin.setExpanded(true);
+        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
+            sebadmin.setExpanded(true);
+        }
         // ---- SEB ADMIN ----------------------------------------------------------------------
         //--------------------------------------------------------------------------------------
 
@@ -176,17 +178,12 @@ public class ActivitiesPane implements TemplateComposer {
             final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.SEB_CONFIGURATION.displayName);
-            //sebConfigs.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIVITY_TREE_SECTION.key);
 
             // SEB Client Config
             if (clientConfigRead) {
-                final TreeItem clientConfig = (sebConfigs != null)
-                        ? this.widgetFactory.treeItemLocalized(
-                                sebConfigs,
-                                ActivityDefinition.SEB_CLIENT_CONFIG.displayName)
-                        : this.widgetFactory.treeItemLocalized(
-                                navigation,
-                                ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
+                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
                 injectActivitySelection(
                         clientConfig,
                         actionBuilder
@@ -196,20 +193,19 @@ public class ActivitiesPane implements TemplateComposer {
 
             // SEB Exam Config
             if (examConfigRead) {
-                final TreeItem examConfig = (sebConfigs != null)
-                        ? this.widgetFactory.treeItemLocalized(
-                                sebConfigs,
-                                ActivityDefinition.SEB_EXAM_CONFIG.displayName)
-                        : this.widgetFactory.treeItemLocalized(
-                                navigation,
-                                ActivityDefinition.SEB_EXAM_CONFIG.displayName);
+                final TreeItem examConfig = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_EXAM_CONFIG.displayName);
                 injectActivitySelection(
                         examConfig,
                         actionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
                                 .create());
             }
-            sebConfigs.setExpanded(true);
+
+            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
+                sebConfigs.setExpanded(true);
+            }
         }
 
         // ---- SEB CONFIGURATION --------------------------------------------------------------
@@ -264,7 +260,9 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            examadmin.setExpanded(true);
+            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
+                examadmin.setExpanded(true);
+            }
         }
 
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
@@ -313,7 +311,9 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            monitoring.setExpanded(true);
+            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
+                monitoring.setExpanded(true);
+            }
         }
 
         // ---- MONITORING ---------------------------------------------------------------------
@@ -349,7 +349,7 @@ public class ActivitiesPane implements TemplateComposer {
         // page-selection on (re)load
         final PageState state = this.pageService.getCurrentState();
         if (state == null) {
-            final TreeItem item = navigation.getItem(0);
+            final TreeItem item = getDefaultSelectionFor(navigation, this.currentUser);
             final TreeItem actionItem = getActionItem(item);
             final PageAction activityAction = getActivitySelection(actionItem);
             this.pageService.executePageAction(activityAction);
@@ -363,6 +363,22 @@ public class ActivitiesPane implements TemplateComposer {
                     navigation.select(item);
                 });
             }
+        }
+    }
+
+    private TreeItem getDefaultSelectionFor(final Tree navigation, final CurrentUser currentUser2) {
+        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
+            return navigation.getItem(0);
+        } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
+            return findItemByActionDefinition(
+                    navigation.getItems(),
+                    ActivityDefinition.SEB_CONFIGURATION);
+        } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
+            return findItemByActionDefinition(
+                    navigation.getItems(),
+                    ActivityDefinition.MONITORING_EXAMS);
+        } else {
+            return navigation.getItem(0);
         }
     }
 
@@ -516,7 +532,7 @@ public class ActivitiesPane implements TemplateComposer {
         item.setData(ATTR_ACTIVITY_SELECTION, action);
     }
 
-    private final class ActivitiesActionEventListener implements ActionEventListener {
+    private static final class ActivitiesActionEventListener implements ActionEventListener {
         private final Tree navigation;
 
         private ActivitiesActionEventListener(final Tree navigation) {

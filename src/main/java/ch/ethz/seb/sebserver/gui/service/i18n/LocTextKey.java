@@ -8,9 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.service.i18n;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class LocTextKey {
+public class LocTextKey implements Serializable {
+
+    private static final long serialVersionUID = 3042143924223909281L;
 
     public final String name;
     public final Object[] args;
