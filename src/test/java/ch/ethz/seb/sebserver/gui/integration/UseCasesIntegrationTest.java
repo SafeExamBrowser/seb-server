@@ -77,6 +77,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -864,6 +865,33 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(readLines);
         assertFalse(readLines.isEmpty());
         assertTrue(readLines.get(0).startsWith("pswd"));
+
+        // get page
+        final Result<Page<SebClientConfig>> pageResponse = restService
+                .getBuilder(GetClientConfigPage.class)
+                .call();
+
+        assertNotNull(pageResponse);
+        assertFalse(pageResponse.hasError());
+        final Page<SebClientConfig> page = pageResponse.get();
+        assertFalse(page.content.isEmpty());
+        assertTrue(page.content.size() == 2);
+    }
+
+    @Test
+    @Order(9)
+    // *************************************
+    // Use Case 9: Login as examAdmin2 and create a new SEB Exam Configuration
+    // - save configuration in history
+    // - change some attribute
+    // - process an undo
+    // - table value add, delete, modify
+    // - export
+    public void testUsecase9() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new NewExamConfig());
     }
 
 }

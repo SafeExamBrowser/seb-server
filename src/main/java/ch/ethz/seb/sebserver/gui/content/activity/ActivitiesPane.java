@@ -157,9 +157,10 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
-        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
-            sebadmin.setExpanded(true);
-        }
+        sebadmin.setExpanded(this.currentUser.get().hasAnyRole(
+                UserRole.SEB_SERVER_ADMIN,
+                UserRole.INSTITUTIONAL_ADMIN));
+
         // ---- SEB ADMIN ----------------------------------------------------------------------
         //--------------------------------------------------------------------------------------
 
@@ -203,9 +204,7 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
-                sebConfigs.setExpanded(true);
-            }
+            sebConfigs.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 
         // ---- SEB CONFIGURATION --------------------------------------------------------------
@@ -260,9 +259,7 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
-                examadmin.setExpanded(true);
-            }
+            examadmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
@@ -311,9 +308,7 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
-                monitoring.setExpanded(true);
-            }
+            monitoring.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER));
         }
 
         // ---- MONITORING ---------------------------------------------------------------------
@@ -372,7 +367,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
             return findItemByActionDefinition(
                     navigation.getItems(),
-                    ActivityDefinition.SEB_CONFIGURATION);
+                    ActivityDefinition.SEB_EXAM_CONFIG);
         } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
             return findItemByActionDefinition(
                     navigation.getItems(),
