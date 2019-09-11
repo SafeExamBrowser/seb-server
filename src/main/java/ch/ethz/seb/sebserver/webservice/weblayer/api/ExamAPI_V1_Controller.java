@@ -251,7 +251,6 @@ public class ExamAPI_V1_Controller {
             if (log.isDebugEnabled()) {
                 log.debug("Updated connection: {}", connection);
             }
-            //handshakeUpdate(connectionToken, Long.valueOf(examId), null, principal, request);
         }
 
         final ServletOutputStream outputStream = response.getOutputStream();

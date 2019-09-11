@@ -78,8 +78,8 @@ public class HTTPClientBot {
 
     public HTTPClientBot(final Map<String, String> args) {
 
-        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
-        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
+        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
+        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
 
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
         this.clientId = args.getOrDefault("clientId", "TO_SET");
@@ -147,11 +147,12 @@ public class HTTPClientBot {
             headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             this.connectBody = new HttpEntity<>(API.PARAM_INSTITUTION_ID +
                     Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                    HTTPClientBot.this.institutionId +
-                    Constants.FORM_URL_ENCODED_SEPARATOR +
-                    API.EXAM_API_PARAM_EXAM_ID +
-                    Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
-                    HTTPClientBot.this.examId,
+                    HTTPClientBot.this.institutionId
+//                    + Constants.FORM_URL_ENCODED_SEPARATOR
+//                    + API.EXAM_API_PARAM_EXAM_ID
+//                    + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR
+//                    + HTTPClientBot.this.examId
+                    ,
                     headers);
 
         }

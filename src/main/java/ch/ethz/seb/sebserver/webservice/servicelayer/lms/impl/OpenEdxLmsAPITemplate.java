@@ -259,11 +259,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         String _externalStartURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX;
         if (StringUtils.isNoneBlank(externalAddressAlias)) {
             try {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Found external address alias: {}", externalAddressAlias);
-                }
-
                 final URL url = new URL(lmsSetup.lmsApiUrl);
                 final int port = url.getPort();
                 _externalStartURI = this.webserviceInfo.getHttpScheme() +
@@ -273,7 +268,9 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                                 : StringUtils.EMPTY)
                         + Constants.URL_PATH_SEPARATOR;
 
-                log.info("Use external address for course access: {}", _externalStartURI);
+                if (log.isDebugEnabled()) {
+                    log.debug("Use external address for course access: {}", _externalStartURI);
+                }
             } catch (final Exception e) {
                 log.error("Failed to create external address from alias: ", e);
             }

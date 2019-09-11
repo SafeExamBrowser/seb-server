@@ -68,7 +68,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     private final InputFieldBuilderSupplier inputFieldBuilderSupplier;
     private final Collection<ValueChangeRule> valueChangeRules;
 
-    protected ExamConfigurationServiceImpl(
+    public ExamConfigurationServiceImpl(
             final RestService restService,
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
@@ -109,7 +109,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                             .getBuilder(GetOrientations.class)
                             .withQueryParam(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(templateId))
                             .call()
-                            .onError(t -> log.error("Failed to get all Orientation of template {}", templateId))
+                            .onError(t -> log.error("Failed to get all Orientation of template {}", templateId, t))
                             .getOrThrow());
         });
     }

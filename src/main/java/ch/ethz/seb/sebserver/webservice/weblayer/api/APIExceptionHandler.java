@@ -20,6 +20,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,7 +51,12 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final HttpStatus status,
             final WebRequest request) {
 
-        log.error("Unexpected generic error catched at the API endpoint: ", ex);
+        if (ex instanceof AccessDeniedException) {
+            log.warn("Access denied: ", ex);
+        } else {
+            log.error("Unexpected generic error catched at the API endpoint: ", ex);
+        }
+
         final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
         return new ResponseEntity<>(
                 errors,
@@ -142,6 +148,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.warn("Illegal API Argument Exception: ", ex);
         return APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
+                .createErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleUnexpected(
+            final AccessDeniedException ex,
+            final WebRequest request) {
+
+        log.warn("Access denied: ", ex);
+        return APIMessage.ErrorMessage.FORBIDDEN
                 .createErrorResponse(ex.getMessage());
     }
 

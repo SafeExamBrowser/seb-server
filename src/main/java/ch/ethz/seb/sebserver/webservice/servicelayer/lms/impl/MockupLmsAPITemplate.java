@@ -134,15 +134,12 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         if (StringUtils.isNoneBlank(externalAddressAlias)) {
             try {
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Found external address alias: {}", externalAddressAlias);
-                }
-
                 final String _externalStartURI =
                         this.webserviceInfo.getHttpScheme() +
                                 "://" + externalAddressAlias + "/api/";
-
-                log.info("Use external address for course access: {}", _externalStartURI);
+                if (log.isDebugEnabled()) {
+                    log.debug("Use external address for course access: {}", _externalStartURI);
+                }
 
                 return new QuizData(
                         quizData.id, quizData.institutionId, quizData.lmsSetupId, quizData.lmsType,

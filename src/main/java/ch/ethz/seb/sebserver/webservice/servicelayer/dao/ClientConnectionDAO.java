@@ -49,6 +49,10 @@ public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientC
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> createNew(ClientConnection data);
 
+    @Override
+    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
+    Result<ClientConnection> save(ClientConnection data);
+
     /** Deletes the given ClientConnection data.
      *
      * This evicts all entries from the CONNECTION_TOKENS_CACHE.

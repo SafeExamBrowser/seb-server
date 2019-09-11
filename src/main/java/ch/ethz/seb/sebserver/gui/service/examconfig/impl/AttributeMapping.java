@@ -165,6 +165,27 @@ public class AttributeMapping {
                 .collect(Collectors.toList()));
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("AttributeMapping [templateId=");
+        builder.append(this.templateId);
+        builder.append(", attributeIdMapping=");
+        builder.append(this.attributeIdMapping);
+        builder.append(", attributeNameIdMapping=");
+        builder.append(this.attributeNameIdMapping);
+        builder.append(", orientationAttributeMapping=");
+        builder.append(this.orientationAttributeMapping);
+        builder.append(", orientationAttributeNameMapping=");
+        builder.append(this.orientationAttributeNameMapping);
+        builder.append(", childAttributeMapping=");
+        builder.append(this.childAttributeMapping);
+        builder.append(", attributeGroupMapping=");
+        builder.append(this.attributeGroupMapping);
+        builder.append("]");
+        return builder.toString();
+    }
+
     private List<ConfigurationAttribute> getChildAttributes(final ConfigurationAttribute attribute) {
         return this.attributeIdMapping
                 .values()
