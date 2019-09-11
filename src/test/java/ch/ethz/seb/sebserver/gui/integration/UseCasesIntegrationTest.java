@@ -963,7 +963,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new SaveExamConfigTableValues(),
                 new GetConfigurationValues(),
                 new ActivateExamConfig(),
-                new DeactivateExamConfig());
+                new DeactivateExamConfig(),
+                new GetUserAccountNames());
 
         final Result<ConfigurationNode> newConfigResponse = restService
                 .getBuilder(NewExamConfig.class)
@@ -971,12 +972,25 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION, "This is a New Exam Config")
                 .call();
 
+        // get user id
+        final String userId = restService
+                .getBuilder(GetUserAccountNames.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .filter(userName -> "examAdmin2".equals(userName.name))
+                .map(EntityName::getModelId)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(userId);
+
         assertNotNull(newConfigResponse);
         assertFalse(newConfigResponse.hasError());
         final ConfigurationNode newConfig = newConfigResponse.get();
         assertEquals("New Exam Config", newConfig.name);
         assertEquals(Long.valueOf(0), newConfig.templateId);
-
+        assertEquals(userId, newConfig.owner);
     }
 
 }
