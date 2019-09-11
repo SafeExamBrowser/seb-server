@@ -63,7 +63,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
     // Switches off the Spring Boot auto configuration
     @Override
     @SuppressWarnings("PMD")
-    public void setConfigurers(final List<ResourceServerConfigurer> configurers) {
+    public final void setConfigurers(final List<ResourceServerConfigurer> configurers) {
         super.setConfigurers(configurers);
     }
 

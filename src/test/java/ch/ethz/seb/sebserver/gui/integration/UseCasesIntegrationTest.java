@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.core.annotation.Order;
 import org.springframework.test.context.jdbc.Sql;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -44,8 +46,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -87,7 +92,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ActivateExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeactivateExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValuePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
@@ -937,6 +945,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         .collect(Collectors.toList())
                         .toString());
 
+        final String viewIds = StringUtils.join(attributeMapping.getViewIds().stream().map(String::valueOf)
+                .collect(Collectors.toList()),
+                Constants.LIST_SEPARATOR_CHAR);
+
+        assertEquals("1,2,3,4,5,6,8,9,10,11", viewIds);
+        final Result<List<View>> viewsResponse = restService
+                .getBuilder(GetViewList.class)
+                .withQueryParam(API.PARAM_MODEL_ID_LIST, viewIds)
+                .call();
+
+        assertNotNull(viewsResponse);
+        assertFalse(viewsResponse.hasError());
     }
 
     @Test
@@ -955,22 +975,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new NewExamConfig(),
                 new GetExamConfigNode(),
                 new GetExamConfigNodePage(),
+                new GetConfigurationPage(),
+                new GetConfigurations(),
                 new SaveExamConfigHistory(),
                 new ExportExamConfig(),
                 new GetFollowupConfiguration(),
                 new SebExamConfigUndo(),
                 new SaveExamConfigValue(),
                 new SaveExamConfigTableValues(),
+                new GetConfigurationValuePage(),
                 new GetConfigurationValues(),
                 new ActivateExamConfig(),
                 new DeactivateExamConfig(),
                 new GetUserAccountNames());
-
-        final Result<ConfigurationNode> newConfigResponse = restService
-                .getBuilder(NewExamConfig.class)
-                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_NAME, "New Exam Config")
-                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION, "This is a New Exam Config")
-                .call();
 
         // get user id
         final String userId = restService
@@ -985,12 +1002,161 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(userId);
 
+        // get configuration page
+        final Result<Page<ConfigurationNode>> pageResponse = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call();
+
+        // there should be not configuration (for this institution of examAdmin2) now
+        assertNotNull(pageResponse);
+        assertFalse(pageResponse.hasError());
+        final Page<ConfigurationNode> page = pageResponse.get();
+        assertTrue(page.content.isEmpty());
+
+        final Result<ConfigurationNode> newConfigResponse = restService
+                .getBuilder(NewExamConfig.class)
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_NAME, "New Exam Config")
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION, "This is a New Exam Config")
+                .call();
+
         assertNotNull(newConfigResponse);
         assertFalse(newConfigResponse.hasError());
         final ConfigurationNode newConfig = newConfigResponse.get();
         assertEquals("New Exam Config", newConfig.name);
         assertEquals(Long.valueOf(0), newConfig.templateId);
         assertEquals(userId, newConfig.owner);
+
+        // get follow-up configuration
+        Result<List<Configuration>> configHistoryResponse = restService
+                .getBuilder(GetConfigurations.class)
+                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, newConfig.getModelId())
+                .call();
+
+        assertNotNull(configHistoryResponse);
+        assertFalse(configHistoryResponse.hasError());
+        List<Configuration> configHistory = configHistoryResponse.get();
+        assertFalse(configHistory.isEmpty());
+        assertTrue(2 == configHistory.size());
+        final Configuration initConfig = configHistory.get(0);
+        Configuration followup = configHistory.get(1);
+        assertEquals("v0", initConfig.version);
+        assertFalse(initConfig.followup);
+        assertNull(followup.version);
+        assertTrue(followup.followup);
+
+        // get all configuration values
+        Result<List<ConfigurationValue>> valuesResponse = restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID, followup.getModelId())
+                .call();
+
+        assertNotNull(valuesResponse);
+        assertFalse(valuesResponse.hasError());
+        List<ConfigurationValue> values = valuesResponse.get();
+        assertFalse(values.isEmpty());
+
+        // update a value -- grab first
+        final ConfigurationValue value = values.get(0);
+        ConfigurationValue newValue = new ConfigurationValue(
+                null, value.institutionId, value.configurationId,
+                value.attributeId, value.listIndex, "2");
+        Result<ConfigurationValue> newValueResponse = restService
+                .getBuilder(SaveExamConfigValue.class)
+                .withBody(newValue)
+                .call();
+
+        assertNotNull(newValueResponse);
+        assertFalse(newValueResponse.hasError());
+        ConfigurationValue savedValue = newValueResponse.get();
+        assertEquals("2", savedValue.value);
+
+        // save to history
+        final Result<Configuration> saveHistoryResponse = restService
+                .getBuilder(SaveExamConfigHistory.class)
+                .withURIVariable(API.PARAM_MODEL_ID, followup.getModelId())
+                .call();
+
+        assertNotNull(saveHistoryResponse);
+        assertFalse(saveHistoryResponse.hasError());
+        Configuration configuration = saveHistoryResponse.get();
+        assertFalse(configuration.followup);
+
+        configHistoryResponse = restService
+                .getBuilder(GetConfigurations.class)
+                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, newConfig.getModelId())
+                .call();
+
+        assertNotNull(configHistoryResponse);
+        assertFalse(configHistoryResponse.hasError());
+        configHistory = configHistoryResponse.get();
+        assertFalse(configHistory.isEmpty());
+        assertTrue(3 == configHistory.size());
+
+        configHistoryResponse = restService
+                .getBuilder(GetConfigurations.class)
+                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, newConfig.getModelId())
+                .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, "true")
+                .call();
+
+        assertNotNull(configHistoryResponse);
+        assertFalse(configHistoryResponse.hasError());
+        followup = configHistoryResponse.get().get(0);
+        assertNotNull(followup);
+        assertTrue(followup.followup);
+
+        // change value again
+        newValue = new ConfigurationValue(
+                null, value.institutionId, followup.id,
+                value.attributeId, value.listIndex, "3");
+        newValueResponse = restService
+                .getBuilder(SaveExamConfigValue.class)
+                .withBody(newValue)
+                .call();
+
+        assertNotNull(newValueResponse);
+        assertFalse(newValueResponse.hasError());
+        savedValue = newValueResponse.get();
+        assertEquals("3", savedValue.value);
+
+        // get current value
+        valuesResponse = restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID, followup.getModelId())
+                .call();
+
+        assertNotNull(valuesResponse);
+        assertFalse(valuesResponse.hasError());
+        values = valuesResponse.get();
+        assertFalse(values.isEmpty());
+        assertNotNull(newValueResponse);
+        assertFalse(newValueResponse.hasError());
+        savedValue = newValueResponse.get();
+        assertEquals("3", savedValue.value);
+
+        // undo
+        final Result<Configuration> undoResponse = restService
+                .getBuilder(SebExamConfigUndo.class)
+                .withURIVariable(API.PARAM_MODEL_ID, followup.getModelId())
+                .call();
+
+        assertNotNull(undoResponse);
+        assertFalse(undoResponse.hasError());
+        configuration = undoResponse.get();
+        assertTrue(configuration.followup);
+
+        // check value has been reset
+        valuesResponse = restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID, configuration.getModelId())
+                .call();
+
+        assertNotNull(valuesResponse);
+        assertFalse(valuesResponse.hasError());
+        values = valuesResponse.get();
+        final ConfigurationValue currentValue =
+                values.stream().filter(v -> v.attributeId == value.attributeId).findFirst().orElse(null);
+        assertNotNull(currentValue);
+        assertEquals("2", currentValue.value);
     }
 
 }

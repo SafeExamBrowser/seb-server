@@ -124,7 +124,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final String ids = StringUtils.join(
                 viewIds
                         .stream()
-                        .map(id -> String.valueOf(id))
+                        .map(String::valueOf)
                         .collect(Collectors.toList()),
                 Constants.LIST_SEPARATOR_CHAR);
 

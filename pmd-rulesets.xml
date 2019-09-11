@@ -12,6 +12,9 @@
     <exclude-pattern>.*/batis/mapper/*.java</exclude-pattern>
     <exclude-pattern>.*/batis/model/*.java</exclude-pattern>
     
-    <rule ref="category/java/errorprone.xml" ></rule>
+    <rule ref="category/java/errorprone.xml" >
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="BeanMembersShouldSerialize"/>
+    </rule>
 
 </ruleset>
