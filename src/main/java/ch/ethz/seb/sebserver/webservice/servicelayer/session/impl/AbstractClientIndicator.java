@@ -18,7 +18,6 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     protected Long examId;
     protected Long connectionId;
-    protected String name;
     protected boolean cachingEnabled;
 
     protected double currentValue = Double.NaN;
@@ -42,11 +41,6 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     @Override
     public Long connectionId() {
         return this.connectionId;
-    }
-
-    @Override
-    public String name() {
-        return this.name;
     }
 
     @Override

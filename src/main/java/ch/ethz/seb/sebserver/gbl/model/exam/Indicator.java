@@ -32,15 +32,17 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING(Names.LAST_PING),
-        ERROR_COUNT(Names.ERROR_COUNT)
+        LAST_PING(Names.LAST_PING, true),
+        ERROR_COUNT(Names.ERROR_COUNT, true)
 
         ;
 
         public final String name;
+        public boolean integerValue;
 
-        private IndicatorType(final String name) {
+        private IndicatorType(final String name, final boolean integerValue) {
             this.name = name;
+            this.integerValue = integerValue;
         }
 
         @Override

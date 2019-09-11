@@ -79,6 +79,9 @@ public class ClientIndicatorFactory {
                             e);
                 }
             }
+        } catch (final RuntimeException e) {
+            log.error("Failed to create ClientIndicator for ClientConnection: {}", clientConnection);
+            throw e;
         } catch (final Exception e) {
             log.error("Failed to create ClientIndicator for ClientConnection: {}", clientConnection);
         }

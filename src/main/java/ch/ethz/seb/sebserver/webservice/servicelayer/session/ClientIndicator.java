@@ -24,8 +24,6 @@ public interface ClientIndicator extends IndicatorValue {
 
     void init(Indicator indicatorDefinition, Long connectionId, boolean cachingEnabled);
 
-    String name();
-
     Long examId();
 
     Long connectionId();

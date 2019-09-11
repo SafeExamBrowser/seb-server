@@ -966,8 +966,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - save configuration in history
     // - change some attribute
     // - process an undo
-    // - table value add, delete, modify
-    // - export
     public void testUsecase10() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
@@ -1157,6 +1155,47 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 values.stream().filter(v -> v.attributeId == value.attributeId).findFirst().orElse(null);
         assertNotNull(currentValue);
         assertEquals("2", currentValue.value);
+    }
+
+    @Test
+    @Order(11)
+    // *************************************
+    // Use Case 11: Login as examAdmin2 and create a new SEB Exam Configuration
+    // - table value add, delete, modify
+    // - export
+    public void testUsecase11() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new NewExamConfig(),
+                new GetExamConfigNode(),
+                new GetExamConfigNodePage(),
+                new GetConfigurationPage(),
+                new GetConfigurations(),
+                new SaveExamConfigHistory(),
+                new ExportExamConfig(),
+                new GetFollowupConfiguration(),
+                new SebExamConfigUndo(),
+                new SaveExamConfigValue(),
+                new SaveExamConfigTableValues(),
+                new GetConfigurationValuePage(),
+                new GetConfigurationValues(),
+                new ActivateExamConfig(),
+                new DeactivateExamConfig(),
+                new GetUserAccountNames());
+
+        // get configuration page
+        final Result<Page<ConfigurationNode>> pageResponse = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call();
+
+        assertNotNull(pageResponse);
+        assertFalse(pageResponse.hasError());
+        final Page<ConfigurationNode> page = pageResponse.get();
+        assertFalse(page.content.isEmpty());
+
+        final ConfigurationNode configurationNode = page.content.get(0);
+        assertEquals("New Exam Config", configurationNode.name);
     }
 
 }

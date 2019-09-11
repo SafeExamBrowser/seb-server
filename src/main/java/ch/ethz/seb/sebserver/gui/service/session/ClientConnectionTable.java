@@ -245,6 +245,14 @@ public final class ClientConnectionTable {
                         (e1, e2) -> e1, LinkedHashMap::new));
     }
 
+    private static String getDisplayValue(final IndicatorValue indicatorValue) {
+        if (indicatorValue.getType().integerValue) {
+            return String.valueOf((int) indicatorValue.getValue());
+        } else {
+            return String.valueOf(indicatorValue.getValue());
+        }
+    }
+
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
 
         final Long connectionId;
@@ -313,7 +321,8 @@ public final class ClientConnectionTable {
                             indicatorData.index,
                             indicatorData.defaultColor);
                 } else {
-                    tableItem.setText(indicatorData.index, String.valueOf(indicatorValue.getValue()));
+
+                    tableItem.setText(indicatorData.index, getDisplayValue(indicatorValue));
                     tableItem.setBackground(
                             indicatorData.index,
                             indicatorData.thresholdColor[this.thresholdColorIndices[i]].color);
