@@ -12,8 +12,7 @@
     <exclude-pattern>.*/batis/mapper/*.java</exclude-pattern>
     <exclude-pattern>.*/batis/model/*.java</exclude-pattern>
 
-    <rule ref="category/java/codestyle.xml">
-      <exclude name="*"/>
-    </rule>
+    <rule ref="category/java/errorprone.xml" />
+    <rule ref="category/java/security.xml" />
 
 </ruleset>
