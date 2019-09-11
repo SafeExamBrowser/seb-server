@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTimeZone;
@@ -923,6 +924,17 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(attributes);
         assertFalse(attributes.hasError());
         final AttributeMapping attributeMapping = attributes.get();
+        assertEquals(192, attributeMapping.attributeIdMapping.size());
+        assertEquals("[active, audio, backToStart, browserSecurity, browserViewMode, "
+                + "exitSequence, functionKeys, kioskMode, logging, macSettings, "
+                + "newBrowserWindow, newwinsize, proxies, quitLink, registry, "
+                + "servicePolicy, specialKeys, spellcheck, taskbar, urlFilter, "
+                + "userAgentDesktop, userAgentMac, userAgentTouch, winsize, wintoolbar, zoom, zoomMode]",
+                attributeMapping.attributeGroupMapping.keySet()
+                        .stream()
+                        .sorted()
+                        .collect(Collectors.toList())
+                        .toString());
 
     }
 
