@@ -194,8 +194,6 @@
                 <include>ch/ethz/seb/sebserver/*</include>
               </includes>
               <excludes>
-                <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model/*</exclude>
                 <exclude>ch/ethz/seb/sebserver/gui/content/*</exclude>
                 <exclude>ch/ethz/seb/sebserver/gui/form/*</exclude>
                 <exclude>ch/ethz/seb/sebserver/gui/table/*</exclude>
