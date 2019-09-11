@@ -115,11 +115,11 @@ public abstract class RestCall<T> {
                 return handleRestCallError(responseEntity);
             }
 
-        } catch (final Throwable t) {
-            final RestCallError restCallError = new RestCallError("Unexpected error while rest call", t);
+        } catch (final Exception e) {
+            final RestCallError restCallError = new RestCallError("Unexpected error while rest call", e);
             try {
 
-                final String responseBody = ((RestClientResponseException) t).getResponseBodyAsString();
+                final String responseBody = ((RestClientResponseException) e).getResponseBodyAsString();
 
                 restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
                         responseBody,
@@ -127,16 +127,16 @@ public abstract class RestCall<T> {
                         }));
 
             } catch (final ClassCastException cce) {
-                log.error("Unexpected error-response while webservice API call for: {}", builder, t);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(t));
+                log.error("Unexpected error-response while webservice API call for: {}", builder, e);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
             } catch (final RuntimeException re) {
                 log.error("Unexpected runtime error while webservice API call for: {}", builder, re);
-                log.error("Unexpected runtime error cause: ", t);
+                log.error("Unexpected runtime error cause: ", e);
                 restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(re));
-            } catch (final Exception e) {
-                log.error("Unexpected error while webservice API call for: {}", builder, e);
-                log.error("Unexpected error cause: ", t);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
+            } catch (final Exception ee) {
+                log.error("Unexpected error while webservice API call for: {}", builder, ee);
+                log.error("Unexpected error cause: ", e);
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(ee));
             }
 
             return Result.ofError(restCallError);

@@ -145,6 +145,8 @@ public class ViewGridBuilder {
                     break;
                 }
                 default: {
+                    // do nothing
+                    break;
                 }
             }
         } catch (final ArrayIndexOutOfBoundsException e) {

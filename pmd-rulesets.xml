@@ -15,6 +15,8 @@
     <rule ref="category/java/errorprone.xml" >
         <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="BeanMembersShouldSerialize"/>
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="NullAssignment"/>
     </rule>
 
 </ruleset>

@@ -120,7 +120,7 @@ public class ComposerServiceImpl implements ComposerService {
             try {
                 composer.compose(pageContext);
                 PageService.updateScrolledComposite(pageContext.getParent());
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 log.error("Failed to compose: {}, pageContext: {}", name, pageContext, e);
             }
 

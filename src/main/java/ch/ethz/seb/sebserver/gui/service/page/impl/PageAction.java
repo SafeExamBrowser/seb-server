@@ -143,10 +143,10 @@ public final class PageAction {
                 PageAction.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
             }
             return Result.ofError(restCallError);
-        } catch (final Throwable t) {
-            log.error("Failed to execute action: {}", PageAction.this, t);
-            PageAction.this.pageContext.notifyError("action.error.unexpected.message", t);
-            return Result.ofError(t);
+        } catch (final Exception e) {
+            log.error("Failed to execute action: {}", PageAction.this, e);
+            PageAction.this.pageContext.notifyError("action.error.unexpected.message", e);
+            return Result.ofError(e);
         }
     }
 

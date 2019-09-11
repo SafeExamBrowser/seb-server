@@ -327,10 +327,10 @@ public class PageContextImpl implements PageContext {
             if (returnCode == SWT.OK) {
                 try {
                     this.onOK.accept(true);
-                } catch (final Throwable t) {
+                } catch (final Exception e) {
                     log.error(
                             "Unexpected on confirm callback execution. This should not happen, plase secure the given onOK Runnable",
-                            t);
+                            e);
                     this.onOK.accept(false);
                 }
             }

@@ -151,6 +151,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
             }
             default: {
                 item.setText(cellIndex, getValue(attribute, tableValue));
+                break;
             }
         }
     }

@@ -207,8 +207,8 @@ public final class Result<T> {
                     throw new IllegalArgumentException("Use flatMap instead!");
                 }
                 return Result.of(result);
-            } catch (final Throwable t) {
-                return Result.ofError(t);
+            } catch (final Exception e) {
+                return Result.ofError(e);
             }
         } else {
             return Result.ofError(this.error);
@@ -230,8 +230,8 @@ public final class Result<T> {
         if (this.error == null) {
             try {
                 return mapf.apply(this.value);
-            } catch (final Throwable t) {
-                return Result.ofError(t);
+            } catch (final Exception e) {
+                return Result.ofError(e);
             }
         } else {
             return Result.ofError(this.error);
