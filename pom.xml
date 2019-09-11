@@ -173,15 +173,17 @@
                 <goals>
                   <goal>report</goal>
                 </goals>
+                <configuration>
+                    <excludes>
+                        <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
+                        <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
+                        <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
+                        <exclude>ch/ethz/seb/sebserver/gui/widget/**/*</exclude>
+                    </excludes>
+                </configuration>
               </execution>
             </executions>
             <configuration>
-              <excludes>
-                <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/widget/**/*</exclude>
-              </excludes>
               <systemPropertyVariables>
                 <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
               </systemPropertyVariables>
