@@ -123,7 +123,7 @@
               <targetJdk>${java.version}</targetJdk>
               <linkXRef>false</linkXRef>
               <rulesets>
-                  <ruleset>pmd-rulesets.xml</ruleset>
+                <ruleset>pmd-rulesets.xml</ruleset>
               </rulesets>
             </configuration>
             <executions>
@@ -186,6 +186,12 @@
                   <dataFile>target/jacoco.exec</dataFile>
                   <!-- Sets the output directory for the code coverage report. -->
                   <outputDirectory>target/jacoco-ut</outputDirectory>
+                  <excludes>
+                    <exclude>ch/ethz/seb/sebserver/gui/content/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/form/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/table/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/widget/*</exclude>
+                  </excludes>
                 </configuration>
               </execution>
             </executions>
@@ -193,33 +199,10 @@
               <includes>
                 <include>ch/ethz/seb/sebserver/*</include>
               </includes>
-              <excludes>
-                <exclude>ch/ethz/seb/sebserver/gui/content/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/form/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/table/*</exclude>
-                <exclude>ch/ethz/seb/sebserver/gui/widget/*</exclude>
-              </excludes>
               <systemPropertyVariables>
                 <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
               </systemPropertyVariables>
             </configuration>
-            <!-- <configuration> -->
-            <!-- <includes> -->
-            <!-- <include>ch/ethz/seb/sebserver/*</include> -->
-            <!-- </includes> -->
-            <!-- <excludes> -->
-            <!-- <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper/*</exclude> -->
-            <!-- <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model/*</exclude> -->
-            <!-- </excludes> -->
-            <!-- </configuration> -->
-            <!-- <executions> -->
-            <!-- <execution> -->
-            <!-- <id>default-prepare-agent</id> -->
-            <!-- <goals> -->
-            <!-- <goal>prepare-agent</goal> -->
-            <!-- </goals> -->
-            <!-- </execution> -->
-            <!-- </executions> -->
           </plugin>
         </plugins>
       </build>
