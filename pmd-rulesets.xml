@@ -13,7 +13,7 @@
     <exclude-pattern>.*/batis/model/*.java</exclude-pattern>
 
     <rule ref="category/java/codestyle.xml">
-      <exclude name="UselessParentheses"/>
+      <exclude name="*"/>
     </rule>
 
 </ruleset>

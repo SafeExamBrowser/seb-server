@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -963,6 +964,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetConfigurationValues(),
                 new ActivateExamConfig(),
                 new DeactivateExamConfig());
+
+        final Result<ConfigurationNode> newConfigResponse = restService
+                .getBuilder(NewExamConfig.class)
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_NAME, "New Exam Config")
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION, "This is a New Exam Config")
+                .call();
+
+        assertNotNull(newConfigResponse);
+        assertFalse(newConfigResponse.hasError());
+        final ConfigurationNode newConfig = newConfigResponse.get();
+        assertEquals("New Exam Config", newConfig.name);
+        assertEquals(Long.valueOf(0), newConfig.templateId);
+
     }
 
 }
