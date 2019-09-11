@@ -53,6 +53,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -574,8 +575,8 @@ public class ExamForm implements TemplateComposer {
             return activityHomeAction;
         }
 
-        this.pageService.onEmptyEntityKeyGoTo(action, ActionDefinition.EXAM_VIEW_LIST);
-        return action;
+        final PageState lastState = this.pageService.getCurrentState();
+        return lastState.gotoAction;
     }
 
 }

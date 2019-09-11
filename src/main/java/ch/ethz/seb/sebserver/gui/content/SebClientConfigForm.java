@@ -208,9 +208,7 @@ public class SebClientConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.SEB_CLIENT_CONFIG_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
     }
 

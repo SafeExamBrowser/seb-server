@@ -170,9 +170,7 @@ public class InstitutionForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.INSTITUTION_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
     }
 

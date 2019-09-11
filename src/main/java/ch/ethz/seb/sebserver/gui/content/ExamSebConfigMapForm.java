@@ -174,9 +174,7 @@ public class ExamSebConfigMapForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_CANCEL_MODIFY)
                 .withEntityKey(parentEntityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.EXAM_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
     }
 

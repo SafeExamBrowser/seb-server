@@ -119,10 +119,6 @@ public class ActionPane implements TemplateComposer {
             }
         }
 
-//        final Label labelSeparator = this.widgetFactory.labelSeparator(composite);
-//        final GridData separatorLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
-//        labelSeparator.setLayoutData(separatorLayout);
-
         // title
         if (category.title != null) {
             final Label actionsTitle = this.widgetFactory.labelLocalized(

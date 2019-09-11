@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
-public interface PageState {
+public interface PageStateDefinition {
 
     enum Type {
         UNDEFINED,

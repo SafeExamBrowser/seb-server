@@ -32,10 +32,10 @@ import ch.ethz.seb.sebserver.gui.content.UserAccountList;
 import ch.ethz.seb.sebserver.gui.content.UserActivityLogs;
 import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.service.page.Activity;
-import ch.ethz.seb.sebserver.gui.service.page.PageState;
+import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 
-public enum PageStateDefinition implements PageState {
+public enum PageStateDefinitionImpl implements PageStateDefinition {
 
     INSTITUTION_LIST(Type.LIST_VIEW, InstitutionList.class, ActivityDefinition.INSTITUTION),
     INSTITUTION_VIEW(Type.FORM_VIEW, InstitutionForm.class, ActivityDefinition.INSTITUTION),
@@ -81,7 +81,7 @@ public enum PageStateDefinition implements PageState {
     public final Class<? extends TemplateComposer> actionPaneComposer;
     public final Activity activityAnchor;
 
-    private PageStateDefinition(
+    private PageStateDefinitionImpl(
             final Type type,
             final Class<? extends TemplateComposer> contentPaneComposer,
             final Activity activityAnchor) {
@@ -89,7 +89,7 @@ public enum PageStateDefinition implements PageState {
         this(type, contentPaneComposer, ActionPane.class, activityAnchor);
     }
 
-    private PageStateDefinition(
+    private PageStateDefinitionImpl(
             final Type type,
             final Class<? extends TemplateComposer> contentPaneComposer,
             final Class<? extends TemplateComposer> actionPaneComposer,

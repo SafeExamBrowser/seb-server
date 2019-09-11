@@ -160,9 +160,7 @@ public class IndicatorForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)
                 .withEntityKey(parentEntityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.EXAM_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
     }

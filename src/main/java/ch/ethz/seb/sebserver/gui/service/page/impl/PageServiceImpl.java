@@ -35,8 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.page.PageState;
-import ch.ethz.seb.sebserver.gui.service.page.PageState.Type;
+import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition.Type;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
@@ -178,28 +177,26 @@ public class PageServiceImpl implements PageService {
     private void exec(final PageAction pageAction, final Consumer<Result<PageAction>> callback) {
         pageAction.applyAction(result -> {
             if (!result.hasError()) {
+
                 final PageAction action = result.get();
                 if (pageAction.fireActionEvent) {
                     firePageEvent(new ActionEvent(action), action.pageContext());
                 }
 
                 try {
-
                     final HttpSession httpSession = RWT
                             .getUISession()
                             .getHttpSession();
 
-                    log.debug("Set session PageState: {} : {}", pageAction.definition.targetState, httpSession.getId());
-                    httpSession.setAttribute(ATTR_PAGE_STATE, pageAction.definition.targetState);
-
+                    final PageState pageState = new PageState(action.definition.targetState, action);
+                    log.debug("Set session PageState: {} : {}", pageState, httpSession.getId());
+                    httpSession.setAttribute(ATTR_PAGE_STATE, pageState);
                 } catch (final Exception e) {
                     log.error("Failed to set current PageState: ", e);
                 }
-
             }
             callback.accept(result);
         });
-
     }
 
     @Override

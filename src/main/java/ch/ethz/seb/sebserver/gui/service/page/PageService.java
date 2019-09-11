@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
@@ -84,6 +85,14 @@ public interface PageService {
      *
      * @return PageState of the current user. */
     PageState getCurrentState();
+
+    /** Get a PageAction function to go back to the current state.
+     *
+     * @return a PageAction function to go back to the current state. */
+    default Function<PageAction, PageAction> backToCurrentFunction() {
+        final PageState currentState = this.getCurrentState();
+        return action -> (currentState != null) ? currentState.gotoAction : action;
+    }
 
     /** Publishes a given PageEvent to the current page tree
      * This goes through the page-tree and collects all listeners the are listen to
@@ -150,17 +159,6 @@ public interface PageService {
 
     /** Clears the PageState of the current users page */
     void clearState();
-
-    default PageAction onEmptyEntityKeyGoTo(final PageAction action, final ActionDefinition gotoActionDef) {
-        if (action.getEntityKey() == null) {
-            final PageContext pageContext = action.pageContext();
-            return pageActionBuilder(pageContext)
-                    .newAction(gotoActionDef)
-                    .create();
-        }
-
-        return action;
-    }
 
     /** Key to store the ScrolledComposite update function within Control data map */
     static String SCROLLED_COMPOSITE_UPDATE = "SCROLLED_COMPOSITE_UPDATE";

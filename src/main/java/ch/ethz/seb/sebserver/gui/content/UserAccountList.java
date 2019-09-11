@@ -17,7 +17,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -27,11 +29,13 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -65,6 +69,8 @@ public class UserAccountList implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.list.column.name");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.list.title");
+    private static final LocTextKey NO_EDIT_RIGHT_MESSAGE =
+            new LocTextKey("sebserver.useraccount.info.notEditable");
 
     // filter attribute models
     private final TableFilterAttribute institutionFilter;
@@ -193,8 +199,22 @@ public class UserAccountList implements TemplateComposer {
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getSelection, this::editAction, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
+    }
+
+    private PageAction editAction(final PageAction pageAction) {
+        if (!this.resourceService.getRestService()
+                .getBuilder(GetUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, pageAction.getSingleSelection().modelId)
+                .call()
+                .map(user -> Privilege.hasRoleBasedUserAccountEditGrant(user,
+                        this.resourceService.getCurrentUser().get()))
+                .getOr(false)) {
+            throw new PageMessageException(NO_EDIT_RIGHT_MESSAGE);
+        }
+
+        return PageAction.applySingleSelection(pageAction);
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {

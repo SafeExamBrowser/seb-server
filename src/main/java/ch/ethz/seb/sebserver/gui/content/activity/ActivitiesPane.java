@@ -30,12 +30,12 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
-import ch.ethz.seb.sebserver.gui.service.page.PageState;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
@@ -351,7 +351,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else {
             final TreeItem item = findItemByActionDefinition(
                     navigation.getItems(),
-                    state.activityAnchor());
+                    state.definition.activityAnchor());
             if (item != null) {
                 final PageAction action = getActivitySelection(item);
                 this.pageService.executePageAction(action, result -> {
@@ -379,9 +379,12 @@ public class ActivitiesPane implements TemplateComposer {
 
     private void selectCurrentItem(final Tree navigation, final TreeItem item) {
         final PageState currentState = this.pageService.getCurrentState();
+        if (currentState == null) {
+            return;
+        }
         final TreeItem currentItem = findItemByActionDefinition(
                 item.getItems(),
-                currentState.activityAnchor());
+                currentState.definition.activityAnchor());
         if (currentItem != null) {
             navigation.select(currentItem);
         }
@@ -403,7 +406,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         final PageState currentState = this.pageService.getCurrentState();
-        if (currentState == action.definition.targetState) {
+        if (currentState != null && currentState.definition == action.definition.targetState) {
             return;
         }
 

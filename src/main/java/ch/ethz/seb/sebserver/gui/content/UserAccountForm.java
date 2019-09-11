@@ -120,12 +120,12 @@ public class UserAccountForm implements TemplateComposer {
             return;
         }
 
+        final boolean roleBasedEditGrant = Privilege.hasRoleBasedUserAccountEditGrant(userAccount, currentUser.get());
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(userAccount.getEntityKey());
-
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
-        final boolean roleBasedEditGrant = Privilege.hasRoleBasedUserAccountEditGrant(userAccount, currentUser.get());
+
         final boolean writeGrant = roleBasedEditGrant && userGrantCheck.w();
         final boolean modifyGrant = roleBasedEditGrant && userGrantCheck.m();
         final boolean institutionalWriteGrant = currentUser.hasInstitutionalPrivilege(
@@ -262,10 +262,7 @@ public class UserAccountForm implements TemplateComposer {
                 .publishIf(() -> !readonly)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
-                .withEntityKey(entityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.USER_ACCOUNT_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly);
     }
 

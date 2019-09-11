@@ -231,9 +231,7 @@ public class LmsSetupForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.LMS_SETUP_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly);
     }
 

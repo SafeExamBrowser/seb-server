@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
-import ch.ethz.seb.sebserver.gui.service.page.PageState.Type;
+import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition.Type;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
 public final class PageAction {

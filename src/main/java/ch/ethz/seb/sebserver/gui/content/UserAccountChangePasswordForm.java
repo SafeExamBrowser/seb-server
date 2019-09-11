@@ -133,9 +133,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                 .publish()
 
                 .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
-                .withExec(action -> this.pageService.onEmptyEntityKeyGoTo(
-                        action,
-                        ActionDefinition.USER_ACCOUNT_VIEW_LIST))
+                .withExec(this.pageService.backToCurrentFunction())
                 .publish();
     }
 
