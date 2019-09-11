@@ -17,7 +17,7 @@ services:
           context: .
           args:
               - GIT_TAG=
-              - SEBSERVER_VERSION=0.4.1-beta
+              - SEBSERVER_VERSION=0.4.2-beta
       container_name: seb-server
       environment:
           - SERVER_PORT=8080
