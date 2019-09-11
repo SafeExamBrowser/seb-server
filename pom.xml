@@ -122,11 +122,9 @@
               <failOnViolation>false</failOnViolation>
               <targetJdk>${java.version}</targetJdk>
               <linkXRef>false</linkXRef>
-              <excludes>
-                <exclude>**/batis/mapper/*.java</exclude>
-                <exclude>**/batis/model/*.java</exclude>
-                <exclude name="UselessParentheses" />
-              </excludes>
+              <rulesets>
+                  <ruleset>classpath:pmd-rulesets.xml</ruleset>
+              </rulesets>
             </configuration>
             <executions>
               <execution>
