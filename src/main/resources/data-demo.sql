@@ -35,7 +35,7 @@ INSERT IGNORE INTO indicator VALUES
     ;
     
 INSERT IGNORE INTO threshold VALUES
-    (1, 1, 1000.0000, '22b14c'),
+    (1, 1, 0.0000, '22b14c'),
     (2, 1, 2000.0000, 'ff7e00'),
     (3, 1, 5000.0000, 'ed1c24')
     ;
