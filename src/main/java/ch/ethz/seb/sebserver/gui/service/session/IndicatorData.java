@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 final class IndicatorData {
+
     final int index;
     final Indicator indicator;
     final Color defaultColor;
@@ -51,12 +52,12 @@ final class IndicatorData {
 
     static final int getColorIndex(final IndicatorData indicatorData, final double value) {
         for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
-            if (value < indicatorData.thresholdColor[j].value) {
+            if (value > indicatorData.thresholdColor[j].value && value < indicatorData.thresholdColor[j].value) {
                 return j;
             }
         }
 
-        return indicatorData.thresholdColor.length - 1;
+        return -1;
     }
 
     static final class ThresholdColor {

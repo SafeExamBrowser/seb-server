@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.EnumMap;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,13 +148,17 @@ public class ClientConnectionDetails {
                 .forEach(indValue -> {
                     final IndicatorData indData = this.indicatorMapping.get(indValue.getType());
                     final double value = indValue.getValue();
-                    final int colorIndex = IndicatorData.getColorIndex(indData, value);
+
                     if (this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED) {
                         form.setFieldValue(indData.indicator.name, Constants.EMPTY_NOTE);
                         form.setFieldColor(indData.indicator.name, indData.defaultColor);
                     } else {
+                        final int colorIndex = IndicatorData.getColorIndex(indData, value);
+                        final Color color = (colorIndex >= 0)
+                                ? indData.thresholdColor[colorIndex].color
+                                : indData.defaultColor;
                         form.setFieldValue(indData.indicator.name, String.valueOf(value));
-                        form.setFieldColor(indData.indicator.name, indData.thresholdColor[colorIndex].color);
+                        form.setFieldColor(indData.indicator.name, color);
                     }
                 });
     }

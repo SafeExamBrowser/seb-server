@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -321,11 +322,11 @@ public final class ClientConnectionTable {
                             indicatorData.index,
                             indicatorData.defaultColor);
                 } else {
-
                     tableItem.setText(indicatorData.index, getDisplayValue(indicatorValue));
-                    tableItem.setBackground(
-                            indicatorData.index,
-                            indicatorData.thresholdColor[this.thresholdColorIndices[i]].color);
+                    final Color color = (this.thresholdColorIndices[i] >= 0)
+                            ? indicatorData.thresholdColor[this.thresholdColorIndices[i]].color
+                            : indicatorData.defaultColor;
+                    tableItem.setBackground(indicatorData.index, color);
                 }
             }
         }
