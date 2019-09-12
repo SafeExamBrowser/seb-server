@@ -32,7 +32,7 @@ services:
           dockerfile: sebserver.Dockerfile
           args:
               - GIT_TAG=
-              - SEBSERVER_VERSION=0.4.1-beta-SNAPSHOT
+              - SEBSERVER_VERSION=0.4.2-beta-SNAPSHOT
       container_name: seb-server
       
       volumes:

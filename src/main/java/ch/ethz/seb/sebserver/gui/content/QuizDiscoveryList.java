@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -90,8 +91,6 @@ public class QuizDiscoveryList implements TemplateComposer {
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
-    private final TableFilterAttribute startTimeFilter =
-            new TableFilterAttribute(CriteriaType.DATE, QuizData.FILTER_ATTR_START_TIME);
 
     // dependencies
     private final WidgetFactory widgetFactory;
@@ -175,7 +174,12 @@ public class QuizDiscoveryList implements TemplateComposer {
                                         "sebserver.quizdiscovery.list.column.starttime",
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 QuizData::getStartTime)
-                                        .withFilter(this.startTimeFilter)
+                                        .withFilter(new TableFilterAttribute(
+                                                CriteriaType.DATE,
+                                                QuizData.FILTER_ATTR_START_TIME,
+                                                Utils.toDateTimeUTC(Utils.getMillisecondsNow())
+                                                        .minusYears(1)
+                                                        .toString()))
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
