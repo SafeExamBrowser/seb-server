@@ -156,9 +156,6 @@ public class PageServiceImpl implements PageService {
     @Override
     public void executePageAction(final PageAction pageAction, final Consumer<Result<PageAction>> callback) {
         final PageState currentState = getCurrentState();
-
-        // TODO should there be a check to reload or not to reload the page if the state is the same?
-
         if (!pageAction.ignoreMoveAwayFromEdit && currentState != null && currentState.type() == Type.FORM_EDIT) {
             pageAction.pageContext().applyConfirmDialog(
                     MSG_GO_AWAY_FROM_EDIT,

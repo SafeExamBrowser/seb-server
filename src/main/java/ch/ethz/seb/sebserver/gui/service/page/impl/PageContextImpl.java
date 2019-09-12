@@ -333,8 +333,9 @@ public class PageContextImpl implements PageContext {
                             e);
                     this.onOK.accept(false);
                 }
+            } else {
+                this.onOK.accept(false);
             }
-            this.onOK.accept(false);
         }
     }
 

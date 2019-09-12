@@ -412,8 +412,8 @@ public class ActivitiesPane implements TemplateComposer {
 
         this.pageService.executePageAction(
                 action,
-                result -> {
-                    if (result.hasError()) {
+                resultAction -> {
+                    if (resultAction.hasError()) {
                         tree.deselect(treeItem);
                         if (currentState != null) {
                             final TreeItem item = findItemByActionDefinition(
@@ -543,6 +543,7 @@ public class ActivitiesPane implements TemplateComposer {
                     this.navigation.getItems(),
                     event.action.definition.targetState.activityAnchor());
             if (item != null) {
+                this.navigation.deselectAll();
                 this.navigation.select(item);
             }
         }
