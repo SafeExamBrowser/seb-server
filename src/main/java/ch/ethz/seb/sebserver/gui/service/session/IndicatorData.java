@@ -51,13 +51,14 @@ final class IndicatorData {
     }
 
     static final int getColorIndex(final IndicatorData indicatorData, final double value) {
-        for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
-            if (value > indicatorData.thresholdColor[j].value && value < indicatorData.thresholdColor[j].value) {
+        final int top = indicatorData.thresholdColor.length - 1;
+        for (int j = 0; j < top; j++) {
+            if (value > indicatorData.thresholdColor[j].value && value < indicatorData.thresholdColor[j + 1].value) {
                 return j;
             }
         }
 
-        return -1;
+        return top;
     }
 
     static final class ThresholdColor {
