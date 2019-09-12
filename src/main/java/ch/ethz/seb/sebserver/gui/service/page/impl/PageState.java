@@ -32,10 +32,18 @@ public final class PageState {
     }
 
     public Type type() {
+        if (this.definition == null) {
+            return null;
+        }
+
         return this.definition.type();
     }
 
     public Activity activityAnchor() {
+        if (this.definition == null) {
+            return null;
+        }
+
         return this.definition.activityAnchor();
     }
 
