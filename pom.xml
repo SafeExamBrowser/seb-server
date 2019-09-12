@@ -174,7 +174,7 @@
                   <goal>report</goal>
                 </goals>
                 <configuration>
-                    <excludes>
+                    <excludes>ch/ethz/seb/sebserver/gui/content/**/*
                         <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
                         <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
                         <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
