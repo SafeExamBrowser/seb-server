@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,10 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -44,16 +47,19 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final ExamSessionCacheService examSessionCacheService;
     private final ExamDAO examDAO;
+    private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
             final ExamDAO examDAO,
+            final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final CacheManager cacheManager) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.examDAO = examDAO;
+        this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
     }
@@ -189,6 +195,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .filter(data -> data != null)
                     .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    @EventListener(ConfigurationChangedEvent.class)
+    public void updateExamConfigCache(final ConfigurationChangedEvent configChanged) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Flush exam config cache for configuration: {}", configChanged.configurationId);
+        }
+
+        this.examConfigurationMapDAO
+                .getExamIdsForConfigId(configChanged.configurationId)
+                .getOrElse(() -> Collections.emptyList())
+                .forEach(this.examSessionCacheService::evictDefaultSebConfig);
     }
 
     private void flushCache(final Exam exam) {

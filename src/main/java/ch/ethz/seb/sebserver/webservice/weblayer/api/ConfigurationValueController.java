@@ -13,6 +13,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -46,6 +48,7 @@ public class ConfigurationValueController extends EntityController<Configuration
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final SebExamConfigService sebExamConfigService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ConfigurationValueController(
             final AuthorizationService authorization,
@@ -55,7 +58,8 @@ public class ConfigurationValueController extends EntityController<Configuration
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ConfigurationDAO configurationDAO,
-            final SebExamConfigService sebExamConfigService) {
+            final SebExamConfigService sebExamConfigService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
                 bulkActionService,
@@ -67,6 +71,19 @@ public class ConfigurationValueController extends EntityController<Configuration
         this.configurationDAO = configurationDAO;
         this.configurationValueDAO = entityDAO;
         this.sebExamConfigService = sebExamConfigService;
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    @Override
+    protected Result<ConfigurationValue> notifySaved(final ConfigurationValue entity) {
+        if (entity == null) {
+            return super.notifySaved(entity);
+        }
+
+        this.applicationEventPublisher.publishEvent(
+                new ConfigurationChangedEvent(entity.configurationId));
+
+        return super.notifySaved(entity);
     }
 
     @Override
@@ -124,6 +141,11 @@ public class ConfigurationValueController extends EntityController<Configuration
         return this.configurationDAO.byPK(tableValue.configurationId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationValueDAO.saveTableValues(tableValue))
+                .map(config -> {
+                    this.applicationEventPublisher.publishEvent(
+                            new ConfigurationChangedEvent(config.configurationId));
+                    return config;
+                })
                 .getOrThrow();
     }
 

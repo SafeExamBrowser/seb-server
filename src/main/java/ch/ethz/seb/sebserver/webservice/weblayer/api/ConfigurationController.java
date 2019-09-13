@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Collection;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,12 +24,14 @@ import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -37,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ConfigurationController extends ReadonlyEntityController<Configuration, Configuration> {
 
     private final ConfigurationDAO configurationDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ConfigurationController(
             final AuthorizationService authorization,
@@ -44,7 +48,8 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             final ConfigurationDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
                 bulkActionService,
@@ -54,6 +59,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 beanValidationService);
 
         this.configurationDAO = entityDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @RequestMapping(
@@ -67,6 +73,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.saveToHistory(config.configurationNodeId))
                 .flatMap(this.userActivityLogDAO::logSaveToHistory)
+                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -81,6 +88,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.undo(config.configurationNodeId))
                 .flatMap(this.userActivityLogDAO::logUndo)
+                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -96,6 +104,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.restoreToVersion(configurationNodeId, config.getId()))
+                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -107,6 +116,11 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     @Override
     protected SqlTable getSQLTableOfEntity() {
         return ConfigurationRecordDynamicSqlSupport.configurationRecord;
+    }
+
+    private Result<Configuration> publishConfigChanged(final Configuration config) {
+        this.applicationEventPublisher.publishEvent(new ConfigurationChangedEvent(config.id));
+        return Result.of(config);
     }
 
 }

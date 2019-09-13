@@ -22,12 +22,17 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     Result<Collection<Long>> allIdsOfInstituion(Long institutionId);
 
+    /** Saves the Exam and updates the running exam cache. */
     @Override
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
             key = "#exam.id")
     Result<Exam> save(Exam exam);
 
+    /** Get an Exam by a given ClientConnection id.
+     *
+     * @param connectionId
+     * @return a Result containing the Exam by a given ClientConnection id or refer to an error if happened */
     Result<Exam> byClientConnection(Long connectionId);
 
 }

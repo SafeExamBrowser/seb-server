@@ -12,11 +12,14 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import org.springframework.context.event.EventListener;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
@@ -83,5 +86,8 @@ public interface ExamSessionService {
      * @return collection of ClientConnectionData of all active SEB client connections
      *         of a running exam */
     Result<Collection<ClientConnectionData>> getConnectionData(Long examId);
+
+    @EventListener(ConfigurationChangedEvent.class)
+    void updateExamConfigCache(ConfigurationChangedEvent configChanged);
 
 }

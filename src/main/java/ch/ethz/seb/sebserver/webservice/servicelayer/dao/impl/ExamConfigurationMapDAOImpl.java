@@ -35,7 +35,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
@@ -283,6 +285,35 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         }
 
         return getDependencies(bulkAction, selectionFunction);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> getExamIdsForConfigId(final Long configurationId) {
+        return Result.tryCatch(() -> {
+            final Long configNodeId = this.configurationNodeRecordMapper.selectIdsByExample()
+                    .leftJoin(ConfigurationRecordDynamicSqlSupport.configurationRecord)
+                    .on(
+                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                            equalTo(ConfigurationNodeRecordDynamicSqlSupport.id))
+                    .where(
+                            ConfigurationRecordDynamicSqlSupport.id,
+                            isEqualTo(configurationId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Utils.toSingleton());
+
+            return this.examConfigurationMapRecordMapper.selectByExample()
+                    .where(
+                            ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configNodeId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(record -> record.getExamId())
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<ExamConfigurationMapRecord> recordById(final Long id) {

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -21,14 +23,14 @@ public interface ExamConfigurationMapDAO extends
      * @param examId The Exam mapping identifier
      * @param configurationNodeId the ConfigurationNode mapping identifier
      * @return Result refer to the ExamConfigurationMap with specified mapping or to an exception if happened */
-    public Result<ExamConfigurationMap> byMapping(Long examId, Long configurationNodeId);
+    Result<ExamConfigurationMap> byMapping(Long examId, Long configurationNodeId);
 
     /** Get the password cipher of a specific ExamConfigurationMap by the mapping identifiers
      *
      * @param examId The Exam mapping identifier
      * @param configurationNodeId the ConfigurationNode mapping identifier
      * @return Result refer to the password cipher of specified mapping or to an exception if happened */
-    public Result<CharSequence> getConfigPasswortCipher(Long examId, Long configurationNodeId);
+    Result<CharSequence> getConfigPasswortCipher(Long examId, Long configurationNodeId);
 
     /** Get the ConfigurationNode identifier of the default Exam Configuration of
      * the Exam with specified identifier.
@@ -36,7 +38,7 @@ public interface ExamConfigurationMapDAO extends
      * @param examId The Exam identifier
      * @return ConfigurationNode identifier of the default Exam Configuration of
      *         the Exam with specified identifier */
-    public Result<Long> getDefaultConfigurationForExam(Long examId);
+    Result<Long> getDefaultConfigurationForExam(Long examId);
 
     /** Get the ConfigurationNode identifier of the Exam Configuration of
      * the Exam for a specified user identifier.
@@ -45,6 +47,12 @@ public interface ExamConfigurationMapDAO extends
      * @param userId the user identifier
      * @return ConfigurationNode identifier of the Exam Configuration of
      *         the Exam for a specified user identifier */
-    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId);
+    Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId);
+
+    /** Get all id of Exams that has a relation to the given configuration id.
+     *
+     * @param configurationId
+     * @return */
+    Result<Collection<Long>> getExamIdsForConfigId(Long configurationId);
 
 }
