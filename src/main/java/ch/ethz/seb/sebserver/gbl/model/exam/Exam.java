@@ -152,7 +152,7 @@ public final class Exam implements GrantEntity, Activatable {
         this.quitPassword = quitPassword;
         this.browserExamKeys = browserExamKeys;
         this.owner = owner;
-        this.active = (active != null) ? active : Boolean.FALSE;
+        this.active = (active != null) ? active : Boolean.TRUE;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
