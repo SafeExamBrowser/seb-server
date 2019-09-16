@@ -266,7 +266,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                         ((port >= 0)
                                 ? Constants.URL_PORT_SEPARATOR + port
                                 : StringUtils.EMPTY)
-                        + Constants.URL_PATH_SEPARATOR;
+                        + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX;
 
                 if (log.isDebugEnabled()) {
                     log.debug("Use external address for course access: {}", _externalStartURI);
