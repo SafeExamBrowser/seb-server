@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
@@ -156,30 +157,41 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         final String truststoreFilePath = env
                 .getProperty("server.ssl.trust-store", "");
 
+        SSLContext sslContext = null;
         if (StringUtils.isBlank(truststoreFilePath)) {
-            throw new IllegalArgumentException("Missing trust-store file path");
+
+            log.info("Securing outgoing calls without trust-store by trusting all certificates");
+
+            sslContext = org.apache.http.ssl.SSLContexts
+                    .custom()
+                    .loadTrustMaterial(null, new TrustAllStrategy())
+                    .build();
+
+        } else {
+
+            log.info("Securing with defined trust-store");
+
+            final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
+
+            final char[] password = env
+                    .getProperty("server.ssl.trust-store-password", "")
+                    .toCharArray();
+
+            if (password.length < 3) {
+                log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
+                throw new IllegalArgumentException("Missing or incorrect trust-store password");
+            }
+
+            // Set the specified trust-store also on javax.net.ssl level
+            System.setProperty("javax.net.ssl.trustStore", truststoreFilePath);
+            System.setProperty("javax.net.ssl.trustStorePassword", String.valueOf(password));
+
+            sslContext = SSLContextBuilder
+                    .create()
+                    .loadTrustMaterial(trustStoreFile, password)
+                    .setKeyStoreType("pkcs12")
+                    .build();
         }
-
-        final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
-
-        final char[] password = env
-                .getProperty("server.ssl.trust-store-password", "")
-                .toCharArray();
-
-        if (password.length < 3) {
-            log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
-            throw new IllegalArgumentException("Missing or incorrect trust-store password");
-        }
-
-        // Set the specified trust-store also on javax.net.ssl level
-        System.setProperty("javax.net.ssl.trustStore", truststoreFilePath);
-        System.setProperty("javax.net.ssl.trustStorePassword", String.valueOf(password));
-
-        final SSLContext sslContext = SSLContextBuilder
-                .create()
-                .loadTrustMaterial(trustStoreFile, password)
-                .setKeyStoreType("pkcs12")
-                .build();
 
         final HttpClient client = HttpClients.custom()
                 .setSSLContext(sslContext)
