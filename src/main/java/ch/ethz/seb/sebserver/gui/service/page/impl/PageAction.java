@@ -59,16 +59,18 @@ public final class PageAction {
         this.successMessage = successMessage;
         this.selectionSupplier = selectionSupplier;
         this.noSelectionMessage = noSelectionMessage;
-        this.pageContext = pageContext;
+        this.pageContext = (pageContext != null) ? pageContext.copy() : null;
         this.exec = (exec != null) ? exec : Function.identity();
         this.fireActionEvent = fireActionEvent;
         this.ignoreMoveAwayFromEdit = ignoreMoveAwayFromEdit;
 
-        this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.TRUE_STRING);
-        if (definition.targetState != null) {
-            final Type type = definition.targetState.type();
-            if (type.name().equals(Type.FORM_EDIT.name())) {
-                this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.FALSE_STRING);
+        if (this.pageContext != null) {
+            this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.TRUE_STRING);
+            if (definition.targetState != null) {
+                final Type type = definition.targetState.type();
+                if (type.name().equals(Type.FORM_EDIT.name())) {
+                    this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.FALSE_STRING);
+                }
             }
         }
     }

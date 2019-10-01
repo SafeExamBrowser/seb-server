@@ -30,6 +30,7 @@ public interface PageContext {
         public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
         public static final String READ_ONLY = "READ_ONLY";
+        public static final String READ_ONLY_FROM = "READ_ONLY_FROM";
 
         public static final String ENTITY_ID = "ENTITY_ID";
         public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";

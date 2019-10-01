@@ -202,7 +202,7 @@ public class LmsSetupForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.LMS_SETUP_SAVE_AND_TEST)
                 .withEntityKey(entityKey)
-                .withExec(action -> this.testLmsSetup(action, formHandle))
+                .withExec(action -> this.testLmsSetup(action, formHandle, true))
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && !readonly)
 
@@ -238,7 +238,7 @@ public class LmsSetupForm implements TemplateComposer {
     /** Save and test connection before activation */
     private PageAction activate(final PageAction action, final FormHandle<LmsSetup> formHandle) {
         // first test the LMS Setup. If this fails the action execution will stops
-        final PageAction testLmsSetup = this.testLmsSetup(action, formHandle);
+        final PageAction testLmsSetup = this.testLmsSetup(action, formHandle, false);
         // if LMS Setup test was successful, the activation action applies
         this.resourceService.getRestService().getBuilder(ActivateLmsSetup.class)
                 .withURIVariable(
@@ -285,9 +285,11 @@ public class LmsSetupForm implements TemplateComposer {
     }
 
     /** LmsSetup test action implementation */
-    private PageAction testLmsSetup(final PageAction action, final FormHandle<LmsSetup> formHandle) {
-        // If we are in edit-mode we have to save the form before testing
-        if (!action.pageContext().isReadonly()) {
+    private PageAction testLmsSetup(
+            final PageAction action,
+            final FormHandle<LmsSetup> formHandle, final boolean saveFirst) {
+
+        if (saveFirst) {
             final Result<LmsSetup> postResult = formHandle.doAPIPost();
             if (postResult.hasError()) {
                 formHandle.handleError(postResult.getError());
