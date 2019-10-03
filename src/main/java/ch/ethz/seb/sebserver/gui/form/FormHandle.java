@@ -54,6 +54,10 @@ public class FormHandle<T extends Entity> {
         this.i18nSupport = pageService.getI18nSupport();
     }
 
+    public PageContext getContext() {
+        return this.pageContext;
+    }
+
     public FormBinding getFormBinding() {
         return this.form;
     }

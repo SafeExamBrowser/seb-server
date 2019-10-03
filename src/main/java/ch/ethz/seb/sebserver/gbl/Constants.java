@@ -60,6 +60,15 @@ public final class Constants {
     public static final String XML_DICT_END =
             "</dict>";
 
+    public static final String XML_PLIST_NAME = "plist";
+    public static final String XML_PLIST_DICT_NAME = "dict";
+    public static final String XML_PLIST_ARRAY_NAME = "array";
+    public static final String XML_PLIST_KEY_NAME = "key";
+    public static final String XML_PLIST_BOOLEAN_TRUE = "true";
+    public static final String XML_PLIST_BOOLEAN_FALSE = "false";
+    public static final String XML_PLIST_STRING = "string";
+    public static final String XML_PLIST_INTEGER = "integer";
+
     public static final String OAUTH2_GRANT_TYPE_PASSWORD = "password";
     public static final String OAUTH2_GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
     public static final String OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";

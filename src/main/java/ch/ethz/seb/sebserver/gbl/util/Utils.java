@@ -46,6 +46,8 @@ public final class Utils {
 
     public static final Predicate<?> TRUE_PREDICATE = v -> true;
     public static final Predicate<?> FALSE_PREDICATE = v -> false;
+    public static final Runnable EMPTY_EXECUTION = () -> {
+    };
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
 

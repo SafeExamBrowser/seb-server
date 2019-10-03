@@ -8,10 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.SequenceInputStream;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -35,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
@@ -53,6 +59,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     private final ExamConfigIO examConfigIO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
+    private final ConfigurationDAO configurationDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
     private final ClientCredentialService clientCredentialService;
@@ -62,6 +69,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     protected SebExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
+            final ConfigurationDAO configurationDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final Collection<ConfigurationValueValidator> validators,
             final ClientCredentialService clientCredentialService,
@@ -70,12 +78,12 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
+        this.configurationDAO = configurationDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
         this.clientCredentialService = clientCredentialService;
         this.zipService = zipService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
-
     }
 
     @Override
@@ -248,7 +256,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             final Long configurationNodeId) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Start to stream plain JSON SEB clonfiguration data for Config-Key generation");
+            log.debug("Start to stream plain JSON SEB Configuration data for Config-Key generation");
         }
 
         if (log.isTraceEnabled()) {
@@ -288,7 +296,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             return Result.of(configKey);
 
         } catch (final Exception e) {
-            log.error("Error while stream plain JSON SEB clonfiguration data for Config-Key generation: ", e);
+            log.error("Error while stream plain JSON SEB Configuration data for Config-Key generation: ", e);
             return Result.ofError(e);
         } finally {
             try {
@@ -307,8 +315,113 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("Finished to stream plain JSON SEB clonfiguration data for Config-Key generation");
+                log.debug("Finished to stream plain JSON SEB Configuration data for Config-Key generation");
             }
+        }
+    }
+
+    @Override
+    public Result<Configuration> importFromXML(
+            final Long configNodeId,
+            final InputStream input,
+            final CharSequence password) {
+
+        return Result.tryCatch(() -> {
+
+            final Configuration newConfig = this.configurationDAO
+                    .saveToHistory(configNodeId)
+                    .getOrThrow();
+
+            try {
+
+                final byte[] header = new byte[4];
+                input.read(header);
+                final Strategy strategy = SebConfigEncryptionService.Strategy.getStrategy(header);
+
+                if (strategy == null) {
+                    importPlainOnly(input, newConfig, header);
+                } else {
+
+                    final InputStream cryptIn = this.unzip(input);
+                    final PipedInputStream plainIn = new PipedInputStream();
+                    final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
+
+                    try {
+
+                        this.sebConfigEncryptionService.streamDecrypted(
+                                cryptOut,
+                                cryptIn,
+                                EncryptionContext.contextOf(strategy, password));
+
+                        this.examConfigIO.importPlainXML(
+                                plainIn,
+                                newConfig.institutionId,
+                                newConfig.id);
+                    } finally {
+                        IOUtils.closeQuietly(cryptIn);
+                        IOUtils.closeQuietly(cryptOut);
+                        IOUtils.closeQuietly(plainIn);
+                    }
+                }
+
+                return newConfig;
+
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to import SEB Exam Configuration: ", e);
+                log.debug("Make an undo on the ConfigurationNode to rollback the changes");
+                return this.configurationDAO
+                        .undo(configNodeId)
+                        .getOrThrow();
+            }
+        });
+    }
+
+    private InputStream unzip(final InputStream input) throws Exception {
+        final byte[] zipHeader = new byte[4];
+        input.read(zipHeader);
+        final int zipType = ByteBuffer.wrap(zipHeader).getInt();
+        final boolean isZipped = zipType == 0x504B0304 || zipType == 0x504B0506 || zipType == 0x504B0708;
+
+        if (isZipped) {
+
+            final InputStream sequencedInput = new SequenceInputStream(
+                    new ByteArrayInputStream(zipHeader),
+                    input);
+
+            final PipedInputStream pipedIn = new PipedInputStream();
+            final PipedOutputStream pipedOut = new PipedOutputStream(pipedIn);
+            this.zipService.read(pipedOut, sequencedInput);
+
+            return pipedIn;
+        } else {
+            return new SequenceInputStream(
+                    new ByteArrayInputStream(zipHeader),
+                    input);
+        }
+    }
+
+    private void importPlainOnly(
+            final InputStream input,
+            final Configuration newConfig,
+            final byte[] header) throws IOException {
+
+        PipedInputStream plainIn = null;
+        PipedOutputStream out = null;
+
+        try {
+            plainIn = new PipedInputStream();
+            out = new PipedOutputStream(plainIn);
+
+            this.examConfigIO.importPlainXML(plainIn, newConfig.institutionId, newConfig.id);
+            out.write(header);
+            IOUtils.copyLarge(input, out);
+            IOUtils.closeQuietly(out);
+        } catch (final Exception e) {
+            log.error("Error while stream plain text SEB Configuration import data: ", e);
+            throw e;
+        } finally {
+            IOUtils.closeQuietly(out);
+            IOUtils.closeQuietly(plainIn);
         }
     }
 
@@ -319,7 +432,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             final Long configurationNodeId) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Start to stream plain text SEB clonfiguration data");
+            log.debug("Start to stream plain text SEB Configuration data");
         }
 
         PipedOutputStream pout = null;
@@ -337,7 +450,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             IOUtils.copyLarge(pin, out);
 
         } catch (final Exception e) {
-            log.error("Error while stream plain text SEB clonfiguration data: ", e);
+            log.error("Error while stream plain text SEB Configuration export data: ", e);
         } finally {
             try {
                 if (pin != null) {
@@ -356,7 +469,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("Finished to stream plain text SEB clonfiguration data");
+                log.debug("Finished to stream plain text SEB Configuration export data");
             }
         }
     }

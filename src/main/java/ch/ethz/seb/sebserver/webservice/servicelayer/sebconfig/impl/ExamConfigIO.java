@@ -19,12 +19,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.xml.sax.SAXException;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
@@ -35,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
@@ -153,6 +159,50 @@ public class ExamConfigIO {
         }
     }
 
+    /** This parses the XML from given InputStream with a SAX parser to avoid keeping the
+     * whole XML file in memory and keep up with the streaming approach of SEB Exam Configuration
+     * to avoid trouble with big SEB Exam Configuration in the future.
+     * 
+     * @param in The InputString to constantly read the XML from
+     * @param institutionId the institionId of the import
+     * @param configurationId the identifier of the internal configuration to apply the imported values to */
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void importPlainXML(final InputStream in, final Long institutionId, final Long configurationId) {
+        try {
+            // get all attributes and map the names to ids
+            final Map<String, Long> attributeMap = this.configurationAttributeDAO
+                    .allMatching(new FilterMap())
+                    .getOrThrow()
+                    .stream()
+                    .collect(Collectors.toMap(attr -> attr.name, attr -> attr.id));
+
+            // the SAX handler with a ConfigValue sink that saves the values to DB
+            // and a attribute-name/id mapping function with pre-created mapping
+            final ExamConfigImportHandler examConfigImportHandler = new ExamConfigImportHandler(
+                    institutionId,
+                    configurationId,
+                    value -> this.configurationValueDAO.save(value),
+                    attributeMap::get);
+
+            // SAX parsing
+            final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+            final SAXParser parser = saxParserFactory.newSAXParser();
+            parser.parse(in, examConfigImportHandler);
+
+        } catch (final ParserConfigurationException e) {
+            log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
+            throw new RuntimeException(e);
+        } catch (final SAXException e) {
+            log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
+            throw new RuntimeException(e);
+        } catch (final IOException e) {
+            log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
+            throw new RuntimeException(e);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+    }
+
     private Predicate<ConfigurationAttribute> exportFormatBasedAttributeFilter(final ConfigurationFormat format) {
         // Filter originatorVersion according to: https://www.safeexambrowser.org/developer/seb-config-key.html
         return attr -> !("originatorVersion".equals(attr.getName()) && format == ConfigurationFormat.JSON);
@@ -204,11 +254,6 @@ public class ExamConfigIO {
         } else {
             return Stream.of(attr);
         }
-    }
-
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void importPlainXML(final InputStream in, final Long institutionId, final Long configurationNodeId) {
-        // TODO version 1
     }
 
     private Function<ConfigurationAttribute, ConfigurationValue> getConfigurationValueSupplier(

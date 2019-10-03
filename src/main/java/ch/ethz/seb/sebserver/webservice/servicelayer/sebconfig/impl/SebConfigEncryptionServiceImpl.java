@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -103,8 +102,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
     public void streamDecrypted(
             final OutputStream output,
             final InputStream input,
-            final Supplier<CharSequence> passwordSupplier,
-            final Function<CharSequence, Certificate> certificateStore) {
+            final SebConfigEncryptionContext context) {
 
         PipedOutputStream pout = null;
         PipedInputStream pin = null;
@@ -117,11 +115,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             if (log.isDebugEnabled()) {
                 log.debug("Password decryption with strategy: {}", strategy);
             }
-
-            final EncryptionContext context = new EncryptionContext(
-                    strategy,
-                    (passwordSupplier != null) ? passwordSupplier.get() : null,
-                    certificateStore);
 
             getEncryptor(strategy)
                     .getOrThrow()

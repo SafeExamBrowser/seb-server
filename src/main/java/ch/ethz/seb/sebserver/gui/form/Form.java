@@ -40,7 +40,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
-import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
+import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
@@ -137,9 +138,16 @@ public final class Form implements FormBinding {
         this.formFields.add(name, createAccessor(label, field, errorLabel));
     }
 
-    void putField(final String name, final Label label, final ImageUpload imageUpload, final Label errorLabel) {
+    void putField(final String name, final Label label, final ImageUploadSelection imageUpload,
+            final Label errorLabel) {
         final FormFieldAccessor createAccessor = createAccessor(label, imageUpload, errorLabel);
         imageUpload.setErrorHandler(createAccessor::setError);
+        this.formFields.add(name, createAccessor);
+    }
+
+    void putField(final String name, final Label label, final FileUploadSelection fileUpload, final Label errorLabel) {
+        final FormFieldAccessor createAccessor = createAccessor(label, fileUpload, errorLabel);
+        fileUpload.setErrorHandler(createAccessor::setError);
         this.formFields.add(name, createAccessor);
     }
 
@@ -150,6 +158,15 @@ public final class Form implements FormBinding {
         }
 
         return fieldAccessor.getStringValue();
+    }
+
+    public Control getFieldControl(final String attributeName) {
+        final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
+        if (fieldAccessor == null) {
+            return null;
+        }
+
+        return fieldAccessor.control;
     }
 
     public void setFieldValue(final String attributeName, final String attributeValue) {
@@ -291,9 +308,14 @@ public final class Form implements FormBinding {
             }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final ImageUpload imageUpload, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Label label, final ImageUploadSelection imageUpload, final Label errorLabel) {
         return new FormFieldAccessor(label, imageUpload, errorLabel) {
             @Override public String getStringValue() { return imageUpload.getImageBase64(); }
+        };
+    }
+    private FormFieldAccessor createAccessor(final Label label, final FileUploadSelection fileUpload, final Label errorLabel) {
+        return new FormFieldAccessor(label, fileUpload, errorLabel) {
+            @Override public String getStringValue() { return fileUpload.getFileName(); }
         };
     }
     //@formatter:on

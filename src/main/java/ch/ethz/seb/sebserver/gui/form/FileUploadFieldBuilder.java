@@ -8,31 +8,28 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.util.Collection;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
-public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
+public class FileUploadFieldBuilder extends FieldBuilder<String> {
 
-    private int maxWidth = 100;
-    private int maxHeight = 100;
+    private final Collection<String> supportedFiles;
 
-    ImageUploadFieldBuilder(final String name, final LocTextKey label, final String value) {
+    FileUploadFieldBuilder(
+            final String name,
+            final LocTextKey label,
+            final String value,
+            final Collection<String> supportedFiles) {
+
         super(name, label, value);
-    }
-
-    public ImageUploadFieldBuilder withMaxWidth(final int width) {
-        this.maxWidth = width;
-        return this;
-    }
-
-    public ImageUploadFieldBuilder withMaxHeight(final int height) {
-        this.maxHeight = height;
-        return this;
+        this.supportedFiles = supportedFiles;
     }
 
     @Override
@@ -45,18 +42,16 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
                 1);
 
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
-        final ImageUploadSelection imageUpload = builder.widgetFactory.imageUploadLocalized(
+        final FileUploadSelection fileUpload = builder.widgetFactory.fileUploadSelection(
                 fieldGrid,
-                new LocTextKey("sebserver.overall.upload"),
                 builder.readonly || this.readonly,
-                this.maxWidth,
-                this.maxHeight);
+                this.supportedFiles);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-        imageUpload.setLayoutData(gridData);
-        imageUpload.setImageBase64(this.value);
+        fileUpload.setLayoutData(gridData);
+        fileUpload.setFileName(this.value);
 
         final Label errorLabel = Form.createErrorLabel(fieldGrid);
-        builder.form.putField(this.name, lab, imageUpload, errorLabel);
+        builder.form.putField(this.name, lab, fileUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
     }
 

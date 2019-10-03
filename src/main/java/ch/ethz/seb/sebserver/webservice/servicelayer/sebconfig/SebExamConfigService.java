@@ -8,9 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -93,5 +95,22 @@ public interface SebExamConfigService {
      * @param configurationNodeId the configurationNodeId
      * @return Result refer to the generated Config-Key or to an error if happened. */
     Result<String> generateConfigKey(Long institutionId, Long configurationNodeId);
+
+    /** Imports a SEB Exam Configuration from a SEB File of the format:
+     * https://www.safeexambrowser.org/developer/seb-file-format.html
+     * 
+     * First tries to read the file from the given input stream and detect the file format. A password
+     * is needed if the file is in an encrypted format.
+     * 
+     * Then loads the ConfigurationNode on which the import should take place and performs a "save in histroy"
+     * action first to allow to make an easy rollback or even later an undo by the user.
+     * 
+     * Then parses the XML and adds each attribute to the new Configuration.
+     * 
+     * @param configNodeId The identifier of the configuration node on which the import should take place
+     * @param input The InputStream to get the SEB config file as byte-stream
+     * @param password A password is only needed if the file is in an encrypted format
+     * @return The newly created Configuration instance */
+    Result<Configuration> importFromXML(Long configNodeId, InputStream input, CharSequence password);
 
 }

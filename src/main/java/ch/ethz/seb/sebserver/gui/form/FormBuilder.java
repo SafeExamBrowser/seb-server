@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -66,9 +68,9 @@ public class FormBuilder {
         this.pageContext = pageContext;
         this.form = new Form(pageService.getJSONMapper());
 
-        this.formParent = this.widgetFactory
-                .formGrid(pageContext.getParent(), rows);
-        this.formParent.setData("TEST");
+        this.formParent = this.widgetFactory.formGrid(
+                pageContext.getParent(),
+                rows);
     }
 
     public FormBuilder readonly(final boolean readonly) {
@@ -250,6 +252,19 @@ public class FormBuilder {
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final LocTextKey label, final String value) {
         return new ImageUploadFieldBuilder(name, label, value);
+    }
+
+    public static FileUploadFieldBuilder fileUpload(
+            final String name,
+            final LocTextKey label,
+            final String value,
+            final String... supportedFiles) {
+
+        return new FileUploadFieldBuilder(
+                name,
+                label,
+                value,
+                (supportedFiles != null) ? Arrays.asList(supportedFiles) : Collections.emptyList());
     }
 
     Label labelLocalized(

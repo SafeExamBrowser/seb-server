@@ -10,9 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.cert.Certificate;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.Arrays;
 
 import org.springframework.scheduling.annotation.Async;
 
@@ -54,6 +52,15 @@ public interface SebConfigEncryptionService {
             this.header = Utils.toByteArray(headerKey);
         }
 
+        public static Strategy getStrategy(final byte[] header) {
+            return Arrays.asList(Strategy.values())
+                    .stream()
+                    .filter(strategy -> Arrays.equals(strategy.header, header))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No Strategy for header: " + Utils.toString(header) + " found."));
+        }
+
     }
 
     /** This can be used to stream incoming plain text data to encrypted cipher data output stream.
@@ -76,7 +83,6 @@ public interface SebConfigEncryptionService {
     void streamDecrypted(
             final OutputStream output,
             final InputStream input,
-            Supplier<CharSequence> passwordSupplier,
-            Function<CharSequence, Certificate> certificateStore);
+            final SebConfigEncryptionContext context);
 
 }

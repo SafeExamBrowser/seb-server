@@ -585,7 +585,7 @@ public class WidgetFactory {
         return thresholdList;
     }
 
-    public ImageUpload logoImageUploadLocalized(
+    public ImageUploadSelection logoImageUploadLocalized(
             final Composite parent,
             final LocTextKey locTextKey,
             final boolean readonly) {
@@ -598,14 +598,14 @@ public class WidgetFactory {
                 DefaultPageLayout.LOGO_IMAGE_MAX_HEIGHT);
     }
 
-    public ImageUpload imageUploadLocalized(
+    public ImageUploadSelection imageUploadLocalized(
             final Composite parent,
             final LocTextKey locTextKey,
             final boolean readonly,
             final int maxWidth,
             final int maxHeight) {
 
-        final ImageUpload imageUpload = new ImageUpload(
+        final ImageUploadSelection imageUpload = new ImageUploadSelection(
                 parent,
                 this.serverPushService,
                 this.i18nSupport,
@@ -615,6 +615,19 @@ public class WidgetFactory {
 
         this.polyglotPageService.injectI18n(imageUpload, locTextKey);
         return imageUpload;
+    }
+
+    public FileUploadSelection fileUploadSelection(
+            final Composite parent,
+            final boolean readonly,
+            final Collection<String> supportedFiles) {
+
+        final FileUploadSelection fileUploadSelection =
+                new FileUploadSelection(parent, null, this.i18nSupport, readonly);
+        if (supportedFiles != null) {
+            supportedFiles.forEach(ext -> fileUploadSelection.withSupportFor(ext));
+        }
+        return fileUploadSelection;
     }
 
 }

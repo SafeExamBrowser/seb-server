@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -185,6 +186,8 @@ public abstract class RestCall<T> {
         private UriComponentsBuilder uriComponentsBuilder;
         private final HttpHeaders httpHeaders;
         private String body = null;
+        private InputStream streamingBody = null;
+
         private final MultiValueMap<String, String> queryParams;
         private final Map<String, String> uriVariables;
 
@@ -244,6 +247,11 @@ public abstract class RestCall<T> {
         public RestCallBuilder withBody(final Object body) {
             if (body instanceof String) {
                 this.body = String.valueOf(body);
+                return this;
+            }
+
+            if (body instanceof InputStream) {
+                this.streamingBody = (InputStream) body;
                 return this;
             }
 
@@ -325,7 +333,9 @@ public abstract class RestCall<T> {
         }
 
         public HttpEntity<?> buildRequestEntity() {
-            if (this.body != null) {
+            if (this.streamingBody != null) {
+                return new HttpEntity<>(this.streamingBody, this.httpHeaders);
+            } else if (this.body != null) {
                 return new HttpEntity<>(this.body, this.httpHeaders);
             } else {
                 return new HttpEntity<>(this.httpHeaders);

@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
+import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 
 public interface PolyglotPageService {
 
@@ -49,7 +49,7 @@ public interface PolyglotPageService {
      * @param locale the Locale to set */
     void setPageLocale(Composite root, Locale locale);
 
-    void injectI18n(ImageUpload imageUpload, LocTextKey locTextKey);
+    void injectI18n(ImageUploadSelection imageUpload, LocTextKey locTextKey);
 
     void injectI18n(Label label, LocTextKey locTextKey);
 

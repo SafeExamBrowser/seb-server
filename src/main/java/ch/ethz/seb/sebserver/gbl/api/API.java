@@ -16,6 +16,7 @@ public final class API {
         ACTIVATE;
     }
 
+    public static final String SEB_FILE_EXTENSION = "seb";
     public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
     public static final String PARAM_INSTITUTION_ID = "institutionId";
     public static final String PARAM_MODEL_ID = "modelId";
@@ -119,6 +120,7 @@ public final class API {
     public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
     public static final String CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT = "/downloadxml";
+    public static final String CONFIGURATION_IMPORT_PATH_SEGMENT = "/import";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";

@@ -393,6 +393,10 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.get-config-key"),
             ImageIcon.SECURE,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_IMPORT_CONFIG(
+            new LocTextKey("sebserver.examconfig.action.import-config"),
+            ImageIcon.IMPORT,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify"),

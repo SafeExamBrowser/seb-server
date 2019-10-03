@@ -28,8 +28,6 @@ import org.eclipse.rap.fileupload.FileUploadReceiver;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.widgets.FileUpload;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Rectangle;
@@ -43,10 +41,10 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
-public final class ImageUpload extends Composite {
+public final class ImageUploadSelection extends Composite {
 
     private static final long serialVersionUID = 368264811155804533L;
-    private static final Logger log = LoggerFactory.getLogger(ImageUpload.class);
+    private static final Logger log = LoggerFactory.getLogger(ImageUploadSelection.class);
 
     public static final Set<String> SUPPORTED_IMAGE_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             ".png",
@@ -65,7 +63,7 @@ public final class ImageUpload extends Composite {
     private boolean loadNewImage = false;
     private boolean imageLoaded = false;
 
-    ImageUpload(
+    ImageUploadSelection(
             final Composite parent,
             final ServerPushService serverPushService,
             final I18nSupport i18nSupport,
@@ -74,7 +72,12 @@ public final class ImageUpload extends Composite {
             final int maxHeight) {
 
         super(parent, SWT.NONE);
-        super.setLayout(new GridLayout(1, false));
+        final GridLayout gridLayout = new GridLayout(1, false);
+        gridLayout.horizontalSpacing = 0;
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
+        gridLayout.verticalSpacing = 0;
+        super.setLayout(gridLayout);
 
         this.serverPushService = serverPushService;
         this.maxWidth = maxWidth;
@@ -85,55 +88,29 @@ public final class ImageUpload extends Composite {
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
             this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
-            final FileUploadHandler uploadHandler = new FileUploadHandler(new FileUploadReceiver() {
-
-                @Override
-                public void receive(final InputStream stream, final FileDetails details) throws IOException {
-
-                    try {
-                        final String contentType = details.getContentType();
-                        if (contentType != null && contentType.startsWith("image")) {
-                            ImageUpload.this.imageBase64 = Base64.getEncoder()
-                                    .encodeToString(IOUtils.toByteArray(stream));
-                        }
-                    } catch (final Exception e) {
-                        log.error("Error while trying to upload image", e);
-                    } finally {
-                        ImageUpload.this.imageLoaded = true;
-                        stream.close();
+            final FileUploadHandler uploadHandler = new FileUploadHandler(new ImageReceiver());
+            this.fileUpload.addListener(SWT.Selection, event -> {
+                final String fileName = ImageUploadSelection.this.fileUpload.getFileName();
+                if (fileName == null || !fileSupported(fileName)) {
+                    if (ImageUploadSelection.this.errorHandler != null) {
+                        final String text = i18nSupport.getText(
+                                "sebserver.institution.form.logoImage.unsupportedFileType",
+                                "Unsupported image file type selected");
+                        ImageUploadSelection.this.errorHandler.accept(text);
                     }
+
+                    log.warn("Unsupported image file selected: {}", fileName);
+
+                    return;
                 }
-            });
+                ImageUploadSelection.this.loadNewImage = true;
+                ImageUploadSelection.this.imageLoaded = false;
+                ImageUploadSelection.this.fileUpload.submit(uploadHandler.getUploadUrl());
 
-            this.fileUpload.addSelectionListener(new SelectionAdapter() {
-
-                private static final long serialVersionUID = -6776734104137568801L;
-
-                @Override
-                public void widgetSelected(final SelectionEvent event) {
-                    final String fileName = ImageUpload.this.fileUpload.getFileName();
-                    if (fileName == null || !fileSupported(fileName)) {
-                        if (ImageUpload.this.errorHandler != null) {
-                            final String text = i18nSupport.getText(
-                                    "sebserver.institution.form.logoImage.unsupportedFileType",
-                                    "Unsupported image file type selected");
-                            ImageUpload.this.errorHandler.accept(text);
-                        }
-
-                        log.warn("Unsupported image file selected: {}", fileName);
-
-                        return;
-                    }
-                    ImageUpload.this.loadNewImage = true;
-                    ImageUpload.this.imageLoaded = false;
-                    ImageUpload.this.fileUpload.submit(uploadHandler.getUploadUrl());
-
-                    ImageUpload.this.serverPushService.runServerPush(
-                            new ServerPushContext(ImageUpload.this, ImageUpload::uploadInProgress),
-                            200,
-                            ImageUpload::update);
-                }
-
+                ImageUploadSelection.this.serverPushService.runServerPush(
+                        new ServerPushContext(ImageUploadSelection.this, ImageUploadSelection::uploadInProgress),
+                        200,
+                        ImageUploadSelection::update);
             });
         } else {
             this.fileUpload = null;
@@ -142,7 +119,6 @@ public final class ImageUpload extends Composite {
         this.imageCanvas = new Composite(this, SWT.NONE);
         final GridData canvas = new GridData(SWT.FILL, SWT.FILL, true, true);
         this.imageCanvas.setLayoutData(canvas);
-
     }
 
     public void setErrorHandler(final Consumer<String> errorHandler) {
@@ -172,12 +148,12 @@ public final class ImageUpload extends Composite {
     }
 
     private static final boolean uploadInProgress(final ServerPushContext context) {
-        final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
+        final ImageUploadSelection imageUpload = (ImageUploadSelection) context.getAnchor();
         return imageUpload.loadNewImage && !imageUpload.imageLoaded;
     }
 
     private static final void update(final ServerPushContext context) {
-        final ImageUpload imageUpload = (ImageUpload) context.getAnchor();
+        final ImageUploadSelection imageUpload = (ImageUploadSelection) context.getAnchor();
         if (imageUpload.imageBase64 != null
                 && imageUpload.loadNewImage
                 && imageUpload.imageLoaded) {
@@ -195,7 +171,7 @@ public final class ImageUpload extends Composite {
         }
     }
 
-    private static void setImage(final ImageUpload imageUpload, final Base64InputStream input) {
+    private static void setImage(final ImageUploadSelection imageUpload, final Base64InputStream input) {
         imageUpload.imageCanvas.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");
 
         final Image image = new Image(imageUpload.imageCanvas.getDisplay(), input);
@@ -216,6 +192,25 @@ public final class ImageUpload extends Composite {
                 .filter(fileType -> fileName.toUpperCase().endsWith(fileType.toUpperCase()))
                 .findFirst()
                 .isPresent();
+    }
+
+    private final class ImageReceiver extends FileUploadReceiver {
+        @Override
+        public void receive(final InputStream stream, final FileDetails details) throws IOException {
+
+            try {
+                final String contentType = details.getContentType();
+                if (contentType != null && contentType.startsWith("image")) {
+                    ImageUploadSelection.this.imageBase64 = Base64.getEncoder()
+                            .encodeToString(IOUtils.toByteArray(stream));
+                }
+            } catch (final Exception e) {
+                log.error("Error while trying to upload image", e);
+            } finally {
+                ImageUploadSelection.this.imageLoaded = true;
+                stream.close();
+            }
+        }
     }
 
 }

@@ -48,8 +48,7 @@ public class SebConfigEncryptionServiceImplTest {
         sebConfigEncryptionServiceImpl.streamDecrypted(
                 out2,
                 new ByteArrayInputStream(plainWithHeader),
-                null,
-                null);
+                EncryptionContext.contextOf(Strategy.PASSWORD_PSWD, (CharSequence) null));
 
         out2.close();
 
@@ -86,8 +85,7 @@ public class SebConfigEncryptionServiceImplTest {
         sebConfigEncryptionServiceImpl.streamDecrypted(
                 out2,
                 new ByteArrayInputStream(byteArray),
-                () -> pwd,
-                null);
+                EncryptionContext.contextOf(Strategy.PASSWORD_PSWD, pwd));
 
         final byte[] byteArray2 = out2.toByteArray();
         assertNotNull(byteArray2);

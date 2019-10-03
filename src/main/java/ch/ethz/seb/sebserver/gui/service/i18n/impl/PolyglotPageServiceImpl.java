@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.widget.ImageUpload;
+import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 
 /** Service that supports page language change on the fly */
 @Lazy
@@ -72,8 +72,8 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     }
 
     @Override
-    public void injectI18n(final ImageUpload imageUpload, final LocTextKey locTextKey) {
-        final Consumer<ImageUpload> imageUploadFunction = iu -> {
+    public void injectI18n(final ImageUploadSelection imageUpload, final LocTextKey locTextKey) {
+        final Consumer<ImageUploadSelection> imageUploadFunction = iu -> {
             if (locTextKey != null) {
                 iu.setSelectionText(this.i18nSupport.getText(locTextKey));
             }
