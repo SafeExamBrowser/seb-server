@@ -282,6 +282,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 break;
             default:
                 selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
+                break;
         }
 
         return getDependencies(bulkAction, selectionFunction);

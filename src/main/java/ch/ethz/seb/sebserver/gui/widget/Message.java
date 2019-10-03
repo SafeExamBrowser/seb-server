@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 
 public final class Message extends MessageBox {
 
+    private static final int NORMAL_WIDTH = 400;
     private static final long serialVersionUID = 6973272221493264432L;
 
     public Message(final Shell parent, final String title, final String message, final int type) {
@@ -32,9 +33,9 @@ public final class Message extends MessageBox {
         layout.marginBottom = 10;
         super.shell.setData(RWT.CUSTOM_VARIANT, "message");
         final Rectangle bounds = super.shell.getBounds();
-        if (bounds.width < 400) {
-            bounds.x = bounds.x - (400 - bounds.width) / 2;
-            bounds.width = 400;
+        if (bounds.width < NORMAL_WIDTH) {
+            bounds.x = bounds.x - (NORMAL_WIDTH - bounds.width) / 2;
+            bounds.width = NORMAL_WIDTH;
             super.shell.setBounds(bounds);
         }
     }

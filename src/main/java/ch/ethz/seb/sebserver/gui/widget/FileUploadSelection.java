@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import org.eclipse.rap.fileupload.FileDetails;
@@ -138,7 +139,8 @@ public class FileUploadSelection extends Composite {
     private boolean fileSupported(final String fileName) {
         return this.supportedFileExtensions
                 .stream()
-                .filter(fileType -> fileName.toUpperCase().endsWith(fileType.toUpperCase()))
+                .filter(fileType -> fileName.toUpperCase(Locale.ROOT)
+                        .endsWith(fileType.toUpperCase(Locale.ROOT)))
                 .findFirst()
                 .isPresent();
     }

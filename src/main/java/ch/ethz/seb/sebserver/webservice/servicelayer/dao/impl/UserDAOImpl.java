@@ -187,7 +187,6 @@ public class UserDAOImpl implements UserDAO {
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(_predicate)
                     .collect(Collectors.toList());
-            ;
 
             return userInfo;
         });

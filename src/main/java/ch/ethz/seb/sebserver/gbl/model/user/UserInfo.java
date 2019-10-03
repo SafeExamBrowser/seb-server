@@ -221,7 +221,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         return UserInfo.of(this);
     }
 

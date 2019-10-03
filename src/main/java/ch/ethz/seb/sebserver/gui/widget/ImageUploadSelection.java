@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -189,7 +190,8 @@ public final class ImageUploadSelection extends Composite {
     private static boolean fileSupported(final String fileName) {
         return SUPPORTED_IMAGE_FILES
                 .stream()
-                .filter(fileType -> fileName.toUpperCase().endsWith(fileType.toUpperCase()))
+                .filter(fileType -> fileName.toUpperCase(Locale.ROOT)
+                        .endsWith(fileType.toUpperCase(Locale.ROOT)))
                 .findFirst()
                 .isPresent();
     }
