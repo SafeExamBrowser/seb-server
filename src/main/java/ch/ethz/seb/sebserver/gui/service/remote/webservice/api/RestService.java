@@ -71,11 +71,4 @@ public interface RestService {
             EntityType entityType,
             CallType callType);
 
-//    /** Performs an activation Action on RestCall specified within the given Action.
-//     * The RestCall must be of CallType.ACTIVATION_ACTIVATE or CallType.ACTIVATION_DEACTIVATE
-//     *
-//     * @param action the Action that defines an entity activation
-//     * @return the successfully executed Action */
-//    <T> PageAction activation(PageAction action);
-
 }

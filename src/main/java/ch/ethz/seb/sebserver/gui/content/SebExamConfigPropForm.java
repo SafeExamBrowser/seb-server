@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigPlaintextD
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -94,13 +95,12 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
     protected SebExamConfigPropForm(
             final PageService pageService,
-            final RestService restService,
             final CurrentUser currentUser,
             final DownloadService downloadService,
             @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
-        this.restService = restService;
+        this.restService = pageService.getRestService();
         this.currentUser = currentUser;
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
@@ -282,7 +282,9 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
             dialog.open(
                     FORM_IMPORT_TEXT_KEY,
-                    SebExamConfigPropForm::doImport,
+                    formHandle -> SebExamConfigPropForm.doImport(
+                            pageService,
+                            formHandle),
                     Utils.EMPTY_EXECUTION,
                     importFormBuilder);
 
@@ -290,15 +292,22 @@ public class SebExamConfigPropForm implements TemplateComposer {
         };
     }
 
-    // TODO
-    private static final void doImport(final FormHandle<ConfigurationNode> formHandle) {
+    private static final void doImport(
+            final PageService pageService,
+            final FormHandle<ConfigurationNode> formHandle) {
+
         final Form form = formHandle.getForm();
         final EntityKey entityKey = formHandle.getContext().getEntityKey();
         final Control fieldControl = form.getFieldControl(IMPORT_FILE_ATTR_NAME);
         if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
             final InputStream inputStream = ((FileUploadSelection) fieldControl).getInputStream();
             if (inputStream != null) {
-                // TODO
+                pageService.getRestService()
+                        .getBuilder(ImportExamConfig.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .withBody(inputStream)
+                        .call()
+                        .getOrThrow();
             }
         }
     }

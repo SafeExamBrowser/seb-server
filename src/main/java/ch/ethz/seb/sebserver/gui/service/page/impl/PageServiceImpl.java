@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -106,6 +107,15 @@ public class PageServiceImpl implements PageService {
     @Override
     public JSONMapper getJSONMapper() {
         return this.jsonMapper;
+    }
+
+    @Override
+    public RestService getRestService() {
+        if (this.resourceService == null) {
+            return null;
+        }
+
+        return this.resourceService.getRestService();
     }
 
     @Override

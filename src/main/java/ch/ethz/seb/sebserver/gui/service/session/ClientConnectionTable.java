@@ -261,7 +261,7 @@ public final class ClientConnectionTable {
         private ClientConnectionData connectionData;
         private int[] thresholdColorIndices;
         private boolean duplicateChecked = false;
-        private final boolean duplicateMarked = false;
+        private boolean duplicateMarked = false;
         private boolean isDuplicate = false;
 
         UpdatableTableItem(final Long connectionId) {
@@ -299,6 +299,7 @@ public final class ClientConnectionTable {
         void updateDuplicateColor(final TableItem tableItem) {
             if (this.isDuplicate && this.duplicateChecked && !this.duplicateMarked) {
                 tableItem.setBackground(0, ClientConnectionTable.this.statusData.color3);
+                this.duplicateMarked = true;
             } else {
                 tableItem.setBackground(0, null);
             }

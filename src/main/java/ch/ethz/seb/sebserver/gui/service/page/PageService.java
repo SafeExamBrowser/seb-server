@@ -81,6 +81,11 @@ public interface PageService {
      * @return the JSONMapper for parse, read and write JSON */
     JSONMapper getJSONMapper();
 
+    /** Get the RestService bean
+     *
+     * @return the RestService bean */
+    RestService getRestService();
+
     /** Get the PageState of the current user.
      *
      * @return PageState of the current user. */
