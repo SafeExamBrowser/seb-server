@@ -87,7 +87,7 @@ public class ClientHttpRequestFactoryService {
 
         log.info("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
 
-        if (proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
+        if (proxy != null && proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
 
             log.info("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
                     proxy.proxyAuthType,
