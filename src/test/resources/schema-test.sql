@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `lms_clientname` VARCHAR(4000) NULL,
   `lms_clientsecret` VARCHAR(4000) NULL,
   `lms_rest_api_token` VARCHAR(4000) NULL,
+  `lms_proxy_auth_type` VARCHAR(45) NOT NULL,
+  `lms_proxy_auth_username` VARCHAR(4000) NULL,
+  `lms_proxy_auth_secret` VARCHAR(4000) NULL,
   `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
@@ -499,3 +502,4 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
 ;
+

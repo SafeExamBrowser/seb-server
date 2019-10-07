@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -49,7 +49,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final AsyncService asyncService;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
-    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] openEdxAlternativeTokenRequestPaths;
     private final WebserviceInfo webserviceInfo;
 
@@ -59,14 +59,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final AsyncService asyncService,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
-            final ClientHttpRequestFactory clientHttpRequestFactory,
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths) {
 
         this.asyncService = asyncService;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
-        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.webserviceInfo = webserviceInfo;
 
         this.openEdxAlternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
@@ -207,7 +207,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         lmsSetup,
                         credentials,
                         this.clientCredentialService,
-                        this.clientHttpRequestFactory,
+                        this.clientHttpRequestFactoryService,
                         this.openEdxAlternativeTokenRequestPaths,
                         this.webserviceInfo);
             default:

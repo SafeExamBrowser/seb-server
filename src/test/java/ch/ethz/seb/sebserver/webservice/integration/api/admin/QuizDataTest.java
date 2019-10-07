@@ -170,6 +170,9 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 "somePW",
                 "https://www.lms1.com",
                 null,
+                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null);
 
         lmsSetup = tester.restAPITestHelper()

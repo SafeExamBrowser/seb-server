@@ -44,6 +44,7 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -62,19 +63,19 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     private final String guiClientId;
     private final String guiClientSecret;
     private final WebserviceURIService webserviceURIService;
-    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
     @Autowired
     public OAuth2AuthorizationContextHolder(
             @Value("${sebserver.webservice.api.admin.clientId}") final String guiClientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String guiClientSecret,
             final WebserviceURIService webserviceURIService,
-            final ClientHttpRequestFactory clientHttpRequestFactory) {
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
 
         this.guiClientId = guiClientId;
         this.guiClientSecret = guiClientSecret;
         this.webserviceURIService = webserviceURIService;
-        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
     }
 
     @Override
@@ -95,11 +96,15 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                             + "Create new OAuth2AuthorizationContext for this session",
                     session.getId());
 
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory()
+                    .getOrThrow();
+
             context = new OAuth2AuthorizationContext(
                     this.guiClientId,
                     this.guiClientSecret,
                     this.webserviceURIService,
-                    this.clientHttpRequestFactory);
+                    clientHttpRequestFactory);
 
             session.setAttribute(CONTEXT_HOLDER_ATTRIBUTE, context);
         }

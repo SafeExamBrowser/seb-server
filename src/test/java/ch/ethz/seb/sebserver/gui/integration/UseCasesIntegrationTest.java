@@ -559,6 +559,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         lmsSetup.lmsAuthSecret,
                         lmsSetup.lmsApiUrl,
                         lmsSetup.lmsRestApiToken,
+                        lmsSetup.proxyAuthType,
+                        lmsSetup.proxyAuthUsername,
+                        lmsSetup.proxyAuthSecret,
                         lmsSetup.active))
                 .call();
 

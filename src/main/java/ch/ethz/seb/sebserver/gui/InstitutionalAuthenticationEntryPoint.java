@@ -30,6 +30,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
@@ -41,16 +42,16 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
 
     private final String guiEntryPoint;
     private final WebserviceURIService webserviceURIService;
-    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
     protected InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
             final WebserviceURIService webserviceURIService,
-            final ClientHttpRequestFactory clientHttpRequestFactory) {
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
 
         this.guiEntryPoint = guiEntryPoint;
         this.webserviceURIService = webserviceURIService;
-        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
     }
 
     @Override
@@ -109,7 +110,12 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         try {
 
             final RestTemplate restTemplate = new RestTemplate();
-            restTemplate.setRequestFactory(this.clientHttpRequestFactory);
+
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory()
+                    .getOrThrow();
+
+            restTemplate.setRequestFactory(clientHttpRequestFactory);
 
             final ResponseEntity<String> exchange = restTemplate
                     .exchange(

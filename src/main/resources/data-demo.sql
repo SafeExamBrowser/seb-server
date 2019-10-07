@@ -18,7 +18,7 @@ INSERT IGNORE INTO seb_client_configuration VALUES
     ;
     
 INSERT IGNORE INTO lms_setup VALUES
-    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, 1)
+    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, 'NONE', null, null, 1)
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES

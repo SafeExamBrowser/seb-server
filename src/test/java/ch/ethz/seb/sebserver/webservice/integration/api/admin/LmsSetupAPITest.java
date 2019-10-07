@@ -64,6 +64,9 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "lms1Secret",
                 "https://www.lms1.com",
                 null,
+                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null);
 
         lmsSetup = new RestAPITestHelper()
@@ -408,6 +411,9 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null, // no secret
                 "https://www.lms1.com",
                 null,
+                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null);
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
@@ -442,6 +448,9 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "lms1Name",
                 "someSecret",
                 "https://www.lms1.com",
+                null,
+                lmsSetup.proxyAuthType,
+                null,
                 null,
                 null);
         lmsSetup = new RestAPITestHelper()

@@ -28,6 +28,13 @@ public final class ClientCredentials {
         this.accessToken = accessToken;
     }
 
+    public ClientCredentials(
+            final CharSequence clientId,
+            final CharSequence secret) {
+
+        this(clientId, secret, null);
+    }
+
     public boolean hasClientId() {
         return this.clientId != null && this.clientId.length() >= 0;
     }

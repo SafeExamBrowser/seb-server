@@ -30,8 +30,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
@@ -74,21 +76,27 @@ public abstract class GuiIntegrationTest {
         final WebserviceURIService webserviceURIService = new WebserviceURIService(
                 "http", "localhost", "8080", this.endpoint);
 
+        final ClientHttpRequestFactoryService clientHttpRequestFactoryService = Mockito
+                .mock(ClientHttpRequestFactoryService.class);
+        Mockito.when(clientHttpRequestFactoryService.getClientHttpRequestFactory()).thenReturn(
+                Result.of(
+                        new SimpleClientHttpRequestFactory() {
+
+                            @Override
+                            protected void prepareConnection(
+                                    final HttpURLConnection connection,
+                                    final String httpMethod) throws IOException {
+
+                                super.prepareConnection(connection, httpMethod);
+                                connection.setInstanceFollowRedirects(false);
+                            }
+                        }));
+
         return new OAuth2AuthorizationContextHolder(
                 this.clientId,
                 this.clientSecret,
                 webserviceURIService,
-                new SimpleClientHttpRequestFactory() {
-
-                    @Override
-                    protected void prepareConnection(
-                            final HttpURLConnection connection,
-                            final String httpMethod) throws IOException {
-
-                        super.prepareConnection(connection, httpMethod);
-                        connection.setInstanceFollowRedirects(false);
-                    }
-                }) {
+                clientHttpRequestFactoryService) {
 
             private SEBServerAuthorizationContext authContext = null;
 

@@ -47,6 +47,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
@@ -75,7 +76,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private final LmsSetup lmsSetup;
     private final ClientCredentials credentials;
-    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
     private final Set<String> knownTokenAccessPaths;
     private final WebserviceInfo webserviceInfo;
@@ -88,14 +89,14 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             final LmsSetup lmsSetup,
             final ClientCredentials credentials,
             final ClientCredentialService clientCredentialService,
-            final ClientHttpRequestFactory clientHttpRequestFactory,
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final String[] alternativeTokenRequestPaths,
             final WebserviceInfo webserviceInfo) {
 
         this.lmsSetup = lmsSetup;
         this.clientCredentialService = clientCredentialService;
         this.credentials = credentials;
-        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.webserviceInfo = webserviceInfo;
         this.knownTokenAccessPaths = new HashSet<>();
         this.knownTokenAccessPaths.add(OPEN_EDX_DEFAULT_TOKEN_REQUEST_PATH);
@@ -224,9 +225,15 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         details.setClientId(plainClientId.toString());
         details.setClientSecret(plainClientSecret.toString());
 
+        // TODO get with proxy configuration if applied in LMSSetup
+        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                .getClientHttpRequestFactory()
+                .getOrThrow();
+
         final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
-        template.setRequestFactory(this.clientHttpRequestFactory);
+        template.setRequestFactory(clientHttpRequestFactory);
         template.setAccessTokenProvider(new EdxClientCredentialsAccessTokenProvider());
+
         return template;
     }
 
