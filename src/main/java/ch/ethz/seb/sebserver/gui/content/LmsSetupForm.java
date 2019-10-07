@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -73,6 +74,12 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.name");
     private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.institution");
+    private static final LocTextKey FORM_PROXY_AUTH_TYPE_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.auth-type");
+    private static final LocTextKey FORM_PROXY_AUTH_NAME_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.auth-name");
+    private static final LocTextKey FORM_PROXY_AUTH_PASS_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.auth-secret");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -141,6 +148,7 @@ public class LmsSetupForm implements TemplateComposer {
 
         // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
+        final ProxyAuthType proxyAuthType = lmsSetup.getProxyAuthType();
         final FormHandle<LmsSetup> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(readonly)
@@ -182,6 +190,20 @@ public class LmsSetupForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                         FORM_SECRET_LMS_TEXT_KEY)
+                        .asPasswordField())
+
+                .addField(FormBuilder.singleSelection(
+                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE,
+                        FORM_PROXY_AUTH_TYPE_KEY,
+                        (proxyAuthType != null) ? proxyAuthType.name() : null,
+                        this.resourceService::lmsProxyAuthTypeResources))
+                .addField(FormBuilder.text(
+                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
+                        FORM_PROXY_AUTH_NAME_KEY,
+                        (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null))
+                .addField(FormBuilder.text(
+                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
+                        FORM_PROXY_AUTH_PASS_KEY)
                         .asPasswordField())
 
                 .buildFor((entityKey == null)

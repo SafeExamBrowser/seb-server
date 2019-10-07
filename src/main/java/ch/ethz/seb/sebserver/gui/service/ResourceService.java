@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -89,6 +90,8 @@ public class ResourceService {
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
+    public static final String LMSSETUP_PROXY_AUTH_TYPE_PREFIX = "sebserver.lmssetup.form.proxy.auth-type.";
+
     public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
     public static final String USER_ACTIVITY_TYPE_PREFIX = "sebserver.overall.types.activityType.";
     public static final String ENTITY_TYPE_PREFIX = "sebserver.overall.types.entityType.";
@@ -145,6 +148,16 @@ public class ResourceService {
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> lmsProxyAuthTypeResources() {
+        return Arrays.asList(ProxyAuthType.values())
+                .stream()
+                .map(authType -> new Tuple<>(
+                        authType.name(),
+                        this.i18nSupport.getText(LMSSETUP_PROXY_AUTH_TYPE_PREFIX + authType.name(), authType.name())))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

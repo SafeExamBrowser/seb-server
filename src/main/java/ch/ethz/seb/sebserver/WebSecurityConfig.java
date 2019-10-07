@@ -12,8 +12,6 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -41,8 +39,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @RestController
 @Order(7)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
-
-    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Value("${sebserver.webservice.http.redirect.gui}")
     private String guiRedirect;
@@ -98,99 +94,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     public String getErrorPath() {
         return "/error";
     }
-
-//    /** A ClientHttpRequestFactory for development profile with no TSL SSL protocol and
-//     * not following redirects on redirect responses.
-//     *
-//     * @return ClientHttpRequestFactory bean for development profiles */
-//    @Bean
-//    @DevGuiProfile
-//    @DevWebServiceProfile
-//    public ClientHttpRequestFactory clientHttpRequestFactory() {
-//
-//        log.info("Initialize with insecure ClientHttpRequestFactory for development");
-//
-//        final DevClientHttpRequestFactory devClientHttpRequestFactory = new DevClientHttpRequestFactory();
-//        devClientHttpRequestFactory.setOutputStreaming(false);
-//        return devClientHttpRequestFactory;
-//    }
-//
-//    /** A ClientHttpRequestFactory used in production with TSL SSL configuration.
-//     *
-//     * @return ClientHttpRequestFactory with TLS / SSL configuration
-//     * @throws IOException
-//     * @throws FileNotFoundException
-//     * @throws CertificateException
-//     * @throws KeyStoreException
-//     * @throws NoSuchAlgorithmException
-//     * @throws KeyManagementException */
-//    @Bean
-//    @ProdGuiProfile
-//    @ProdWebServiceProfile
-//    public ClientHttpRequestFactory clientHttpRequestFactoryTLS(final Environment env) throws KeyManagementException,
-//            NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
-//
-//        log.info("Initialize with secure ClientHttpRequestFactory for production");
-//
-//        final String truststoreFilePath = env
-//                .getProperty("server.ssl.trust-store", "");
-//
-//        SSLContext sslContext = null;
-//        if (StringUtils.isBlank(truststoreFilePath)) {
-//
-//            log.info("Securing outgoing calls without trust-store by trusting all certificates");
-//
-//            sslContext = org.apache.http.ssl.SSLContexts
-//                    .custom()
-//                    .loadTrustMaterial(null, new TrustAllStrategy())
-//                    .build();
-//
-//        } else {
-//
-//            log.info("Securing with defined trust-store");
-//
-//            final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
-//
-//            final char[] password = env
-//                    .getProperty("server.ssl.trust-store-password", "")
-//                    .toCharArray();
-//
-//            if (password.length < 3) {
-//                log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
-//                throw new IllegalArgumentException("Missing or incorrect trust-store password");
-//            }
-//
-//            // Set the specified trust-store also on javax.net.ssl level
-//            System.setProperty("javax.net.ssl.trustStore", truststoreFilePath);
-//            System.setProperty("javax.net.ssl.trustStorePassword", String.valueOf(password));
-//
-//            sslContext = SSLContextBuilder
-//                    .create()
-//                    .loadTrustMaterial(trustStoreFile, password)
-//                    .setKeyStoreType("pkcs12")
-//                    .build();
-//        }
-//
-//        final HttpClient client = HttpClients.custom()
-//                .setSSLContext(sslContext)
-//                .build();
-//
-//        // TODO set connection and read timeout!? configurable!?
-//        return new HttpComponentsClientHttpRequestFactory(client);
-//    }
-//
-//    // TODO set connection and read timeout!? configurable!?
-//    private static class DevClientHttpRequestFactory extends SimpleClientHttpRequestFactory {
-//
-//        @Override
-//        protected void prepareConnection(
-//                final HttpURLConnection connection,
-//                final String httpMethod) throws IOException {
-//
-//            super.prepareConnection(connection, httpMethod);
-//            super.setBufferRequestBody(false);
-//            connection.setInstanceFollowRedirects(false);
-//        }
-//    }
-
 }

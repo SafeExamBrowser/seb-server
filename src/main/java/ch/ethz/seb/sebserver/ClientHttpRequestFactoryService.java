@@ -44,8 +44,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 
-import ch.ethz.seb.sebserver.gbl.api.Proxy;
-import ch.ethz.seb.sebserver.gbl.api.Proxy.ProxyAuthType;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @Service
@@ -66,7 +66,7 @@ public class ClientHttpRequestFactoryService {
         return getClientHttpRequestFactory(null);
     }
 
-    public Result<ClientHttpRequestFactory> getClientHttpRequestFactory(final Proxy proxy) {
+    public Result<ClientHttpRequestFactory> getClientHttpRequestFactory(final ProxyData proxy) {
         return Result.tryCatch(() -> {
             final List<String> activeProfiles = Arrays.asList(this.environment.getActiveProfiles());
             if (CollectionUtils.containsAny(activeProfiles, DEV_PROFILES)) {
@@ -83,7 +83,7 @@ public class ClientHttpRequestFactoryService {
      * not following redirects on redirect responses.
      *
      * @return ClientHttpRequestFactory bean for development profiles */
-    private ClientHttpRequestFactory clientHttpRequestFactory(final Proxy proxy) {
+    private ClientHttpRequestFactory clientHttpRequestFactory(final ProxyData proxy) {
 
         log.info("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
 
@@ -113,7 +113,7 @@ public class ClientHttpRequestFactoryService {
      * @throws KeyStoreException
      * @throws NoSuchAlgorithmException
      * @throws KeyManagementException */
-    private ClientHttpRequestFactory clientHttpRequestFactoryTLS(final Proxy proxy) throws KeyManagementException,
+    private ClientHttpRequestFactory clientHttpRequestFactoryTLS(final ProxyData proxy) throws KeyManagementException,
             NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
 
         log.info("Initialize with secure ClientHttpRequestFactory for production");
@@ -157,9 +157,6 @@ public class ClientHttpRequestFactoryService {
                     .build();
         }
 
-        final HttpClientBuilder clientBuilder = HttpClients.custom()
-                .setSSLContext(sslContext);
-
         if (proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
 
             log.info("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
@@ -178,14 +175,14 @@ public class ClientHttpRequestFactoryService {
     }
 
     // TODO set connection and read timeout!? configurable!?
-    private HttpClient createProxiedClient(final Proxy proxy, final SSLContext sslContext) {
+    private HttpClient createProxiedClient(final ProxyData proxy, final SSLContext sslContext) {
 
         final CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 AuthScope.ANY,
                 new UsernamePasswordCredentials(
-                        proxy.proxyAuthUsername,
-                        proxy.proxyAuthSecret));
+                        proxy.getProxyAuthUsernameAsString(),
+                        proxy.getProxyAuthSecretAsString()));
 
         final HttpClientBuilder clientBuilder = HttpClients
                 .custom()

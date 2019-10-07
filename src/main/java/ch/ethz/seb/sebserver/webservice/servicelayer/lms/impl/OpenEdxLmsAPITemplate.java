@@ -50,6 +50,8 @@ import org.springframework.util.MultiValueMap;
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData;
+import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -226,9 +228,28 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         details.setClientSecret(plainClientSecret.toString());
 
         // TODO get with proxy configuration if applied in LMSSetup
-        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory()
-                .getOrThrow();
+        ClientHttpRequestFactory clientHttpRequestFactory = null;
+        if (lmsSetup.proxyAuthType != ProxyAuthType.NONE) {
+            final ClientCredentials proxyCredentials = new ClientCredentials(
+                    lmsSetup.proxyAuthUsername,
+                    lmsSetup.proxyAuthSecret);
+
+            final CharSequence proxySecretPlain = this.clientCredentialService.getPlainClientSecret(proxyCredentials);
+            final ProxyData proxyData = new ProxyData(
+                    lmsSetup.proxyAuthType,
+                    null,
+                    -1,
+                    proxyCredentials.clientId,
+                    proxySecretPlain);
+
+            clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory(proxyData)
+                    .getOrThrow();
+        } else {
+            clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory()
+                    .getOrThrow();
+        }
 
         final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
         template.setRequestFactory(clientHttpRequestFactory);

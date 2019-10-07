@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
-public class Proxy {
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+
+public class ProxyData {
 
     public enum ProxyAuthType {
         NONE,
@@ -18,15 +20,15 @@ public class Proxy {
     public final ProxyAuthType proxyAuthType;
     public final String proxyName;
     public final int proxyPort;
-    public final String proxyAuthUsername;
-    public final String proxyAuthSecret;
+    public final CharSequence proxyAuthUsername;
+    public final CharSequence proxyAuthSecret;
 
-    protected Proxy(
+    public ProxyData(
             final ProxyAuthType proxyAuthType,
             final String proxyName,
             final int proxyPort,
-            final String proxyAuthUsername,
-            final String proxyAuthSecret) {
+            final CharSequence proxyAuthUsername,
+            final CharSequence proxyAuthSecret) {
         ;
         this.proxyAuthType = proxyAuthType;
         this.proxyName = proxyName;
@@ -47,12 +49,20 @@ public class Proxy {
         return this.proxyAuthType;
     }
 
-    public String getProxyAuthUsername() {
+    public CharSequence getProxyAuthUsername() {
         return this.proxyAuthUsername;
     }
 
-    public String getProxyAuthSecret() {
+    public CharSequence getProxyAuthSecret() {
         return this.proxyAuthSecret;
+    }
+
+    public String getProxyAuthUsernameAsString() {
+        return Utils.toString(this.proxyAuthUsername);
+    }
+
+    public String getProxyAuthSecretAsString() {
+        return Utils.toString(this.proxyAuthSecret);
     }
 
 }
