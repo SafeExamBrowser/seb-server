@@ -45,10 +45,6 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        if (this.isPassword && builder.readonly) {
-            return;
-        }
-
         final boolean readonly = builder.readonly || this.readonly;
         final Label lab = builder.labelLocalized(
                 builder.formParent,

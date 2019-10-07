@@ -106,6 +106,7 @@ public class LmsSetupForm implements TemplateComposer {
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final BooleanSupplier isSEBAdmin = () -> user.hasRole(UserRole.SEB_SERVER_ADMIN);
+        final BooleanSupplier isEdit = () -> !readonly;
 
         // get data or create new. handle error if happen
         final LmsSetup lmsSetup = isNew.getAsBoolean()
@@ -187,10 +188,12 @@ public class LmsSetupForm implements TemplateComposer {
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
                         FORM_CLIENTNAME_LMS_TEXT_KEY,
                         (lmsSetup.getLmsAuthName() != null) ? lmsSetup.getLmsAuthName() : null))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                        FORM_SECRET_LMS_TEXT_KEY)
-                        .asPasswordField())
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                                FORM_SECRET_LMS_TEXT_KEY)
+                                .asPasswordField())
 
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE,
@@ -201,10 +204,12 @@ public class LmsSetupForm implements TemplateComposer {
                         Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
                         FORM_PROXY_AUTH_NAME_KEY,
                         (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
-                        FORM_PROXY_AUTH_PASS_KEY)
-                        .asPasswordField())
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
+                                FORM_PROXY_AUTH_PASS_KEY)
+                                .asPasswordField())
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)

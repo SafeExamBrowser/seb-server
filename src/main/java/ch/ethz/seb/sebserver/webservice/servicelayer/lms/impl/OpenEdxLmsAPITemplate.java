@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -217,7 +219,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private OAuth2RestTemplate createRestTemplate(
             final LmsSetup lmsSetup,
             final ClientCredentials credentials,
-            final String accessTokenRequestPath) {
+            final String accessTokenRequestPath) throws URISyntaxException {
 
         final CharSequence plainClientId = credentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
@@ -227,18 +229,25 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         details.setClientId(plainClientId.toString());
         details.setClientSecret(plainClientSecret.toString());
 
-        // TODO get with proxy configuration if applied in LMSSetup
         ClientHttpRequestFactory clientHttpRequestFactory = null;
         if (lmsSetup.proxyAuthType != ProxyAuthType.NONE) {
             final ClientCredentials proxyCredentials = new ClientCredentials(
                     lmsSetup.proxyAuthUsername,
                     lmsSetup.proxyAuthSecret);
 
-            final CharSequence proxySecretPlain = this.clientCredentialService.getPlainClientSecret(proxyCredentials);
+            // TODO check where we have to encrypt/decrypt the secret internally
+            CharSequence proxySecretPlain;
+            try {
+                proxySecretPlain = this.clientCredentialService.getPlainClientSecret(proxyCredentials);
+            } catch (final Exception e) {
+                proxySecretPlain = lmsSetup.proxyAuthSecret;
+            }
+
+            final URI uri = new URI(lmsSetup.lmsApiUrl);
             final ProxyData proxyData = new ProxyData(
                     lmsSetup.proxyAuthType,
-                    null,
-                    -1,
+                    uri.getHost(),
+                    uri.getPort(),
                     proxyCredentials.clientId,
                     proxySecretPlain);
 

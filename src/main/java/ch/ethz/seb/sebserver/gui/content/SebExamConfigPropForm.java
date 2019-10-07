@@ -308,6 +308,10 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         .withBody(inputStream)
                         .call()
                         .getOrThrow();
+            } else {
+                formHandle.getContext().publishPageMessage(
+                        new LocTextKey("sebserver.error.unexpected"),
+                        new LocTextKey("Please selecte a valid SEB Exam Configuration File"));
             }
         }
     }

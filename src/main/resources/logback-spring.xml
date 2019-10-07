@@ -30,6 +30,8 @@
     <Logger name="org.springframework.boot" level="INFO" additivity="true" />
     <Logger name="org.springframework.security" level="INFO" additivity="true" />
     
+    <Logger name="org.springframework.security.oauth2.client.OAuth2RestTemplate" level="DEBUG" additivity="true" />
+    
     <Logger name="org.springframework.context.support.ResourceBundleMessageSource" level="DEBUG" additivity="true" />
 
     <Logger name="org.springframework.web" level="INFO" additivity="true" />
