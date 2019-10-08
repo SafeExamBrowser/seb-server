@@ -19,6 +19,7 @@ import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -334,7 +335,7 @@ public abstract class RestCall<T> {
 
         public HttpEntity<?> buildRequestEntity() {
             if (this.streamingBody != null) {
-                return new HttpEntity<>(this.streamingBody, this.httpHeaders);
+                return new HttpEntity<>(new InputStreamResource(this.streamingBody), this.httpHeaders);
             } else if (this.body != null) {
                 return new HttpEntity<>(this.body, this.httpHeaders);
             } else {

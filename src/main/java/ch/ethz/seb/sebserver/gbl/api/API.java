@@ -121,6 +121,8 @@ public final class API {
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
     public static final String CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT = "/downloadxml";
     public static final String CONFIGURATION_IMPORT_PATH_SEGMENT = "/import";
+    public static final String IMPORT_PASSWORD_ATTR_NAME = "importFilePassword";
+    public static final String IMPORT_FILE_ATTR_NAME = "importFile";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";

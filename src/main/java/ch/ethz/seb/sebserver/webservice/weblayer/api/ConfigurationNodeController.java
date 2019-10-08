@@ -164,11 +164,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_IMPORT_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Configuration importExamConfig(
             @PathVariable final Long modelId,
-            @RequestHeader final String password,
+            @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,

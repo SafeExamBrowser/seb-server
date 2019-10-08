@@ -19,7 +19,12 @@ public final class Message extends MessageBox {
     private static final int NORMAL_WIDTH = 400;
     private static final long serialVersionUID = 6973272221493264432L;
 
-    public Message(final Shell parent, final String title, final String message, final int type) {
+    public Message(
+            final Shell parent,
+            final String title,
+            final String message,
+            final int type) {
+
         super(parent, type);
         super.setText(title);
         super.setMessage(message);

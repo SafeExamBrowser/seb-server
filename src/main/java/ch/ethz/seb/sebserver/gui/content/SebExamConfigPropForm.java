@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -66,8 +67,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(SebExamConfigPropForm.class);
 
-    private static final String PASSWORD_ATTR_NAME = "importFilePassword";
-    private static final String IMPORT_FILE_ATTR_NAME = "importFile";
     private static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
     private static final LocTextKey FORM_TITLE =
@@ -86,6 +85,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.action.import-file-password");
     private static final LocTextKey CONFIG_KEY_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.config-key.title");
+    private static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.action.import-config.confirm");
 
     private final PageService pageService;
     private final RestService restService;
@@ -298,16 +299,21 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         final Form form = formHandle.getForm();
         final EntityKey entityKey = formHandle.getContext().getEntityKey();
-        final Control fieldControl = form.getFieldControl(IMPORT_FILE_ATTR_NAME);
+        final Control fieldControl = form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
+        final PageContext context = formHandle.getContext();
         if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
             final InputStream inputStream = ((FileUploadSelection) fieldControl).getInputStream();
             if (inputStream != null) {
-                pageService.getRestService()
+                final Configuration configuration = pageService.getRestService()
                         .getBuilder(ImportExamConfig.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .withBody(inputStream)
                         .call()
-                        .getOrThrow();
+                        .get(context::notifyError);
+
+                if (configuration != null) {
+                    context.publishInfo(FORM_IMPORT_CONFIRM_TEXT_KEY);
+                }
             } else {
                 formHandle.getContext().publishPageMessage(
                         new LocTextKey("sebserver.error.unexpected"),
@@ -333,12 +339,12 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     this.pageContext.copyOf(parent), 4)
                     .readonly(false)
                     .addField(FormBuilder.fileUpload(
-                            IMPORT_FILE_ATTR_NAME,
+                            API.IMPORT_FILE_ATTR_NAME,
                             FORM_IMPORT_SELECT_TEXT_KEY,
                             null,
                             API.SEB_FILE_EXTENSION))
                     .addField(FormBuilder.text(
-                            PASSWORD_ATTR_NAME,
+                            API.IMPORT_PASSWORD_ATTR_NAME,
                             FORM_IMPORT_PASSWORD_TEXT_KEY,
                             "").asPasswordField())
                     .build();

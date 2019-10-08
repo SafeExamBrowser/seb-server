@@ -1080,7 +1080,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(saveHistoryResponse);
         assertFalse(saveHistoryResponse.hasError());
         Configuration configuration = saveHistoryResponse.get();
-        assertFalse(configuration.followup);
+        assertTrue(configuration.followup);
 
         configHistoryResponse = restService
                 .getBuilder(GetConfigurations.class)

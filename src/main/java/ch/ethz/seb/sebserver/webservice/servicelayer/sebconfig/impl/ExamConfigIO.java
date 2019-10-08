@@ -162,7 +162,7 @@ public class ExamConfigIO {
     /** This parses the XML from given InputStream with a SAX parser to avoid keeping the
      * whole XML file in memory and keep up with the streaming approach of SEB Exam Configuration
      * to avoid trouble with big SEB Exam Configuration in the future.
-     * 
+     *
      * @param in The InputString to constantly read the XML from
      * @param institutionId the institionId of the import
      * @param configurationId the identifier of the internal configuration to apply the imported values to */
@@ -181,7 +181,9 @@ public class ExamConfigIO {
             final ExamConfigImportHandler examConfigImportHandler = new ExamConfigImportHandler(
                     institutionId,
                     configurationId,
-                    value -> this.configurationValueDAO.save(value),
+                    value -> this.configurationValueDAO
+                            .save(value)
+                            .getOrThrow(),
                     attributeMap::get);
 
             // SAX parsing

@@ -15,6 +15,8 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -25,10 +27,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigIm
 
 public class ExamConfigImportHandler extends DefaultHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigImportHandler.class);
+
     private static final Set<String> VALUE_ELEMENTS = new HashSet<>(Arrays.asList(
             Constants.XML_PLIST_BOOLEAN_FALSE,
             Constants.XML_PLIST_BOOLEAN_TRUE,
             Constants.XML_PLIST_STRING,
+            Constants.XML_PLIST_DATA,
             Constants.XML_PLIST_INTEGER));
 
     private final Consumer<ConfigurationValue> valueConsumer;
@@ -52,11 +57,23 @@ public class ExamConfigImportHandler extends DefaultHandler {
     }
 
     @Override
+    public void startDocument() throws SAXException {
+        log.debug("Start parsing document");
+    }
+
+    @Override
+    public void endDocument() throws SAXException {
+        log.debug("End parsing document");
+    }
+
+    @Override
     public void startElement(
             final String uri,
             final String localName,
             final String qName,
             final Attributes attributes) throws SAXException {
+
+        log.debug("start element: {}", qName);
 
         final Type type = Type.getType(qName);
         final PListNode top = (this.stack.isEmpty()) ? null : this.stack.peek();
@@ -77,6 +94,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
             case VALUE_BOOLEAN_FALSE:
             case VALUE_BOOLEAN_TRUE:
             case VALUE_STRING:
+            case VALUE_DATA:
             case VALUE_INTEGER:
                 startValueElement(type, top);
                 break;
@@ -196,13 +214,30 @@ public class ExamConfigImportHandler extends DefaultHandler {
                         ? parent.name + "." + top.name
                         : top.name;
 
-                this.valueConsumer.accept(new ConfigurationValue(
-                        null,
-                        this.institutionId,
-                        this.configId,
-                        this.attributeNameIdResolver.apply(attrName),
-                        top.listIndex,
-                        top.value));
+                final Long attributeId = this.attributeNameIdResolver.apply(attrName);
+                if (attributeId == null) {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Skip unknown configuration attribute: {}", attrName);
+                    }
+
+                } else {
+
+                    // TODO use AttributeValueConverterService here. Extend the converters with fromXML functionality
+                    final ConfigurationValue configurationValue = new ConfigurationValue(
+                            null,
+                            this.institutionId,
+                            this.configId,
+                            attributeId,
+                            top.listIndex,
+                            top.value);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Save imported value: {} : {}", attrName, configurationValue);
+                    }
+
+                    this.valueConsumer.accept(configurationValue);
+                }
             }
         } else if (!Constants.XML_PLIST_KEY_NAME.equals(qName)) {
             this.stack.pop();
@@ -215,13 +250,16 @@ public class ExamConfigImportHandler extends DefaultHandler {
             final int start,
             final int length) throws SAXException {
 
+        final char[] valueChar = new char[length];
+        System.arraycopy(ch, start, valueChar, 0, length);
+        final String value = String.valueOf(valueChar);
         final PListNode top = this.stack.peek();
         if (top.type == Type.VALUE_STRING) {
-            top.value = String.valueOf(ch);
+            top.value = value;
         } else if (top.type == Type.VALUE_INTEGER) {
-            top.value = String.valueOf(ch);
+            top.value = value;
         } else if (top.type == Type.KEY) {
-            top.name = String.valueOf(ch);
+            top.name = value;
         }
     }
 
@@ -235,6 +273,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
             VALUE_BOOLEAN_TRUE(true, Constants.XML_PLIST_BOOLEAN_TRUE),
             VALUE_BOOLEAN_FALSE(true, Constants.XML_PLIST_BOOLEAN_FALSE),
             VALUE_STRING(true, Constants.XML_PLIST_STRING),
+            VALUE_DATA(true, Constants.XML_PLIST_DATA),
             VALUE_INTEGER(true, Constants.XML_PLIST_INTEGER);
 
             private final boolean isValueType;

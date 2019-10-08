@@ -33,7 +33,7 @@ public class ImportExamConfig extends RestCall<Configuration> {
                 new TypeReference<Configuration>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_FORM_URLENCODED,
+                MediaType.APPLICATION_OCTET_STREAM,
                 API.CONFIGURATION_NODE_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.CONFIGURATION_IMPORT_PATH_SEGMENT);

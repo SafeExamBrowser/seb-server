@@ -336,12 +336,19 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
                 final byte[] header = new byte[4];
                 input.read(header);
-                final Strategy strategy = SebConfigEncryptionService.Strategy.getStrategy(header);
 
-                if (strategy == null) {
+                Strategy strategy = null;
+                try {
+                    strategy = SebConfigEncryptionService.Strategy.getStrategy(header);
+                } catch (final IllegalArgumentException iae) {
+
+                    log.info("{} : Trying to import as unzipped plain text configuration", iae.getMessage());
+
                     importPlainOnly(input, newConfig, header);
-                } else {
+                    return newConfig;
+                }
 
+                if (strategy != null) {
                     final InputStream cryptIn = this.unzip(input);
                     final PipedInputStream plainIn = new PipedInputStream();
                     final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
@@ -369,9 +376,11 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             } catch (final Exception e) {
                 log.error("Unexpected error while trying to import SEB Exam Configuration: ", e);
                 log.debug("Make an undo on the ConfigurationNode to rollback the changes");
-                return this.configurationDAO
+                this.configurationDAO
                         .undo(configNodeId)
                         .getOrThrow();
+
+                throw new RuntimeException("Failed to import SEB configuration. Cause is: " + e.getMessage(), e);
             }
         });
     }
@@ -412,16 +421,18 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             plainIn = new PipedInputStream();
             out = new PipedOutputStream(plainIn);
 
-            this.examConfigIO.importPlainXML(plainIn, newConfig.institutionId, newConfig.id);
+            this.examConfigIO.importPlainXML(
+                    plainIn,
+                    newConfig.institutionId,
+                    newConfig.id);
+
             out.write(header);
             IOUtils.copyLarge(input, out);
-            IOUtils.closeQuietly(out);
         } catch (final Exception e) {
             log.error("Error while stream plain text SEB Configuration import data: ", e);
             throw e;
         } finally {
             IOUtils.closeQuietly(out);
-            IOUtils.closeQuietly(plainIn);
         }
     }
 

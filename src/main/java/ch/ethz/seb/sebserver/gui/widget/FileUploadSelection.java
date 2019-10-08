@@ -10,11 +10,14 @@ package ch.ethz.seb.sebserver.gui.widget;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.rap.fileupload.FileDetails;
 import org.eclipse.rap.fileupload.FileUploadHandler;
 import org.eclipse.rap.fileupload.FileUploadReceiver;
@@ -77,6 +80,11 @@ public class FileUploadSelection extends Composite {
             this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
             this.fileUpload.setToolTipText(this.i18nSupport.getText(PLEASE_SELECT_TEXT));
             final FileUploadHandler uploadHandler = new FileUploadHandler(new InputReceiver());
+
+            this.fileName = new Label(this, SWT.NONE);
+            this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
+            this.fileName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
             this.fileUpload.addListener(SWT.Selection, event -> {
                 final String fileName = FileUploadSelection.this.fileUpload.getFileName();
                 if (fileName == null || !fileSupported(fileName)) {
@@ -90,11 +98,10 @@ public class FileUploadSelection extends Composite {
                     return;
                 }
                 FileUploadSelection.this.fileUpload.submit(uploadHandler.getUploadUrl());
+                FileUploadSelection.this.fileName.setText(fileName);
+                FileUploadSelection.this.errorHandler.accept(null);
             });
 
-            this.fileName = new Label(this, SWT.NONE);
-            this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
-            this.fileName.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         }
     }
 
@@ -148,7 +155,18 @@ public class FileUploadSelection extends Composite {
     private final class InputReceiver extends FileUploadReceiver {
         @Override
         public void receive(final InputStream stream, final FileDetails details) throws IOException {
-            FileUploadSelection.this.inputStream = stream;
+            final PipedInputStream pIn = new PipedInputStream();
+            final PipedOutputStream pOut = new PipedOutputStream(pIn);
+
+            FileUploadSelection.this.inputStream = pIn;
+
+            try {
+                IOUtils.copyLarge(stream, pOut);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(pOut);
+            }
         }
     }
 

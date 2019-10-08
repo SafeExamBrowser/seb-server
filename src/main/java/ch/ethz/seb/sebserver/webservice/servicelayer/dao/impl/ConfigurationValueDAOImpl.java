@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationValueDAOImpl.class);
 
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
@@ -192,9 +196,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                         id = getByProperties(data)
                                 .orElseGet(() -> {
-                                    log.warn("Missing SEB exam configuration attrribute value for: {}", data);
-                                    log.info("Use self-healing strategy to recover from missing SEB exam configuration "
-                                            + "attrribute value\n**** Create new AttributeValue for: {}",
+                                    log.debug("Missing SEB exam configuration attrribute value for: {}", data);
+                                    log.debug("Use self-healing strategy to recover from missing SEB exam "
+                                            + "configuration attrribute value\n**** Create new AttributeValue for: {}",
                                             data);
 
                                     createNew(data);

@@ -18,10 +18,6 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncExceptionHandler.class);
 
-    public AsyncExceptionHandler() {
-        // TODO Auto-generated constructor stub
-    }
-
     @Override
     public void handleUncaughtException(final Throwable ex, final Method method, final Object... params) {
         log.error("Unexpected error while async processing. method: {}", method, ex);
