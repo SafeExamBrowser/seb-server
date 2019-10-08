@@ -17,6 +17,7 @@
         <exclude name="BeanMembersShouldSerialize"/>
         <exclude name="AvoidFieldNameMatchingMethodName"/>
         <exclude name="NullAssignment"/>
+        <exclude name="AvoidLiteralsInIfCondition"/>
     </rule>
 
 </ruleset>

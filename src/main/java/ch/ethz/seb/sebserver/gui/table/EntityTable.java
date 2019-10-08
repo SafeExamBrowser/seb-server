@@ -160,7 +160,7 @@ public class EntityTable<ROW extends Entity> {
             }
         }
         this.table.addListener(SWT.MouseDown, event -> {
-            if (event.button == 1) {
+            if (event.button == Constants.RWT_MOUSE_BUTTON_1) {
                 return;
             }
             final Rectangle bounds = event.getBounds();

@@ -27,6 +27,7 @@ public final class Constants {
     public static final Character LIST_SEPARATOR_CHAR = ',';
     public static final String LIST_SEPARATOR = ",";
     public static final String EMBEDDED_LIST_SEPARATOR = "|";
+    public static final String NO_NAME = "NONE";
     public static final String EMPTY_NOTE = "--";
     public static final String FORM_URL_ENCODED_SEPARATOR = "&";
     public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
@@ -75,4 +76,8 @@ public final class Constants {
     public static final String OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
     public static final String OAUTH2_SCOPE_READ = "read";
     public static final String OAUTH2_SCOPE_WRITE = "write";
+
+    public static final int RWT_MOUSE_BUTTON_1 = 1;
+    public static final int RWT_MOUSE_BUTTON_2 = 2;
+    public static final int RWT_MOUSE_BUTTON_3 = 3;
 }

@@ -9,17 +9,23 @@
 package ch.ethz.seb.sebserver.gui;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.Charsets;
+import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -28,11 +34,14 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
+import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 
 @Lazy
 @Component
@@ -41,17 +50,50 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
     private static final Logger log = LoggerFactory.getLogger(InstitutionalAuthenticationEntryPoint.class);
 
     private final String guiEntryPoint;
+    private final String defaultLogo;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
     protected InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
+            @Value("${sebserver.gui.defaultLogo:" + Constants.NO_NAME + "}") final String defaultLogoFileName,
             final WebserviceURIService webserviceURIService,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final ResourceLoader resourceLoader) {
 
         this.guiEntryPoint = guiEntryPoint;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+
+        String _defaultLogo = null;
+        if (!Constants.NO_NAME.equals(defaultLogoFileName)) {
+            try {
+
+                final String extension = ImageUploadSelection.SUPPORTED_IMAGE_FILES.stream()
+                        .filter(ext -> defaultLogoFileName.endsWith(ext))
+                        .findFirst()
+                        .orElse(null);
+
+                if (extension == null) {
+                    throw new IllegalArgumentException("Image of type: " + defaultLogoFileName + " not supported");
+                }
+
+                final Resource resource = resourceLoader.getResource("file:" + defaultLogoFileName);
+                final Reader reader = new InputStreamReader(
+                        new Base64InputStream(resource.getInputStream(), true),
+                        Charsets.UTF_8);
+
+                _defaultLogo = FileCopyUtils.copyToString(reader);
+
+            } catch (final Exception e) {
+                log.warn("Failed to load default logo image from filesystem: {}", defaultLogoFileName);
+                _defaultLogo = null;
+            }
+
+            this.defaultLogo = _defaultLogo;
+        } else {
+            this.defaultLogo = null;
+        }
     }
 
     @Override
@@ -74,7 +116,6 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             forwardToEntryPoint(request, response, this.guiEntryPoint);
         }
-
     }
 
     private void forwardToEntryPoint(
@@ -104,7 +145,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
 
     private String requestLogoImage(final String institutionalEndpoint) {
         if (StringUtils.isBlank(institutionalEndpoint)) {
-            return null;
+            return this.defaultLogo;
         }
 
         try {
@@ -135,7 +176,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
                         exchange);
             }
         } catch (final Exception e) {
-            log.error("Failed to verify insitution from requested entrypoint url: {}",
+            log.warn("Failed to verify insitution from requested entrypoint url: {}",
                     institutionalEndpoint,
                     e);
         }
