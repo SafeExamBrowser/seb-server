@@ -307,7 +307,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
                         QUIZ_DETAILS_ENDTIME_TEXT_KEY,
-                        this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.startTime)))
+                        this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.endTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         QUIZ_DETAILS_URL_TEXT_KEY,
