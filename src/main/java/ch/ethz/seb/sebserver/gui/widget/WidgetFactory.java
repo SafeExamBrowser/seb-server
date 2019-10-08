@@ -623,7 +623,8 @@ public class WidgetFactory {
             final Collection<String> supportedFiles) {
 
         final FileUploadSelection fileUploadSelection =
-                new FileUploadSelection(parent, null, this.i18nSupport, readonly);
+                new FileUploadSelection(parent, this.i18nSupport, readonly);
+
         if (supportedFiles != null) {
             supportedFiles.forEach(ext -> fileUploadSelection.withSupportFor(ext));
         }

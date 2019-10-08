@@ -16,8 +16,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 import ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery;
 import ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery.ExamAPIVersion;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -37,7 +35,7 @@ public class ExamDiscoveryEndpointTest extends ExamAPIIntegrationTester {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        final ObjectWriter writer = this.jsonMapper.writerWithDefaultPrettyPrinter();
+//        final ObjectWriter writer = this.jsonMapper.writerWithDefaultPrettyPrinter();
 
         final ExamAPIDiscovery examAPIDiscovery = this.jsonMapper.readValue(contentAsString, ExamAPIDiscovery.class);
         assertNotNull(examAPIDiscovery);

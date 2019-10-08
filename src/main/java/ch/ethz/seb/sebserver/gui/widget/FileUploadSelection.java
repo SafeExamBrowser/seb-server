@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Label;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
 public class FileUploadSelection extends Composite {
 
@@ -41,7 +40,6 @@ public class FileUploadSelection extends Composite {
             new LocTextKey("sebserver.overall.upload");
 
     private final I18nSupport i18nSupport;
-    private final ServerPushService serverPushService;
     private final List<String> supportedFileExtensions = new ArrayList<>();
 
     private final boolean readonly;
@@ -53,7 +51,6 @@ public class FileUploadSelection extends Composite {
 
     public FileUploadSelection(
             final Composite parent,
-            final ServerPushService serverPushService,
             final I18nSupport i18nSupport,
             final boolean readonly) {
 
@@ -66,7 +63,6 @@ public class FileUploadSelection extends Composite {
         super.setLayout(gridLayout);
 
         this.i18nSupport = i18nSupport;
-        this.serverPushService = serverPushService;
         this.readonly = readonly;
 
         if (readonly) {
