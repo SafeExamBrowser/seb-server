@@ -153,11 +153,15 @@ public class ClientHttpRequestFactoryService {
             sslContext = SSLContextBuilder
                     .create()
                     .loadTrustMaterial(trustStoreFile, password)
-                    .setKeyStoreType("pkcs12")
+                    .setKeyStoreType(this.environment.getProperty(
+                            "server.ssl.key-store-type",
+                            "pkcs12"))
                     .build();
         }
 
-        if (proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
+        if (proxy != null &&
+                proxy.proxyAuthType != null &&
+                proxy.proxyAuthType != ProxyAuthType.NONE) {
 
             log.info("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
                     proxy.proxyAuthType,
