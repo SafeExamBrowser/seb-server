@@ -352,33 +352,33 @@ public class GridTable extends Composite {
 
     private static class CheckBox implements ControlAdapter {
 
-        private final Button checkbox;
+        private final Button checkboxButton;
         private final ColumnDef columnDef;
 
         CheckBox(final Composite parent, final ColumnDef columnDef, final Listener listener) {
-            this.checkbox = new Button(parent, SWT.CHECK);
-            this.checkbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+            this.checkboxButton = new Button(parent, SWT.CHECK);
+            this.checkboxButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             this.columnDef = columnDef;
             if (listener != null) {
-                this.checkbox.addListener(SWT.Selection, listener);
+                this.checkboxButton.addListener(SWT.Selection, listener);
             }
         }
 
         @Override
         public String getValue() {
-            return this.checkbox.getSelection()
+            return this.checkboxButton.getSelection()
                     ? Constants.TRUE_STRING
                     : Constants.FALSE_STRING;
         }
 
         @Override
         public void setValue(final String value) {
-            this.checkbox.setSelection(BooleanUtils.toBoolean(value));
+            this.checkboxButton.setSelection(BooleanUtils.toBoolean(value));
         }
 
         @Override
         public void dispose() {
-            this.checkbox.dispose();
+            this.checkboxButton.dispose();
         }
 
         @Override
@@ -389,30 +389,30 @@ public class GridTable extends Composite {
 
     private static class TextField implements ControlAdapter {
 
-        private final Text textField;
+        private final Text _textField;
         private final ColumnDef columnDef;
 
         TextField(final Composite parent, final ColumnDef columnDef, final Listener listener) {
-            this.textField = new Text(parent, SWT.LEFT | SWT.BORDER);
-            this.textField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+            this._textField = new Text(parent, SWT.LEFT | SWT.BORDER);
+            this._textField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             this.columnDef = columnDef;
-            this.textField.addListener(SWT.FocusOut, listener);
-            this.textField.addListener(SWT.Traverse, listener);
+            this._textField.addListener(SWT.FocusOut, listener);
+            this._textField.addListener(SWT.Traverse, listener);
         }
 
         @Override
         public String getValue() {
-            return this.textField.getText();
+            return this._textField.getText();
         }
 
         @Override
         public void setValue(final String value) {
-            this.textField.setText((value != null) ? value : "");
+            this._textField.setText((value != null) ? value : "");
         }
 
         @Override
         public void dispose() {
-            this.textField.dispose();
+            this._textField.dispose();
         }
 
         @Override

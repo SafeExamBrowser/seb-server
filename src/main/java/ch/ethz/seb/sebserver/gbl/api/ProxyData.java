@@ -29,7 +29,7 @@ public class ProxyData {
             final int proxyPort,
             final CharSequence proxyAuthUsername,
             final CharSequence proxyAuthSecret) {
-        ;
+
         this.proxyAuthType = proxyAuthType;
         this.proxyName = proxyName;
         this.proxyPort = proxyPort;

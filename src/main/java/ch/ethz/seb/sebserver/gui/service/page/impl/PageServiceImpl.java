@@ -233,7 +233,8 @@ public class PageServiceImpl implements PageService {
                     .logout();
 
             if (!logoutSuccessful) {
-                // TODO error handling
+                log.error("Failed to logout. See logfiles for more information");
+                pageContext.notifyError(new RuntimeException("Failed to logout. See logfiles for more information"));
             }
 
         } catch (final Exception e) {

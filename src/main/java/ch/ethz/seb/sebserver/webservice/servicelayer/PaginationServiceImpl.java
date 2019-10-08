@@ -183,6 +183,7 @@ public class PaginationServiceImpl implements PaginationService {
                     }
                     default: {
                         PageHelper.orderBy(sortColumnName);
+                        break;
                     }
                 }
             }

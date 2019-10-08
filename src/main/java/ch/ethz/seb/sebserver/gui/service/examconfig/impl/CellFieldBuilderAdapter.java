@@ -107,6 +107,7 @@ interface CellFieldBuilderAdapter {
 
                     default: {
                         label.setAlignment(SWT.LEFT);
+                        break;
                     }
                 }
                 label.setLayoutData(gridData);

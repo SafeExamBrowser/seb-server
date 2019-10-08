@@ -215,8 +215,6 @@ public class LmsSetupForm implements TemplateComposer {
                         ? restService.getRestCall(NewLmsSetup.class)
                         : restService.getRestCall(SaveLmsSetup.class));
 
-        ;
-
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 

@@ -221,11 +221,6 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return UserInfo.of(this);
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

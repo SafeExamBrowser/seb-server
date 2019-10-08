@@ -121,7 +121,6 @@ public class InstitutionList implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
-        ;
     }
 
 }

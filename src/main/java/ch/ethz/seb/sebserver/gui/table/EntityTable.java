@@ -455,10 +455,10 @@ public class EntityTable<ROW extends Entity> {
         final Widget widget = event.widget;
         if (widget instanceof TableColumn) {
             final TableColumn tableColumn = ((TableColumn) widget);
-            if (this.filter != null &&
-                    this.filter.adaptColumnWidth(
-                            this.table.indexOf(tableColumn),
-                            tableColumn.getWidth())) {
+            if (this.filter != null) {
+                this.filter.adaptColumnWidth(
+                        this.table.indexOf(tableColumn),
+                        tableColumn.getWidth());
             }
         }
     }

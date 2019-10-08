@@ -312,7 +312,7 @@ public class DefaultPageLayout implements TemplateComposer {
                         urlLauncher.openURL(link);
                     }
                 } catch (final Exception e) {
-
+                    log.error("Invalid Help link", e);
                 }
             });
 

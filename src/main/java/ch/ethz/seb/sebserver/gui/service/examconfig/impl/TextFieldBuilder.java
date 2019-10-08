@@ -79,6 +79,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             }
             default: {
                 text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
+                break;
             }
         }
         text.setLayoutData(gridData);

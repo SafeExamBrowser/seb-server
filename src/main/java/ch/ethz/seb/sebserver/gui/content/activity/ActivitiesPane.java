@@ -468,7 +468,7 @@ public class ActivitiesPane implements TemplateComposer {
         }
 
         for (final TreeItem item : items) {
-            if (item == currentSelection) {
+            if (item.equals(currentSelection)) {
                 return true;
             }
         }
