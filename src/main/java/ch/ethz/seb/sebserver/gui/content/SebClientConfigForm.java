@@ -77,7 +77,7 @@ public class SebClientConfigForm implements TemplateComposer {
             final RestService restService,
             final CurrentUser currentUser,
             final DownloadService downloadService,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = restService;
