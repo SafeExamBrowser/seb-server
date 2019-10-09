@@ -43,11 +43,15 @@ public class InfoController {
             method = RequestMethod.GET,
             produces = MediaType.IMAGE_PNG_VALUE + ";base64")
     public String logo(@PathVariable final String urlSuffix) {
+        if (urlSuffix == null) {
+            return null;
+        }
+
         return this.institutionDAO
                 .all(null, true)
                 .getOrThrow()
                 .stream()
-                .filter(inst -> urlSuffix.endsWith(inst.urlSuffix))
+                .filter(inst -> inst.urlSuffix != null && urlSuffix.endsWith(inst.urlSuffix))
                 .findFirst()
                 .map(inst -> inst.logoImage)
                 .orElse(null);
