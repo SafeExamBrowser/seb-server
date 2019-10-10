@@ -86,6 +86,9 @@ public class ActivitiesPane implements TemplateComposer {
         //--------------------------------------------------------------------------------------
         // ---- SEB ADMIN ----------------------------------------------------------------------
 
+        final boolean isServerOrInstAdmin = this.currentUser.get()
+                .hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN);
+
         // SEB Server Administration
         final TreeItem sebadmin = this.widgetFactory.treeItemLocalized(
                 navigation,
@@ -119,7 +122,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         // User Account
         // if current user has role seb-server admin or institutional-admin, show list
-        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
+        if (isServerOrInstAdmin) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     sebadmin,
@@ -132,7 +135,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else {
             // otherwise show the user account form for current user
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                    sebadmin,
+                    navigation,
                     ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(
                     userAccounts,
@@ -157,9 +160,13 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
-        sebadmin.setExpanded(this.currentUser.get().hasAnyRole(
-                UserRole.SEB_SERVER_ADMIN,
-                UserRole.INSTITUTIONAL_ADMIN));
+        if (sebadmin.getItemCount() > 0) {
+            sebadmin.setExpanded(this.currentUser.get().hasAnyRole(
+                    UserRole.SEB_SERVER_ADMIN,
+                    UserRole.INSTITUTIONAL_ADMIN));
+        } else {
+            sebadmin.dispose();
+        }
 
         // ---- SEB ADMIN ----------------------------------------------------------------------
         //--------------------------------------------------------------------------------------

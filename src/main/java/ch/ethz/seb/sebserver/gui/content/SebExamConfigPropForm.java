@@ -137,7 +137,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
         }
 
         final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(examConfig);
-        final boolean readGrant = entityGrant.r();
         final boolean writeGrant = entityGrant.w();
         final boolean modifyGrant = entityGrant.m();
         final boolean isReadonly = pageContext.isReadonly();
@@ -208,19 +207,19 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     urlLauncher.openURL(downloadURL);
                     return action;
                 })
-                .publishIf(() -> readGrant && isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
                 .noEventPropagation()
-                .publishIf(() -> readGrant && isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_CONFIG)
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigPropForm.importConfigFunction(this.pageService))
                 .noEventPropagation()
-                .publishIf(() -> readGrant && isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
                 .withEntityKey(entityKey)
