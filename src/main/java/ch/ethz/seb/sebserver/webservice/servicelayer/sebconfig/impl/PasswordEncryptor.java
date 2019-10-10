@@ -8,15 +8,20 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.SequenceInputStream;
 import java.util.Set;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.AES256JNCryptorInputStream;
 import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
 import org.cryptonode.jncryptor.CryptorException;
+import org.cryptonode.jncryptor.PasswordKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -91,31 +96,66 @@ public class PasswordEncryptor implements SebConfigCryptor {
             final InputStream input,
             final SebConfigEncryptionContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("*** Start streaming asynchronous decryption");
-        }
+        final CharSequence password = context.getPassword();
 
-        AES256JNCryptorInputStream encryptInput = null;
         try {
+            final byte[] version = new byte[1];
+            input.read(version);
 
-            encryptInput = new AES256JNCryptorInputStream(
-                    input,
-                    Utils.toCharArray(context.getPassword()));
+            final SequenceInputStream sequenceInputStream = new SequenceInputStream(
+                    new ByteArrayInputStream(version),
+                    input);
 
-            IOUtils.copyLarge(encryptInput, output);
+            if (version[0] == 3) {
 
-            encryptInput.close();
-            output.flush();
-            output.close();
+                if (log.isDebugEnabled()) {
+                    log.debug("*** Start streaming asynchronous decryption");
+                }
 
+                AES256JNCryptorInputStream encryptInput = null;
+                try {
+
+                    encryptInput = new AES256JNCryptorInputStream(
+                            sequenceInputStream,
+                            Utils.toCharArray(password));
+
+                    IOUtils.copyLarge(encryptInput, output);
+
+                } catch (final IOException e) {
+                    log.error("Error while trying to read/write form/to streams: ", e);
+                } finally {
+                    IOUtils.closeQuietly(encryptInput);
+                }
+            } else {
+                // AES256JNCryptorInputStream supports only decryption of AES256 version 3 encrypted data
+                // Workaround: stop streaming and use AES256JNCryptor which supports both, version 2 and 3
+                log.info("Trying to decrypt with AES256JNCryptor by load all data into memory...");
+
+                try {
+
+                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    IOUtils.copyLarge(sequenceInputStream, out);
+                    final byte[] ciphertext = out.toByteArray();
+                    final AES256JNCryptor cryptor = new AES256JNCryptor();
+                    cryptor.setPBKDFIterations(10000);
+                    final PasswordKey passwordKey = cryptor.getPasswordKey(Utils.toCharArray(password));
+                    final int versionNumber = cryptor.getVersionNumber();
+                    final byte[] decryptData = cryptor.decryptData(ciphertext, Utils.toCharArray(password));
+                    final ByteArrayInputStream decryptedIn = new ByteArrayInputStream(decryptData);
+                    IOUtils.copyLarge(decryptedIn, output);
+
+                } catch (final IOException | CryptorException e) {
+                    log.error("Error while trying to none-streaming decrypt: ", e);
+                }
+            }
         } catch (final IOException e) {
-            log.error("Error while trying to read/write form/to streams: ", e);
+            log.error("Unexpected error while decryption: ", e);
         } finally {
             try {
-                if (encryptInput != null)
-                    encryptInput.close();
+                output.flush();
+                output.close();
             } catch (final IOException e) {
-                log.error("Failed to close AES256JNCryptorOutputStream: ", e);
+                log.error("Failed to close streams");
             }
 
             if (log.isDebugEnabled()) {

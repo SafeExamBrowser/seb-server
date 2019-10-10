@@ -8,23 +8,28 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.SequenceInputStream;
 import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -99,7 +104,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
     }
 
     @Override
-    public void streamDecrypted(
+    public Future<Exception> streamDecrypted(
             final OutputStream output,
             final InputStream input,
             final SebConfigEncryptionContext context) {
@@ -110,20 +115,48 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            final Strategy strategy = verifyStrategy(input);
+            Strategy strategy = null;
+            final byte[] header = new byte[HEADER_SIZE];
+            input.read(header);
+            for (final Strategy s : Strategy.values()) {
+                if (Arrays.equals(s.header, header)) {
+                    strategy = s;
+                    break;
+                }
+            }
+
+            InputStream newIn = null;
+            if (strategy == null) {
+                strategy = Strategy.PLAIN_TEXT;
+                newIn = new SequenceInputStream(
+                        new ByteArrayInputStream(header),
+                        input);
+            } else {
+                newIn = input;
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("Password decryption with strategy: {}", strategy);
             }
 
+            if ((strategy == Strategy.PASSWORD_PSWD || strategy == Strategy.PASSWORD_PWCC)
+                    && StringUtils.isBlank(context.getPassword())) {
+                return new AsyncResult<>(new IllegalArgumentException("Missing Password"));
+            }
+
             getEncryptor(strategy)
                     .getOrThrow()
-                    .decrypt(pout, input, context);
+                    .decrypt(pout, newIn, context);
 
             IOUtils.copyLarge(pin, output);
 
+            return new AsyncResult<>(null);
+
         } catch (final IOException e) {
             log.error("Error while stream decrypted data: ", e);
+            return new AsyncResult<>(e);
+        } catch (final Exception iae) {
+            return new AsyncResult<>(iae);
         } finally {
             try {
                 if (pin != null) {
@@ -142,22 +175,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             } catch (final IOException e1) {
                 log.error("Failed to close PipedOutputStream: ", e1);
             }
-        }
-    }
-
-    private Strategy verifyStrategy(final InputStream input) {
-        try {
-            final byte[] header = new byte[HEADER_SIZE];
-            input.read(header);
-            for (final Strategy s : Strategy.values()) {
-                if (Arrays.equals(s.header, header)) {
-                    return s;
-                }
-            }
-            throw new IllegalStateException("Failed to verify decryption strategy from input stream");
-        } catch (final IOException e) {
-            log.error("Failed to read decryption strategy from input stream");
-            throw new IllegalStateException("Failed to verify decryption strategy from input stream");
         }
     }
 
@@ -231,6 +248,10 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
         public static SebConfigEncryptionContext contextOfPlainText() {
             return new EncryptionContext(Strategy.PLAIN_TEXT, null, null);
+        }
+
+        public static SebConfigEncryptionContext contextOf(final CharSequence password) {
+            return new EncryptionContext(null, password, null);
         }
 
     }

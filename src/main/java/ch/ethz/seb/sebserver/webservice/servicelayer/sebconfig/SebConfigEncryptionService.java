@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.concurrent.Future;
 
 import org.springframework.scheduling.annotation.Async;
 
@@ -80,7 +81,7 @@ public interface SebConfigEncryptionService {
      * @param input the input stream to read the cipher text from
      * @param context the SebConfigEncryptionContext to access strategy specific data needed for encryption */
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void streamDecrypted(
+    Future<Exception> streamDecrypted(
             final OutputStream output,
             final InputStream input,
             final SebConfigEncryptionContext context);

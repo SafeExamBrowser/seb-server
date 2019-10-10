@@ -80,4 +80,10 @@ public final class Constants {
     public static final int RWT_MOUSE_BUTTON_1 = 1;
     public static final int RWT_MOUSE_BUTTON_2 = 2;
     public static final int RWT_MOUSE_BUTTON_3 = 3;
+
+    public static final int GZIP_HEADER_LENGTH = 10;
+    public static final int GZIP_ID1 = 0x1F;
+    public static final int GZIP_ID2 = 0x8B;
+    public static final int GZIP_CM = 8;
+
 }

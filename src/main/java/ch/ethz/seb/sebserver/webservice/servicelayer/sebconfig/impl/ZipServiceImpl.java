@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -66,7 +67,31 @@ public class ZipServiceImpl implements ZipService {
 
     @Override
     public void read(final OutputStream out, final InputStream in) {
-        // TODO Auto-generated method stub
+        if (log.isDebugEnabled()) {
+            log.debug("*** Start streaming asynchronous unzipping of SEB exam configuration data");
+        }
+
+        GZIPInputStream zipInputStream = null;
+        try {
+
+            zipInputStream = new GZIPInputStream(in);
+
+            IOUtils.copyLarge(zipInputStream, out);
+
+        } catch (final IOException e) {
+            log.error("Error while streaming data to unzipped output: ", e);
+        } finally {
+            try {
+                out.flush();
+                out.close();
+            } catch (final IOException e) {
+                log.error("Failed to close OutputStream: ", e);
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("*** Finish streaming asynchronous unzipping of SEB exam configuration data");
+            }
+        }
 
     }
 

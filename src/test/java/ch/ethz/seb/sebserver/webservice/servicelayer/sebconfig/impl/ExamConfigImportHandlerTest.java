@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
@@ -155,18 +155,11 @@ public class ExamConfigImportHandlerTest {
         candidate.endElement(null, null, "plist");
 
         assertFalse(valueCollector.values.isEmpty());
-        assertTrue(valueCollector.values.size() == 3);
+        assertTrue(valueCollector.values.size() == 1);
         final ConfigurationValue configurationValue1 = valueCollector.values.get(0);
-        assertEquals("val1", configurationValue1.value);
+        assertEquals("val1,val2,val3", configurationValue1.value);
         assertTrue(configurationValue1.listIndex == 0);
 
-        final ConfigurationValue configurationValue2 = valueCollector.values.get(1);
-        assertEquals("val2", configurationValue2.value);
-        assertTrue(configurationValue2.listIndex == 1);
-
-        final ConfigurationValue configurationValue3 = valueCollector.values.get(2);
-        assertEquals("val3", configurationValue3.value);
-        assertTrue(configurationValue3.listIndex == 2);
     }
 
     @Test

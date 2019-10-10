@@ -111,6 +111,6 @@ public interface SebExamConfigService {
      * @param input The InputStream to get the SEB config file as byte-stream
      * @param password A password is only needed if the file is in an encrypted format
      * @return The newly created Configuration instance */
-    Result<Configuration> importFromXML(Long configNodeId, InputStream input, CharSequence password);
+    Result<Configuration> importFromSEBFile(Long configNodeId, InputStream input, CharSequence password);
 
 }

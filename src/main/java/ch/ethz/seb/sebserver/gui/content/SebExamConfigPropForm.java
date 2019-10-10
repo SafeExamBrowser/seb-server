@@ -306,6 +306,9 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 final Configuration configuration = pageService.getRestService()
                         .getBuilder(ImportExamConfig.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .withHeader(
+                                API.IMPORT_PASSWORD_ATTR_NAME,
+                                form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
                         .withBody(inputStream)
                         .call()
                         .get(context::notifyError);

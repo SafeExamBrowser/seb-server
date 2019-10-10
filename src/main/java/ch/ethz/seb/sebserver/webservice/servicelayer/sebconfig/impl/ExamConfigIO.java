@@ -166,7 +166,6 @@ public class ExamConfigIO {
      * @param in The InputString to constantly read the XML from
      * @param institutionId the institionId of the import
      * @param configurationId the identifier of the internal configuration to apply the imported values to */
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void importPlainXML(final InputStream in, final Long institutionId, final Long configurationId) {
         try {
             // get all attributes and map the names to ids

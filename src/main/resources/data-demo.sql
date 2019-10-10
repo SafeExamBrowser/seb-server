@@ -133,7 +133,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     
     (73, 'permittedProcesses', 'TABLE',  null, null, null, null, null),
     (74, 'permittedProcesses.active', 'CHECKBOX', 73, null, null, null, 'true'),
-    (75, 'permittedProcesses.os', 'SINGLE_SELECTION', 73, '0,1', null, null, '0'),
+    (75, 'permittedProcesses.os', 'SINGLE_SELECTION', 73, '0,1', null, null, '1'),
     (76, 'permittedProcesses.title', 'TEXT_FIELD', 73, null, null, null, ''),
     (77, 'permittedProcesses.description', 'TEXT_FIELD', 73, null, null, null, ''),
     (78, 'permittedProcesses.executable', 'TEXT_FIELD', 73, null, null, null, ''),
@@ -152,7 +152,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     
     (93, 'prohibitedProcesses', 'TABLE',  null, null, null, null, null),
     (94, 'prohibitedProcesses.active', 'CHECKBOX', 93, null, null, null, 'true'),
-    (95, 'prohibitedProcesses.os', 'SINGLE_SELECTION', 93, '0,1', null, null, '0'),
+    (95, 'prohibitedProcesses.os', 'SINGLE_SELECTION', 93, '0,1', null, null, '1'),
     (96, 'prohibitedProcesses.executable', 'TEXT_FIELD', 93, null, null, null, ''),
     (97, 'prohibitedProcesses.description', 'TEXT_FIELD', 93, null, null, null, ''),
     (98, 'prohibitedProcesses.originalName', 'TEXT_FIELD', 93, null, null, null, ''),

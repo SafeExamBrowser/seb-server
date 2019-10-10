@@ -15,9 +15,9 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.SequenceInputStream;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
@@ -321,7 +322,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     }
 
     @Override
-    public Result<Configuration> importFromXML(
+    public Result<Configuration> importFromSEBFile(
             final Long configNodeId,
             final InputStream input,
             final CharSequence password) {
@@ -332,44 +333,22 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                     .saveToHistory(configNodeId)
                     .getOrThrow();
 
+            Future<Exception> streamDecrypted = null;
             try {
 
-                final byte[] header = new byte[4];
-                input.read(header);
+                final InputStream cryptIn = this.unzip(input);
+                final PipedInputStream plainIn = new PipedInputStream();
+                final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
 
-                Strategy strategy = null;
-                try {
-                    strategy = SebConfigEncryptionService.Strategy.getStrategy(header);
-                } catch (final IllegalArgumentException iae) {
+                streamDecrypted = this.sebConfigEncryptionService.streamDecrypted(
+                        cryptOut,
+                        cryptIn,
+                        EncryptionContext.contextOf(password));
 
-                    log.info("{} : Trying to import as unzipped plain text configuration", iae.getMessage());
-
-                    importPlainOnly(input, newConfig, header);
-                    return newConfig;
-                }
-
-                if (strategy != null) {
-                    final InputStream cryptIn = this.unzip(input);
-                    final PipedInputStream plainIn = new PipedInputStream();
-                    final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
-
-                    try {
-
-                        this.sebConfigEncryptionService.streamDecrypted(
-                                cryptOut,
-                                cryptIn,
-                                EncryptionContext.contextOf(strategy, password));
-
-                        this.examConfigIO.importPlainXML(
-                                plainIn,
-                                newConfig.institutionId,
-                                newConfig.id);
-                    } finally {
-                        IOUtils.closeQuietly(cryptIn);
-                        IOUtils.closeQuietly(cryptOut);
-                        IOUtils.closeQuietly(plainIn);
-                    }
-                }
+                this.examConfigIO.importPlainXML(
+                        plainIn,
+                        newConfig.institutionId,
+                        newConfig.id);
 
                 return newConfig;
 
@@ -380,16 +359,26 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                         .undo(configNodeId)
                         .getOrThrow();
 
-                throw new RuntimeException("Failed to import SEB configuration. Cause is: " + e.getMessage(), e);
+                if (streamDecrypted != null) {
+                    final Exception exception = streamDecrypted.get();
+                    if (exception != null) {
+                        throw exception;
+                    }
+                }
+
+                throw new RuntimeException("Failed to import SEB configuration. Cause is: " + e.getMessage());
             }
         });
     }
 
     private InputStream unzip(final InputStream input) throws Exception {
-        final byte[] zipHeader = new byte[4];
+        final byte[] zipHeader = new byte[Constants.GZIP_HEADER_LENGTH];
         input.read(zipHeader);
-        final int zipType = ByteBuffer.wrap(zipHeader).getInt();
-        final boolean isZipped = zipType == 0x504B0304 || zipType == 0x504B0506 || zipType == 0x504B0708;
+
+        //final int zipType = ByteBuffer.wrap(zipHeader).getInt();
+        final boolean isZipped = Byte.toUnsignedInt(zipHeader[0]) == Constants.GZIP_ID1
+                && Byte.toUnsignedInt(zipHeader[1]) == Constants.GZIP_ID2
+                && Byte.toUnsignedInt(zipHeader[2]) == Constants.GZIP_CM;
 
         if (isZipped) {
 
@@ -406,33 +395,6 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             return new SequenceInputStream(
                     new ByteArrayInputStream(zipHeader),
                     input);
-        }
-    }
-
-    private void importPlainOnly(
-            final InputStream input,
-            final Configuration newConfig,
-            final byte[] header) throws IOException {
-
-        PipedInputStream plainIn = null;
-        PipedOutputStream out = null;
-
-        try {
-            plainIn = new PipedInputStream();
-            out = new PipedOutputStream(plainIn);
-
-            this.examConfigIO.importPlainXML(
-                    plainIn,
-                    newConfig.institutionId,
-                    newConfig.id);
-
-            out.write(header);
-            IOUtils.copyLarge(input, out);
-        } catch (final Exception e) {
-            log.error("Error while stream plain text SEB Configuration import data: ", e);
-            throw e;
-        } finally {
-            IOUtils.closeQuietly(out);
         }
     }
 

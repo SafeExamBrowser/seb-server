@@ -15,6 +15,7 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -164,8 +165,8 @@ public class ExamConfigImportHandler extends DefaultHandler {
 
     private void startValueElement(final Type type, final PListNode top) {
         final PListNode value = new PListNode(type);
-
         if (top.type == Type.KEY) {
+
             if (Type.isBooleanValue(type)) {
                 this.stack.pop();
                 value.name = top.name;
@@ -210,38 +211,62 @@ public class ExamConfigImportHandler extends DefaultHandler {
                 final PListNode grandParent = this.stack.peek();
                 this.stack.push(parent);
 
+                // if we are in an values-array
+                if (parent.type == Type.ARRAY) {
+                    if (StringUtils.isBlank(parent.value)) {
+                        parent.value = top.value;
+                    } else {
+                        parent.value += "," + top.value;
+                    }
+
+                    return;
+                }
+
                 final String attrName = (parent.type == Type.DICT && grandParent.type == Type.ARRAY)
                         ? parent.name + "." + top.name
                         : top.name;
 
                 final Long attributeId = this.attributeNameIdResolver.apply(attrName);
                 if (attributeId == null) {
-
                     if (log.isDebugEnabled()) {
                         log.debug("Skip unknown configuration attribute: {}", attrName);
                     }
-
                 } else {
-
-                    // TODO use AttributeValueConverterService here. Extend the converters with fromXML functionality
-                    final ConfigurationValue configurationValue = new ConfigurationValue(
-                            null,
-                            this.institutionId,
-                            this.configId,
-                            attributeId,
-                            top.listIndex,
-                            top.value);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Save imported value: {} : {}", attrName, configurationValue);
-                    }
-
-                    this.valueConsumer.accept(configurationValue);
+                    saveValue(attrName, attributeId, top.listIndex, top.value);
                 }
             }
+        } else if (top.type == Type.ARRAY && StringUtils.isNoneBlank(top.value)) {
+            this.stack.pop();
+            final PListNode parent = this.stack.pop();
+            final PListNode grandParent = this.stack.peek();
+            this.stack.push(parent);
+            final String attrName = (parent.type == Type.DICT && grandParent.type == Type.ARRAY)
+                    ? parent.name + "." + top.name
+                    : top.name;
+            final Long attributeId = this.attributeNameIdResolver.apply(attrName);
+
+            saveValue(attrName, attributeId, top.listIndex, top.value);
+
         } else if (!Constants.XML_PLIST_KEY_NAME.equals(qName)) {
             this.stack.pop();
         }
+    }
+
+    private void saveValue(final String name, final Long attributeId, final int listIndex, final String value) {
+        // TODO use AttributeValueConverterService here. Extend the converters with fromXML functionality
+        final ConfigurationValue configurationValue = new ConfigurationValue(
+                null,
+                this.institutionId,
+                this.configId,
+                attributeId,
+                listIndex,
+                value);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Save imported value: {} : {}", name, configurationValue);
+        }
+
+        this.valueConsumer.accept(configurationValue);
     }
 
     @Override

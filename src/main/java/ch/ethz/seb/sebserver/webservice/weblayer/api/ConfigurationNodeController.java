@@ -176,7 +176,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             final HttpServletRequest request) throws IOException {
 
-        return this.sebExamConfigService.importFromXML(
+        return this.sebExamConfigService.importFromSEBFile(
                 modelId,
                 request.getInputStream(),
                 password)
