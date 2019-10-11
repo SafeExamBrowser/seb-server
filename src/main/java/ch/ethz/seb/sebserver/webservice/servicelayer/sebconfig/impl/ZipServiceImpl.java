@@ -41,7 +41,6 @@ public class ZipServiceImpl implements ZipService {
         try {
 
             zipOutputStream = new GZIPOutputStream(out);
-
             IOUtils.copyLarge(in, zipOutputStream);
 
         } catch (final IOException e) {
@@ -75,7 +74,6 @@ public class ZipServiceImpl implements ZipService {
         try {
 
             zipInputStream = new GZIPInputStream(in);
-
             IOUtils.copyLarge(zipInputStream, out);
 
         } catch (final IOException e) {

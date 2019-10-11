@@ -247,6 +247,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     action.pageContext().getParent().getShell(),
                     widgetFactory);
 
+            dialog.setDialogWidth(500);
+
             dialog.open(
                     CONFIG_KEY_TITLE_TEXT_KEY,
                     action.pageContext(),

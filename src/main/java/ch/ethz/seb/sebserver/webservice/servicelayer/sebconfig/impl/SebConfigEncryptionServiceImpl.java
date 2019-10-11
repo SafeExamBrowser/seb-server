@@ -49,14 +49,15 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
     private final Map<Strategy, SebConfigCryptor> encryptors;
 
-    public SebConfigEncryptionServiceImpl(final Collection<SebConfigCryptor> encryptors) {
+    public SebConfigEncryptionServiceImpl(
+            final Collection<SebConfigCryptor> encryptors) {
+
         this.encryptors = encryptors
                 .stream()
                 .flatMap(e -> e.strategies()
                         .stream()
                         .map(s -> new ImmutablePair<>(s, e)))
                 .collect(Collectors.toMap(p -> p.left, p -> p.right));
-
     }
 
     @Override
@@ -135,15 +136,12 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
                 newIn = input;
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("Password decryption with strategy: {}", strategy);
-            }
-
             if ((strategy == Strategy.PASSWORD_PSWD || strategy == Strategy.PASSWORD_PWCC)
                     && StringUtils.isBlank(context.getPassword())) {
                 return new AsyncResult<>(new IllegalArgumentException("Missing Password"));
             }
 
+            // then decrypt stream
             getEncryptor(strategy)
                     .getOrThrow()
                     .decrypt(pout, newIn, context);
@@ -151,7 +149,6 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             IOUtils.copyLarge(pin, output);
 
             return new AsyncResult<>(null);
-
         } catch (final IOException e) {
             log.error("Error while stream decrypted data: ", e);
             return new AsyncResult<>(e);

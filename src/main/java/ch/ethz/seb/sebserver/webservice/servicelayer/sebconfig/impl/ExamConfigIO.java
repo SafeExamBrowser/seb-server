@@ -8,9 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.SequenceInputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
 @Component
@@ -66,17 +71,20 @@ public class ExamConfigIO {
     private final ConfigurationValueDAO configurationValueDAO;
     private final ConfigurationDAO configurationDAO;
     private final AttributeValueConverterService attributeValueConverterService;
+    private final ZipService zipService;
 
     protected ExamConfigIO(
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ConfigurationDAO configurationDAO,
-            final AttributeValueConverterService attributeValueConverterService) {
+            final AttributeValueConverterService attributeValueConverterService,
+            final ZipService zipService) {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.configurationDAO = configurationDAO;
         this.attributeValueConverterService = attributeValueConverterService;
+        this.zipService = zipService;
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
@@ -169,11 +177,13 @@ public class ExamConfigIO {
     void importPlainXML(final InputStream in, final Long institutionId, final Long configurationId) {
         try {
             // get all attributes and map the names to ids
-            final Map<String, Long> attributeMap = this.configurationAttributeDAO
+            final Map<String, ConfigurationAttribute> attributeMap = this.configurationAttributeDAO
                     .allMatching(new FilterMap())
                     .getOrThrow()
                     .stream()
-                    .collect(Collectors.toMap(attr -> attr.name, attr -> attr.id));
+                    .collect(Collectors.toMap(
+                            attr -> attr.name,
+                            Function.identity()));
 
             // the SAX handler with a ConfigValue sink that saves the values to DB
             // and a attribute-name/id mapping function with pre-created mapping
@@ -201,6 +211,31 @@ public class ExamConfigIO {
             throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(in);
+        }
+    }
+
+    InputStream unzip(final InputStream input) throws Exception {
+
+        final byte[] zipHeader = new byte[4];
+        input.read(zipHeader);
+
+        final boolean isZipped = Byte.toUnsignedInt(zipHeader[0]) == Constants.GZIP_ID1
+                && Byte.toUnsignedInt(zipHeader[1]) == Constants.GZIP_ID2
+                && Byte.toUnsignedInt(zipHeader[2]) == Constants.GZIP_CM;
+
+        final InputStream sequencedInput = new SequenceInputStream(
+                new ByteArrayInputStream(zipHeader, 0, 4),
+                input);
+
+        if (isZipped) {
+
+            final PipedInputStream pipedIn = new PipedInputStream();
+            final PipedOutputStream pipedOut = new PipedOutputStream(pipedIn);
+            this.zipService.read(pipedOut, sequencedInput);
+
+            return pipedIn;
+        } else {
+            return sequencedInput;
         }
     }
 

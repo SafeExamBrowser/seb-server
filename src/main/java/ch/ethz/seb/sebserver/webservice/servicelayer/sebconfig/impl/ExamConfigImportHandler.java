@@ -23,6 +23,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigImportHandler.PListNode.Type;
 
@@ -38,7 +40,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
             Constants.XML_PLIST_INTEGER));
 
     private final Consumer<ConfigurationValue> valueConsumer;
-    private final Function<String, Long> attributeNameIdResolver;
+    private final Function<String, ConfigurationAttribute> attributeResolver;
     private final Long institutionId;
     private final Long configId;
 
@@ -48,11 +50,11 @@ public class ExamConfigImportHandler extends DefaultHandler {
             final Long institutionId,
             final Long configId,
             final Consumer<ConfigurationValue> valueConsumer,
-            final Function<String, Long> attributeNameIdResolver) {
+            final Function<String, ConfigurationAttribute> attributeResolver) {
 
         super();
         this.valueConsumer = valueConsumer;
-        this.attributeNameIdResolver = attributeNameIdResolver;
+        this.attributeResolver = attributeResolver;
         this.institutionId = institutionId;
         this.configId = configId;
     }
@@ -218,7 +220,6 @@ public class ExamConfigImportHandler extends DefaultHandler {
                     } else {
                         parent.value += "," + top.value;
                     }
-
                     return;
                 }
 
@@ -226,39 +227,56 @@ public class ExamConfigImportHandler extends DefaultHandler {
                         ? parent.name + "." + top.name
                         : top.name;
 
-                final Long attributeId = this.attributeNameIdResolver.apply(attrName);
-                if (attributeId == null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Skip unknown configuration attribute: {}", attrName);
-                    }
-                } else {
-                    saveValue(attrName, attributeId, top.listIndex, top.value);
-                }
+                final ConfigurationAttribute attribute = this.attributeResolver.apply(attrName);
+                saveValue(attrName, attribute, top.listIndex, top.value);
             }
-        } else if (top.type == Type.ARRAY && StringUtils.isNoneBlank(top.value)) {
+        } else if (top.type == Type.ARRAY) {
             this.stack.pop();
+
             final PListNode parent = this.stack.pop();
             final PListNode grandParent = this.stack.peek();
             this.stack.push(parent);
             final String attrName = (parent.type == Type.DICT && grandParent.type == Type.ARRAY)
                     ? parent.name + "." + top.name
                     : top.name;
-            final Long attributeId = this.attributeNameIdResolver.apply(attrName);
+            final ConfigurationAttribute attribute = this.attributeResolver.apply(attrName);
 
-            saveValue(attrName, attributeId, top.listIndex, top.value);
+            // check if we have a simple values array
+            if (attribute.type == AttributeType.MULTI_CHECKBOX_SELECTION
+                    || attribute.type == AttributeType.MULTI_SELECTION) {
+
+                saveValue(attrName, attribute, top.listIndex, (top.value == null) ? "" : top.value);
+            }
 
         } else if (!Constants.XML_PLIST_KEY_NAME.equals(qName)) {
             this.stack.pop();
         }
     }
 
-    private void saveValue(final String name, final Long attributeId, final int listIndex, final String value) {
-        // TODO use AttributeValueConverterService here. Extend the converters with fromXML functionality
+    private void saveValue(
+            final String name,
+            final ConfigurationAttribute attribute,
+            final int listIndex,
+            final String value) {
+
+        if (attribute == null) {
+            log.warn("Import of unknown attribute. name={} value={}", name, value);
+            return;
+        }
+
+        if (value == null) {
+            log.warn("*********************** Save null value: {}", name);
+        } else if (StringUtils.isBlank(value)) {
+            log.warn("*********************** Save blank value: {}", name);
+        } else {
+            log.warn("*********************** Save value value: {} : {}", name, value);
+        }
+
         final ConfigurationValue configurationValue = new ConfigurationValue(
                 null,
                 this.institutionId,
                 this.configId,
-                attributeId,
+                attribute.id,
                 listIndex,
                 value);
 
@@ -326,6 +344,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
         int arrayCounter = 0;
         int listIndex = 0;
         String value;
+        boolean saveNullValueAsBlank = false;
 
         protected PListNode(final Type type) {
             this.type = type;

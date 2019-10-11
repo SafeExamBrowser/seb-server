@@ -158,6 +158,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (98, 'prohibitedProcesses.originalName', 'TEXT_FIELD', 93, null, null, null, ''),
     (99, 'prohibitedProcesses.identifier', 'TEXT_FIELD', 93, null, null, null, ''),
     (100, 'prohibitedProcesses.strongKill', 'CHECKBOX', 93, null, null, null, 'false'),
+    (101, 'prohibitedProcesses.currentUser', 'CHECKBOX', 93, null, null, null, 'false'),
     
     (200, 'URLFilterEnable', 'CHECKBOX', null, null, null, null, 'false'),
     (201, 'URLFilterEnableContentFilter', 'CHECKBOX', null, null, null, null, 'false'),

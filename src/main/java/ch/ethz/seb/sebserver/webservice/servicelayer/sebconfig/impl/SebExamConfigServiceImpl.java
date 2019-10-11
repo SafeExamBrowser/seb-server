@@ -8,13 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.SequenceInputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -29,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
@@ -336,17 +333,22 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
             Future<Exception> streamDecrypted = null;
             try {
 
-                final InputStream cryptIn = this.unzip(input);
+                final InputStream cryptIn = this.examConfigIO.unzip(input);
                 final PipedInputStream plainIn = new PipedInputStream();
                 final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
 
+                // decrypt
                 streamDecrypted = this.sebConfigEncryptionService.streamDecrypted(
                         cryptOut,
                         cryptIn,
                         EncryptionContext.contextOf(password));
 
+                // if zipped, unzip attach unzip stream first
+                final InputStream _plainIn = this.examConfigIO.unzip(plainIn);
+
+                // parse XML and import
                 this.examConfigIO.importPlainXML(
-                        plainIn,
+                        _plainIn,
                         newConfig.institutionId,
                         newConfig.id);
 
@@ -369,33 +371,6 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                 throw new RuntimeException("Failed to import SEB configuration. Cause is: " + e.getMessage());
             }
         });
-    }
-
-    private InputStream unzip(final InputStream input) throws Exception {
-        final byte[] zipHeader = new byte[Constants.GZIP_HEADER_LENGTH];
-        input.read(zipHeader);
-
-        //final int zipType = ByteBuffer.wrap(zipHeader).getInt();
-        final boolean isZipped = Byte.toUnsignedInt(zipHeader[0]) == Constants.GZIP_ID1
-                && Byte.toUnsignedInt(zipHeader[1]) == Constants.GZIP_ID2
-                && Byte.toUnsignedInt(zipHeader[2]) == Constants.GZIP_CM;
-
-        if (isZipped) {
-
-            final InputStream sequencedInput = new SequenceInputStream(
-                    new ByteArrayInputStream(zipHeader),
-                    input);
-
-            final PipedInputStream pipedIn = new PipedInputStream();
-            final PipedOutputStream pipedOut = new PipedOutputStream(pipedIn);
-            this.zipService.read(pipedOut, sequencedInput);
-
-            return pipedIn;
-        } else {
-            return new SequenceInputStream(
-                    new ByteArrayInputStream(zipHeader),
-                    input);
-        }
     }
 
     private void exportPlainOnly(

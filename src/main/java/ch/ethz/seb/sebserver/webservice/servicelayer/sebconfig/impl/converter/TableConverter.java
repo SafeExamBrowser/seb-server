@@ -15,11 +15,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -40,6 +41,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueCon
 @Component
 @WebServiceProfile
 public class TableConverter implements AttributeValueConverter {
+
+    private static final Logger log = LoggerFactory.getLogger(TableConverter.class);
 
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
@@ -139,6 +142,7 @@ public class TableConverter implements AttributeValueConverter {
         }
 
         writeRows(
+                value,
                 out,
                 getSortedChildAttributes(attribute),
                 values,
@@ -153,47 +157,99 @@ public class TableConverter implements AttributeValueConverter {
     }
 
     private void writeRows(
+            final ConfigurationValue tableValue,
             final OutputStream out,
-            final Map<Long, ConfigurationAttribute> attributeMap,
+            final List<ConfigurationAttribute> sortedAttributes,
             final List<List<ConfigurationValue>> values,
             final AttributeValueConverterService attributeValueConverterService,
             final boolean xml) throws IOException {
 
-        final Iterator<List<ConfigurationValue>> irows = values.iterator();
+        for (int index = 0; index < values.size(); index++) {
+            final List<ConfigurationValue> rowValues = values.get(index);
 
-        while (irows.hasNext()) {
-            final List<ConfigurationValue> rowValues = irows.next();
             out.write((xml) ? XML_DICT_START : JSON_DICT_START);
 
-            final Iterator<ConfigurationValue> ivalue = rowValues.iterator();
+            final Iterator<ConfigurationAttribute> attrItr = sortedAttributes.iterator();
+            while (attrItr.hasNext()) {
 
-            while (ivalue.hasNext()) {
-                final ConfigurationValue value = ivalue.next();
-                final ConfigurationAttribute attr = attributeMap.get(value.attributeId);
+                final ConfigurationAttribute attr = attrItr.next();
+                ConfigurationValue value = rowValues.stream()
+                        .filter(val -> attr.id.equals(val.attributeId))
+                        .findFirst()
+                        .orElse(null);
+
+                if (value == null) {
+
+                    log.warn("Missing AttributeValue for ConfigurationAttribute: {}. Create ad-hoc attribute", attr);
+
+                    value = new ConfigurationValue(
+                            -1L,
+                            tableValue.institutionId,
+                            tableValue.configurationId,
+                            attr.id,
+                            index,
+                            attr.defaultValue);
+                }
+
+                final ConfigurationValue _value = value;
+
                 final AttributeValueConverter converter =
                         attributeValueConverterService.getAttributeValueConverter(attr);
 
                 if (xml) {
-                    converter.convertToXML(out, attr, a -> value);
+                    converter.convertToXML(out, attr, a -> _value);
                 } else {
-                    converter.convertToJSON(out, attr, a -> value);
+                    converter.convertToJSON(out, attr, a -> _value);
                 }
 
-                if (!xml && ivalue.hasNext()) {
+                if (!xml && attrItr.hasNext()) {
                     out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
                 }
             }
             out.write((xml) ? XML_DICT_END : JSON_DICT_END);
 
-            if (!xml && irows.hasNext()) {
+            if (!xml && index < values.size() - 1) {
                 out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
             }
 
             out.flush();
         }
+
+//        final Iterator<List<ConfigurationValue>> irows = values.iterator();
+//
+//        while (irows.hasNext()) {
+//            final List<ConfigurationValue> rowValues = irows.next();
+//            out.write((xml) ? XML_DICT_START : JSON_DICT_START);
+//
+//            final Iterator<ConfigurationValue> ivalue = rowValues.iterator();
+//
+//            while (ivalue.hasNext()) {
+//                final ConfigurationValue value = ivalue.next();
+//                final ConfigurationAttribute attr = attributeMap.get(value.attributeId);
+//                final AttributeValueConverter converter =
+//                        attributeValueConverterService.getAttributeValueConverter(attr);
+//
+//                if (xml) {
+//                    converter.convertToXML(out, attr, a -> value);
+//                } else {
+//                    converter.convertToJSON(out, attr, a -> value);
+//                }
+//
+//                if (!xml && ivalue.hasNext()) {
+//                    out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
+//                }
+//            }
+//            out.write((xml) ? XML_DICT_END : JSON_DICT_END);
+//
+//            if (!xml && irows.hasNext()) {
+//                out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
+//            }
+//
+//            out.flush();
+//        }
     }
 
-    private Map<Long, ConfigurationAttribute> getSortedChildAttributes(final ConfigurationAttribute attribute) {
+    private List<ConfigurationAttribute> getSortedChildAttributes(final ConfigurationAttribute attribute) {
         return this.configurationAttributeDAO
                 .allMatching(new FilterMap().putIfAbsent(
                         ConfigurationAttribute.FILTER_ATTR_PARENT_ID,
@@ -201,9 +257,7 @@ public class TableConverter implements AttributeValueConverter {
                 .getOrThrow()
                 .stream()
                 .sorted()
-                .collect(Collectors.toMap(
-                        attr -> attr.id,
-                        Function.identity()));
+                .collect(Collectors.toList());
     }
 
 }

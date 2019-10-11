@@ -21,7 +21,6 @@ import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.AES256JNCryptorInputStream;
 import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
 import org.cryptonode.jncryptor.CryptorException;
-import org.cryptonode.jncryptor.PasswordKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -99,7 +98,7 @@ public class PasswordEncryptor implements SebConfigCryptor {
         final CharSequence password = context.getPassword();
 
         try {
-            final byte[] version = new byte[1];
+            final byte[] version = new byte[4];
             input.read(version);
 
             final SequenceInputStream sequenceInputStream = new SequenceInputStream(
@@ -134,12 +133,10 @@ public class PasswordEncryptor implements SebConfigCryptor {
                 try {
 
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    IOUtils.copyLarge(sequenceInputStream, out);
+                    IOUtils.copy(sequenceInputStream, out);
                     final byte[] ciphertext = out.toByteArray();
                     final AES256JNCryptor cryptor = new AES256JNCryptor();
                     cryptor.setPBKDFIterations(10000);
-                    final PasswordKey passwordKey = cryptor.getPasswordKey(Utils.toCharArray(password));
-                    final int versionNumber = cryptor.getVersionNumber();
                     final byte[] decryptData = cryptor.decryptData(ciphertext, Utils.toCharArray(password));
                     final ByteArrayInputStream decryptedIn = new ByteArrayInputStream(decryptData);
                     IOUtils.copyLarge(decryptedIn, output);

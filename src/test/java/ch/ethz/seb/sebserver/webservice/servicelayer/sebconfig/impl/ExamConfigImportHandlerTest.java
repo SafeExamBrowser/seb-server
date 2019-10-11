@@ -17,9 +17,25 @@ import java.util.function.Function;
 
 import org.junit.Test;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 
 public class ExamConfigImportHandlerTest {
+
+    private static final Function<String, ConfigurationAttribute> attributeResolver =
+            name -> new ConfigurationAttribute(
+                    getId(name),
+                    null, name, (name.contains("array")) ? AttributeType.MULTI_SELECTION : null, null, null, null,
+                    null);
+
+    private static final Long getId(final String name) {
+        try {
+            return Long.parseLong(String.valueOf(name.charAt(name.length() - 1)));
+        } catch (final Exception e) {
+            return -1L;
+        }
+    }
 
     @Test
     public void simpleStringValueTest() throws Exception {
@@ -28,7 +44,7 @@ public class ExamConfigImportHandlerTest {
                 1L,
                 1L,
                 valueCollector,
-                name -> Long.parseLong(String.valueOf(name.charAt(name.length() - 1))));
+                attributeResolver);
 
         final String attribute = "param1";
         final String value = "value1";
@@ -60,7 +76,7 @@ public class ExamConfigImportHandlerTest {
                 1L,
                 1L,
                 valueCollector,
-                name -> Long.parseLong(String.valueOf(name.charAt(name.length() - 1))));
+                attributeResolver);
 
         final String attribute = "param2";
         final String value = "22";
@@ -92,7 +108,7 @@ public class ExamConfigImportHandlerTest {
                 1L,
                 1L,
                 valueCollector,
-                name -> Long.parseLong(String.valueOf(name.charAt(name.length() - 1))));
+                attributeResolver);
 
         final String attribute = "param3";
         final String value = "true";
@@ -123,7 +139,7 @@ public class ExamConfigImportHandlerTest {
                 1L,
                 1L,
                 valueCollector,
-                name -> Long.parseLong(String.valueOf(name.charAt(name.length() - 1))));
+                attributeResolver);
 
         final String attribute = "array1";
         final String value1 = "val1";
@@ -166,9 +182,9 @@ public class ExamConfigImportHandlerTest {
     public void dictOfValuesTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final List<String> attrNamesCollector = new ArrayList<>();
-        final Function<String, Long> attrConverter = attrName -> {
+        final Function<String, ConfigurationAttribute> attrConverter = attrName -> {
             attrNamesCollector.add(attrName);
-            return Long.parseLong(String.valueOf(attrName.charAt(attrName.length() - 1)));
+            return attributeResolver.apply(attrName);
         };
         final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
                 1L,
@@ -235,9 +251,9 @@ public class ExamConfigImportHandlerTest {
     public void arrayOfDictOfValuesTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final List<String> attrNamesCollector = new ArrayList<>();
-        final Function<String, Long> attrConverter = attrName -> {
+        final Function<String, ConfigurationAttribute> attrConverter = attrName -> {
             attrNamesCollector.add(attrName);
-            return Long.parseLong(String.valueOf(attrName.charAt(attrName.length() - 1)));
+            return attributeResolver.apply(attrName);
         };
         final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
                 1L,
@@ -308,9 +324,7 @@ public class ExamConfigImportHandlerTest {
                 valueCollector.values.toString());
 
         assertEquals(
-                "[attribute.attr1, attribute.attr2, attribute.attr3, "
-                        + "attribute.attr1, attribute.attr2, attribute.attr3, "
-                        + "attribute.attr1, attribute.attr2, attribute.attr3]",
+                "[attribute.attr1, attribute.attr2, attribute.attr3, attribute.attr1, attribute.attr2, attribute.attr3, attribute.attr1, attribute.attr2, attribute.attr3, attribute]",
                 attrNamesCollector.toString());
     }
 
