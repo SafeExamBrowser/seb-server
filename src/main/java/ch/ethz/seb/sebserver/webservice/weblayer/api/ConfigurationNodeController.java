@@ -8,17 +8,22 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,12 +32,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -167,7 +174,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Configuration importExamConfig(
+    public Object importExamConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
             @RequestParam(
@@ -176,11 +183,27 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             final HttpServletRequest request) throws IOException {
 
-        return this.sebExamConfigService.importFromSEBFile(
-                modelId,
-                request.getInputStream(),
-                password)
-                .getOrThrow();
+        final InputStream inputStream = new BufferedInputStream(request.getInputStream());
+        try {
+
+            return this.sebExamConfigService.importFromSEBFile(
+                    modelId,
+                    inputStream,
+                    password)
+                    .getOrThrow();
+
+        } catch (final Exception e) {
+            // NOTE: It seems that this has to be manually closed on error case
+            //       We expected that this is closed by the API but if this manual close is been left
+            //       some left-overs will affect strange behavior.
+            //       TODO: find a better solution for this
+            IOUtils.closeQuietly(inputStream);
+            //throw e;
+            return new ResponseEntity<>(
+                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(e.getMessage())),
+                    Utils.createJsonContentHeader(),
+                    HttpStatus.BAD_REQUEST);
+        }
     }
 
 }

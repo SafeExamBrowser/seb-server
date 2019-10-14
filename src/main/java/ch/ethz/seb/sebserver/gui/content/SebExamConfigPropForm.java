@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -278,7 +277,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                             pageService.getWidgetFactory())
                                     .setDialogWidth(600);
 
-            final ImportFormBuilder importFormBuilder = new ImportFormBuilder(
+            final ImportFormContext importFormContext = new ImportFormContext(
                     pageService,
                     action.pageContext());
 
@@ -287,8 +286,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     formHandle -> SebExamConfigPropForm.doImport(
                             pageService,
                             formHandle),
-                    Utils.EMPTY_EXECUTION,
-                    importFormBuilder);
+                    importFormContext::cancelUpload,
+                    importFormContext);
 
             return action;
         };
@@ -303,7 +302,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
         final Control fieldControl = form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
         final PageContext context = formHandle.getContext();
         if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
-            final InputStream inputStream = ((FileUploadSelection) fieldControl).getInputStream();
+            final FileUploadSelection fileUpload = (FileUploadSelection) fieldControl;
+            final InputStream inputStream = fileUpload.getInputStream();
             if (inputStream != null) {
                 final Configuration configuration = pageService.getRestService()
                         .getBuilder(ImportExamConfig.class)
@@ -313,7 +313,10 @@ public class SebExamConfigPropForm implements TemplateComposer {
                                 form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
                         .withBody(inputStream)
                         .call()
-                        .get(context::notifyError);
+                        .get(e -> {
+                            fileUpload.close();
+                            return context.notifyError(e);
+                        });
 
                 if (configuration != null) {
                     context.publishInfo(FORM_IMPORT_CONFIRM_TEXT_KEY);
@@ -326,12 +329,14 @@ public class SebExamConfigPropForm implements TemplateComposer {
         }
     }
 
-    private static final class ImportFormBuilder implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
+    private static final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
 
         private final PageService pageService;
         private final PageContext pageContext;
 
-        protected ImportFormBuilder(final PageService pageService, final PageContext pageContext) {
+        private Form form = null;
+
+        protected ImportFormContext(final PageService pageService, final PageContext pageContext) {
             this.pageService = pageService;
             this.pageContext = pageContext;
         }
@@ -353,7 +358,17 @@ public class SebExamConfigPropForm implements TemplateComposer {
                             "").asPasswordField())
                     .build();
 
+            this.form = formHandle.getForm();
             return () -> formHandle;
+        }
+
+        void cancelUpload() {
+            if (this.form != null) {
+                final Control fieldControl = this.form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
+                if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
+                    ((FileUploadSelection) fieldControl).close();
+                }
+            }
         }
     }
 

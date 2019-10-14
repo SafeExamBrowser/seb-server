@@ -331,11 +331,15 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                     .getOrThrow();
 
             Future<Exception> streamDecrypted = null;
+            InputStream cryptIn = null;
+            PipedInputStream plainIn = null;
+            PipedOutputStream cryptOut = null;
+            InputStream unzippedIn = null;
             try {
 
-                final InputStream cryptIn = this.examConfigIO.unzip(input);
-                final PipedInputStream plainIn = new PipedInputStream();
-                final PipedOutputStream cryptOut = new PipedOutputStream(plainIn);
+                cryptIn = this.examConfigIO.unzip(input);
+                plainIn = new PipedInputStream();
+                cryptOut = new PipedOutputStream(plainIn);
 
                 // decrypt
                 streamDecrypted = this.sebConfigEncryptionService.streamDecrypted(
@@ -344,11 +348,11 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                         EncryptionContext.contextOf(password));
 
                 // if zipped, unzip attach unzip stream first
-                final InputStream _plainIn = this.examConfigIO.unzip(plainIn);
+                unzippedIn = this.examConfigIO.unzip(plainIn);
 
                 // parse XML and import
                 this.examConfigIO.importPlainXML(
-                        _plainIn,
+                        unzippedIn,
                         newConfig.institutionId,
                         newConfig.id);
 
@@ -369,6 +373,11 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                 }
 
                 throw new RuntimeException("Failed to import SEB configuration. Cause is: " + e.getMessage());
+            } finally {
+                IOUtils.closeQuietly(cryptIn);
+                IOUtils.closeQuietly(plainIn);
+                IOUtils.closeQuietly(cryptOut);
+                IOUtils.closeQuietly(unzippedIn);
             }
         });
     }

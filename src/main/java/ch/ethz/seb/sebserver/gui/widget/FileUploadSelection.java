@@ -27,12 +27,16 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
 public class FileUploadSelection extends Composite {
+
+    private static final Logger log = LoggerFactory.getLogger(FileUploadSelection.class);
 
     private static final long serialVersionUID = 5800153475027387363L;
 
@@ -48,6 +52,8 @@ public class FileUploadSelection extends Composite {
 
     private Consumer<String> errorHandler;
     private InputStream inputStream;
+    private final FileUploadHandler uploadHandler;
+    private final InputReceiver inputReceiver;
 
     public FileUploadSelection(
             final Composite parent,
@@ -70,12 +76,15 @@ public class FileUploadSelection extends Composite {
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
             this.fileName.setLayoutData(new GridData());
             this.fileUpload = null;
+            this.uploadHandler = null;
+            this.inputReceiver = null;
         } else {
             this.fileUpload = new FileUpload(this, SWT.NONE);
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
             this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
             this.fileUpload.setToolTipText(this.i18nSupport.getText(PLEASE_SELECT_TEXT));
-            final FileUploadHandler uploadHandler = new FileUploadHandler(new InputReceiver());
+            this.inputReceiver = new InputReceiver();
+            this.uploadHandler = new FileUploadHandler(this.inputReceiver);
 
             this.fileName = new Label(this, SWT.NONE);
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
@@ -93,12 +102,26 @@ public class FileUploadSelection extends Composite {
                     }
                     return;
                 }
-                FileUploadSelection.this.fileUpload.submit(uploadHandler.getUploadUrl());
+                FileUploadSelection.this.fileUpload.submit(this.uploadHandler.getUploadUrl());
                 FileUploadSelection.this.fileName.setText(fileName);
                 FileUploadSelection.this.errorHandler.accept(null);
             });
 
         }
+    }
+
+    public void close() {
+        if (this.inputReceiver != null) {
+            this.inputReceiver.close();
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (this.uploadHandler != null) {
+            this.uploadHandler.dispose();
+        }
+        super.dispose();
     }
 
     public String getFileName() {
@@ -149,20 +172,36 @@ public class FileUploadSelection extends Composite {
     }
 
     private final class InputReceiver extends FileUploadReceiver {
+        private PipedInputStream pIn = null;
+        private PipedOutputStream pOut = null;
+
         @Override
         public void receive(final InputStream stream, final FileDetails details) throws IOException {
-            final PipedInputStream pIn = new PipedInputStream();
-            final PipedOutputStream pOut = new PipedOutputStream(pIn);
+            if (this.pIn != null || this.pOut != null) {
+                throw new IllegalStateException("InputReceiver already in use");
+            }
 
-            FileUploadSelection.this.inputStream = pIn;
+            this.pIn = new PipedInputStream();
+            this.pOut = new PipedOutputStream(this.pIn);
+
+            FileUploadSelection.this.inputStream = this.pIn;
 
             try {
-                IOUtils.copyLarge(stream, pOut);
+                IOUtils.copyLarge(stream, this.pOut);
             } catch (final Exception e) {
-                e.printStackTrace();
+                log.warn("IO error: {}", e.getMessage());
             } finally {
-                IOUtils.closeQuietly(pOut);
+                close();
             }
+        }
+
+        void close() {
+            try {
+                this.pOut.flush();
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to flush: ", e);
+            }
+            IOUtils.closeQuietly(this.pOut);
         }
     }
 

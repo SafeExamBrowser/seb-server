@@ -241,6 +241,11 @@ public class ExamConfigImportHandler extends DefaultHandler {
                     : top.name;
             final ConfigurationAttribute attribute = this.attributeResolver.apply(attrName);
 
+            if (attribute == null) {
+                log.warn("*********************** Save null value: {}", attrName);
+                return;
+            }
+
             // check if we have a simple values array
             if (attribute.type == AttributeType.MULTI_CHECKBOX_SELECTION
                     || attribute.type == AttributeType.MULTI_SELECTION) {

@@ -81,10 +81,12 @@ public class ZipServiceImpl implements ZipService {
         } finally {
             try {
                 out.flush();
-                out.close();
             } catch (final IOException e) {
                 log.error("Failed to close OutputStream: ", e);
             }
+
+            IOUtils.closeQuietly(out);
+            IOUtils.closeQuietly(zipInputStream);
 
             if (log.isDebugEnabled()) {
                 log.debug("*** Finish streaming asynchronous unzipping of SEB exam configuration data");
