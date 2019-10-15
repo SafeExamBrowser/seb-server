@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -28,6 +30,7 @@ public class TableBuilder<ROW extends Entity> {
 
     private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
+    private final MultiValueMap<String, String> staticQueryParams;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     LocTextKey emptyMessage;
     private Function<EntityTable<ROW>, PageAction> defaultActionFunction;
@@ -42,6 +45,7 @@ public class TableBuilder<ROW extends Entity> {
 
         this.pageService = pageService;
         this.restCall = restCall;
+        this.staticQueryParams = new LinkedMultiValueMap<>();
     }
 
     public TableBuilder<ROW> hideNavigation() {
@@ -82,6 +86,11 @@ public class TableBuilder<ROW extends Entity> {
 
     public TableBuilder<ROW> withMultiselection() {
         this.type |= SWT.MULTI;
+        return this;
+    }
+
+    public TableBuilder<ROW> withStaticFilter(final String name, final String value) {
+        this.staticQueryParams.add(name, value);
         return this;
     }
 
@@ -128,7 +137,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.pageSize,
                 this.emptyMessage,
                 this.defaultActionFunction,
-                this.hideNavigation);
+                this.hideNavigation,
+                this.staticQueryParams);
     }
 
 }

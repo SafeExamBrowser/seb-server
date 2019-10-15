@@ -14,6 +14,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -153,6 +155,55 @@ public class OrientationDAOImpl implements OrientationDAO {
 
     @Override
     @Transactional
+    public Result<ConfigurationNode> copyDefaultOrientationsForTemplate(
+            final ConfigurationNode node,
+            final Map<Long, Long> viewMapping) {
+
+        return Result.tryCatch(() -> {
+            this.orientationRecordMapper
+                    .selectByExample()
+                    .where(
+                            OrientationRecordDynamicSqlSupport.templateId,
+                            SqlBuilder.isEqualTo(ConfigurationNode.DEFAULT_TEMPLATE_ID))
+                    .build()
+                    .execute()
+                    .stream()
+                    .forEach(record -> createNew(new Orientation(
+                            null,
+                            record.getConfigAttributeId(),
+                            node.id,
+                            viewMapping.get(record.getViewId()),
+                            record.getGroupId(),
+                            record.getxPosition(),
+                            record.getyPosition(),
+                            record.getWidth(),
+                            record.getHeight(),
+                            record.getTitle() != null
+                                    ? TitleOrientation.valueOf(record.getTitle())
+                                    : TitleOrientation.NONE)));
+
+            return node;
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Orientation>> getAllOfTemplate(final Long templateId) {
+        return Result.tryCatch(() -> this.orientationRecordMapper
+                .selectByExample()
+                .where(
+                        OrientationRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualToWhenPresent(templateId))
+                .build()
+                .execute()
+                .stream()
+                .map(OrientationDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
@@ -215,5 +266,4 @@ public class OrientationDAOImpl implements OrientationDAO {
                 record.getHeight(),
                 TitleOrientation.valueOf(record.getTitle())));
     }
-
 }

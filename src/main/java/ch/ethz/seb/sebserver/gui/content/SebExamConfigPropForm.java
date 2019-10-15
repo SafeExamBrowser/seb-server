@@ -113,15 +113,11 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         final UserInfo user = this.currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
-
         final boolean isNew = entityKey == null;
 
         // get data or create new. Handle error if happen
         final ConfigurationNode examConfig = (isNew)
-                ? ConfigurationNode.createNewExamConfig((parentEntityKey != null)
-                        ? Long.valueOf(parentEntityKey.modelId)
-                        : user.institutionId)
+                ? ConfigurationNode.createNewExamConfig(user.institutionId)
                 : this.restService
                         .getBuilder(GetExamConfigNode.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

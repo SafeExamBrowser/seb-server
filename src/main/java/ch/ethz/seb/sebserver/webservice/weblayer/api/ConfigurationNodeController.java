@@ -12,18 +12,25 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,11 +41,19 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -46,9 +61,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -60,6 +79,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     private static final Logger log = LoggerFactory.getLogger(ConfigurationNodeController.class);
 
     private final ConfigurationDAO configurationDAO;
+    private final ViewDAO viewDAO;
+    private final OrientationDAO orientationDAO;
+    private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final SebExamConfigService sebExamConfigService;
 
     protected ConfigurationNodeController(
@@ -70,6 +92,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ConfigurationDAO configurationDAO,
+            final ViewDAO viewDAO,
+            final OrientationDAO orientationDAO,
+            final ConfigurationAttributeDAO configurationAttributeDAO,
             final SebExamConfigService sebExamConfigService) {
 
         super(authorization,
@@ -80,6 +105,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 beanValidationService);
 
         this.configurationDAO = configurationDAO;
+        this.viewDAO = viewDAO;
+        this.orientationDAO = orientationDAO;
+        this.configurationAttributeDAO = configurationAttributeDAO;
         this.sebExamConfigService = sebExamConfigService;
     }
 
@@ -204,6 +232,103 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     Utils.createJsonContentHeader(),
                     HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Page<TemplateAttribute> getTemplateAttributePage(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+
+        // at least current user must have read access for specified entity type within its own institution
+        checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap(allRequestParams);
+
+        // if current user has no read access for specified entity type within other institution
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
+
+        final Map<Long, Orientation> orentiations = this.orientationDAO.getAllOfTemplate(modelId)
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toMap(
+                        o -> o.attributeId,
+                        Function.identity()));
+
+        final List<TemplateAttribute> attrs = this.configurationAttributeDAO
+                .getAllRootAttributes()
+                .getOrThrow()
+                .stream()
+                .map(attr -> new TemplateAttribute(institutionId, modelId, attr, orentiations.get(attr.id)))
+                .filter(attr -> attr.isNameLike(filterMap.getString(TemplateAttribute.FILTER_ATTR_NAME))
+                        && attr.isGroupLike(filterMap.getString(TemplateAttribute.FILTER_ATTR_GROUP))
+                        && attr.isInView(filterMap.getLong(TemplateAttribute.FILTER_ATTR_VIEW)))
+                .collect(Collectors.toList());
+
+        if (!StringUtils.isBlank(sort)) {
+            final String sortBy = PageSortOrder.decode(sort);
+            final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
+            if (sortBy.equals(Domain.CONFIGURATION_NODE.ATTR_NAME)) {
+                Collections.sort(attrs, TemplateAttribute.nameComparator(sortOrder == PageSortOrder.DESCENDING));
+            }
+        }
+
+        final int start = (pageNumber - 1) * pageSize;
+        int end = start + pageSize;
+        if (attrs.size() < end) {
+            end = attrs.size();
+        }
+
+        return new Page<>(
+                attrs.size() / pageSize,
+                pageNumber,
+                sort,
+                attrs.subList(start, end));
+    }
+
+    @Override
+    protected Result<ConfigurationNode> validForSave(final ConfigurationNode entity) {
+        return super.validForSave(entity)
+                .map(e -> {
+                    final ConfigurationNode existingNode = this.entityDAO.byPK(entity.id)
+                            .getOrThrow();
+                    if (existingNode.type != entity.type) {
+                        throw new APIConstraintViolationException(
+                                "The Type of ConfigurationNode cannot change after creation");
+                    }
+                    return e;
+                });
+    }
+
+    @Override
+    protected Result<ConfigurationNode> notifyCreated(final ConfigurationNode entity) {
+        return super.notifyCreated(entity)
+                .map(this::createTemplate);
+    }
+
+    private ConfigurationNode createTemplate(final ConfigurationNode node) {
+        if (node.type != null && node.type == ConfigurationType.TEMPLATE) {
+            // create views and orientations for node
+            return this.viewDAO.copyDefaultViewsForTemplate(node)
+                    .flatMap(viewMapping -> this.orientationDAO.copyDefaultOrientationsForTemplate(
+                            node,
+                            viewMapping))
+                    .getOrThrow();
+        }
+        return node;
     }
 
 }

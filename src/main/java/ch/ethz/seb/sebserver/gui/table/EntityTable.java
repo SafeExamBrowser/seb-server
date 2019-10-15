@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -78,6 +79,7 @@ public class EntityTable<ROW extends Entity> {
     private final TableFilter<ROW> filter;
     private final Table table;
     private final TableNavigator navigator;
+    private final MultiValueMap<String, String> staticQueryParams;
 
     int pageNumber = 1;
     int pageSize;
@@ -96,7 +98,8 @@ public class EntityTable<ROW extends Entity> {
             final int pageSize,
             final LocTextKey emptyMessage,
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
-            final boolean hideNavigation) {
+            final boolean hideNavigation,
+            final MultiValueMap<String, String> staticQueryParams) {
 
         this.composite = new Composite(pageContext.getParent(), type);
         this.pageService = pageService;
@@ -116,6 +119,7 @@ public class EntityTable<ROW extends Entity> {
         this.composite.setLayout(layout);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         this.composite.setLayoutData(gridData);
+        this.staticQueryParams = staticQueryParams;
 
 // TODO just for debugging, remove when tested
 //        this.composite.setBackground(new Color(parent.getDisplay(), new RGB(0, 200, 0)));
@@ -375,6 +379,7 @@ public class EntityTable<ROW extends Entity> {
                 .withPaging(pageNumber, pageSize)
                 .withSorting(sortColumn, sortOrder)
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
+                .withQueryParams(this.staticQueryParams)
                 .apply(this.restCallAdapter)
                 .call()
                 .map(this::createTableRowsFromPage)
@@ -494,7 +499,8 @@ public class EntityTable<ROW extends Entity> {
             item.setText(index, this.i18nSupport.formatDisplayDate((DateTime) value));
         } else {
             if (value != null) {
-                item.setText(index, String.valueOf(value));
+                final String val = String.valueOf(value).replace('\n', ' ');
+                item.setText(index, val);
             } else {
                 item.setText(index, Constants.EMPTY_NOTE);
             }

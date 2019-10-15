@@ -105,7 +105,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                         SqlBuilder.isEqualToWhenPresent(filterMap.getActiveAsInt()))
                 .and(
                         InstitutionRecordDynamicSqlSupport.name,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getName()))
+                        SqlBuilder.isLikeWhenPresent(filterMap.getName()))
                 .build()
                 .execute()
                 .stream()

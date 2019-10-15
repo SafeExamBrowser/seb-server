@@ -17,7 +17,7 @@ public interface ConfigurationAttributeDAO extends EntityDAO<ConfigurationAttrib
 
     /** Use this to get all ConfigurationAttribute that are root attributes and no child
      * attributes (has no parent reference).
-     * 
+     *
      * @return Collection of all ConfigurationAttribute that are root attributes */
     Result<Collection<ConfigurationAttribute>> getAllRootAttributes();
 

@@ -415,6 +415,58 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
 
+    SEB_EXAM_CONFIG_TEMPLATE_NEW(
+            new LocTextKey("sebserver.exam.configtemplate.action.list.new"),
+            ImageIcon.NEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
+            ActionCategory.VARIA),
+    SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST(
+            new LocTextKey("sebserver.configtemplate.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
+            ActionCategory.SEB_CONFIG_TEMPLATE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_VIEW(
+            new LocTextKey("sebserver.configtemplate.action.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.configtemplate.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
+            ActionCategory.SEB_CONFIG_TEMPLATE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_MODIFY(
+            new LocTextKey("sebserver.configtemplate.action.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_SAVE(
+            new LocTextKey("sebserver.configtemplate.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_VIEW,
+            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.setdefault"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_VIEW,
+            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.removeview"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_VIEW,
+            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+
     RUNNING_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.monitoring.action.list"),
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM_LIST),

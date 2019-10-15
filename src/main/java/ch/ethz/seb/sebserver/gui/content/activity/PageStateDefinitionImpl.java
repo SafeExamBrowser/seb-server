@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
+import ch.ethz.seb.sebserver.gui.content.ConfigTemplateAttributeForm;
+import ch.ethz.seb.sebserver.gui.content.ConfigTemplateForm;
 import ch.ethz.seb.sebserver.gui.content.ExamForm;
 import ch.ethz.seb.sebserver.gui.content.ExamList;
 import ch.ethz.seb.sebserver.gui.content.ExamSebConfigMapForm;
@@ -66,6 +68,18 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_PROP_EDIT(Type.FORM_EDIT, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_EDIT(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+
+    SEB_EXAM_CONFIG_TEMPLATE_VIEW(Type.FORM_VIEW, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_TEMPLATE_EDIT(Type.FORM_EDIT, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+
+    SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_VIEW(
+            Type.FORM_VIEW,
+            ConfigTemplateAttributeForm.class,
+            ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT(
+            Type.FORM_EDIT,
+            ConfigTemplateAttributeForm.class,
+            ActivityDefinition.SEB_EXAM_CONFIG),
 
     MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
     MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS),

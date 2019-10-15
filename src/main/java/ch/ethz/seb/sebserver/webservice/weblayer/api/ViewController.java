@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
@@ -55,6 +56,11 @@ public class ViewController extends EntityController<View, View> {
     @Override
     protected SqlTable getSQLTableOfEntity() {
         return ViewRecordDynamicSqlSupport.viewRecord;
+    }
+
+    @Override
+    protected EntityType getGrantEntityType() {
+        return EntityType.CONFIGURATION_NODE;
     }
 
     @Override

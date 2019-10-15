@@ -22,6 +22,8 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class View implements Entity {
 
+    public static final String FILTER_ATTR_TEMPLATE = "templateId";
+
     @JsonProperty(VIEW.ATTR_ID)
     public final Long id;
 

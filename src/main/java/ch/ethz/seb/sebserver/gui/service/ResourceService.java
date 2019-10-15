@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -40,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -58,6 +60,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
@@ -461,6 +464,23 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> getViewResources() {
+        return getViewResources(API.DEFAULT_CONFIG_TEMPLATE_ID);
+    }
+
+    public List<Tuple<String>> getViewResources(final String templateId) {
+        return this.restService.getBuilder(GetViews.class)
+                .withQueryParam(
+                        View.FILTER_ATTR_TEMPLATE,
+                        templateId)
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(view -> new Tuple<>(view.getModelId(), view.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

@@ -113,10 +113,10 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                         SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
                 .and(
                         ConfigurationNodeRecordDynamicSqlSupport.name,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getName()))
+                        SqlBuilder.isLikeWhenPresent(filterMap.getName()))
                 .and(
                         ConfigurationNodeRecordDynamicSqlSupport.description,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeDesc()))
+                        SqlBuilder.isLikeWhenPresent(filterMap.getConfigNodeDesc()))
                 .and(
                         ConfigurationNodeRecordDynamicSqlSupport.type,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeType()))

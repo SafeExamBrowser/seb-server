@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+
 public final class API {
 
     public enum BulkActionType {
@@ -25,6 +27,7 @@ public final class API {
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
     public static final String PARAM_CLIENT_CONFIG_SECRET = "client_config_secret";
+    public static final String DEFAULT_CONFIG_TEMPLATE_ID = String.valueOf(ConfigurationNode.DEFAULT_TEMPLATE_ID);
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
     public static final String MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_MODEL_ID + "}";
@@ -123,6 +126,10 @@ public final class API {
     public static final String CONFIGURATION_IMPORT_PATH_SEGMENT = "/import";
     public static final String IMPORT_PASSWORD_ATTR_NAME = "importFilePassword";
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
+
+    public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
+
+    public static final String CONFIGURATION_TEMPLATE_ENDPOINT = "/exam-config-template";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";

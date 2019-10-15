@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -24,9 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ViewRecord;
@@ -85,6 +88,9 @@ public class ViewDAOImpl implements ViewDAO {
                 .where(
                         ViewRecordDynamicSqlSupport.name,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getName()))
+                .and(
+                        ViewRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getLong(View.FILTER_ATTR_TEMPLATE)))
                 .build()
                 .execute()
                 .stream()
@@ -130,6 +136,34 @@ public class ViewDAOImpl implements ViewDAO {
         })
                 .flatMap(ViewDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Map<Long, Long>> copyDefaultViewsForTemplate(final ConfigurationNode node) {
+        return Result.tryCatch(() -> {
+            // get all default views, copy them with new template_id and save
+            return this.viewRecordMapper
+                    .selectByExample()
+                    .where(
+                            ViewRecordDynamicSqlSupport.templateId,
+                            SqlBuilder.isEqualTo(ConfigurationNode.DEFAULT_TEMPLATE_ID))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(view -> {
+                        final ViewRecord newRecord = new ViewRecord(
+                                null,
+                                view.getName(),
+                                view.getColumns(),
+                                view.getPosition(),
+                                node.id);
+                        this.viewRecordMapper.insert(newRecord);
+                        return new Tuple<>(view.getId(), newRecord.getId());
+                    })
+                    .collect(Collectors.toMap(t -> t._1, t -> t._2));
+
+        });
     }
 
     @Override
