@@ -22,17 +22,17 @@ INSERT IGNORE INTO threshold VALUES
     ;
 
 INSERT IGNORE INTO view VALUES
-    (1, 'general', 4, 1),
-    (2, 'user_interface', 12, 2),
-    (3, 'browser', 12, 3),
-    (4, 'down_upload', 12, 4),
-    (5, 'exam', 12, 5),
-    (6, 'applications', 12, 6), 
-    (7, 'resources', 12, 7), 
-    (8, 'network', 12, 8), 
-    (9, 'security', 12, 9),
-    (10, 'registry', 12, 10),
-    (11, 'hooked_keys', 12, 11);
+    (1, 'general', 4, 1, null),
+    (2, 'user_interface', 12, 2, null),
+    (3, 'browser', 12, 3, null),
+    (4, 'down_upload', 12, 4, null),
+    (5, 'exam', 12, 5, null),
+    (6, 'applications', 12, 6, null), 
+    (7, 'resources', 12, 7, null), 
+    (8, 'network', 12, 8, null), 
+    (9, 'security', 12, 9, null),
+    (10, 'registry', 12, 10, null),
+    (11, 'hooked_keys', 12, 11, null);
     
 INSERT IGNORE INTO configuration_attribute VALUES
     (1, 'hashedAdminPassword', 'PASSWORD_FIELD', null, null, null, null, null),

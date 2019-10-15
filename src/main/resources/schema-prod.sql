@@ -258,11 +258,14 @@ CREATE TABLE IF NOT EXISTS `configuration_value` (
 -- -----------------------------------------------------
 -- Table `view`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `view` ;
+
 CREATE TABLE IF NOT EXISTS `view` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NULL,
   `columns` INT NOT NULL,
   `position` INT NOT NULL,
+  `template_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`))
 ;
 

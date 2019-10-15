@@ -36,16 +36,21 @@ public class View implements Entity {
     @JsonProperty(VIEW.ATTR_POSITION)
     public final Integer position;
 
+    @JsonProperty(VIEW.ATTR_TEMPLATE_ID)
+    public final Long templateId;
+
     public View(
             @JsonProperty(VIEW.ATTR_ID) final Long id,
             @JsonProperty(VIEW.ATTR_NAME) final String name,
             @JsonProperty(VIEW.ATTR_COLUMNS) final Integer columns,
-            @JsonProperty(VIEW.ATTR_POSITION) final Integer position) {
+            @JsonProperty(VIEW.ATTR_POSITION) final Integer position,
+            @JsonProperty(VIEW.ATTR_TEMPLATE_ID) final Long templateId) {
 
         this.id = id;
         this.name = name;
         this.columns = columns;
         this.position = position;
+        this.templateId = templateId;
     }
 
     public View(final POSTMapper postParams) {
@@ -53,6 +58,7 @@ public class View implements Entity {
         this.name = postParams.getString(Domain.VIEW.ATTR_NAME);
         this.columns = postParams.getInteger(Domain.VIEW.ATTR_COLUMNS);
         this.position = postParams.getInteger(Domain.VIEW.ATTR_POSITION);
+        this.templateId = postParams.getLong(Domain.VIEW.ATTR_TEMPLATE_ID);
     }
 
     public Integer getPosition() {
@@ -84,6 +90,10 @@ public class View implements Entity {
         return this.name;
     }
 
+    public Long getTemplateId() {
+        return this.templateId;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -95,6 +105,8 @@ public class View implements Entity {
         builder.append(this.columns);
         builder.append(", position=");
         builder.append(this.position);
+        builder.append(", templateId=");
+        builder.append(this.templateId);
         builder.append("]");
         return builder.toString();
     }

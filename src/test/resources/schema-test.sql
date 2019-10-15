@@ -271,6 +271,7 @@ CREATE TABLE IF NOT EXISTS `view` (
   `name` VARCHAR(255) NULL,
   `columns` INT NOT NULL,
   `position` INT NOT NULL,
+  `template_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`))
 ;
 

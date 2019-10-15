@@ -103,7 +103,8 @@ public class ViewDAOImpl implements ViewDAO {
                     null,
                     data.name,
                     data.columns,
-                    data.position);
+                    data.position,
+                    data.templateId);
 
             this.viewRecordMapper.insert(newRecord);
             return newRecord;
@@ -121,7 +122,8 @@ public class ViewDAOImpl implements ViewDAO {
                     data.id,
                     data.name,
                     data.columns,
-                    data.position);
+                    data.position,
+                    data.templateId);
 
             this.viewRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.viewRecordMapper.selectByPrimaryKey(data.id);
@@ -165,7 +167,8 @@ public class ViewDAOImpl implements ViewDAO {
                 record.getId(),
                 record.getName(),
                 record.getColumns(),
-                record.getPosition()));
+                record.getPosition(),
+                record.getTemplateId()));
     }
 
 }
