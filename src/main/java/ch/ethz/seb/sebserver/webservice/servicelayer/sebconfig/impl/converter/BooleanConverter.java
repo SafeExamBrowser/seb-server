@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -68,11 +69,16 @@ public class BooleanConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final String template) throws IOException {
 
+        String defaultValue = attribute.getDefaultValue();
+        if (StringUtils.isBlank(defaultValue)) {
+            defaultValue = Constants.FALSE_STRING;
+        }
+
         out.write(Utils.toByteArray(
                 String.format(
                         template,
                         extractName(attribute),
-                        (value.value != null) ? value.value : Constants.FALSE_STRING)));
+                        (value != null && value.value != null) ? value.value : defaultValue)));
     }
 
 }

@@ -84,7 +84,7 @@ public class StringConverter implements AttributeValueConverter {
             final String template,
             final String emptyTemplate) throws IOException {
 
-        final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
+        final String val = (value != null && value.value != null) ? value.value : attribute.getDefaultValue();
         if (StringUtils.isNotBlank(val)) {
             out.write(Utils.toByteArray(String.format(
                     template,

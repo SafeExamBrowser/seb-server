@@ -242,7 +242,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
             final ConfigurationAttribute attribute = this.attributeResolver.apply(attrName);
 
             if (attribute == null) {
-                log.warn("*********************** Save null value: {}", attrName);
+                log.warn("Import of unknown attribute. name={} value={}", attrName, top.value);
                 return;
             }
 
@@ -270,11 +270,11 @@ public class ExamConfigImportHandler extends DefaultHandler {
         }
 
         if (value == null) {
-            log.warn("*********************** Save null value: {}", name);
+            log.debug("*********************** Save null value: {}", name);
         } else if (StringUtils.isBlank(value)) {
-            log.warn("*********************** Save blank value: {}", name);
+            log.debug("*********************** Save blank value: {}", name);
         } else {
-            log.warn("*********************** Save value value: {} : {}", name, value);
+            log.debug("*********************** Save value value: {} : {}", name, value);
         }
 
         final ConfigurationValue configurationValue = new ConfigurationValue(

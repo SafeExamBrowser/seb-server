@@ -132,6 +132,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (98, 'prohibitedProcesses.originalName', 'TEXT_FIELD', 93, null, null, null, ''),
     (99, 'prohibitedProcesses.identifier', 'TEXT_FIELD', 93, null, null, null, ''),
     (100, 'prohibitedProcesses.strongKill', 'CHECKBOX', 93, null, null, null, 'false'),
+    (101, 'prohibitedProcesses.currentUser', 'CHECKBOX', 93, null, null, null, 'false'),
+    (102, 'prohibitedProcesses.user', 'TEXT_FIELD', 93, null, null, null, null),
     
     (200, 'URLFilterEnable', 'CHECKBOX', null, null, null, null, 'false'),
     (201, 'URLFilterEnableContentFilter', 'CHECKBOX', null, null, null, null, 'false'),
@@ -234,8 +236,25 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (519, 'enableF11', 'CHECKBOX', null, null, null, null, 'false'),
     (520, 'enableF12', 'CHECKBOX', null, null, null, null, 'false'),
     
+    (800, 'browserMessagingSocket', 'TEXT_FIELD', null, null, null, null, 'ws:\\localhost:8706'),
+    (801, 'browserMessagingPingTime', 'INTEGER', null, null, null, null, '120000'),
+    (802, 'allowPreferencesWindow', 'CHECKBOX', null, null, null, null, 'true'),
+    (803, 'useAsymmetricOnlyEncryption', 'CHECKBOX', null, null, null, null, 'false'),
+    (804, 'touchOptimized', 'CHECKBOX', null, null, null, null, 'false'),
+    (805, 'browserScreenKeyboard', 'CHECKBOX', null, null, null, null, 'false'),
+    (806, 'newBrowserWindowByScriptPolicy', 'INTEGER', null, null, null, null, '2'),
+    (807, 'newBrowserWindowByScriptBlockForeign', 'CHECKBOX', null, null, null, null, 'false'),
+    (808, 'monitorProcesses', 'CHECKBOX', null, null, null, null, 'false'),
+    (809, 'blacklistURLFilter', 'TEXT_FIELD', null, null, null, null, ''),
+    (810, 'whitelistURLFilter', 'TEXT_FIELD', null, null, null, null, ''),
+    (811, 'killExplorerShell', 'CHECKBOX', null, null, null, null, 'false'),
+    (812, 'allowWlan', 'CHECKBOX', null, null, null, null, 'false'),
+    (813, 'hookKeys', 'CHECKBOX', null, null, null, null, 'true'),
+    
+    
     (1000, 'originatorVersion', 'TEXT_FIELD', null, null, null, null, 'SEB_Server_0.3.0'),
     (1001, 'sebConfigPurpose', 'RADIO_SELECTION', null, '0,1', null, null, '0')
+    
     ;
     
 INSERT IGNORE INTO orientation VALUES 
