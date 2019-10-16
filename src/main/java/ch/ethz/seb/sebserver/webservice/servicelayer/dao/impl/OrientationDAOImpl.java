@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
@@ -193,13 +194,31 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualToWhenPresent(templateId))
+                        SqlBuilder.isEqualTo(templateId))
                 .build()
                 .execute()
                 .stream()
                 .map(OrientationDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result<Orientation> getAttributeOfTemplate(final Long templateId, final Long attributeId) {
+        return Result.tryCatch(() -> this.orientationRecordMapper
+                .selectByExample()
+                .where(
+                        OrientationRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualTo(templateId))
+                .and(
+                        OrientationRecordDynamicSqlSupport.configAttributeId,
+                        SqlBuilder.isEqualTo(attributeId))
+                .build()
+                .execute()
+                .stream()
+                .map(OrientationDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Utils.toSingleton()));
     }
 
     @Override
@@ -266,4 +285,5 @@ public class OrientationDAOImpl implements OrientationDAO {
                 record.getHeight(),
                 TitleOrientation.valueOf(record.getTitle())));
     }
+
 }

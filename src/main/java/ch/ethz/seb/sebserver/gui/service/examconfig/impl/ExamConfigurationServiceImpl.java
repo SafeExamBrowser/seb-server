@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.ValueChangeRule;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
@@ -207,6 +209,23 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
         viewContexts
                 .forEach(vc -> vc.setValuesToInputFields(attributeValues));
+    }
+
+    @Override
+    public final PageAction resetToDefaults(final PageAction action) {
+        final EntityKey singleSelection = action.getSingleSelection();
+
+        // TODO
+        return action;
+    }
+
+    @Override
+    public final PageAction removeFormView(final PageAction action) {
+        final EntityKey singleSelection = action.getSingleSelection();
+
+        // TODO
+
+        return action;
     }
 
     private static final class ValueChangeListenerImpl implements ValueChangeListener {

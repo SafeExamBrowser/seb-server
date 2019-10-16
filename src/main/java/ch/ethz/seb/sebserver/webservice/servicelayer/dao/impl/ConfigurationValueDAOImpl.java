@@ -14,6 +14,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -334,6 +336,86 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         });
     }
 
+    @Override
+    @Transactional
+    public Result<ConfigurationTableValues> saveTableValues(final ConfigurationTableValues value) {
+        return this.configurationDAOBatchService
+                .saveNewTableValues(value)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Set<EntityKey>> setDefaultValues(
+            final Long institutionId,
+            final Long configurationId,
+            final Long attributeId) {
+
+        return attributeRecordById(attributeId)
+                .flatMap(this::getAttributeMapping)
+                .map(attributeMapping -> {
+
+                    final Set<EntityKey> tableValues = this.configurationValueRecordMapper.selectByExample()
+                            .where(
+                                    ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                                    isEqualTo(institutionId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                    isEqualTo(configurationId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                    SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
+                            .build()
+                            .execute()
+                            .stream()
+                            .map(r -> new EntityKey(r.getId(), EntityType.CONFIGURATION_VALUE))
+                            .collect(Collectors.toSet());
+
+                    // if there are table values, delete them first
+                    if (tableValues != null && !tableValues.isEmpty()) {
+                        this.delete(tableValues)
+                                .getOrThrow();
+                    }
+
+                    // get the attribute value reset to defaultValue and save
+                    final List<ConfigurationValueRecord> values = this.configurationValueRecordMapper.selectByExample()
+                            .where(
+                                    ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                                    isEqualTo(institutionId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                    isEqualTo(configurationId))
+                            .and(
+                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                    SqlBuilder.isEqualTo(attributeId))
+                            .build()
+                            .execute();
+
+                    if (values.isEmpty()) {
+                        return tableValues;
+                    } else {
+                        if (values.size() > 1) {
+                            throw new IllegalStateException("Expacted one but get: " + values.size());
+                        }
+
+                        final ConfigurationAttributeRecord attribute = this.configurationAttributeRecordMapper
+                                .selectByPrimaryKey(attributeId);
+                        final String defaultValue = attribute.getDefaultValue();
+
+                        final ConfigurationValueRecord oldRec = values.get(0);
+                        final ConfigurationValueRecord newRec = new ConfigurationValueRecord(
+                                oldRec.getId(), null, null, null, null, defaultValue);
+
+                        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRec);
+
+                        final HashSet<EntityKey> result = new HashSet<>();
+                        result.add(new EntityKey(newRec.getId(), EntityType.CONFIGURATION_VALUE));
+                        result.addAll(tableValues);
+                        return result;
+                    }
+                });
+    }
+
     // get all attributes of the table (columns) mapped to attribute id
     private Result<Map<Long, ConfigurationAttributeRecord>> getAttributeMapping(
             final ConfigurationAttributeRecord attributeRecord) {
@@ -351,14 +433,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                     .stream()
                     .collect(Collectors.toMap(attr -> attr.getId(), Function.identity()));
         });
-    }
-
-    @Override
-    @Transactional
-    public Result<ConfigurationTableValues> saveTableValues(final ConfigurationTableValues value) {
-        return this.configurationDAOBatchService
-                .saveNewTableValues(value)
-                .onError(TransactionHandler::rollback);
     }
 
     private Result<ConfigurationAttributeRecord> attributeRecord(final ConfigurationValue value) {

@@ -129,8 +129,6 @@ public final class API {
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
 
-    public static final String CONFIGURATION_TEMPLATE_ENDPOINT = "/exam-config-template";
-
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";
 

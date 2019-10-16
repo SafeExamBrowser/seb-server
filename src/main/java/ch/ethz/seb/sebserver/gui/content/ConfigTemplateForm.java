@@ -8,10 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +27,13 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
@@ -71,11 +70,14 @@ public class ConfigTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.attrs.list.view");
     private static final LocTextKey ATTRIBUTES_LIST_GROUP_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attrs.list.group");
+    private static final LocTextKey EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.attr.info.pleaseSelect");
 
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
+    private final ExamConfigurationService examConfigurationService;
 
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, TemplateAttribute.FILTER_ATTR_NAME);
@@ -85,12 +87,14 @@ public class ConfigTemplateForm implements TemplateComposer {
     protected ConfigTemplateForm(
             final PageService pageService,
             final RestService restService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            final ExamConfigurationService examConfigurationService) {
 
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
         this.resourceService = pageService.getResourceService();
+        this.examConfigurationService = examConfigurationService;
 
     }
 
@@ -166,6 +170,9 @@ public class ConfigTemplateForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
 
+        final PageActionBuilder pageActionBuilder = this.pageService
+                .pageActionBuilder(formContext.clearEntityKeys());
+
         if (isReadonly) {
 
             widgetFactory.label(content, "");
@@ -181,7 +188,7 @@ public class ConfigTemplateForm implements TemplateComposer {
             final EntityTable<TemplateAttribute> attrTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetTemplateAttributePage.class))
                             .withRestCallAdapter(restCall -> restCall.withURIVariable(
-                                    API.PARAM_MODEL_ID,
+                                    API.PARAM_PARENT_MODEL_ID,
                                     entityKey.modelId))
                             .withPaging(15)
                             .withColumn(new ColumnDefinition<>(
@@ -193,7 +200,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.ORIENTATION.ATTR_VIEW_ID,
                                     ATTRIBUTES_LIST_VIEW_TEXT_KEY,
-                                    getViewNameFunction(entityKey))
+                                    resourceService.getViewNameFunction(entityKey.modelId))
                                             .withFilter(viewFilter)
                                             .sortable())
                             .withColumn(new ColumnDefinition<>(
@@ -202,15 +209,44 @@ public class ConfigTemplateForm implements TemplateComposer {
                                     TemplateAttribute::getGroupId)
                                             .withFilter(this.groupFilter)
                                             .sortable())
-//                            .withDefaultAction(pageActionBuilder
-//                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
-//                                    .create())
+                            .withDefaultAction(pageActionBuilder
+                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
+                                    .withParentEntityKey(entityKey)
+                                    .create())
                             .compose(pageContext.copyOf(content));
 
-            // TODO list of all attributes with filter
+            pageActionBuilder
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
+                    .withParentEntityKey(entityKey)
+                    .withSelect(
+                            attrTable::getSelection,
+                            PageAction::applySingleSelection,
+                            EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
+                    .publishIf(() -> attrTable.hasAnyContent())
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT)
+                    .withParentEntityKey(entityKey)
+                    .withSelect(
+                            attrTable::getSelection,
+                            action -> this.resetToDefaults(action, attrTable),
+                            EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
+                    .noEventPropagation()
+                    .publishIf(() -> attrTable.hasAnyContent())
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
+                    .withParentEntityKey(entityKey)
+                    .withSelect(
+                            attrTable::getSelection,
+                            action -> this.removeFormView(action, attrTable),
+                            EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
+                    .noEventPropagation()
+                    .publishIf(() -> attrTable.hasAnyContent())
+
+            ;
         }
 
-        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
+        pageActionBuilder
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
@@ -232,12 +268,24 @@ public class ConfigTemplateForm implements TemplateComposer {
 
     }
 
-    private final Function<TemplateAttribute, String> getViewNameFunction(final EntityKey templateId) {
-        final Map<String, String> mapping = this.resourceService.getViewResources(templateId.modelId)
-                .stream()
-                .collect(Collectors.toMap(tuple -> tuple._1, tuple -> tuple._2));
+    private final PageAction resetToDefaults(
+            final PageAction action,
+            final EntityTable<TemplateAttribute> attrTable) {
 
-        return attr -> mapping.get(attr.getViewModelId());
+        final PageAction resetToDefaults = this.examConfigurationService.resetToDefaults(action);
+        // reload the list
+        attrTable.applyFilter();
+        return resetToDefaults;
+    }
+
+    private final PageAction removeFormView(
+            final PageAction action,
+            final EntityTable<TemplateAttribute> attrTable) {
+
+        final PageAction removeFormView = this.examConfigurationService.removeFormView(action);
+        // reload the list
+        attrTable.applyFilter();
+        return removeFormView;
     }
 
 }

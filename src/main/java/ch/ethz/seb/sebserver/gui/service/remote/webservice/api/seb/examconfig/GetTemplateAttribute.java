@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -25,19 +24,20 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetTemplateAttributePage extends RestCall<Page<TemplateAttribute>> {
+public class GetTemplateAttribute extends RestCall<TemplateAttribute> {
 
-    public GetTemplateAttributePage() {
+    public GetTemplateAttribute() {
         super(new TypeKey<>(
-                CallType.GET_PAGE,
+                CallType.GET_SINGLE,
                 EntityType.CONFIGURATION_NODE,
-                new TypeReference<Page<TemplateAttribute>>() {
+                new TypeReference<TemplateAttribute>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.CONFIGURATION_NODE_ENDPOINT
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                        + API.TEMPLATE_ATTRIBUTE_ENDPOINT);
+                        + API.TEMPLATE_ATTRIBUTE_ENDPOINT
+                        + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

@@ -58,8 +58,8 @@ public final class TemplateAttribute implements Entity {
 
     @Override
     public String getModelId() {
-        return this.institutionId != null
-                ? String.valueOf(this.institutionId)
+        return this.configAttribute != null
+                ? String.valueOf(this.configAttribute.id)
                 : null;
     }
 

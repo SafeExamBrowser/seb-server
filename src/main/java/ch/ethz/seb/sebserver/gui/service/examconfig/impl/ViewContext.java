@@ -214,7 +214,7 @@ public final class ViewContext {
         inputField.clearError();
     }
 
-    void registerInputField(final InputField inputField) {
+    public void registerInputField(final InputField inputField) {
         this.inputFieldMapping.put(
                 inputField.getAttribute().id,
                 inputField);

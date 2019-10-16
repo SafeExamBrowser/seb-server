@@ -30,4 +30,6 @@ public interface OrientationDAO extends EntityDAO<Orientation, Orientation> {
 
     Result<Collection<Orientation>> getAllOfTemplate(Long templateId);
 
+    Result<Orientation> getAttributeOfTemplate(Long templateId, Long attributeId);
+
 }

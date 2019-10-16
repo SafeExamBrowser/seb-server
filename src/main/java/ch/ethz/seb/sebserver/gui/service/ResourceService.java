@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -483,6 +484,14 @@ public class ResourceService {
                 .map(view -> new Tuple<>(view.getModelId(), view.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+    }
+
+    public final Function<TemplateAttribute, String> getViewNameFunction(final String templateId) {
+        final Map<String, String> mapping = this.getViewResources(templateId)
+                .stream()
+                .collect(Collectors.toMap(tuple -> tuple._1, tuple -> tuple._2));
+
+        return attr -> mapping.get(attr.getViewModelId());
     }
 
     public Map<Long, String> getExamNameMapping() {

@@ -68,4 +68,9 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @return the saved table values of the attribute and configuration */
     Result<ConfigurationTableValues> saveTableValues(ConfigurationTableValues value);
 
+    Result<Set<EntityKey>> setDefaultValues(
+            Long institutionId,
+            Long configurationId,
+            Long attributeId);
+
 }

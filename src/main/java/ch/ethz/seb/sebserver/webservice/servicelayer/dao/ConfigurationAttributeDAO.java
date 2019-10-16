@@ -21,4 +21,6 @@ public interface ConfigurationAttributeDAO extends EntityDAO<ConfigurationAttrib
      * @return Collection of all ConfigurationAttribute that are root attributes */
     Result<Collection<ConfigurationAttribute>> getAllRootAttributes();
 
+    Result<Collection<ConfigurationAttribute>> allChildAttributes(final Long parentId);
+
 }

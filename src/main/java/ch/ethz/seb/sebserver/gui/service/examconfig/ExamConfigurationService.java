@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public interface ExamConfigurationService {
@@ -57,6 +58,10 @@ public interface ExamConfigurationService {
     void initInputFieldValues(
             Long configurationId,
             Collection<ViewContext> viewContexts);
+
+    PageAction resetToDefaults(PageAction action);
+
+    PageAction removeFormView(PageAction action);
 
     static String attributeNameKey(final ConfigurationAttribute attribute) {
         if (attribute == null) {

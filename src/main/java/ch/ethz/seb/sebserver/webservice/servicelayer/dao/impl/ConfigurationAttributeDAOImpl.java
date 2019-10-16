@@ -112,6 +112,22 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<ConfigurationAttribute>> allChildAttributes(final Long parentId) {
+        return Result.tryCatch(() -> this.configurationAttributeRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                        SqlBuilder.isEqualTo(parentId))
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationAttributeDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<ConfigurationAttribute>> getAllRootAttributes() {
         return Result.tryCatch(() -> this.configurationAttributeRecordMapper
                 .selectByExample()
