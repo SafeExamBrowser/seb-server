@@ -376,6 +376,8 @@ CREATE TABLE IF NOT EXISTS `user_role` (
 -- -----------------------------------------------------
 -- Table `oauth_access_token`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `oauth_access_token` ;
+
 CREATE TABLE IF NOT EXISTS `oauth_access_token` (
   `token_id` VARCHAR(255) NULL,
   `token` BLOB NULL,
@@ -391,6 +393,8 @@ CREATE TABLE IF NOT EXISTS `oauth_access_token` (
 -- -----------------------------------------------------
 -- Table `oauth_refresh_token`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `oauth_refresh_token` ;
+
 CREATE TABLE IF NOT EXISTS `oauth_refresh_token` (
   `token_id` VARCHAR(255) NULL,
   `token` BLOB NULL,
