@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -283,7 +284,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
     }
 
     private void callTemplateAction(
-            final Class<? extends RestCall<?>> actionType,
+            final Class<? extends RestCall<TemplateAttribute>> actionType,
             final String templateId,
             final String attributeId) {
 
