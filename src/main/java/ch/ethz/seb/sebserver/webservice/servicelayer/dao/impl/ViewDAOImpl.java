@@ -134,7 +134,9 @@ public class ViewDAOImpl implements ViewDAO {
                     .stream()
                     .filter(view -> view.getName().equals(defView.getName()))
                     .findFirst()
-                    .orElseThrow();
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            EntityType.VIEW,
+                            String.valueOf(templateId) + ":" + defaultViewId));
 
             return result;
         })
