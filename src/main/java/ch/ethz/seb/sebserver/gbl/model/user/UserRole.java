@@ -13,11 +13,13 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 /** Defines the possible user roles of SEB Server users. */
-public enum UserRole implements Entity {
+public enum UserRole implements Entity, GrantedAuthority {
     SEB_SERVER_ADMIN,
     INSTITUTIONAL_ADMIN,
     EXAM_ADMIN,
@@ -38,6 +40,11 @@ public enum UserRole implements Entity {
         return name();
     }
 
+    @Override
+    public String getAuthority() {
+        return name();
+    }
+
     public static List<UserRole> publicRolesForUser(final UserInfo user) {
         final EnumSet<UserRole> roles = user.getUserRoles();
         if (roles.contains(SEB_SERVER_ADMIN)) {
@@ -52,4 +59,5 @@ public enum UserRole implements Entity {
             return Collections.emptyList();
         }
     }
+
 }
