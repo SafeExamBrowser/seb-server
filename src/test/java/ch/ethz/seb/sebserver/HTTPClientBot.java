@@ -88,7 +88,7 @@ public class HTTPClientBot {
         this.apiVersion = args.getOrDefault("apiVersion", "v1");
         this.examId = args.getOrDefault("examId", "2");
         this.institutionId = args.getOrDefault("institutionId", "1");
-        this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "1"));
+        this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
         this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));
         this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));

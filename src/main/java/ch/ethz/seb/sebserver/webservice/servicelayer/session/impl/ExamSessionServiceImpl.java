@@ -186,12 +186,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Collection<ClientConnectionData>> getConnectionData(final Long examId) {
         return Result.tryCatch(() -> {
-            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
             return this.clientConnectionDAO
                     .getConnectionTokens(examId)
                     .getOrThrow()
                     .stream()
-                    .map(token -> cache.get(token, ClientConnectionData.class))
+                    .map(this.examSessionCacheService::getActiveClientConnection)
                     .filter(data -> data != null)
                     .collect(Collectors.toList());
         });
