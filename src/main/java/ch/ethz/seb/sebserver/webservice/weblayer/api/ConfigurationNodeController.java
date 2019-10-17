@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -39,13 +38,13 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -305,11 +304,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
-                    + API.MODEL_ID_VAR_PATH_SEGMENT,
-            method = RequestMethod.POST,
+                    + API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.TEMPLATE_ATTRIBUTE_RESET_VALUES,
+            method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Set<EntityKey> resetTemplateAttribute(
+    public TemplateAttribute resetTemplateAttributeValues(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
             @RequestParam(
@@ -323,6 +323,62 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                         institutionId,
                         parentModelId,
                         modelId)
+                .flatMap(entity -> this.userActivityLogDAO.log(UserLogActivityType.MODIFY, entity))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.TEMPLATE_ATTRIBUTE_ENDPOINT
+                    + API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAUL_ORIENTATION,
+            method = RequestMethod.PATCH,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public TemplateAttribute attachDefaultTemplateAttributeOrientation(
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = API.PARAM_VIEW_ID) final Long viewId) {
+
+        checkModifyPrivilege(institutionId);
+
+        return this.sebExamConfigTemplateService
+                .attachDefaultOrientation(
+                        institutionId,
+                        parentModelId,
+                        modelId,
+                        viewId)
+                .flatMap(entity -> this.userActivityLogDAO.log(UserLogActivityType.MODIFY, entity))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.TEMPLATE_ATTRIBUTE_ENDPOINT
+                    + API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION,
+            method = RequestMethod.PATCH,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public TemplateAttribute removeTemplateAttributeOrientation(
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkModifyPrivilege(institutionId);
+        return this.sebExamConfigTemplateService
+                .removeOrientation(
+                        institutionId,
+                        parentModelId,
+                        modelId)
+                .flatMap(entity -> this.userActivityLogDAO.log(UserLogActivityType.MODIFY, entity))
                 .getOrThrow();
     }
 

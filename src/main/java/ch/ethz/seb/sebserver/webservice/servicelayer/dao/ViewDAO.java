@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.List;
 import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -17,5 +18,9 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface ViewDAO extends EntityDAO<View, View> {
 
     Result<Map<Long, Long>> copyDefaultViewsForTemplate(ConfigurationNode node);
+
+    Result<List<View>> getDefaultTemplateViews();
+
+    Result<View> getDefaultViewForTemplate(Long templateId, Long defaultViewId);
 
 }

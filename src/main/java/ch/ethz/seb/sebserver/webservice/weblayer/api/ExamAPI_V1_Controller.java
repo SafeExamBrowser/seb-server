@@ -326,7 +326,8 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestBody(required = true) final ClientEvent event) {
 
-        this.sebClientConnectionService.notifyClientEvent(connectionToken, event);
+        this.sebClientConnectionService
+                .notifyClientEvent(connectionToken, event);
     }
 
     private Long getInstitutionId(final Principal principal) {

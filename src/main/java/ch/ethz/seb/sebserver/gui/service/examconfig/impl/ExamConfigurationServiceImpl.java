@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
@@ -46,12 +47,16 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.FieldValidationError;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttchDefaultOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -213,19 +218,80 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
     @Override
     public final PageAction resetToDefaults(final PageAction action) {
-        final EntityKey singleSelection = action.getSingleSelection();
+        final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
+        final Set<EntityKey> selection = action.getMultiSelection();
+        if (selection != null && !selection.isEmpty()) {
+            selection.stream().forEach(entityKey -> {
+                callTemplateAction(
+                        ResetTemplateValues.class,
+                        parentEntityKey.modelId,
+                        entityKey.modelId);
+            });
+        } else {
+            final EntityKey entityKey = action.getEntityKey();
+            callTemplateAction(
+                    ResetTemplateValues.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId);
+        }
 
-        // TODO
         return action;
     }
 
     @Override
-    public final PageAction removeFormView(final PageAction action) {
-        final EntityKey singleSelection = action.getSingleSelection();
-
-        // TODO
+    public final PageAction removeFromView(final PageAction action) {
+        final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
+        final Set<EntityKey> selection = action.getMultiSelection();
+        if (selection != null && !selection.isEmpty()) {
+            selection.stream().forEach(entityKey -> {
+                callTemplateAction(
+                        RemoveOrientation.class,
+                        parentEntityKey.modelId,
+                        entityKey.modelId);
+            });
+        } else {
+            final EntityKey entityKey = action.getEntityKey();
+            callTemplateAction(
+                    RemoveOrientation.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId);
+        }
 
         return action;
+    }
+
+    @Override
+    public final PageAction attachToDefaultView(final PageAction action) {
+        final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
+        final Set<EntityKey> selection = action.getMultiSelection();
+        if (selection != null && !selection.isEmpty()) {
+            selection.stream().forEach(entityKey -> {
+                callTemplateAction(
+                        AttchDefaultOrientation.class,
+                        parentEntityKey.modelId,
+                        entityKey.modelId);
+            });
+        } else {
+            final EntityKey entityKey = action.getEntityKey();
+            callTemplateAction(
+                    AttchDefaultOrientation.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId);
+        }
+
+        return action;
+    }
+
+    private void callTemplateAction(
+            final Class<? extends RestCall<?>> actionType,
+            final String templateId,
+            final String attributeId) {
+
+        this.restService.getBuilder(actionType)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, templateId)
+                .withURIVariable(API.PARAM_MODEL_ID, attributeId)
+                .call()
+                .getOrThrow();
     }
 
     private static final class ValueChangeListenerImpl implements ValueChangeListener {

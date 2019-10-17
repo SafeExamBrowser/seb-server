@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.util.List;
-import java.util.Set;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -29,9 +27,20 @@ public interface SebExamConfigTemplateService {
             final Long templateId,
             final Long attributeId);
 
-    Result<Set<EntityKey>> setDefaultValues(
+    Result<TemplateAttribute> setDefaultValues(
             final Long institutionId,
             final Long templateId,
             final Long attributeId);
+
+    Result<TemplateAttribute> removeOrientation(
+            final Long institutionId,
+            final Long templateId,
+            final Long attributeId);
+
+    Result<TemplateAttribute> attachDefaultOrientation(
+            final Long institutionId,
+            final Long templateId,
+            final Long attributeId,
+            Long viewId);
 
 }

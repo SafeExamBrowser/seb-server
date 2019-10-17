@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Arrays;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -36,13 +39,13 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttribute;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -142,9 +145,16 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                                 attribute.getGroupId()))
                 .build();
 
-        widgetFactory.labelLocalizedTitle(
+        widgetFactory.labelLocalized(
                 content,
+                CustomVariant.TEXT_H2,
                 FORM_VALUE_TEXT_KEY);
+
+        final Composite grid = new Composite(content, SWT.NONE);
+        grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        grid.setLayout(new GridLayout(6, true));
+
+        final PageContext valueContext = formContext.copyOf(grid);
 
         final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
                 attribute.getConfigAttribute(),
@@ -154,7 +164,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                 .getOrThrow();
 
         final ViewContext viewContext = this.examConfigurationService.createViewContext(
-                formContext,
+                valueContext,
                 configuration,
                 new View(-1L, "template", 10, 0, templateId),
                 attributeMapping,
@@ -171,9 +181,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                 configuration.id,
                 Arrays.asList(viewContext));
 
-        final PageActionBuilder pageActionBuilder = this.pageService
-                .pageActionBuilder(formContext.clearEntityKeys());
-        pageActionBuilder
+        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
                 .withEntityKey(attributeKey)

@@ -53,6 +53,9 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         if (ex instanceof AccessDeniedException) {
             log.warn("Access denied: ", ex);
+        } else if (ex instanceof OnlyMessageLogExceptionWrapper) {
+            ((OnlyMessageLogExceptionWrapper) ex).log(log);
+            return new ResponseEntity<>(status);
         } else {
             log.error("Unexpected generic error catched at the API endpoint: ", ex);
         }
@@ -81,6 +84,15 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 valErrors,
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OnlyMessageLogExceptionWrapper.class)
+    public ResponseEntity<Object> onlyMessageLogExceptionWrapper(
+            final OnlyMessageLogExceptionWrapper ex,
+            final WebRequest request) {
+
+        ex.log(log);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(OAuth2Exception.class)

@@ -282,7 +282,7 @@ public class ConfigTemplateForm implements TemplateComposer {
             final PageAction action,
             final EntityTable<TemplateAttribute> attrTable) {
 
-        final PageAction removeFormView = this.examConfigurationService.removeFormView(action);
+        final PageAction removeFormView = this.examConfigurationService.removeFromView(action);
         // reload the list
         attrTable.applyFilter();
         return removeFormView;

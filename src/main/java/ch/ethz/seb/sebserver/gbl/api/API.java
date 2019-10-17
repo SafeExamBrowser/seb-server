@@ -27,6 +27,7 @@ public final class API {
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
     public static final String PARAM_CLIENT_CONFIG_SECRET = "client_config_secret";
+    public static final String PARAM_VIEW_ID = "viewId";
     public static final String DEFAULT_CONFIG_TEMPLATE_ID = String.valueOf(ConfigurationNode.DEFAULT_TEMPLATE_ID);
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
@@ -128,6 +129,9 @@ public final class API {
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
+    public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";
+    public static final String TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION = "remove-orientation";
+    public static final String TEMPLATE_ATTRIBUTE_ATTACH_DEFAUL_ORIENTATION = "attach-default-orientation";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";

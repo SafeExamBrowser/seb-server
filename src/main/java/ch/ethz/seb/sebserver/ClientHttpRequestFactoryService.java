@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
@@ -95,11 +93,18 @@ public class ClientHttpRequestFactoryService {
 
             final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(this.createProxiedClient(proxy, null));
+            factory.setBufferRequestBody(false);
             return factory;
 
         } else {
-            final DevClientHttpRequestFactory devClientHttpRequestFactory = new DevClientHttpRequestFactory();
-            devClientHttpRequestFactory.setOutputStreaming(false);
+            final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory =
+                    new HttpComponentsClientHttpRequestFactory();
+
+            devClientHttpRequestFactory.setBufferRequestBody(false);
+
+//            final HttpClient httpClient = devClientHttpRequestFactory.getHttpClient();
+//            httpClient.setInstanceFollowRedirects(false);
+//            httpClient.setOutputStreaming(false);
             return devClientHttpRequestFactory;
         }
     }
@@ -204,17 +209,17 @@ public class ClientHttpRequestFactoryService {
     }
 
     // TODO set connection and read timeout!? configurable!?
-    private static class DevClientHttpRequestFactory extends SimpleClientHttpRequestFactory {
-
-        @Override
-        protected void prepareConnection(
-                final HttpURLConnection connection,
-                final String httpMethod) throws IOException {
-
-            super.prepareConnection(connection, httpMethod);
-            super.setBufferRequestBody(false);
-            connection.setInstanceFollowRedirects(false);
-        }
-    }
+//    private static class DevClientHttpRequestFactory extends HttpComponentsClientHttpRequestFactory {
+//
+//        @Override
+//        protected void prepareConnection(
+//                final HttpURLConnection connection,
+//                final String httpMethod) throws IOException {
+//
+//            super.prepareConnection(connection, httpMethod);
+//            super.setBufferRequestBody(false);
+//            connection.setInstanceFollowRedirects(false);
+//        }
+//    }
 
 }

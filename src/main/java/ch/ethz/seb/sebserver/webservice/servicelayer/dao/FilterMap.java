@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.LinkedMultiValueMap;
@@ -117,6 +119,10 @@ public class FilterMap extends POSTMapper {
 
     public Long getOrientationTemplateId() {
         return getLong(Orientation.FILTER_ATTR_TEMPLATE_ID);
+    }
+
+    public Long getOrientationAttributeId() {
+        return getLong(Orientation.FILTER_ATTR_ATTRIBUTE_ID);
     }
 
     public Long getOrientationViewId() {
@@ -282,6 +288,25 @@ public class FilterMap extends POSTMapper {
         }
 
         return null;
+    }
+
+    public static final class Builder {
+
+        private final FilterMap filterMap = new FilterMap();
+
+        public Builder add(final String name, final String value) {
+            this.filterMap.params.add(name, value);
+            return this;
+        }
+
+        public Builder put(final String name, final String value) {
+            this.filterMap.params.put(name, Arrays.asList(value));
+            return this;
+        }
+
+        public FilterMap create() {
+            return new FilterMap(this.filterMap.params);
+        }
     }
 
 }

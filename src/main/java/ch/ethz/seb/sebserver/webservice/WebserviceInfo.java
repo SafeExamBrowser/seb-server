@@ -36,6 +36,7 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_TEST_PROPERTY = "sebserver.test.property";
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
+    private static final String WEB_SERVICE_HTTP_PORT = "sebserver.webservice.http.port";
     private static final String WEB_SERVICE_HOST_ADDRESS_KEY = "server.address";
     private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
@@ -45,8 +46,9 @@ public class WebserviceInfo {
     private final String testProperty;
     private final String httpScheme;
     private final String hostAddress; // internal
-    private final String serverName; // external
-    private final String serverPort;
+    private final String webserverName; // external
+    private final String serverPort; // internal
+    private final String webserverPort; // external
     private final String discoveryEndpoint;
 
     private final String serverURLPrefix;
@@ -58,17 +60,21 @@ public class WebserviceInfo {
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.hostAddress = environment.getRequiredProperty(WEB_SERVICE_HOST_ADDRESS_KEY);
-        this.serverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, "");
+        this.webserverName = environment.getProperty(WEB_SERVICE_SERVER_NAME_KEY, "");
         this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
+        this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
 
-        this.serverURLPrefix = UriComponentsBuilder.newInstance()
+        final UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
                 .scheme(this.httpScheme)
-                .host((StringUtils.isNotBlank(this.serverName))
-                        ? this.serverName
-                        : this.hostAddress)
-                .port(this.serverPort)
-                .toUriString();
+                .host((StringUtils.isNotBlank(this.webserverName))
+                        ? this.webserverName
+                        : this.hostAddress);
+        if (StringUtils.isNotBlank(this.webserverPort)) {
+            builder.port(this.webserverPort);
+        }
+
+        this.serverURLPrefix = builder.toUriString();
 
         this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.distributed",
@@ -106,12 +112,16 @@ public class WebserviceInfo {
         return this.hostAddress;
     }
 
-    public String getServerName() {
-        return this.serverName;
+    public String getWebserviceDomainName() {
+        return this.webserverName;
     }
 
     public String getServerPort() {
         return this.serverPort;
+    }
+
+    public String getServerExternalPort() {
+        return this.webserverPort;
     }
 
     public String getDiscoveryEndpoint() {
@@ -183,18 +193,20 @@ public class WebserviceInfo {
         builder.append(this.httpScheme);
         builder.append(", hostAddress=");
         builder.append(this.hostAddress);
-        builder.append(", serverName=");
-        builder.append(this.serverName);
+        builder.append(", webserverName=");
+        builder.append(this.webserverName);
         builder.append(", serverPort=");
         builder.append(this.serverPort);
+        builder.append(", webserverPort=");
+        builder.append(this.webserverPort);
         builder.append(", discoveryEndpoint=");
         builder.append(this.discoveryEndpoint);
-        builder.append(", externalAddressAlias=");
-        builder.append(this.externalAddressAlias);
         builder.append(", serverURLPrefix=");
         builder.append(this.serverURLPrefix);
         builder.append(", isDistributed=");
         builder.append(this.isDistributed);
+        builder.append(", externalAddressAlias=");
+        builder.append(this.externalAddressAlias);
         builder.append("]");
         return builder.toString();
     }

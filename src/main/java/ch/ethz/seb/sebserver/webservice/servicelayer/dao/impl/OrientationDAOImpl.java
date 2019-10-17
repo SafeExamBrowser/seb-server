@@ -92,6 +92,9 @@ public class OrientationDAOImpl implements OrientationDAO {
                         OrientationRecordDynamicSqlSupport.templateId,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplateId()))
                 .and(
+                        OrientationRecordDynamicSqlSupport.configAttributeId,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationAttributeId()))
+                .and(
                         OrientationRecordDynamicSqlSupport.viewId,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationViewId()))
                 .and(

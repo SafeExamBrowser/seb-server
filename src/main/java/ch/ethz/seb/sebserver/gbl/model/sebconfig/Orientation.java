@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Orientation implements Entity {
 
+    public static final String FILTER_ATTR_ATTRIBUTE_ID = "attributeId";
     public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_VIEW_ID = "viewId";
     public static final String FILTER_ATTR_GROUP_ID = "groupId";

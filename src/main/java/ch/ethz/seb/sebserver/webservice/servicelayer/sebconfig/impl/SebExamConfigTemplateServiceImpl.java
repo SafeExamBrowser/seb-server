@@ -8,33 +8,34 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigTemplateService;
 
 @Lazy
@@ -42,28 +43,26 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigTemp
 @WebServiceProfile
 public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateService {
 
-    private final ConfigurationNodeDAO ConfigurationNodeDAO;
-    private final ConfigurationDAO configurationDAO;
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigTemplateServiceImpl.class);
+
     private final ViewDAO viewDAO;
+    private final ConfigurationDAO configurationDAO;
     private final OrientationDAO orientationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
-    private final SebExamConfigService sebExamConfigService;
 
     protected SebExamConfigTemplateServiceImpl(
-            final ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO configurationNodeDAO,
-            final ConfigurationDAO configurationDAO, final ViewDAO viewDAO, final OrientationDAO orientationDAO,
+            final ViewDAO viewDAO,
+            final ConfigurationDAO configurationDAO,
+            final OrientationDAO orientationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final ConfigurationValueDAO configurationValueDAO,
-            final SebExamConfigService sebExamConfigService) {
-        super();
-        this.ConfigurationNodeDAO = configurationNodeDAO;
-        this.configurationDAO = configurationDAO;
+            final ConfigurationValueDAO configurationValueDAO) {
+
         this.viewDAO = viewDAO;
+        this.configurationDAO = configurationDAO;
         this.orientationDAO = orientationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
-        this.sebExamConfigService = sebExamConfigService;
     }
 
     @Override
@@ -127,7 +126,7 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
     }
 
     @Override
-    public Result<Set<EntityKey>> setDefaultValues(
+    public Result<TemplateAttribute> setDefaultValues(
             final Long institutionId,
             final Long templateId,
             final Long attributeId) {
@@ -137,7 +136,102 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
                         .setDefaultValues(
                                 institutionId,
                                 config.id,
-                                attributeId));
+                                attributeId))
+                .flatMap(vals -> getAttribute(
+                        institutionId,
+                        templateId,
+                        attributeId));
+    }
+
+    @Override
+    public Result<TemplateAttribute> removeOrientation(
+            final Long institutionId,
+            final Long templateId,
+            final Long attributeId) {
+
+        return Result.tryCatch(() -> {
+            final Orientation orientation = getOrientation(templateId, attributeId);
+
+            this.orientationDAO.delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+                    .getOrThrow();
+
+            final TemplateAttribute attribute = getAttribute(institutionId, templateId, attributeId)
+                    .getOrThrow();
+
+            if (attribute.getOrientation() != null) {
+                throw new IllegalStateException(
+                        "Failed to remove Orientation, expecting no Orientatoin for attribute: " + attribute);
+            }
+
+            return attribute;
+        });
+    }
+
+    @Override
+    public Result<TemplateAttribute> attachDefaultOrientation(
+            final Long institutionId,
+            final Long templateId,
+            final Long attributeId,
+            final Long viewId) {
+
+        return Result.tryCatch(() -> {
+            final Orientation orientation = getOrientation(templateId, attributeId);
+            final Orientation devOrientation = getOrientation(ConfigurationNode.DEFAULT_TEMPLATE_ID, attributeId);
+
+            if (orientation != null) {
+                this.orientationDAO.delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+                        .getOrThrow();
+            }
+
+            final Long _viewId;
+            if (viewId == null) {
+                _viewId = this.viewDAO.getDefaultViewForTemplate(templateId, devOrientation.viewId)
+                        .getOrThrow().id;
+            } else {
+                _viewId = viewId;
+            }
+
+            final Orientation newOrientation = new Orientation(
+                    null,
+                    attributeId,
+                    templateId,
+                    _viewId,
+                    devOrientation.groupId,
+                    devOrientation.xPosition,
+                    devOrientation.yPosition,
+                    devOrientation.width,
+                    devOrientation.height,
+                    devOrientation.title);
+
+            this.orientationDAO.save(newOrientation)
+                    .getOrThrow();
+
+            final TemplateAttribute attribute = getAttribute(institutionId, templateId, attributeId)
+                    .getOrThrow();
+
+            if (attribute.getOrientation() == null) {
+                throw new IllegalStateException(
+                        "Failed to attach default Orientation, expecting Orientatoin for attribute: " + attribute);
+            }
+
+            return attribute;
+        });
+    }
+
+    private Orientation getOrientation(final Long templateId, final Long attributeId) {
+        final FilterMap filterMap = new FilterMap.Builder()
+                .put(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(templateId))
+                .put(Orientation.FILTER_ATTR_ATTRIBUTE_ID, String.valueOf(attributeId))
+                .create();
+
+        return this.orientationDAO.allMatching(filterMap)
+                .get(error -> {
+                    log.warn("Unexpecrted error while get Orientation: ", error);
+                    return Collections.emptyList();
+                })
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 
 }

@@ -101,6 +101,47 @@ public class ViewDAOImpl implements ViewDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<List<View>> getDefaultTemplateViews() {
+        return Result.tryCatch(() -> this.viewRecordMapper
+                .selectByExample()
+                .where(
+                        ViewRecordDynamicSqlSupport.templateId,
+                        SqlBuilder.isEqualTo(ConfigurationNode.DEFAULT_TEMPLATE_ID))
+                .build()
+                .execute()
+                .stream()
+                .map(ViewDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<View> getDefaultViewForTemplate(final Long templateId, final Long defaultViewId) {
+        return Result.tryCatch(() -> {
+            // get all views of template
+            final List<ViewRecord> templateViews = this.viewRecordMapper
+                    .selectByExample()
+                    .where(
+                            ViewRecordDynamicSqlSupport.templateId,
+                            SqlBuilder.isEqualTo(templateId))
+                    .build()
+                    .execute();
+            // get default view
+            final ViewRecord defView = this.viewRecordMapper.selectByPrimaryKey(defaultViewId);
+            final ViewRecord result = templateViews
+                    .stream()
+                    .filter(view -> view.getName().equals(defView.getName()))
+                    .findFirst()
+                    .orElseThrow();
+
+            return result;
+        })
+                .flatMap(ViewDAOImpl::toDomainModel);
+    }
+
+    @Override
     @Transactional
     public Result<View> createNew(final View data) {
         return Result.tryCatch(() -> {

@@ -61,7 +61,9 @@ public interface ExamConfigurationService {
 
     PageAction resetToDefaults(PageAction action);
 
-    PageAction removeFormView(PageAction action);
+    PageAction removeFromView(PageAction action);
+
+    PageAction attachToDefaultView(final PageAction action);
 
     static String attributeNameKey(final ConfigurationAttribute attribute) {
         if (attribute == null) {

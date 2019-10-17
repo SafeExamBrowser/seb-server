@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.logging.LogLevel;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
+import ch.ethz.seb.sebserver.webservice.weblayer.api.OnlyMessageLogExceptionWrapper;
 
 @Lazy
 @Service
@@ -392,7 +394,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         if (activeClientConnection != null) {
 
             if (activeClientConnection.clientConnection.status != ConnectionStatus.ESTABLISHED) {
-                throw new IllegalStateException("No established SEB client connection");
+                throw new OnlyMessageLogExceptionWrapper(
+                        new IllegalStateException("No established SEB client connection"),
+                        LogLevel.WARN);
             }
 
             // store event
@@ -404,6 +408,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             activeClientConnection.getindicatorMapping(event.eventType)
                     .stream()
                     .forEach(indicator -> indicator.notifyValueChange(event));
+        } else {
+            log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
         }
     }
 
