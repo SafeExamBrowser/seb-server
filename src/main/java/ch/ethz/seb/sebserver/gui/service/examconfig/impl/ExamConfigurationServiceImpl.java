@@ -108,18 +108,44 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         return Result.tryCatch(() -> {
             return new AttributeMapping(
                     templateId,
-                    this.restService
-                            .getBuilder(GetConfigAttributes.class)
-                            .call()
-                            .onError(t -> log.error("Failed to get all ConfigurationAttribute"))
-                            .getOrThrow(),
-                    this.restService
-                            .getBuilder(GetOrientations.class)
-                            .withQueryParam(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(templateId))
-                            .call()
-                            .onError(t -> log.error("Failed to get all Orientation of template {}", templateId, t))
-                            .getOrThrow());
+                    getAttributes(),
+                    getOrientations(templateId));
         });
+    }
+
+    @Override
+    public Result<AttributeMapping> getAttributes(
+            final TemplateAttribute attribute,
+            final Orientation defaultOrientation) {
+
+        final List<Orientation> orientations = getOrientations(attribute.templateId);
+        if (attribute.getOrientation() == null) {
+            orientations.add(defaultOrientation);
+        }
+
+        return Result.tryCatch(() -> {
+            return new AttributeMapping(
+                    attribute.templateId,
+                    getAttributes(),
+                    orientations);
+        });
+    }
+
+    private List<Orientation> getOrientations(final Long templateId) {
+        return this.restService
+                .getBuilder(GetOrientations.class)
+                .withQueryParam(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(templateId))
+                .call()
+                .onError(t -> log.error("Failed to get all Orientation of template {}", templateId, t))
+                .getOrThrow();
+    }
+
+    private List<ConfigurationAttribute> getAttributes() {
+        return this.restService
+                .getBuilder(GetConfigAttributes.class)
+                .call()
+                .onError(t -> log.error("Failed to get all ConfigurationAttribute"))
+                .getOrThrow();
     }
 
     @Override

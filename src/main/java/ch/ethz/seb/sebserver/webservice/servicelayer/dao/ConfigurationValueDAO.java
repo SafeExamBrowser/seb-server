@@ -19,15 +19,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, ConfigurationValue> {
 
-    /** NOTE: Deletion is not supported for ConfigurationValue.
-     * A ConfigurationValue get automatically deleted on deletion of a Configuration */
-    @Override
-    default Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        throw new UnsupportedOperationException(
-                "Deletion is not supported for ConfigurationValue. A ConfigurationValue get "
-                        + "automatically deleted on deletion of a Configuration");
-    }
-
     /** Use this to get all ConfigurationValue for a specific configuration and for a all
      * root attributes that are not child attributes.
      *

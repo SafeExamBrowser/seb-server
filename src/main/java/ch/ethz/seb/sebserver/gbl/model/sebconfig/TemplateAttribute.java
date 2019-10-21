@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 
 import javax.validation.constraints.NotNull;
 
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -28,6 +30,7 @@ public final class TemplateAttribute implements Entity {
 
     public static final String FILTER_ATTR_VIEW = "view";
     public static final String FILTER_ATTR_GROUP = "group";
+    public static final String FILTER_ATTR_TYPE = "type";
 
     @NotNull
     @JsonProperty(CONFIGURATION.ATTR_INSTITUTION_ID)
@@ -133,6 +136,15 @@ public final class TemplateAttribute implements Entity {
                 && this.orientation.groupId.contains(groupId);
     }
 
+    @JsonIgnore
+    public boolean hasType(final EnumSet<AttributeType> types) {
+        if (types == null || types.isEmpty()) {
+            return true;
+        }
+
+        return types.contains(this.configAttribute.type);
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -151,6 +163,25 @@ public final class TemplateAttribute implements Entity {
     public static final Comparator<TemplateAttribute> nameComparator(final boolean descending) {
         return (attr1, attr2) -> attr1.configAttribute.name.compareToIgnoreCase(
                 attr2.configAttribute.name) * ((descending) ? -1 : 1);
+    }
+
+    public static final Comparator<TemplateAttribute> typeComparator(final boolean descending) {
+        return (attr1, attr2) -> attr1.configAttribute.type.name().compareToIgnoreCase(
+                attr2.configAttribute.type.name()) * ((descending) ? -1 : 1);
+    }
+
+    public static final Comparator<TemplateAttribute> groupComparator(final boolean descending) {
+        return (attr1, attr2) -> {
+            final Orientation o1 = attr1.getOrientation();
+            final Orientation o2 = attr2.getOrientation();
+            final String name1 = (o1 != null && o1.getGroupId() != null)
+                    ? o1.getGroupId()
+                    : Constants.EMPTY_NOTE;
+            final String name2 = (o2 != null && o2.getGroupId() != null)
+                    ? o2.getGroupId()
+                    : Constants.EMPTY_NOTE;
+            return name1.compareToIgnoreCase(name2) * ((descending) ? -1 : 1);
+        };
     }
 
 }

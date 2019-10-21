@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -95,6 +96,12 @@ public class ResourceService {
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
     public static final String LMSSETUP_PROXY_AUTH_TYPE_PREFIX = "sebserver.lmssetup.form.proxy.auth-type.";
+    public static final String CONFIG_ATTRIBUTE_TYPE_PREFIX = "sebserver.configtemplate.attr.type.";
+
+    public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
+            AttributeType.LABEL,
+            AttributeType.COMPOSITE_TABLE,
+            AttributeType.INLINE_TABLE);
 
     public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
     public static final String USER_ACTIVITY_TYPE_PREFIX = "sebserver.overall.types.activityType.";
@@ -492,6 +499,43 @@ public class ResourceService {
                 .collect(Collectors.toMap(tuple -> tuple._1, tuple -> tuple._2));
 
         return attr -> mapping.get(attr.getViewModelId());
+    }
+
+    public List<Tuple<String>> getAttributeTypeResources() {
+        return Arrays.asList(AttributeType.values())
+                .stream()
+                .filter(type -> !ATTRIBUTE_TYPES_NOT_DISPLAYED.contains(type))
+                .map(type -> new Tuple<>(getAttributeTypeFilterName(type), getAttributeTypeName(type)))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public String getAttributeTypeName(final TemplateAttribute attribute) {
+        if (attribute != null && attribute.getConfigAttribute() != null) {
+            return getAttributeTypeName(attribute.getConfigAttribute().type);
+        }
+
+        return Constants.EMPTY_NOTE;
+    }
+
+    private String getAttributeTypeFilterName(final AttributeType type) {
+        if (type == AttributeType.TABLE) {
+            return type.name()
+                    + Constants.LIST_SEPARATOR
+                    + AttributeType.COMPOSITE_TABLE.name()
+                    + Constants.LIST_SEPARATOR
+                    + AttributeType.INLINE_TABLE.name();
+        } else {
+            return type.name();
+        }
+    }
+
+    public String getAttributeTypeName(final AttributeType type) {
+        if (type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return this.i18nSupport
+                .getText(CONFIG_ATTRIBUTE_TYPE_PREFIX + type.name());
     }
 
     public Map<Long, String> getExamNameMapping() {

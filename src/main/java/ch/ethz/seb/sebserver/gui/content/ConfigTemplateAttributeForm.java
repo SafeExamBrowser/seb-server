@@ -22,14 +22,15 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
-import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
@@ -42,8 +43,10 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttribute;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -89,10 +92,18 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
 
-        final UserInfo user = this.currentUser.get();
         final EntityKey attributeKey = pageContext.getEntityKey();
         final EntityKey templateKey = pageContext.getParentEntityKey();
         final Long templateId = Long.valueOf(templateKey.modelId);
+
+        final ConfigurationNode template = this.restService
+                .getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, templateKey.modelId)
+                .call()
+                .get(pageContext::notifyError);
+
+        final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(template);
+        final boolean modifyGrant = entityGrant.m();
 
         // the attribute
         final TemplateAttribute attribute = this.restService.getBuilder(GetTemplateAttribute.class)
@@ -119,7 +130,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
 
         final boolean hasView = attribute.getOrientation() != null;
 
-        final FormHandle<TemplateAttribute> formHandle = this.pageService.formBuilder(
+        this.pageService.formBuilder(
                 formContext, 4)
                 .readonly(true) // TODO change this for next version
                 .addField(FormBuilder.text(
@@ -129,7 +140,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
-                        () -> attribute.getConfigAttribute().getType().name()))
+                        () -> this.resourceService.getAttributeTypeName(attribute)))
                 .addFieldIf(
                         () -> hasView,
                         () -> FormBuilder.singleSelection(
@@ -156,19 +167,20 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
 
         final PageContext valueContext = formContext.copyOf(grid);
 
-        final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
-                attribute.getConfigAttribute(),
-                attribute.getOrientation());
+        final Orientation defaultOrientation = getDefaultOrientation(attribute);
         final AttributeMapping attributeMapping = this.examConfigurationService
-                .getAttributes(templateId)
+                .getAttributes(attribute, defaultOrientation)
                 .getOrThrow();
-
         final ViewContext viewContext = this.examConfigurationService.createViewContext(
                 valueContext,
                 configuration,
                 new View(-1L, "template", 10, 0, templateId),
                 attributeMapping,
                 1);
+
+        final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
+                attribute.getConfigAttribute(),
+                defaultOrientation);
 
         final InputField createInputField = inputFieldBuilder.createInputField(
                 content,
@@ -188,12 +200,41 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                 .withParentEntityKey(templateKey)
                 .withExec(this.examConfigurationService::resetToDefaults)
                 .ignoreMoveAwayFromEdit()
-                .publish()
+                .publishIf(() -> modifyGrant)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
+                .withEntityKey(attributeKey)
+                .withParentEntityKey(templateKey)
+                .withExec(this.examConfigurationService::removeFromView)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> modifyGrant && hasView)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW)
+                .withEntityKey(attributeKey)
+                .withParentEntityKey(templateKey)
+                .withExec(this.examConfigurationService::attachToDefaultView)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> modifyGrant && !hasView)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
                 .withEntityKey(templateKey)
+                .ignoreMoveAwayFromEdit()
                 .publish();
 
+    }
+
+    private Orientation getDefaultOrientation(final TemplateAttribute attribute) {
+        return new Orientation(
+                -1L,
+                attribute.getConfigAttribute().id,
+                attribute.templateId,
+                null,
+                null,
+                0,
+                0,
+                2,
+                1,
+                TitleOrientation.NONE);
     }
 
 }

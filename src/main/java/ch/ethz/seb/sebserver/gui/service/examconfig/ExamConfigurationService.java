@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
@@ -41,6 +42,10 @@ public interface ExamConfigurationService {
             Orientation orientation);
 
     Result<AttributeMapping> getAttributes(Long templateId);
+
+    Result<AttributeMapping> getAttributes(
+            final TemplateAttribute attribute,
+            final Orientation defaultOrientation);
 
     List<View> getViews(AttributeMapping allAttributes);
 

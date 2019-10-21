@@ -461,22 +461,37 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
-    SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW(
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW(
             new LocTextKey("sebserver.configtemplate.attr.list.actions.removeview"),
-            ImageIcon.DELETE,
+            ImageIcon.REMOVE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_ATTACH_DEFAULT_VIEW(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.attach-default-view"),
+            ImageIcon.ADD,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
+            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.removeview"),
+            ImageIcon.REMOVE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW(
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.attach-default-view"),
+            ImageIcon.ADD,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT(
             new LocTextKey("sebserver.configtemplate.attr.action.setdefault"),
             ImageIcon.UNDO,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT,
-            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+            ActionCategory.FORM),
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE(
             new LocTextKey("sebserver.configtemplate.attr.action.template"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
-            ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
+            ActionCategory.FORM),
 
     RUNNING_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.monitoring.action.list"),

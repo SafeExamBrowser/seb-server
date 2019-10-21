@@ -230,6 +230,20 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     }
 
     @Override
+    @Transactional
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
+            return extractPKsFromKeys(all)
+                    .stream()
+                    .map(pk -> {
+                        this.configurationValueRecordMapper.deleteByPrimaryKey(pk);
+                        return new EntityKey(pk, EntityType.CONFIGURATION_VALUE);
+                    })
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Result<ConfigurationTableValues> getTableValues(
             final Long institutionId,
@@ -355,26 +369,30 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(this::getAttributeMapping)
                 .map(attributeMapping -> {
 
-                    final Set<EntityKey> tableValues = this.configurationValueRecordMapper.selectByExample()
-                            .where(
-                                    ConfigurationValueRecordDynamicSqlSupport.institutionId,
-                                    isEqualTo(institutionId))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                    isEqualTo(configurationId))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                    SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
-                            .build()
-                            .execute()
-                            .stream()
-                            .map(r -> new EntityKey(r.getId(), EntityType.CONFIGURATION_VALUE))
-                            .collect(Collectors.toSet());
+                    final Set<EntityKey> tableValues = new HashSet<>();
+                    if (attributeMapping != null && !attributeMapping.isEmpty()) {
 
-                    // if there are table values, delete them first
-                    if (tableValues != null && !tableValues.isEmpty()) {
-                        this.delete(tableValues)
-                                .getOrThrow();
+                        tableValues.addAll(this.configurationValueRecordMapper.selectByExample()
+                                .where(
+                                        ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                                        isEqualTo(institutionId))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                        isEqualTo(configurationId))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                        SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
+                                .build()
+                                .execute()
+                                .stream()
+                                .map(r -> new EntityKey(r.getId(), EntityType.CONFIGURATION_VALUE))
+                                .collect(Collectors.toSet()));
+
+                        // if there are table values, delete them first
+                        if (tableValues != null && !tableValues.isEmpty()) {
+                            this.delete(tableValues)
+                                    .getOrThrow();
+                        }
                     }
 
                     // get the attribute value reset to defaultValue and save
@@ -404,9 +422,14 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                         final ConfigurationValueRecord oldRec = values.get(0);
                         final ConfigurationValueRecord newRec = new ConfigurationValueRecord(
-                                oldRec.getId(), null, null, null, null, defaultValue);
+                                oldRec.getId(),
+                                oldRec.getInstitutionId(),
+                                oldRec.getConfigurationId(),
+                                oldRec.getConfigurationAttributeId(),
+                                oldRec.getListIndex(),
+                                defaultValue);
 
-                        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRec);
+                        this.configurationValueRecordMapper.updateByPrimaryKey(newRec);
 
                         final HashSet<EntityKey> result = new HashSet<>();
                         result.add(new EntityKey(newRec.getId(), EntityType.CONFIGURATION_VALUE));

@@ -342,7 +342,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = API.PARAM_VIEW_ID) final Long viewId) {
+            @RequestParam(name = API.PARAM_VIEW_ID, required = false) final Long viewId) {
 
         checkModifyPrivilege(institutionId);
 

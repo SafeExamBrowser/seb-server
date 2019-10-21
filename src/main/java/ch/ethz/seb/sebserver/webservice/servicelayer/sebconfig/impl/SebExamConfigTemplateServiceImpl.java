@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,12 +24,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
@@ -88,14 +93,30 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
                     .map(attr -> new TemplateAttribute(institutionId, templateId, attr, orentiations.get(attr.id)))
                     .filter(attr -> attr.isNameLike(filterMap.getString(TemplateAttribute.FILTER_ATTR_NAME))
                             && attr.isGroupLike(filterMap.getString(TemplateAttribute.FILTER_ATTR_GROUP))
-                            && attr.isInView(filterMap.getLong(TemplateAttribute.FILTER_ATTR_VIEW)))
+                            && attr.isInView(filterMap.getLong(TemplateAttribute.FILTER_ATTR_VIEW))
+                            && attr.hasType(extractTypes(filterMap)))
                     .collect(Collectors.toList());
 
             if (!StringUtils.isBlank(sort)) {
                 final String sortBy = PageSortOrder.decode(sort);
                 final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
-                if (sortBy.equals(Domain.CONFIGURATION_NODE.ATTR_NAME)) {
-                    Collections.sort(attrs, TemplateAttribute.nameComparator(sortOrder == PageSortOrder.DESCENDING));
+                if (sortBy.equals(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME)) {
+                    Collections.sort(
+                            attrs,
+                            TemplateAttribute.nameComparator(sortOrder == PageSortOrder.DESCENDING));
+                } else if (sortBy.equals(Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE)) {
+                    Collections.sort(
+                            attrs,
+                            TemplateAttribute.typeComparator(sortOrder == PageSortOrder.DESCENDING));
+                } else if (sortBy.equals(Domain.ORIENTATION.ATTR_VIEW_ID)) {
+                    Collections.sort(attrs, this.getViewComparator(
+                            institutionId,
+                            templateId,
+                            sortOrder == PageSortOrder.DESCENDING));
+                } else if (sortBy.equals(Domain.ORIENTATION.ATTR_GROUP_ID)) {
+                    Collections.sort(
+                            attrs,
+                            TemplateAttribute.groupComparator(sortOrder == PageSortOrder.DESCENDING));
                 }
             }
             return attrs;
@@ -203,7 +224,7 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
                     devOrientation.height,
                     devOrientation.title);
 
-            this.orientationDAO.save(newOrientation)
+            this.orientationDAO.createNew(newOrientation)
                     .getOrThrow();
 
             final TemplateAttribute attribute = getAttribute(institutionId, templateId, attributeId)
@@ -232,6 +253,62 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
                 .stream()
                 .findFirst()
                 .orElse(null);
+    }
+
+    private Comparator<TemplateAttribute> getViewComparator(
+            final Long institutionId,
+            final Long templateId,
+            final boolean descending) {
+
+        final Map<Long, View> viewMap = this.viewDAO.allMatching(new FilterMap.Builder()
+                .add(View.FILTER_ATTR_INSTITUTION, String.valueOf(institutionId))
+                .add(View.FILTER_ATTR_TEMPLATE, String.valueOf(templateId))
+                .create())
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toMap(v -> v.id, Function.identity()));
+
+        return (attr1, attr2) -> {
+
+            return getViewName(attr1, viewMap)
+                    .compareToIgnoreCase(getViewName(attr2, viewMap))
+                    * ((descending) ? -1 : 1);
+
+        };
+    }
+
+    private EnumSet<AttributeType> extractTypes(final FilterMap filterMap) {
+        final EnumSet<AttributeType> result = EnumSet.noneOf(AttributeType.class);
+        final String types = filterMap.getString(TemplateAttribute.FILTER_ATTR_TYPE);
+        if (StringUtils.isBlank(types)) {
+            return result;
+        }
+
+        final String[] split = StringUtils.split(types, Constants.LIST_SEPARATOR);
+        if (split != null) {
+            for (int i = 0; i < split.length; i++) {
+                result.add(AttributeType.valueOf(split[i]));
+            }
+        }
+
+        return result;
+    }
+
+    private static final String getViewName(
+            final TemplateAttribute attribute,
+            final Map<Long, View> viewMap) {
+
+        final Orientation orientation = attribute.getOrientation();
+        if (orientation == null || orientation.viewId == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        final View view = viewMap.get(orientation.viewId);
+        if (view != null) {
+            return view.name;
+        }
+
+        return Constants.EMPTY_NOTE;
     }
 
 }
