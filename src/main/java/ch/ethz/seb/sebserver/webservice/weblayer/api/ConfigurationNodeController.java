@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,11 +72,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationNodeController.class);
 
+    private final ConfigurationNodeDAO configurationNodeDAO;
     private final ConfigurationDAO configurationDAO;
     private final ViewDAO viewDAO;
     private final OrientationDAO orientationDAO;
     private final SebExamConfigService sebExamConfigService;
-
     private final SebExamConfigTemplateService sebExamConfigTemplateService;
 
     protected ConfigurationNodeController(
@@ -99,6 +100,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 beanValidationService);
 
         this.configurationDAO = configurationDAO;
+        this.configurationNodeDAO = entityDAO;
         this.viewDAO = viewDAO;
         this.orientationDAO = orientationDAO;
         this.sebExamConfigService = sebExamConfigService;
@@ -132,6 +134,35 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         return this.configurationDAO
                 .getFollowupConfiguration(modelId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_COPY_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ConfigurationNode copyConfiguration(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = ConfigurationNode.ATTR_COPY_WITH_HISTORY,
+                    required = false) final Boolean withHistory) {
+
+        this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkWrite);
+
+        final SEBServerUser currentUser = this.authorization
+                .getUserService()
+                .getCurrentUser();
+
+        return this.configurationNodeDAO.createCopy(
+                institutionId,
+                currentUser.getUserInfo().uuid,
+                modelId,
+                BooleanUtils.toBoolean(withHistory))
                 .getOrThrow();
     }
 

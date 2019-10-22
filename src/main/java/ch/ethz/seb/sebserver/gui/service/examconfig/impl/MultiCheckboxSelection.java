@@ -68,14 +68,18 @@ public class MultiCheckboxSelection extends SelectionFieldBuilder implements Inp
                 orientation,
                 selection);
 
-        selection.setSelectionListener(event -> {
-            multiSelectionCheckboxInputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    multiSelectionCheckboxInputField.getValue(),
-                    multiSelectionCheckboxInputField.listIndex);
-        });
+        if (viewContext.readonly) {
+            selection.setEnabled(false);
+        } else {
+            selection.setSelectionListener(event -> {
+                multiSelectionCheckboxInputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        multiSelectionCheckboxInputField.getValue(),
+                        multiSelectionCheckboxInputField.listIndex);
+            });
+        }
 
         return multiSelectionCheckboxInputField;
     }

@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.binary.Hex;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -32,6 +33,8 @@ import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -67,7 +70,8 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 .createInnerGrid(parent, attribute, orientation);
 
         final Text passwordInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
-        passwordInput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final GridData passwordInputLD = new GridData(SWT.FILL, SWT.FILL, true, false);
+        passwordInput.setLayoutData(passwordInputLD);
         final Text confirmInput = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.PASSWORD);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         gridData.verticalIndent = 14;
@@ -80,37 +84,46 @@ public class PassworFieldBuilder implements InputFieldBuilder {
                 confirmInput,
                 Form.createErrorLabel(innerGrid));
 
-        final Listener valueChangeEventListener = event -> {
-            passwordInputField.clearError();
+        if (viewContext.readonly) {
+            passwordInput.setEditable(false);
+            passwordInput.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
+            passwordInputLD.heightHint = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+            confirmInput.setEditable(false);
+            confirmInput.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
+            gridData.heightHint = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+        } else {
+            final Listener valueChangeEventListener = event -> {
+                passwordInputField.clearError();
 
-            final String pwd = passwordInput.getText();
-            final String confirm = confirmInput.getText();
+                final String pwd = passwordInput.getText();
+                final String confirm = confirmInput.getText();
 
-            if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
-                return;
-            }
+                if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
+                    return;
+                }
 
-            if (!pwd.equals(confirm)) {
-                passwordInputField.showError(viewContext
-                        .getI18nSupport()
-                        .getText(VAL_CONFIRM_PWD_TEXT_KEY));
-                return;
-            }
+                if (!pwd.equals(confirm)) {
+                    passwordInputField.showError(viewContext
+                            .getI18nSupport()
+                            .getText(VAL_CONFIRM_PWD_TEXT_KEY));
+                    return;
+                }
 
-            final String hashedPWD = passwordInputField.getValue();
-            if (hashedPWD != null) {
-                viewContext.getValueChangeListener().valueChanged(
-                        viewContext,
-                        attribute,
-                        hashedPWD,
-                        passwordInputField.listIndex);
-            }
-        };
+                final String hashedPWD = passwordInputField.getValue();
+                if (hashedPWD != null) {
+                    viewContext.getValueChangeListener().valueChanged(
+                            viewContext,
+                            attribute,
+                            hashedPWD,
+                            passwordInputField.listIndex);
+                }
+            };
 
-        passwordInput.addListener(SWT.FocusOut, valueChangeEventListener);
-        passwordInput.addListener(SWT.Traverse, valueChangeEventListener);
-        confirmInput.addListener(SWT.FocusOut, valueChangeEventListener);
-        confirmInput.addListener(SWT.Traverse, valueChangeEventListener);
+            passwordInput.addListener(SWT.FocusOut, valueChangeEventListener);
+            passwordInput.addListener(SWT.Traverse, valueChangeEventListener);
+            confirmInput.addListener(SWT.FocusOut, valueChangeEventListener);
+            confirmInput.addListener(SWT.Traverse, valueChangeEventListener);
+        }
         return passwordInputField;
     }
 

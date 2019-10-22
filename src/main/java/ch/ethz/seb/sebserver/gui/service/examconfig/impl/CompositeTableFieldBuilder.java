@@ -201,16 +201,27 @@ public class CompositeTableFieldBuilder extends AbstractTableFieldBuilder {
                     rowValues,
                     row);
 
-            new ModalInputDialog<Map<Long, TableValue>>(
+            final ModalInputDialog<Map<Long, TableValue>> dialog = new ModalInputDialog<Map<Long, TableValue>>(
                     this.control.getShell(),
                     this.tableContext.getWidgetFactory())
-                            .setDialogWidth(500)
-                            .open(
-                                    new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
-                                    rowVals -> applyFormValues(this.values, rowVals, selectionIndex),
-                                    () -> this.tableContext.getValueChangeListener()
-                                            .tableChanged(extractTableValue(this.values)),
-                                    builder);
+                            .setDialogWidth(500);
+
+            if (this.tableContext.getViewContext().readonly) {
+                dialog.open(
+                        new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
+                        rowVals -> {
+                        },
+                        () -> {
+                        },
+                        builder);
+            } else {
+                dialog.open(
+                        new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
+                        rowVals -> applyFormValues(this.values, rowVals, selectionIndex),
+                        () -> this.tableContext.getValueChangeListener()
+                                .tableChanged(extractTableValue(this.values)),
+                        builder);
+            }
         }
 
         @Override

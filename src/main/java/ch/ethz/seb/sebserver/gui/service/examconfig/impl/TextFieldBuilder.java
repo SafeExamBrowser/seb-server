@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -31,6 +32,8 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -74,7 +77,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
             }
             case TEXT_AREA: {
                 text = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.MULTI);
-                gridData.heightHint = 50;
+                gridData.minimumHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
                 break;
             }
             default: {
@@ -101,17 +104,25 @@ public class TextFieldBuilder implements InputFieldBuilder {
                 text,
                 Form.createErrorLabel(innerGrid));
 
-        final Listener valueChangeEventListener = event -> {
-            textInputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    textInputField.getValue(),
-                    textInputField.listIndex);
-        };
+        if (viewContext.readonly) {
+            text.setEditable(false);
+            text.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
+            gridData.heightHint = (attribute.type == AttributeType.TEXT_AREA)
+                    ? WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT
+                    : WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+        } else {
+            final Listener valueChangeEventListener = event -> {
+                textInputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        textInputField.getValue(),
+                        textInputField.listIndex);
+            };
 
-        text.addListener(SWT.FocusOut, valueChangeEventListener);
-        text.addListener(SWT.Traverse, valueChangeEventListener);
+            text.addListener(SWT.FocusOut, valueChangeEventListener);
+            text.addListener(SWT.Traverse, valueChangeEventListener);
+        }
         return textInputField;
     }
 

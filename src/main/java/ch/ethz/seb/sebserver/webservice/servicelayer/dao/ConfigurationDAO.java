@@ -43,7 +43,7 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
     Result<Configuration> saveToHistory(Long configurationNodeId);
 
     /** Can be used to reset the current follow-up configuration back to the last saved version in the history
-     * 
+     *
      * @param configurationNodeId ConfigurationNode identifier to apply the undo on
      * @return the current and reseted follow-up version */
     Result<Configuration> undo(Long configurationNodeId);
@@ -61,5 +61,11 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @param configNodeId ConfigurationNode identifier to get the current follow-up configuration from
      * @return the current follow-up configuration */
     Result<Configuration> getFollowupConfiguration(Long configNodeId);
+
+    /** Use this to get the last version of a configuration that is not the follow-up.
+     *
+     * @param configNodeId ConfigurationNode identifier to get the last version of configuration from
+     * @return the last version of configuration */
+    Result<Configuration> getConfigurationLastStableVersion(Long configNodeId);
 
 }

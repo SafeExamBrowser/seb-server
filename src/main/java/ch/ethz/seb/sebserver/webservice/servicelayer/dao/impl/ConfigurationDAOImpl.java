@@ -12,6 +12,8 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -129,6 +131,27 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     .collect(Utils.toSingleton());
         }).flatMap(ConfigurationDAOImpl::toDomainModel);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Configuration> getConfigurationLastStableVersion(final Long configNodeId) {
+        return Result.tryCatch(() -> {
+            final List<ConfigurationRecord> configs = this.configurationRecordMapper.selectByExample()
+                    .where(
+                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configNodeId))
+                    .and(
+                            ConfigurationRecordDynamicSqlSupport.followup,
+                            isEqualTo(BooleanUtils.toInteger(false)))
+                    .build()
+                    .execute();
+            Collections.sort(
+                    configs,
+                    (c1, c2) -> c1.getVersionDate().compareTo(c2.getVersionDate()));
+            final ConfigurationRecord configurationRecord = configs.get(0);
+            return configurationRecord;
+        }).flatMap(ConfigurationDAOImpl::toDomainModel);
     }
 
     @Override

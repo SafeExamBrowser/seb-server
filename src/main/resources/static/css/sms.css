@@ -247,13 +247,18 @@ Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
     box-shadow: none;
 }
 
-Text:disabled, 
+Text[BORDER]:disabled,
+Text[MULTI][BORDER]:disabled {
+    border: 1px solid #4a4a4a;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+Text:disabled,
 Text:read-only, 
-Text[BORDER]:disabled, 
+Text[MULTI]:disabled,
 Text[BORDER]:read-only,
-Text[MULTI]:disabled, 
-Text[MULTI]:read-only,
-Text[MULTI][BORDER]:disabled, 
+Text[MULTI]:read-only, 
 Text[MULTI][BORDER]:read-only {
     box-shadow: none;
     background-color: #ffffff;

@@ -113,7 +113,6 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .getOrThrow();
 
             final List<View> views = this.examConfigurationService.getViews(attributes);
-
             final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
             tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
@@ -124,7 +123,8 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         configuration,
                         view,
                         attributes,
-                        20);
+                        20,
+                        pageContext.isReadonly());
                 viewContexts.add(viewContext);
 
                 final Composite viewGrid = this.examConfigurationService.createViewGrid(
@@ -141,6 +141,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
 
             final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
             this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE_TO_HISTORY)
                     .withEntityKey(entityKey)
                     .withExec(action -> {
@@ -169,6 +170,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)
+                    .ignoreMoveAwayFromEdit()
                     .publish()
 
             ;

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -34,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class GridTable extends Composite {
@@ -394,6 +396,7 @@ public class GridTable extends Composite {
 
         TextField(final Composite parent, final ColumnDef columnDef, final Listener listener) {
             this._textField = new Text(parent, SWT.LEFT | SWT.BORDER);
+            this._textField.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
             this._textField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             this.columnDef = columnDef;
             this._textField.addListener(SWT.FocusOut, listener);

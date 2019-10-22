@@ -66,6 +66,8 @@ class ConfigurationDAOBatchService {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationDAOBatchService.class);
 
+    public static final String INITIAL_VERSION_NAME = "v0";
+
     private final ConfigurationNodeRecordMapper batchConfigurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper batchConfigurationValueRecordMapper;
     private final ConfigurationAttributeRecordMapper batchConfigurationAttributeRecordMapper;
@@ -187,23 +189,13 @@ class ConfigurationDAOBatchService {
                     .execute();
 
             // get current versions count
-            final Long versions = this.batchConfigurationRecordMapper
-                    .countByExample()
-                    .where(
-                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configurationNodeId))
-                    .and(
-                            ConfigurationRecordDynamicSqlSupport.followup,
-                            isNotEqualTo(BooleanUtils.toInteger(true)))
-                    .build()
-                    .execute();
 
             // close follow-up configuration to save in history
             final ConfigurationRecord configUpdate = new ConfigurationRecord(
                     followupConfig.getId(),
                     null,
                     null,
-                    "v" + versions,
+                    generateVersionName(configurationNodeId),
                     DateTime.now(DateTimeZone.UTC),
                     BooleanUtils.toInteger(false));
             this.batchConfigurationRecordMapper.updateByPrimaryKeySelective(configUpdate);
@@ -238,6 +230,20 @@ class ConfigurationDAOBatchService {
 
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel);
+    }
+
+    private String generateVersionName(final Long configurationNodeId) {
+        final Long versions = this.batchConfigurationRecordMapper
+                .countByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(configurationNodeId))
+                .and(
+                        ConfigurationRecordDynamicSqlSupport.followup,
+                        isNotEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute();
+        return "v" + versions;
     }
 
     Result<Configuration> undo(final Long configurationNodeId) {
@@ -309,6 +315,69 @@ class ConfigurationDAOBatchService {
             return followup;
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel);
+    }
+
+    Result<Configuration> copyConfiguration(
+            final Long institutionId,
+            final Long fromConfigurationId,
+            final Long toConfigurationNodeId) {
+
+        return Result.tryCatch(() -> {
+            final ConfigurationRecord fromRecord = this.batchConfigurationRecordMapper
+                    .selectByPrimaryKey(fromConfigurationId);
+
+            if (!fromRecord.getInstitutionId().equals(institutionId)) {
+                throw new IllegalArgumentException("Institution integrity violation");
+            }
+
+            final ConfigurationRecord configurationRecord = new ConfigurationRecord(
+                    null,
+                    fromRecord.getInstitutionId(),
+                    toConfigurationNodeId,
+                    fromRecord.getVersion(),
+                    fromRecord.getVersionDate(),
+                    fromRecord.getFollowup());
+            this.batchConfigurationRecordMapper.insert(configurationRecord);
+            return configurationRecord;
+        })
+                .flatMap(ConfigurationDAOImpl::toDomainModel)
+                .map(newConfig -> {
+                    this.copyValues(
+                            institutionId,
+                            fromConfigurationId,
+                            newConfig.getId());
+                    return newConfig;
+                })
+                .map(config -> {
+                    this.batchSqlSessionTemplate.flushStatements();
+                    return config;
+                });
+    }
+
+    void copyValues(
+            final Long institutionId,
+            final Long fromConfigId,
+            final Long toConfigId) {
+
+        this.batchConfigurationValueRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(institutionId))
+                .and(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(fromConfigId))
+                .build()
+                .execute()
+                .stream()
+                .map(fromRec -> new ConfigurationValueRecord(
+                        null,
+                        fromRec.getInstitutionId(),
+                        toConfigId,
+                        fromRec.getConfigurationAttributeId(),
+                        fromRec.getListIndex(),
+                        fromRec.getValue()))
+                .forEach(this.batchConfigurationValueRecordMapper::insert);
     }
 
     private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {
@@ -454,7 +523,7 @@ class ConfigurationDAOBatchService {
                     null,
                     config.institutionId,
                     config.id,
-                    "v0", // TODO?
+                    INITIAL_VERSION_NAME,
                     DateTime.now(DateTimeZone.UTC),
                     BooleanUtils.toInteger(false));
 
@@ -547,7 +616,7 @@ class ConfigurationDAOBatchService {
         }
 
         final Long configurationId = this.batchConfigurationRecordMapper.selectByExample()
-                .where(ConfigurationRecordDynamicSqlSupport.configurationNodeId, isEqualTo(configNode.id))
+                .where(ConfigurationRecordDynamicSqlSupport.configurationNodeId, isEqualTo(configNode.templateId))
                 .and(ConfigurationRecordDynamicSqlSupport.followup, isEqualTo(BooleanUtils.toIntegerObject(true)))
                 .build()
                 .execute()
@@ -555,14 +624,15 @@ class ConfigurationDAOBatchService {
                 .collect(Utils.toSingleton())
                 .getId();
 
-        return this.batchConfigurationValueRecordMapper.selectByExample()
+        final List<ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper.selectByExample()
                 .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isEqualTo(configurationId))
                 .build()
-                .execute()
-                .stream()
+                .execute();
+
+        return values.stream()
                 .collect(Collectors.toMap(
                         valRec -> valRec.getConfigurationAttributeId(),
-                        valRec -> valRec.getValue()));
+                        valRec -> (valRec.getValue() != null) ? valRec.getValue() : ""));
     }
 
 }

@@ -351,12 +351,12 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.view"),
             ImageIcon.SHOW,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
     SEB_EXAM_CONFIG_VIEW_PROP(
             new LocTextKey("sebserver.examconfig.action.view"),
             ImageIcon.SHOW,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
@@ -374,15 +374,20 @@ public enum ActionDefinition {
             ImageIcon.EDIT_SETTINGS,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_CANCEL_MODIFY(
-            new LocTextKey("sebserver.overall.action.modify.cancel"),
-            ImageIcon.CANCEL,
+    SEB_EXAM_CONFIG_VIEW(
+            new LocTextKey("sebserver.examconfig.action.view"),
+            ImageIcon.EDIT_SETTINGS,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_SAVE(
+    SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_PROP_SAVE(
             new LocTextKey("sebserver.examconfig.action.save"),
             ImageIcon.SAVE,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_EXPORT_PLAIN_XML(
             new LocTextKey("sebserver.examconfig.action.export.plainxml"),

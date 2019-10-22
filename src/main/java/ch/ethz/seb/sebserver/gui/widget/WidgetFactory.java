@@ -58,6 +58,9 @@ public class WidgetFactory {
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
+    public static final int TEXT_AREA_INPUT_MIN_HEIGHT = 50;
+    public static final int TEXT_INPUT_MIN_HEIGHT = 24;
+
     public enum ImageIcon {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
@@ -127,7 +130,8 @@ public class WidgetFactory {
         TITLE_LABEL("head"),
 
         MESSAGE("message"),
-        ERROR("error")
+        ERROR("error"),
+        CONFIG_INPUT_READONLY("inputreadonly")
 
         ;
 
@@ -327,7 +331,7 @@ public class WidgetFactory {
 
     public Text textInput(final Composite content, final boolean password, final boolean readonly) {
         return readonly
-                ? new Text(content, SWT.LEFT | SWT.BORDER)
+                ? new Text(content, SWT.LEFT)
                 : new Text(content, (password)
                         ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
                         : SWT.LEFT | SWT.BORDER);

@@ -37,6 +37,7 @@ public final class ViewContext {
     final Map<Long, InputField> inputFieldMapping;
     final ValueChangeListener valueChangeListener;
     final I18nSupport i18nSupport;
+    final boolean readonly;
 
     ViewContext(
             final Configuration configuration,
@@ -44,7 +45,8 @@ public final class ViewContext {
             final int rows,
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener,
-            final I18nSupport i18nSupport) {
+            final I18nSupport i18nSupport,
+            final boolean readonly) {
 
         Objects.requireNonNull(configuration);
         Objects.requireNonNull(view);
@@ -59,6 +61,7 @@ public final class ViewContext {
         this.inputFieldMapping = new HashMap<>();
         this.valueChangeListener = valueChangeListener;
         this.i18nSupport = i18nSupport;
+        this.readonly = readonly;
     }
 
     public I18nSupport getI18nSupport() {

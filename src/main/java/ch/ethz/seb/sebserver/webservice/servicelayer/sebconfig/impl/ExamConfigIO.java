@@ -111,7 +111,7 @@ public class ExamConfigIO {
 
             // get follow-up configurationId for given configurationNodeId
             final Long configurationId = this.configurationDAO
-                    .getFollowupConfiguration(configurationNodeId)
+                    .getConfigurationLastStableVersion(configurationNodeId)
                     .getOrThrow().id;
 
             final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =

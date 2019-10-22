@@ -76,14 +76,18 @@ public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implement
                 selection,
                 Form.createErrorLabel(innerGrid));
 
-        selection.setSelectionListener(event -> {
-            singleSelectionInputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    singleSelectionInputField.getValue(),
-                    singleSelectionInputField.listIndex);
-        });
+        if (viewContext.readonly) {
+            selection.setEnabled(false);
+        } else {
+            selection.setSelectionListener(event -> {
+                singleSelectionInputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        singleSelectionInputField.getValue(),
+                        singleSelectionInputField.listIndex);
+            });
+        }
 
         return singleSelectionInputField;
     }

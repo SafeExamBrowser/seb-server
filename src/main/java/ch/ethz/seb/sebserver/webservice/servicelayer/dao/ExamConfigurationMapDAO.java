@@ -51,8 +51,14 @@ public interface ExamConfigurationMapDAO extends
 
     /** Get all id of Exams that has a relation to the given configuration id.
      *
+     * @param configurationNodeId the configuration node identifier (PK)
+     * @return Result referencing the List of exam identifiers (PK) for a given configuration node identifier */
+    Result<Collection<Long>> getExamIdsForConfigNodeId(Long configurationNodeId);
+
+    /** Get all id of Exams that has a relation to the given configuration id.
+     *
      * @param configurationId
-     * @return */
+     * @return Result referencing the List of exam identifiers (PK) for a given configuration identifier */
     Result<Collection<Long>> getExamIdsForConfigId(Long configurationId);
 
 }

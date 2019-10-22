@@ -177,7 +177,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final Configuration configuration,
             final View view,
             final AttributeMapping attributeMapping,
-            final int rows) {
+            final int rows,
+            final boolean readonly) {
 
         return new ViewContext(
                 configuration,
@@ -189,7 +190,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                         this.restService,
                         this.jsonMapper,
                         this.valueChangeRules),
-                this.widgetFactory.getI18nSupport());
+                this.widgetFactory.getI18nSupport(),
+                readonly);
 
     }
 

@@ -154,7 +154,6 @@ interface CellFieldBuilderAdapter {
                 label.setAlignment(SWT.LEFT);
                 gridData.verticalIndent = 20;
                 label.setLayoutData(gridData);
-                //label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
             }
 
             @Override

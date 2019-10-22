@@ -244,17 +244,32 @@ Text[BORDER].error, Text[MULTI][BORDER].error {
 
 Text[BORDER]:focused, Text[MULTI][BORDER]:focused {
     border: 1px solid #4f7cb1;
+    border-radius: 0;
     box-shadow: none;
 }
 
-Text:disabled, 
+
+Text[BORDER]:disabled.inputreadonly,
+Text[BORDER]:read-only.inputreadonly, 
+Text[MULTI][BORDER]:disabled.inputreadonly,
+Text[MULTI][BORDER]:read-only.inputreadonly {
+    font: 12px Arial, Helvetica, sans-serif;
+    border: 1px solid #aaaaaa;
+    border-radius: 0;
+    padding: 3px 10px 3px 10px;
+    color: #aaaaaa;
+    background-repeat: repeat;
+    background-position: left top;
+    background-color: #ffffff;
+    background-image: none;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+Text:disabled,
 Text:read-only, 
-Text[BORDER]:disabled, 
-Text[BORDER]:read-only,
-Text[MULTI]:disabled, 
-Text[MULTI]:read-only,
-Text[MULTI][BORDER]:disabled, 
-Text[MULTI][BORDER]:read-only {
+Text[MULTI]:disabled,
+Text[MULTI]:read-only {
     box-shadow: none;
     background-color: #ffffff;
     border: none;
@@ -458,6 +473,14 @@ Button[PUSH]:hover.header {
     background-image: gradient( linear, left top, left bottom, from( #82BE1E ), to( #82BE1E ) );
     color: #444;
     cursor: pointer;
+}
+
+Button[CHECK]:disabled {
+    color: #4a4a4a;
+}
+
+Button[RADIO]:disabled {
+    color: #4a4a4a;
 }
 
 FileUpload,

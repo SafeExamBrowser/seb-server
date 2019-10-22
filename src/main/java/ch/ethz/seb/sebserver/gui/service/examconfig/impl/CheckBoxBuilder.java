@@ -85,13 +85,17 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                 viewContext.getOrientation(attribute.id),
                 checkbox);
 
-        checkbox.addListener(
-                SWT.Selection,
-                event -> viewContext.getValueChangeListener().valueChanged(
-                        viewContext,
-                        attribute,
-                        checkboxField.getValue(),
-                        checkboxField.listIndex));
+        if (viewContext.readonly) {
+            checkbox.setEnabled(false);
+        } else {
+            checkbox.addListener(
+                    SWT.Selection,
+                    event -> viewContext.getValueChangeListener().valueChanged(
+                            viewContext,
+                            attribute,
+                            checkboxField.getValue(),
+                            checkboxField.listIndex));
+        }
 
         return checkboxField;
     }

@@ -73,17 +73,21 @@ public class SliderFieldBuilder implements InputFieldBuilder {
                 orientation,
                 slider);
 
-        final Listener valueChangeEventListener = event -> {
-            inputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    inputField.getValue(),
-                    inputField.listIndex);
-        };
+        if (viewContext.readonly) {
+            slider.setEnabled(false);
+        } else {
+            final Listener valueChangeEventListener = event -> {
+                inputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        inputField.getValue(),
+                        inputField.listIndex);
+            };
 
-        slider.addListener(SWT.FocusOut, valueChangeEventListener);
-        slider.addListener(SWT.Traverse, valueChangeEventListener);
+            slider.addListener(SWT.FocusOut, valueChangeEventListener);
+            slider.addListener(SWT.Traverse, valueChangeEventListener);
+        }
         return inputField;
     }
 

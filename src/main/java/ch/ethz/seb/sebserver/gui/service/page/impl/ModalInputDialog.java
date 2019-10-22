@@ -49,7 +49,6 @@ public class ModalInputDialog<T> extends Dialog {
 
         super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.CLOSE);
         this.widgetFactory = widgetFactory;
-
     }
 
     public ModalInputDialog<T> setDialogWidth(final int dialogWidth) {
@@ -161,7 +160,6 @@ public class ModalInputDialog<T> extends Dialog {
         shell.pack();
         final Rectangle bounds = shell.getBounds();
         final Rectangle bounds2 = super.getParent().getDisplay().getBounds();
-        //bounds.width = bounds.width;
         bounds.x = (bounds2.width - bounds.width) / 2;
         bounds.y = (bounds2.height - bounds.height) / 2;
         shell.setBounds(bounds);

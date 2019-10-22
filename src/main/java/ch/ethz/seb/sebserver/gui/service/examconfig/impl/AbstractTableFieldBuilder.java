@@ -104,6 +104,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
             final TableContext tableContext) {
 
         try {
+            final boolean readonly = tableContext.getViewContext().readonly;
             final int currentTableWidth = table.getClientArea().width - TABLE_WIDTH_SPACE;
             final TableColumn[] columns = table.getColumns();
             final List<Orientation> orientations = tableContext
@@ -116,7 +117,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                     .map(o -> o.width)
                     .reduce(0, (acc, val) -> acc + val);
             final int widthUnit = currentTableWidth / div;
-            for (int i = 0; i < columns.length - 2; i++) {
+            for (int i = 0; i < columns.length - ((readonly) ? 0 : 2); i++) {
                 columns[i].setWidth(widthUnit * orientations.get(i).width);
             }
         } catch (final Exception e) {

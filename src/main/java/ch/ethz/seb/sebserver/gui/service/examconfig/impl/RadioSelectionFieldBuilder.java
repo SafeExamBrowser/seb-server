@@ -71,14 +71,18 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
                 selection,
                 null);
 
-        selection.setSelectionListener(event -> {
-            radioSelectionInputField.clearError();
-            viewContext.getValueChangeListener().valueChanged(
-                    viewContext,
-                    attribute,
-                    radioSelectionInputField.getValue(),
-                    radioSelectionInputField.listIndex);
-        });
+        if (viewContext.readonly) {
+            selection.setEnabled(false);
+        } else {
+            selection.setSelectionListener(event -> {
+                radioSelectionInputField.clearError();
+                viewContext.getValueChangeListener().valueChanged(
+                        viewContext,
+                        attribute,
+                        radioSelectionInputField.getValue(),
+                        radioSelectionInputField.listIndex);
+            });
+        }
 
         return radioSelectionInputField;
 

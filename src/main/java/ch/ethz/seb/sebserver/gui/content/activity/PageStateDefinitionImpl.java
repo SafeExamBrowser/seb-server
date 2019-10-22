@@ -65,9 +65,10 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     SEB_CLIENT_CONFIG_EDIT(Type.FORM_EDIT, SebClientConfigForm.class, ActivityDefinition.SEB_CLIENT_CONFIG),
 
     SEB_EXAM_CONFIG_LIST(Type.LIST_VIEW, SebExamConfigList.class, ActivityDefinition.SEB_EXAM_CONFIG),
-    SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_PROP_VIEW(Type.FORM_VIEW, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_PROP_EDIT(Type.FORM_EDIT, SebExamConfigPropForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
-    SEB_EXAM_CONFIG_EDIT(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_EDIT(Type.FORM_EDIT, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
 
     SEB_EXAM_CONFIG_TEMPLATE_VIEW(Type.FORM_VIEW, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_TEMPLATE_EDIT(Type.FORM_EDIT, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),

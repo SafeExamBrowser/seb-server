@@ -54,7 +54,8 @@ public interface ExamConfigurationService {
             Configuration configuration,
             View view,
             AttributeMapping attributeMapping,
-            int rows);
+            int rows,
+            boolean readonly);
 
     Composite createViewGrid(
             Composite parent,

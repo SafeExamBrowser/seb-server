@@ -85,30 +85,32 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                 tableContext,
                 table);
 
-        TableColumn column = new TableColumn(table, SWT.NONE);
-        column.setImage(ImageIcon.ADD_BOX.getImage(parent.getDisplay()));
+        if (!viewContext.readonly) {
+            TableColumn column = new TableColumn(table, SWT.NONE);
+            column.setImage(ImageIcon.ADD_BOX.getImage(parent.getDisplay()));
 
-        column.setWidth(20);
-        column.setResizable(false);
-        column.setMoveable(false);
+            column.setWidth(20);
+            column.setResizable(false);
+            column.setMoveable(false);
 
-        column.addListener(SWT.Selection, event -> {
-            tableField.addRow();
-        });
+            column.addListener(SWT.Selection, event -> {
+                tableField.addRow();
+            });
 
-        column = new TableColumn(table, SWT.NONE);
-        column.setImage(ImageIcon.REMOVE_BOX.getImage(parent.getDisplay()));
+            column = new TableColumn(table, SWT.NONE);
+            column.setImage(ImageIcon.REMOVE_BOX.getImage(parent.getDisplay()));
 
-        column.setWidth(20);
-        column.setResizable(false);
-        column.setMoveable(false);
+            column.setWidth(20);
+            column.setResizable(false);
+            column.setMoveable(false);
 
-        column.addListener(SWT.Selection, event -> {
-            final int selectionIndex = table.getSelectionIndex();
-            if (selectionIndex >= 0) {
-                tableField.deleteRow(selectionIndex);
-            }
-        });
+            column.addListener(SWT.Selection, event -> {
+                final int selectionIndex = table.getSelectionIndex();
+                if (selectionIndex >= 0) {
+                    tableField.deleteRow(selectionIndex);
+                }
+            });
+        }
 
         setSelectionListener(table, tableField);
         return tableField;
@@ -163,8 +165,6 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
         protected void addTableRow(final int index, final Map<Long, TableValue> rowValues) {
             new TableItem(this.control, SWT.NONE);
             applyTableRowValues(index);
-
-            // TODO try to add delete button within table row?
         }
 
         @Override

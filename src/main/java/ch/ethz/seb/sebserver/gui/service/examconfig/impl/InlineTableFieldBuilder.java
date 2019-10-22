@@ -92,11 +92,17 @@ public class InlineTableFieldBuilder implements InputFieldBuilder {
                 viewContext.getOrientation(attribute.id),
                 gridTable);
 
-        gridTable.setListener(event -> viewContext.getValueChangeListener().valueChanged(
-                viewContext,
-                attribute,
-                inlineTableInputField.getValue(),
-                inlineTableInputField.listIndex));
+        if (viewContext.readonly) {
+            gridTable.setEnabled(false);
+            gridTable.setListener(event -> {
+            });
+        } else {
+            gridTable.setListener(event -> viewContext.getValueChangeListener().valueChanged(
+                    viewContext,
+                    attribute,
+                    inlineTableInputField.getValue(),
+                    inlineTableInputField.listIndex));
+        }
 
         return inlineTableInputField;
 

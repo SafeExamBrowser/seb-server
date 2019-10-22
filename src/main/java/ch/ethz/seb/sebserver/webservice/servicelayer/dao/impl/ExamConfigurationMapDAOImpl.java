@@ -290,9 +290,25 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<Long>> getExamIdsForConfigNodeId(final Long configurationNodeId) {
+        return Result.tryCatch(() -> {
+            return this.examConfigurationMapRecordMapper.selectByExample()
+                    .where(
+                            ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configurationNodeId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(record -> record.getExamId())
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<Long>> getExamIdsForConfigId(final Long configurationId) {
         return Result.tryCatch(() -> {
-            final Long configNodeId = this.configurationNodeRecordMapper.selectIdsByExample()
+            return this.configurationNodeRecordMapper.selectIdsByExample()
                     .leftJoin(ConfigurationRecordDynamicSqlSupport.configurationRecord)
                     .on(
                             ConfigurationRecordDynamicSqlSupport.configurationNodeId,
@@ -304,17 +320,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .execute()
                     .stream()
                     .collect(Utils.toSingleton());
-
-            return this.examConfigurationMapRecordMapper.selectByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configNodeId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(record -> record.getExamId())
-                    .collect(Collectors.toList());
-        });
+        })
+                .flatMap(this::getExamIdsForConfigNodeId);
     }
 
     private Result<ExamConfigurationMapRecord> recordById(final Long id) {

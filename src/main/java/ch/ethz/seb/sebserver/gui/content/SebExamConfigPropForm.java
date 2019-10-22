@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -74,6 +75,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.name");
     private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
+    private static final LocTextKey FORM_TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.template");
     private static final LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.status");
     private static final LocTextKey FORM_IMPORT_TEXT_KEY =
@@ -113,6 +116,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         final UserInfo user = this.currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
+        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean isNew = entityKey == null;
 
         // get data or create new. Handle error if happen
@@ -170,6 +174,14 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         examConfig.description)
                         .asArea())
                 .addField(FormBuilder.singleSelection(
+                        Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                        FORM_TEMPLATE_TEXT_KEY,
+                        (parentEntityKey != null)
+                                ? parentEntityKey.modelId
+                                : String.valueOf(examConfig.templateId),
+                        resourceService::getExamConfigTemplateResources)
+                        .readonly(!isNew))
+                .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
@@ -178,6 +190,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
 
+        final boolean settingsReadonly = examConfig.status == ConfigurationStatus.IN_USE;
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
@@ -190,7 +203,11 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly && !settingsReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW)
+                .withEntityKey(entityKey)
+                .publishIf(() -> modifyGrant && isReadonly && settingsReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
                 .withEntityKey(entityKey)
@@ -216,13 +233,13 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_SAVE)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_CANCEL_MODIFY)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);

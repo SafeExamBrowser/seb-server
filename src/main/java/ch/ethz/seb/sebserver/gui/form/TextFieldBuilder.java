@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Text;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class TextFieldBuilder extends FieldBuilder<String> {
 
@@ -61,7 +62,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         if (this.isArea) {
-            gridData.minimumHeight = 35;
+            gridData.minimumHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
         }
         textInput.setLayoutData(gridData);
         if (StringUtils.isNoneBlank(this.value)) {

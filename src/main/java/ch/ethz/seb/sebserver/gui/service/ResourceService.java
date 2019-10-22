@@ -62,6 +62,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -549,6 +550,19 @@ public class ResourceService {
                 .collect(Collectors.toMap(
                         k -> Long.valueOf(k.modelId),
                         k -> k.name));
+    }
+
+    public List<Tuple<String>> getExamConfigTemplateResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExamConfigNodes.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .map(node -> new Tuple<>(node.getModelId(), node.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
     }
 
     private Result<List<EntityName>> getExamConfigurationSelection() {
