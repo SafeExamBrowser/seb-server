@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
@@ -25,6 +26,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -34,6 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -45,6 +49,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionServiceImpl.class);
 
     private final ClientConnectionDAO clientConnectionDAO;
+    private final IndicatorDAO indicatorDAO;
     private final ExamSessionCacheService examSessionCacheService;
     private final ExamDAO examDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
@@ -55,6 +60,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final ExamDAO examDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ClientConnectionDAO clientConnectionDAO,
+            final IndicatorDAO indicatorDAO,
             final CacheManager cacheManager) {
 
         this.examSessionCacheService = examSessionCacheService;
@@ -62,11 +68,46 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
+        this.indicatorDAO = indicatorDAO;
     }
 
     @Override
     public ExamDAO getExamDAO() {
         return this.examDAO;
+    }
+
+    @Override
+    public Result<Collection<APIMessage>> checkRunningExamConsystency(final Long examId) {
+        return Result.tryCatch(() -> {
+            final Collection<APIMessage> result = new ArrayList<>();
+
+            if (isExamRunning(examId)) {
+                final Exam exam = getRunningExam(examId)
+                        .getOrThrow();
+
+                // check exam supporter
+                if (exam.getSupporter().isEmpty()) {
+                    result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.of(exam.getModelId()));
+                }
+
+                // check SEB configuration
+                this.examConfigurationMapDAO.getDefaultConfigurationForExam(examId)
+                        .get(t -> {
+                            result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.of(exam.getModelId()));
+                            return null;
+                        });
+
+                // check indicator exists
+                if (this.indicatorDAO.allForExam(examId)
+                        .getOrThrow()
+                        .isEmpty()) {
+
+                    result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_INDICATOR.of(exam.getModelId()));
+                }
+            }
+
+            return result;
+        });
     }
 
     @Override

@@ -43,9 +43,12 @@ public class APIMessage implements Serializable {
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
-        PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password")
+        INTEGRITY_VALIDATION("1201", HttpStatus.BAD_REQUEST, "Action would lied to an integrity violation"),
+        PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
 
-        ;
+        EXAM_CONSISTANCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
+        EXAM_CONSISTANCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
+        EXAM_CONSISTANCY_VALIDATION_INDICATOR("1402", HttpStatus.OK, "No Indicator defined for the Exam");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -112,6 +113,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .onError(pageContext::notifyError)
                     .getOrThrow();
 
+            final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
             final List<View> views = this.examConfigurationService.getViews(attributes);
             final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
             tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -124,7 +126,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         view,
                         attributes,
                         20,
-                        pageContext.isReadonly());
+                        readonly);
                 viewContexts.add(viewContext);
 
                 final Composite viewGrid = this.examConfigurationService.createViewGrid(
@@ -153,7 +155,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
-                    .publishIf(() -> examConfigGrant.iw())
+                    .publishIf(() -> examConfigGrant.iw() && !readonly)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_UNDO)
                     .withEntityKey(entityKey)
@@ -166,7 +168,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .withSuccess(KEY_UNDO_SUCCESS)
-                    .publishIf(() -> examConfigGrant.iw())
+                    .publishIf(() -> examConfigGrant.iw() && !readonly)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)

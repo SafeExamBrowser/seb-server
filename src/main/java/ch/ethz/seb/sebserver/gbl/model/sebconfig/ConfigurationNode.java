@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 public final class ConfigurationNode implements GrantEntity {
 
     public static final Long DEFAULT_TEMPLATE_ID = 0L;
-    public static final String ATTR_COPY_WITH_HISTORY = "with-history";
 
     public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_DESCRIPTION = "description";

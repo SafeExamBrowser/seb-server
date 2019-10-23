@@ -91,7 +91,7 @@ public final class API {
 
     public static final String INSTITUTION_ENDPOINT = "/institution";
 
-    public static final String LMS_SETUP_ENDPOINT = "/lms_setup";
+    public static final String LMS_SETUP_ENDPOINT = "/lms-setup";
     public static final String LMS_SETUP_TEST_PATH_SEGMENT = "/test";
     public static final String LMS_SETUP_TEST_ENDPOINT = LMS_SETUP_ENDPOINT
             + LMS_SETUP_TEST_PATH_SEGMENT
@@ -106,18 +106,19 @@ public final class API {
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
-    public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/downloadConfig";
+    public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
+    public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT = "/check-consistency";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
     public static final String SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT = "/download";
 
-    public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration_node";
+    public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration-node";
     public static final String CONFIGURATION_FOLLOWUP_PATH_SEGMENT = "/followup";
     public static final String CONFIGURATION_CONFIG_KEY_PATH_SEGMENT = "/configkey";
     public static final String CONFIGURATION_ENDPOINT = "/configuration";
-    public static final String CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT = "/save_to_history";
+    public static final String CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT = "/save-to-history";
     public static final String CONFIGURATION_UNDO_PATH_SEGMENT = "/undo";
     public static final String CONFIGURATION_COPY_PATH_SEGMENT = "/copy";
     public static final String CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT = "/restore";
@@ -137,7 +138,7 @@ public final class API {
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";
 
-    public static final String EXAM_CONFIGURATION_MAP_ENDPOINT = "/exam_configuration_map";
+    public static final String EXAM_CONFIGURATION_MAP_ENDPOINT = "/exam-configuration-map";
 
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";
 

@@ -11,18 +11,22 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TableItem;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -38,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -46,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -133,7 +139,8 @@ public class ExamList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-
+                        .withRowDecorator(this::decorateOnExamConsistency)
+                        
                         .withColumnIf(
                                 isSebAdmin,
                                 () -> new ColumnDefinition<Exam>(
@@ -220,10 +227,27 @@ public class ExamList implements TemplateComposer {
 
         return action.withEntityKey(action.getSingleSelection());
     }
+    
+    private void decorateOnExamConsistency(TableItem item, Exam exam) {
+        if (exam.getStatus() != ExamStatus.RUNNING) {
+            return;
+        }
+        
+        this.pageService.getRestService().getBuilder(CheckExamConsistency.class)
+            .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+            .call()
+            .ifPresent(warnings -> {
+                if (warnings != null && !warnings.isEmpty()) {
+                    item.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
+                }
+            });
+    }
 
     private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {
         return exam -> resourceService.getLmsSetupNameFunction()
                 .apply(String.valueOf(exam.lmsSetupId));
     }
+    
+    
 
 }

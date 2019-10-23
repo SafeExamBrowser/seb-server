@@ -62,7 +62,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Page<T> allActive(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -90,7 +90,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             path = API.INACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Page<T> allInactive(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -118,7 +118,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             path = API.PATH_VAR_ACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport activate(@PathVariable final String modelId) {
         return setActive(modelId, true)
                 .getOrThrow();
@@ -128,7 +128,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             value = API.PATH_VAR_INACTIVE,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport deactivate(@PathVariable final String modelId) {
         return setActive(modelId, false)
                 .getOrThrow();

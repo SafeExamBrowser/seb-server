@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
@@ -157,7 +159,9 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .count();
 
         if (activeConnections > 0) {
-            throw new IllegalStateException("Integrity violation: There are currently active SEB Client connection.");
+            throw new APIMessage.APIMessageException(
+                    ErrorMessage.INTEGRITY_VALIDATION,
+                    "Integrity violation: There are currently active SEB Client connection.");
         } else {
             return Result.of(config);
         }

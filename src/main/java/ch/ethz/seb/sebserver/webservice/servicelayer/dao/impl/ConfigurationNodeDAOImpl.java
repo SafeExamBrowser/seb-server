@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -208,77 +209,14 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     public Result<ConfigurationNode> createCopy(
             final Long institutionId,
             final String newOwner,
-            final Long configurationNodeId,
-            final boolean withHistory) {
+            final ConfigCopyInfo copyInfo) {
 
-        return this.recordById(configurationNodeId)
+        return this.recordById(copyInfo.configurationNodeId)
                 .flatMap(nodeRec -> (nodeRec.getInstitutionId().equals(institutionId)
                         ? Result.of(nodeRec)
                         : Result.ofError(new IllegalArgumentException("Institution integrity violation"))))
-                .map(nodeRec -> this.copyNodeRecord(nodeRec, newOwner, withHistory))
+                .map(nodeRec -> this.copyNodeRecord(nodeRec, newOwner, copyInfo))
                 .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
-    }
-
-    private ConfigurationNodeRecord copyNodeRecord(
-            final ConfigurationNodeRecord nodeRec,
-            final String newOwner,
-            final boolean withHistory) {
-
-        final ConfigurationNodeRecord newNodeRec = new ConfigurationNodeRecord(
-                null,
-                nodeRec.getInstitutionId(),
-                nodeRec.getTemplateId(),
-                StringUtils.isNotBlank(newOwner) ? newOwner : nodeRec.getOwner(),
-                this.copyNamePrefix + nodeRec.getName() + this.copyNameSuffix,
-                nodeRec.getDescription(),
-                nodeRec.getType(),
-                ConfigurationStatus.CONSTRUCTION.name());
-        this.configurationNodeRecordMapper.insert(newNodeRec);
-
-        final List<ConfigurationRecord> configs = this.configurationRecordMapper
-                .selectByExample()
-                .where(
-                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                        isEqualTo(nodeRec.getId()))
-                .build()
-                .execute();
-
-        if (withHistory) {
-            configs
-                    .stream()
-                    .forEach(configRec -> this.configurationDAOBatchService.copyConfiguration(
-                            configRec.getInstitutionId(),
-                            configRec.getId(),
-                            newNodeRec.getId()));
-        } else {
-            configs
-                    .stream()
-                    .filter(configRec -> configRec.getVersionDate() == null)
-                    .findFirst()
-                    .map(configRec -> {
-                        // No history means to create a first version and a follow-up with the copied values
-                        final ConfigurationRecord newFirstVersion = new ConfigurationRecord(
-                                null,
-                                configRec.getInstitutionId(),
-                                configRec.getConfigurationNodeId(),
-                                ConfigurationDAOBatchService.INITIAL_VERSION_NAME,
-                                DateTime.now(DateTimeZone.UTC),
-                                BooleanUtils.toInteger(false));
-                        this.configurationRecordMapper.insert(newFirstVersion);
-                        this.configurationDAOBatchService.copyValues(
-                                configRec.getInstitutionId(),
-                                configRec.getId(),
-                                newFirstVersion.getId());
-                        // and copy the follow-up
-                        this.configurationDAOBatchService.copyConfiguration(
-                                configRec.getInstitutionId(),
-                                configRec.getId(),
-                                newNodeRec.getId());
-                        return configRec;
-                    });
-        }
-
-        return newNodeRec;
     }
 
     @Override
@@ -343,6 +281,68 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             }
             return record;
         });
+    }
+
+    private ConfigurationNodeRecord copyNodeRecord(
+            final ConfigurationNodeRecord nodeRec,
+            final String newOwner,
+            final ConfigCopyInfo copyInfo) {
+
+        final ConfigurationNodeRecord newNodeRec = new ConfigurationNodeRecord(
+                null,
+                nodeRec.getInstitutionId(),
+                nodeRec.getTemplateId(),
+                StringUtils.isNotBlank(newOwner) ? newOwner : nodeRec.getOwner(),
+                this.copyNamePrefix + nodeRec.getName() + this.copyNameSuffix,
+                nodeRec.getDescription(),
+                nodeRec.getType(),
+                ConfigurationStatus.CONSTRUCTION.name());
+        this.configurationNodeRecordMapper.insert(newNodeRec);
+
+        final List<ConfigurationRecord> configs = this.configurationRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(nodeRec.getId()))
+                .build()
+                .execute();
+
+        if (BooleanUtils.toBoolean(copyInfo.withHistory)) {
+            configs
+                    .stream()
+                    .forEach(configRec -> this.configurationDAOBatchService.copyConfiguration(
+                            configRec.getInstitutionId(),
+                            configRec.getId(),
+                            newNodeRec.getId()));
+        } else {
+            configs
+                    .stream()
+                    .filter(configRec -> configRec.getVersionDate() == null)
+                    .findFirst()
+                    .map(configRec -> {
+                        // No history means to create a first version and a follow-up with the copied values
+                        final ConfigurationRecord newFirstVersion = new ConfigurationRecord(
+                                null,
+                                configRec.getInstitutionId(),
+                                configRec.getConfigurationNodeId(),
+                                ConfigurationDAOBatchService.INITIAL_VERSION_NAME,
+                                DateTime.now(DateTimeZone.UTC),
+                                BooleanUtils.toInteger(false));
+                        this.configurationRecordMapper.insert(newFirstVersion);
+                        this.configurationDAOBatchService.copyValues(
+                                configRec.getInstitutionId(),
+                                configRec.getId(),
+                                newFirstVersion.getId());
+                        // and copy the follow-up
+                        this.configurationDAOBatchService.copyConfiguration(
+                                configRec.getInstitutionId(),
+                                configRec.getId(),
+                                newNodeRec.getId());
+                        return configRec;
+                    });
+        }
+
+        return newNodeRec;
     }
 
     static Result<ConfigurationNode> toDomainModel(final ConfigurationNodeRecord record) {

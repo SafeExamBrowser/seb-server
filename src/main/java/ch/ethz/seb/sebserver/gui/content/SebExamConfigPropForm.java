@@ -8,15 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.io.InputStream;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,20 +24,18 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -49,14 +44,13 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
-import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -67,28 +61,34 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(SebExamConfigPropForm.class);
 
-    private static final LocTextKey FORM_TITLE_NEW =
+    static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
-    private static final LocTextKey FORM_TITLE =
+    static final LocTextKey FORM_TITLE =
             new LocTextKey("sebserver.examconfig.form.title");
-    private static final LocTextKey FORM_NAME_TEXT_KEY =
+    static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.name");
-    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
+    static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
-    private static final LocTextKey FORM_TEMPLATE_TEXT_KEY =
+    static final LocTextKey FORM_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.template");
-    private static final LocTextKey FORM_STATUS_TEXT_KEY =
+    static final LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.status");
-    private static final LocTextKey FORM_IMPORT_TEXT_KEY =
+    static final LocTextKey FORM_IMPORT_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-config");
-    private static final LocTextKey FORM_IMPORT_SELECT_TEXT_KEY =
+    static final LocTextKey FORM_IMPORT_SELECT_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-file-select");
-    private static final LocTextKey FORM_IMPORT_PASSWORD_TEXT_KEY =
+    static final LocTextKey FORM_IMPORT_PASSWORD_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-file-password");
-    private static final LocTextKey CONFIG_KEY_TITLE_TEXT_KEY =
+    static final LocTextKey CONFIG_KEY_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.config-key.title");
-    private static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
+    static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-config.confirm");
+
+    static final LocTextKey FORM_COPY_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.action.copy");
+
+    static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
+            new LocTextKey("sebserver.examconfig.action.state-change.confirm");
 
     private final PageService pageService;
     private final RestService restService;
@@ -127,7 +127,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
                         .get(pageContext::notifyError);
-
         if (examConfig == null) {
             log.error("Failed to get ConfigurationNode. "
                     + "Error was notified to the User. "
@@ -139,6 +138,12 @@ public class SebExamConfigPropForm implements TemplateComposer {
         final boolean writeGrant = entityGrant.w();
         final boolean modifyGrant = entityGrant.m();
         final boolean isReadonly = pageContext.isReadonly();
+        final boolean isAttachedToExam = this.restService
+                .getBuilder(GetExamConfigMappingNames.class)
+                .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId())
+                .call()
+                .map(names -> names != null && !names.isEmpty())
+                .getOr(Boolean.FALSE);
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(examConfig.getEntityKey());
@@ -151,7 +156,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
-        // The SebClientConfig form
         final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(isReadonly)
@@ -185,7 +189,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
-                        resourceService::examConfigStatusResources))
+                        () -> resourceService.examConfigStatusResources(isAttachedToExam)))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
@@ -229,7 +233,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigPropForm.importConfigFunction(this.pageService))
+                .withExec(SebExamConfigImport.importConfigFunction(this.pageService))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
@@ -237,6 +241,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
+                .withConfirm(() -> stateChangeConfirm(isAttachedToExam, formHandle))
                 .publishIf(() -> !isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY)
@@ -244,6 +249,26 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
+    }
+
+    private LocTextKey stateChangeConfirm(
+            final boolean isAttachedToExam,
+            final FormHandle<ConfigurationNode> formHandle) {
+
+        if (isAttachedToExam) {
+            final String fieldValue = formHandle
+                    .getForm()
+                    .getFieldValue(Domain.CONFIGURATION_NODE.ATTR_STATUS);
+
+            if (fieldValue != null) {
+                final ConfigurationStatus state = ConfigurationStatus.valueOf(fieldValue);
+                if (state != ConfigurationStatus.IN_USE) {
+                    return SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static Function<PageAction, PageAction> getConfigKeyFunction(final PageService pageService) {
@@ -279,110 +304,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     });
             return action;
         };
-    }
-
-    private static Function<PageAction, PageAction> importConfigFunction(final PageService pageService) {
-        return action -> {
-
-            final ModalInputDialog<FormHandle<ConfigurationNode>> dialog =
-                    new ModalInputDialog<FormHandle<ConfigurationNode>>(
-                            action.pageContext().getParent().getShell(),
-                            pageService.getWidgetFactory())
-                                    .setDialogWidth(600);
-
-            final ImportFormContext importFormContext = new ImportFormContext(
-                    pageService,
-                    action.pageContext());
-
-            dialog.open(
-                    FORM_IMPORT_TEXT_KEY,
-                    formHandle -> SebExamConfigPropForm.doImport(
-                            pageService,
-                            formHandle),
-                    importFormContext::cancelUpload,
-                    importFormContext);
-
-            return action;
-        };
-    }
-
-    private static final void doImport(
-            final PageService pageService,
-            final FormHandle<ConfigurationNode> formHandle) {
-
-        final Form form = formHandle.getForm();
-        final EntityKey entityKey = formHandle.getContext().getEntityKey();
-        final Control fieldControl = form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
-        final PageContext context = formHandle.getContext();
-        if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
-            final FileUploadSelection fileUpload = (FileUploadSelection) fieldControl;
-            final InputStream inputStream = fileUpload.getInputStream();
-            if (inputStream != null) {
-                final Configuration configuration = pageService.getRestService()
-                        .getBuilder(ImportExamConfig.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                        .withHeader(
-                                API.IMPORT_PASSWORD_ATTR_NAME,
-                                form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
-                        .withBody(inputStream)
-                        .call()
-                        .get(e -> {
-                            fileUpload.close();
-                            return context.notifyError(e);
-                        });
-
-                if (configuration != null) {
-                    context.publishInfo(FORM_IMPORT_CONFIRM_TEXT_KEY);
-                }
-            } else {
-                formHandle.getContext().publishPageMessage(
-                        new LocTextKey("sebserver.error.unexpected"),
-                        new LocTextKey("Please selecte a valid SEB Exam Configuration File"));
-            }
-        }
-    }
-
-    private static final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
-
-        private final PageService pageService;
-        private final PageContext pageContext;
-
-        private Form form = null;
-
-        protected ImportFormContext(final PageService pageService, final PageContext pageContext) {
-            this.pageService = pageService;
-            this.pageContext = pageContext;
-        }
-
-        @Override
-        public Supplier<FormHandle<ConfigurationNode>> compose(final Composite parent) {
-
-            final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
-                    this.pageContext.copyOf(parent), 4)
-                    .readonly(false)
-                    .addField(FormBuilder.fileUpload(
-                            API.IMPORT_FILE_ATTR_NAME,
-                            FORM_IMPORT_SELECT_TEXT_KEY,
-                            null,
-                            API.SEB_FILE_EXTENSION))
-                    .addField(FormBuilder.text(
-                            API.IMPORT_PASSWORD_ATTR_NAME,
-                            FORM_IMPORT_PASSWORD_TEXT_KEY,
-                            "").asPasswordField())
-                    .build();
-
-            this.form = formHandle.getForm();
-            return () -> formHandle;
-        }
-
-        void cancelUpload() {
-            if (this.form != null) {
-                final Control fieldControl = this.form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
-                if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
-                    ((FileUploadSelection) fieldControl).close();
-                }
-            }
-        }
     }
 
 }

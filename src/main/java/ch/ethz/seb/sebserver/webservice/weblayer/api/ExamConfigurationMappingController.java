@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -28,6 +31,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfiguration
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -39,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ExamConfigurationMappingController extends EntityController<ExamConfigurationMap, ExamConfigurationMap> {
 
     private final ExamDAO examDao;
+    private final ConfigurationNodeDAO configurationNodeDAO;
 
     protected ExamConfigurationMappingController(
             final AuthorizationService authorization,
@@ -47,7 +52,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ExamDAO examDao) {
+            final ExamDAO examDao,
+            final ConfigurationNodeDAO configurationNodeDAO) {
 
         super(
                 authorization,
@@ -58,6 +64,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 beanValidationService);
 
         this.examDao = examDao;
+        this.configurationNodeDAO = configurationNodeDAO;
     }
 
     @Override
@@ -97,6 +104,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     @Override
     protected Result<ExamConfigurationMap> validForCreate(final ExamConfigurationMap entity) {
         return super.validForCreate(entity)
+                .map(this::checkConfigurationState)
                 .map(this::checkPasswordMatch);
     }
 
@@ -106,6 +114,21 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 .map(this::checkPasswordMatch);
     }
 
+    @Override
+    protected Result<ExamConfigurationMap> notifyCreated(final ExamConfigurationMap entity) {
+        // update the attached configurations state to "In Use"
+        return this.configurationNodeDAO.save(new ConfigurationNode(
+                entity.configurationNodeId,
+                entity.institutionId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ConfigurationStatus.IN_USE))
+                .map(config -> entity);
+    }
+
     private ExamConfigurationMap checkPasswordMatch(final ExamConfigurationMap entity) {
         if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.confirmEncryptSecret)) {
             throw new APIMessageException(APIMessage.fieldValidationError(
@@ -113,6 +136,24 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                             Domain.EXAM_CONFIGURATION_MAP.TYPE_NAME,
                             PasswordChange.ATTR_NAME_PASSWORD,
                             "examConfigMapping:confirm_encrypt_secret:password.mismatch")));
+        }
+
+        return entity;
+    }
+
+    private ExamConfigurationMap checkConfigurationState(final ExamConfigurationMap entity) {
+        final ConfigurationStatus status;
+        if (entity.getConfigStatus() != null) {
+            status = entity.getConfigStatus();
+        } else {
+            status = this.configurationNodeDAO.byPK(entity.configurationNodeId)
+                    .getOrThrow()
+                    .getStatus();
+        }
+
+        if (status != ConfigurationStatus.READY_TO_USE) {
+            throw new APIMessageException(ErrorMessage.INTEGRITY_VALIDATION.of(
+                    "Illegal SEB Exam Configuration state"));
         }
 
         return entity;

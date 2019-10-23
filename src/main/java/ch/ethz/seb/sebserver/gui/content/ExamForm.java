@@ -9,10 +9,12 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -28,6 +30,8 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -53,10 +57,10 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
@@ -126,10 +130,21 @@ public class ExamForm implements TemplateComposer {
     private final static LocTextKey INDICATOR_EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
 
+    private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
+            new LocTextKey("sebserver.exam.consistency.title");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SUPPORTER =
+            new LocTextKey("sebserver.exam.consistency.missing-supporter");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_CONFIG =
+            new LocTextKey("sebserver.exam.consistency.missing-config");
+
+    private final static LocTextKey CONFIRM_MESSAGE_REMOVE_CONFIG =
+            new LocTextKey("sebserver.exam.confirm.remove-config");
+
     private final PageService pageService;
     private final ResourceService resourceService;
     private final DownloadService downloadService;
     private final String downloadFileName;
+    private final WidgetFactory widgetFactory;
 
     protected ExamForm(
             final PageService pageService,
@@ -141,15 +156,15 @@ public class ExamForm implements TemplateComposer {
         this.resourceService = resourceService;
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
+        this.widgetFactory = pageService.getWidgetFactory();
     }
 
     @Override
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-        final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
 
+        final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
@@ -173,12 +188,20 @@ public class ExamForm implements TemplateComposer {
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
 
+        // check exam consistency and inform the user if needed
+        if (readonly) {
+            restService.getBuilder(CheckExamConsistency.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .ifPresent(result -> showConsistencyChecks(result, formContext.getParent()));
+        }
+
         // the default page layout with title
         final LocTextKey titleKey = new LocTextKey(
                 importFromQuizData
                         ? "sebserver.exam.form.title.import"
                         : "sebserver.exam.form.title");
-        final Composite content = widgetFactory.defaultPageLayout(
+        final Composite content = this.widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);
 
@@ -187,9 +210,10 @@ public class ExamForm implements TemplateComposer {
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean modifyGrant = userGrantCheck.m();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean editable = examStatus == ExamStatus.UP_COMING ||
-                examStatus == ExamStatus.RUNNING &&
-                        currentUser.get().hasRole(UserRole.EXAM_ADMIN);
+        final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
+        final boolean editable = examStatus == ExamStatus.UP_COMING
+                || examStatus == ExamStatus.RUNNING
+                        && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
@@ -283,14 +307,14 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
-                .withExec(this::cancelModify)
+                .withExec(this.cancelModifyFunction())
                 .publishIf(() -> !readonly);
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
 
             // List of SEB Configuration
-            widgetFactory.labelLocalized(
+            this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
                     CONFIG_LIST_TITLE_KEY);
@@ -354,6 +378,12 @@ public class ExamForm implements TemplateComposer {
                             getConfigMappingSelection(configurationTable),
                             this::deleteExamConfigMapping,
                             CONFIG_EMPTY_SELECTION_TEXT_KEY)
+                    .withConfirm(() -> {
+                        if (isExamRunning) {
+                            return CONFIRM_MESSAGE_REMOVE_CONFIG;
+                        }
+                        return null;
+                    })
                     .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable)
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
@@ -374,7 +404,7 @@ public class ExamForm implements TemplateComposer {
                     .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent());
 
             // List of Indicators
-            widgetFactory.labelLocalized(
+            this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
                     INDICATOR_LIST_TITLE_KEY);
@@ -430,6 +460,35 @@ public class ExamForm implements TemplateComposer {
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
         }
+    }
+
+    private void showConsistencyChecks(final Collection<APIMessage> result, final Composite parent) {
+        if (result == null || result.isEmpty()) {
+            return;
+        }
+
+        final Composite warningPanel = this.widgetFactory.createWarningPanel(parent);
+        this.widgetFactory.labelLocalized(
+                warningPanel,
+                CustomVariant.TITLE_LABEL,
+                CONSISTENCY_MESSAGE_TITLE);
+
+        result
+                .stream()
+                .map(message -> {
+                    if (message.messageCode.equals(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.messageCode)) {
+                        return CONSISTENCY_MESSAGE_MISSING_SUPPORTER;
+                    } else if (message.messageCode
+                            .equals(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.messageCode)) {
+                        return CONSISTENCY_MESSAGE_MISSING_CONFIG;
+                    }
+                    return null;
+                })
+                .filter(message -> message != null)
+                .forEach(message -> this.widgetFactory.labelLocalized(
+                        warningPanel,
+                        CustomVariant.MESSAGE,
+                        message));
     }
 
     private PageAction viewExamConfigPageAction(final EntityTable<ExamConfigurationMap> table) {
@@ -549,6 +608,7 @@ public class ExamForm implements TemplateComposer {
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
     }
 
+    // TODO find a better way to show a threshold value as text
     private static String thresholdsValue(final Indicator indicator) {
         if (indicator.thresholds.isEmpty()) {
             return Constants.EMPTY_NOTE;
@@ -558,25 +618,31 @@ public class ExamForm implements TemplateComposer {
                 .stream()
                 .reduce(
                         new StringBuilder(),
-                        (sb, threshold) -> sb.append(threshold.value).append(":").append(threshold.color).append("|"),
+                        (sb, threshold) -> sb.append(threshold.value)
+                                .append(":")
+                                .append(threshold.color)
+                                .append("|"),
                         (sb1, sb2) -> sb1.append(sb2))
                 .toString();
     }
 
-    private PageAction cancelModify(final PageAction action) {
-        final boolean importFromQuizData = BooleanUtils.toBoolean(
-                action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
-        if (importFromQuizData) {
-            final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(action.pageContext());
-            final PageAction activityHomeAction = actionBuilder
-                    .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
-                    .create();
-            this.pageService.firePageEvent(new ActionEvent(activityHomeAction), action.pageContext());
-            return activityHomeAction;
-        }
+    private Function<PageAction, PageAction> cancelModifyFunction() {
+        final Function<PageAction, PageAction> backToCurrentFunction = this.pageService.backToCurrentFunction();
+        return action -> {
+            final boolean importFromQuizData = BooleanUtils.toBoolean(
 
-        final PageState lastState = this.pageService.getCurrentState();
-        return lastState.gotoAction;
+                    action.pageContext().getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+            if (importFromQuizData) {
+                final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(action.pageContext());
+                final PageAction activityHomeAction = actionBuilder
+                        .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                        .create();
+                this.pageService.firePageEvent(new ActionEvent(activityHomeAction), action.pageContext());
+                return activityHomeAction;
+            }
+
+            return backToCurrentFunction.apply(action);
+        };
     }
 
 }

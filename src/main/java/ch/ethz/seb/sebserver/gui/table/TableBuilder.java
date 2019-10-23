@@ -10,11 +10,13 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.TableItem;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -38,6 +40,7 @@ public class TableBuilder<ROW extends Entity> {
     private int type = SWT.NONE;
     private boolean hideNavigation = false;
     private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
+    private BiConsumer<TableItem, ROW> rowDecorator;
 
     public TableBuilder(
             final PageService pageService,
@@ -126,6 +129,11 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withRowDecorator(final BiConsumer<TableItem, ROW> rowDecorator) {
+        this.rowDecorator = rowDecorator;
+        return this;
+    }
+
     public EntityTable<ROW> compose(final PageContext pageContext) {
         return new EntityTable<>(
                 this.type,
@@ -138,7 +146,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.emptyMessage,
                 this.defaultActionFunction,
                 this.hideNavigation,
-                this.staticQueryParams);
+                this.staticQueryParams,
+                this.rowDecorator);
     }
 
 }

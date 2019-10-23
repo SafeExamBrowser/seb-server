@@ -131,6 +131,7 @@ public class WidgetFactory {
 
         MESSAGE("message"),
         ERROR("error"),
+        WARNING("warning"),
         CONFIG_INPUT_READONLY("inputreadonly")
 
         ;
@@ -216,6 +217,17 @@ public class WidgetFactory {
                 },
                 false);
         return grid;
+    }
+
+    public Composite createWarningPanel(final Composite parent) {
+        final Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final GridLayout gridLayout = new GridLayout(1, true);
+        gridLayout.marginWidth = 20;
+        gridLayout.marginHeight = 20;
+        composite.setLayout(gridLayout);
+        composite.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
+        return composite;
     }
 
     public Button buttonLocalized(final Composite parent, final String locTextKey) {

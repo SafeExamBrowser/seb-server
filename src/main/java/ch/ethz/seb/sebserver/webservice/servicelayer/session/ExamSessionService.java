@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import org.springframework.context.event.EventListener;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -28,6 +29,17 @@ public interface ExamSessionService {
      *
      * @return the underling ExamDAO service. */
     ExamDAO getExamDAO();
+
+    /** Use this to check the consistency of a running Exam.
+     * Current consistency checks are:
+     * - Check if there is at least one Exam supporter attached to the Exam
+     * - Check if there is one default SEB Exam Configuration attached to the Exam
+     * - Check if there is at least one Indicator defined for the monitoring of the Exam
+     *
+     * @param examId the identifier of the Exam to check
+     * @return Result of one APIMessage per consistency check if the check failed. An empty Collection of everything is
+     *         okay. */
+    Result<Collection<APIMessage>> checkRunningExamConsystency(Long examId);
 
     /** Indicates whether an Exam is currently running or not.
      *

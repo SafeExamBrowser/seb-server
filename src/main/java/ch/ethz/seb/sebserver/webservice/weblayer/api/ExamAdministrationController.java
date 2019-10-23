@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -59,6 +60,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -72,6 +74,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     private final UserDAO userDAO;
     private final LmsAPIService lmsAPIService;
     private final SebExamConfigService sebExamConfigService;
+    private final ExamSessionService examSessionService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -82,7 +85,8 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             final BeanValidationService beanValidationService,
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
-            final SebExamConfigService sebExamConfigService) {
+            final SebExamConfigService sebExamConfigService,
+            final ExamSessionService examSessionService) {
 
         super(authorization,
                 bulkActionService,
@@ -95,6 +99,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
         this.userDAO = userDAO;
         this.lmsAPIService = lmsAPIService;
         this.sebExamConfigService = sebExamConfigService;
+        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -105,7 +110,7 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Override
     public Page<Exam> getPage(
             @RequestParam(
@@ -185,6 +190,17 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
             outputStream.flush();
             outputStream.close();
         }
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<APIMessage> checkExamConsistency(@PathVariable final Long modelId) {
+        return this.examSessionService
+                .checkRunningExamConsystency(modelId)
+                .getOrThrow();
     }
 
     public static Page<Exam> buildSortedExamPage(

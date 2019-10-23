@@ -170,6 +170,14 @@ Composite.error {
     border-radius: 1px;
 }
 
+Composite.warning {
+    background-gradient-color: rgba( 168, 50, 45, 0.5 );
+    background-image: gradient( linear, left top, left bottom, from(rgba( 168, 50, 45, 0.5 ) ), to( rgba( 168, 50, 45, 0.5 ) ) );
+    background-repeat: repeat;
+    background-position: left top;
+    opacity: 1;
+}
+
 *.header {
     font: bold 12px Arial, Helvetica, sans-serif;
     color: #FFFFFF;
@@ -740,12 +748,18 @@ TableColumn:hover {
     background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );
 }
 
-TableItem, TableItem:linesvisible:even:rowtemplate {
+TableItem {
     background-color: transparent;
     color: inherit;
     text-decoration: none;
     text-shadow: none;
     background-image: none;
+}
+
+Table-RowOverlay.warning {
+    background-color: rgba( 168, 50, 45, 0.5 );
+    background-gradient-color: rgba( 168, 50, 45, 0.5 );
+    background-image: gradient( linear, left top, left bottom, from(rgba( 168, 50, 45, 0.5 ) ), to( rgba( 168, 50, 45, 0.5 ) ) );
 }
 
 TableItem:linesvisible:even {
@@ -758,6 +772,7 @@ Table-RowOverlay {
     color: inherit;
     background-image: none;
 }
+
 
 Table-RowOverlay:hover {
     color: #4a4a4a;

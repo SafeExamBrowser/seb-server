@@ -403,6 +403,13 @@ public enum ActionDefinition {
             ImageIcon.IMPORT,
             ActionCategory.FORM),
 
+    // TODO copy config action
+    // TODO
+    SEB_EXAM_CONFIG_COPY_CONFIG(
+            new LocTextKey("sebserver.examconfig.action.copy-config"),
+            ImageIcon.IMPORT,
+            ActionCategory.FORM),
+
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify"),
             ImageIcon.EDIT_SETTINGS,
@@ -421,7 +428,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_TEMPLATE_NEW(
-            new LocTextKey("sebserver.exam.configtemplate.action.list.new"),
+            new LocTextKey("sebserver.configtemplate.action.list.new"),
             ImageIcon.NEW,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
             ActionCategory.VARIA),

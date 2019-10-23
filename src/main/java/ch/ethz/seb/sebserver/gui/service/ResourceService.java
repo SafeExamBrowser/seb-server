@@ -365,8 +365,13 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> examConfigStatusResources() {
+        return examConfigStatusResources(false);
+    }
+
+    public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam) {
         return Arrays.asList(ConfigurationStatus.values())
                 .stream()
+                .filter(status -> !isAttachedToExam || status != ConfigurationStatus.READY_TO_USE)
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())))

@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -54,6 +55,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class EntityTable<ROW extends Entity> {
@@ -80,6 +82,7 @@ public class EntityTable<ROW extends Entity> {
     private final Table table;
     private final TableNavigator navigator;
     private final MultiValueMap<String, String> staticQueryParams;
+    private final BiConsumer<TableItem, ROW> rowDecorator;
 
     int pageNumber = 1;
     int pageSize;
@@ -99,7 +102,8 @@ public class EntityTable<ROW extends Entity> {
             final LocTextKey emptyMessage,
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
             final boolean hideNavigation,
-            final MultiValueMap<String, String> staticQueryParams) {
+            final MultiValueMap<String, String> staticQueryParams,
+            final BiConsumer<TableItem, ROW> rowDecorator) {
 
         this.composite = new Composite(pageContext.getParent(), type);
         this.pageService = pageService;
@@ -120,6 +124,7 @@ public class EntityTable<ROW extends Entity> {
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         this.composite.setLayoutData(gridData);
         this.staticQueryParams = staticQueryParams;
+        this.rowDecorator = rowDecorator;
 
 // TODO just for debugging, remove when tested
 //        this.composite.setBackground(new Color(parent.getDisplay(), new RGB(0, 200, 0)));
@@ -404,6 +409,9 @@ public class EntityTable<ROW extends Entity> {
             final TableItem item = new TableItem(this.table, SWT.NONE);
             item.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
             item.setData(TABLE_ROW_DATA, row);
+            if (this.rowDecorator != null) {
+                this.rowDecorator.accept(item, row);
+            }
 
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {

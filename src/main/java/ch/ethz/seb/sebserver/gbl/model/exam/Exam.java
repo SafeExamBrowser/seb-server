@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
@@ -115,6 +116,7 @@ public final class Exam implements GrantEntity, Activatable {
     public final String owner;
 
     @JsonProperty(EXAM.ATTR_SUPPORTER)
+    @NotEmpty(message = "exam:supporter:notNull")
     public final Collection<String> supporter;
 
     /** Indicates whether this Exam is active or not */
