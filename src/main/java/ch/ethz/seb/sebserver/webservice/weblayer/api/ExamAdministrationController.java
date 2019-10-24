@@ -258,6 +258,12 @@ public class ExamAdministrationController extends ActivatableEntityController<Ex
     }
 
     @Override
+    protected Result<Exam> validForCreate(final Exam entity) {
+        return super.validForCreate(entity)
+                .map(this::checkExamSupporterRole);
+    }
+
+    @Override
     protected Result<Exam> validForSave(final Exam entity) {
         return super.validForSave(entity)
                 .map(this::checkExamSupporterRole);

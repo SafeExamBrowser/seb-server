@@ -37,12 +37,13 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                 sebAdminAccess,
                 "LmsSetupMock",
                 "quiz2",
-                ExamType.MANAGED);
+                ExamType.MANAGED,
+                "user5");
 
         assertNotNull(exam);
         assertEquals("quiz2", exam.getExternalId());
         assertEquals(ExamType.MANAGED, exam.getType());
-        assertTrue(exam.getSupporter().isEmpty());
+        assertFalse(exam.getSupporter().isEmpty());
 
         // add ExamSupporter
         final Exam newExam = new RestAPITestHelper()

@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.widgets.Composite;
@@ -19,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
@@ -30,7 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Co
 
 public final class SebExamConfigCopy {
 
-    static Function<PageAction, PageAction> importConfigFunction(
+    static Function<PageAction, PageAction> copyConfigFunction(
             final PageService pageService,
             final PageContext pageContext) {
 
@@ -46,12 +48,14 @@ public final class SebExamConfigCopy {
                     pageService,
                     action.pageContext());
 
+            final Predicate<FormHandle<ConfigCopyInfo>> doCopy = formHandle -> doCopy(
+                    pageService,
+                    pageContext,
+                    formHandle);
+
             dialog.open(
                     SebExamConfigPropForm.FORM_COPY_TEXT_KEY,
-                    formHandle -> doCopy(
-                            pageService,
-                            pageContext,
-                            formHandle),
+                    doCopy,
                     Utils.EMPTY_EXECUTION,
                     formContext);
 
@@ -59,7 +63,7 @@ public final class SebExamConfigCopy {
         };
     }
 
-    private static final void doCopy(
+    private static final boolean doCopy(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<ConfigCopyInfo> formHandle) {
@@ -67,13 +71,21 @@ public final class SebExamConfigCopy {
         final ConfigurationNode newConfig = pageService.getRestService().getBuilder(CopyConfiguration.class)
                 .withFormBinding(formHandle.getFormBinding())
                 .call()
-                .getOrThrow();
+                .onError(formHandle::handleError)
+                .getOr(null);
 
-        final PageAction viewNewConfig = pageService.pageActionBuilder(pageContext.copy().clearAttributes())
+        if (newConfig == null) {
+            return false;
+        }
+
+        final PageAction viewNewConfig = pageService.pageActionBuilder(pageContext)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                 .withEntityKey(new EntityKey(newConfig.id, EntityType.CONFIGURATION_NODE))
                 .create();
 
         pageService.executePageAction(viewNewConfig);
+
+        return true;
     }
 
     private static final class CopyFormContext implements ModalInputDialogComposer<FormHandle<ConfigCopyInfo>> {
@@ -103,6 +115,9 @@ public final class SebExamConfigCopy {
                             Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                             SebExamConfigPropForm.FORM_DESCRIPTION_TEXT_KEY)
                             .asArea())
+                    .addField(FormBuilder.checkbox(
+                            ConfigCopyInfo.ATTR_COPY_WITH_HISTORY,
+                            SebExamConfigPropForm.FORM_HISTORY_TEXT_KEY))
                     .build();
 
             return () -> formHandle;

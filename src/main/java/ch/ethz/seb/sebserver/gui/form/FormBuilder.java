@@ -194,6 +194,14 @@ public class FormBuilder {
         empty.setText("");
     }
 
+    public static CheckboxFieldBuilder checkbox(final String name, final LocTextKey label) {
+        return new CheckboxFieldBuilder(name, label, null);
+    }
+
+    public static CheckboxFieldBuilder checkbox(final String name, final LocTextKey label, final String value) {
+        return new CheckboxFieldBuilder(name, label, value);
+    }
+
     public static TextFieldBuilder text(final String name, final LocTextKey label) {
         return new TextFieldBuilder(name, label, null);
     }

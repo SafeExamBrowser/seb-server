@@ -71,6 +71,7 @@ public class WidgetFactory {
         EDIT("edit.png"),
         EDIT_SETTINGS("settings.png"),
         TEST("test.png"),
+        COPY("copy.png"),
         IMPORT("import.png"),
         CANCEL("cancel.png"),
         CANCEL_EDIT("cancelEdit.png"),

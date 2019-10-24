@@ -69,6 +69,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.name");
     static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
+    static final LocTextKey FORM_HISTORY_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.with-history");
     static final LocTextKey FORM_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.template");
     static final LocTextKey FORM_STATUS_TEXT_KEY =
@@ -196,7 +198,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         final boolean settingsReadonly = examConfig.status == ConfigurationStatus.IN_USE;
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
-        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
+        final PageContext actionContext = formContext.clearEntityKeys();
+        this.pageService.pageActionBuilder(actionContext)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
@@ -234,6 +237,12 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_CONFIG)
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigImport.importConfigFunction(this.pageService))
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigCopy.copyConfigFunction(this.pageService, actionContext))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 

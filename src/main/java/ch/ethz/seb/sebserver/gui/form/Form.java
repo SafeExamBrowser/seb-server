@@ -18,12 +18,14 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -127,6 +129,11 @@ public final class Form implements FormBinding {
 
     Form putField(final String name, final Label label, final Text field, final Label errorLabel) {
         this.formFields.add(name, createAccessor(label, field, errorLabel));
+        return this;
+    }
+
+    Form putField(final String name, final Label label, final Button checkbox) {
+        this.formFields.add(name, createAccessor(label, checkbox, null));
         return this;
     }
 
@@ -264,6 +271,12 @@ public final class Form implements FormBinding {
         return new FormFieldAccessor(label, text, errorLabel) {
             @Override public String getStringValue() {return text.getText();}
             @Override public void setStringValue(final String value) {text.setText(value);}
+        };
+    }
+    private FormFieldAccessor createAccessor(final Label label, final Button checkbox, final Label errorLabel) {
+        return new FormFieldAccessor(label, checkbox, errorLabel) {
+            @Override public String getStringValue() {return BooleanUtils.toStringTrueFalse(checkbox.getSelection());}
+            @Override public void setStringValue(final String value) {checkbox.setSelection(BooleanUtils.toBoolean(value));}
         };
     }
     private FormFieldAccessor createAccessor(final Label label, final Selection selection, final Label errorLabel) {

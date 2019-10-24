@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
@@ -72,6 +73,20 @@ public class ModalInputDialog<T> extends Dialog {
             final Runnable cancelCallback,
             final ModalInputDialogComposer<T> contentComposer) {
 
+        final Predicate<T> predicate = result -> {
+            callback.accept(result);
+            return true;
+        };
+
+        open(title, predicate, cancelCallback, contentComposer);
+    }
+
+    public void open(
+            final LocTextKey title,
+            final Predicate<T> callback,
+            final Runnable cancelCallback,
+            final ModalInputDialogComposer<T> contentComposer) {
+
         // Create the selection dialog window
         final Shell shell = new Shell(getParent(), getStyle());
         shell.setText(getText());
@@ -98,8 +113,9 @@ public class ModalInputDialog<T> extends Dialog {
         ok.addListener(SWT.Selection, event -> {
             if (valueSuppier != null) {
                 final T result = valueSuppier.get();
-                callback.accept(result);
-                shell.close();
+                if (callback.test(result)) {
+                    shell.close();
+                }
             } else {
                 shell.close();
             }

@@ -495,14 +495,9 @@ INSERT IGNORE INTO orientation VALUES
     (520, 520, 0, 11, 'functionKeys', 3, 12, 3, 1, 'NONE')
     
     ;
-    
-    
-    
-    
-    
-    
+
 INSERT IGNORE INTO configuration_node VALUES 
-    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'READY_TO_USE')
+    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'IN_USE')
     ;
     
 INSERT IGNORE INTO configuration VALUES 

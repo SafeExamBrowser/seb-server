@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -55,6 +57,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 /** This service is internally used to implement MyBatis batch functionality for the most
  * intensive write operation on Configuration domain. */
@@ -317,7 +320,99 @@ class ConfigurationDAOBatchService {
                 .flatMap(ConfigurationDAOImpl::toDomainModel);
     }
 
-    Result<Configuration> copyConfiguration(
+    Result<ConfigurationNode> createCopy(
+            final Long institutionId,
+            final String newOwner,
+            final ConfigCopyInfo copyInfo) {
+
+        return Result.tryCatch(() -> {
+            final ConfigurationNodeRecord sourceNode = this.batchConfigurationNodeRecordMapper
+                    .selectByPrimaryKey(copyInfo.configurationNodeId);
+
+            if (!sourceNode.getInstitutionId().equals(institutionId)) {
+                new IllegalArgumentException("Institution integrity violation");
+            }
+
+            return this.copyNodeRecord(sourceNode, newOwner, copyInfo);
+        })
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    private ConfigurationNodeRecord copyNodeRecord(
+            final ConfigurationNodeRecord nodeRec,
+            final String newOwner,
+            final ConfigCopyInfo copyInfo) {
+
+        final ConfigurationNodeRecord newNodeRec = new ConfigurationNodeRecord(
+                null,
+                nodeRec.getInstitutionId(),
+                nodeRec.getTemplateId(),
+                StringUtils.isNotBlank(newOwner) ? newOwner : nodeRec.getOwner(),
+                copyInfo.getName(),
+                copyInfo.getDescription(),
+                nodeRec.getType(),
+                ConfigurationStatus.CONSTRUCTION.name());
+        this.batchConfigurationNodeRecordMapper.insert(newNodeRec);
+        this.batchSqlSessionTemplate.flushStatements();
+
+        final List<ConfigurationRecord> configs = this.batchConfigurationRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(nodeRec.getId()))
+                .build()
+                .execute();
+
+        if (BooleanUtils.toBoolean(copyInfo.withHistory)) {
+            configs
+                    .stream()
+                    .forEach(configRec -> this.copyConfiguration(
+                            configRec.getInstitutionId(),
+                            configRec.getId(),
+                            newNodeRec.getId()));
+        } else {
+            configs
+                    .stream()
+                    .filter(configRec -> configRec.getVersionDate() == null)
+                    .findFirst()
+                    .ifPresent(configRec -> {
+                        // No history means to create a first version and a follow-up with the copied values
+                        final ConfigurationRecord newFirstVersion = new ConfigurationRecord(
+                                null,
+                                configRec.getInstitutionId(),
+                                newNodeRec.getId(),
+                                ConfigurationDAOBatchService.INITIAL_VERSION_NAME,
+                                DateTime.now(DateTimeZone.UTC),
+                                BooleanUtils.toInteger(false));
+                        this.batchConfigurationRecordMapper.insert(newFirstVersion);
+                        this.batchSqlSessionTemplate.flushStatements();
+                        this.copyValues(
+                                configRec.getInstitutionId(),
+                                configRec.getId(),
+                                newFirstVersion.getId());
+                        // and copy the follow-up
+                        final ConfigurationRecord followup = new ConfigurationRecord(
+                                null,
+                                configRec.getInstitutionId(),
+                                newNodeRec.getId(),
+                                null,
+                                null,
+                                BooleanUtils.toInteger(true));
+                        this.batchConfigurationRecordMapper.insert(followup);
+                        this.batchSqlSessionTemplate.flushStatements();
+                        this.copyValues(
+                                configRec.getInstitutionId(),
+                                configRec.getId(),
+                                followup.getId());
+                    });
+        }
+
+        this.batchSqlSessionTemplate.flushStatements();
+        return newNodeRec;
+    }
+
+    private Result<Configuration> copyConfiguration(
             final Long institutionId,
             final Long fromConfigurationId,
             final Long toConfigurationNodeId) {
@@ -338,6 +433,7 @@ class ConfigurationDAOBatchService {
                     fromRecord.getVersionDate(),
                     fromRecord.getFollowup());
             this.batchConfigurationRecordMapper.insert(configurationRecord);
+            this.batchSqlSessionTemplate.flushStatements();
             return configurationRecord;
         })
                 .flatMap(ConfigurationDAOImpl::toDomainModel)
@@ -347,14 +443,10 @@ class ConfigurationDAOBatchService {
                             fromConfigurationId,
                             newConfig.getId());
                     return newConfig;
-                })
-                .map(config -> {
-                    this.batchSqlSessionTemplate.flushStatements();
-                    return config;
                 });
     }
 
-    void copyValues(
+    private void copyValues(
             final Long institutionId,
             final Long fromConfigId,
             final Long toConfigId) {

@@ -392,7 +392,6 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_EXPORT_PLAIN_XML(
             new LocTextKey("sebserver.examconfig.action.export.plainxml"),
             ImageIcon.EXPORT,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_GET_CONFIG_KEY(
             new LocTextKey("sebserver.examconfig.action.get-config-key"),
@@ -402,12 +401,9 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.import-config"),
             ImageIcon.IMPORT,
             ActionCategory.FORM),
-
-    // TODO copy config action
-    // TODO
     SEB_EXAM_CONFIG_COPY_CONFIG(
-            new LocTextKey("sebserver.examconfig.action.copy-config"),
-            ImageIcon.IMPORT,
+            new LocTextKey("sebserver.examconfig.action.copy"),
+            ImageIcon.COPY,
             ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(

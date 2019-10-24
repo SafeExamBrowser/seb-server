@@ -43,6 +43,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute(QuizData.QUIZ_ATTR_LMS_SETUP_ID, lmsSetup1.getModelId())
                 .withAttribute(QuizData.QUIZ_ATTR_ID, "quiz1")
+                .withAttribute(Domain.EXAM.ATTR_SUPPORTER, "user1")
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {
                 });
@@ -58,7 +59,8 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 getSebAdminAccess(),
                 "LmsSetupMock",
                 "quiz2",
-                ExamType.MANAGED);
+                ExamType.MANAGED,
+                "user5");
 
         assertNotNull(exam2);
         assertEquals("quiz2", exam2.getExternalId());
@@ -76,7 +78,8 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                     getAdminInstitution2Access(),
                     "LmsSetupMock",
                     "quiz2",
-                    ExamType.MANAGED);
+                    ExamType.MANAGED,
+                    "user7");
             fail("AssertionError expected here");
         } catch (final AssertionError ae) {
             assertEquals("Response status expected:<200> but was:<403>", ae.getMessage());
@@ -89,7 +92,8 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 getExamAdmin1(), // this exam administrator is on Institution 2
                 "LmsSetupMock2",
                 "quiz2",
-                ExamType.MANAGED);
+                ExamType.MANAGED,
+                "user7");
 
         assertNotNull(exam2);
         assertEquals("quiz2", exam2.getExternalId());
@@ -106,7 +110,8 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                     getExamAdmin1(), // this exam administrator is on Institution 2
                     "LmsSetupMock",
                     "quiz2",
-                    ExamType.MANAGED);
+                    ExamType.MANAGED,
+                    "user7");
             fail("AssertionError expected here");
         } catch (final AssertionError ae) {
             assertEquals("Response status expected:<200> but was:<403>", ae.getMessage());
@@ -119,7 +124,8 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
             final String tokenForExamImport,
             final String lmsSetupName,
             final String importQuizName,
-            final ExamType examType) throws Exception {
+            final ExamType examType,
+            final String supporter) throws Exception {
 
         // create new active LmsSetup Mock with seb-admin
         final LmsSetup lmsSetup1 = QuizDataTest.createLmsSetupMock(
@@ -135,6 +141,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 .withMethod(HttpMethod.POST)
                 .withAttribute(QuizData.QUIZ_ATTR_LMS_SETUP_ID, lmsSetup1.getModelId())
                 .withAttribute(QuizData.QUIZ_ATTR_ID, importQuizName)
+                .withAttribute(Domain.EXAM.ATTR_SUPPORTER, supporter)
                 .withAttribute(Domain.EXAM.ATTR_TYPE, examType.name())
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {

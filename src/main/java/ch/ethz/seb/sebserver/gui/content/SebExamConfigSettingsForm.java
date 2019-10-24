@@ -155,6 +155,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
+                    .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_UNDO)
@@ -168,6 +169,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .withSuccess(KEY_UNDO_SUCCESS)
+                    .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)

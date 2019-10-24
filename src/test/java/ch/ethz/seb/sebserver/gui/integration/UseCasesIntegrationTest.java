@@ -679,6 +679,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(ImportAsExam.class)
                 .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
                 .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
+                .withFormParam(Domain.EXAM.ATTR_SUPPORTER, userId)
                 .call();
 
         assertNotNull(newExamResult);
@@ -687,7 +688,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertEquals("Demo Quiz 1", newExam.name);
         assertEquals(ExamType.UNDEFINED, newExam.type);
-        assertTrue(newExam.supporter.isEmpty());
+        assertFalse(newExam.supporter.isEmpty());
 
         // create Exam with type and supporter examSupport2
         final Exam examForSave = new Exam(
