@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -209,15 +210,14 @@ public class CompositeTableFieldBuilder extends AbstractTableFieldBuilder {
             if (this.tableContext.getViewContext().readonly) {
                 dialog.open(
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
-                        rowVals -> {
-                        },
-                        () -> {
-                        },
                         builder);
             } else {
                 dialog.open(
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
-                        rowVals -> applyFormValues(this.values, rowVals, selectionIndex),
+                        (Consumer<Map<Long, TableValue>>) rowVals -> applyFormValues(
+                                this.values,
+                                rowVals,
+                                selectionIndex),
                         () -> this.tableContext.getValueChangeListener()
                                 .tableChanged(extractTableValue(this.values)),
                         builder);

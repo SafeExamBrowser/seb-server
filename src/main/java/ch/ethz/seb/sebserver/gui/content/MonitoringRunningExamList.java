@@ -101,7 +101,7 @@ public class MonitoringRunningExamList implements TemplateComposer {
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
-                        .withColumn(new ColumnDefinition<>(
+                        .withColumn(new ColumnDefinition<Exam>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
                                 this.resourceService::localizedExamTypeName)

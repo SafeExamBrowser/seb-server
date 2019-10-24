@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.io.InputStream;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -48,7 +49,7 @@ public final class SebExamConfigImport {
 
             dialog.open(
                     SebExamConfigPropForm.FORM_IMPORT_TEXT_KEY,
-                    formHandle -> doImport(
+                    (Consumer<FormHandle<ConfigurationNode>>) formHandle -> doImport(
                             pageService,
                             formHandle),
                     importFormContext::cancelUpload,

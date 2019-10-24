@@ -55,7 +55,6 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class EntityTable<ROW extends Entity> {

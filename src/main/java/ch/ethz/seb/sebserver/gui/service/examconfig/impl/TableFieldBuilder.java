@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -199,7 +200,10 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                                     ExamConfigurationService.getTablePopupTitleKey(
                                             this.attribute,
                                             this.tableContext.getViewContext().i18nSupport),
-                                    rowVals -> applyFormValues(this.values, rowVals, selectionIndex),
+                                    (Consumer<Map<Long, TableValue>>) rowVals -> applyFormValues(
+                                            this.values,
+                                            rowVals,
+                                            selectionIndex),
                                     () -> this.tableContext.getValueChangeListener()
                                             .tableChanged(extractTableValue(this.values)),
                                     builder);

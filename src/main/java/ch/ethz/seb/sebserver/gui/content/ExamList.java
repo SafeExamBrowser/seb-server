@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
@@ -25,8 +26,9 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -43,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -58,23 +61,25 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @GuiProfile
 public class ExamList implements TemplateComposer {
 
-    private static final LocTextKey PAGE_TITLE_KEY =
+    static final String EXAM_LIST_COLUMN_STARTTIME =
+            "sebserver.exam.list.column.starttime";
+    static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.exam.list.title");
-    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+    static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
             new LocTextKey("sebserver.exam.list.action.no.modify.privilege");
-    private final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
+    final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.info.pleaseSelect");
-    private final static LocTextKey COLUMN_TITLE_INSTITUTION_KEY =
+    final static LocTextKey COLUMN_TITLE_INSTITUTION_KEY =
             new LocTextKey("sebserver.exam.list.column.institution");
-    private final static LocTextKey COLUMN_TITLE_LMS_KEY =
+    final static LocTextKey COLUMN_TITLE_LMS_KEY =
             new LocTextKey("sebserver.exam.list.column.lmssetup");
-    private final static LocTextKey COLUMN_TITLE_NAME_KEY =
+    final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.exam.list.column.name");
-    private final static LocTextKey COLUMN_TITLE_TYPE_KEY =
+    final static LocTextKey COLUMN_TITLE_TYPE_KEY =
             new LocTextKey("sebserver.exam.list.column.type");
-    private final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
+    final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
             new LocTextKey("sebserver.exam.list.modify.out.dated");
-    private final static LocTextKey EMPTY_LIST_TEXT_KEY =
+    final static LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.exam.list.empty");
 
     private final TableFilterAttribute institutionFilter;
@@ -139,8 +144,8 @@ public class ExamList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withRowDecorator(this::decorateOnExamConsistency)
-                        
+                        .withRowDecorator(decorateOnExamConsistency(this.pageService))
+
                         .withColumnIf(
                                 isSebAdmin,
                                 () -> new ColumnDefinition<Exam>(
@@ -167,7 +172,7 @@ public class ExamList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
-                                        "sebserver.exam.list.column.starttime",
+                                        EXAM_LIST_COLUMN_STARTTIME,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
                                         .withFilter(new TableFilterAttribute(
@@ -178,7 +183,7 @@ public class ExamList implements TemplateComposer {
                                                         .toString()))
                                         .sortable())
 
-                        .withColumn(new ColumnDefinition<>(
+                        .withColumn(new ColumnDefinition<Exam>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
                                 this.resourceService::localizedExamTypeName)
@@ -205,13 +210,13 @@ public class ExamList implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        action -> this.modifyExam(action, table),
+                        action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }
 
-    private PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
+    static final PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
         final Exam exam = table.getSelectedROWData();
 
         if (exam == null) {
@@ -227,27 +232,41 @@ public class ExamList implements TemplateComposer {
 
         return action.withEntityKey(action.getSingleSelection());
     }
-    
-    private void decorateOnExamConsistency(TableItem item, Exam exam) {
+
+    static final BiConsumer<TableItem, ExamConfigurationMap> decorateOnExamMapConsistency(
+            final PageService pageService) {
+
+        return (item, examMap) -> {
+            pageService.getRestService().getBuilder(GetExam.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examMap.examId))
+                    .call()
+                    .ifPresent(exam -> decorateOnExamConsistency(item, exam, pageService));
+        };
+    }
+
+    static final BiConsumer<TableItem, Exam> decorateOnExamConsistency(final PageService pageService) {
+        return (item, exam) -> decorateOnExamConsistency(item, exam, pageService);
+    }
+
+    static final void decorateOnExamConsistency(final TableItem item, final Exam exam,
+            final PageService pageService) {
         if (exam.getStatus() != ExamStatus.RUNNING) {
             return;
         }
-        
-        this.pageService.getRestService().getBuilder(CheckExamConsistency.class)
-            .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
-            .call()
-            .ifPresent(warnings -> {
-                if (warnings != null && !warnings.isEmpty()) {
-                    item.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
-                }
-            });
+
+        pageService.getRestService().getBuilder(CheckExamConsistency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .ifPresent(warnings -> {
+                    if (warnings != null && !warnings.isEmpty()) {
+                        item.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
+                    }
+                });
     }
 
     private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {
         return exam -> resourceService.getLmsSetupNameFunction()
                 .apply(String.valueOf(exam.lmsSetupId));
     }
-    
-    
 
 }

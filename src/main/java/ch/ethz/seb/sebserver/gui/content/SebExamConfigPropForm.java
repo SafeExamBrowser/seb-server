@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
@@ -45,12 +47,15 @@ import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
+import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -88,7 +93,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
     static final LocTextKey FORM_COPY_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.copy");
-
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
 
@@ -199,7 +203,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
         final boolean settingsReadonly = examConfig.status == ConfigurationStatus.IN_USE;
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         final PageContext actionContext = formContext.clearEntityKeys();
-        this.pageService.pageActionBuilder(actionContext)
+        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(actionContext);
+        actionBuilder
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
@@ -258,6 +263,45 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
+        if (isAttachedToExam) {
+            final EntityTable<ExamConfigurationMap> table =
+                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
+                            .withRestCallAdapter(restCall -> restCall.withQueryParam(
+                                    ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId()))
+                            .withPaging(1)
+                            .hideNavigation()
+                            .withRowDecorator(ExamList.decorateOnExamMapConsistency(this.pageService))
+
+                            .withColumn(new ColumnDefinition<>(
+                                    QuizData.QUIZ_ATTR_NAME,
+                                    ExamList.COLUMN_TITLE_NAME_KEY,
+                                    ExamConfigurationMap::getExamName))
+
+                            .withColumn(new ColumnDefinition<>(
+                                    QuizData.QUIZ_ATTR_START_TIME,
+                                    new LocTextKey(
+                                            ExamList.EXAM_LIST_COLUMN_STARTTIME,
+                                            this.pageService.getI18nSupport().getUsersTimeZoneTitleSuffix()),
+                                    ExamConfigurationMap::getExamStartTime))
+
+                            .withColumn(new ColumnDefinition<ExamConfigurationMap>(
+                                    Domain.EXAM.ATTR_TYPE,
+                                    ExamList.COLUMN_TITLE_TYPE_KEY,
+                                    resourceService::localizedExamTypeName))
+
+                            .withDefaultAction(actionBuilder
+                                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                                    .create())
+
+                            .compose(pageContext.copyOf(content));
+
+            actionBuilder
+
+                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                    .withSelect(table::getSelection, PageAction::applySingleSelection,
+                            ExamList.EMPTY_SELECTION_TEXT_KEY)
+                    .publishIf(table::hasAnyContent);
+        }
     }
 
     private LocTextKey stateChangeConfirm(

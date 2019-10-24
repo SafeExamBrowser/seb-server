@@ -320,7 +320,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                         BulkActionType.HARD_DELETE,
                         entityType,
                         new EntityName(modelId, entityType, entity.getName()))))
+
                 .flatMap(this::logBulkAction)
+                .flatMap(this::notifyDeleted)
                 .getOrThrow();
     }
 
@@ -368,6 +370,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
     protected Result<T> notifySaved(final T entity) {
         return Result.of(entity);
+    }
+
+    protected Result<EntityProcessingReport> notifyDeleted(final EntityProcessingReport deletionReport) {
+        return Result.of(deletionReport);
     }
 
     protected Result<T> checkReadAccess(final T entity) {

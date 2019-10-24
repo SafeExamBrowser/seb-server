@@ -69,6 +69,17 @@ public class ModalInputDialog<T> extends Dialog {
 
     public void open(
             final LocTextKey title,
+            final ModalInputDialogComposer<T> contentComposer) {
+
+        open(
+                title,
+                (Predicate<T>) t -> true,
+                () -> {
+                }, contentComposer);
+    }
+
+    public void open(
+            final LocTextKey title,
             final Consumer<T> callback,
             final Runnable cancelCallback,
             final ModalInputDialogComposer<T> contentComposer) {

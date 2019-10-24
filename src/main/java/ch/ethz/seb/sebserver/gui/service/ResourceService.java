@@ -447,6 +447,15 @@ public class ResourceService {
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + name, name);
     }
 
+    public String localizedExamTypeName(final ExamConfigurationMap examMap) {
+        if (examMap.examType == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_TYPE_PREFIX + examMap.examType.name());
+    }
+
     public String localizedExamTypeName(final Exam exam) {
         if (exam.type == null) {
             return Constants.EMPTY_NOTE;

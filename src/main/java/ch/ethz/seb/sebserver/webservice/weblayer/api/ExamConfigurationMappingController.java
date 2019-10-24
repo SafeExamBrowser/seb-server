@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -119,7 +120,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         // update the attached configurations state to "In Use"
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 entity.configurationNodeId,
-                entity.institutionId,
+                null,
                 null,
                 null,
                 null,
@@ -127,6 +128,26 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 ConfigurationStatus.IN_USE))
                 .map(config -> entity);
+    }
+
+    @Override
+    protected Result<EntityProcessingReport> notifyDeleted(final EntityProcessingReport deletionReport) {
+        // update the attached configurations state to "Ready"
+        deletionReport.source
+                .stream()
+                .forEach(entityKey -> {
+                    this.configurationNodeDAO.save(new ConfigurationNode(
+                            Long.parseLong(entityKey.modelId),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            ConfigurationStatus.READY_TO_USE));
+                });
+
+        return super.notifyDeleted(deletionReport);
     }
 
     private ExamConfigurationMap checkPasswordMatch(final ExamConfigurationMap entity) {

@@ -30,6 +30,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -49,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -62,17 +65,20 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ClientCredentialService clientCredentialService;
+    private final ExamDAO examDAO;
 
     protected ExamConfigurationMapDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
-            final ClientCredentialService clientCredentialService) {
+            final ClientCredentialService clientCredentialService,
+            final ExamDAO examDAO) {
 
         this.examRecordMapper = examRecordMapper;
         this.examConfigurationMapRecordMapper = examConfigurationMapRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.clientCredentialService = clientCredentialService;
+        this.examDAO = examDAO;
     }
 
     @Override
@@ -340,20 +346,27 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     private Result<ExamConfigurationMap> toDomainModel(final ExamConfigurationMapRecord record) {
         return Result.tryCatch(() -> {
 
-            final ConfigurationNodeRecord selectByPrimaryKey = this.configurationNodeRecordMapper
+            final ConfigurationNodeRecord config = this.configurationNodeRecordMapper
                     .selectByPrimaryKey(record.getConfigurationNodeId());
-            final String status = selectByPrimaryKey.getStatus();
+            final String status = config.getStatus();
+
+            final Exam exam = this.examDAO.byPK(record.getExamId())
+                    .getOr(null);
 
             return new ExamConfigurationMap(
                     record.getId(),
                     record.getInstitutionId(),
                     record.getExamId(),
+                    (exam != null) ? exam.name : null,
+                    (exam != null) ? exam.description : null,
+                    (exam != null) ? exam.startTime : null,
+                    (exam != null) ? exam.type : ExamType.UNDEFINED,
                     record.getConfigurationNodeId(),
                     record.getUserNames(),
                     null,
                     null,
-                    selectByPrimaryKey.getName(),
-                    selectByPrimaryKey.getDescription(),
+                    config.getName(),
+                    config.getDescription(),
                     (StringUtils.isNotBlank(status)) ? ConfigurationStatus.valueOf(status) : null);
         });
     }
