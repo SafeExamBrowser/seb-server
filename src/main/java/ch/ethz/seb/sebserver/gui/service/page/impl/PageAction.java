@@ -121,6 +121,8 @@ public final class PageAction {
                         confirm -> callback.accept((confirm)
                                 ? exec()
                                 : Result.ofRuntimeError("Confirm denied")));
+            } else {
+                callback.accept(exec());
             }
         } else {
             callback.accept(exec());

@@ -57,11 +57,11 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
@@ -371,7 +371,13 @@ public class ResourceService {
     public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam) {
         return Arrays.asList(ConfigurationStatus.values())
                 .stream()
-                .filter(status -> !isAttachedToExam || status != ConfigurationStatus.READY_TO_USE)
+                .filter(status -> {
+                    if (isAttachedToExam) {
+                        return status != ConfigurationStatus.READY_TO_USE;
+                    } else {
+                        return status != ConfigurationStatus.IN_USE;
+                    }
+                })
                 .map(type -> new Tuple<>(
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())))
@@ -580,7 +586,7 @@ public class ResourceService {
     }
 
     private Result<List<EntityName>> getExamConfigurationSelection() {
-        return this.restService.getBuilder(GetExamConfigMappingNames.class)
+        return this.restService.getBuilder(GetExamConfigNodeNames.class)
                 .withQueryParam(
                         Entity.FILTER_ATTR_INSTITUTION,
                         String.valueOf(this.currentUser.get().institutionId))

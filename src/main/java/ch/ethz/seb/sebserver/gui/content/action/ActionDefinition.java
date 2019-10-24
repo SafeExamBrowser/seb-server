@@ -240,7 +240,7 @@ public enum ActionDefinition {
     EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP(
             new LocTextKey("sebserver.examconfig.action.view"),
             ImageIcon.SHOW,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_DELETE_FROM_LIST(
             new LocTextKey("sebserver.exam.configuration.action.list.delete"),

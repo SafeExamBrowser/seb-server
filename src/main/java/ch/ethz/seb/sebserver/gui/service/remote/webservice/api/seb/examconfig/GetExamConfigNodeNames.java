@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig;
 
 import java.util.List;
 
@@ -26,9 +26,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetExamConfigMappingNames extends RestCall<List<EntityName>> {
+public class GetExamConfigNodeNames extends RestCall<List<EntityName>> {
 
-    public GetExamConfigMappingNames() {
+    public GetExamConfigNodeNames() {
         super(new TypeKey<>(
                 CallType.GET_NAMES,
                 EntityType.CONFIGURATION_NODE,
@@ -36,7 +36,7 @@ public class GetExamConfigMappingNames extends RestCall<List<EntityName>> {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_CONFIGURATION_MAP_ENDPOINT + API.NAMES_PATH_SEGMENT);
+                API.CONFIGURATION_NODE_ENDPOINT + API.NAMES_PATH_SEGMENT);
     }
 
 }

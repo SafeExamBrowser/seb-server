@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.function.Function;
 
 import org.eclipse.rap.rwt.RWT;
@@ -22,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
@@ -38,6 +41,7 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -90,6 +94,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.config-key.title");
     static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-config.confirm");
+    static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.attched-to");
 
     static final LocTextKey FORM_COPY_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.copy");
@@ -144,7 +150,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
         final boolean writeGrant = entityGrant.w();
         final boolean modifyGrant = entityGrant.m();
         final boolean isReadonly = pageContext.isReadonly();
-        final boolean isAttachedToExam = this.restService
+        final boolean isAttachedToExam = !isNew && this.restService
                 .getBuilder(GetExamConfigMappingNames.class)
                 .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId())
                 .call()
@@ -264,6 +270,12 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .publishIf(() -> !isReadonly);
 
         if (isAttachedToExam) {
+
+            widgetFactory.labelLocalized(
+                    content,
+                    CustomVariant.TEXT_H3,
+                    FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY);
+
             final EntityTable<ExamConfigurationMap> table =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
                             .withRestCallAdapter(restCall -> restCall.withQueryParam(
@@ -289,19 +301,40 @@ public class SebExamConfigPropForm implements TemplateComposer {
                                     ExamList.COLUMN_TITLE_TYPE_KEY,
                                     resourceService::localizedExamTypeName))
 
-                            .withDefaultAction(actionBuilder
-                                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                                    .create())
+                            .withDefaultAction(this::showExamAction)
 
                             .compose(pageContext.copyOf(content));
 
             actionBuilder
 
                     .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                    .withSelect(table::getSelection, PageAction::applySingleSelection,
-                            ExamList.EMPTY_SELECTION_TEXT_KEY)
+                    .withExec(pageAction -> {
+                        final ExamConfigurationMap selectedExamMapping = getSelectedExamMapping(table);
+                        return pageAction.withEntityKey(
+                                new EntityKey(selectedExamMapping.examId, EntityType.EXAM));
+                    })
                     .publishIf(table::hasAnyContent);
         }
+    }
+
+    private PageAction showExamAction(final EntityTable<ExamConfigurationMap> table) {
+        return this.pageService.pageActionBuilder(table.getPageContext())
+                .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                .withSelectionSupplier(() -> {
+                    final ExamConfigurationMap selectedROWData = getSelectedExamMapping(table);
+                    return new HashSet<>(Arrays.asList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
+                })
+                .withExec(PageAction::applySingleSelection)
+                .create();
+    }
+
+    private ExamConfigurationMap getSelectedExamMapping(final EntityTable<ExamConfigurationMap> table) {
+        final ExamConfigurationMap selectedROWData = table.getSelectedROWData();
+
+        if (selectedROWData == null) {
+            throw new PageMessageException(ExamList.EMPTY_SELECTION_TEXT_KEY);
+        }
+        return selectedROWData;
     }
 
     private LocTextKey stateChangeConfirm(

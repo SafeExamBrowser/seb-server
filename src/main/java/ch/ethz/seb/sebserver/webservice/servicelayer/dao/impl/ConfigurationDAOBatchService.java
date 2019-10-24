@@ -330,7 +330,7 @@ class ConfigurationDAOBatchService {
                     .selectByPrimaryKey(copyInfo.configurationNodeId);
 
             if (!sourceNode.getInstitutionId().equals(institutionId)) {
-                new IllegalArgumentException("Institution integrity violation");
+                throw new IllegalArgumentException("Institution integrity violation");
             }
 
             return this.copyNodeRecord(sourceNode, newOwner, copyInfo);
