@@ -109,6 +109,10 @@ public class FilterMap extends POSTMapper {
         return getString(Exam.FILTER_ATTR_TYPE);
     }
 
+    public String getExamStatus() {
+        return getString(Exam.FILTER_ATTR_STATUS);
+    }
+
     public Long getIndicatorExamId() {
         return getLong(Indicator.FILTER_ATTR_EXAM_ID);
     }

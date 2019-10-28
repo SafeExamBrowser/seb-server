@@ -66,7 +66,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
-public class ExamAdministrationController extends ActivatableEntityController<Exam, Exam> {
+public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdministrationController.class);
 

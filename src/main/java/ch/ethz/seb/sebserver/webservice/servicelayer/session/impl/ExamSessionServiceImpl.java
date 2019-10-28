@@ -26,6 +26,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -117,14 +118,14 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Exam> getRunningExam(final Long examId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Running exam request for exam {}", examId);
+        if (log.isTraceEnabled()) {
+            log.trace("Running exam request for exam {}", examId);
         }
 
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
         if (this.examSessionCacheService.isRunning(exam)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Exam {} is running and cached", examId);
+            if (log.isTraceEnabled()) {
+                log.trace("Exam {} is running and cached", examId);
             }
 
             return Result.of(exam);
@@ -154,6 +155,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Collection<Exam>> getFilteredRunningExams(
             final FilterMap filterMap,
             final Predicate<Exam> predicate) {
+
+        filterMap.putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
 
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()

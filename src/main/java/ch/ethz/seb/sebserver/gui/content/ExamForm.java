@@ -275,7 +275,7 @@ public class ExamForm implements TemplateComposer {
                         String.valueOf(exam.type),
                         this.resourceService::examTypeResources))
                 .addField(FormBuilder.text(
-                        Exam.ATTR_STATUS,
+                        Domain.EXAM.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
                         .readonly(true))

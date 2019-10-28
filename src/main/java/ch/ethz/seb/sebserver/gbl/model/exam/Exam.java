@@ -17,7 +17,6 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,12 +26,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class Exam implements GrantEntity, Activatable {
+public final class Exam implements GrantEntity {
 
     public static final Exam EMPTY_EXAM = new Exam(
             -1L,
@@ -48,16 +46,11 @@ public final class Exam implements GrantEntity, Activatable {
             null,
             null,
             null,
-            null,
-            false);
+            ExamStatus.FINISHED,
+            Boolean.FALSE);
 
-    // TODO make this a configurable exam attribute
-    /** The number of hours to add at the start- and end-time of the exam
-     * To add a expanded time-frame in which the exam state is running on SEB-Server side */
-    public static final int EXAM_RUN_TIME_EXPAND_HOURS = 1;
-
-    public static final String ATTR_STATUS = "examStatus";
     public static final String FILTER_ATTR_TYPE = "type";
+    public static final String FILTER_ATTR_STATUS = "status";
 
     public enum ExamStatus {
         UP_COMING,
@@ -109,9 +102,6 @@ public final class Exam implements GrantEntity, Activatable {
     @JsonProperty(EXAM.ATTR_QUIT_PASSWORD)
     public final String quitPassword;
 
-    @JsonProperty(EXAM.ATTR_BROWSER_KEYS)
-    public final String browserExamKeys;
-
     @JsonProperty(EXAM.ATTR_OWNER)
     public final String owner;
 
@@ -119,7 +109,9 @@ public final class Exam implements GrantEntity, Activatable {
     @NotEmpty(message = "exam:supporter:notNull")
     public final Collection<String> supporter;
 
-    /** Indicates whether this Exam is active or not */
+    @JsonProperty(EXAM.ATTR_STATUS)
+    public final ExamStatus status;
+
     @JsonProperty(EXAM.ATTR_ACTIVE)
     public final Boolean active;
 
@@ -136,9 +128,9 @@ public final class Exam implements GrantEntity, Activatable {
             @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType type,
             @JsonProperty(EXAM.ATTR_QUIT_PASSWORD) final String quitPassword,
-            @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
+            @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
@@ -152,9 +144,9 @@ public final class Exam implements GrantEntity, Activatable {
         this.startURL = startURL;
         this.type = type;
         this.quitPassword = quitPassword;
-        this.browserExamKeys = browserExamKeys;
         this.owner = owner;
-        this.active = (active != null) ? active : Boolean.TRUE;
+        this.status = (status != null) ? status : ExamStatus.UP_COMING;
+        this.active = (active != null) ? active : Boolean.FALSE;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -174,14 +166,32 @@ public final class Exam implements GrantEntity, Activatable {
         this.startURL = quizData.startURL;
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
-        this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
+        this.status = mapper.getEnum(EXAM.ATTR_STATUS, ExamStatus.class);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
     }
 
     public Exam(final QuizData quizzData) {
         this(null, quizzData, POSTMapper.EMPTY_MAP);
+    }
+
+    public Exam(final Long id, final ExamStatus status) {
+        this.id = id;
+        this.institutionId = null;
+        this.lmsSetupId = null;
+        this.externalId = null;
+        this.name = null;
+        this.description = null;
+        this.startTime = null;
+        this.endTime = null;
+        this.startURL = null;
+        this.type = null;
+        this.quitPassword = null;
+        this.owner = null;
+        this.status = (status != null) ? status : ExamStatus.UP_COMING;
+        this.active = null;
+        this.supporter = null;
     }
 
     @Override
@@ -271,35 +281,11 @@ public final class Exam implements GrantEntity, Activatable {
         return this.quitPassword;
     }
 
-    public String getBrowserExamKeys() {
-        return this.browserExamKeys;
-    }
-
-    @JsonIgnore
     public ExamStatus getStatus() {
-        if (this.startTime == null) {
-            return ExamStatus.UP_COMING;
-        }
-
-        // expanded time frame
-        final DateTime expStartTime = this.startTime.minusHours(EXAM_RUN_TIME_EXPAND_HOURS);
-        final DateTime expEndTime = (this.endTime != null)
-                ? this.endTime.plusHours(EXAM_RUN_TIME_EXPAND_HOURS) : null;
-
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
-        if (expStartTime.isBefore(now)) {
-            if (expEndTime == null || expEndTime.isAfter(now)) {
-                return ExamStatus.RUNNING;
-            } else {
-                return ExamStatus.FINISHED;
-            }
-        }
-
-        return ExamStatus.UP_COMING;
+        return this.status;
     }
 
-    @Override
-    public boolean isActive() {
+    public Boolean getActive() {
         return this.active;
     }
 
@@ -328,12 +314,12 @@ public final class Exam implements GrantEntity, Activatable {
         builder.append(this.type);
         builder.append(", quitPassword=");
         builder.append(this.quitPassword);
-        builder.append(", browserExamKeys=");
-        builder.append(this.browserExamKeys);
         builder.append(", owner=");
         builder.append(this.owner);
         builder.append(", supporter=");
         builder.append(this.supporter);
+        builder.append(", status=");
+        builder.append(this.status);
         builder.append(", active=");
         builder.append(this.active);
         builder.append("]");

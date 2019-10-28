@@ -83,13 +83,17 @@ public class ClientHttpRequestFactoryService {
      * @return ClientHttpRequestFactory bean for development profiles */
     private ClientHttpRequestFactory clientHttpRequestFactory(final ProxyData proxy) {
 
-        log.info("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
+        if (log.isDebugEnabled()) {
+            log.debug("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
+        }
 
         if (proxy != null && proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
 
-            log.info("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
-                    proxy.proxyAuthType,
-                    proxy.proxyName);
+            if (log.isDebugEnabled()) {
+                log.debug("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
+                        proxy.proxyAuthType,
+                        proxy.proxyName);
+            }
 
             final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(this.createProxiedClient(proxy, null));
@@ -101,10 +105,6 @@ public class ClientHttpRequestFactoryService {
                     new HttpComponentsClientHttpRequestFactory();
 
             devClientHttpRequestFactory.setBufferRequestBody(false);
-
-//            final HttpClient httpClient = devClientHttpRequestFactory.getHttpClient();
-//            httpClient.setInstanceFollowRedirects(false);
-//            httpClient.setOutputStreaming(false);
             return devClientHttpRequestFactory;
         }
     }
@@ -121,7 +121,9 @@ public class ClientHttpRequestFactoryService {
     private ClientHttpRequestFactory clientHttpRequestFactoryTLS(final ProxyData proxy) throws KeyManagementException,
             NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
 
-        log.info("Initialize with secure ClientHttpRequestFactory for production");
+        if (log.isDebugEnabled()) {
+            log.debug("Initialize with secure ClientHttpRequestFactory for production");
+        }
 
         final String truststoreFilePath = this.environment
                 .getProperty("server.ssl.trust-store", "");
@@ -129,7 +131,9 @@ public class ClientHttpRequestFactoryService {
         SSLContext sslContext = null;
         if (StringUtils.isBlank(truststoreFilePath)) {
 
-            log.info("Securing outgoing calls without trust-store by trusting all certificates");
+            if (log.isDebugEnabled()) {
+                log.debug("Securing outgoing calls without trust-store by trusting all certificates");
+            }
 
             sslContext = org.apache.http.ssl.SSLContexts
                     .custom()
@@ -138,7 +142,9 @@ public class ClientHttpRequestFactoryService {
 
         } else {
 
-            log.info("Securing with defined trust-store");
+            if (log.isDebugEnabled()) {
+                log.debug("Securing with defined trust-store");
+            }
 
             final File trustStoreFile = ResourceUtils.getFile("file:" + truststoreFilePath);
 
@@ -168,9 +174,11 @@ public class ClientHttpRequestFactoryService {
                 proxy.proxyAuthType != null &&
                 proxy.proxyAuthType != ProxyAuthType.NONE) {
 
-            log.info("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
-                    proxy.proxyAuthType,
-                    proxy.proxyName);
+            if (log.isDebugEnabled()) {
+                log.debug("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
+                        proxy.proxyAuthType,
+                        proxy.proxyName);
+            }
 
             final HttpClient client = createProxiedClient(proxy, sslContext);
             return new HttpComponentsClientHttpRequestFactory(client);

@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -173,7 +174,10 @@ public class ExamDAOImpl implements ExamDAO {
                             : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     exam.quitPassword,
-                    exam.browserExamKeys,
+                    null, // browser keys
+                    null, // status
+                    null, // updating
+                    null, // lastUpdate
                     BooleanUtils.toIntegerObject(exam.active));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
@@ -203,8 +207,11 @@ public class ExamDAOImpl implements ExamDAO {
                         examRecord.getId(),
                         null, null, null, null, null,
                         (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                        null,
-                        null,
+                        null, // quitPassword
+                        null, // browser keys
+                        null, // status
+                        null, // updating
+                        null, // lastUpdate
                         BooleanUtils.toIntegerObject(exam.active));
 
                 this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -221,8 +228,11 @@ public class ExamDAOImpl implements ExamDAO {
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                    null,
-                    null,
+                    null, // quitPassword
+                    null, // browser keys
+                    null, // status
+                    null, // updating
+                    null, // lastUpdate
                     BooleanUtils.toInteger(true));
 
             this.examRecordMapper.insert(examRecord);
@@ -239,7 +249,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, null, null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -266,6 +276,128 @@ public class ExamDAOImpl implements ExamDAO {
                 .build()
                 .execute()
                 .longValue() > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> allForRunCheck() {
+        return Result.tryCatch(() -> {
+            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualTo(BooleanUtils.toInteger(true)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isEqualTo(ExamStatus.UP_COMING.name()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.updating,
+                            isEqualTo(BooleanUtils.toInteger(false)))
+
+                    .build()
+                    .execute();
+
+            return this.toDomainModel(records)
+                    .getOrThrow()
+                    .stream()
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> allForEndCheck() {
+        return Result.tryCatch(() -> {
+            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualTo(BooleanUtils.toInteger(true)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isEqualTo(ExamStatus.RUNNING.name()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.updating,
+                            isEqualTo(BooleanUtils.toInteger(false)))
+
+                    .build()
+                    .execute();
+
+            return this.toDomainModel(records)
+                    .getOrThrow()
+                    .stream()
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Exam> startUpdate(final Long examId, final String update) {
+        return Result.tryCatch(() -> {
+
+            final ExamRecord examRec = this.recordById(examId)
+                    .getOrThrow();
+
+            // consistency check
+            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRec.getUpdating()))) {
+                throw new IllegalStateException("Exam to end update is not in expected state: " + examRec);
+            }
+
+            final ExamRecord newRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toInteger(true),
+                    update,
+                    null);
+
+            this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return newRecord;
+        })
+                .flatMap(rec -> this.recordById(rec.getId()))
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Exam> endUpdate(final Long examId, final String update) {
+        return Result.tryCatch(() -> {
+
+            final ExamRecord examRec = this.recordById(examId)
+                    .getOrThrow();
+
+            // consistency check
+            if (BooleanUtils.isFalse(BooleanUtils.toBooleanObject(examRec.getUpdating()))
+                    || !update.equals(examRec.getLastupdate())) {
+
+                throw new IllegalStateException("Exam to end update is not in expected state: " + examRec);
+            }
+
+            final ExamRecord newRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toInteger(false),
+                    update,
+                    null);
+
+            this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return newRecord;
+        })
+                .flatMap(rec -> this.recordById(rec.getId()))
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Boolean> isUpdating(final Long examId) {
+        return this.recordById(examId)
+                .map(rec -> BooleanUtils.toBooleanObject(rec.getUpdating()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Boolean> upToDate(final Long examId, final String lastUpdate) {
+        return this.recordById(examId)
+                .map(rec -> lastUpdate.equals(rec.getLastupdate()));
     }
 
     @Override
@@ -433,6 +565,14 @@ public class ExamDAOImpl implements ExamDAO {
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
                     : null;
 
+            ExamStatus status;
+            try {
+                status = ExamStatus.valueOf(record.getStatus());
+            } catch (final Exception e) {
+                log.error("Missing exam status form data base. Set ExamStatus.UP_COMING as fallback ", e);
+                status = ExamStatus.UP_COMING;
+            }
+
             return new Exam(
                     record.getId(),
                     record.getInstitutionId(),
@@ -445,9 +585,9 @@ public class ExamDAOImpl implements ExamDAO {
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
                     record.getQuitPassword(),
-                    record.getBrowserKeys(),
                     record.getOwner(),
                     supporter,
+                    status,
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0));
         });
     }

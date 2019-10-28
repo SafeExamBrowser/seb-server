@@ -52,6 +52,7 @@ public class ExamSessionCacheService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
     private final ExamDAO examDAO;
+    private final ExamSessionControlTask examControlTask;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final SebExamConfigService sebExamConfigService;
@@ -59,12 +60,14 @@ public class ExamSessionCacheService {
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
+            final ExamSessionControlTask examControlTask,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientIndicatorFactory clientIndicatorFactory,
             final SebExamConfigService sebExamConfigService,
             final ClientEventRecordMapper clientEventRecordMapper) {
 
         this.examDAO = examDAO;
+        this.examControlTask = examControlTask;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.sebExamConfigService = sebExamConfigService;
@@ -78,7 +81,7 @@ public class ExamSessionCacheService {
     public Exam getRunningExam(final Long examId) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Verify running exam for id: {}" + examId);
+            log.debug("Verify running exam for id: {}", examId);
         }
 
         final Result<Exam> byPK = this.examDAO.byPK(examId);
@@ -91,9 +94,6 @@ public class ExamSessionCacheService {
         if (!isRunning(exam)) {
             return null;
         }
-
-        // TODO: this is ev. a good point to trigger the LMS course restriction
-        //       for the exam with Config Key
 
         return exam;
     }
@@ -116,7 +116,23 @@ public class ExamSessionCacheService {
             return false;
         }
 
-        return exam.getStatus() == ExamStatus.RUNNING;
+        switch (exam.status) {
+            case FINISHED: {
+                return false;
+            }
+            case RUNNING: {
+                return true;
+            }
+            case UP_COMING: {
+                return this.examControlTask.updateRunning(exam.id)
+                        .map(e -> e.status == ExamStatus.RUNNING)
+                        .getOr(false);
+            }
+            default: {
+                return false;
+            }
+
+        }
     }
 
     @Cacheable(

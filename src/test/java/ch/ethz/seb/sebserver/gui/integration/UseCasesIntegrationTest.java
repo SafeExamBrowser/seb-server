@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
@@ -702,8 +703,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newExam.endTime,
                 newExam.startURL,
                 ExamType.MANAGED,
-                null, null, null,
+                null, null,
                 Utils.immutableCollectionOf(userId),
+                ExamStatus.RUNNING,
                 true);
 
         final Result<Exam> savedExamResult = restService

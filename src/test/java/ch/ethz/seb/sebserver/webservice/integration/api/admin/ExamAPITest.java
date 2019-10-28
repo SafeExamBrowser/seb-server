@@ -62,10 +62,10 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.startURL,
                         exam.type,
                         exam.quitPassword,
-                        exam.browserExamKeys,
                         exam.owner,
                         Arrays.asList("user5"),
-                        false))
+                        null,
+                        true))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {
                 });
@@ -91,10 +91,10 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.startURL,
                         exam.type,
                         exam.quitPassword,
-                        exam.browserExamKeys,
                         exam.owner,
                         Arrays.asList("user2"),
-                        false))
+                        null,
+                        true))
                 .withExpectedStatus(HttpStatus.BAD_REQUEST)
                 .getAsObject(new TypeReference<List<APIMessage>>() {
                 });

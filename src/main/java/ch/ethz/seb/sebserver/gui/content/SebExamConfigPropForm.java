@@ -249,7 +249,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigImport.importConfigFunction(this.pageService))
                 .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)

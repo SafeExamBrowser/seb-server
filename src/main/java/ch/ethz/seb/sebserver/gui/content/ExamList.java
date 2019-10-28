@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -145,6 +146,8 @@ public class ExamList implements TemplateComposer {
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withRowDecorator(decorateOnExamConsistency(this.pageService))
+
+                        .withStaticFilter(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
 
                         .withColumnIf(
                                 isSebAdmin,

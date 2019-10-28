@@ -104,7 +104,9 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
 
         final String institutionalEndpoint = extractInstitutionalEndpoint(request);
 
-        log.info("No default gui entrypoint requested: {}", institutionalEndpoint);
+        if (log.isDebugEnabled()) {
+            log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
+        }
 
         final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
         if (StringUtils.isNotBlank(logoImageBase64)) {
@@ -133,7 +135,9 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
     private String extractInstitutionalEndpoint(final HttpServletRequest request) {
         final String requestURI = request.getRequestURI();
 
-        log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
+        if (log.isDebugEnabled()) {
+            log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
+        }
 
         final String instPrefix = requestURI.replaceAll("/", "");
         if (StringUtils.isBlank(instPrefix)) {
@@ -171,7 +175,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
             if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                 return exchange.getBody();
             } else {
-                log.error("Failed to verify insitution from requested entrypoint url: {}, response: {}",
+                log.warn("Failed to verify insitution from requested entrypoint url: {}, response: {}",
                         institutionalEndpoint,
                         exchange);
             }

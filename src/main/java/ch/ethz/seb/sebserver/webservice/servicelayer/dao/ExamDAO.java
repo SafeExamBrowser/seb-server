@@ -20,6 +20,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
+    /** Get all active Exams for a given institution.
+     *
+     * @param institutionId the identifier of the institution
+     * @return Result refer to a collection of all active exams of the given institution or refer to an error if
+     *         happened */
     Result<Collection<Long>> allIdsOfInstituion(Long institutionId);
 
     /** Saves the Exam and updates the running exam cache. */
@@ -34,5 +39,17 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param connectionId
      * @return a Result containing the Exam by a given ClientConnection id or refer to an error if happened */
     Result<Exam> byClientConnection(Long connectionId);
+
+    Result<Collection<Exam>> allForRunCheck();
+
+    Result<Collection<Exam>> allForEndCheck();
+
+    Result<Exam> startUpdate(Long examId, String update);
+
+    Result<Exam> endUpdate(Long examId, String update);
+
+    Result<Boolean> isUpdating(Long examId);
+
+    Result<Boolean> upToDate(Long examId, String lastUpdate);
 
 }
