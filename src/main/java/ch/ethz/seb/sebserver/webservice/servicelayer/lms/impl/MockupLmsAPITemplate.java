@@ -15,9 +15,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -53,26 +56,35 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         final LmsType lmsType = lmsSetup.getLmsType();
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
-                "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1", "Demo Quit Mockup",
+                "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1", "Demo Quiz Mockup",
                 "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz2", institutionId, lmsSetupId, lmsType, "Demo Quiz 2", "Demo Quit Mockup",
+                "quiz2", institutionId, lmsSetupId, lmsType, "Demo Quiz 2", "Demo Quiz Mockup",
                 "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz3", institutionId, lmsSetupId, lmsType, "Demo Quiz 3", "Demo Quit Mockup",
+                "quiz3", institutionId, lmsSetupId, lmsType, "Demo Quiz 3", "Demo Quiz Mockup",
                 "2018-07-30T09:00:00Z", "2018-08-01T00:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz4", institutionId, lmsSetupId, lmsType, "Demo Quiz 4", "Demo Quit Mockup",
+                "quiz4", institutionId, lmsSetupId, lmsType, "Demo Quiz 4", "Demo Quiz Mockup",
                 "2018-01-01T00:00:00Z", "2019-01-01T00:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz5", institutionId, lmsSetupId, lmsType, "Demo Quiz 5", "Demo Quit Mockup",
+                "quiz5", institutionId, lmsSetupId, lmsType, "Demo Quiz 5", "Demo Quiz Mockup",
                 "2018-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz6", institutionId, lmsSetupId, lmsType, "Demo Quiz 6", "Demo Quit Mockup",
+                "quiz6", institutionId, lmsSetupId, lmsType, "Demo Quiz 6", "Demo Quiz Mockup",
                 "2019-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
-                "quiz7", institutionId, lmsSetupId, lmsType, "Demo Quiz 7", "Demo Quit Mockup",
+                "quiz7", institutionId, lmsSetupId, lmsType, "Demo Quiz 7", "Demo Quiz Mockup",
                 "2018-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
+
+        this.mockups.add(new QuizData(
+                "quiz10", institutionId, lmsSetupId, lmsType, "Demo Quiz 10",
+                "Starts in a minute and ends after five minutes",
+                DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
+                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+                DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
+                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+                "http://lms.mockup.com/api/"));
     }
 
     @Override

@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Collection;
 
 import org.mybatis.dynamic.sql.SqlTable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,27 +18,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -48,9 +38,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ConfigurationController extends ReadonlyEntityController<Configuration, Configuration> {
 
     private final ConfigurationDAO configurationDAO;
-    private final ExamConfigurationMapDAO examConfigurationMapDAO;
-    private final ApplicationEventPublisher applicationEventPublisher;
-    private final ExamSessionService examSessionService;
+    private final ExamConfigUpdateService examConfigUpdateService;
 
     protected ConfigurationController(
             final AuthorizationService authorization,
@@ -59,9 +47,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ApplicationEventPublisher applicationEventPublisher,
-            final ExamSessionService examSessionService,
-            final ExamConfigurationMapDAO examConfigurationMapDAO) {
+            final ExamConfigUpdateService examConfigUpdateService) {
 
         super(authorization,
                 bulkActionService,
@@ -71,9 +57,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 beanValidationService);
 
         this.configurationDAO = entityDAO;
-        this.applicationEventPublisher = applicationEventPublisher;
-        this.examSessionService = examSessionService;
-        this.examConfigurationMapDAO = examConfigurationMapDAO;
+        this.examConfigUpdateService = examConfigUpdateService;
     }
 
     @RequestMapping(
@@ -81,14 +65,13 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Configuration saveToHistory(@PathVariable final String modelId) {
+    public Configuration saveToHistory(@PathVariable final Long modelId) {
 
-        return this.entityDAO.byModelId(modelId)
+        return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(this::checkRunningExamIntegrity)
-                .flatMap(config -> this.configurationDAO.saveToHistory(config.configurationNodeId))
+                .flatMap(this.examConfigUpdateService::processSEBExamConfigurationChange)
+                .onError(t -> this.examConfigUpdateService.forceReleaseUpdateLocks(modelId))
                 .flatMap(this.userActivityLogDAO::logSaveToHistory)
-                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -103,7 +86,6 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.undo(config.configurationNodeId))
                 .flatMap(this.userActivityLogDAO::logUndo)
-                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -119,7 +101,6 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(config -> this.configurationDAO.restoreToVersion(configurationNodeId, config.getId()))
-                .flatMap(this::publishConfigChanged)
                 .getOrThrow();
     }
 
@@ -131,57 +112,6 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     @Override
     protected SqlTable getSQLTableOfEntity() {
         return ConfigurationRecordDynamicSqlSupport.configurationRecord;
-    }
-
-    // NOTE: This will not properly work within a distributed setup since other instances
-    //       are not notified about the configuration change
-    // TODO: find a way to manage the notification of a changed configuration that works
-    //       also on distributed environments. For example use the database to store configuration
-    //       changed information and check before getting a configuration from cache if it is still valid
-    private Result<Configuration> publishConfigChanged(final Configuration config) {
-        this.applicationEventPublisher.publishEvent(new ConfigurationChangedEvent(config.id));
-        return Result.of(config);
-    }
-
-    private Result<Configuration> checkRunningExamIntegrity(final Configuration config) {
-        // check if the configuration is attached to an exam
-        final long activeConnections = this.examConfigurationMapDAO
-                .getExamIdsForConfigNodeId(config.configurationNodeId)
-                .getOrThrow()
-                .stream()
-                .flatMap(examId -> {
-                    return this.examSessionService
-                            .getConnectionData(examId)
-                            .getOrThrow()
-                            .stream();
-                })
-                .filter(this::isActiveConnection)
-                .count();
-
-        if (activeConnections > 0) {
-            throw new APIMessage.APIMessageException(
-                    ErrorMessage.INTEGRITY_VALIDATION,
-                    "Integrity violation: There are currently active SEB Client connection.");
-        } else {
-            return Result.of(config);
-        }
-    }
-
-    private boolean isActiveConnection(final ClientConnectionData connection) {
-        if (connection.clientConnection.status == ConnectionStatus.ESTABLISHED
-                || connection.clientConnection.status == ConnectionStatus.AUTHENTICATED) {
-            return true;
-        }
-
-        if (connection.clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-            final Long creationTime = connection.clientConnection.getCreationTime();
-            final long millisecondsNow = Utils.getMillisecondsNow();
-            if (millisecondsNow - creationTime < 30 * Constants.SECOND_IN_MILLIS) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }

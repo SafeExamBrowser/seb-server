@@ -12,15 +12,12 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-import org.springframework.context.event.EventListener;
-
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
@@ -46,6 +43,12 @@ public interface ExamSessionService {
      * @param examId the PK of the Exam to test
      * @return true if an Exam is currently running */
     boolean isExamRunning(Long examId);
+
+    /** Indicates if the Exam with specified Id is currently locked for new SEB Client connection attempts.
+     *
+     * @param examId The Exam identifier
+     * @return true if the specified Exam is currently locked for new SEB Client connections. */
+    boolean isExamLocked(Long examId);
 
     /** Use this to get currently running exams by exam identifier.
      * This test first if the Exam with the given identifier is currently/still
@@ -99,7 +102,17 @@ public interface ExamSessionService {
      *         of a running exam */
     Result<Collection<ClientConnectionData>> getConnectionData(Long examId);
 
-    @EventListener(ConfigurationChangedEvent.class)
-    void updateExamConfigCache(ConfigurationChangedEvent configChanged);
+    /** Use this to check if the current cached running exam is up to date
+     * and if not to flush the cache.
+     * 
+     * @param examId the Exam identifier
+     * @return Result with updated Exam instance or refer to an error if happened */
+    Result<Exam> updateExamCache(Long examId);
+
+    /** Flush all the caches for an specified Exam.
+     *
+     * @param exam The Exam instance
+     * @return Result with reference to the given Exam or to an error if happened */
+    Result<Exam> flushCache(final Exam exam);
 
 }

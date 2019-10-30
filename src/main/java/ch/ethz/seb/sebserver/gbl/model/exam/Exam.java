@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,7 +48,8 @@ public final class Exam implements GrantEntity {
             null,
             null,
             ExamStatus.FINISHED,
-            Boolean.FALSE);
+            Boolean.FALSE,
+            null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
@@ -115,6 +117,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonProperty(EXAM.ATTR_LASTUPDATE)
+    public final String lastUpdate;
+
     @JsonCreator
     public Exam(
             @JsonProperty(EXAM.ATTR_ID) final Long id,
@@ -131,7 +136,8 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
-            @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active) {
+            @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -145,8 +151,9 @@ public final class Exam implements GrantEntity {
         this.type = type;
         this.quitPassword = quitPassword;
         this.owner = owner;
-        this.status = (status != null) ? status : ExamStatus.UP_COMING;
+        this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
         this.active = (active != null) ? active : Boolean.FALSE;
+        this.lastUpdate = lastUpdate;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -167,9 +174,13 @@ public final class Exam implements GrantEntity {
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
-        this.status = mapper.getEnum(EXAM.ATTR_STATUS, ExamStatus.class);
+        this.status = mapper.getEnum(
+                EXAM.ATTR_STATUS,
+                ExamStatus.class,
+                getStatusFromDate(this.startTime, this.endTime));
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
+        this.lastUpdate = null;
     }
 
     public Exam(final QuizData quizzData) {
@@ -189,9 +200,10 @@ public final class Exam implements GrantEntity {
         this.type = null;
         this.quitPassword = null;
         this.owner = null;
-        this.status = (status != null) ? status : ExamStatus.UP_COMING;
+        this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
         this.active = null;
         this.supporter = null;
+        this.lastUpdate = null;
     }
 
     @Override
@@ -324,6 +336,19 @@ public final class Exam implements GrantEntity {
         builder.append(this.active);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static ExamStatus getStatusFromDate(final DateTime startTime, final DateTime endTime) {
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        if (startTime != null && now.isBefore(startTime)) {
+            return ExamStatus.UP_COMING;
+        } else if (startTime != null && now.isAfter(startTime) && (endTime == null || now.isBefore(endTime))) {
+            return ExamStatus.RUNNING;
+        } else if (endTime != null && now.isAfter(endTime)) {
+            return ExamStatus.FINISHED;
+        } else {
+            return ExamStatus.UP_COMING;
+        }
     }
 
 }

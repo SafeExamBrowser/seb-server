@@ -17,12 +17,12 @@ import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +39,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationChangedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -92,7 +91,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 }
 
                 // check SEB configuration
-                this.examConfigurationMapDAO.getDefaultConfigurationForExam(examId)
+                this.examConfigurationMapDAO.getDefaultConfigurationNode(examId)
                         .get(t -> {
                             result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.of(exam.getModelId()));
                             return null;
@@ -117,12 +116,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public boolean isExamLocked(final Long examId) {
+        final Result<Boolean> locked = this.examDAO.isLocked(examId);
+
+        if (locked.hasError()) {
+            log.error("Unexpected Error while trying to verify lock for Exam: {}", examId);
+        }
+
+        return locked.hasError() || BooleanUtils.toBoolean(locked.get());
+    }
+
+    @Override
     public Result<Exam> getRunningExam(final Long examId) {
         if (log.isTraceEnabled()) {
             log.trace("Running exam request for exam {}", examId);
         }
 
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+
         if (this.examSessionCacheService.isRunning(exam)) {
             if (log.isTraceEnabled()) {
                 log.trace("Exam {} is running and cached", examId);
@@ -194,8 +205,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.debug("Trying to get exam from InMemorySebConfig");
         }
 
+        final Exam exam = this.getRunningExam(connection.examId)
+                .getOrThrow();
+
         final InMemorySebConfig sebConfigForExam = this.examSessionCacheService
-                .getDefaultSebConfigForExam(connection.examId);
+                .getDefaultSebConfigForExam(exam);
 
         if (sebConfigForExam == null) {
             log.error("Failed to get and cache InMemorySebConfig for connection: {}", connection);
@@ -241,23 +255,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    @EventListener(ConfigurationChangedEvent.class)
-    public void updateExamConfigCache(final ConfigurationChangedEvent configChanged) {
+    public Result<Exam> updateExamCache(final Long examId) {
+        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        final Boolean isUpToDate = this.examDAO.upToDate(examId, exam.lastUpdate)
+                .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
+                .getOr(false);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Flush exam config cache for configuration: {}", configChanged.configurationId);
+        if (!BooleanUtils.toBoolean(isUpToDate)) {
+            return flushCache(exam);
+        } else {
+            return Result.of(exam);
         }
-
-        this.examConfigurationMapDAO
-                .getExamIdsForConfigId(configChanged.configurationId)
-                .getOrElse(() -> Collections.emptyList())
-                .forEach(this.examSessionCacheService::evictDefaultSebConfig);
     }
 
-    private void flushCache(final Exam exam) {
-        try {
+    @Override
+    public Result<Exam> flushCache(final Exam exam) {
+        return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
-            this.examSessionCacheService.evictDefaultSebConfig(exam.id);
+            this.examSessionCacheService.evictDefaultSebConfig(exam);
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
                     .getOrElse(() -> Collections.emptyList())
@@ -267,9 +282,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         // evict also cached ping record
                         this.examSessionCacheService.evictPingRecord(token);
                     });
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to flush cache for exam: ", exam, e);
-        }
+
+            return exam;
+        });
     }
 
 }

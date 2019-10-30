@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -148,7 +149,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     .execute();
             Collections.sort(
                     configs,
-                    (c1, c2) -> c1.getVersionDate().compareTo(c2.getVersionDate()));
+                    (c1, c2) -> c1.getVersionDate().compareTo(c2.getVersionDate()) * -1);
             final ConfigurationRecord configurationRecord = configs.get(0);
             return configurationRecord;
         }).flatMap(ConfigurationDAOImpl::toDomainModel);
@@ -177,7 +178,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Result<Configuration> saveToHistory(final Long configurationNodeId) {
         return this.configurationDAOBatchService
                 .saveToHistory(configurationNodeId)

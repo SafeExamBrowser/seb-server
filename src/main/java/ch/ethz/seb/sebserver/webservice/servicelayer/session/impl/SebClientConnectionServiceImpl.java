@@ -18,6 +18,7 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
@@ -101,7 +102,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         clientAddress);
             }
 
-            checkExamRunning(examId);
+            if (examId != null) {
+                checkExamIntegrity(examId);
+            }
 
             // Create ClientConnection in status CONNECTION_REQUESTED for further processing
             final String connectionToken = createToken();
@@ -131,6 +134,20 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             return clientConnection;
         });
+    }
+
+    private void checkExamIntegrity(final Long examId) {
+        // check Exam is running and not locked
+        checkExamRunning(examId);
+        if (this.examSessionService.isExamLocked(examId)) {
+            throw new APIConstraintViolationException(
+                    "Exam is currently on update and locked for new SEB Client connections");
+        }
+        // if the cached Exam is not up to date anymore, we have to update the cache first
+        final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
+        if (updateExamCache.hasError()) {
+            log.warn("Failed to update Exam-Cache for Exam: {}", examId);
+        }
     }
 
     @Override
@@ -168,6 +185,10 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                         clientConnection);
                 throw new IllegalArgumentException(
                         "ClientConnection integrity violation: client connection is not in expected state");
+            }
+
+            if (examId != null) {
+                checkExamIntegrity(examId);
             }
 
             // userSessionId integrity check
@@ -293,6 +314,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(establishedClientConnection)
                     .getOrThrow();
+
+            checkExamIntegrity(updatedClientConnection.examId);
 
             // evict cached ClientConnection
             this.examSessionCacheService.evictClientConnection(connectionToken);

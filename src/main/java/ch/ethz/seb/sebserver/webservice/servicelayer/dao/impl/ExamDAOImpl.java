@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -172,13 +173,14 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.supporter != null)
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
+                    (exam.type != null) ? exam.type.name() : null,
                     exam.quitPassword,
                     null, // browser keys
-                    null, // status
+                    (exam.status != null) ? exam.status.name() : null,
                     null, // updating
                     null, // lastUpdate
-                    BooleanUtils.toIntegerObject(exam.active));
+                    null // active
+            );
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
@@ -230,8 +232,8 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
                     null, // quitPassword
                     null, // browser keys
-                    null, // status
-                    null, // updating
+                    (exam.status != null) ? exam.status.name() : ExamStatus.UP_COMING.name(),
+                    BooleanUtils.toInteger(false),
                     null, // lastUpdate
                     BooleanUtils.toInteger(true));
 
@@ -329,8 +331,8 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
-    public Result<Exam> startUpdate(final Long examId, final String update) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Result<Exam> placeLock(final Long examId, final String update) {
         return Result.tryCatch(() -> {
 
             final ExamRecord examRec = this.recordById(examId)
@@ -357,8 +359,8 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
-    public Result<Exam> endUpdate(final Long examId, final String update) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Result<Exam> releaseLock(final Long examId, final String update) {
         return Result.tryCatch(() -> {
 
             final ExamRecord examRec = this.recordById(examId)
@@ -387,8 +389,28 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional
+    public Result<Long> forceUnlock(final Long examId) {
+
+        log.info("forceUnlock for exam: {}", examId);
+
+        return Result.tryCatch(() -> {
+            final ExamRecord examRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toInteger(false),
+                    null, null);
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return examRecord.getId();
+        })
+                .onError(TransactionHandler::rollback);
+
+    }
+
+    @Override
     @Transactional(readOnly = true)
-    public Result<Boolean> isUpdating(final Long examId) {
+    public Result<Boolean> isLocked(final Long examId) {
         return this.recordById(examId)
                 .map(rec -> BooleanUtils.toBooleanObject(rec.getUpdating()));
     }
@@ -397,7 +419,13 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional(readOnly = true)
     public Result<Boolean> upToDate(final Long examId, final String lastUpdate) {
         return this.recordById(examId)
-                .map(rec -> lastUpdate.equals(rec.getLastupdate()));
+                .map(rec -> {
+                    if (lastUpdate == null) {
+                        return rec.getLastupdate() == null;
+                    } else {
+                        return lastUpdate.equals(rec.getLastupdate());
+                    }
+                });
     }
 
     @Override
@@ -588,7 +616,8 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     status,
-                    BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0));
+                    BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0),
+                    record.getLastupdate());
         });
     }
 

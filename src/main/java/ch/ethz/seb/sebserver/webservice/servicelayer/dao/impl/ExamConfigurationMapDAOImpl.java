@@ -173,7 +173,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Long> getDefaultConfigurationForExam(final Long examId) {
+    public Result<Long> getDefaultConfigurationNode(final Long examId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
                 .where(
@@ -190,7 +190,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     }
 
     @Override
-    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
+    public Result<Long> getUserConfigurationNodeId(final Long examId, final String userId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
                 .where(

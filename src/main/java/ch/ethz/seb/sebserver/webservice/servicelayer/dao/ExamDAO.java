@@ -44,11 +44,13 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     Result<Collection<Exam>> allForEndCheck();
 
-    Result<Exam> startUpdate(Long examId, String update);
+    Result<Exam> placeLock(Long examId, String update);
 
-    Result<Exam> endUpdate(Long examId, String update);
+    Result<Exam> releaseLock(Long examId, String update);
 
-    Result<Boolean> isUpdating(Long examId);
+    Result<Long> forceUnlock(Long examId);
+
+    Result<Boolean> isLocked(Long examId);
 
     Result<Boolean> upToDate(Long examId, String lastUpdate);
 

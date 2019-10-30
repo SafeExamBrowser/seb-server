@@ -29,7 +29,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 
 @Service
-public class ExamSessionControlTask {
+class ExamSessionControlTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
@@ -47,20 +47,19 @@ public class ExamSessionControlTask {
         this.examDAO = examDAO;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
-
         this.updatePrefix = webserviceInfo.getHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
     }
 
     @Async
-    @Scheduled(cron = "1 * * * * *")
+    @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
     @Transactional
     public void execTask() {
 
-        final String updateId = createUpdateId();
+        final String updateId = this.createUpdateId();
 
         if (log.isDebugEnabled()) {
-            log.debug("Run ExamControlTask. Update Id: {}", updateId);
+            log.debug("Run exam runtime update task with Id: {}", updateId);
         }
 
         controlStart(updateId);
@@ -84,7 +83,9 @@ public class ExamSessionControlTask {
                     .map(exam -> this.setRunning(exam, updateId))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
-            log.info("Updated exams to running state: {}", updated);
+            if (!updated.isEmpty()) {
+                log.info("Updated exams to running state: {}", updated);
+            }
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exams: ", e);
@@ -97,15 +98,15 @@ public class ExamSessionControlTask {
                     final DateTime now = DateTime.now(DateTimeZone.UTC);
                     if (exam.getStatus() == ExamStatus.UP_COMING
                             && exam.endTime.plus(this.examTimeSuffix).isBefore(now)) {
-                        return setRunning(exam, createUpdateId());
+                        return setRunning(exam, this.createUpdateId());
                     } else {
                         return exam;
                     }
                 });
     }
 
-    public Result<Exam> setRunning(final Exam exam) {
-        return Result.tryCatch(() -> setRunning(exam, createUpdateId()));
+    public String createUpdateId() {
+        return this.updatePrefix + Utils.getMillisecondsNow();
     }
 
     private Exam setRunning(final Exam exam, final String updateId) {
@@ -114,11 +115,11 @@ public class ExamSessionControlTask {
         }
 
         return this.examDAO
-                .startUpdate(exam.id, updateId)
+                .placeLock(exam.id, updateId)
                 .flatMap(e -> this.examDAO.save(new Exam(
                         exam.id,
                         ExamStatus.RUNNING)))
-                .flatMap(e -> this.examDAO.endUpdate(e.id, updateId))
+                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .getOrThrow();
     }
 
@@ -138,7 +139,9 @@ public class ExamSessionControlTask {
                     .map(exam -> this.setFinished(exam, updateId))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
-            log.info("Updated exams to finished state: {}", updated);
+            if (!updated.isEmpty()) {
+                log.info("Updated exams to finished state: {}", updated);
+            }
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exams: ", e);
@@ -151,16 +154,12 @@ public class ExamSessionControlTask {
         }
 
         return this.examDAO
-                .startUpdate(exam.id, updateId)
+                .placeLock(exam.id, updateId)
                 .flatMap(e -> this.examDAO.save(new Exam(
                         exam.id,
                         ExamStatus.FINISHED)))
-                .flatMap(e -> this.examDAO.endUpdate(e.id, updateId))
+                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .getOrThrow();
-    }
-
-    private String createUpdateId() {
-        return this.updatePrefix + Utils.getMillisecondsNow();
     }
 
 }

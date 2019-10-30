@@ -100,8 +100,7 @@ public class ExamSessionCacheService {
 
     @CacheEvict(
             cacheNames = CACHE_NAME_RUNNING_EXAM,
-            key = "#exam.id",
-            condition = "#target.isRunning(#result)")
+            key = "#exam.id")
     public Exam evict(final Exam exam) {
 
         if (log.isDebugEnabled()) {
@@ -111,7 +110,7 @@ public class ExamSessionCacheService {
         return exam;
     }
 
-    boolean isRunning(final Exam exam) {
+    public boolean isRunning(final Exam exam) {
         if (exam == null) {
             return false;
         }
@@ -131,7 +130,6 @@ public class ExamSessionCacheService {
             default: {
                 return false;
             }
-
         }
     }
 
@@ -166,33 +164,31 @@ public class ExamSessionCacheService {
 
     @Cacheable(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
-            key = "#examId",
+            key = "#exam.id",
             unless = "#result == null")
-    public InMemorySebConfig getDefaultSebConfigForExam(final Long examId) {
-        final Exam runningExam = this.getRunningExam(examId);
-
+    public InMemorySebConfig getDefaultSebConfigForExam(final Exam exam) {
         try {
 
             final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             final Long configId = this.sebExamConfigService.exportForExam(
                     byteOut,
-                    runningExam.institutionId,
-                    examId);
+                    exam.institutionId,
+                    exam.id);
 
-            return new InMemorySebConfig(configId, runningExam.id, byteOut.toByteArray());
+            return new InMemorySebConfig(configId, exam.id, byteOut.toByteArray());
 
         } catch (final Exception e) {
-            log.error("Unexpected error while getting default exam configuration for running exam; {}", runningExam, e);
+            log.error("Unexpected error while getting default exam configuration for running exam; {}", exam, e);
             return null;
         }
     }
 
     @CacheEvict(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
-            key = "#examId")
-    public void evictDefaultSebConfig(final Long examId) {
+            key = "#exam.id")
+    public void evictDefaultSebConfig(final Exam exam) {
         if (log.isDebugEnabled()) {
-            log.debug("Eviction of default SEB Configuration from cache for exam: {}", examId);
+            log.debug("Eviction of default SEB Configuration from cache for exam: {}", exam.id);
         }
     }
 

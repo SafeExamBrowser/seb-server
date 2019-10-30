@@ -147,11 +147,11 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     }
 
     public Result<Long> getDefaultConfigurationIdForExam(final Long examId) {
-        return this.examConfigurationMapDAO.getDefaultConfigurationForExam(examId);
+        return this.examConfigurationMapDAO.getDefaultConfigurationNode(examId);
     }
 
     public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
-        return this.examConfigurationMapDAO.getUserConfigurationIdForExam(examId, userId);
+        return this.examConfigurationMapDAO.getUserConfigurationNodeId(examId, userId);
     }
 
     @Override

@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -37,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -61,9 +64,11 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
             "sebserver.examconfig.action.saveToHistory.success";
     private static final String KEY_UNDO_SUCCESS =
             "sebserver.examconfig.action.undo.success";
-
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.from.title");
+
+    private static final LocTextKey MESSAGE_SAVE_INTEGRITY_VIOLATION =
+            new LocTextKey("sebserver.examconfig.action.saveToHistory.integrity-violation");
 
     private final PageService pageService;
     private final RestService restService;
@@ -150,8 +155,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         this.restService.getBuilder(SaveExamConfigHistory.class)
                                 .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
                                 .call()
-                                .onError(pageContext::notifyError)
-                                .getOrThrow();
+                                .onError(t -> notifyErrorOnSave(t, pageContext));
                         return action;
                     })
                     .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
@@ -164,7 +168,6 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                         this.restService.getBuilder(SebExamConfigUndo.class)
                                 .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
                                 .call()
-                                .onError(pageContext::notifyError)
                                 .getOrThrow();
                         return action;
                     })
@@ -175,9 +178,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)
                     .ignoreMoveAwayFromEdit()
-                    .publish()
-
-            ;
+                    .publish();
 
         } catch (final RuntimeException e) {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
@@ -186,7 +187,24 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
             pageContext.notifyError(e);
         }
+    }
 
+    private void notifyErrorOnSave(final Throwable error, final PageContext context) {
+        if (error instanceof APIMessageError) {
+            try {
+                final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
+                final APIMessage apiMessage = errorMessages.get(0);
+                if (APIMessage.ErrorMessage.INTEGRITY_VALIDATION.isOf(apiMessage)) {
+                    throw new PageMessageException(MESSAGE_SAVE_INTEGRITY_VIOLATION);
+                } else {
+                    throw error;
+                }
+            } catch (final PageMessageException e) {
+                throw e;
+            } catch (final Throwable e) {
+                throw new RuntimeException(error);
+            }
+        }
     }
 
 }

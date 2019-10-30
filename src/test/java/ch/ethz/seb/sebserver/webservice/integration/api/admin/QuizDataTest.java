@@ -59,7 +59,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(quizzes);
-        assertTrue(quizzes.content.size() == 7);
+        assertTrue(quizzes.content.size() == 8);
 
         // for the inactive LmsSetup we should'nt get any quizzes
         quizzes = new RestAPITestHelper()
@@ -109,7 +109,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(quizzes);
-        assertTrue(quizzes.content.size() == 7);
+        assertTrue(quizzes.content.size() == 8);
 
         // but for the now active lmsSetup2 we should get the quizzes
         quizzes = new RestAPITestHelper()
@@ -120,7 +120,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(quizzes);
-        assertTrue(quizzes.content.size() == 7);
+        assertTrue(quizzes.content.size() == 8);
     }
 
     @Test
