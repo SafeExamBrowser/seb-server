@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamConfigUpdateService {
@@ -48,9 +50,11 @@ public interface ExamConfigUpdateService {
      *
      * @param configurationNodeId the SEB Configuration node identifier
      * @return Result refer to a list of involved and updated Exam identifiers */
-    Result<Collection<Long>> processSEBExamConfigurationChange(Long configurationNodeId);
+    Result<Collection<Long>> processExamConfigurationChange(Long configurationNodeId);
 
-    Result<Long> processSEBExamConfigurationAttachmentChange(Long examId);
+    <T> Result<T> processExamConfigurationMappingChange(
+            ExamConfigurationMap mapping,
+            Function<ExamConfigurationMap, Result<T>> changeAction);
 
     /** Use this to force a release of update-locks for all Exams that has the specified
      * SEB Exam Configuration attached.

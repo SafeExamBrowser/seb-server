@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -73,7 +75,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     // evict each Exam from cache and release the update-lock on DB
     @Override
     @Transactional
-    public Result<Collection<Long>> processSEBExamConfigurationChange(final Long configurationNodeId) {
+    public Result<Collection<Long>> processExamConfigurationChange(final Long configurationNodeId) {
 
         final String updateId = this.examUpdateHandler.createUpdateId();
 
@@ -170,21 +172,76 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     @Override
-    public Result<Long> processSEBExamConfigurationAttachmentChange(final Long examId) {
-        return this.examDAO.byPK(examId)
+    @Transactional
+    public <T> Result<T> processExamConfigurationMappingChange(
+            final ExamConfigurationMap mapping,
+            final Function<ExamConfigurationMap, Result<T>> changeAction) {
+
+        return this.examDAO.byPK(mapping.examId)
                 .map(exam -> {
+
+                    // if the exam is not currently running just apply the action
                     if (exam.status != ExamStatus.RUNNING) {
-                        return examId;
+                        return changeAction
+                                .apply(mapping)
+                                .getOrThrow();
                     }
 
-                    // TODO Lock??
-                    // TODO flush cache
-                    // TODO update seb restriction if on
-                    // TODO unlock?
+                    // if the exam is running...
+                    final String updateId = this.examUpdateHandler.createUpdateId();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Process SEB Exam Configuration mapping update for: {} with update-id {}",
+                                mapping,
+                                updateId);
+                    }
 
-                    return examId;
-                });
+                    // check if there are no active client connections for this exam
+                    checkActiveClientConnections(exam);
 
+                    // lock the exam
+                    this.examDAO.placeLock(exam.id, updateId)
+                            .getOrThrow();
+
+                    // check again if there are no new active client connections in the meantime
+                    checkActiveClientConnections(exam);
+
+                    // apply the referenced change action
+                    final T result = changeAction.apply(mapping)
+                            .getOrThrow();
+
+                    // flush the exam cache
+                    this.examSessionService.flushCache(exam)
+                            .getOrThrow();
+
+                    // update seb client restriction if the feature is activated
+                    if (exam.lmsSebRestriction) {
+                        final Result<Exam> updateSebClientRestriction = this.updateSebClientRestriction(exam);
+                        if (updateSebClientRestriction.hasError()) {
+                            log.error("Failed to update SEB Client restriction on LMS for exam: {}", exam);
+                        }
+                    }
+
+                    // release the lock
+                    this.examDAO.releaseLock(exam.id, updateId)
+                            .getOrThrow();
+
+                    return result;
+                })
+                .onError(TransactionHandler::rollback);
+
+    }
+
+    private void checkActiveClientConnections(final Exam exam) {
+        if (this.examSessionService.getConnectionData(exam.id)
+                .getOrThrow()
+                .stream()
+                .filter(ExamConfigUpdateServiceImpl::isActiveConnection)
+                .count() > 0) {
+
+            throw new APIMessage.APIMessageException(
+                    ErrorMessage.INTEGRITY_VALIDATION,
+                    "Integrity violation: There are currently active SEB Client connection.");
+        }
     }
 
     @Override

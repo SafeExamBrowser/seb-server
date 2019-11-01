@@ -9,8 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -32,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
@@ -116,21 +122,53 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     @Override
-    protected Result<ExamConfigurationMap> validForSave(final ExamConfigurationMap entity) {
-        return super.validForSave(entity)
-                .map(this::checkPasswordMatch);
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ExamConfigurationMap create(
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        // check modify privilege for requested institution and concrete entityType
+        this.checkModifyPrivilege(institutionId);
+        final POSTMapper postMap = new POSTMapper(allRequestParams)
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
+        final ExamConfigurationMap requestModel = this.createNew(postMap);
+        return this.checkCreateAccess(requestModel)
+                .map(this::checkPasswordMatch)
+                .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
+                        entity,
+                        this.entityDAO::createNew))
+                .flatMap(this::logCreate)
+                .flatMap(this::notifyCreated)
+                .getOrThrow();
     }
 
     @Override
-    protected Result<ExamConfigurationMap> validForDelete(final ExamConfigurationMap entity) {
-        return super.validForDelete(entity)
-                .map(this::checkNoActiveClientConnections);
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
+
+        return this.entityDAO.byModelId(modelId)
+                .flatMap(this::checkWriteAccess)
+                .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
+                        entity,
+                        this::bulkDelete))
+                .flatMap(this::notifyDeleted)
+                .flatMap(pair -> this.logBulkAction(pair.b))
+                .getOrThrow();
     }
 
     @Override
     protected Result<ExamConfigurationMap> notifyCreated(final ExamConfigurationMap entity) {
         // update the attached configurations state to "In Use"
-        // and apply change to involved Exam
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 entity.configurationNodeId,
                 null,
@@ -140,8 +178,6 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 null,
                 ConfigurationStatus.IN_USE))
-                .flatMap(config -> this.examConfigUpdateService
-                        .processSEBExamConfigurationAttachmentChange(entity.examId))
                 .map(id -> entity);
 
     }
@@ -149,9 +185,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     @Override
     protected Result<Pair<ExamConfigurationMap, EntityProcessingReport>> notifyDeleted(
             final Pair<ExamConfigurationMap, EntityProcessingReport> pair) {
-
         // update the attached configurations state to "Ready"
-        // and apply change to involved Exam
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 pair.a.configurationNodeId,
                 null,
@@ -161,8 +195,6 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 null,
                 ConfigurationStatus.IN_USE))
-                .flatMap(config -> this.examConfigUpdateService
-                        .processSEBExamConfigurationAttachmentChange(pair.a.examId))
                 .map(id -> pair);
     }
 

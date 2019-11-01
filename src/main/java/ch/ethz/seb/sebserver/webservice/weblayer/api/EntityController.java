@@ -316,10 +316,20 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this::validForDelete)
-                .map(this::bulkDelete)
+                .flatMap(this::bulkDelete)
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();
+    }
+
+    protected Result<Pair<T, EntityProcessingReport>> bulkDelete(final T entity) {
+        return Result.tryCatch(() -> new Pair<>(
+                entity,
+                this.bulkActionService.createReport(new BulkAction(
+                        BulkActionType.HARD_DELETE,
+                        entity.entityType(),
+                        new EntityName(entity.getModelId(), entity.entityType(), entity.getName())))
+                        .getOrThrow()));
     }
 
     protected void checkReadPrivilege(final Long institutionId) {
@@ -499,15 +509,5 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      *
      * @return the MyBatis SqlTable for the concrete Entity */
     protected abstract SqlTable getSQLTableOfEntity();
-
-    private Pair<T, EntityProcessingReport> bulkDelete(final T entity) {
-        return new Pair<>(
-                entity,
-                this.bulkActionService.createReport(new BulkAction(
-                        BulkActionType.HARD_DELETE,
-                        entity.entityType(),
-                        new EntityName(entity.getModelId(), entity.entityType(), entity.getName())))
-                        .getOrThrow());
-    }
 
 }

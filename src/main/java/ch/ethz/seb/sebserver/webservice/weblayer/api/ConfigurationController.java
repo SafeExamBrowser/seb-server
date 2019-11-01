@@ -124,7 +124,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             return Result.ofError(new NullPointerException("Configuration has null reference"));
         }
 
-        return this.examConfigUpdateService.processSEBExamConfigurationChange(config.configurationNodeId)
+        return this.examConfigUpdateService.processExamConfigurationChange(config.configurationNodeId)
                 .map(ids -> {
                     log.info("Successfully updated SEB Configuration for exams: {}", ids);
                     return config;
