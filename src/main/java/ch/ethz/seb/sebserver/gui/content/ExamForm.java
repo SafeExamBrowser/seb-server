@@ -145,6 +145,7 @@ public class ExamForm implements TemplateComposer {
     private final DownloadService downloadService;
     private final String downloadFileName;
     private final WidgetFactory widgetFactory;
+    private final RestService restService;
 
     protected ExamForm(
             final PageService pageService,
@@ -157,24 +158,23 @@ public class ExamForm implements TemplateComposer {
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
+        this.restService = this.resourceService.getRestService();
     }
 
     @Override
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
-        final RestService restService = this.resourceService.getRestService();
 
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
         final boolean importFromQuizData = BooleanUtils.toBoolean(
                 pageContext.getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
 
         // get or create model data
         final Exam exam = (importFromQuizData
-                ? createExamFromQuizData(entityKey, parentEntityKey, restService)
-                : getExistingExam(entityKey, restService))
+                ? createExamFromQuizData(pageContext)
+                : getExistingExam(pageContext))
                         .get(pageContext::notifyError);
 
         if (exam == null) {
@@ -190,7 +190,7 @@ public class ExamForm implements TemplateComposer {
 
         // check exam consistency and inform the user if needed
         if (readonly) {
-            restService.getBuilder(CheckExamConsistency.class)
+            this.restService.getBuilder(CheckExamConsistency.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .ifPresent(result -> showConsistencyChecks(result, formContext.getParent()));
@@ -286,8 +286,8 @@ public class ExamForm implements TemplateComposer {
                         this.resourceService::examSupporterResources))
 
                 .buildFor(importFromQuizData
-                        ? restService.getRestCall(ImportAsExam.class)
-                        : restService.getRestCall(SaveExam.class));
+                        ? this.restService.getRestCall(ImportAsExam.class)
+                        : this.restService.getRestCall(SaveExam.class));
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
@@ -320,7 +320,7 @@ public class ExamForm implements TemplateComposer {
                     CONFIG_LIST_TITLE_KEY);
 
             final EntityTable<ExamConfigurationMap> configurationTable =
-                    this.pageService.entityTableBuilder(restService.getRestCall(GetExamConfigMappingsPage.class))
+                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
                             .withRestCallAdapter(builder -> builder.withQueryParam(
                                     ExamConfigurationMap.FILTER_ATTR_EXAM_ID,
                                     entityKey.modelId))
@@ -410,7 +410,7 @@ public class ExamForm implements TemplateComposer {
                     INDICATOR_LIST_TITLE_KEY);
 
             final EntityTable<Indicator> indicatorTable =
-                    this.pageService.entityTableBuilder(restService.getRestCall(GetIndicatorPage.class))
+                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetIndicatorPage.class))
                             .withRestCallAdapter(builder -> builder.withQueryParam(
                                     Indicator.FILTER_ATTR_EXAM_ID,
                                     entityKey.modelId))
@@ -493,11 +493,9 @@ public class ExamForm implements TemplateComposer {
 
     private PageAction viewExamConfigPageAction(final EntityTable<ExamConfigurationMap> table) {
 
-        final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(table.getPageContext()
+        return this.pageService.pageActionBuilder(table.getPageContext()
                 .clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
-
-        return actionBuilder
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA))
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                 .withSelectionSupplier(() -> {
                     final ExamConfigurationMap selectedROWData = table.getSelectedROWData();
@@ -577,26 +575,28 @@ public class ExamForm implements TemplateComposer {
         this.resourceService.getRestService()
                 .getBuilder(DeleteExamConfigMapping.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examConfigMappingKey.modelId)
-                .call();
+                .call()
+                .onError(error -> action.pageContext().notifyError(error));
         return action;
     }
 
-    private Result<Exam> getExistingExam(final EntityKey entityKey, final RestService restService) {
-        return restService.getBuilder(GetExam.class)
+    private Result<Exam> getExistingExam(final PageContext pageContext) {
+        final EntityKey entityKey = pageContext.getEntityKey();
+        return this.restService.getBuilder(GetExam.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call();
+                .call()
+                .onError(error -> pageContext.notifyError(error));
     }
 
-    private Result<Exam> createExamFromQuizData(
-            final EntityKey entityKey,
-            final EntityKey parentEntityKey,
-            final RestService restService) {
-
-        return restService.getBuilder(GetQuizData.class)
+    private Result<Exam> createExamFromQuizData(final PageContext pageContext) {
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
+        return this.restService.getBuilder(GetQuizData.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
-                .map(quizzData -> new Exam(quizzData));
+                .map(quizzData -> new Exam(quizzData))
+                .onError(error -> pageContext.notifyError(error));
     }
 
     private String indicatorTypeName(final Indicator indicator) {
@@ -619,9 +619,9 @@ public class ExamForm implements TemplateComposer {
                 .reduce(
                         new StringBuilder(),
                         (sb, threshold) -> sb.append(threshold.value)
-                                .append(":")
+                                .append(Constants.URL_PORT_SEPARATOR)
                                 .append(threshold.color)
-                                .append("|"),
+                                .append(Constants.EMBEDDED_LIST_SEPARATOR),
                         (sb1, sb2) -> sb1.append(sb2))
                 .toString();
     }

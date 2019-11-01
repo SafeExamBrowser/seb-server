@@ -22,10 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 
 @Service
@@ -34,21 +30,21 @@ class ExamSessionControlTask {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
     private final ExamDAO examDAO;
+    private final ExamUpdateHandler examUpdateHandler;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
-    private final String updatePrefix;
 
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
-            final WebserviceInfo webserviceInfo,
+            final ExamUpdateHandler examUpdateHandler,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
 
         this.examDAO = examDAO;
+        this.examUpdateHandler = examUpdateHandler;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
-        this.updatePrefix = webserviceInfo.getHostAddress()
-                + "_" + webserviceInfo.getServerPort() + "_";
+
     }
 
     @Async
@@ -56,14 +52,13 @@ class ExamSessionControlTask {
     @Transactional
     public void execTask() {
 
-        final String updateId = this.createUpdateId();
+        final String updateId = this.examUpdateHandler.createUpdateId();
 
         if (log.isDebugEnabled()) {
             log.debug("Run exam runtime update task with Id: {}", updateId);
         }
 
         controlStart(updateId);
-
         controlEnd(updateId);
     }
 
@@ -80,7 +75,7 @@ class ExamSessionControlTask {
                     .getOrThrow()
                     .stream()
                     .filter(exam -> exam.startTime.minus(this.examTimePrefix).isBefore(now))
-                    .map(exam -> this.setRunning(exam, updateId))
+                    .map(exam -> this.examUpdateHandler.setRunning(exam, updateId))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {
@@ -90,37 +85,6 @@ class ExamSessionControlTask {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exams: ", e);
         }
-    }
-
-    public Result<Exam> updateRunning(final Long examId) {
-        return this.examDAO.byPK(examId)
-                .map(exam -> {
-                    final DateTime now = DateTime.now(DateTimeZone.UTC);
-                    if (exam.getStatus() == ExamStatus.UP_COMING
-                            && exam.endTime.plus(this.examTimeSuffix).isBefore(now)) {
-                        return setRunning(exam, this.createUpdateId());
-                    } else {
-                        return exam;
-                    }
-                });
-    }
-
-    public String createUpdateId() {
-        return this.updatePrefix + Utils.getMillisecondsNow();
-    }
-
-    private Exam setRunning(final Exam exam, final String updateId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Update exam as running: {}", exam);
-        }
-
-        return this.examDAO
-                .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.save(new Exam(
-                        exam.id,
-                        ExamStatus.RUNNING)))
-                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
-                .getOrThrow();
     }
 
     private void controlEnd(final String updateId) {
@@ -136,7 +100,7 @@ class ExamSessionControlTask {
                     .getOrThrow()
                     .stream()
                     .filter(exam -> exam.endTime.plus(this.examTimeSuffix).isBefore(now))
-                    .map(exam -> this.setFinished(exam, updateId))
+                    .map(exam -> this.examUpdateHandler.setFinished(exam, updateId))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {
@@ -146,20 +110,6 @@ class ExamSessionControlTask {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exams: ", e);
         }
-    }
-
-    private Exam setFinished(final Exam exam, final String updateId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Update exam as finished: {}", exam);
-        }
-
-        return this.examDAO
-                .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.save(new Exam(
-                        exam.id,
-                        ExamStatus.FINISHED)))
-                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
-                .getOrThrow();
     }
 
 }

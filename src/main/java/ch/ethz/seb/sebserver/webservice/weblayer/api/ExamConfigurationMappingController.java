@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -36,6 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -45,6 +47,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
 
     private final ExamDAO examDao;
     private final ConfigurationNodeDAO configurationNodeDAO;
+    private final ExamConfigUpdateService examConfigUpdateService;
 
     protected ExamConfigurationMappingController(
             final AuthorizationService authorization,
@@ -54,7 +57,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ExamDAO examDao,
-            final ConfigurationNodeDAO configurationNodeDAO) {
+            final ConfigurationNodeDAO configurationNodeDAO,
+            final ExamConfigUpdateService examConfigUpdateService) {
 
         super(
                 authorization,
@@ -66,6 +70,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
 
         this.examDao = examDao;
         this.configurationNodeDAO = configurationNodeDAO;
+        this.examConfigUpdateService = examConfigUpdateService;
     }
 
     @Override
@@ -106,7 +111,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     protected Result<ExamConfigurationMap> validForCreate(final ExamConfigurationMap entity) {
         return super.validForCreate(entity)
                 .map(this::checkConfigurationState)
-                .map(this::checkPasswordMatch);
+                .map(this::checkPasswordMatch)
+                .map(this::checkNoActiveClientConnections);
     }
 
     @Override
@@ -116,8 +122,15 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     @Override
+    protected Result<ExamConfigurationMap> validForDelete(final ExamConfigurationMap entity) {
+        return super.validForDelete(entity)
+                .map(this::checkNoActiveClientConnections);
+    }
+
+    @Override
     protected Result<ExamConfigurationMap> notifyCreated(final ExamConfigurationMap entity) {
         // update the attached configurations state to "In Use"
+        // and apply change to involved Exam
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 entity.configurationNodeId,
                 null,
@@ -127,27 +140,30 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 null,
                 ConfigurationStatus.IN_USE))
-                .map(config -> entity);
+                .flatMap(config -> this.examConfigUpdateService
+                        .processSEBExamConfigurationAttachmentChange(entity.examId))
+                .map(id -> entity);
+
     }
 
     @Override
-    protected Result<EntityProcessingReport> notifyDeleted(final EntityProcessingReport deletionReport) {
-        // update the attached configurations state to "Ready"
-        deletionReport.source
-                .stream()
-                .forEach(entityKey -> {
-                    this.configurationNodeDAO.save(new ConfigurationNode(
-                            Long.parseLong(entityKey.modelId),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            ConfigurationStatus.READY_TO_USE));
-                });
+    protected Result<Pair<ExamConfigurationMap, EntityProcessingReport>> notifyDeleted(
+            final Pair<ExamConfigurationMap, EntityProcessingReport> pair) {
 
-        return super.notifyDeleted(deletionReport);
+        // update the attached configurations state to "Ready"
+        // and apply change to involved Exam
+        return this.configurationNodeDAO.save(new ConfigurationNode(
+                pair.a.configurationNodeId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ConfigurationStatus.IN_USE))
+                .flatMap(config -> this.examConfigUpdateService
+                        .processSEBExamConfigurationAttachmentChange(pair.a.examId))
+                .map(id -> pair);
     }
 
     private ExamConfigurationMap checkPasswordMatch(final ExamConfigurationMap entity) {
@@ -175,6 +191,15 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         if (status != ConfigurationStatus.READY_TO_USE) {
             throw new APIMessageException(ErrorMessage.INTEGRITY_VALIDATION.of(
                     "Illegal SEB Exam Configuration state"));
+        }
+
+        return entity;
+    }
+
+    private ExamConfigurationMap checkNoActiveClientConnections(final ExamConfigurationMap entity) {
+        if (this.examConfigUpdateService.hasActiveSebClientConnections(entity.examId)) {
+            throw new APIMessageException(ErrorMessage.INTEGRITY_VALIDATION.of(
+                    "The Exam is currently running and has active SEB Client connections"));
         }
 
         return entity;

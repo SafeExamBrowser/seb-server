@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `quit_password` VARCHAR(4000) NULL,
   `browser_keys` VARCHAR(4000) NULL,
   `status` VARCHAR(255) NOT NULL,
+  `lms_seb_restriction` INT(1) NOT NULL,
   `updating` INT(1) NOT NULL,
   `lastUpdate` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,

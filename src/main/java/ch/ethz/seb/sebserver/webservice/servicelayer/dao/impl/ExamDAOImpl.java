@@ -177,6 +177,7 @@ public class ExamDAOImpl implements ExamDAO {
                     exam.quitPassword,
                     null, // browser keys
                     (exam.status != null) ? exam.status.name() : null,
+                    BooleanUtils.toIntegerObject(exam.lmsSebRestriction),
                     null, // updating
                     null, // lastUpdate
                     null // active
@@ -212,6 +213,7 @@ public class ExamDAOImpl implements ExamDAO {
                         null, // quitPassword
                         null, // browser keys
                         null, // status
+                        null, // lmsSebRestriction
                         null, // updating
                         null, // lastUpdate
                         BooleanUtils.toIntegerObject(exam.active));
@@ -233,6 +235,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, // quitPassword
                     null, // browser keys
                     (exam.status != null) ? exam.status.name() : ExamStatus.UP_COMING.name(),
+                    BooleanUtils.toInteger(exam.lmsSebRestriction),
                     BooleanUtils.toInteger(false),
                     null, // lastUpdate
                     BooleanUtils.toInteger(true));
@@ -251,7 +254,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active));
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -345,7 +348,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final ExamRecord newRecord = new ExamRecord(
                     examId,
-                    null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(true),
                     update,
                     null);
@@ -375,7 +378,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final ExamRecord newRecord = new ExamRecord(
                     examId,
-                    null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
                     update,
                     null);
@@ -389,7 +392,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Result<Long> forceUnlock(final Long examId) {
 
         log.info("forceUnlock for exam: {}", examId);
@@ -397,7 +400,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
             final ExamRecord examRecord = new ExamRecord(
                     examId,
-                    null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
                     null, null);
 
@@ -616,7 +619,9 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     status,
-                    BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : 0),
+                    BooleanUtils.toBooleanObject((quizData != null) ? record.getLmsSebRestriction() : null),
+                    record.getBrowserKeys(),
+                    BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate());
         });
     }

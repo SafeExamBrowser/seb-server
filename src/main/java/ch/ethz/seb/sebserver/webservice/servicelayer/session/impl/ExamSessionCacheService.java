@@ -52,26 +52,26 @@ public class ExamSessionCacheService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
     private final ExamDAO examDAO;
-    private final ExamSessionControlTask examControlTask;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final SebExamConfigService sebExamConfigService;
     private final ClientEventRecordMapper clientEventRecordMapper;
+    private final ExamUpdateHandler examUpdateHandler;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
-            final ExamSessionControlTask examControlTask,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientIndicatorFactory clientIndicatorFactory,
             final SebExamConfigService sebExamConfigService,
-            final ClientEventRecordMapper clientEventRecordMapper) {
+            final ClientEventRecordMapper clientEventRecordMapper,
+            final ExamUpdateHandler examUpdateHandler) {
 
         this.examDAO = examDAO;
-        this.examControlTask = examControlTask;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.sebExamConfigService = sebExamConfigService;
         this.clientEventRecordMapper = clientEventRecordMapper;
+        this.examUpdateHandler = examUpdateHandler;
     }
 
     @Cacheable(
@@ -123,7 +123,7 @@ public class ExamSessionCacheService {
                 return true;
             }
             case UP_COMING: {
-                return this.examControlTask.updateRunning(exam.id)
+                return this.examUpdateHandler.updateRunning(exam.id)
                         .map(e -> e.status == ExamStatus.RUNNING)
                         .getOr(false);
             }

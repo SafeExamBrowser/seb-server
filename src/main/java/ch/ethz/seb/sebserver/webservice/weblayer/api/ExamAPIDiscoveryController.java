@@ -43,7 +43,7 @@ public class ExamAPIDiscoveryController {
 
     @PostConstruct
     void init() {
-        final String serverURL = this.webserviceInfo.getServerURL();
+        final String serverURL = this.webserviceInfo.getExternalServerURL();
         this.DISCOVERY_INFO = new ExamAPIDiscovery(
                 "Safe Exam Browser Server / Exam API Description",
                 "This is a description of Safe Exam Browser Server's Exam API",

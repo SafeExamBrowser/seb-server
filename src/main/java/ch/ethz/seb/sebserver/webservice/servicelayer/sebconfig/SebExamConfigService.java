@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -88,7 +89,7 @@ public interface SebExamConfigService {
      * @return The configuration node identifier (PK) */
     Long exportForExam(OutputStream out, Long institutionId, Long examId, Long configurationNodeId);
 
-    /** Generates a Config-Key form the SEB exam configuration defined by configurationNodeId.
+    /** Generates a Config-Key from the SEB exam configuration defined by configurationNodeId.
      * See https://www.safeexambrowser.org/developer/seb-config-key.html for more information about the Config-Key
      *
      * @param institutionId the institutional id
@@ -96,17 +97,27 @@ public interface SebExamConfigService {
      * @return Result refer to the generated Config-Key or to an error if happened. */
     Result<String> generateConfigKey(Long institutionId, Long configurationNodeId);
 
+    /** Generates a list of Config-Key from a given Exam by collecting all the SEB Exam Configurations that are attached
+     * to this Exam
+     * See https://www.safeexambrowser.org/developer/seb-config-key.html for more information about the Config-Key
+     *
+     * @param institutionId the institutional id
+     * @param examId the Exam identifier
+     * @return Result refer to a list of generated Config-Key for all configurations of the exam or to an error if
+     *         happened. */
+    Result<Collection<String>> generateConfigKeys(Long institutionId, Long examId);
+
     /** Imports a SEB Exam Configuration from a SEB File of the format:
      * https://www.safeexambrowser.org/developer/seb-file-format.html
-     * 
+     *
      * First tries to read the file from the given input stream and detect the file format. A password
      * is needed if the file is in an encrypted format.
-     * 
+     *
      * Then loads the ConfigurationNode on which the import should take place and performs a "save in histroy"
      * action first to allow to make an easy rollback or even later an undo by the user.
-     * 
+     *
      * Then parses the XML and adds each attribute to the new Configuration.
-     * 
+     *
      * @param configNodeId The identifier of the configuration node on which the import should take place
      * @param input The InputStream to get the SEB config file as byte-stream
      * @param password A password is only needed if the file is in an encrypted format

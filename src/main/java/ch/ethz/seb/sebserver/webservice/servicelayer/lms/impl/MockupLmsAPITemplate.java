@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 
 final class MockupLmsAPITemplate implements LmsAPITemplate {
 
@@ -139,6 +141,18 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Result<SebRestrictionData> applySebClientRestriction(final SebRestrictionData sebRestrictionData) {
+        log.info("Apply SEB Client restriction: {}", sebRestrictionData);
+        return Result.of(sebRestrictionData);
+    }
+
+    @Override
+    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+        log.info("Release SEB Client restriction for Exam: {}", exam);
+        return Result.of(exam);
     }
 
     private QuizData getExternalAddressAlias(final QuizData quizData) {

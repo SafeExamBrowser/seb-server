@@ -80,14 +80,21 @@ public class HTTPClientBot {
 
         //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
         this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
+        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "https://seb.test-swissmooc.ch");
 
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
-        this.clientId = args.getOrDefault("clientId", "TO_SET");
-        this.clientSecret = args.getOrDefault("clientSecret", "TO_SET");
+        this.clientId = args.getOrDefault("clientId", "test");
+        this.clientSecret = args.getOrDefault("clientSecret", "test");
+
+//        this.clientId = args.getOrDefault("clientId", "testtest");
+//        this.clientSecret =
+//                args.getOrDefault("clientSecret", "CSXh6tQ^fdi00(XdL%6xic{q-5YlEE@Yc$Rg}H1f}JPt=P5PGH+KOhCW}oYSiC3L");
         this.apiPath = args.getOrDefault("apiPath", "/exam-api");
         this.apiVersion = args.getOrDefault("apiVersion", "v1");
         this.examId = args.getOrDefault("examId", "2");
         this.institutionId = args.getOrDefault("institutionId", "1");
+//        this.examId = args.getOrDefault("examId", "1");
+//        this.institutionId = args.getOrDefault("institutionId", "2");
         this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
         this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));

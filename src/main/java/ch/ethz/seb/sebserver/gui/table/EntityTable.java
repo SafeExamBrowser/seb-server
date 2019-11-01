@@ -159,7 +159,12 @@ public class EntityTable<ROW extends Entity> {
             final PageAction defaultAction = defaultActionFunction.apply(this);
             if (defaultAction != null) {
                 this.table.addListener(SWT.MouseDoubleClick, event -> {
-                    final EntityKey selection = getSingleSelection();
+                    // if the action has its own selection function, apply this
+                    EntityKey selection = defaultAction.getSingleSelection();
+                    if (selection == null) {
+                        // otherwise use current selection of this table
+                        selection = getSingleSelection();
+                    }
                     if (selection != null) {
                         this.pageService.executePageAction(
                                 defaultAction.withEntityKey(selection));

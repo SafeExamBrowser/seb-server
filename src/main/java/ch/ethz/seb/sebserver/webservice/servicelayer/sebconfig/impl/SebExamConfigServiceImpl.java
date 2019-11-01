@@ -319,6 +319,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     }
 
     @Override
+    public Result<Collection<String>> generateConfigKeys(final Long institutionId, final Long examId) {
+        return this.examConfigurationMapDAO.getConfigurationNodeIds(examId)
+                .map(ids -> ids
+                        .stream()
+                        .map(id -> generateConfigKey(institutionId, id)
+                                .getOrThrow())
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
     public Result<Configuration> importFromSEBFile(
             final Long configNodeId,
             final InputStream input,

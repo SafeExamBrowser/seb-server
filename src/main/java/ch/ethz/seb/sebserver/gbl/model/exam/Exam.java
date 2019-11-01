@@ -49,6 +49,8 @@ public final class Exam implements GrantEntity {
             null,
             ExamStatus.FINISHED,
             Boolean.FALSE,
+            null,
+            Boolean.FALSE,
             null);
 
     public static final String FILTER_ATTR_TYPE = "type";
@@ -114,6 +116,12 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_STATUS)
     public final ExamStatus status;
 
+    @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION)
+    public final Boolean lmsSebRestriction;
+
+    @JsonProperty(EXAM.ATTR_BROWSER_KEYS)
+    public final String browserExamKeys;
+
     @JsonProperty(EXAM.ATTR_ACTIVE)
     public final Boolean active;
 
@@ -136,6 +144,8 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
+            @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION) final Boolean lmsSebRestriction,
+            @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate) {
 
@@ -152,7 +162,9 @@ public final class Exam implements GrantEntity {
         this.quitPassword = quitPassword;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
-        this.active = (active != null) ? active : Boolean.FALSE;
+        this.lmsSebRestriction = (lmsSebRestriction != null) ? lmsSebRestriction : Boolean.TRUE;
+        this.browserExamKeys = browserExamKeys;
+        this.active = (active != null) ? active : Boolean.TRUE;
         this.lastUpdate = lastUpdate;
 
         this.supporter = (supporter != null)
@@ -178,6 +190,8 @@ public final class Exam implements GrantEntity {
                 EXAM.ATTR_STATUS,
                 ExamStatus.class,
                 getStatusFromDate(this.startTime, this.endTime));
+        this.lmsSebRestriction = mapper.getBoolean(EXAM.ATTR_LMS_SEB_RESTRICTION);
+        this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
         this.lastUpdate = null;
@@ -201,6 +215,8 @@ public final class Exam implements GrantEntity {
         this.quitPassword = null;
         this.owner = null;
         this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
+        this.lmsSebRestriction = null;
+        this.browserExamKeys = null;
         this.active = null;
         this.supporter = null;
         this.lastUpdate = null;
@@ -297,6 +313,14 @@ public final class Exam implements GrantEntity {
         return this.status;
     }
 
+    public Boolean getLmsSebRestriction() {
+        return this.lmsSebRestriction;
+    }
+
+    public String getBrowserExamKeys() {
+        return this.browserExamKeys;
+    }
+
     public Boolean getActive() {
         return this.active;
     }
@@ -332,8 +356,14 @@ public final class Exam implements GrantEntity {
         builder.append(this.supporter);
         builder.append(", status=");
         builder.append(this.status);
+        builder.append(", lmsSebRestriction=");
+        builder.append(this.lmsSebRestriction);
+        builder.append(", browserExamKeys=");
+        builder.append(this.browserExamKeys);
         builder.append(", active=");
         builder.append(this.active);
+        builder.append(", lastUpdate=");
+        builder.append(this.lastUpdate);
         builder.append("]");
         return builder.toString();
     }

@@ -66,6 +66,8 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         Arrays.asList("user5"),
                         null,
                         true,
+                        null,
+                        true,
                         null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {
@@ -94,6 +96,8 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.quitPassword,
                         exam.owner,
                         Arrays.asList("user2"),
+                        null,
+                        true,
                         null,
                         true,
                         null))

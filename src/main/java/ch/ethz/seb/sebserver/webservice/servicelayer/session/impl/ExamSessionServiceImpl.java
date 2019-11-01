@@ -69,6 +69,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
         this.indicatorDAO = indicatorDAO;
+
     }
 
     @Override
@@ -108,6 +109,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             return result;
         });
+    }
+
+    @Override
+    public boolean hasDefaultConfigurationAttached(final Long examId) {
+        return !this.examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .hasError();
     }
 
     @Override

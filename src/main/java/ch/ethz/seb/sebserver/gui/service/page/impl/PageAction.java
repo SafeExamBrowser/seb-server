@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -85,7 +86,7 @@ public final class PageAction {
 
     public EntityKey getSingleSelection() {
         final Set<EntityKey> selection = getMultiSelection();
-        if (selection != null) {
+        if (selection != null && selection.size() > 0) {
             return selection.iterator().next();
         }
 
@@ -93,24 +94,31 @@ public final class PageAction {
     }
 
     public Set<EntityKey> getMultiSelection() {
-        if (this.selectionSupplier != null) {
-            final Set<EntityKey> selection = this.selectionSupplier.get();
-            if (selection.isEmpty()) {
-                if (this.noSelectionMessage != null) {
-                    throw new PageMessageException(this.noSelectionMessage);
+        try {
+            if (this.selectionSupplier != null) {
+                final Set<EntityKey> selection = this.selectionSupplier.get();
+                if (selection.isEmpty()) {
+                    if (this.noSelectionMessage != null) {
+                        throw new PageMessageException(this.noSelectionMessage);
+                    }
+
+                    return Collections.emptySet();
                 }
 
-                return null;
+                return selection;
             }
 
-            return selection;
-        }
+            if (this.noSelectionMessage != null) {
+                throw new PageMessageException(this.noSelectionMessage);
+            }
 
-        if (this.noSelectionMessage != null) {
-            throw new PageMessageException(this.noSelectionMessage);
+            return Collections.emptySet();
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to get current selection: ", e);
+            throw new PageMessageException(
+                    "Unexpected error while trying to get current selection: "
+                            + e.getMessage());
         }
-
-        return null;
     }
 
     void applyAction(final Consumer<Result<PageAction>> callback) {

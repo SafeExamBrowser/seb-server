@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -312,17 +313,12 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
 
-        final EntityType entityType = this.entityDAO.entityType();
-
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
-                .flatMap(entity -> this.bulkActionService.createReport(new BulkAction(
-                        BulkActionType.HARD_DELETE,
-                        entityType,
-                        new EntityName(modelId, entityType, entity.getName()))))
-
-                .flatMap(this::logBulkAction)
+                .flatMap(this::validForDelete)
+                .map(this::bulkDelete)
                 .flatMap(this::notifyDeleted)
+                .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();
     }
 
@@ -368,12 +364,20 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         }
     }
 
+    protected Result<T> validForDelete(final T entity) {
+        if (entity.getModelId() != null) {
+            return Result.of(entity);
+        } else {
+            return Result.ofError(new APIConstraintViolationException("Missing model identifier"));
+        }
+    }
+
     protected Result<T> notifySaved(final T entity) {
         return Result.of(entity);
     }
 
-    protected Result<EntityProcessingReport> notifyDeleted(final EntityProcessingReport deletionReport) {
-        return Result.of(deletionReport);
+    protected Result<Pair<T, EntityProcessingReport>> notifyDeleted(final Pair<T, EntityProcessingReport> pair) {
+        return Result.of(pair);
     }
 
     protected Result<T> checkReadAccess(final T entity) {
@@ -495,5 +499,15 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      *
      * @return the MyBatis SqlTable for the concrete Entity */
     protected abstract SqlTable getSQLTableOfEntity();
+
+    private Pair<T, EntityProcessingReport> bulkDelete(final T entity) {
+        return new Pair<>(
+                entity,
+                this.bulkActionService.createReport(new BulkAction(
+                        BulkActionType.HARD_DELETE,
+                        entity.entityType(),
+                        new EntityName(entity.getModelId(), entity.entityType(), entity.getName())))
+                        .getOrThrow());
+    }
 
 }

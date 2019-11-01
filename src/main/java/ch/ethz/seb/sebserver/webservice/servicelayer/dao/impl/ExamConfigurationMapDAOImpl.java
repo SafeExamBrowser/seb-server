@@ -190,6 +190,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Long> getUserConfigurationNodeId(final Long examId, final String userId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
@@ -204,6 +205,21 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .stream()
                 .map(mapping -> mapping.getConfigurationNodeId())
                 .collect(Utils.toSingleton()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> getConfigurationNodeIds(final Long examId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute()
+                .stream()
+                .map(mapping -> mapping.getConfigurationNodeId())
+                .collect(Collectors.toList()));
     }
 
     @Override

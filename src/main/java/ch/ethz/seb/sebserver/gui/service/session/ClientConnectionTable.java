@@ -13,11 +13,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +32,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -80,7 +81,7 @@ public final class ClientConnectionTable {
     private int tableWidth;
     private boolean needsSort = false;
     private LinkedHashMap<Long, UpdatableTableItem> tableMapping;
-    private final Set<String> sessionIds;
+    private final MultiValueMap<String, Long> sessionIds;
 
     public ClientConnectionTable(
             final PageService pageService,
@@ -129,7 +130,7 @@ public final class ClientConnectionTable {
         }
 
         this.tableMapping = new LinkedHashMap<>();
-        this.sessionIds = new HashSet<>();
+        this.sessionIds = new LinkedMultiValueMap<>();
         this.table.layout();
     }
 
@@ -261,8 +262,6 @@ public final class ClientConnectionTable {
         private ClientConnectionData connectionData;
         private int[] thresholdColorIndices;
         private boolean duplicateChecked = false;
-        private boolean duplicateMarked = false;
-        private boolean isDuplicate = false;
 
         UpdatableTableItem(final Long connectionId) {
             this.connectionId = connectionId;
@@ -297,11 +296,19 @@ public final class ClientConnectionTable {
         }
 
         void updateDuplicateColor(final TableItem tableItem) {
-            if (this.isDuplicate && this.duplicateChecked && !this.duplicateMarked) {
-                tableItem.setBackground(0, ClientConnectionTable.this.statusData.color3);
-                this.duplicateMarked = true;
-            } else {
-                tableItem.setBackground(0, null);
+            if (!this.duplicateChecked) {
+                return;
+            }
+
+            if (this.connectionData != null
+                    && StringUtils.isNotBlank(this.connectionData.clientConnection.userSessionId)) {
+                final List<Long> list =
+                        ClientConnectionTable.this.sessionIds.get(this.connectionData.clientConnection.userSessionId);
+                if (list != null && list.size() > 1) {
+                    tableItem.setBackground(0, ClientConnectionTable.this.statusData.color3);
+                } else {
+                    tableItem.setBackground(0, null);
+                }
             }
         }
 
@@ -409,11 +416,8 @@ public final class ClientConnectionTable {
             this.connectionData = connectionData;
 
             if (!this.duplicateChecked && StringUtils.isNotBlank(connectionData.clientConnection.userSessionId)) {
-                if (ClientConnectionTable.this.sessionIds.contains(connectionData.clientConnection.userSessionId)) {
-                    this.isDuplicate = true;
-                } else {
-                    ClientConnectionTable.this.sessionIds.add(connectionData.clientConnection.userSessionId);
-                }
+                ClientConnectionTable.this.sessionIds.add(connectionData.clientConnection.userSessionId,
+                        this.connectionId);
                 this.duplicateChecked = true;
             }
         }

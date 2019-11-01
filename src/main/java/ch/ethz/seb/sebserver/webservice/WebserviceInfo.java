@@ -162,7 +162,7 @@ public class WebserviceInfo {
      * E.g.: https://seb.server.ch:8080
      *
      * @return the server URL prefix */
-    public String getServerURL() {
+    public String getExternalServerURL() {
         return this.serverURLPrefix;
     }
 

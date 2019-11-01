@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -79,6 +80,19 @@ public interface LmsAPITemplate {
     // TODO this can be used in a future release to resolve examinee's account detail information by an
     //      examinee identifier received by on SEB-Client connection.
     //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+
+    /** Applies a SEB Client restriction within the LMS with the given attributes.
+     *
+     * @param sebRestrictionData containing all data for SEB Client restriction
+     * @return Result refer to the given SebRestrictionData if restriction was successful or to an error if not */
+    Result<SebRestrictionData> applySebClientRestriction(SebRestrictionData sebRestrictionData);
+
+    /** Releases an already applied SEB Client restriction within the LMS for a given Exam.
+     * This completely removes the SEB Client restriction on LMS side.
+     * 
+     * @param exam the Exam to release the restriction for
+     * @return Result refer to the given Exam if successful or to an error if not */
+    Result<Exam> releaseSebClientRestriction(Exam exam);
 
     default List<APIMessage> attributeValidation(final ClientCredentials credentials) {
 

@@ -38,6 +38,12 @@ public interface ExamSessionService {
      *         okay. */
     Result<Collection<APIMessage>> checkRunningExamConsystency(Long examId);
 
+    /** Checks if a specified Exam has at least a default SEB Exam configuration attached.
+     *
+     * @param examId the identifier if the Exam to check
+     * @return true if there is a default SEB Exam Configuration attached or false if not */
+    boolean hasDefaultConfigurationAttached(final Long examId);
+
     /** Indicates whether an Exam is currently running or not.
      *
      * @param examId the PK of the Exam to test
@@ -104,7 +110,7 @@ public interface ExamSessionService {
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.
-     * 
+     *
      * @param examId the Exam identifier
      * @return Result with updated Exam instance or refer to an error if happened */
     Result<Exam> updateExamCache(Long examId);

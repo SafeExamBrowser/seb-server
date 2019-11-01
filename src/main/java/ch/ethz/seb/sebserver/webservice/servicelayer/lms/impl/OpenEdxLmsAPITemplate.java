@@ -56,6 +56,7 @@ import ch.ethz.seb.sebserver.gbl.api.ProxyData;
 import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -66,6 +67,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
@@ -77,6 +79,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     private static final String OPEN_EDX_DEFAULT_TOKEN_REQUEST_PATH = "/oauth2/access_token";
     private static final String OPEN_EDX_DEFAULT_COURSE_ENDPOINT = "/api/courses/v1/courses/";
     private static final String OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX = "/courses/";
+    private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH =
+            "/seb-openedx/api/v1/course/%s/configuration/";
 
     private final LmsSetup lmsSetup;
     private final ClientCredentials credentials;
@@ -171,6 +175,34 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                 .filter(quiz -> ids.contains(quiz.id))
                 .map(quiz -> Result.of(quiz))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Result<SebRestrictionData> applySebClientRestriction(final SebRestrictionData sebRestrictionData) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Apply SEB Client restriction: {}", sebRestrictionData);
+            }
+
+            // TODO
+
+            return sebRestrictionData;
+        });
+    }
+
+    @Override
+    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Release SEB Client restriction for Exam: {}", exam);
+            }
+
+            // TODO
+
+            return exam;
+        });
     }
 
     private Result<LmsSetup> initRestTemplateAndRequestAccessToken() {
@@ -298,7 +330,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             try {
                 final URL url = new URL(lmsSetup.lmsApiUrl);
                 final int port = url.getPort();
-                _externalStartURI = this.webserviceInfo.getHttpScheme() +
+                _externalStartURI = url.getProtocol() +
                         Constants.URL_ADDRESS_SEPARATOR + externalAddressAlias +
                         ((port >= 0)
                                 ? Constants.URL_PORT_SEPARATOR + port

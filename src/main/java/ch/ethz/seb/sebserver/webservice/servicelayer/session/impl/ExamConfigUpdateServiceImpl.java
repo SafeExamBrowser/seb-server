@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -46,20 +48,20 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     private final ConfigurationDAO configurationDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamSessionService examSessionService;
-    private final ExamSessionControlTask examSessionControlTask;
+    private final ExamUpdateHandler examUpdateHandler;
 
     protected ExamConfigUpdateServiceImpl(
             final ExamDAO examDAO,
             final ConfigurationDAO configurationDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamSessionService examSessionService,
-            final ExamSessionControlTask examSessionControlTask) {
+            final ExamUpdateHandler examUpdateHandler) {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examSessionService = examSessionService;
-        this.examSessionControlTask = examSessionControlTask;
+        this.examUpdateHandler = examUpdateHandler;
     }
 
     // processing:
@@ -73,7 +75,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     @Transactional
     public Result<Collection<Long>> processSEBExamConfigurationChange(final Long configurationNodeId) {
 
-        final String updateId = this.examSessionControlTask.createUpdateId();
+        final String updateId = this.examUpdateHandler.createUpdateId();
 
         if (log.isDebugEnabled()) {
             log.debug("Process SEB Exam Configuration update for: {} with update-id {}",
@@ -128,9 +130,10 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             }
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
-            final Collection<Long> updatedExams = updateConfigKey(exams)
+            final Collection<Long> updatedExams = updateLmsSebRestriction(exams)
                     .stream()
-                    .map(Result::getOrThrow)
+                    .map(Result::get)
+                    .filter(Objects::nonNull)
                     .map(Exam::getId)
                     .collect(Collectors.toList());
 
@@ -167,6 +170,24 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     @Override
+    public Result<Long> processSEBExamConfigurationAttachmentChange(final Long examId) {
+        return this.examDAO.byPK(examId)
+                .map(exam -> {
+                    if (exam.status != ExamStatus.RUNNING) {
+                        return examId;
+                    }
+
+                    // TODO Lock??
+                    // TODO flush cache
+                    // TODO update seb restriction if on
+                    // TODO unlock?
+
+                    return examId;
+                });
+
+    }
+
+    @Override
     public void forceReleaseUpdateLocks(final Long configurationId) {
 
         log.warn(" **** Force release of update-locks for all exams that are related to configuration: {}",
@@ -200,6 +221,24 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Result<Exam> applySebClientRestriction(final Exam exam) {
+        return this.examUpdateHandler.applySebClientRestriction(exam)
+                .onError(error -> log.error("Failed to apply SEB Client restriction for Exam: {}", exam, error));
+    }
+
+    @Override
+    public Result<Exam> updateSebClientRestriction(final Exam exam) {
+        return this.examUpdateHandler.updateSebClientRestriction(exam)
+                .onError(error -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, error));
+    }
+
+    @Override
+    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+        return this.examUpdateHandler.releaseSebClientRestriction(exam)
+                .onError(error -> log.error("Failed to release SEB Client restriction for Exam: {}", exam, error));
+    }
+
     private void checkIntegrityDoubleCheck(
             final Collection<Long> examIdsFirstCheck,
             final Collection<Long> examIdsSecondCheck) {
@@ -222,24 +261,12 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                 .collect(Collectors.toList());
     }
 
-    private Collection<Result<Exam>> updateConfigKey(final Collection<Exam> exams) {
+    private Collection<Result<Exam>> updateLmsSebRestriction(final Collection<Exam> exams) {
         return exams
                 .stream()
-                .map(this::updateConfigKey)
+                .filter(exam -> exam.getStatus() == ExamStatus.RUNNING)
+                .map(this::updateSebClientRestriction)
                 .collect(Collectors.toList());
-    }
-
-    private Result<Exam> updateConfigKey(final Exam exam) {
-        return Result.tryCatch(() -> {
-
-            if (log.isDebugEnabled()) {
-                log.debug("update Config Key for Exam {}", exam.externalId);
-            }
-
-            // TODO
-
-            return exam;
-        });
     }
 
     private Collection<Result<Exam>> evictFromCache(final Collection<Exam> exams) {
@@ -280,6 +307,20 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             // otherwise we return the involved identifiers exams to further processing
             return Result.of(involvedExams);
         }
+    }
+
+    @Override
+    public boolean hasActiveSebClientConnections(final Long examId) {
+        if (examId == null || !this.examSessionService.isExamRunning(examId)) {
+            return false;
+        }
+
+        return this.examSessionService.getConnectionData(examId)
+                .getOrThrow()
+                .stream()
+                .filter(ExamConfigUpdateServiceImpl::isActiveConnection)
+                .findFirst()
+                .isPresent();
     }
 
     private static boolean isActiveConnection(final ClientConnectionData connection) {

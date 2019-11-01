@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
@@ -48,6 +49,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     private final ClientConnectionDAO clientConnectionDAO;
     private final PingHandlingStrategy pingHandlingStrategy;
     private final SebClientConfigDAO sebClientConfigDAO;
+    private final WebserviceInfo webserviceInfo;
 
     protected SebClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
@@ -55,7 +57,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final ClientConnectionDAO clientConnectionDAO,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
-            final SebClientConfigDAO sebClientConfigDAO) {
+            final SebClientConfigDAO sebClientConfigDAO,
+            final WebserviceInfo webserviceInfo) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionCacheService;
@@ -63,6 +66,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
+        this.webserviceInfo = webserviceInfo;
     }
 
     @Override
@@ -134,20 +138,6 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             return clientConnection;
         });
-    }
-
-    private void checkExamIntegrity(final Long examId) {
-        // check Exam is running and not locked
-        checkExamRunning(examId);
-        if (this.examSessionService.isExamLocked(examId)) {
-            throw new APIConstraintViolationException(
-                    "Exam is currently on update and locked for new SEB Client connections");
-        }
-        // if the cached Exam is not up to date anymore, we have to update the cache first
-        final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
-        if (updateExamCache.hasError()) {
-            log.warn("Failed to update Exam-Cache for Exam: {}", examId);
-        }
     }
 
     @Override
@@ -538,6 +528,29 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     .getOrThrow();
         }
         return clientConnection;
+    }
+
+    private void checkExamIntegrity(final Long examId) {
+        if (this.webserviceInfo.isDistributed()) {
+            // if the cached Exam is not up to date anymore, we have to update the cache first
+            final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
+            if (updateExamCache.hasError()) {
+                log.warn("Failed to update Exam-Cache for Exam: {}", examId);
+            }
+        }
+
+        // check Exam is running and not locked
+        checkExamRunning(examId);
+        if (this.examSessionService.isExamLocked(examId)) {
+            throw new APIConstraintViolationException(
+                    "Exam is currently on update and locked for new SEB Client connections");
+        }
+
+        // check Exam has an default SEB Exam configuration attached
+        if (!this.examSessionService.hasDefaultConfigurationAttached(examId)) {
+            throw new APIConstraintViolationException(
+                    "Exam is currently has no default SEB Exam configuration attached");
+        }
     }
 
 }

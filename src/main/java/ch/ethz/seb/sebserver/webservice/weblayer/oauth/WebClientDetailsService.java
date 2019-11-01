@@ -73,8 +73,8 @@ public class WebClientDetailsService implements ClientDetailsService {
         return clientDetails;
     }
 
-    protected Result<ClientDetails> getForExamClientAPI(final String clientCongifId) {
-        return this.sebClientConfigService.getClientConfigDetails(clientCongifId);
+    protected Result<ClientDetails> getForExamClientAPI(final String clientId) {
+        return this.sebClientConfigService.getClientConfigDetails(clientId);
     }
 
 }

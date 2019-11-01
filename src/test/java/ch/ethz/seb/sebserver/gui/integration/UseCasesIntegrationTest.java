@@ -707,6 +707,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 Utils.immutableCollectionOf(userId),
                 ExamStatus.RUNNING,
                 true,
+                null,
+                true,
                 null);
 
         final Result<Exam> savedExamResult = restService

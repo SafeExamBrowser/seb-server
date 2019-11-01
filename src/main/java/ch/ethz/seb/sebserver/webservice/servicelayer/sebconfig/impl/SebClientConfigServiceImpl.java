@@ -238,7 +238,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
                         ? "    <key>startURL</key>\r\n" +
                                 "    <string>" + config.fallbackStartURL + "</string>\r\n"
                         : "",
-                this.webserviceInfo.getServerURL(),
+                this.webserviceInfo.getExternalServerURL(),
                 String.valueOf(config.institutionId),
                 plainClientId,
                 plainClientSecret,
@@ -307,8 +307,8 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
      *
      * @param clientId the clientId/clientName
      * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
-    private Result<CharSequence> getEncodedClientConfigSecret(final String clientCongifId) {
-        return this.sebClientConfigDAO.getConfigPasswortCipherByClientName(clientCongifId)
+    private Result<CharSequence> getEncodedClientConfigSecret(final String clientId) {
+        return this.sebClientConfigDAO.getConfigPasswortCipherByClientName(clientId)
                 .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));
     }
 
