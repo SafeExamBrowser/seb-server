@@ -126,24 +126,7 @@ class ExamUpdateHandler {
 
         return Result.tryCatch(() -> {
 
-            final Collection<String> configKeys = this.sebExamConfigService
-                    .generateConfigKeys(exam.institutionId, exam.id)
-                    .getOrThrow();
-
-            final Collection<String> browserExamKeys = new ArrayList<>();
-            final String browserExamKeysString = exam.getBrowserExamKeys();
-            if (StringUtils.isNotBlank(browserExamKeysString)) {
-                browserExamKeys.addAll(Arrays.asList(StringUtils.split(
-                        browserExamKeysString,
-                        Constants.LIST_SEPARATOR)));
-            }
-
-            final SebRestrictionData sebRestrictionData = new SebRestrictionData(
-                    exam,
-                    configKeys,
-                    browserExamKeys,
-                    // TODO when we have more restriction details available form the Exam, put it to the map
-                    Collections.emptyMap());
+            final SebRestrictionData sebRestrictionData = createSebRestrictionData(exam);
 
             if (log.isDebugEnabled()) {
                 log.debug("Appling SEB Client restriction on LMS with: {}", sebRestrictionData);
@@ -166,11 +149,20 @@ class ExamUpdateHandler {
             return Result.of(exam);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Update SEB Client restrictions for exam: {}", exam);
-        }
-        // TODO Auto-generated method stub
-        return null;
+        return Result.tryCatch(() -> {
+
+            final SebRestrictionData sebRestrictionData = createSebRestrictionData(exam);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Update SEB Client restrictions for exam: {}", exam);
+            }
+
+            return this.lmsAPIService
+                    .getLmsAPITemplate(exam.lmsSetupId)
+                    .flatMap(lmsTemplate -> lmsTemplate.updateSebClientRestriction(sebRestrictionData))
+                    .map(data -> exam)
+                    .getOrThrow();
+        });
     }
 
     Result<Exam> releaseSebClientRestriction(final Exam exam) {
@@ -182,6 +174,41 @@ class ExamUpdateHandler {
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
                 .flatMap(template -> template.releaseSebClientRestriction(exam));
+    }
+
+//    @Transactional
+//    public <T> Result<T> updateExamConfigurationMappingChange(
+//            final ExamConfigurationMap mapping,
+//            final Function<ExamConfigurationMap, Result<T>> changeAction,
+//            final Exam exam) {
+//
+//        return Result.tryCatch(() -> {
+//
+//            return result;
+//        })
+//                .onError(TransactionHandler::rollback);
+//    }
+
+    private SebRestrictionData createSebRestrictionData(final Exam exam) {
+        final Collection<String> configKeys = this.sebExamConfigService
+                .generateConfigKeys(exam.institutionId, exam.id)
+                .getOrThrow();
+
+        final Collection<String> browserExamKeys = new ArrayList<>();
+        final String browserExamKeysString = exam.getBrowserExamKeys();
+        if (StringUtils.isNotBlank(browserExamKeysString)) {
+            browserExamKeys.addAll(Arrays.asList(StringUtils.split(
+                    browserExamKeysString,
+                    Constants.LIST_SEPARATOR)));
+        }
+
+        final SebRestrictionData sebRestrictionData = new SebRestrictionData(
+                exam,
+                configKeys,
+                browserExamKeys,
+                // TODO when we have more restriction details available form the Exam, put it to the map
+                Collections.emptyMap());
+        return sebRestrictionData;
     }
 
 }

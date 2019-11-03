@@ -194,7 +194,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 null,
                 null,
-                ConfigurationStatus.IN_USE))
+                ConfigurationStatus.READY_TO_USE))
                 .map(id -> pair);
     }
 

@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -74,7 +73,6 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
     // evict each Exam from cache and release the update-lock on DB
     @Override
-    @Transactional
     public Result<Collection<Long>> processExamConfigurationChange(final Long configurationNodeId) {
 
         final String updateId = this.examUpdateHandler.createUpdateId();
@@ -172,7 +170,6 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     @Override
-    @Transactional
     public <T> Result<T> processExamConfigurationMappingChange(
             final ExamConfigurationMap mapping,
             final Function<ExamConfigurationMap, Result<T>> changeAction) {
@@ -205,29 +202,35 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     // check again if there are no new active client connections in the meantime
                     checkActiveClientConnections(exam);
 
-                    // apply the referenced change action
+                    // apply the referenced change action. On error the change is rolled back and
+                    // this processing returns immediately with the error
                     final T result = changeAction.apply(mapping)
-                            .getOrThrow();
-
-                    // flush the exam cache
-                    this.examSessionService.flushCache(exam)
+                            .onError(t -> log.error("Fauled to save exam configuration: {}",
+                                    mapping.configurationNodeId))
                             .getOrThrow();
 
                     // update seb client restriction if the feature is activated
                     if (exam.lmsSebRestriction) {
                         final Result<Exam> updateSebClientRestriction = this.updateSebClientRestriction(exam);
+                        // if there was an error during update, it is logged but this process goes on
+                        // and the saved changes are not rolled back
                         if (updateSebClientRestriction.hasError()) {
                             log.error("Failed to update SEB Client restriction on LMS for exam: {}", exam);
                         }
                     }
 
-                    // release the lock
+                    // flush the exam cache. If there was an error during flush, it is logged but this process goes on
+                    // and the saved changes are not rolled back
+                    this.examSessionService.flushCache(exam)
+                            .onError(t -> log.error("Failed to flush cache for exam: {}", exam));
+
+                    // release the exam lock
                     this.examDAO.releaseLock(exam.id, updateId)
-                            .getOrThrow();
+                            .onError(t -> log.error("Failed to release lock for exam: {}", exam));
 
                     return result;
                 })
-                .onError(TransactionHandler::rollback);
+                .onError(t -> this.examDAO.forceUnlock(mapping.examId));
 
     }
 
@@ -280,20 +283,17 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
     @Override
     public Result<Exam> applySebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.applySebClientRestriction(exam)
-                .onError(error -> log.error("Failed to apply SEB Client restriction for Exam: {}", exam, error));
+        return this.examUpdateHandler.applySebClientRestriction(exam);
     }
 
     @Override
     public Result<Exam> updateSebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.updateSebClientRestriction(exam)
-                .onError(error -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, error));
+        return this.examUpdateHandler.updateSebClientRestriction(exam);
     }
 
     @Override
     public Result<Exam> releaseSebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.releaseSebClientRestriction(exam)
-                .onError(error -> log.error("Failed to release SEB Client restriction for Exam: {}", exam, error));
+        return this.examUpdateHandler.releaseSebClientRestriction(exam);
     }
 
     private void checkIntegrityDoubleCheck(

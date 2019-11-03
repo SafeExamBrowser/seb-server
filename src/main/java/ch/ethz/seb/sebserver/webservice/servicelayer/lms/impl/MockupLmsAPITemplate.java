@@ -150,6 +150,12 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<SebRestrictionData> updateSebClientRestriction(final SebRestrictionData sebRestrictionData) {
+        log.info("Update SEB Client restriction: {}", sebRestrictionData);
+        return Result.of(sebRestrictionData);
+    }
+
+    @Override
     public Result<Exam> releaseSebClientRestriction(final Exam exam) {
         log.info("Release SEB Client restriction for Exam: {}", exam);
         return Result.of(exam);

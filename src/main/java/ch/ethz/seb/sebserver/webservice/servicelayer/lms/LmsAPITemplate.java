@@ -87,9 +87,16 @@ public interface LmsAPITemplate {
      * @return Result refer to the given SebRestrictionData if restriction was successful or to an error if not */
     Result<SebRestrictionData> applySebClientRestriction(SebRestrictionData sebRestrictionData);
 
+    /** Updates a SEB Client restriction within the LMS with the given attributes.
+     *
+     * @param sebRestrictionData containing all data for SEB Client restriction
+     * @return Result refer to the given SebRestrictionData if updating restriction was successful or to an error if
+     *         not */
+    Result<SebRestrictionData> updateSebClientRestriction(SebRestrictionData sebRestrictionData);
+
     /** Releases an already applied SEB Client restriction within the LMS for a given Exam.
      * This completely removes the SEB Client restriction on LMS side.
-     * 
+     *
      * @param exam the Exam to release the restriction for
      * @return Result refer to the given Exam if successful or to an error if not */
     Result<Exam> releaseSebClientRestriction(Exam exam);

@@ -192,6 +192,20 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<SebRestrictionData> updateSebClientRestriction(final SebRestrictionData sebRestrictionData) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Update SEB Client restriction: {}", sebRestrictionData);
+            }
+
+            // TODO
+
+            return sebRestrictionData;
+        });
+    }
+
+    @Override
     public Result<Exam> releaseSebClientRestriction(final Exam exam) {
         return Result.tryCatch(() -> {
 
