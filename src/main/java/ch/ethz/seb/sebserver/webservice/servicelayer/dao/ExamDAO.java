@@ -54,4 +54,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     Result<Boolean> upToDate(Long examId, String lastUpdate);
 
+    Result<Exam> setSebRestriction(Long id, boolean sebRestriction);
+
 }

@@ -192,6 +192,24 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
+    public Result<Exam> setSebRestriction(final Long examId, final boolean sebRestriction) {
+        return Result.tryCatch(() -> {
+
+            final ExamRecord examRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null, null,
+                    BooleanUtils.toInteger(sebRestriction),
+                    null, null, null);
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(examId);
+        })
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
     public Result<Exam> createNew(final Exam exam) {
         return Result.tryCatch(() -> {
 

@@ -226,6 +226,16 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_ENABLE_SEB_RESTRICTION(
+            new LocTextKey("sebserver.exam.action.sebrestriction.enable"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_DISABLE_SEB_RESTRICTION(
+            new LocTextKey("sebserver.exam.action.deasebrestriction.disable"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
 
     EXAM_CONFIGURATION_NEW(
             new LocTextKey("sebserver.exam.configuration.action.list.new"),

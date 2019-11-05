@@ -36,7 +36,7 @@ public interface ExamSessionService {
      * @param examId the identifier of the Exam to check
      * @return Result of one APIMessage per consistency check if the check failed. An empty Collection of everything is
      *         okay. */
-    Result<Collection<APIMessage>> checkRunningExamConsystency(Long examId);
+    Result<Collection<APIMessage>> checkRunningExamConsistency(Long examId);
 
     /** Checks if a specified Exam has at least a default SEB Exam configuration attached.
      *

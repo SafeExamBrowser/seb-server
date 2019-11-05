@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -130,38 +129,23 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             }
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
-            final Collection<Long> updatedExams = updateLmsSebRestriction(exams)
-                    .stream()
-                    .map(Result::get)
-                    .filter(Objects::nonNull)
-                    .map(Exam::getId)
-                    .collect(Collectors.toList());
-
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully updated ConfigKey for Exams: {}", updatedExams);
+            for (final Exam exam : exams) {
+                if (exam.getStatus() == ExamStatus.RUNNING) {
+                    this.updateSebClientRestriction(exam)
+                            .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
+                }
             }
 
             // evict each Exam from cache and release the update-lock on DB
-            final Collection<Long> evictedExams = evictFromCache(exams)
-                    .stream()
-                    .filter(Result::hasValue)
-                    .map(Result::get)
-                    .map(Exam::getId)
-                    .collect(Collectors.toList());
-
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully evicted Exams from cache: {}", evictedExams);
+            for (final Exam exam : exams) {
+                this.examSessionService.flushCache(exam)
+                        .onError(t -> log.error("Failed to flush Exam from cache: {}", exam, t));
             }
 
             // release the update-locks on involved exams
-            final Collection<Long> releasedLocks = releaseUpdateLocks(examIdsFirstCheck, updateId)
-                    .stream()
-                    .map(Result::getOrThrow)
-                    .map(Exam::getId)
-                    .collect(Collectors.toList());
-
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully released update-locks on Exams: {}", releasedLocks);
+            for (final Long examId : examIdsFirstCheck) {
+                this.examDAO.releaseLock(examId, updateId)
+                        .onError(t -> log.error("Failed to release lock for Exam: {}", examId, t));
             }
 
             return examIdsFirstCheck;
@@ -296,43 +280,6 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         return this.examUpdateHandler.releaseSebClientRestriction(exam);
     }
 
-    private void checkIntegrityDoubleCheck(
-            final Collection<Long> examIdsFirstCheck,
-            final Collection<Long> examIdsSecondCheck) {
-
-        if (examIdsFirstCheck.size() != examIdsSecondCheck.size()) {
-            throw new IllegalStateException("Running Exam integrity check missmatch. examIdsFirstCheck: "
-                    + examIdsFirstCheck + " examIdsSecondCheck: " + examIdsSecondCheck);
-        }
-    }
-
-    private Collection<Result<Exam>> lockForUpdate(final Collection<Long> examIds, final String update) {
-        return examIds.stream()
-                .map(id -> this.examDAO.placeLock(id, update))
-                .collect(Collectors.toList());
-    }
-
-    private Collection<Result<Exam>> releaseUpdateLocks(final Collection<Long> examIds, final String update) {
-        return examIds.stream()
-                .map(id -> this.examDAO.releaseLock(id, update))
-                .collect(Collectors.toList());
-    }
-
-    private Collection<Result<Exam>> updateLmsSebRestriction(final Collection<Exam> exams) {
-        return exams
-                .stream()
-                .filter(exam -> exam.getStatus() == ExamStatus.RUNNING)
-                .map(this::updateSebClientRestriction)
-                .collect(Collectors.toList());
-    }
-
-    private Collection<Result<Exam>> evictFromCache(final Collection<Exam> exams) {
-        return exams
-                .stream()
-                .map(this.examSessionService::flushCache)
-                .collect(Collectors.toList());
-    }
-
     @Override
     public Result<Collection<Long>> checkRunningExamIntegrity(final Long configurationNodeId) {
         final Collection<Long> involvedExams = this.examConfigurationMapDAO
@@ -395,6 +342,22 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         }
 
         return false;
+    }
+
+    private void checkIntegrityDoubleCheck(
+            final Collection<Long> examIdsFirstCheck,
+            final Collection<Long> examIdsSecondCheck) {
+
+        if (examIdsFirstCheck.size() != examIdsSecondCheck.size()) {
+            throw new IllegalStateException("Running Exam integrity check missmatch. examIdsFirstCheck: "
+                    + examIdsFirstCheck + " examIdsSecondCheck: " + examIdsSecondCheck);
+        }
+    }
+
+    private Collection<Result<Exam>> lockForUpdate(final Collection<Long> examIds, final String update) {
+        return examIds.stream()
+                .map(id -> this.examDAO.placeLock(id, update))
+                .collect(Collectors.toList());
     }
 
 }

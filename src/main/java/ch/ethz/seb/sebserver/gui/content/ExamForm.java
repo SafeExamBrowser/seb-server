@@ -67,6 +67,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SetExamSebRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -308,7 +309,17 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this.cancelModifyFunction())
-                .publishIf(() -> !readonly);
+                .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
+                .withEntityKey(entityKey)
+                .withExec(action -> setSebRestriction(action, true))
+                .publishIf(() -> readonly && BooleanUtils.isFalse(exam.lmsSebRestriction))
+
+                .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
+                .withEntityKey(entityKey)
+                .withExec(action -> setSebRestriction(action, false))
+                .publishIf(() -> readonly && BooleanUtils.isTrue(exam.lmsSebRestriction));
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
@@ -489,6 +500,20 @@ public class ExamForm implements TemplateComposer {
                         warningPanel,
                         CustomVariant.MESSAGE,
                         message));
+    }
+
+    private PageAction setSebRestriction(final PageAction action, final boolean sebRestriction) {
+        this.restService.getBuilder(SetExamSebRestriction.class)
+                .withURIVariable(
+                        API.PARAM_MODEL_ID,
+                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
+                .withQueryParam(
+                        Domain.EXAM.ATTR_LMS_SEB_RESTRICTION,
+                        sebRestriction ? Constants.TRUE_STRING : Constants.FALSE_STRING)
+                .call()
+                .onError(t -> action.pageContext().notifyError(t));
+
+        return action;
     }
 
     private PageAction viewExamConfigPageAction(final EntityTable<ExamConfigurationMap> table) {

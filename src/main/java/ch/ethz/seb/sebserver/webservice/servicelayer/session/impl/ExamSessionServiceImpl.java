@@ -78,7 +78,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<APIMessage>> checkRunningExamConsystency(final Long examId) {
+    public Result<Collection<APIMessage>> checkRunningExamConsistency(final Long examId) {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();
 

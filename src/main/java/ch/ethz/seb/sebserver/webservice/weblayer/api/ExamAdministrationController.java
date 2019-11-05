@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -75,6 +77,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final LmsAPIService lmsAPIService;
     private final SebExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
+    private final ExamConfigUpdateService examConfigUpdateService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -86,7 +89,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
             final SebExamConfigService sebExamConfigService,
-            final ExamSessionService examSessionService) {
+            final ExamSessionService examSessionService,
+            final ExamConfigUpdateService examConfigUpdateService) {
 
         super(authorization,
                 bulkActionService,
@@ -100,6 +104,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.lmsAPIService = lmsAPIService;
         this.sebExamConfigService = sebExamConfigService;
         this.examSessionService = examSessionService;
+        this.examConfigUpdateService = examConfigUpdateService;
     }
 
     @Override
@@ -197,9 +202,39 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<APIMessage> checkExamConsistency(@PathVariable final Long modelId) {
+    public Collection<APIMessage> checkExamConsistency(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkModifyPrivilege(institutionId);
         return this.examSessionService
-                .checkRunningExamConsystency(modelId)
+                .checkRunningExamConsistency(modelId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
+            method = RequestMethod.PATCH,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Exam switchSebRestriction(
+            @PathVariable final Long modelId,
+            @RequestParam(name = Domain.EXAM.ATTR_LMS_SEB_RESTRICTION, required = true) final boolean sebRestriction,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkModifyPrivilege(institutionId);
+
+        return this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(this::checkNoActiveSebClientConnections)
+                .flatMap(exam -> this.setSebRestriction(exam, sebRestriction))
+                .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
 
@@ -289,6 +324,37 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             }
         }
         return exam;
+    }
+
+    private Result<Exam> checkNoActiveSebClientConnections(final Exam exam) {
+        if (this.examConfigUpdateService.hasActiveSebClientConnections(exam.id)) {
+            return Result.ofError(new APIMessageException(
+                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                            .of("Exam currently has active SEB Client connections.")));
+        }
+
+        return Result.of(exam);
+    }
+
+    private Result<Exam> setSebRestriction(final Exam exam, final boolean sebRestriction) {
+        return Result.tryCatch(() -> {
+            if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == sebRestriction) {
+                return exam;
+            }
+
+            final Exam examUpdate = this.examDAO.setSebRestriction(exam.id, sebRestriction)
+                    .getOrThrow();
+
+            if (sebRestriction) {
+                this.examConfigUpdateService.applySebClientRestriction(examUpdate)
+                        .getOrThrow();
+            } else {
+                this.examConfigUpdateService.releaseSebClientRestriction(examUpdate)
+                        .getOrThrow();
+            }
+
+            return examUpdate;
+        });
     }
 
 }

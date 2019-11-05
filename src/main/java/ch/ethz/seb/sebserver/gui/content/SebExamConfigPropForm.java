@@ -237,6 +237,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     urlLauncher.openURL(downloadURL);
                     return action;
                 })
+                .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)

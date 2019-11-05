@@ -243,7 +243,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (519, 'enableF11', 'CHECKBOX', null, null, null, null, 'false'),
     (520, 'enableF12', 'CHECKBOX', null, null, null, null, 'false'),
     
-    (800, 'browserMessagingSocket', 'TEXT_FIELD', null, null, null, null, 'ws:\\localhost:8706'),
+    (800, 'browserMessagingSocket', 'TEXT_FIELD', null, null, null, null, 'ws://localhost:8706'),
     (801, 'browserMessagingPingTime', 'INTEGER', null, null, null, null, '120000'),
     (802, 'allowPreferencesWindow', 'CHECKBOX', null, null, null, null, 'true'),
     (803, 'useAsymmetricOnlyEncryption', 'CHECKBOX', null, null, null, null, 'false'),

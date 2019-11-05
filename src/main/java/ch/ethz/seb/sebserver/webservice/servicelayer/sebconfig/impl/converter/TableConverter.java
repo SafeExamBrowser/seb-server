@@ -174,7 +174,7 @@ public class TableConverter implements AttributeValueConverter {
 
                 final ConfigurationAttribute attr = attrItr.next();
                 ConfigurationValue value = rowValues.stream()
-                        .filter(val -> attr.id.equals(val.attributeId))
+                        .filter(val -> val != null && attr.id.equals(val.attributeId))
                         .findFirst()
                         .orElse(null);
 
