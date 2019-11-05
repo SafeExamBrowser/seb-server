@@ -207,6 +207,11 @@ public class SebExamConfigList implements TemplateComposer {
                         PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
+                .withExec(SebExamConfigImport.importFunction(this.pageService, true))
+                .noEventPropagation()
+                .publishIf(() -> examConfigGrant.im())
+
                 // Exam Configuration template actions...
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_NEW)
                 .publishIf(examConfigGrant::iw)

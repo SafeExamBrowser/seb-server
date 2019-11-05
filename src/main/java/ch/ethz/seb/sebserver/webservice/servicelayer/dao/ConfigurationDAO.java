@@ -13,6 +13,7 @@ import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration> {
@@ -48,6 +49,31 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @return the current and reseted follow-up version */
     Result<Configuration> undo(Long configurationNodeId);
 
+    /** Restores the attribute values to the default values that have been set for the specified configuration
+     * on initialization. This are the base default values if the configuration has no template or the default
+     * values from the template if there is one assigned to the configuration.
+     *
+     * In fact. this just gets the initial configuration values and reset the current values with that one
+     *
+     * @param configurationNodeId the ConfigurationNode identifier
+     * @return the Configuration instance for which the attribute values have been reset */
+    Result<Configuration> restoreToDefaultValues(final Long configurationNodeId);
+
+    /** Restores the attribute values to the default values that have been set for the specified configuration
+     * on initialization. This are the base default values if the configuration has no template or the default
+     * values from the template if there is one assigned to the configuration.
+     *
+     * In fact. this just gets the initial configuration values and reset the current values with that one
+     *
+     * @param configuration the Configuration that defines the ConfigurationNode identifier
+     * @return the Configuration instance for which the attribute values have been reset */
+    default Result<Configuration> restoreToDefaultValues(final Configuration configuration) {
+        if (configuration == null) {
+            return Result.ofError(new NullPointerException("configuration"));
+        }
+        return restoreToDefaultValues(configuration.configurationNodeId);
+    }
+
     /** Restores the current follow-up Configuration to the values of a given Configuration
      * in the history of the specified ConfigurationNode.
      *
@@ -61,6 +87,17 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @param configNodeId ConfigurationNode identifier to get the current follow-up configuration from
      * @return the current follow-up configuration */
     Result<Configuration> getFollowupConfiguration(Long configNodeId);
+
+    /** Use this to get the follow-up configuration for a specified configuration node.
+     *
+     * @param configNode ConfigurationNode to get the current follow-up configuration from
+     * @return the current follow-up configuration */
+    default Result<Configuration> getFollowupConfiguration(final ConfigurationNode configurationNode) {
+        if (configurationNode == null) {
+            return Result.ofError(new NullPointerException("configurationNode"));
+        }
+        return getFollowupConfiguration(configurationNode.id);
+    }
 
     /** Use this to get the last version of a configuration that is not the follow-up.
      *

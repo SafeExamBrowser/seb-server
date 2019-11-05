@@ -195,6 +195,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     @Override
     @Transactional
+    public Result<Configuration> restoreToDefaultValues(final Long configurationNodeId) {
+        return this.configurationDAOBatchService
+                .restoreToDefaultValues(configurationNodeId)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
     public Result<Configuration> restoreToVersion(final Long configurationNodeId, final Long configId) {
         return this.configurationDAOBatchService
                 .restoreToVersion(configurationNodeId, configId)

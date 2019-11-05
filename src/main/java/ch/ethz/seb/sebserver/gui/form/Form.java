@@ -227,6 +227,15 @@ public final class Form implements FormBinding {
                 .isPresent();
     }
 
+    public void setFieldError(final String fieldName, final String errorMessage) {
+        final List<FormFieldAccessor> list = this.formFields.get(fieldName);
+        if (list != null) {
+            list
+                    .stream()
+                    .forEach(ffa -> ffa.setError(errorMessage));
+        }
+    }
+
     public void process(
             final Predicate<String> nameFilter,
             final Consumer<FormFieldAccessor> processor) {

@@ -368,6 +368,10 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG(
+            new LocTextKey("sebserver.examconfig.action.import-config"),
+            ImageIcon.IMPORT,
+            ActionCategory.VARIA),
 
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
@@ -407,10 +411,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.get-config-key"),
             ImageIcon.SECURE,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_IMPORT_CONFIG(
+    SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG(
             new LocTextKey("sebserver.examconfig.action.import-config"),
             ImageIcon.IMPORT,
             ActionCategory.FORM),
+
     SEB_EXAM_CONFIG_COPY_CONFIG(
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,

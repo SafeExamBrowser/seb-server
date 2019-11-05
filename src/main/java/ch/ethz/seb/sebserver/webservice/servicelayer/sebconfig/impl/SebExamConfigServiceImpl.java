@@ -330,15 +330,11 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
 
     @Override
     public Result<Configuration> importFromSEBFile(
-            final Long configNodeId,
+            final Configuration config,
             final InputStream input,
             final CharSequence password) {
 
         return Result.tryCatch(() -> {
-
-            final Configuration newConfig = this.configurationDAO
-                    .saveToHistory(configNodeId)
-                    .getOrThrow();
 
             Future<Exception> streamDecrypted = null;
             InputStream cryptIn = null;
@@ -363,16 +359,16 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
                 // parse XML and import
                 this.examConfigIO.importPlainXML(
                         unzippedIn,
-                        newConfig.institutionId,
-                        newConfig.id);
+                        config.institutionId,
+                        config.id);
 
-                return newConfig;
+                return config;
 
             } catch (final Exception e) {
                 log.error("Unexpected error while trying to import SEB Exam Configuration: ", e);
                 log.debug("Make an undo on the ConfigurationNode to rollback the changes");
                 this.configurationDAO
-                        .undo(configNodeId)
+                        .undo(config.configurationNodeId)
                         .getOrThrow();
 
                 if (streamDecrypted != null) {

@@ -246,9 +246,9 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_CONFIG)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigImport.importConfigFunction(this.pageService))
+                .withExec(SebExamConfigImport.importFunction(this.pageService, false))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 

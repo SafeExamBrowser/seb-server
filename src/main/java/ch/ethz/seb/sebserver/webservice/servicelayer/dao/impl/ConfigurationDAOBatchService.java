@@ -266,6 +266,25 @@ class ConfigurationDAOBatchService {
                 .flatMap(rec -> restoreToVersion(configurationNodeId, rec.getId()));
     }
 
+    Result<Configuration> restoreToDefaultValues(final Long configurationNodeId) {
+        return Result.tryCatch(() -> {
+            // get initial version that contains the default values either from base or from template
+            return this.batchConfigurationRecordMapper.selectIdsByExample()
+                    .where(
+                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configurationNodeId))
+                    .and(
+                            ConfigurationRecordDynamicSqlSupport.version,
+                            isEqualTo(INITIAL_VERSION_NAME))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Utils.toSingleton());
+
+        })
+                .flatMap(configId -> restoreToVersion(configurationNodeId, configId));
+    }
+
     Result<Configuration> restoreToVersion(final Long configurationNodeId, final Long configId) {
         return Result.tryCatch(() -> {
 

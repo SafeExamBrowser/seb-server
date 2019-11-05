@@ -24,9 +24,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class ImportExamConfig extends RestCall<Configuration> {
+public class ImportNewExamConfig extends RestCall<Configuration> {
 
-    public ImportExamConfig() {
+    public ImportNewExamConfig() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.CONFIGURATION,
@@ -34,9 +34,7 @@ public class ImportExamConfig extends RestCall<Configuration> {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_OCTET_STREAM,
-                API.CONFIGURATION_NODE_ENDPOINT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.CONFIGURATION_IMPORT_PATH_SEGMENT);
+                API.CONFIGURATION_NODE_ENDPOINT + API.CONFIGURATION_IMPORT_PATH_SEGMENT);
     }
 
 }

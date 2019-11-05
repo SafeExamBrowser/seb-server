@@ -118,10 +118,10 @@ public interface SebExamConfigService {
      *
      * Then parses the XML and adds each attribute to the new Configuration.
      *
-     * @param configNodeId The identifier of the configuration node on which the import should take place
+     * @param config The Configuration to import the attribute values to
      * @param input The InputStream to get the SEB config file as byte-stream
      * @param password A password is only needed if the file is in an encrypted format
      * @return The newly created Configuration instance */
-    Result<Configuration> importFromSEBFile(Long configNodeId, InputStream input, CharSequence password);
+    Result<Configuration> importFromSEBFile(Configuration config, InputStream input, CharSequence password);
 
 }

@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +40,14 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
@@ -222,11 +225,50 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_IMPORT_PATH_SEGMENT,
+            path = API.CONFIGURATION_IMPORT_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object importExamConfig(
+            @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_NAME, required = false) final String name,
+            @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
+                    required = false) final String description,
+            @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID, required = false) final String templateId,
+            @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletRequest request) throws IOException {
+
+        this.checkModifyPrivilege(institutionId);
+
+        final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
+
+        final ConfigurationNode configurationNode = new ConfigurationNode(
+                null,
+                institutionId,
+                StringUtils.isNotBlank(templateId) ? Long.parseLong(templateId) : null,
+                name,
+                description,
+                ConfigurationType.EXAM_CONFIG,
+                currentUser.uuid(),
+                ConfigurationStatus.CONSTRUCTION);
+
+        final Configuration followup = this.beanValidationService.validateBean(configurationNode)
+                .flatMap(this.entityDAO::createNew)
+                .flatMap(this.configurationDAO::getFollowupConfiguration)
+                .getOrThrow();
+
+        return doImport(password, request, followup);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_IMPORT_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Object importExamConfigOnExistingConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
             @RequestParam(
@@ -235,27 +277,15 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             final HttpServletRequest request) throws IOException {
 
-        final InputStream inputStream = new BufferedInputStream(request.getInputStream());
-        try {
+        this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkModify);
 
-            return this.sebExamConfigService.importFromSEBFile(
-                    modelId,
-                    inputStream,
-                    password)
-                    .getOrThrow();
+        final Configuration newConfig = this.configurationDAO
+                .saveToHistory(modelId)
+                .flatMap(this.configurationDAO::restoreToDefaultValues)
+                .getOrThrow();
 
-        } catch (final Exception e) {
-            // NOTE: It seems that this has to be manually closed on error case
-            //       We expected that this is closed by the API but if this manual close is been left
-            //       some left-overs will affect strange behavior.
-            //       TODO: find a better solution for this
-            IOUtils.closeQuietly(inputStream);
-            //throw e;
-            return new ResponseEntity<>(
-                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(e.getMessage())),
-                    Utils.createJsonContentHeader(),
-                    HttpStatus.BAD_REQUEST);
-        }
+        return doImport(password, request, newConfig);
     }
 
     @RequestMapping(
@@ -442,6 +472,33 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     .getOrThrow();
         }
         return node;
+    }
+
+    private Object doImport(
+            final String password,
+            final HttpServletRequest request,
+            final Configuration configuration) throws IOException {
+        final InputStream inputStream = new BufferedInputStream(request.getInputStream());
+        try {
+
+            return this.sebExamConfigService.importFromSEBFile(
+                    configuration,
+                    inputStream,
+                    password)
+                    .getOrThrow();
+
+        } catch (final Exception e) {
+            // NOTE: It seems that this has to be manually closed on error case
+            //       We expected that this is closed by the API but if this manual close is been left
+            //       some left-overs will affect strange behavior.
+            //       TODO: find a better solution for this
+            IOUtils.closeQuietly(inputStream);
+
+            return new ResponseEntity<>(
+                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(e.getMessage())),
+                    Utils.createJsonContentHeader(),
+                    HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
