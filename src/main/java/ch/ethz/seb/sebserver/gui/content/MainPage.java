@@ -131,9 +131,12 @@ public class MainPage implements TemplateComposer {
         contentObjects.setLayout(contentObjectslayout);
         contentObjects.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ContentActionEventListener(event -> pageContext.composerService().compose(
-                        event.action.definition.targetState.contentPaneComposer(),
-                        event.action.pageContext().copyOf(contentObjects)), 2));
+                new ContentActionEventListener(event -> pageContext
+                        .composerService()
+                        .compose(
+                                event.action.definition.targetState.contentPaneComposer(),
+                                event.action.pageContext().copyOf(contentObjects)),
+                        2));
 
         final Composite actionPane = new Composite(mainSash, SWT.NONE);
         actionPane.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -142,9 +145,12 @@ public class MainPage implements TemplateComposer {
         actionPane.setData(RWT.CUSTOM_VARIANT, "actionPane");
         actionPane.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ContentActionEventListener(event -> pageContext.composerService().compose(
-                        event.action.definition.targetState.actionPaneComposer(),
-                        event.action.pageContext().copyOf(actionPane)), 1));
+                new ContentActionEventListener(event -> pageContext
+                        .composerService()
+                        .compose(
+                                event.action.definition.targetState.actionPaneComposer(),
+                                event.action.pageContext().copyOf(actionPane)),
+                        1));
 
         pageContext.composerService().compose(
                 ActivitiesPane.class,

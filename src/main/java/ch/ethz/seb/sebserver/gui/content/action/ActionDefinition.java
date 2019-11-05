@@ -371,6 +371,7 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG(
             new LocTextKey("sebserver.examconfig.action.import-config"),
             ImageIcon.IMPORT,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
             ActionCategory.VARIA),
 
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(

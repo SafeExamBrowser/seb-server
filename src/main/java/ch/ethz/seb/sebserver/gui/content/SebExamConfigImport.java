@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -141,6 +143,16 @@ public final class SebExamConfigImport {
 
                     if (!configuration.hasError()) {
                         context.publishInfo(SebExamConfigPropForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
+                        if (newConfig) {
+
+                            final PageAction action = pageService.pageActionBuilder(context)
+                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
+                                    .create();
+
+                            pageService.firePageEvent(
+                                    new ActionEvent(action),
+                                    action.pageContext());
+                        }
                         return true;
                     }
                 } else {
