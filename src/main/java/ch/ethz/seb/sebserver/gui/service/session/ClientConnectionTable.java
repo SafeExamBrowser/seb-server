@@ -260,7 +260,8 @@ public final class ClientConnectionTable {
         final Long connectionId;
         private boolean changed = false;
         private ClientConnectionData connectionData;
-        private int[] thresholdColorIndices;
+        private int indicatorWeight;
+        //private int[] thresholdColorIndices;
         private boolean duplicateChecked = false;
 
         UpdatableTableItem(final Long connectionId) {
@@ -331,9 +332,10 @@ public final class ClientConnectionTable {
                             indicatorData.defaultColor);
                 } else {
                     tableItem.setText(indicatorData.index, getDisplayValue(indicatorValue));
-                    final Color color = (this.thresholdColorIndices[i] >= 0)
-                            ? indicatorData.thresholdColor[this.thresholdColorIndices[i]].color
-                            : indicatorData.defaultColor;
+                    final Color color =
+                            (this.indicatorWeight >= 0 && this.indicatorWeight < indicatorData.thresholdColor.length)
+                                    ? indicatorData.thresholdColor[this.indicatorWeight].color
+                                    : indicatorData.defaultColor;
                     tableItem.setBackground(indicatorData.index, color);
                 }
             }
@@ -352,15 +354,7 @@ public final class ClientConnectionTable {
         }
 
         int thresholdsWeight() {
-            if (this.thresholdColorIndices == null) {
-                return 100;
-            }
-
-            int weight = 0;
-            for (int i = 0; i < this.thresholdColorIndices.length; i++) {
-                weight += this.thresholdColorIndices[i];
-            }
-            return 100 - weight;
+            return this.indicatorWeight;
         }
 
         String getStatusName() {
@@ -396,21 +390,17 @@ public final class ClientConnectionTable {
                 ClientConnectionTable.this.needsSort = true;
             }
 
-            if (this.thresholdColorIndices == null) {
-                this.thresholdColorIndices = new int[connectionData.indicatorValues.size()];
-            }
-
             for (int i = 0; i < connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
                 final double value = indicatorValue.getValue();
-                final int colorIndex = IndicatorData.getColorIndex(indicatorData, value);
-                if (this.thresholdColorIndices[i] != colorIndex) {
+                final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
+                if (this.indicatorWeight != indicatorWeight) {
                     ClientConnectionTable.this.needsSort = true;
                 }
-                this.thresholdColorIndices[i] = colorIndex;
+                this.indicatorWeight = indicatorWeight;
             }
 
             this.connectionData = connectionData;

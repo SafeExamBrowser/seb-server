@@ -50,15 +50,18 @@ final class IndicatorData {
         return indicatorMapping;
     }
 
-    static final int getColorIndex(final IndicatorData indicatorData, final double value) {
-        final int top = indicatorData.thresholdColor.length - 1;
-        for (int j = 0; j < top; j++) {
-            if (value > indicatorData.thresholdColor[j].value && value < indicatorData.thresholdColor[j + 1].value) {
-                return j;
+    static final int getWeight(final IndicatorData indicatorData, final double value) {
+        for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
+            if (value < indicatorData.thresholdColor[j].value) {
+                if (j == 0) {
+                    return -1;
+                } else {
+                    return j - 1;
+                }
             }
         }
 
-        return top;
+        return indicatorData.thresholdColor.length - 1;
     }
 
     static final class ThresholdColor {

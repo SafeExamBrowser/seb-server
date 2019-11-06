@@ -153,9 +153,9 @@ public class ClientConnectionDetails {
                         form.setFieldValue(indData.indicator.name, Constants.EMPTY_NOTE);
                         form.setFieldColor(indData.indicator.name, indData.defaultColor);
                     } else {
-                        final int colorIndex = IndicatorData.getColorIndex(indData, value);
-                        final Color color = (colorIndex >= 0)
-                                ? indData.thresholdColor[colorIndex].color
+                        final int weight = IndicatorData.getWeight(indData, value);
+                        final Color color = (weight >= 0 && weight < indData.thresholdColor.length)
+                                ? indData.thresholdColor[weight].color
                                 : indData.defaultColor;
                         form.setFieldValue(indData.indicator.name, String.valueOf(value));
                         form.setFieldColor(indData.indicator.name, color);
