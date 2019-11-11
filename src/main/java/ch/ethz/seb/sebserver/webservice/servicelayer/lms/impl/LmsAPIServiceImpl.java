@@ -14,17 +14,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -38,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx.OpenEdxLmsAPITemplateFactory;
 
 @Lazy
 @Service
@@ -46,32 +43,23 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPIServiceImpl.class);
 
-    private final AsyncService asyncService;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
-    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
-    private final String[] openEdxAlternativeTokenRequestPaths;
     private final WebserviceInfo webserviceInfo;
+    private final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
-            final AsyncService asyncService,
+            final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final WebserviceInfo webserviceInfo,
-            @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths) {
+            final WebserviceInfo webserviceInfo) {
 
-        this.asyncService = asyncService;
+        this.openEdxLmsAPITemplateFactory = openEdxLmsAPITemplateFactory;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
-        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.webserviceInfo = webserviceInfo;
-
-        this.openEdxAlternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
-                ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
-                : null;
     }
 
     /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
@@ -146,13 +134,23 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     }
 
     @Override
+    public LmsSetupTestResult test(final LmsAPITemplate template) {
+        final LmsSetupTestResult testCourseAccessAPI = template.testCourseAccessAPI();
+        if (!testCourseAccessAPI.isOk()) {
+            return testCourseAccessAPI;
+        }
+
+        return template.testCourseRestrictionAPI();
+    }
+
+    @Override
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
         final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
                 lmsSetup.lmsAuthName,
                 lmsSetup.lmsAuthSecret,
                 lmsSetup.lmsRestApiToken);
 
-        return createLmsSetupTemplate(lmsSetup, lmsCredentials).testLmsSetup();
+        return test(createLmsSetupTemplate(lmsSetup, lmsCredentials));
     }
 
     private Result<LmsAPITemplate> getLmsAPITemplate(final LmsSetup lmsSetup) {
@@ -202,14 +200,10 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         credentials,
                         this.webserviceInfo);
             case OPEN_EDX:
-                return new OpenEdxLmsAPITemplate(
-                        this.asyncService,
-                        lmsSetup,
-                        credentials,
-                        this.clientCredentialService,
-                        this.clientHttpRequestFactoryService,
-                        this.openEdxAlternativeTokenRequestPaths,
-                        this.webserviceInfo);
+                return this.openEdxLmsAPITemplateFactory
+                        .create(lmsSetup, credentials)
+                        .getOrThrow();
+
             default:
                 throw new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType);
         }
@@ -251,4 +245,5 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return true;
         }
     }
+
 }

@@ -39,6 +39,8 @@
     
     <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig" level="INFO" additivity="true" />
     <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.session" level="DEBUG" additivity="true" />
+    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx" level="DEBUG" additivity="true" />
+    
     <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebExamConfigServiceImpl" level="TRACE" additivity="true" />
     
   </springProfile>

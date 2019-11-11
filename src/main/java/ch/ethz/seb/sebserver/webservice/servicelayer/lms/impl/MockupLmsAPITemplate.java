@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -94,12 +95,32 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         return this.lmsSetup;
     }
 
-    @Override
-    public LmsSetupTestResult testLmsSetup() {
+    private List<APIMessage> checkAttributes() {
+        final List<APIMessage> missingAttrs = new ArrayList<>();
+        if (StringUtils.isBlank(this.lmsSetup.lmsApiUrl)) {
+            missingAttrs.add(APIMessage.fieldValidationError(
+                    LMS_SETUP.ATTR_LMS_URL,
+                    "lmsSetup:lmsUrl:notNull"));
+        }
+        if (!this.credentials.hasClientId()) {
+            missingAttrs.add(APIMessage.fieldValidationError(
+                    LMS_SETUP.ATTR_LMS_CLIENTNAME,
+                    "lmsSetup:lmsClientname:notNull"));
+        }
+        if (!this.credentials.hasSecret()) {
+            missingAttrs.add(APIMessage.fieldValidationError(
+                    LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                    "lmsSetup:lmsClientsecret:notNull"));
+        }
+        return missingAttrs;
+    }
 
+    @Override
+    public LmsSetupTestResult testCourseAccessAPI() {
         log.info("Test Lms Binding for Mockup and LmsSetup: {}", this.lmsSetup);
 
-        final List<APIMessage> missingAttrs = attributeValidation(this.credentials);
+        final List<APIMessage> missingAttrs = checkAttributes();
+
         if (!missingAttrs.isEmpty()) {
             return LmsSetupTestResult.ofMissingAttributes(missingAttrs);
         }
@@ -109,6 +130,12 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         } else {
             return LmsSetupTestResult.ofTokenRequestError("Illegal access");
         }
+    }
+
+    @Override
+    public LmsSetupTestResult testCourseRestrictionAPI() {
+        // TODO Auto-generated method stub
+        return LmsSetupTestResult.ofQuizRestrictionAPIError("unsupported");
     }
 
     @Override

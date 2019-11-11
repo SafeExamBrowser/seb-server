@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,15 +16,12 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 
@@ -43,12 +39,16 @@ public interface LmsAPITemplate {
      * @return the underling LMSSetup configuration for this LmsAPITemplate */
     LmsSetup lmsSetup();
 
-    /** Performs a test for the underling LmsSetup configuration and checks if the
-     * LMS and the core API of the LMS can be accessed or if there are some difficulties,
-     * missing configuration data or connection/authentication errors.
-     *
-     * @return LmsSetupTestResult instance with the test result report */
-    LmsSetupTestResult testLmsSetup();
+//    /** Performs a test for the underling LmsSetup configuration and checks if the
+//     * LMS and the core API of the LMS can be accessed or if there are some difficulties,
+//     * missing configuration data or connection/authentication errors.
+//     *
+//     * @return LmsSetupTestResult instance with the test result report */
+//    LmsSetupTestResult testLmsSetup();
+
+    LmsSetupTestResult testCourseAccessAPI();
+
+    LmsSetupTestResult testCourseRestrictionAPI();
 
     /** Get a Result of an unsorted List of filtered QuizData from the LMS course/quiz API
      *
@@ -100,28 +100,5 @@ public interface LmsAPITemplate {
      * @param exam the Exam to release the restriction for
      * @return Result refer to the given Exam if successful or to an error if not */
     Result<Exam> releaseSebClientRestriction(Exam exam);
-
-    default List<APIMessage> attributeValidation(final ClientCredentials credentials) {
-
-        final LmsSetup lmsSetup = lmsSetup();
-        // validation of LmsSetup
-        final List<APIMessage> missingAttrs = new ArrayList<>();
-        if (StringUtils.isBlank(lmsSetup.lmsApiUrl)) {
-            missingAttrs.add(APIMessage.fieldValidationError(
-                    LMS_SETUP.ATTR_LMS_URL,
-                    "lmsSetup:lmsUrl:notNull"));
-        }
-        if (!credentials.hasClientId()) {
-            missingAttrs.add(APIMessage.fieldValidationError(
-                    LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                    "lmsSetup:lmsClientname:notNull"));
-        }
-        if (!credentials.hasSecret()) {
-            missingAttrs.add(APIMessage.fieldValidationError(
-                    LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                    "lmsSetup:lmsClientsecret:notNull"));
-        }
-        return missingAttrs;
-    }
 
 }

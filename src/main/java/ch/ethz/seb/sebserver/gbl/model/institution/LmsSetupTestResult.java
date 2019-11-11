@@ -11,10 +11,8 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -23,94 +21,109 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class LmsSetupTestResult {
 
-    public static final String ATTR_OK_STATUS = "okStatus";
+    public static final String ATTR_ERROR_TYPE = "errorType";
+    public static final String ATTR_ERROR_MESSAGE = "errorMessage";
+    public static final String ATTR_ERRORS = "errors";
     public static final String ATTR_MISSING_ATTRIBUTE = "missingLMSSetupAttribute";
-    public static final String ATTR_ERROR_TOKEN_REQUEST = "tokenRequestError";
-    public static final String ATTR_ERROR_QUIZ_REQUEST = "quizRequestError";
 
-    @JsonProperty(ATTR_OK_STATUS)
-    @NotNull
-    public final Boolean okStatus;
+    public enum ErrorType {
+        MISSING_ATTRIBUTE,
+        TOKEN_REQUEST,
+        QUIZ_ACCESS_API_REQUEST,
+        QUIZ_RESTRICTION_API_REQUEST
+    }
 
+    @JsonProperty(ATTR_ERRORS)
+    public final Collection<Error> errors;
     @JsonProperty(ATTR_MISSING_ATTRIBUTE)
-    public final List<APIMessage> missingLMSSetupAttribute;
+    public final Collection<APIMessage> missingLMSSetupAttribute;
 
-    @JsonProperty(ATTR_ERROR_TOKEN_REQUEST)
-    public final String tokenRequestError;
-
-    @JsonProperty(ATTR_ERROR_QUIZ_REQUEST)
-    public final String quizRequestError;
-
+    @JsonCreator
     public LmsSetupTestResult(
-            @JsonProperty(value = ATTR_OK_STATUS, required = true) final Boolean ok,
-            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<APIMessage> missingLMSSetupAttribute,
-            @JsonProperty(ATTR_ERROR_TOKEN_REQUEST) final String tokenRequestError,
-            @JsonProperty(ATTR_ERROR_QUIZ_REQUEST) final String quizRequestError) {
+            @JsonProperty(ATTR_ERRORS) final Collection<Error> errors,
+            @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<APIMessage> missingLMSSetupAttribute) {
 
-        this.okStatus = ok;
-        // TODO
-        this.missingLMSSetupAttribute = Utils.immutableListOf(missingLMSSetupAttribute);
-        this.tokenRequestError = tokenRequestError;
-        this.quizRequestError = quizRequestError;
+        this.errors = Utils.immutableCollectionOf(errors);
+        this.missingLMSSetupAttribute = Utils.immutableCollectionOf(missingLMSSetupAttribute);
+    }
+
+    protected LmsSetupTestResult() {
+        this(
+                Collections.emptyList(),
+                Collections.emptyList());
+    }
+
+    protected LmsSetupTestResult(final Error error) {
+        this(
+                Utils.immutableCollectionOf(Arrays.asList(error)),
+                Collections.emptyList());
+    }
+
+    protected LmsSetupTestResult(final Error error, final Collection<APIMessage> missingLMSSetupAttribute) {
+        this(
+                Utils.immutableCollectionOf(Arrays.asList(error)),
+                Utils.immutableCollectionOf(missingLMSSetupAttribute));
     }
 
     @JsonIgnore
     public boolean isOk() {
-        return this.okStatus != null && this.okStatus.booleanValue();
+        return this.errors == null || this.errors.isEmpty();
     }
 
-    public Boolean getOkStatus() {
-        return this.okStatus;
+    @JsonIgnore
+    public boolean isQuizAccessOk() {
+        return isOk() || hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
     }
 
-    public List<APIMessage> getMissingLMSSetupAttribute() {
-        return this.missingLMSSetupAttribute;
-    }
-
-    public String getTokenRequestError() {
-        return this.tokenRequestError;
-    }
-
-    public String getQuizRequestError() {
-        return this.quizRequestError;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LmsSetupTestResult [okStatus=");
-        builder.append(this.okStatus);
-        builder.append(", missingLMSSetupAttribute=");
-        builder.append(this.missingLMSSetupAttribute);
-        builder.append(", tokenRequestError=");
-        builder.append(this.tokenRequestError);
-        builder.append(", quizRequestError=");
-        builder.append(this.quizRequestError);
-        builder.append("]");
-        return builder.toString();
+    @JsonIgnore
+    public boolean hasError(final ErrorType type) {
+        return this.errors
+                .stream()
+                .filter(error -> error.errorType == type)
+                .findFirst()
+                .isPresent();
     }
 
     public static final LmsSetupTestResult ofOkay() {
-        return new LmsSetupTestResult(true, Collections.emptyList(), null, null);
+        return new LmsSetupTestResult();
     }
 
     public static final LmsSetupTestResult ofMissingAttributes(final Collection<APIMessage> attrs) {
-        return new LmsSetupTestResult(false, attrs, null, null);
+        return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
     }
 
     public static final LmsSetupTestResult ofMissingAttributes(final APIMessage... attrs) {
-        if (attrs == null) {
-            return new LmsSetupTestResult(false, Collections.emptyList(), null, null);
-        }
-        return new LmsSetupTestResult(false, Arrays.asList(attrs), null, null);
+        return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
+                Arrays.asList(attrs));
     }
 
     public static final LmsSetupTestResult ofTokenRequestError(final String message) {
-        return new LmsSetupTestResult(false, Collections.emptyList(), message, null);
+        return new LmsSetupTestResult(new Error(ErrorType.TOKEN_REQUEST, message));
     }
 
-    public static final LmsSetupTestResult ofQuizRequestError(final String message) {
-        return new LmsSetupTestResult(false, Collections.emptyList(), null, message);
+    public static final LmsSetupTestResult ofQuizAccessAPIError(final String message) {
+        return new LmsSetupTestResult(new Error(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
+    }
+
+    public static final LmsSetupTestResult ofQuizRestrictionAPIError(final String message) {
+        return new LmsSetupTestResult(new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
+    }
+
+    public final static class Error {
+
+        @JsonProperty(ATTR_ERROR_TYPE)
+        public final ErrorType errorType;
+        @JsonProperty(ATTR_ERROR_MESSAGE)
+        public final String message;
+
+        @JsonCreator
+        protected Error(
+                @JsonProperty(ATTR_ERROR_TYPE) final ErrorType errorType,
+                @JsonProperty(ATTR_ERROR_MESSAGE) final String message) {
+
+            this.errorType = errorType;
+            this.message = message;
+        }
     }
 
 }

@@ -162,7 +162,7 @@ public final class Exam implements GrantEntity {
         this.quitPassword = quitPassword;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
-        this.lmsSebRestriction = (lmsSebRestriction != null) ? lmsSebRestriction : Boolean.TRUE;
+        this.lmsSebRestriction = (lmsSebRestriction != null) ? lmsSebRestriction : Boolean.FALSE;
         this.browserExamKeys = browserExamKeys;
         this.active = (active != null) ? active : Boolean.TRUE;
         this.lastUpdate = lastUpdate;

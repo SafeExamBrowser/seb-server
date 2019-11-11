@@ -93,7 +93,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 institutionId);
 
         final LmsSetupTestResult result = this.lmsAPIService.getLmsAPITemplate(modelId)
-                .map(template -> template.testLmsSetup())
+                .map(this.lmsAPIService::test)
                 .getOrThrow();
 
         if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {

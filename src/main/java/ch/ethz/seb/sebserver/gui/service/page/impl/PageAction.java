@@ -113,6 +113,8 @@ public final class PageAction {
             }
 
             return Collections.emptySet();
+        } catch (final PageMessageException e) {
+            throw e;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get current selection: ", e);
             throw new PageMessageException(

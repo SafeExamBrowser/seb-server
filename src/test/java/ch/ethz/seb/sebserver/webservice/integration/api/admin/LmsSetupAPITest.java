@@ -473,7 +473,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(testResult);
-        assertTrue(testResult.getOkStatus());
+        assertTrue(testResult.isQuizAccessOk());
     }
 
 }

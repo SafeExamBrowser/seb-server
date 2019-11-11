@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
@@ -177,7 +177,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
                         FORM_TYPE_TEXT_KEY,
-                        (lmsType != null) ? lmsType.name() : null,
+                        (lmsType != null) ? lmsType.name() : LmsType.MOCKUP.name(),
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew))
                 .addField(FormBuilder.text(
@@ -225,17 +225,11 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
-                .newAction(ActionDefinition.LMS_SETUP_SAVE_AND_TEST)
-                .withEntityKey(entityKey)
-                .withExec(action -> this.testLmsSetup(action, formHandle, true))
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && isNotNew.getAsBoolean() && !readonly)
-
                 .newAction(ActionDefinition.LMS_SETUP_TEST_AND_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.testAdHoc(action, formHandle))
                 .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && isNew.getAsBoolean() && !readonly)
+                .publishIf(() -> modifyGrant && !readonly)
 
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
@@ -292,8 +286,12 @@ public class LmsSetupForm implements TemplateComposer {
         // ... and handle the response
         if (result.hasError()) {
             if (formHandle.handleError(result.getError())) {
-                throw new PageMessageException(
-                        new LocTextKey("sebserver.lmssetup.action.test.missingParameter"));
+                final Throwable error = result.getError();
+                if (error instanceof RestCallError) {
+                    throw (RestCallError) error;
+                } else {
+                    throw new RuntimeException("Cause: ", error);
+                }
             }
         }
 
@@ -355,17 +353,37 @@ public class LmsSetupForm implements TemplateComposer {
 
         if (testResult.isOk()) {
             return onOK.apply(action);
-        } else if (StringUtils.isNotBlank(testResult.tokenRequestError)) {
-            throw new PageMessageException(
-                    new LocTextKey("sebserver.lmssetup.action.test.tokenRequestError",
-                            testResult.tokenRequestError));
-        } else if (StringUtils.isNotBlank(testResult.quizRequestError)) {
-            throw new PageMessageException(
-                    new LocTextKey("sebserver.lmssetup.action.test.quizRequestError", testResult.quizRequestError));
-        } else {
-            throw new PageMessageException(
-                    new LocTextKey("sebserver.lmssetup.action.test.unknownError", testResult));
         }
+
+        testResult.errors
+                .stream()
+                .findFirst()
+                .ifPresent(error -> {
+                    switch (error.errorType) {
+                        case TOKEN_REQUEST: {
+                            throw new PageMessageException(new LocTextKey(
+                                    "sebserver.lmssetup.action.test.tokenRequestError",
+                                    error.message));
+                        }
+                        case QUIZ_ACCESS_API_REQUEST: {
+                            throw new PageMessageException(new LocTextKey(
+                                    "sebserver.lmssetup.action.test.quizRequestError",
+                                    error.message));
+                        }
+                        case QUIZ_RESTRICTION_API_REQUEST: {
+                            // NOTE: quiz restriction is not mandatory for functional LmsSetup
+                            //       so this error is ignored here
+                            break;
+                        }
+                        default: {
+                            throw new PageMessageException(new LocTextKey(
+                                    "sebserver.lmssetup.action.test.unknownError",
+                                    error.message));
+                        }
+                    }
+                });
+
+        return onOK.apply(action);
     }
 
 }

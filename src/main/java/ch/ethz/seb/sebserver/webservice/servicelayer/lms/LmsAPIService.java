@@ -46,11 +46,17 @@ public interface LmsAPIService {
      * @return LmsAPITemplate for specified LmsSetup configuration */
     Result<LmsAPITemplate> getLmsAPITemplate(String lmsSetupId);
 
+    /** use this to the the specified LmsAPITemplate.
+     *
+     * @param template the LmsAPITemplate
+     * @return LmsSetupTestResult containing list of errors if happened */
+    LmsSetupTestResult test(LmsAPITemplate template);
+
     /** This can be used to test an LmsSetup connection parameter without saving or heaving
      * an already persistent version of an LmsSetup.
      *
      * @param lmsSetup
-     * @return */
+     * @return LmsSetupTestResult containing list of errors if happened */
     LmsSetupTestResult testAdHoc(LmsSetup lmsSetup);
 
     /** Get a LmsAPITemplate for specified LmsSetup configuration by primary key

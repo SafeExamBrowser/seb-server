@@ -233,7 +233,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(this::checkNoActiveSebClientConnections)
-                .flatMap(exam -> this.setSebRestriction(exam, sebRestriction))
+                .flatMap(exam -> this.applySebRestriction(exam, sebRestriction))
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
@@ -336,7 +336,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.of(exam);
     }
 
-    private Result<Exam> setSebRestriction(final Exam exam, final boolean sebRestriction) {
+    private Result<Exam> applySebRestriction(final Exam exam, final boolean sebRestriction) {
         return Result.tryCatch(() -> {
             if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == sebRestriction) {
                 return exam;

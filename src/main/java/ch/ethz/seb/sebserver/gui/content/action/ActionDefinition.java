@@ -232,7 +232,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
     EXAM_DISABLE_SEB_RESTRICTION(
-            new LocTextKey("sebserver.exam.action.deasebrestriction.disable"),
+            new LocTextKey("sebserver.exam.action.sebrestriction.disable"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),

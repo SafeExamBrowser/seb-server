@@ -36,15 +36,15 @@ public final class ClientCredentials {
     }
 
     public boolean hasClientId() {
-        return this.clientId != null && this.clientId.length() >= 0;
+        return this.clientId != null && this.clientId.length() > 0;
     }
 
     public boolean hasSecret() {
-        return this.secret != null && this.secret.length() >= 0;
+        return this.secret != null && this.secret.length() > 0;
     }
 
     public boolean hasAccessToken() {
-        return this.accessToken != null && this.accessToken.length() >= 0;
+        return this.accessToken != null && this.accessToken.length() > 0;
     }
 
     public String clientIdAsString() {
