@@ -14,7 +14,8 @@ public interface PageStateDefinition {
         UNDEFINED,
         LIST_VIEW,
         FORM_VIEW,
-        FORM_EDIT
+        FORM_EDIT,
+        FORM_IN_TIME_EDIT
     }
 
     String name();

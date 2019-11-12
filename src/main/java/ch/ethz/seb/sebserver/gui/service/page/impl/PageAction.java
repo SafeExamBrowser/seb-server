@@ -69,7 +69,7 @@ public final class PageAction {
             this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.TRUE_STRING);
             if (definition.targetState != null) {
                 final Type type = definition.targetState.type();
-                if (type.name().equals(Type.FORM_EDIT.name())) {
+                if (type.name().equals(Type.FORM_EDIT.name()) || type.name().equals(Type.FORM_IN_TIME_EDIT.name())) {
                     this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.FALSE_STRING);
                 }
             }
