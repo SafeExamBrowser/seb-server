@@ -251,8 +251,11 @@ public class ExamList implements TemplateComposer {
         return (item, exam) -> decorateOnExamConsistency(item, exam, pageService);
     }
 
-    static final void decorateOnExamConsistency(final TableItem item, final Exam exam,
+    static final void decorateOnExamConsistency(
+            final TableItem item,
+            final Exam exam,
             final PageService pageService) {
+
         if (exam.getStatus() != ExamStatus.RUNNING) {
             return;
         }

@@ -293,6 +293,7 @@ public class WidgetFactory {
         final Label label = new Label(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(label, locTextKey);
         label.setData(RWT.CUSTOM_VARIANT, variant.key);
+        label.setData(RWT.MARKUP_ENABLED, true);
         return label;
     }
 

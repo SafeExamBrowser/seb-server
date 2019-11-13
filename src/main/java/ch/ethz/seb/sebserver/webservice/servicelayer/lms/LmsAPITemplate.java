@@ -39,15 +39,18 @@ public interface LmsAPITemplate {
      * @return the underling LMSSetup configuration for this LmsAPITemplate */
     LmsSetup lmsSetup();
 
-//    /** Performs a test for the underling LmsSetup configuration and checks if the
-//     * LMS and the core API of the LMS can be accessed or if there are some difficulties,
-//     * missing configuration data or connection/authentication errors.
-//     *
-//     * @return LmsSetupTestResult instance with the test result report */
-//    LmsSetupTestResult testLmsSetup();
-
+    /** Performs a test for the underling LmsSetup configuration and checks if the
+     * LMS and the course API of the LMS can be accessed or if there are some difficulties,
+     * missing configuration data or connection/authentication errors.
+     *
+     * @return LmsSetupTestResult instance with the test result report */
     LmsSetupTestResult testCourseAccessAPI();
 
+    /** Performs a test for the underling LmsSetup configuration and checks if the
+     * LMS and the course restriction API of the LMS can be accessed or if there are some difficulties,
+     * missing configuration data or connection/authentication errors.
+     *
+     * @return LmsSetupTestResult instance with the test result report */
     LmsSetupTestResult testCourseRestrictionAPI();
 
     /** Get a Result of an unsorted List of filtered QuizData from the LMS course/quiz API
@@ -80,6 +83,14 @@ public interface LmsAPITemplate {
     // TODO this can be used in a future release to resolve examinee's account detail information by an
     //      examinee identifier received by on SEB-Client connection.
     //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+
+    /** Get SEB restriction data form LMS within a SebRestrictionData instance if available
+     * or a ResourceNotFoundException if not yet available or restricted
+     *
+     * @param exam the exam to get the SEB restriction data for
+     * @return Result refer to the SebRestrictionData instance or to an ResourceNotFoundException if restriction is
+     *         missing or to another exception on unexpected error case */
+    Result<SebRestrictionData> getSebClientRestriction(Exam exam);
 
     /** Applies a SEB Client restriction within the LMS with the given attributes.
      *

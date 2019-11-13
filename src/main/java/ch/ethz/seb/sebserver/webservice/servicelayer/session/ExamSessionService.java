@@ -31,6 +31,7 @@ public interface ExamSessionService {
      * Current consistency checks are:
      * - Check if there is at least one Exam supporter attached to the Exam
      * - Check if there is one default SEB Exam Configuration attached to the Exam
+     * - Check if SEB restriction API is available and the exam is running but not yet restricted on LMS side
      * - Check if there is at least one Indicator defined for the monitoring of the Exam
      *
      * @param examId the identifier of the Exam to check

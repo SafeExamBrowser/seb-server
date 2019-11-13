@@ -95,18 +95,22 @@ public class MonitoringRunningExamList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetRunningExamPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withRowDecorator(ExamList.decorateOnExamConsistency(this.pageService))
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,
                                 COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<Exam>(
                                 Domain.EXAM.ATTR_TYPE,
                                 COLUMN_TITLE_TYPE_KEY,
                                 this.resourceService::localizedExamTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
@@ -114,6 +118,7 @@ public class MonitoringRunningExamList implements TemplateComposer {
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
                                         .sortable())
+
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_END_TIME,
                                 new LocTextKey(
@@ -121,9 +126,11 @@ public class MonitoringRunningExamList implements TemplateComposer {
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getEndTime)
                                         .sortable())
+
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                                 .create())
+
                         .compose(pageContext.copyOf(content));
 
         actionBuilder

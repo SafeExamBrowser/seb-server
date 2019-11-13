@@ -18,7 +18,7 @@ INSERT IGNORE INTO seb_client_configuration VALUES
     ;
     
 INSERT IGNORE INTO lms_setup VALUES
-    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, 'NONE', null, null, 1)
+    (1, 1, 'test', 'MOCKUP', 'http://', 'test-user', 'test-user', null, null, null, null, null, 1)
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES
@@ -26,8 +26,8 @@ INSERT IGNORE INTO seb_client_configuration VALUES
     ;
     
 INSERT IGNORE INTO exam VALUES
-    (1, 1, 1, 'quiz1', 'super-admin', 'super-admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1),
-    (2, 1, 1, 'quiz6', 'super-admin', 'super-admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1)
+    (1, 1, 1, 'quiz1', 'super-admin', 'super-admin', 'MANAGED', null, null, 'UP_COMING', 0, 0, null, 1),
+    (2, 1, 1, 'quiz6', 'super-admin', 'super-admin', 'MANAGED', null, null, 'RUNNING', 0, 0, null, 1)
     ;
     
 INSERT IGNORE INTO indicator VALUES

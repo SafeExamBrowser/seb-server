@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -41,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
@@ -140,17 +140,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
-                    lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
-                    lmsSetup.lmsRestApiToken);
-
-            final ClientCredentials proxyCredentials = (lmsSetup.proxyAuthType == ProxyAuthType.NONE)
-                    ? new ClientCredentials(null, null)
-                    : this.clientCredentialService.encryptClientCredentials(
-                            lmsSetup.proxyAuthUsername,
-                            lmsSetup.proxyAuthSecret);
-
+            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
+            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
                     lmsSetup.institutionId,
@@ -160,7 +151,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsCredentials.clientIdAsString(),
                     lmsCredentials.secretAsString(),
                     lmsCredentials.accessTokenAsString(),
-                    lmsSetup.proxyAuthType.name(),
+                    lmsSetup.getProxyHost(),
+                    lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),
                     proxyCredentials.secretAsString(),
                     null);
@@ -179,17 +171,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
-                    lmsSetup.lmsAuthName,
-                    lmsSetup.lmsAuthSecret,
-                    lmsSetup.lmsRestApiToken);
-
-            final ClientCredentials proxyCredentials = (lmsSetup.proxyAuthType == ProxyAuthType.NONE)
-                    ? new ClientCredentials(null, null)
-                    : this.clientCredentialService.encryptClientCredentials(
-                            lmsSetup.proxyAuthUsername,
-                            lmsSetup.proxyAuthSecret);
-
+            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
+            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     null,
                     lmsSetup.institutionId,
@@ -199,7 +182,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsCredentials.clientIdAsString(),
                     lmsCredentials.secretAsString(),
                     lmsCredentials.accessTokenAsString(),
-                    lmsSetup.proxyAuthType.name(),
+                    lmsSetup.getProxyHost(),
+                    lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),
                     proxyCredentials.secretAsString(),
                     BooleanUtils.toInteger(false));
@@ -218,7 +202,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
-                    null, null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
 
             this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
@@ -305,6 +289,26 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         });
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<ProxyData> getLmsAPIAccessProxyData(final String lmsSetupId) {
+        return Result.tryCatch(() -> {
+            final LmsSetupRecord record = this.lmsSetupRecordMapper
+                    .selectByPrimaryKey(Long.parseLong(lmsSetupId));
+
+            if (StringUtils.isNoneBlank(record.getLmsProxyHost())) {
+                return new ProxyData(
+                        record.getLmsProxyHost(),
+                        record.getLmsProxyPort(),
+                        new ClientCredentials(
+                                record.getLmsProxyAuthUsername(),
+                                record.getLmsProxyAuthSecret()));
+            } else {
+                throw new RuntimeException("No proxy settings for LmsSetup: " + lmsSetupId);
+            }
+        });
+    }
+
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> {
             return this.lmsSetupRecordMapper.selectIdsByExample()
@@ -351,7 +355,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 null,
                 record.getLmsUrl(),
                 Utils.toString(plainAccessToken),
-                ProxyAuthType.valueOf(record.getLmsProxyAuthType()),
+                record.getLmsProxyHost(),
+                record.getLmsProxyPort(),
                 Utils.toString(proxyCredentials.clientId),
                 Utils.toString(proxyCredentials.secret),
                 BooleanUtils.toBooleanObject(record.getActive())));
@@ -374,6 +379,23 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     Domain.LMS_SETUP.ATTR_NAME,
                     "lmsSetup:name:name.notunique"));
         }
+    }
+
+    private ClientCredentials createProxyClientCredentials(final LmsSetup lmsSetup) {
+        final ClientCredentials proxyCredentials = (StringUtils.isBlank(lmsSetup.proxyAuthUsername))
+                ? new ClientCredentials(null, null)
+                : this.clientCredentialService.encryptClientCredentials(
+                        lmsSetup.proxyAuthUsername,
+                        lmsSetup.proxyAuthSecret);
+        return proxyCredentials;
+    }
+
+    private ClientCredentials createAPIClientCredentials(final LmsSetup lmsSetup) {
+        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
+                lmsSetup.lmsAuthName,
+                lmsSetup.lmsAuthSecret,
+                lmsSetup.lmsRestApiToken);
+        return lmsCredentials;
     }
 
 }

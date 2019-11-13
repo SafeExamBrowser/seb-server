@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.INSTITUTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
@@ -69,8 +68,11 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN)
     public final String lmsRestApiToken;
 
-    @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE)
-    public final ProxyAuthType proxyAuthType;
+    @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_HOST)
+    public final String proxyHost;
+
+    @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_PORT)
+    public final Integer proxyPort;
 
     @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME)
     public final String proxyAuthUsername;
@@ -92,7 +94,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
             @JsonProperty(LMS_SETUP.ATTR_LMS_CLIENTSECRET) final String lmsAuthSecret,
             @JsonProperty(LMS_SETUP.ATTR_LMS_URL) final String lmsApiUrl,
             @JsonProperty(LMS_SETUP.ATTR_LMS_REST_API_TOKEN) final String lmsRestApiToken,
-            @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE) final ProxyAuthType proxyAuthType,
+            @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_HOST) final String proxyHost,
+            @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_PORT) final Integer proxyPort,
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME) final String proxyAuthUsername,
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET) final String proxyAuthSecret,
             @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
@@ -105,7 +108,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.lmsAuthSecret = lmsAuthSecret;
         this.lmsApiUrl = lmsApiUrl;
         this.lmsRestApiToken = lmsRestApiToken;
-        this.proxyAuthType = (proxyAuthType != null) ? proxyAuthType : ProxyAuthType.NONE;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
         this.proxyAuthUsername = proxyAuthUsername;
         this.proxyAuthSecret = proxyAuthSecret;
         this.active = (active != null) ? active : Boolean.FALSE;
@@ -120,10 +124,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.lmsAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_CLIENTSECRET);
         this.lmsApiUrl = mapper.getString(LMS_SETUP.ATTR_LMS_URL);
         this.lmsRestApiToken = mapper.getString(LMS_SETUP.ATTR_LMS_REST_API_TOKEN);
-        this.proxyAuthType = mapper.getEnum(
-                LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE,
-                ProxyAuthType.class,
-                ProxyAuthType.NONE);
+        this.proxyHost = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_HOST);
+        this.proxyPort = mapper.getInteger(LMS_SETUP.ATTR_LMS_PROXY_PORT);
         this.proxyAuthUsername = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME);
         this.proxyAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET);
         this.active = mapper.getBooleanObject(LMS_SETUP.ATTR_ACTIVE);
@@ -181,8 +183,12 @@ public final class LmsSetup implements GrantEntity, Activatable {
         return this.lmsRestApiToken;
     }
 
-    public ProxyAuthType getProxyAuthType() {
-        return this.proxyAuthType;
+    public String getProxyHost() {
+        return this.proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return this.proxyPort;
     }
 
     public String getProxyAuthUsername() {
@@ -208,7 +214,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 Constants.EMPTY_NOTE,
                 this.lmsApiUrl,
                 Constants.EMPTY_NOTE,
-                this.proxyAuthType,
+                this.proxyHost,
+                this.proxyPort,
                 this.proxyAuthUsername,
                 Constants.EMPTY_NOTE,
                 this.active);
@@ -233,8 +240,10 @@ public final class LmsSetup implements GrantEntity, Activatable {
         builder.append(this.lmsApiUrl);
         builder.append(", lmsRestApiToken=");
         builder.append(this.lmsRestApiToken);
-        builder.append(", proxyAuthType=");
-        builder.append(this.proxyAuthType);
+        builder.append(", proxyHost=");
+        builder.append(this.proxyHost);
+        builder.append(", proxyPort=");
+        builder.append(this.proxyPort);
         builder.append(", proxyAuthUsername=");
         builder.append(this.proxyAuthUsername);
         builder.append(", proxyAuthSecret=");
@@ -253,7 +262,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
     }
 
     public static LmsSetup createNew(final Long institutionId) {
-        return new LmsSetup(null, institutionId, null, null, null, null, null, null, null, null, null, false);
+        return new LmsSetup(null, institutionId, null, null, null, null, null, null, null, null, null, null, false);
     }
 
 }

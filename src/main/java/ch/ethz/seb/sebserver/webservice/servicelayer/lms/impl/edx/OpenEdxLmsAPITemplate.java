@@ -76,6 +76,17 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<SebRestrictionData> getSebClientRestriction(final Exam exam) {
+        if (log.isDebugEnabled()) {
+            log.debug("Get SEB Client restriction for Exam: {}", exam);
+        }
+
+        return this.openEdxCourseRestriction
+                .getSebRestriction(exam.externalId)
+                .map(edxData -> new SebRestrictionData(exam, edxData));
+    }
+
+    @Override
     public Result<SebRestrictionData> applySebClientRestriction(final SebRestrictionData sebRestrictionData) {
 
         if (log.isDebugEnabled()) {

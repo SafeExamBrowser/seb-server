@@ -337,24 +337,18 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     private Result<Exam> applySebRestriction(final Exam exam, final boolean sebRestriction) {
-        return Result.tryCatch(() -> {
-            if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == sebRestriction) {
-                return exam;
-            }
 
-            final Exam examUpdate = this.examDAO.setSebRestriction(exam.id, sebRestriction)
-                    .getOrThrow();
+        if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == sebRestriction) {
+            return Result.of(exam);
+        }
 
-            if (sebRestriction) {
-                this.examConfigUpdateService.applySebClientRestriction(examUpdate)
-                        .getOrThrow();
-            } else {
-                this.examConfigUpdateService.releaseSebClientRestriction(examUpdate)
-                        .getOrThrow();
-            }
-
-            return examUpdate;
-        });
+        if (sebRestriction) {
+            return this.examConfigUpdateService.applySebClientRestriction(exam)
+                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, sebRestriction));
+        } else {
+            return this.examConfigUpdateService.releaseSebClientRestriction(exam)
+                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, sebRestriction));
+        }
     }
 
 }

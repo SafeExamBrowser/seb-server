@@ -9,10 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.tomcat.util.buf.StringUtils;
+import org.springframework.util.CollectionUtils;
+
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx.OpenEdxCourseRestrictionData;
 
 public final class SebRestrictionData {
 
@@ -34,6 +40,37 @@ public final class SebRestrictionData {
         this.configKeys = Utils.immutableCollectionOf(configKeys);
         this.browserExamKeys = Utils.immutableCollectionOf(browserExamKeys);
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
+    }
+
+    public SebRestrictionData(final Exam exam, final OpenEdxCourseRestrictionData edxData) {
+        this.exam = exam;
+        this.configKeys = Utils.immutableCollectionOf(edxData.configKeys);
+        this.browserExamKeys = Utils.immutableCollectionOf(edxData.browserExamKeys);
+        final Map<String, String> attrs = new HashMap<>();
+
+        if (!CollectionUtils.isEmpty(edxData.whiteListPaths)) {
+            attrs.put(
+                    OpenEdxCourseRestrictionData.ATTR_WHITELIST_PATHS,
+                    StringUtils.join(edxData.whiteListPaths, Constants.LIST_SEPARATOR_CHAR));
+        }
+
+        if (!CollectionUtils.isEmpty(edxData.blacklistChapters)) {
+            attrs.put(
+                    OpenEdxCourseRestrictionData.ATTR_BLACKLIST_CHAPTERS,
+                    StringUtils.join(edxData.blacklistChapters, Constants.LIST_SEPARATOR_CHAR));
+        }
+
+        if (!CollectionUtils.isEmpty(edxData.permissionComponents)) {
+            attrs.put(
+                    OpenEdxCourseRestrictionData.ATTR_PERMISSION_COMPONENTS,
+                    StringUtils.join(edxData.permissionComponents, Constants.LIST_SEPARATOR_CHAR));
+        }
+
+        attrs.put(
+                OpenEdxCourseRestrictionData.ATTR_USER_BANNING_ENABLED,
+                (edxData.banningEnabled) ? Constants.TRUE_STRING : Constants.FALSE_STRING);
+
+        this.additionalAttributes = attrs;
     }
 
     public Exam getExam() {

@@ -11,9 +11,12 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -31,7 +34,6 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -137,8 +139,14 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.consistency.title");
     private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SUPPORTER =
             new LocTextKey("sebserver.exam.consistency.missing-supporter");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_INDICATOR =
+            new LocTextKey("sebserver.exam.consistency.missing-indicator");
     private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_CONFIG =
             new LocTextKey("sebserver.exam.consistency.missing-config");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION =
+            new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
+
+    private final Map<String, LocTextKey> consistencyMessageMapping;
 
     private final static LocTextKey CONFIRM_MESSAGE_REMOVE_CONFIG =
             new LocTextKey("sebserver.exam.confirm.remove-config");
@@ -162,6 +170,20 @@ public class ExamForm implements TemplateComposer {
         this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
+
+        this.consistencyMessageMapping = new HashMap<>();
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.messageCode,
+                CONSISTENCY_MESSAGE_MISSING_SUPPORTER);
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_INDICATOR.messageCode,
+                CONSISTENCY_MESSAGE_MISSING_INDICATOR);
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.messageCode,
+                CONSISTENCY_MESSAGE_MISSING_CONFIG);
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION.messageCode,
+                CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION);
     }
 
     @Override
@@ -488,7 +510,10 @@ public class ExamForm implements TemplateComposer {
 
         // when okay and the exam sebRestriction is true
         if (applySebRestriction) {
-            setSebRestriction(processFormSave, true);
+            setSebRestriction(
+                    processFormSave,
+                    true,
+                    t -> log.error("Failed to intially restrict the course for SEB on LMS: {}", t.getMessage()));
         }
 
         return processFormSave;
@@ -516,15 +541,7 @@ public class ExamForm implements TemplateComposer {
 
         result
                 .stream()
-                .map(message -> {
-                    if (message.messageCode.equals(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.messageCode)) {
-                        return CONSISTENCY_MESSAGE_MISSING_SUPPORTER;
-                    } else if (message.messageCode
-                            .equals(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.messageCode)) {
-                        return CONSISTENCY_MESSAGE_MISSING_CONFIG;
-                    }
-                    return null;
-                })
+                .map(message -> this.consistencyMessageMapping.get(message.messageCode))
                 .filter(message -> message != null)
                 .forEach(message -> this.widgetFactory.labelLocalized(
                         warningPanel,
@@ -533,6 +550,14 @@ public class ExamForm implements TemplateComposer {
     }
 
     private PageAction setSebRestriction(final PageAction action, final boolean sebRestriction) {
+        return setSebRestriction(action, sebRestriction, t -> action.pageContext().notifyError(t));
+    }
+
+    private PageAction setSebRestriction(
+            final PageAction action,
+            final boolean sebRestriction,
+            final Consumer<Throwable> errorHandler) {
+
         this.restService.getBuilder(SetExamSebRestriction.class)
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
@@ -541,7 +566,7 @@ public class ExamForm implements TemplateComposer {
                         Domain.EXAM.ATTR_LMS_SEB_RESTRICTION,
                         sebRestriction ? Constants.TRUE_STRING : Constants.FALSE_STRING)
                 .call()
-                .onError(t -> action.pageContext().notifyError(t));
+                .onError(errorHandler);
 
         return action;
     }

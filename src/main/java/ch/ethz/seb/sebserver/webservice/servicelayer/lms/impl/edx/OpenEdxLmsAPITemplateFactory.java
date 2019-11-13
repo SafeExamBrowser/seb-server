@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 
 @Lazy
 @Service
@@ -54,19 +55,27 @@ public class OpenEdxLmsAPITemplateFactory {
                 : null;
     }
 
-    public Result<OpenEdxLmsAPITemplate> create(final LmsSetup lmsSetup, final ClientCredentials credentials) {
+    public Result<OpenEdxLmsAPITemplate> create(
+            final LmsSetup lmsSetup,
+            final ClientCredentials credentials,
+            final ProxyData proxyData) {
+
         return Result.tryCatch(() -> {
+
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory = new OpenEdxRestTemplateFactory(
                     lmsSetup,
                     credentials,
+                    proxyData,
                     this.clientCredentialService,
                     this.clientHttpRequestFactoryService,
                     this.alternativeTokenRequestPaths);
+
             final OpenEdxCourseAccess openEdxCourseAccess = new OpenEdxCourseAccess(
                     lmsSetup,
                     openEdxRestTemplateFactory,
                     this.webserviceInfo,
                     this.asyncService);
+
             final OpenEdxCourseRestriction openEdxCourseRestriction = new OpenEdxCourseRestriction(
                     lmsSetup,
                     this.jsonMapper,

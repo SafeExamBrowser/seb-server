@@ -55,11 +55,13 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                this.spanLabel);
+        final Label lab = (this.label != null)
+                ? builder.labelLocalized(
+                        builder.formParent,
+                        this.label,
+                        this.defaultLabel,
+                        this.spanLabel)
+                : null;
 
         if (builder.readonly || this.readonly) {
             buildReadOnly(builder, lab);

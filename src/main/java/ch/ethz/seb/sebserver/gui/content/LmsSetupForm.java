@@ -11,14 +11,15 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -74,12 +75,14 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.name");
     private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.institution");
-    private static final LocTextKey FORM_PROXY_AUTH_TYPE_KEY =
-            new LocTextKey("sebserver.lmssetup.form.proxy.auth-type");
-    private static final LocTextKey FORM_PROXY_AUTH_NAME_KEY =
-            new LocTextKey("sebserver.lmssetup.form.proxy.auth-name");
-    private static final LocTextKey FORM_PROXY_AUTH_PASS_KEY =
-            new LocTextKey("sebserver.lmssetup.form.proxy.auth-secret");
+    private static final LocTextKey FORM_PROXY_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy");
+    private static final LocTextKey FORM_PROXY_HOST_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.host");
+    private static final LocTextKey FORM_PROXY_PORT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.port");
+    private static final LocTextKey FORM_PROXY_AUTH_CREDENTIALS_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.auth-credentials");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -149,9 +152,11 @@ public class LmsSetupForm implements TemplateComposer {
 
         // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
-        final ProxyAuthType proxyAuthType = lmsSetup.getProxyAuthType();
         final FormHandle<LmsSetup> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content), 8)
+                .withDefaultSpanLabel(2)
+                .withDefaultSpanInput(4)
+                .withDefaultSpanEmptyCell(2)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_ID,
@@ -195,21 +200,54 @@ public class LmsSetupForm implements TemplateComposer {
                                 FORM_SECRET_LMS_TEXT_KEY)
                                 .asPasswordField())
 
-                .addField(FormBuilder.singleSelection(
-                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_TYPE,
-                        FORM_PROXY_AUTH_TYPE_KEY,
-                        (proxyAuthType != null) ? proxyAuthType.name() : null,
-                        this.resourceService::lmsProxyAuthTypeResources))
-                .addField(FormBuilder.text(
-                        Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
-                        FORM_PROXY_AUTH_NAME_KEY,
-                        (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null))
+                .addFieldIf(
+                        () -> readonly,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
+                                FORM_PROXY_KEY,
+                                (StringUtils.isNotBlank(lmsSetup.getProxyHost()))
+                                        ? lmsSetup.getProxyHost() + Constants.URL_PORT_SEPARATOR + lmsSetup.proxyPort
+                                        : null))
+
                 .addFieldIf(
                         isEdit,
                         () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
-                                FORM_PROXY_AUTH_PASS_KEY)
-                                .asPasswordField())
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
+                                FORM_PROXY_HOST_KEY,
+                                (StringUtils.isNotBlank(lmsSetup.getProxyHost())) ? lmsSetup.getProxyHost() : null)
+                                .withInputSpan(2)
+                                .withEmptyCellSpan(0))
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_PORT,
+                                FORM_PROXY_PORT_KEY,
+                                (lmsSetup.getProxyPort() != null) ? String.valueOf(lmsSetup.getProxyPort()) : null)
+                                .asNumber(number -> {
+                                    if (StringUtils.isNotBlank(number)) {
+                                        Integer.parseInt(number);
+                                    }
+                                })
+                                .withInputSpan(1)
+                                .withLabelSpan(1)
+                                .withEmptyCellSeparation(false)
+                                .withEmptyCellSpan(0))
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
+                                FORM_PROXY_AUTH_CREDENTIALS_KEY,
+                                (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null)
+                                .withInputSpan(2)
+                                .withEmptyCellSpan(0))
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET)
+                                .asPasswordField()
+                                .withInputSpan(2)
+                                .withLabelSpan(0)
+                                .withEmptyCellSeparation(false)
+                                .withEmptyCellSpan(0))
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)

@@ -39,6 +39,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSebRestrictionException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -54,6 +56,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final ExamDAO examDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
+    private final LmsAPIService lmsAPIService;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
@@ -61,7 +64,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final IndicatorDAO indicatorDAO,
-            final CacheManager cacheManager) {
+            final CacheManager cacheManager,
+            final LmsAPIService lmsAPIService) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.examDAO = examDAO;
@@ -69,7 +73,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
         this.indicatorDAO = indicatorDAO;
-
+        this.lmsAPIService = lmsAPIService;
     }
 
     @Override
@@ -96,6 +100,25 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .get(t -> {
                             result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.of(exam.getModelId()));
                             return null;
+                        });
+
+                // check SEB restriction available and restricted
+                // if SEB restriction is not available no consistency violation message is added
+                this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
+                        .map(t -> {
+                            if (t.testCourseRestrictionAPI().isOk()) {
+                                return t;
+                            } else {
+                                throw new RuntimeException();
+                            }
+                        })
+                        .flatMap(t -> t.getSebClientRestriction(exam))
+                        .onError(error -> {
+                            if (error instanceof NoSebRestrictionException) {
+                                result.add(
+                                        ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION
+                                                .of(exam.getModelId()));
+                            }
                         });
 
                 // check indicator exists

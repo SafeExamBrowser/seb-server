@@ -48,7 +48,9 @@ public class APIMessage implements Serializable {
 
         EXAM_CONSISTANCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
         EXAM_CONSISTANCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
-        EXAM_CONSISTANCY_VALIDATION_INDICATOR("1402", HttpStatus.OK, "No Indicator defined for the Exam");
+        EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION("1402", HttpStatus.OK,
+                "SEB restriciton API available but Exam not restricted on LMS side yet"),
+        EXAM_CONSISTANCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

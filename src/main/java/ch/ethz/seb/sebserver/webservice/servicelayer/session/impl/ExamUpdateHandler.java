@@ -112,9 +112,9 @@ class ExamUpdateHandler {
     }
 
     Result<Exam> applySebClientRestriction(final Exam exam) {
-        if (!exam.lmsSebRestriction) {
+        if (exam.lmsSebRestriction) {
             if (log.isDebugEnabled()) {
-                log.debug("Skip SEB Client restrictions for exam: {}", exam);
+                log.debug("Skip SEB Client restrictions for exam: {} already restricted", exam);
             }
 
             return Result.of(exam);

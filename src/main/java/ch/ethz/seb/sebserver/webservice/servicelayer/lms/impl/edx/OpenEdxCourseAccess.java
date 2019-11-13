@@ -102,6 +102,7 @@ final class OpenEdxCourseAccess {
             try {
                 this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
             } catch (final RuntimeException ee) {
+                log.error("Failed to access Open edX course API: ", ee);
                 return LmsSetupTestResult.ofQuizAccessAPIError(ee.getMessage());
             }
         }

@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -160,16 +159,6 @@ public class ResourceService {
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
-                .sorted(RESOURCE_COMPARATOR)
-                .collect(Collectors.toList());
-    }
-
-    public List<Tuple<String>> lmsProxyAuthTypeResources() {
-        return Arrays.asList(ProxyAuthType.values())
-                .stream()
-                .map(authType -> new Tuple<>(
-                        authType.name(),
-                        this.i18nSupport.getText(LMSSETUP_PROXY_AUTH_TYPE_PREFIX + authType.name(), authType.name())))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

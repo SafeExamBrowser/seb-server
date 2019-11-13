@@ -64,7 +64,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "lms1Secret",
                 "https://www.lms1.com",
                 null,
-                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null,
                 null,
                 null);
@@ -411,7 +412,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null, // no secret
                 "https://www.lms1.com",
                 null,
-                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null,
                 null,
                 null);
@@ -449,7 +451,8 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "someSecret",
                 "https://www.lms1.com",
                 null,
-                lmsSetup.proxyAuthType,
+                null,
+                null,
                 null,
                 null,
                 null);

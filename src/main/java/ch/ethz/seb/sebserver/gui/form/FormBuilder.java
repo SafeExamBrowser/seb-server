@@ -161,7 +161,9 @@ public class FormBuilder {
         template.spanLabel = (template.spanLabel < 0) ? this.defaultSpanLabel : template.spanLabel;
         template.spanInput = (template.spanInput < 0) ? this.defaultSpanInput : template.spanInput;
         template.spanEmptyCell = (template.spanEmptyCell < 0) ? this.defaultSpanEmptyCell : template.spanEmptyCell;
-        template.autoEmptyCellSeparation = template.autoEmptyCellSeparation || this.emptyCellSeparation;
+        template.autoEmptyCellSeparation = (template.autoEmptyCellSeparation != null)
+                ? template.autoEmptyCellSeparation
+                : this.emptyCellSeparation;
 
         if (template.autoEmptyCellSeparation && this.form.hasFields()) {
             addEmptyCell(template.spanEmptyCell);
@@ -200,6 +202,10 @@ public class FormBuilder {
 
     public static CheckboxFieldBuilder checkbox(final String name, final LocTextKey label, final String value) {
         return new CheckboxFieldBuilder(name, label, value);
+    }
+
+    public static TextFieldBuilder text(final String name) {
+        return new TextFieldBuilder(name, null, null);
     }
 
     public static TextFieldBuilder text(final String name, final LocTextKey label) {
@@ -281,8 +287,11 @@ public class FormBuilder {
             final String defaultText,
             final int hspan) {
 
-        final Label label = this.widgetFactory.labelLocalized(parent, locTextKey, defaultText);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, true, hspan, 1);
+        final Label label = this.widgetFactory.labelLocalized(
+                parent,
+                locTextKey,
+                (StringUtils.isNotBlank(defaultText) ? defaultText : locTextKey.name));
+        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true, hspan, 1);
         gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);

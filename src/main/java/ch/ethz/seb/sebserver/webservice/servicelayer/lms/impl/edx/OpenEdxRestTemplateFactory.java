@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,14 +33,13 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 
 final class OpenEdxRestTemplateFactory {
 
@@ -49,6 +47,7 @@ final class OpenEdxRestTemplateFactory {
 
     final LmsSetup lmsSetup;
     final ClientCredentials credentials;
+    final ProxyData proxyData;
     final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     final ClientCredentialService clientCredentialService;
     final Set<String> knownTokenAccessPaths;
@@ -56,6 +55,7 @@ final class OpenEdxRestTemplateFactory {
     OpenEdxRestTemplateFactory(
             final LmsSetup lmsSetup,
             final ClientCredentials credentials,
+            final ProxyData proxyData,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final String[] alternativeTokenRequestPaths) {
@@ -63,6 +63,7 @@ final class OpenEdxRestTemplateFactory {
         this.lmsSetup = lmsSetup;
         this.clientCredentialService = clientCredentialService;
         this.credentials = credentials;
+        this.proxyData = proxyData;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
         this.knownTokenAccessPaths = new HashSet<>();
@@ -136,36 +137,9 @@ final class OpenEdxRestTemplateFactory {
         details.setClientId(plainClientId.toString());
         details.setClientSecret(plainClientSecret.toString());
 
-        ClientHttpRequestFactory clientHttpRequestFactory = null;
-        if (lmsSetup.proxyAuthType != ProxyAuthType.NONE) {
-            final ClientCredentials proxyCredentials = new ClientCredentials(
-                    lmsSetup.proxyAuthUsername,
-                    lmsSetup.proxyAuthSecret);
-
-            // TODO check where we have to encrypt/decrypt the secret internally
-            CharSequence proxySecretPlain;
-            try {
-                proxySecretPlain = this.clientCredentialService.getPlainClientSecret(proxyCredentials);
-            } catch (final Exception e) {
-                proxySecretPlain = lmsSetup.proxyAuthSecret;
-            }
-
-            final URI uri = new URI(lmsSetup.lmsApiUrl);
-            final ProxyData proxyData = new ProxyData(
-                    lmsSetup.proxyAuthType,
-                    uri.getHost(),
-                    uri.getPort(),
-                    proxyCredentials.clientId,
-                    proxySecretPlain);
-
-            clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                    .getClientHttpRequestFactory(proxyData)
-                    .getOrThrow();
-        } else {
-            clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                    .getClientHttpRequestFactory()
-                    .getOrThrow();
-        }
+        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                .getClientHttpRequestFactory(this.proxyData)
+                .getOrThrow();
 
         final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
         template.setRequestFactory(clientHttpRequestFactory);

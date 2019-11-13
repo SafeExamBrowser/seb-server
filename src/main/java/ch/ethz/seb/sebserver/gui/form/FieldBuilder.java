@@ -16,7 +16,7 @@ public abstract class FieldBuilder<T> {
     int spanLabel = -1;
     int spanInput = -1;
     int spanEmptyCell = -1;
-    boolean autoEmptyCellSeparation = false;
+    Boolean autoEmptyCellSeparation = null;
     String group = null;
     boolean readonly = false;
     boolean visible = true;

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -150,7 +152,16 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 lmsSetup.lmsAuthSecret,
                 lmsSetup.lmsRestApiToken);
 
-        return test(createLmsSetupTemplate(lmsSetup, lmsCredentials));
+        final ProxyData proxyData = (StringUtils.isNoneBlank(lmsSetup.proxyHost))
+                ? new ProxyData(
+                        lmsSetup.proxyHost,
+                        lmsSetup.proxyPort,
+                        this.clientCredentialService.encryptClientCredentials(
+                                lmsSetup.proxyAuthUsername,
+                                lmsSetup.proxyAuthSecret))
+                : null;
+
+        return test(createLmsSetupTemplate(lmsSetup, lmsCredentials, proxyData));
     }
 
     private Result<LmsAPITemplate> getLmsAPITemplate(final LmsSetup lmsSetup) {
@@ -189,10 +200,18 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .getLmsAPIAccessCredentials(lmsSetup.getModelId())
                 .getOrThrow();
 
-        return createLmsSetupTemplate(lmsSetup, credentials);
+        final ProxyData proxyData = this.lmsSetupDAO
+                .getLmsAPIAccessProxyData(lmsSetup.getModelId())
+                .getOr(null);
+
+        return createLmsSetupTemplate(lmsSetup, credentials, proxyData);
     }
 
-    private LmsAPITemplate createLmsSetupTemplate(final LmsSetup lmsSetup, final ClientCredentials credentials) {
+    private LmsAPITemplate createLmsSetupTemplate(
+            final LmsSetup lmsSetup,
+            final ClientCredentials credentials,
+            final ProxyData proxyData) {
+
         switch (lmsSetup.lmsType) {
             case MOCKUP:
                 return new MockupLmsAPITemplate(
@@ -201,7 +220,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         this.webserviceInfo);
             case OPEN_EDX:
                 return this.openEdxLmsAPITemplateFactory
-                        .create(lmsSetup, credentials)
+                        .create(lmsSetup, credentials, proxyData)
                         .getOrThrow();
 
             default:

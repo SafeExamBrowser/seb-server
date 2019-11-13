@@ -27,6 +27,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -42,9 +43,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 
-import ch.ethz.seb.sebserver.gbl.api.ProxyData;
-import ch.ethz.seb.sebserver.gbl.api.ProxyData.ProxyAuthType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 
 @Service
 public class ClientHttpRequestFactoryService {
@@ -55,9 +57,14 @@ public class ClientHttpRequestFactoryService {
     private static final Collection<String> PROD_PROFILES = Arrays.asList("prod-gui", "prod-ws");
 
     private final Environment environment;
+    private final ClientCredentialService clientCredentialService;
 
-    public ClientHttpRequestFactoryService(final Environment environment) {
+    public ClientHttpRequestFactoryService(
+            final Environment environment,
+            final ClientCredentialService clientCredentialService) {
+
         this.environment = environment;
+        this.clientCredentialService = clientCredentialService;
     }
 
     public Result<ClientHttpRequestFactory> getClientHttpRequestFactory() {
@@ -87,24 +94,25 @@ public class ClientHttpRequestFactoryService {
             log.debug("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
         }
 
-        if (proxy != null && proxy.proxyAuthType != null && proxy.proxyAuthType != ProxyAuthType.NONE) {
+        if (proxy != null) {
 
             if (log.isDebugEnabled()) {
-                log.debug("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
-                        proxy.proxyAuthType,
-                        proxy.proxyName);
+                log.debug("Initialize ClientHttpRequestFactory with proxy: {}", proxy);
             }
 
-            final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            final HttpComponentsClientHttpRequestFactory factory =
+                    new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(this.createProxiedClient(proxy, null));
             factory.setBufferRequestBody(false);
             return factory;
 
         } else {
+
             final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory =
                     new HttpComponentsClientHttpRequestFactory();
 
             devClientHttpRequestFactory.setBufferRequestBody(false);
+
             return devClientHttpRequestFactory;
         }
     }
@@ -170,14 +178,10 @@ public class ClientHttpRequestFactoryService {
                     .build();
         }
 
-        if (proxy != null &&
-                proxy.proxyAuthType != null &&
-                proxy.proxyAuthType != ProxyAuthType.NONE) {
+        if (proxy != null) {
 
             if (log.isDebugEnabled()) {
-                log.debug("Initialize ClientHttpRequestFactory with proxy auth: {} : {}",
-                        proxy.proxyAuthType,
-                        proxy.proxyName);
+                log.debug("Initialize ClientHttpRequestFactory with proxy: {}", proxy);
             }
 
             final HttpClient client = createProxiedClient(proxy, sslContext);
@@ -194,20 +198,34 @@ public class ClientHttpRequestFactoryService {
     // TODO set connection and read timeout!? configurable!?
     private HttpClient createProxiedClient(final ProxyData proxy, final SSLContext sslContext) {
 
-        final CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                AuthScope.ANY,
-                new UsernamePasswordCredentials(
-                        proxy.getProxyAuthUsernameAsString(),
-                        proxy.getProxyAuthSecretAsString()));
+        final HttpHost httpHost = new HttpHost(
+                proxy.proxyName,
+                proxy.proxyPort);
 
         final HttpClientBuilder clientBuilder = HttpClients
                 .custom()
                 .useSystemProperties()
-                .setProxy(new HttpHost(proxy.proxyName,
-                        proxy.proxyPort))
-                .setDefaultCredentialsProvider(credsProvider)
+                .setProxy(httpHost)
+
+                .setDefaultRequestConfig(RequestConfig
+                        .custom()
+                        .setRedirectsEnabled(true)
+                        .setCircularRedirectsAllowed(true)
+                        .build())
                 .setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
+
+        if (proxy.clientCredentials != null && StringUtils.isNotBlank(proxy.clientCredentials.clientId)) {
+            final CredentialsProvider credsProvider = new BasicCredentialsProvider();
+            final String plainClientId = proxy.clientCredentials.clientIdAsString();
+            final String plainClientSecret = Utils.toString(this.clientCredentialService
+                    .getPlainClientSecret(proxy.clientCredentials));
+
+            credsProvider.setCredentials(
+                    AuthScope.ANY,
+                    new UsernamePasswordCredentials(plainClientId, plainClientSecret));
+
+            clientBuilder.setDefaultCredentialsProvider(credsProvider);
+        }
 
         if (sslContext != null) {
             clientBuilder.setSSLContext(sslContext);
@@ -215,19 +233,5 @@ public class ClientHttpRequestFactoryService {
 
         return clientBuilder.build();
     }
-
-    // TODO set connection and read timeout!? configurable!?
-//    private static class DevClientHttpRequestFactory extends HttpComponentsClientHttpRequestFactory {
-//
-//        @Override
-//        protected void prepareConnection(
-//                final HttpURLConnection connection,
-//                final String httpMethod) throws IOException {
-//
-//            super.prepareConnection(connection, httpMethod);
-//            super.setBufferRequestBody(false);
-//            connection.setInstanceFollowRedirects(false);
-//        }
-//    }
 
 }

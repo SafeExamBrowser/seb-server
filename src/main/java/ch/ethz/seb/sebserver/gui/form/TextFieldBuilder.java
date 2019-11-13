@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import java.util.function.Consumer;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -23,6 +25,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     boolean isPassword = false;
     boolean isNumber = false;
+    Consumer<String> numberCheck = null;
     boolean isArea = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
@@ -39,6 +42,12 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public TextFieldBuilder asNumber(final Consumer<String> numberCheck) {
+        this.isNumber = true;
+        this.numberCheck = numberCheck;
+        return this;
+    }
+
     public TextFieldBuilder asArea() {
         this.isArea = true;
         return this;
@@ -47,15 +56,17 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                this.spanLabel);
+        final Label lab = (this.label != null)
+                ? builder.labelLocalized(
+                        builder.formParent,
+                        this.label,
+                        this.defaultLabel,
+                        this.spanLabel)
+                : null;
 
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final Text textInput = (this.isNumber)
-                ? builder.widgetFactory.numberInput(fieldGrid, null, readonly)
+                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly)
                 : (this.isArea)
                         ? builder.widgetFactory.textAreaInput(fieldGrid, readonly)
                         : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly);

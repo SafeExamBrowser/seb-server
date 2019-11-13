@@ -26,11 +26,13 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                this.spanLabel);
+        final Label lab = (this.label != null)
+                ? builder.labelLocalized(
+                        builder.formParent,
+                        this.label,
+                        this.defaultLabel,
+                        this.spanLabel)
+                : null;
 
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
         final Button checkbox = builder.widgetFactory.buttonLocalized(

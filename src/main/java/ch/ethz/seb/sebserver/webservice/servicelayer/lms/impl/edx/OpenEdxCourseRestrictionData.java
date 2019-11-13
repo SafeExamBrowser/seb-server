@@ -28,12 +28,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OpenEdxCourseRestrictionData {
 
-    private static final String ATTR_USER_BANNING_ENABLED = "USER_BANNING_ENABLED";
-    private static final String ATTR_PERMISSION_COMPONENTS = "PERMISSION_COMPONENTS";
-    private static final String ATTR_BLACKLIST_CHAPTERS = "BLACKLIST_CHAPTERS";
-    private static final String ATTR_WHITELIST_PATHS = "WHITELIST_PATHS";
-    private static final String ATTR_BROWSER_KEYS = "BROWSER_KEYS";
-    private static final String ATTR_CONFIG_KEYS = "CONFIG_KEYS";
+    public static final String ATTR_USER_BANNING_ENABLED = "USER_BANNING_ENABLED";
+    public static final String ATTR_PERMISSION_COMPONENTS = "PERMISSION_COMPONENTS";
+    public static final String ATTR_BLACKLIST_CHAPTERS = "BLACKLIST_CHAPTERS";
+    public static final String ATTR_WHITELIST_PATHS = "WHITELIST_PATHS";
+    public static final String ATTR_BROWSER_KEYS = "BROWSER_KEYS";
+    public static final String ATTR_CONFIG_KEYS = "CONFIG_KEYS";
 
     @JsonProperty(ATTR_CONFIG_KEYS)
     public final Collection<String> configKeys;
