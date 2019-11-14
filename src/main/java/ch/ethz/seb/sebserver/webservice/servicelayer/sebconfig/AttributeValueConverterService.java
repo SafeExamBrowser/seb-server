@@ -8,15 +8,28 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 
 /** Interface of a SEB Exam Configuration XML conversion service */
 public interface AttributeValueConverterService {
 
-    /** Use this to get a XMLValueConverter for a given ConfigurationAttribute.
+    /** Use this to get a AttributeValueConverter for a given ConfigurationAttribute.
      *
      * @param attribute The ConfigurationAttribute instance
-     * @return a XMLValueConverter for a given ConfigurationAttribute */
+     * @return a AttributeValueConverter for a given ConfigurationAttribute */
     AttributeValueConverter getAttributeValueConverter(ConfigurationAttribute attribute);
+
+    /** Use this to get a AttributeValueConverter for a given AttributeType.
+     *
+     * @param attribute The ConfigurationAttribute instance
+     * @return a AttributeValueConverter for a given AttributeType */
+    AttributeValueConverter getAttributeValueConverter(final AttributeType attributeType);
+
+    /** Get Use this to get a AttributeValueConverter for a given ConfigurationAttribute.
+     *
+     * @param attributeName the name of the attribute
+     * @return a AttributeValueConverter for a given ConfigurationAttribute */
+    AttributeValueConverter getAttributeValueConverter(String attributeName);
 
 }

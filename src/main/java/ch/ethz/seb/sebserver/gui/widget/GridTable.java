@@ -285,8 +285,7 @@ public class GridTable extends Composite {
                 return null;
             }
 
-            final String[] split = StringUtils.split(string, ':');
-
+            final String[] split = StringUtils.split(string, Constants.COMPLEX_VALUE_SEPARATOR);
             final AttributeType attributeType = AttributeType.valueOf(split[2]);
             if (!SUPPORTED_TYPES.contains(attributeType)) {
                 throw new UnsupportedOperationException(

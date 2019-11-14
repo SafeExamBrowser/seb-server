@@ -81,6 +81,10 @@ public interface AttributeValueConverter {
         }
     }
 
+    /** Used to expand a "compressed" attribute like kioskMode -> createNewDesktop + killExplorerShell
+     *
+     * @param attr
+     * @return */
     default Stream<ConfigurationAttribute> convertAttribute(final ConfigurationAttribute attr) {
         return Stream.of(attr);
     }

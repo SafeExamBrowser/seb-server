@@ -25,6 +25,7 @@ public final class Constants {
     public static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
 
     public static final Character LIST_SEPARATOR_CHAR = ',';
+    public static final Character COMPLEX_VALUE_SEPARATOR = ':';
     public static final String LIST_SEPARATOR = ",";
     public static final String EMBEDDED_LIST_SEPARATOR = "|";
     public static final String NO_NAME = "NONE";

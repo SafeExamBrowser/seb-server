@@ -67,4 +67,14 @@ public class AttributeValueConverterServiceImpl implements AttributeValueConvert
         throw new IllegalStateException("No XMLValueConverter found for attribute: " + attribute);
     }
 
+    @Override
+    public AttributeValueConverter getAttributeValueConverter(final AttributeType attributeType) {
+        return this.convertersByAttributeType.get(attributeType);
+    }
+
+    @Override
+    public AttributeValueConverter getAttributeValueConverter(final String attributeName) {
+        return this.convertersByAttributeName.get(attributeName);
+    }
+
 }

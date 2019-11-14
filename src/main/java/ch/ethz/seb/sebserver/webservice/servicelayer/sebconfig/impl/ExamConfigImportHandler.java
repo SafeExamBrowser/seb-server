@@ -15,6 +15,7 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigImportHandler.PListNode.Type;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
 
 public class ExamConfigImportHandler extends DefaultHandler {
 
@@ -45,6 +47,9 @@ public class ExamConfigImportHandler extends DefaultHandler {
     private final Long configId;
 
     private final Stack<PListNode> stack = new Stack<>();
+
+    private Boolean killExplorerShell = null;
+    private Boolean createNewDesktop = null;
 
     protected ExamConfigImportHandler(
             final Long institutionId,
@@ -258,40 +263,6 @@ public class ExamConfigImportHandler extends DefaultHandler {
         }
     }
 
-    private void saveValue(
-            final String name,
-            final ConfigurationAttribute attribute,
-            final int listIndex,
-            final String value) {
-
-        if (attribute == null) {
-            log.warn("Import of unknown attribute. name={} value={}", name, value);
-            return;
-        }
-
-        if (value == null) {
-            log.debug("*********************** Save null value: {}", name);
-        } else if (StringUtils.isBlank(value)) {
-            log.debug("*********************** Save blank value: {}", name);
-        } else {
-            log.debug("*********************** Save value value: {} : {}", name, value);
-        }
-
-        final ConfigurationValue configurationValue = new ConfigurationValue(
-                null,
-                this.institutionId,
-                this.configId,
-                attribute.id,
-                listIndex,
-                value);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Save imported value: {} : {}", name, configurationValue);
-        }
-
-        this.valueConsumer.accept(configurationValue);
-    }
-
     @Override
     public void characters(
             final char[] ch,
@@ -309,6 +280,80 @@ public class ExamConfigImportHandler extends DefaultHandler {
         } else if (top.type == Type.KEY) {
             top.name = value;
         }
+    }
+
+    private void saveValue(
+            final String name,
+            final ConfigurationAttribute attribute,
+            final int listIndex,
+            final String value) {
+
+        final ConfigurationValue configurationValue = createConfigurationValue(
+                name,
+                attribute,
+                listIndex,
+                value);
+
+        if (configurationValue != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Save imported value: {} : {}", name, configurationValue);
+            }
+
+            this.valueConsumer.accept(configurationValue);
+        }
+    }
+
+    private ConfigurationValue createConfigurationValue(
+            final String name,
+            final ConfigurationAttribute attribute,
+            final int listIndex,
+            final String value) {
+
+        if (attribute == null) {
+            if (KioskModeConverter.NAMES.contains(name)) {
+                return handleKioskMode(name, listIndex, value);
+            }
+
+            log.warn("Import of unknown attribute. name={} value={}", name, value);
+            return null;
+        }
+
+        return new ConfigurationValue(
+                null,
+                this.institutionId,
+                this.configId,
+                attribute.id,
+                listIndex,
+                value);
+    }
+
+    private ConfigurationValue handleKioskMode(final String name, final int listIndex, final String value) {
+        if (KioskModeConverter.ATTR_NAME_KILL_SHELL.equals(name)) {
+            this.killExplorerShell = BooleanUtils.toBoolean(value);
+        } else if (KioskModeConverter.ATTR_NAME_CREATE_NEW_DESKTOP.equals(name)) {
+            this.createNewDesktop = BooleanUtils.toBoolean(value);
+        }
+
+        if (this.killExplorerShell != null && this.createNewDesktop != null) {
+            final ConfigurationAttribute kioskMode = this.attributeResolver.apply(
+                    KioskModeConverter.ATTR_NAME_KIOSK_MODE);
+
+            final String val = (this.createNewDesktop)
+                    ? "0"
+                    : (this.killExplorerShell)
+                            ? "1"
+                            : "2";
+
+            return new ConfigurationValue(
+                    null,
+                    this.institutionId,
+                    this.configId,
+                    kioskMode.id,
+                    listIndex,
+                    val);
+        }
+
+        return null;
     }
 
     final static class PListNode {

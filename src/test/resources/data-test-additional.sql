@@ -216,8 +216,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (403, 'insideSebEnableStartTaskManager', 'CHECKBOX', null, null, null, null, 'false'),
     (404, 'insideSebEnableLogOff', 'CHECKBOX', null, null, null, null, 'false'),
     (405, 'insideSebEnableShutDown', 'CHECKBOX', null, null, null, null, 'false'),
-    (406, 'insideSebEnableEaseOfAccess', 'CHECKBOX', null, null, null, null, 'false'),
-    (407, 'insideSebEnableVmWareClientShade', 'CHECKBOX', null, null, null, null, 'false'),
+    (406, 'insideSebEnableVmWareClientShade', 'CHECKBOX', null, null, null, null, 'false'),
+    (407, 'insideSebEnableEaseOfAccess', 'CHECKBOX', null, null, null, null, 'false'),
     (408, 'insideSebEnableNetworkConnectionSelector', 'CHECKBOX', null, null, null, null, 'false'),
     
     (500, 'enableEsc', 'CHECKBOX', null, null, null, null, 'false'),
@@ -254,10 +254,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (808, 'monitorProcesses', 'CHECKBOX', null, null, null, null, 'false'),
     (809, 'blacklistURLFilter', 'TEXT_FIELD', null, null, null, null, ''),
     (810, 'whitelistURLFilter', 'TEXT_FIELD', null, null, null, null, ''),
-    (811, 'killExplorerShell', 'CHECKBOX', null, null, null, null, 'false'),
     (812, 'allowWlan', 'CHECKBOX', null, null, null, null, 'false'),
     (813, 'hookKeys', 'CHECKBOX', null, null, null, null, 'true'),
-    
     
     (1000, 'originatorVersion', 'TEXT_FIELD', null, null, null, null, 'SEB_Server_0.3.0'),
     (1001, 'sebConfigPurpose', 'RADIO_SELECTION', null, '0,1', null, null, '0')
@@ -320,12 +318,12 @@ INSERT IGNORE INTO orientation VALUES
     (50, 50, 0, 3, null, 7, 1, 5, 1, 'TOP'),
     (51, 51, 0, 3, 'userAgentDesktop', 7, 2, 5, 2, 'NONE'),
     (52, 52, 0, 3, 'userAgentDesktop', 7, 3, 5, 1, 'NONE'),
-    (53, 53, 0, 3, 'userAgentTouch', 7, 4, 5, 3, 'NONE'),
-    (54, 54, 0, 3, 'userAgentTouch', 7, 8, 5, 1, 'NONE'),
-    (55, 55, 0, 3, 'userAgentMac', 7, 9, 5, 2, 'NONE'),
-    (56, 56, 0, 3, 'userAgentMac', 7, 11, 5, 1, 'NONE'),
-    (57, 57, 0, 3, null, 0, 14, 6, 1, 'NONE'),
-    (58, 58, 0, 3, null, 7, 14, 5, 1, 'TOP'),
+    (53, 53, 0, 3, 'userAgentTouch', 7, 4, 5, 2, 'NONE'),
+    (54, 54, 0, 3, 'userAgentTouch', 7, 6, 5, 1, 'NONE'),
+    (55, 55, 0, 3, 'userAgentMac', 7, 8, 5, 2, 'NONE'),
+    (56, 56, 0, 3, 'userAgentMac', 7, 10, 5, 1, 'NONE'),
+    (57, 57, 0, 3, null, 0, 13, 6, 1, 'NONE'),
+    (58, 58, 0, 3, null, 7, 13, 5, 1, 'TOP'),
     
     (59, 59, 0, 4, null, 0, 0, 8, 1, 'NONE'),
     (60, 60, 0, 4, null, 3, 1, 5, 1, 'LEFT_SPAN'),

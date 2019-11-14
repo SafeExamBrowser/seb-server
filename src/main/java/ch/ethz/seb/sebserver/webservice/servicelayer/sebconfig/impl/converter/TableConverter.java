@@ -47,7 +47,6 @@ public class TableConverter implements AttributeValueConverter {
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
                     AttributeType.TABLE,
-                    AttributeType.INLINE_TABLE,
                     AttributeType.COMPOSITE_TABLE)));
 
     private static final String XML_KEY_TEMPLATE = "<key>%s</key>";
@@ -214,39 +213,6 @@ public class TableConverter implements AttributeValueConverter {
 
             out.flush();
         }
-
-//        final Iterator<List<ConfigurationValue>> irows = values.iterator();
-//
-//        while (irows.hasNext()) {
-//            final List<ConfigurationValue> rowValues = irows.next();
-//            out.write((xml) ? XML_DICT_START : JSON_DICT_START);
-//
-//            final Iterator<ConfigurationValue> ivalue = rowValues.iterator();
-//
-//            while (ivalue.hasNext()) {
-//                final ConfigurationValue value = ivalue.next();
-//                final ConfigurationAttribute attr = attributeMap.get(value.attributeId);
-//                final AttributeValueConverter converter =
-//                        attributeValueConverterService.getAttributeValueConverter(attr);
-//
-//                if (xml) {
-//                    converter.convertToXML(out, attr, a -> value);
-//                } else {
-//                    converter.convertToJSON(out, attr, a -> value);
-//                }
-//
-//                if (!xml && ivalue.hasNext()) {
-//                    out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
-//                }
-//            }
-//            out.write((xml) ? XML_DICT_END : JSON_DICT_END);
-//
-//            if (!xml && irows.hasNext()) {
-//                out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
-//            }
-//
-//            out.flush();
-//        }
     }
 
     private List<ConfigurationAttribute> getSortedChildAttributes(final ConfigurationAttribute attribute) {
