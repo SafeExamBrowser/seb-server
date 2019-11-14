@@ -674,11 +674,7 @@ class ConfigurationDAOBatchService {
 
         return Result.tryCatch(() -> {
 
-            // templateValues to override default values if available
-            final Map<Long, String> templateValues = getTemplateValues(configNode);
-
-            // go through all configuration attributes and create and store a
-            // configuration value from either the default value or the value from the template
+            // go through all configuration attributes and create and store the default value
             this.batchConfigurationAttributeRecordMapper
                     .selectByExample()
                     .build()
@@ -687,17 +683,49 @@ class ConfigurationDAOBatchService {
                     // filter child attributes of tables. No default value for tables. Use templates for that
                     .filter(ConfigurationDAOBatchService::filterChildAttribute)
                     .forEach(attrRec -> {
-                        final String value = templateValues.getOrDefault(
-                                attrRec.getId(),
-                                attrRec.getDefaultValue());
-
                         this.batchConfigurationValueRecordMapper.insert(new ConfigurationValueRecord(
                                 null,
                                 configNode.institutionId,
                                 config.getId(),
                                 attrRec.getId(),
                                 0,
-                                value));
+                                attrRec.getDefaultValue()));
+                    });
+
+            // override with template values if available
+            final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+            templateValues.stream()
+                    .forEach(templateValue -> {
+                        final Long existingId = this.batchConfigurationValueRecordMapper
+                                .selectIdsByExample()
+                                .where(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                                        isEqualTo(config.getId()))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                                        isEqualTo(templateValue.getConfigurationAttributeId()))
+                                .and(
+                                        ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                                        isEqualTo(templateValue.getListIndex()))
+                                .build()
+                                .execute()
+                                .stream()
+                                .findFirst()
+                                .orElse(null);
+
+                        final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
+                                existingId,
+                                configNode.institutionId,
+                                config.getId(),
+                                templateValue.getConfigurationAttributeId(),
+                                templateValue.getListIndex(),
+                                templateValue.getValue());
+
+                        if (existingId != null) {
+                            this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
+                        } else {
+                            this.batchConfigurationValueRecordMapper.insert(valueRec);
+                        }
                     });
 
             this.batchSqlSessionTemplate.flushStatements();
@@ -721,9 +749,9 @@ class ConfigurationDAOBatchService {
      * Get values from template with configuration attribute id mapped to the value
      * returns empty list if no template available
      */
-    private Map<Long, String> getTemplateValues(final ConfigurationNode configNode) {
+    private List<ConfigurationValueRecord> getTemplateValues(final ConfigurationNode configNode) {
         if (configNode.templateId == null || configNode.templateId.equals(ConfigurationNode.DEFAULT_TEMPLATE_ID)) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
 
         final Long configurationId = this.batchConfigurationRecordMapper.selectByExample()
@@ -735,15 +763,10 @@ class ConfigurationDAOBatchService {
                 .collect(Utils.toSingleton())
                 .getId();
 
-        final List<ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper.selectByExample()
+        return this.batchConfigurationValueRecordMapper.selectByExample()
                 .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isEqualTo(configurationId))
                 .build()
                 .execute();
-
-        return values.stream()
-                .collect(Collectors.toMap(
-                        valRec -> valRec.getConfigurationAttributeId(),
-                        valRec -> (valRec.getValue() != null) ? valRec.getValue() : ""));
     }
 
 }

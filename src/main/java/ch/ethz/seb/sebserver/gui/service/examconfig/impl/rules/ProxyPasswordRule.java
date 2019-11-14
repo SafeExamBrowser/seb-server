@@ -28,12 +28,20 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 public class ProxyPasswordRule implements ValueChangeRule {
 
     public static final String KEY_HTTP_PWD_REQUIRED = "HTTPRequiresPassword";
+    public static final String KEY_HTTPS_PWD_REQUIRED = "HTTPSRequiresPassword";
+    public static final String KEY_FTP_PWD_REQUIRED = "FTPRequiresPassword";
+    public static final String KEY_SOCKS_PWD_REQUIRED = "SOCKSRequiresPassword";
+    public static final String KEY_RTSP_PWD_REQUIRED = "RTSPRequiresPassword";
 
     private final Map<String, Tuple<String>> observed;
 
     public ProxyPasswordRule() {
         this.observed = new HashMap<>();
         this.observed.put(KEY_HTTP_PWD_REQUIRED, new Tuple<>("HTTPUsername", "HTTPPassword"));
+        this.observed.put(KEY_HTTPS_PWD_REQUIRED, new Tuple<>("HTTPSUsername", "HTTPSPassword"));
+        this.observed.put(KEY_FTP_PWD_REQUIRED, new Tuple<>("FTPUsername", "FTPPassword"));
+        this.observed.put(KEY_SOCKS_PWD_REQUIRED, new Tuple<>("SOCKSUsername", "SOCKSPassword"));
+        this.observed.put(KEY_RTSP_PWD_REQUIRED, new Tuple<>("RTSPUsername", "RTSPPassword"));
     }
 
     @Override

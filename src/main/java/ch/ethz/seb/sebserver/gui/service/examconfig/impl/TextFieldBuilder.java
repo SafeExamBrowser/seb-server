@@ -72,7 +72,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
         switch (attribute.type) {
             case INTEGER:
             case DECIMAL: {
-                text = new Text(innerGrid, SWT.RIGHT | SWT.BORDER);
+                text = new Text(innerGrid, SWT.RIGHT | SWT.BORDER | SWT.SINGLE);
                 break;
             }
             case TEXT_AREA: {
@@ -81,7 +81,8 @@ public class TextFieldBuilder implements InputFieldBuilder {
                 break;
             }
             default: {
-                text = new Text(innerGrid, SWT.LEFT | SWT.BORDER);
+                text = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
+                gridData.minimumHeight = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
                 break;
             }
         }
@@ -145,6 +146,22 @@ public class TextFieldBuilder implements InputFieldBuilder {
             }
 
             this.control.setText(value);
+        }
+
+        @Override
+        public void enable(final boolean group) {
+            this.control.setData(RWT.CUSTOM_VARIANT, null);
+            this.control.setEditable(true);
+        }
+
+        @Override
+        public void disable(final boolean group) {
+            this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
+            this.control.setEditable(false);
+            final GridData gridData = (GridData) this.control.getLayoutData();
+            gridData.heightHint = (this.attribute.type == AttributeType.TEXT_AREA)
+                    ? WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT
+                    : WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
         }
 
         @Override
