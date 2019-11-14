@@ -41,6 +41,9 @@ public class ExamConfigImportHandler extends DefaultHandler {
             Constants.XML_PLIST_DATA,
             Constants.XML_PLIST_INTEGER));
 
+    private static final Set<String> KNOWN_INLINE_TABLES = new HashSet<>(Arrays.asList(
+            "arguments"));
+
     private final Consumer<ConfigurationValue> valueConsumer;
     private final Function<String, ConfigurationAttribute> attributeResolver;
     private final Long institutionId;
@@ -126,6 +129,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
         final PListNode array = new PListNode(type);
         switch (top.type) {
             case KEY: {
+                array.inlineTable = isInlineTable(top.name);
                 array.name = top.name;
                 array.listIndex = top.listIndex;
                 this.stack.pop();
@@ -135,6 +139,10 @@ public class ExamConfigImportHandler extends DefaultHandler {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    private boolean isInlineTable(final String name) {
+        return KNOWN_INLINE_TABLES.contains(name);
     }
 
     private void startDict(final Type type, final PListNode top) {
@@ -218,12 +226,27 @@ public class ExamConfigImportHandler extends DefaultHandler {
                 final PListNode grandParent = this.stack.peek();
                 this.stack.push(parent);
 
-                // if we are in an values-array
+                // if we are in a values-array
                 if (parent.type == Type.ARRAY) {
                     if (StringUtils.isBlank(parent.value)) {
                         parent.value = top.value;
                     } else {
                         parent.value += "," + top.value;
+                    }
+                    return;
+                }
+
+                // if we are in an inline table array
+                if (grandParent.type == Type.ARRAY && grandParent.inlineTable) {
+                    if (StringUtils.isBlank(grandParent.value)) {
+                        grandParent.value = top.value;
+                    } else {
+                        grandParent.value += "," + top.value;
+                    }
+                    if (StringUtils.isBlank(grandParent.valueName)) {
+                        grandParent.valueName = top.name;
+                    } else {
+                        grandParent.valueName += "," + top.name;
                     }
                     return;
                 }
@@ -251,6 +274,11 @@ public class ExamConfigImportHandler extends DefaultHandler {
                 return;
             }
 
+            if (top.inlineTable) {
+                createInlineTableValue(top, attrName, attribute);
+                return;
+            }
+
             // check if we have a simple values array
             if (attribute.type == AttributeType.MULTI_CHECKBOX_SELECTION
                     || attribute.type == AttributeType.MULTI_SELECTION) {
@@ -261,6 +289,35 @@ public class ExamConfigImportHandler extends DefaultHandler {
         } else if (!Constants.XML_PLIST_KEY_NAME.equals(qName)) {
             this.stack.pop();
         }
+    }
+
+    private void createInlineTableValue(
+            final PListNode top,
+            final String attrName,
+            final ConfigurationAttribute attribute) {
+
+        final String[] names = StringUtils.split(top.valueName, Constants.LIST_SEPARATOR);
+        final String[] values = StringUtils.split(top.value, Constants.LIST_SEPARATOR);
+        final String[] columns = StringUtils.split(attribute.getResources(), Constants.EMBEDDED_LIST_SEPARATOR);
+        final int numColumns = columns.length;
+        if (names.length != values.length) {
+            throw new IllegalArgumentException(
+                    "Failed to import InlineTable values. value/name array length mismatch");
+        }
+
+        String val = "";
+        for (int i = 0; i < names.length; i++) {
+            if (i != 0) {
+                if (i % numColumns == 0) {
+                    val = val + Constants.LIST_SEPARATOR;
+                } else {
+                    val = val + Constants.EMBEDDED_LIST_SEPARATOR;
+                }
+            }
+            val = val + names[i] + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + values[i];
+        }
+
+        saveValue(attrName, attribute, top.listIndex, val);
     }
 
     @Override
@@ -390,9 +447,11 @@ public class ExamConfigImportHandler extends DefaultHandler {
         }
 
         final Type type;
+        boolean inlineTable = false;
         String name;
         int arrayCounter = 0;
         int listIndex = 0;
+        String valueName;
         String value;
         boolean saveNullValueAsBlank = false;
 

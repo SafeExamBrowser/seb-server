@@ -24,7 +24,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.INSTITUTION_VIEW),
     INSTITUTION_NEW(
             new LocTextKey("sebserver.institution.action.new"),
-            ImageIcon.NEW,
+            ImageIcon.INSTITUTION,
             PageStateDefinitionImpl.INSTITUTION_EDIT),
     INSTITUTION_VIEW_FROM_LIST(
             new LocTextKey("sebserver.institution.action.list.view"),
@@ -70,7 +70,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW),
     USER_ACCOUNT_NEW(
             new LocTextKey("sebserver.useraccount.action.new"),
-            ImageIcon.NEW,
+            ImageIcon.USER,
             PageStateDefinitionImpl.USER_ACCOUNT_EDIT),
     USER_ACCOUNT_VIEW_FROM_LIST(
             new LocTextKey("sebserver.useraccount.action.view"),
@@ -123,7 +123,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.LMS_SETUP_LIST),
     LMS_SETUP_NEW(
             new LocTextKey("sebserver.lmssetup.action.new"),
-            ImageIcon.NEW,
+            ImageIcon.LMS_SETUP,
             PageStateDefinitionImpl.LMS_SETUP_EDIT),
     LMS_SETUP_VIEW_FROM_LIST(
             new LocTextKey("sebserver.lmssetup.action.list.view"),
@@ -279,7 +279,7 @@ public enum ActionDefinition {
 
     EXAM_INDICATOR_NEW(
             new LocTextKey("sebserver.exam.indicator.action.list.new"),
-            ImageIcon.NEW,
+            ImageIcon.INDICATOR,
             PageStateDefinitionImpl.INDICATOR_EDIT,
             ActionCategory.INDICATOR_LIST),
     EXAM_INDICATOR_MODIFY_FROM_LIST(
@@ -441,7 +441,7 @@ public enum ActionDefinition {
 
     SEB_EXAM_CONFIG_TEMPLATE_NEW(
             new LocTextKey("sebserver.configtemplate.action.list.new"),
-            ImageIcon.NEW,
+            ImageIcon.TEMPLATE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
             ActionCategory.VARIA),
     SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST(

@@ -203,20 +203,6 @@ public class GridTable extends Composite {
 
     private void adaptColumnWidth(final Event event) {
         try {
-
-            // TODO the computeSize seems not to correspond with the width of of parent when display
-//            final Point computeSize = this.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-//            final int widthUnits = this.columns
-//                    .stream()
-//                    .reduce(
-//                            0,
-//                            (acc, c) -> acc + c.columnDef.widthFactor,
-//                            (acc1, acc2) -> acc1 + acc2);
-//            final int widthUnit = computeSize.x / widthUnits;
-//            this.columns
-//                    .stream()
-//                    .forEach(c -> c.header.widthHint = c.columnDef.widthFactor * widthUnit);
-
             this.columns.get(0).header.widthHint = 50;
             this.columns.get(1).header.widthHint = 200;
 

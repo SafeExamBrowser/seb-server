@@ -89,7 +89,12 @@ public class WidgetFactory {
         DELETE("delete.png"),
         SEARCH("lens.png"),
         UNDO("undo.png"),
-        COLOR("color.png");
+        COLOR("color.png"),
+        USER("user.png"),
+        INSTITUTION("institution.png"),
+        LMS_SETUP("lmssetup.png"),
+        INDICATOR("indicator.png"),
+        TEMPLATE("template.png");
 
         private String fileName;
         private ImageData image = null;
