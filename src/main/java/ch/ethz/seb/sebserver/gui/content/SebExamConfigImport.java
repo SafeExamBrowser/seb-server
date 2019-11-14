@@ -154,6 +154,9 @@ public final class SebExamConfigImport {
                                     action.pageContext());
                         }
                         return true;
+                    } else {
+                        formHandle.getContext().notifyError(configuration.getError());
+                        return true;
                     }
                 } else {
                     formHandle.getContext().publishPageMessage(

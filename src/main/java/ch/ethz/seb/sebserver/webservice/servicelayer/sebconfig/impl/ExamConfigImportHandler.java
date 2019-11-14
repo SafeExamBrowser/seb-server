@@ -296,6 +296,12 @@ public class ExamConfigImportHandler extends DefaultHandler {
             final String attrName,
             final ConfigurationAttribute attribute) {
 
+        // no or blank value
+        if (StringUtils.isBlank(top.value)) {
+            saveValue(attrName, attribute, top.listIndex, null);
+            return;
+        }
+
         final String[] names = StringUtils.split(top.valueName, Constants.LIST_SEPARATOR);
         final String[] values = StringUtils.split(top.value, Constants.LIST_SEPARATOR);
         final String[] columns = StringUtils.split(attribute.getResources(), Constants.EMBEDDED_LIST_SEPARATOR);

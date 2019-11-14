@@ -12,6 +12,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.servlet.ServletOutputStream;
@@ -21,6 +22,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +40,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
@@ -260,7 +264,22 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .flatMap(this.configurationDAO::getFollowupConfiguration)
                 .getOrThrow();
 
-        return doImport(password, request, followup);
+        final Result<Configuration> doImport = doImport(password, request, followup);
+        if (doImport.hasError()) {
+
+            // rollback of the new configuration
+            this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
+                    followup.configurationNodeId,
+                    EntityType.CONFIGURATION_NODE))));
+
+            final Throwable rootCause = ExceptionUtils.getRootCause(doImport.getError());
+            return new ResponseEntity<>(
+                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(rootCause.getMessage())),
+                    Utils.createJsonContentHeader(),
+                    HttpStatus.BAD_REQUEST);
+        } else {
+            return doImport;
+        }
     }
 
     @RequestMapping(
@@ -285,7 +304,19 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .flatMap(this.configurationDAO::restoreToDefaultValues)
                 .getOrThrow();
 
-        return doImport(password, request, newConfig);
+        final Result<Configuration> doImport = doImport(password, request, newConfig);
+        if (doImport.hasError()) {
+
+            // rollback of the existing values
+            this.configurationDAO.undo(newConfig.configurationNodeId);
+            final Throwable rootCause = ExceptionUtils.getRootCause(doImport.getError());
+            return new ResponseEntity<>(
+                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(rootCause.getMessage())),
+                    Utils.createJsonContentHeader(),
+                    HttpStatus.BAD_REQUEST);
+        } else {
+            return doImport;
+        }
     }
 
     @RequestMapping(
@@ -474,18 +505,20 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         return node;
     }
 
-    private Object doImport(
+    private Result<Configuration> doImport(
             final String password,
             final HttpServletRequest request,
             final Configuration configuration) throws IOException {
         final InputStream inputStream = new BufferedInputStream(request.getInputStream());
         try {
 
-            return this.sebExamConfigService.importFromSEBFile(
+            final Configuration result = this.sebExamConfigService.importFromSEBFile(
                     configuration,
                     inputStream,
                     password)
                     .getOrThrow();
+
+            return Result.of(result);
 
         } catch (final Exception e) {
             // NOTE: It seems that this has to be manually closed on error case
@@ -493,11 +526,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             //       some left-overs will affect strange behavior.
             //       TODO: find a better solution for this
             IOUtils.closeQuietly(inputStream);
-
-            return new ResponseEntity<>(
-                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(e.getMessage())),
-                    Utils.createJsonContentHeader(),
-                    HttpStatus.BAD_REQUEST);
+            return Result.ofError(e);
         }
     }
 
