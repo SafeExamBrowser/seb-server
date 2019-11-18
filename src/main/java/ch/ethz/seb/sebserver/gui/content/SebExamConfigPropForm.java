@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Function;
 
 import org.eclipse.rap.rwt.RWT;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -168,6 +170,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
+        final List<Tuple<String>> examConfigTemplateResources = resourceService.getExamConfigTemplateResources();
         final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 4)
                 .readonly(isReadonly)
@@ -189,14 +192,16 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         FORM_DESCRIPTION_TEXT_KEY,
                         examConfig.description)
                         .asArea())
-                .addField(FormBuilder.singleSelection(
-                        Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
-                        FORM_TEMPLATE_TEXT_KEY,
-                        (parentEntityKey != null)
-                                ? parentEntityKey.modelId
-                                : String.valueOf(examConfig.templateId),
-                        resourceService::getExamConfigTemplateResources)
-                        .readonly(!isNew))
+                .addFieldIf(
+                        () -> !examConfigTemplateResources.isEmpty(),
+                        () -> FormBuilder.singleSelection(
+                                Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                                FORM_TEMPLATE_TEXT_KEY,
+                                (parentEntityKey != null)
+                                        ? parentEntityKey.modelId
+                                        : String.valueOf(examConfig.templateId),
+                                resourceService::getExamConfigTemplateResources)
+                                .readonly(!isNew))
                 .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,

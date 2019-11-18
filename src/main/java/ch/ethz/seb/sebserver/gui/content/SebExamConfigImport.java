@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -194,7 +196,7 @@ public final class SebExamConfigImport {
         public Supplier<FormHandle<ConfigurationNode>> compose(final Composite parent) {
 
             final ResourceService resourceService = this.pageService.getResourceService();
-
+            final List<Tuple<String>> examConfigTemplateResources = resourceService.getExamConfigTemplateResources();
             final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
                     this.pageContext.copyOf(parent), 4)
                     .readonly(false)
@@ -216,7 +218,7 @@ public final class SebExamConfigImport {
                                     SebExamConfigPropForm.FORM_DESCRIPTION_TEXT_KEY)
                                     .asArea())
                     .addFieldIf(
-                            () -> this.newConfig,
+                            () -> this.newConfig && !examConfigTemplateResources.isEmpty(),
                             () -> FormBuilder.singleSelection(
                                     Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
                                     SebExamConfigPropForm.FORM_TEMPLATE_TEXT_KEY,
