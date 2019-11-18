@@ -82,7 +82,6 @@ public class TextFieldBuilder implements InputFieldBuilder {
             }
             default: {
                 text = new Text(innerGrid, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
-                gridData.minimumHeight = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
                 break;
             }
         }
