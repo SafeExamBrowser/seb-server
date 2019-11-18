@@ -108,6 +108,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.name");
     private static final LocTextKey FORM_QUIZID_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.quizid");
+    private static final LocTextKey FORM_QUIZ_URL_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.quizurl");
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
 
@@ -243,7 +245,10 @@ public class ExamForm implements TemplateComposer {
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content), 8)
+                .withDefaultSpanLabel(1)
+                .withDefaultSpanInput(4)
+                .withDefaultSpanEmptyCell(3)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
                         Domain.EXAM.ATTR_ID,
@@ -263,48 +268,75 @@ public class ExamForm implements TemplateComposer {
                 .putStaticValueIf(isNew,
                         QuizData.QUIZ_ATTR_ID,
                         exam.externalId)
+
+                .addField(FormBuilder.text(
+                        Domain.EXAM.ATTR_EXTERNAL_ID,
+                        FORM_QUIZID_TEXT_KEY,
+                        exam.externalId)
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_LMS_SETUP_ID,
                         FORM_LMSSETUP_TEXT_KEY,
                         String.valueOf(exam.lmsSetupId),
                         this.resourceService::lmsSetupResource)
-                        .readonly(true))
-                .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_EXTERNAL_ID,
-                        FORM_QUIZID_TEXT_KEY,
-                        exam.externalId)
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         exam.name)
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_START_URL,
+                        FORM_QUIZ_URL_TEXT_KEY,
+                        exam.startURL)
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         exam.description)
                         .asArea()
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(6)
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
                         FORM_STARTTIME_TEXT_KEY,
                         i18nSupport.formatDisplayDate(exam.startTime))
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSpan(1))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
                         FORM_ENDTIME_TEXT_KEY,
                         i18nSupport.formatDisplayDate(exam.endTime))
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        Domain.EXAM.ATTR_STATUS + "_display",
+                        FORM_STATUS_TEXT_KEY,
+                        i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
+                        .readonly(true)
+                        .withEmptyCellSeparation(false))
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         String.valueOf(exam.type),
                         this.resourceService::examTypeResources))
-                .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_STATUS,
-                        FORM_STATUS_TEXT_KEY,
-                        i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
-                        .readonly(true))
+
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
                         FORM_SUPPORTER_TEXT_KEY,

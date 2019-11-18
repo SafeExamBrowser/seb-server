@@ -60,7 +60,8 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                         builder.formParent,
                         this.label,
                         this.defaultLabel,
-                        this.spanLabel)
+                        this.spanLabel,
+                        SWT.TOP)
                 : null;
 
         if (builder.readonly || this.readonly) {
@@ -103,7 +104,8 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
-            gridLayout.verticalSpacing = 5;
+            //gridLayout.verticalSpacing = 5;
+            gridLayout.marginBottom = 5;
             gridLayout.horizontalSpacing = 0;
             gridLayout.marginLeft = 0;
             gridLayout.marginHeight = 0;

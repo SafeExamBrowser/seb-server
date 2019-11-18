@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -49,7 +48,6 @@ class ExamSessionControlTask {
 
     @Async
     @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
-    @Transactional
     public void execTask() {
 
         final String updateId = this.examUpdateHandler.createUpdateId();
@@ -70,7 +68,6 @@ class ExamSessionControlTask {
         try {
 
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-
             final Map<Long, String> updated = this.examDAO.allForRunCheck()
                     .getOrThrow()
                     .stream()

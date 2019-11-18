@@ -377,7 +377,7 @@ public final class Exam implements GrantEntity {
         } else if (endTime != null && now.isAfter(endTime)) {
             return ExamStatus.FINISHED;
         } else {
-            return ExamStatus.UP_COMING;
+            return null;
         }
     }
 

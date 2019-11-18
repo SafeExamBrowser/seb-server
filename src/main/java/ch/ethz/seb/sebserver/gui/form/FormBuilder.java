@@ -287,11 +287,21 @@ public class FormBuilder {
             final String defaultText,
             final int hspan) {
 
+        return labelLocalized(parent, locTextKey, defaultText, hspan, SWT.CENTER);
+    }
+
+    Label labelLocalized(
+            final Composite parent,
+            final LocTextKey locTextKey,
+            final String defaultText,
+            final int hspan,
+            final int verticalAlignment) {
+
         final Label label = this.widgetFactory.labelLocalized(
                 parent,
                 locTextKey,
                 (StringUtils.isNotBlank(defaultText) ? defaultText : locTextKey.name));
-        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, verticalAlignment, true, true, hspan, 1);
         gridData.heightHint = FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);

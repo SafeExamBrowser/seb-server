@@ -61,7 +61,8 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                         builder.formParent,
                         this.label,
                         this.defaultLabel,
-                        this.spanLabel)
+                        this.spanLabel,
+                        (this.isArea) ? SWT.TOP : SWT.CENTER)
                 : null;
 
         final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
