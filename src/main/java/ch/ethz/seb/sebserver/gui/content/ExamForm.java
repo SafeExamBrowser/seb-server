@@ -287,6 +287,21 @@ public class ExamForm implements TemplateComposer {
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_START_TIME,
+                        FORM_STARTTIME_TEXT_KEY,
+                        i18nSupport.formatDisplayDate(exam.startTime))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_END_TIME,
+                        FORM_ENDTIME_TEXT_KEY,
+                        i18nSupport.formatDisplayDate(exam.endTime))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         exam.name)
@@ -311,37 +326,30 @@ public class ExamForm implements TemplateComposer {
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_START_TIME,
-                        FORM_STARTTIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDate(exam.startTime))
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSpan(1))
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_END_TIME,
-                        FORM_ENDTIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDate(exam.endTime))
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_STATUS + "_display",
                         FORM_STATUS_TEXT_KEY,
                         i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
                         .readonly(true)
-                        .withEmptyCellSeparation(false))
+                        .withLabelSpan(2)
+                        .withInputSpan(4)
+                        .withEmptyCellSpan(1))
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         String.valueOf(exam.type),
-                        this.resourceService::examTypeResources))
+                        this.resourceService::examTypeResources)
+                        .withLabelSpan(2)
+                        .withInputSpan(4)
+                        .withEmptyCellSpan(2))
 
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
                         FORM_SUPPORTER_TEXT_KEY,
                         StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                        this.resourceService::examSupporterResources))
+                        this.resourceService::examSupporterResources)
+                        .withLabelSpan(2)
+                        .withInputSpan(4)
+                        .withEmptyCellSpan(2))
 
                 .buildFor(importFromQuizData
                         ? this.restService.getRestCall(ImportAsExam.class)
