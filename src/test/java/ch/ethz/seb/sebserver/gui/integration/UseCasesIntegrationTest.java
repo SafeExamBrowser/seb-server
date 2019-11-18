@@ -674,7 +674,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(quizzes.isEmpty());
         final QuizData quizData = quizzes.content.get(0);
         assertNotNull(quizData);
-        assertEquals("Demo Quiz 1", quizData.name);
+        assertEquals("Demo Quiz 1 (MOCKUP)", quizData.name);
 
         // import quiz as exam
         final Result<Exam> newExamResult = restService
@@ -688,7 +688,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(newExamResult.hasError());
         final Exam newExam = newExamResult.get();
 
-        assertEquals("Demo Quiz 1", newExam.name);
+        assertEquals("Demo Quiz 1 (MOCKUP)", newExam.name);
         assertEquals(ExamType.UNDEFINED, newExam.type);
         assertFalse(newExam.supporter.isEmpty());
 
@@ -753,7 +753,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final List<EntityName> exams = examNamesResult.get();
         assertFalse(exams.isEmpty());
         final EntityName examName = exams.get(0);
-        assertEquals("Demo Quiz 1", examName.name);
+        assertEquals("Demo Quiz 1 (MOCKUP)", examName.name);
 
         final Result<Exam> examResult = restService
                 .getBuilder(GetExam.class)
