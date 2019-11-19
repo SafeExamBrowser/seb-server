@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -33,16 +34,21 @@ import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
 public final class SebExamConfigImport {
+
+    private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
+            new LocTextKey("sebserver.examconfig.action.import.missing-password"));
 
     static Function<PageAction, PageAction> importFunction(
             final PageService pageService,
@@ -157,6 +163,19 @@ public final class SebExamConfigImport {
                         }
                         return true;
                     } else {
+                        final Throwable error = configuration.getError();
+                        if (error instanceof RestCallError) {
+                            ((RestCallError) error)
+                                    .getErrorMessages()
+                                    .stream()
+                                    .filter(APIMessage.ErrorMessage.MISSING_PASSWORD::isOf)
+                                    .findFirst()
+                                    .ifPresent(message -> formHandle
+                                            .getContext()
+                                            .publishPageMessage(MISSING_PASSWORD));
+                            return true;
+                        }
+
                         formHandle.getContext().notifyError(configuration.getError());
                         return true;
                     }

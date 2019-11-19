@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
@@ -138,7 +139,8 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
 
             if ((strategy == Strategy.PASSWORD_PSWD || strategy == Strategy.PASSWORD_PWCC)
                     && StringUtils.isBlank(context.getPassword())) {
-                return new AsyncResult<>(new IllegalArgumentException("Missing Password"));
+                return new AsyncResult<>(new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.MISSING_PASSWORD.of("Missing Password")));
             }
 
             // then decrypt stream

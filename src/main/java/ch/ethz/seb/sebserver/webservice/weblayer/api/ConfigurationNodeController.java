@@ -22,13 +22,11 @@ import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -57,7 +54,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -233,7 +229,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object importExamConfig(
+    public Configuration importExamConfig(
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_NAME, required = false) final String name,
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                     required = false) final String description,
@@ -271,15 +267,10 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
                     followup.configurationNodeId,
                     EntityType.CONFIGURATION_NODE))));
-
-            final Throwable rootCause = ExceptionUtils.getRootCause(doImport.getError());
-            return new ResponseEntity<>(
-                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(rootCause.getMessage())),
-                    Utils.createJsonContentHeader(),
-                    HttpStatus.BAD_REQUEST);
-        } else {
-            return doImport;
         }
+
+        return doImport
+                .getOrThrow();
     }
 
     @RequestMapping(
@@ -287,7 +278,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object importExamConfigOnExistingConfig(
+    public Configuration importExamConfigOnExistingConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
             @RequestParam(
@@ -309,14 +300,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
             // rollback of the existing values
             this.configurationDAO.undo(newConfig.configurationNodeId);
-            final Throwable rootCause = ExceptionUtils.getRootCause(doImport.getError());
-            return new ResponseEntity<>(
-                    Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(rootCause.getMessage())),
-                    Utils.createJsonContentHeader(),
-                    HttpStatus.BAD_REQUEST);
-        } else {
-            return doImport;
+
         }
+
+        return doImport
+                .getOrThrow();
     }
 
     @RequestMapping(

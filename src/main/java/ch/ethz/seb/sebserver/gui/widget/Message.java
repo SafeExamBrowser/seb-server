@@ -35,13 +35,18 @@ public final class Message extends MessageBox {
         super.prepareOpen();
         final GridLayout layout = (GridLayout) super.shell.getLayout();
         layout.marginTop = 10;
-        layout.marginBottom = 10;
+        layout.marginLeft = 10;
+        layout.marginRight = 10;
+        layout.verticalSpacing = 10;
+        layout.horizontalSpacing = 10;
         super.shell.setData(RWT.CUSTOM_VARIANT, "message");
         final Rectangle bounds = super.shell.getBounds();
         if (bounds.width < NORMAL_WIDTH) {
             bounds.x = bounds.x - (NORMAL_WIDTH - bounds.width) / 2;
             bounds.width = NORMAL_WIDTH;
             super.shell.setBounds(bounds);
+        } else {
+            super.shell.pack(true);
         }
     }
 

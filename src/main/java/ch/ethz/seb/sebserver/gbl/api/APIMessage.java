@@ -41,10 +41,11 @@ public class APIMessage implements Serializable {
         FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
         RESOURCE_NOT_FOUND("1002", HttpStatus.NOT_FOUND, "resource not found"),
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
-        UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected intenral server-side error"),
+        UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server-side error"),
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
         INTEGRITY_VALIDATION("1201", HttpStatus.BAD_REQUEST, "Action would lied to an integrity violation"),
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
+        MISSING_PASSWORD("1301", HttpStatus.BAD_REQUEST, "Missing Password"),
 
         EXAM_CONSISTANCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
         EXAM_CONSISTANCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),

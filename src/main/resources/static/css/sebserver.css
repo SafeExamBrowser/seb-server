@@ -378,14 +378,14 @@ DateTime-DropDownButton {
 
 /* Message titlebar */
 Shell.message {
+  font: 12px Arial, Helvetica, sans-serif;
   animation: none;
   border: 1px solid #bdbdbd;
   background-color: #ffffff;
   background-image: none;
-  padding: 0px;
   opacity: 1;
   box-shadow: none;
-  width: 400px;
+  padding: 5px 10px 5px 10px;
 }
 
 Shell-Titlebar.message {
