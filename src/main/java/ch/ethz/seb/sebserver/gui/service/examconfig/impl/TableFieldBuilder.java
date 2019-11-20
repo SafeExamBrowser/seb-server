@@ -41,6 +41,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 @GuiProfile
 public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
+    private static final String ADD_TOOLTIP_SUFFIX = ".add.tooltip";
+    private static final String REMOVE_TOOLTIP_SUFFIX = ".remove.tooltip";
+
     protected TableFieldBuilder(
             final RestService restService,
             final WidgetFactory widgetFactory) {
@@ -88,8 +91,12 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
         if (!viewContext.readonly) {
             TableColumn column = new TableColumn(table, SWT.NONE);
-            column.setImage(ImageIcon.ADD_BOX.getImage(parent.getDisplay()));
-
+            column.setImage(ImageIcon.ADD_BOX_WHITE.getImage(parent.getDisplay()));
+            column.setToolTipText(viewContext.i18nSupport.getText(
+                    ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
+                            attribute.name +
+                            ADD_TOOLTIP_SUFFIX,
+                    "Add new"));
             column.setWidth(20);
             column.setResizable(false);
             column.setMoveable(false);
@@ -99,8 +106,12 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
             });
 
             column = new TableColumn(table, SWT.NONE);
-            column.setImage(ImageIcon.REMOVE_BOX.getImage(parent.getDisplay()));
-
+            column.setImage(ImageIcon.REMOVE_BOX_WHITE.getImage(parent.getDisplay()));
+            column.setToolTipText(viewContext.i18nSupport.getText(
+                    ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
+                            attribute.name +
+                            REMOVE_TOOLTIP_SUFFIX,
+                    "Remove Selected"));
             column.setWidth(20);
             column.setResizable(false);
             column.setMoveable(false);
