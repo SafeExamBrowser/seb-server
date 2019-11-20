@@ -18,7 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 
 /** Concrete EntityDAO interface of SebClientConfig entities */
 public interface SebClientConfigDAO extends
@@ -56,7 +56,7 @@ public interface SebClientConfigDAO extends
 
     @Override
     @CacheEvict(
-            cacheNames = SebClientConfigService.EXAM_CLIENT_DETAILS_CACHE,
+            cacheNames = ClientConfigService.EXAM_CLIENT_DETAILS_CACHE,
             allEntries = true)
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 

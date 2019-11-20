@@ -110,6 +110,16 @@ public final class ConfigurationValue implements GrantEntity {
         return this.value;
     }
 
+    public ConfigurationValue copyOf(final Long institutionId, final Long configurationId2) {
+        return new ConfigurationValue(
+                this.id,
+                institutionId,
+                configurationId2,
+                this.attributeId,
+                this.listIndex,
+                this.value);
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

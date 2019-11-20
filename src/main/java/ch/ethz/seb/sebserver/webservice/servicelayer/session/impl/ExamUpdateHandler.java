@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 @Lazy
 @Service
@@ -42,14 +42,14 @@ class ExamUpdateHandler {
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
     private final ExamDAO examDAO;
-    private final SebExamConfigService sebExamConfigService;
+    private final ExamConfigService sebExamConfigService;
     private final LmsAPIService lmsAPIService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
-            final SebExamConfigService sebExamConfigService,
+            final ExamConfigService sebExamConfigService,
             final LmsAPIService lmsAPIService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {

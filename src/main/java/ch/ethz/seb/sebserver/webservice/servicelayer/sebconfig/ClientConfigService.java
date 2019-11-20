@@ -21,9 +21,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEvent;
 
-public interface SebClientConfigService {
+public interface ClientConfigService {
 
-    Logger log = LoggerFactory.getLogger(SebClientConfigService.class);
+    Logger log = LoggerFactory.getLogger(ClientConfigService.class);
 
     public static final String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
 

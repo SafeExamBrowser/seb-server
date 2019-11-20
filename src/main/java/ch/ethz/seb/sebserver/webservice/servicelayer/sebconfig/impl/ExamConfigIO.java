@@ -187,7 +187,7 @@ public class ExamConfigIO {
 
             // the SAX handler with a ConfigValue sink that saves the values to DB
             // and a attribute-name/id mapping function with pre-created mapping
-            final ExamConfigImportHandler examConfigImportHandler = new ExamConfigImportHandler(
+            final ExamConfigXMLParser examConfigImportHandler = new ExamConfigXMLParser(
                     institutionId,
                     configurationId,
                     value -> this.configurationValueDAO

@@ -151,6 +151,9 @@ public class ExamDAOImpl implements ExamDAO {
                     .and(
                             ExamRecordDynamicSqlSupport.type,
                             isEqualToWhenPresent(filterMap.getExamType()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isEqualToWhenPresent(filterMap.getExamStatus()))
                     .build()
                     .execute();
 
@@ -299,6 +302,26 @@ public class ExamDAOImpl implements ExamDAO {
                 .build()
                 .execute()
                 .longValue() > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> getExamIdsForStatus(final Long institutionId, final ExamStatus status) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(
+                        ExamRecordDynamicSqlSupport.active,
+                        isEqualTo(BooleanUtils.toInteger(true)))
+                .and(
+                        ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(institutionId))
+                .and(
+                        ExamRecordDynamicSqlSupport.status,
+                        isEqualTo(status.name()))
+                .and(
+                        ExamRecordDynamicSqlSupport.updating,
+                        isEqualTo(BooleanUtils.toInteger(false)))
+                .build()
+                .execute());
     }
 
     @Override

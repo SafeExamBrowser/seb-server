@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -45,7 +45,7 @@ public class ConfigurationValueController extends EntityController<Configuration
 
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationValueDAO configurationValueDAO;
-    private final SebExamConfigService sebExamConfigService;
+    private final ExamConfigService sebExamConfigService;
 
     protected ConfigurationValueController(
             final AuthorizationService authorization,
@@ -55,7 +55,7 @@ public class ConfigurationValueController extends EntityController<Configuration
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ConfigurationDAO configurationDAO,
-            final SebExamConfigService sebExamConfigService) {
+            final ExamConfigService sebExamConfigService) {
 
         super(authorization,
                 bulkActionService,

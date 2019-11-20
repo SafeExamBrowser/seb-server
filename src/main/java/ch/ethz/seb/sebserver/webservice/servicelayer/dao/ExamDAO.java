@@ -13,6 +13,7 @@ import java.util.Collection;
 import org.springframework.cache.annotation.CacheEvict;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
@@ -39,6 +40,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param connectionId
      * @return a Result containing the Exam by a given ClientConnection id or refer to an error if happened */
     Result<Exam> byClientConnection(Long connectionId);
+
+    Result<Collection<Long>> getExamIdsForStatus(Long institutionId, ExamStatus status);
 
     Result<Collection<Exam>> allForRunCheck();
 

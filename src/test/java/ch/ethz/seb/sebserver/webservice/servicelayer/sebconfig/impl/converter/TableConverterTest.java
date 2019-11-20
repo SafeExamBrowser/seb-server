@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeD
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.AttributeValueConverterServiceImpl;
 
 public class TableConverterTest {
 

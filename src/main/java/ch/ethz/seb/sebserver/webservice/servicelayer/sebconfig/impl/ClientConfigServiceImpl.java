@@ -48,7 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialServ
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
@@ -58,9 +58,9 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfigu
 @Lazy
 @Service
 @WebServiceProfile
-public class SebClientConfigServiceImpl implements SebClientConfigService {
+public class ClientConfigServiceImpl implements ClientConfigService {
 
-    private static final Logger log = LoggerFactory.getLogger(SebClientConfigServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ClientConfigServiceImpl.class);
 
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
@@ -71,7 +71,7 @@ public class SebClientConfigServiceImpl implements SebClientConfigService {
     private final TokenStore tokenStore;
     private final WebserviceInfo webserviceInfo;
 
-    protected SebClientConfigServiceImpl(
+    protected ClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
             final SebClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,

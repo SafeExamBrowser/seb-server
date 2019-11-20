@@ -41,14 +41,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigTemplateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateService {
+public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService {
 
-    private static final Logger log = LoggerFactory.getLogger(SebExamConfigTemplateServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigTemplateServiceImpl.class);
 
     private final ViewDAO viewDAO;
     private final ConfigurationDAO configurationDAO;
@@ -56,7 +56,7 @@ public class SebExamConfigTemplateServiceImpl implements SebExamConfigTemplateSe
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
 
-    protected SebExamConfigTemplateServiceImpl(
+    protected ExamConfigTemplateServiceImpl(
             final ViewDAO viewDAO,
             final ConfigurationDAO configurationDAO,
             final OrientationDAO orientationDAO,

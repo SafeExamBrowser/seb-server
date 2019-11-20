@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.validation;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;

@@ -44,16 +44,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationForm
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class SebExamConfigServiceImpl implements SebExamConfigService {
+public class ExamConfigServiceImpl implements ExamConfigService {
 
-    private static final Logger log = LoggerFactory.getLogger(SebExamConfigServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigServiceImpl.class);
 
     private final ExamConfigIO examConfigIO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
@@ -64,7 +64,7 @@ public class SebExamConfigServiceImpl implements SebExamConfigService {
     private final ZipService zipService;
     private final SebConfigEncryptionService sebConfigEncryptionService;
 
-    protected SebExamConfigServiceImpl(
+    protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationDAO configurationDAO,

@@ -14,7 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
-public interface SebExamConfigTemplateService {
+public interface ExamConfigTemplateService {
 
     Result<List<TemplateAttribute>> getTemplateAttributes(
             final Long institutionId,

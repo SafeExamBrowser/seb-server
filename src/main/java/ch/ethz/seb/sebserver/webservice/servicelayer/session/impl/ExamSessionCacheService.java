@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 /** Handles caching for exam session and defines caching for following object:
  *
@@ -54,7 +54,7 @@ public class ExamSessionCacheService {
     private final ExamDAO examDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientIndicatorFactory clientIndicatorFactory;
-    private final SebExamConfigService sebExamConfigService;
+    private final ExamConfigService sebExamConfigService;
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ExamUpdateHandler examUpdateHandler;
 
@@ -62,7 +62,7 @@ public class ExamSessionCacheService {
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientIndicatorFactory clientIndicatorFactory,
-            final SebExamConfigService sebExamConfigService,
+            final ExamConfigService sebExamConfigService,
             final ClientEventRecordMapper clientEventRecordMapper,
             final ExamUpdateHandler examUpdateHandler) {
 

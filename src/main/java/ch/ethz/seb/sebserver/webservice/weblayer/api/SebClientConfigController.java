@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -53,7 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
 public class SebClientConfigController extends ActivatableEntityController<SebClientConfig, SebClientConfig> {
 
-    private final SebClientConfigService sebClientConfigService;
+    private final ClientConfigService sebClientConfigService;
 
     public SebClientConfigController(
             final SebClientConfigDAO sebClientConfigDAO,
@@ -62,7 +62,7 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
             final BulkActionService bulkActionService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final SebClientConfigService sebClientConfigService) {
+            final ClientConfigService sebClientConfigService) {
 
         super(authorization,
                 bulkActionService,

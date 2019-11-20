@@ -33,6 +33,17 @@ class ExamSessionControlTask {
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
 
+    // TODO for distributed systems we need a data-base based priority and flag that the individual
+    //      tasks can check and set so that only one task is actually processing and the other just checks
+    //      if a task is still processing and backup of not.
+    //      Possibly this can be done with a overall master service setting on the DB in table webservice_server_info
+
+    // TODO considering to have some caching of running exams end dates here to improve performance
+    //      the end check task has than only to first update missing running exams and then
+    //      check the exam ending within the cached end date of the exam. if an exam has ended by
+    //      applying the check to the cached value, the process can double-check if the end date has
+    //      no change and update if needed or end the exam and remove from cache.
+
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
             final ExamUpdateHandler examUpdateHandler,

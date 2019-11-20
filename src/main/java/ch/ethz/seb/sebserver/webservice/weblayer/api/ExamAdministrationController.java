@@ -60,7 +60,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -75,7 +75,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final LmsAPIService lmsAPIService;
-    private final SebExamConfigService sebExamConfigService;
+    private final ExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
     private final ExamConfigUpdateService examConfigUpdateService;
 
@@ -88,7 +88,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final BeanValidationService beanValidationService,
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
-            final SebExamConfigService sebExamConfigService,
+            final ExamConfigService sebExamConfigService,
             final ExamSessionService examSessionService,
             final ExamConfigUpdateService examConfigUpdateService) {
 

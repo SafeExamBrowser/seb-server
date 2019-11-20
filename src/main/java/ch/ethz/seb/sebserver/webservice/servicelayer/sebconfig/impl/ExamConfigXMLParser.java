@@ -27,12 +27,12 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigImportHandler.PListNode.Type;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser.PListNode.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
 
-public class ExamConfigImportHandler extends DefaultHandler {
+public class ExamConfigXMLParser extends DefaultHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamConfigImportHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigXMLParser.class);
 
     private static final Set<String> VALUE_ELEMENTS = new HashSet<>(Arrays.asList(
             Constants.XML_PLIST_BOOLEAN_FALSE,
@@ -54,7 +54,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
     private Boolean killExplorerShell = null;
     private Boolean createNewDesktop = null;
 
-    protected ExamConfigImportHandler(
+    public ExamConfigXMLParser(
             final Long institutionId,
             final Long configId,
             final Consumer<ConfigurationValue> valueConsumer,
@@ -69,12 +69,16 @@ public class ExamConfigImportHandler extends DefaultHandler {
 
     @Override
     public void startDocument() throws SAXException {
-        log.debug("Start parsing document");
+        if (log.isDebugEnabled()) {
+            log.debug("Start parsing document");
+        }
     }
 
     @Override
     public void endDocument() throws SAXException {
-        log.debug("End parsing document");
+        if (log.isDebugEnabled()) {
+            log.debug("End parsing document");
+        }
     }
 
     @Override
@@ -84,7 +88,9 @@ public class ExamConfigImportHandler extends DefaultHandler {
             final String qName,
             final Attributes attributes) throws SAXException {
 
-        log.debug("start element: {}", qName);
+        if (log.isDebugEnabled()) {
+            log.debug("start element: {}", qName);
+        }
 
         final Type type = Type.getType(qName);
         final PListNode top = (this.stack.isEmpty()) ? null : this.stack.peek();
@@ -269,11 +275,6 @@ public class ExamConfigImportHandler extends DefaultHandler {
                     : top.name;
             final ConfigurationAttribute attribute = this.attributeResolver.apply(attrName);
 
-            if (attribute == null) {
-                log.warn("Import of unknown attribute. name={} value={}", attrName, top.value);
-                return;
-            }
-
             if (top.inlineTable) {
                 createInlineTableValue(top, attrName, attribute);
                 return;
@@ -308,7 +309,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
         final int numColumns = columns.length;
         if (names.length != values.length) {
             throw new IllegalArgumentException(
-                    "Failed to import InlineTable values. value/name array length mismatch");
+                    "Failed to get InlineTable values. value/name array length mismatch");
         }
 
         String val = "";
@@ -359,7 +360,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
 
         if (configurationValue != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Save imported value: {} : {}", name, configurationValue);
+                log.debug("Put value: {} : {}", name, configurationValue);
             }
 
             this.valueConsumer.accept(configurationValue);
@@ -377,7 +378,7 @@ public class ExamConfigImportHandler extends DefaultHandler {
                 return handleKioskMode(name, listIndex, value);
             }
 
-            log.warn("Import of unknown attribute. name={} value={}", name, value);
+            log.warn("Unknown attribute. name={} value={}", name, value);
             return null;
         }
 

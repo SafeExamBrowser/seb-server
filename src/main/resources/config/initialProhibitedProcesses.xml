@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>prohibitedProcesses</key>
+    <array>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>join.me</string>
+        <key>originalName</key>
+        <string>join.me</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RPCSuite</string>
+        <key>originalName</key>
+        <string>RPCSuite</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RPCService</string>
+        <key>originalName</key>
+        <string>RPCService</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RemotePCDesktop</string>
+        <key>originalName</key>
+        <string>RemotePCDesktop</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>beamyourscreen-host</string>
+        <key>originalName</key>
+        <string>beamyourscreen-host</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>AeroAdmin</string>
+        <key>originalName</key>
+        <string>AeroAdmin</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Mikogo-host</string>
+        <key>originalName</key>
+        <string>Mikogo-host</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>chromoting</string>
+        <key>originalName</key>
+        <string>chromoting</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncserverui</string>
+        <key>originalName</key>
+        <string>vncserverui</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncviewer</string>
+        <key>originalName</key>
+        <string>vncviewer</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncserver</string>
+        <key>originalName</key>
+        <string>vncserver</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>TeamViewer</string>
+        <key>originalName</key>
+        <string>TeamViewer</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>GotoMeetingWinStore</string>
+        <key>originalName</key>
+        <string>GotoMeetingWinStore</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>g2mcomm.exe</string>
+        <key>originalName</key>
+        <string>g2mcomm.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>SkypeHost</string>
+        <key>originalName</key>
+        <string>SkypeHost</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Skype</string>
+        <key>originalName</key>
+        <string>Skype</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+    </array>
+  </dict>
+</plist>

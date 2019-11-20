@@ -6,13 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.validation;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -21,9 +21,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValu
 @Lazy
 @Component
 @WebServiceProfile
-public class WindowsSizeValidator implements ConfigurationValueValidator {
+public class IntegerTypeValidator implements ConfigurationValueValidator {
 
-    public static final String NAME = "WindowsSizeValidator";
+    public static final String NAME = "IntegerTypeValidator";
 
     @Override
     public String name() {
@@ -31,8 +31,12 @@ public class WindowsSizeValidator implements ConfigurationValueValidator {
     }
 
     @Override
-    public boolean validate(final ConfigurationValue value, final ConfigurationAttribute attribute) {
-        if (!NAME.equals(attribute.validator)) {
+    public boolean validate(
+            final ConfigurationValue value,
+            final ConfigurationAttribute attribute) {
+
+        // if value is not an integer type and validator is not specified --> skip
+        if (attribute.type != AttributeType.INTEGER && !name().equals(attribute.validator)) {
             return true;
         }
 
@@ -40,12 +44,8 @@ public class WindowsSizeValidator implements ConfigurationValueValidator {
             return true;
         }
 
-        final String number = (value.value.endsWith(Constants.PERCENTAGE))
-                ? value.value.substring(0, value.value.length() - 1)
-                : value.value;
-
         try {
-            Integer.parseInt(number);
+            Integer.parseInt(value.value);
             return true;
         } catch (final NumberFormatException nfe) {
             return false;

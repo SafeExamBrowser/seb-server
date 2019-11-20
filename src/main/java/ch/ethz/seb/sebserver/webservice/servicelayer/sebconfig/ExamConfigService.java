@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** The base interface and service for all SEB Exam Configuration related functionality. */
-public interface SebExamConfigService {
+public interface ExamConfigService {
 
     /** Validates a given ConfigurationValue by using registered ConfigurationValueValodator
      * beans to find a proper validator for the specified ConfigurationValue

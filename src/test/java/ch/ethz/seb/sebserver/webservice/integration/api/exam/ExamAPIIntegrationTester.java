@@ -50,7 +50,7 @@ import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
@@ -287,7 +287,7 @@ public abstract class ExamAPIIntegrationTester {
     @Autowired
     AdminAPIClientDetails adminClientDetails;
     @Autowired
-    SebClientConfigService sebClientConfigService;
+    ClientConfigService sebClientConfigService;
     @Autowired
     @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;

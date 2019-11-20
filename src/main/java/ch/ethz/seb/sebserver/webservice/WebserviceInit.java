@@ -11,32 +11,26 @@ package ch.ethz.seb.sebserver.webservice;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.cryptonode.jncryptor.AES256JNCryptor;
-import org.cryptonode.jncryptor.JNCryptor;
+import javax.annotation.PreDestroy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
-// TODO check if DataSourceAutoConfiguration and TokenStore bean definition is really needed here
-//      or if it is possible to move them to the WebServiceSecurityConfig.
-//      test with starting web and gui separately as well as together
-@Configuration
+@Component
 @WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
-public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent> {
+public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent> {
 
-    private static final Logger log = LoggerFactory.getLogger(WebServiceInit.class);
+    private static final Logger log = LoggerFactory.getLogger(WebserviceInit.class);
 
     @Autowired
     private Environment environment;
@@ -62,16 +56,14 @@ public class WebServiceInit implements ApplicationListener<ApplicationReadyEvent
 
         log.info("{}", this.webserviceInfo);
 
-        // TODO whatever has to be initialized for the web-service component right after startup comes here
+        // TODO integration of Flyway for database initialization and migration:  https://flywaydb.org
+        //      see also https://flywaydb.org/getstarted/firststeps/api
 
     }
 
-    @Lazy
-    @Bean
-    public JNCryptor jnCryptor() {
-        final AES256JNCryptor aes256jnCryptor = new AES256JNCryptor();
-        aes256jnCryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
-        return aes256jnCryptor;
+    @PreDestroy
+    public void gracefulShutdown() {
+        log.info("**** Gracefully Shutdown of SEB Server instance {} ****", this.webserviceInfo.getHostAddress());
     }
 
 }

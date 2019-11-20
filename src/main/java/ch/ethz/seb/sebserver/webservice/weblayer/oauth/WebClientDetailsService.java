@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 
 /** A ClientDetailsService to manage different API clients of SEB Server webservice API.
  *
@@ -32,12 +32,12 @@ public class WebClientDetailsService implements ClientDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(WebClientDetailsService.class);
 
-    private final SebClientConfigService sebClientConfigService;
+    private final ClientConfigService sebClientConfigService;
     private final AdminAPIClientDetails adminClientDetails;
 
     public WebClientDetailsService(
             final AdminAPIClientDetails adminClientDetails,
-            final SebClientConfigService sebClientConfigService) {
+            final ClientConfigService sebClientConfigService) {
 
         this.adminClientDetails = adminClientDetails;
         this.sebClientConfigService = sebClientConfigService;

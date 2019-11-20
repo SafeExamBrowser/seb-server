@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -198,7 +199,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final FilterMap filterMap,
             final Predicate<Exam> predicate) {
 
-        filterMap.putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
+        filterMap
+                .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
 
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()

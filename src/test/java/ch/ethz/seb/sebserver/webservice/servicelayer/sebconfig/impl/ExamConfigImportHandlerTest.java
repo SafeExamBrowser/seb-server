@@ -40,7 +40,7 @@ public class ExamConfigImportHandlerTest {
     @Test
     public void simpleStringValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,
@@ -72,7 +72,7 @@ public class ExamConfigImportHandlerTest {
     @Test
     public void simpleIntegerValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,
@@ -104,7 +104,7 @@ public class ExamConfigImportHandlerTest {
     @Test
     public void simpleBooleanValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,
@@ -135,7 +135,7 @@ public class ExamConfigImportHandlerTest {
     @Test
     public void arrayOfStringValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,
@@ -186,7 +186,7 @@ public class ExamConfigImportHandlerTest {
             attrNamesCollector.add(attrName);
             return attributeResolver.apply(attrName);
         };
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,
@@ -255,7 +255,7 @@ public class ExamConfigImportHandlerTest {
             attrNamesCollector.add(attrName);
             return attributeResolver.apply(attrName);
         };
-        final ExamConfigImportHandler candidate = new ExamConfigImportHandler(
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
                 1L,
                 1L,
                 valueCollector,

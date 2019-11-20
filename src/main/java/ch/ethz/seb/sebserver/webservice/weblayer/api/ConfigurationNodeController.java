@@ -66,8 +66,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebExamConfigTemplateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -81,8 +81,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     private final ConfigurationDAO configurationDAO;
     private final ViewDAO viewDAO;
     private final OrientationDAO orientationDAO;
-    private final SebExamConfigService sebExamConfigService;
-    private final SebExamConfigTemplateService sebExamConfigTemplateService;
+    private final ExamConfigService sebExamConfigService;
+    private final ExamConfigTemplateService sebExamConfigTemplateService;
 
     protected ConfigurationNodeController(
             final AuthorizationService authorization,
@@ -94,8 +94,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final ConfigurationDAO configurationDAO,
             final ViewDAO viewDAO,
             final OrientationDAO orientationDAO,
-            final SebExamConfigService sebExamConfigService,
-            final SebExamConfigTemplateService sebExamConfigTemplateService) {
+            final ExamConfigService sebExamConfigService,
+            final ExamConfigTemplateService sebExamConfigTemplateService) {
 
         super(authorization,
                 bulkActionService,

@@ -238,7 +238,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
         });
     }
 
-    private Result<ConfigurationAttributeRecord> recordById(final Long id) {
+    Result<ConfigurationAttributeRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
             final ConfigurationAttributeRecord record = this.configurationAttributeRecordMapper
                     .selectByPrimaryKey(id);
@@ -251,7 +251,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
         });
     }
 
-    private static Result<ConfigurationAttribute> toDomainModel(final ConfigurationAttributeRecord record) {
+    static Result<ConfigurationAttribute> toDomainModel(final ConfigurationAttributeRecord record) {
         return Result.tryCatch(() -> new ConfigurationAttribute(
                 record.getId(),
                 record.getParentId(),
