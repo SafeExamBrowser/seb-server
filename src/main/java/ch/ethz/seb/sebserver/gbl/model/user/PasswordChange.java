@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -29,16 +30,16 @@ public class PasswordChange implements Entity {
     @JsonProperty(USER.ATTR_UUID)
     public final String userId;
 
-    @NotNull(message = "user:password:notNull")
+    @NotEmpty(message = "user:password:notNull")
     @JsonProperty(ATTR_NAME_PASSWORD)
     private final String password;
 
-    @NotNull(message = "user:newPassword:notNull")
+    @NotEmpty(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final String newPassword;
 
-    @NotNull(message = "user:confirmNewPassword:notNull")
+    @NotEmpty(message = "user:confirmNewPassword:notNull")
     @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final String confirmNewPassword;
 

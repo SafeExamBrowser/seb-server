@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -215,22 +217,28 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getCurrentUser().getUsername())
                 .getOrThrow();
 
+        final Collection<APIMessage> errors = new ArrayList<>();
+
         if (!this.userPasswordEncoder.matches(passwordChange.getPassword(), currentUser.getPassword())) {
 
-            throw new APIMessageException(APIMessage.fieldValidationError(
+            errors.add(APIMessage.fieldValidationError(
                     new FieldError(
                             "passwordChange",
                             PasswordChange.ATTR_NAME_PASSWORD,
-                            "user:oldPassword:password.wrong")));
+                            "user:password:password.wrong")));
         }
 
         if (!passwordChange.newPasswordMatch()) {
 
-            throw new APIMessageException(APIMessage.fieldValidationError(
+            errors.add(APIMessage.fieldValidationError(
                     new FieldError(
                             "passwordChange",
                             PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                             "user:confirmNewPassword:password.mismatch")));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new APIMessageException(errors);
         }
 
         return info;
