@@ -16,8 +16,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 
-public final class ConfigCopyInfo implements Entity {
+public final class ConfigCreationInfo implements Entity {
 
     public static final String ATTR_COPY_WITH_HISTORY = "with-history";
 
@@ -37,16 +38,23 @@ public final class ConfigCopyInfo implements Entity {
     @JsonProperty(ATTR_COPY_WITH_HISTORY)
     public final Boolean withHistory;
 
-    protected ConfigCopyInfo(
+    @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE)
+    public final ConfigurationType configurationType;
+
+    protected ConfigCreationInfo(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long configurationNodeId,
             @JsonProperty(CONFIGURATION_NODE.ATTR_NAME) final String name,
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,
-            @JsonProperty(ATTR_COPY_WITH_HISTORY) final Boolean withHistory) {
+            @JsonProperty(ATTR_COPY_WITH_HISTORY) final Boolean withHistory,
+            @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE) final ConfigurationType configurationType) {
 
         this.configurationNodeId = configurationNodeId;
         this.name = name;
         this.description = description;
         this.withHistory = withHistory;
+        this.configurationType = (configurationType != null)
+                ? configurationType
+                : ConfigurationType.EXAM_CONFIG;
     }
 
     public Long getConfigurationNodeId() {
@@ -64,6 +72,10 @@ public final class ConfigCopyInfo implements Entity {
 
     public Boolean getWithHistory() {
         return this.withHistory;
+    }
+
+    public ConfigurationType getConfigurationType() {
+        return this.configurationType;
     }
 
     @Override
@@ -89,6 +101,8 @@ public final class ConfigCopyInfo implements Entity {
         builder.append(this.description);
         builder.append(", withHistory=");
         builder.append(this.withHistory);
+        builder.append(", configurationType=");
+        builder.append(this.configurationType);
         builder.append("]");
         return builder.toString();
     }

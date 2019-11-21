@@ -421,6 +421,10 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE(
+            new LocTextKey("sebserver.examconfig.action.copy-as-template"),
+            ImageIcon.TEMPLATE,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify"),
@@ -463,6 +467,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.configtemplate.action.modify"),
             ImageIcon.EDIT,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
+            ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG(
+            new LocTextKey("sebserver.configtemplate.action.create-config"),
+            ImageIcon.NEW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_TEMPLATE_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),

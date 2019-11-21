@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -99,8 +100,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
     static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.attched-to");
 
-    static final LocTextKey FORM_COPY_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.action.copy");
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
 
@@ -253,13 +252,32 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigImport.importFunction(this.pageService, false))
+                .withExec(SebExamConfigImportUtils.importFunction(this.pageService, false))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigCopy.copyConfigFunction(this.pageService, actionContext))
+                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                        this.pageService,
+                        actionContext
+                                .withEntityKey(entityKey)
+                                .withAttribute(
+                                        PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+                                        Constants.FALSE_STRING)
+                                .withAttribute(
+                                        PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
+                                        Constants.FALSE_STRING)))
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                        this.pageService,
+                        pageContext.withAttribute(
+                                PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+                                Constants.TRUE_STRING)))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 

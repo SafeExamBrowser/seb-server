@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class TableNavigator {
 
-    private final static int PAGE_NAV_SIZE = 3;
+    private final static int PAGE_NAV_SIZE = 10;
 
     private final Composite composite;
     private final EntityTable<?> entityTable;
@@ -31,10 +31,6 @@ public class TableNavigator {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         this.composite.setLayoutData(gridData);
-
-// TODO just for debugging, remove when tested
-//        this.composite.setBackground(new Color(entityTable.composite.getDisplay(), new RGB(200, 0, 0)));
-
         final GridLayout layout = new GridLayout(3, true);
         layout.marginLeft = 20;
         this.composite.setLayout(layout);
@@ -75,11 +71,20 @@ public class TableNavigator {
 
         if (numberOfPages > 1) {
             createBackwardLabel(pageNumber > 1, pageNumber, numNav);
+            final int pageNavSize = (numberOfPages > PAGE_NAV_SIZE) ? PAGE_NAV_SIZE : numberOfPages;
+            final int half = pageNavSize / 2;
+            int start = pageNumber - half;
+            if (start < 1) {
+                start = 1;
+            }
+            int end = start + pageNavSize;
+            if (end > numberOfPages) {
+                end = numberOfPages + 1;
+                start = end - pageNavSize;
+            }
 
-            for (int i = pageNumber - PAGE_NAV_SIZE; i < pageNumber + PAGE_NAV_SIZE; i++) {
-                if (i >= 1 && i <= numberOfPages) {
-                    createPageNumberLabel(i, i != pageNumber, numNav);
-                }
+            for (int i = start; i < end; i++) {
+                createPageNumberLabel(i, i != pageNumber, numNav);
             }
 
             createForwardLabel(pageNumber < numberOfPages, pageNumber, numNav);
@@ -94,7 +99,11 @@ public class TableNavigator {
         pageHeader.setText("Page " + page + "/" + of);
     }
 
-    private void createPageNumberLabel(final int page, final boolean selectable, final Composite parent) {
+    private void createPageNumberLabel(
+            final int page,
+            final boolean selectable,
+            final Composite parent) {
+
         final Label pageLabel = new Label(parent, SWT.NONE);
 
         pageLabel.setText(" " + String.valueOf(page) + " ");

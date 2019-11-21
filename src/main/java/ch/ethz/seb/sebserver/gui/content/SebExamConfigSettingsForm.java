@@ -175,6 +175,20 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
+                    .withEntityKey(entityKey)
+                    .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                            this.pageService,
+                            pageContext
+                                    .withAttribute(
+                                            PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+                                            Constants.TRUE_STRING)
+                                    .withAttribute(
+                                            PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
+                                            Constants.FALSE_STRING)))
+                    .noEventPropagation()
+                    .publishIf(() -> examConfigGrant.iw())
+
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)
                     .ignoreMoveAwayFromEdit()

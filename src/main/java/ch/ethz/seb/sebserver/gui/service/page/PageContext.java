@@ -39,6 +39,9 @@ public interface PageContext {
 
         public static final String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
 
+        public static final String COPY_AS_TEMPLATE = "COPY_AS_TEMPLATE";
+        public static final String CREATE_FROM_TEMPLATE = "CREATE_FROM_TEMPLATE";
+
     }
 
     /** Get the I18nSupport service

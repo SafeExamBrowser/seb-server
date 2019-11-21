@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -152,7 +152,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @Valid @RequestBody final ConfigCopyInfo copyInfo) {
+            @Valid @RequestBody final ConfigCreationInfo copyInfo) {
 
         this.entityDAO.byPK(copyInfo.configurationNodeId)
                 .flatMap(this.authorization::checkWrite);
@@ -165,6 +165,13 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 institutionId,
                 currentUser.getUserInfo().uuid,
                 copyInfo)
+                .map(config -> {
+                    if (config.type == ConfigurationType.TEMPLATE) {
+                        return this.createTemplate(config);
+                    } else {
+                        return config;
+                    }
+                })
                 .getOrThrow();
     }
 

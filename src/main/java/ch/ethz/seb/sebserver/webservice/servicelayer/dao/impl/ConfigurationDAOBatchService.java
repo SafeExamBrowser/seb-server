@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -347,7 +347,7 @@ class ConfigurationDAOBatchService {
     Result<ConfigurationNode> createCopy(
             final Long institutionId,
             final String newOwner,
-            final ConfigCopyInfo copyInfo) {
+            final ConfigCreationInfo copyInfo) {
 
         return Result.tryCatch(() -> {
             final ConfigurationNodeRecord sourceNode = this.batchConfigurationNodeRecordMapper
@@ -366,7 +366,7 @@ class ConfigurationDAOBatchService {
     private ConfigurationNodeRecord copyNodeRecord(
             final ConfigurationNodeRecord nodeRec,
             final String newOwner,
-            final ConfigCopyInfo copyInfo) {
+            final ConfigCreationInfo copyInfo) {
 
         final ConfigurationNodeRecord newNodeRec = new ConfigurationNodeRecord(
                 null,
@@ -375,8 +375,9 @@ class ConfigurationDAOBatchService {
                 StringUtils.isNotBlank(newOwner) ? newOwner : nodeRec.getOwner(),
                 copyInfo.getName(),
                 copyInfo.getDescription(),
-                nodeRec.getType(),
+                copyInfo.configurationType.name(),
                 ConfigurationStatus.CONSTRUCTION.name());
+
         this.batchConfigurationNodeRecordMapper.insert(newNodeRec);
         this.batchSqlSessionTemplate.flushStatements();
 

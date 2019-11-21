@@ -208,7 +208,7 @@ public class SebExamConfigList implements TemplateComposer {
                 .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
-                .withExec(SebExamConfigImport.importFunction(this.pageService, true))
+                .withExec(SebExamConfigImportUtils.importFunction(this.pageService, true))
                 .noEventPropagation()
                 .publishIf(() -> examConfigGrant.im())
 

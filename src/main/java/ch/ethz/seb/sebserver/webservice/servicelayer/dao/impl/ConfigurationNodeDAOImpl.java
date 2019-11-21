@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -197,9 +197,12 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     public Result<ConfigurationNode> createCopy(
             final Long institutionId,
             final String newOwner,
-            final ConfigCopyInfo copyInfo) {
+            final ConfigCreationInfo copyInfo) {
 
-        return this.configurationDAOBatchService.createCopy(institutionId, newOwner, copyInfo);
+        return this.configurationDAOBatchService.createCopy(
+                institutionId,
+                newOwner,
+                copyInfo);
     }
 
     @Override

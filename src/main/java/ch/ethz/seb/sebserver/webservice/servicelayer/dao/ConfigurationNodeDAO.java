@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCopyInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -20,6 +20,6 @@ public interface ConfigurationNodeDAO extends
     Result<ConfigurationNode> createCopy(
             Long institutionId,
             String newOwner,
-            ConfigCopyInfo copyInfo);
+            ConfigCreationInfo copyInfo);
 
 }

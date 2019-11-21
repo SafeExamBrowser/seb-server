@@ -407,7 +407,9 @@ public class EntityTable<ROW extends Entity> {
         }
 
         final GridData gridData = (GridData) this.table.getLayoutData();
-        gridData.heightHint = (page.content.size() * ROW_HEIGHT) + HEADER_HEIGHT;
+        gridData.heightHint = (this.pageNumber > 1)
+                ? (this.pageSize * ROW_HEIGHT) + HEADER_HEIGHT
+                : (page.content.size() * ROW_HEIGHT) + HEADER_HEIGHT;
 
         for (final ROW row : page.content) {
             final TableItem item = new TableItem(this.table, SWT.NONE);

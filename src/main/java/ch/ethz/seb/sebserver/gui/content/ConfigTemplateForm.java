@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -273,6 +274,19 @@ public class ConfigTemplateForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY)
                 .withEntityKey(entityKey)
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                        this.pageService,
+                        pageContext
+                                .withAttribute(
+                                        PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
+                                        Constants.TRUE_STRING)
+                                .withAttribute(
+                                        PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+                                        Constants.FALSE_STRING)))
                 .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_SAVE)

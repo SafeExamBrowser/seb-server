@@ -45,7 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Im
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
-public final class SebExamConfigImport {
+public final class SebExamConfigImportUtils {
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
