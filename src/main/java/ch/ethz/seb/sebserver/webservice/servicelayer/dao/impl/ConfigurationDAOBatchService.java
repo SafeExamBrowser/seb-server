@@ -716,7 +716,7 @@ class ConfigurationDAOBatchService {
                     });
 
             // override with template values if available
-            if (configNode.templateId == null || configNode.templateId == ConfigurationNode.DEFAULT_TEMPLATE_ID) {
+            if (configNode.templateId == null || configNode.templateId.equals(ConfigurationNode.DEFAULT_TEMPLATE_ID)) {
                 initAdditionalDefaultValues(configNode, config);
             } else {
                 writeTemplateValues(configNode, config);

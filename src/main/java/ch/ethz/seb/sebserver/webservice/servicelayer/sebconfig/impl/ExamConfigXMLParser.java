@@ -312,19 +312,22 @@ public class ExamConfigXMLParser extends DefaultHandler {
                     "Failed to get InlineTable values. value/name array length mismatch");
         }
 
-        String val = "";
+        final StringBuilder valueBuilder = new StringBuilder();
         for (int i = 0; i < names.length; i++) {
             if (i != 0) {
                 if (i % numColumns == 0) {
-                    val = val + Constants.LIST_SEPARATOR;
+                    valueBuilder.append(Constants.LIST_SEPARATOR);
                 } else {
-                    val = val + Constants.EMBEDDED_LIST_SEPARATOR;
+                    valueBuilder.append(Constants.EMBEDDED_LIST_SEPARATOR);
                 }
             }
-            val = val + names[i] + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + values[i];
+            valueBuilder
+                    .append(names[i])
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(values[i]);
         }
 
-        saveValue(attrName, attribute, top.listIndex, val);
+        saveValue(attrName, attribute, top.listIndex, valueBuilder.toString());
     }
 
     @Override
@@ -460,7 +463,6 @@ public class ExamConfigXMLParser extends DefaultHandler {
         int listIndex = 0;
         String valueName;
         String value;
-        boolean saveNullValueAsBlank = false;
 
         protected PListNode(final Type type) {
             this.type = type;
