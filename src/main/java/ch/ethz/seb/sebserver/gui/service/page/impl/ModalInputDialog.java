@@ -32,6 +32,11 @@ public class ModalInputDialog<T> extends Dialog {
 
     private static final long serialVersionUID = -3448614119078234374L;
 
+    public static final int DEFAULT_DIALOG_WIDTH = 400;
+    public static final int DEFAULT_DIALOG_HEIGHT = 600;
+    public static final int DEFAULT_DIALOG_BUTTON_WIDTH = 100;
+    public static final int LARGE_DIALOG_WIDTH = 600;
+
     private static final LocTextKey CANCEL_TEXT_KEY =
             new LocTextKey("sebserver.overall.action.cancel");
     private static final LocTextKey OK_TEXT_KEY =
@@ -40,9 +45,9 @@ public class ModalInputDialog<T> extends Dialog {
             new LocTextKey("sebserver.overall.action.close");
 
     private final WidgetFactory widgetFactory;
-    private int dialogWidth = 400;
-    private int dialogHeight = 600;
-    private int buttonWidth = 100;
+    private int dialogWidth = DEFAULT_DIALOG_WIDTH;
+    private int dialogHeight = DEFAULT_DIALOG_HEIGHT;
+    private int buttonWidth = DEFAULT_DIALOG_BUTTON_WIDTH;
 
     public ModalInputDialog(
             final Shell parent,
@@ -54,6 +59,11 @@ public class ModalInputDialog<T> extends Dialog {
 
     public ModalInputDialog<T> setDialogWidth(final int dialogWidth) {
         this.dialogWidth = dialogWidth;
+        return this;
+    }
+
+    public ModalInputDialog<T> setLargeDialogWidth() {
+        this.dialogWidth = LARGE_DIALOG_WIDTH;
         return this;
     }
 

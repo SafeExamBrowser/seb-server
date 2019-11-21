@@ -350,6 +350,21 @@ class ConfigurationDAOBatchService {
             final ConfigCreationInfo copyInfo) {
 
         return Result.tryCatch(() -> {
+
+            final Long count = this.batchConfigurationNodeRecordMapper.countByExample()
+                    .where(
+                            ConfigurationNodeRecordDynamicSqlSupport.name,
+                            isEqualTo(copyInfo.name))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(institutionId))
+                    .build()
+                    .execute();
+
+            if (count != null && count.longValue() > 0) {
+                throw new FieldValidationException("name", "configurationNode:name:exists");
+            }
+
             final ConfigurationNodeRecord sourceNode = this.batchConfigurationNodeRecordMapper
                     .selectByPrimaryKey(copyInfo.configurationNodeId);
 

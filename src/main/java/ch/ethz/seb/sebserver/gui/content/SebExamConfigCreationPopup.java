@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 
-public final class SebExamConfigCreationUtils {
+final class SebExamConfigCreationPopup {
 
     static final LocTextKey FORM_COPY_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.copy.dialog");
@@ -59,7 +59,7 @@ public final class SebExamConfigCreationUtils {
                     new ModalInputDialog<FormHandle<ConfigCreationInfo>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setDialogWidth(600);
+                                    .setLargeDialogWidth();
 
             final CreationFormContext formContext = new CreationFormContext(
                     pageService,

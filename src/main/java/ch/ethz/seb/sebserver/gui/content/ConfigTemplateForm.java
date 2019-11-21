@@ -278,7 +278,7 @@ public class ConfigTemplateForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                .withExec(SebExamConfigCreationPopup.configCreationFunction(
                         this.pageService,
                         pageContext
                                 .withAttribute(

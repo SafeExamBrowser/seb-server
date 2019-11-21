@@ -177,7 +177,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
                     .withEntityKey(entityKey)
-                    .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                    .withExec(SebExamConfigCreationPopup.configCreationFunction(
                             this.pageService,
                             pageContext
                                     .withAttribute(

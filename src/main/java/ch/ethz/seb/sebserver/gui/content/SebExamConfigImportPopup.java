@@ -45,7 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Im
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
-public final class SebExamConfigImportUtils {
+final class SebExamConfigImportPopup {
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
@@ -60,7 +60,7 @@ public final class SebExamConfigImportUtils {
                     new ModalInputDialog<FormHandle<ConfigurationNode>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setDialogWidth(600);
+                                    .setLargeDialogWidth();
 
             final ImportFormContext importFormContext = new ImportFormContext(
                     pageService,

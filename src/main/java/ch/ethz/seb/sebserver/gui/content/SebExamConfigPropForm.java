@@ -252,13 +252,13 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigImportUtils.importFunction(this.pageService, false))
+                .withExec(SebExamConfigImportPopup.importFunction(this.pageService, false))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                .withExec(SebExamConfigCreationPopup.configCreationFunction(
                         this.pageService,
                         actionContext
                                 .withEntityKey(entityKey)
@@ -273,7 +273,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigCreationUtils.configCreationFunction(
+                .withExec(SebExamConfigCreationPopup.configCreationFunction(
                         this.pageService,
                         pageContext.withAttribute(
                                 PageContext.AttributeKeys.COPY_AS_TEMPLATE,

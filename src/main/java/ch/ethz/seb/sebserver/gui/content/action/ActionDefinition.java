@@ -240,12 +240,12 @@ public enum ActionDefinition {
     EXAM_CONFIGURATION_NEW(
             new LocTextKey("sebserver.exam.configuration.action.list.new"),
             ImageIcon.NEW,
-            PageStateDefinitionImpl.EXAM_CONFIG_MAP_EDIT,
+            PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_MODIFY_FROM_LIST(
             new LocTextKey("sebserver.exam.configuration.action.list.modify"),
             ImageIcon.EDIT,
-            PageStateDefinitionImpl.EXAM_CONFIG_MAP_EDIT,
+            PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP(
             new LocTextKey("sebserver.examconfig.action.view"),
