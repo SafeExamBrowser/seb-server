@@ -89,7 +89,7 @@ public class LmsSetupList implements TemplateComposer {
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
-                Domain.LMS_SETUP.ATTR_LMS_TYPE,
+                LmsSetup.FILTER_ATTR_LMS_TYPE,
                 this.resourceService::lmsTypeResources);
 
         this.activityFilter = new TableFilterAttribute(
