@@ -585,7 +585,7 @@ public class ExamForm implements TemplateComposer {
     private PageAction setSebRestriction(
             final PageAction action,
             final boolean sebRestriction,
-            final Consumer<Throwable> errorHandler) {
+            final Consumer<Exception> errorHandler) {
 
         this.restService.getBuilder(SetExamSebRestriction.class)
                 .withURIVariable(

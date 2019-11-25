@@ -163,16 +163,23 @@ final class SebExamConfigImportPopup {
                         }
                         return true;
                     } else {
-                        final Throwable error = configuration.getError();
+                        final Exception error = configuration.getError();
                         if (error instanceof RestCallError) {
                             ((RestCallError) error)
                                     .getErrorMessages()
                                     .stream()
-                                    .filter(APIMessage.ErrorMessage.MISSING_PASSWORD::isOf)
                                     .findFirst()
-                                    .ifPresent(message -> formHandle
-                                            .getContext()
-                                            .publishPageMessage(MISSING_PASSWORD));
+                                    .ifPresent(message -> {
+                                        if (APIMessage.ErrorMessage.MISSING_PASSWORD.isOf(message)) {
+                                            formHandle
+                                                    .getContext()
+                                                    .publishPageMessage(MISSING_PASSWORD);
+                                        } else {
+                                            formHandle
+                                                    .getContext()
+                                                    .notifyError(error);
+                                        }
+                                    });
                             return true;
                         }
 

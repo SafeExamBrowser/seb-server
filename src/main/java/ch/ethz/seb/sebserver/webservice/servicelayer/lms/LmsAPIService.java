@@ -75,7 +75,7 @@ public interface LmsAPIService {
      *
      * @param filterMap the FilterMap containing the filter criteria
      * @return true if the given QuizzData passes the filter */
-    public static Predicate<QuizData> quizFilterFunction(final FilterMap filterMap) {
+    public static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         //final DateTime now = DateTime.now(DateTimeZone.UTC);
@@ -92,10 +92,9 @@ public interface LmsAPIService {
      * @param filterMap the FilterMap containing the filter criteria
      * @return filtered list of QuizData */
     public static Function<List<QuizData>, List<QuizData>> quizzesFilterFunction(final FilterMap filterMap) {
-        filterMap.getName();
         return quizzes -> quizzes
                 .stream()
-                .filter(quizFilterFunction(filterMap))
+                .filter(quizFilterPredicate(filterMap))
                 .collect(Collectors.toList());
     }
 

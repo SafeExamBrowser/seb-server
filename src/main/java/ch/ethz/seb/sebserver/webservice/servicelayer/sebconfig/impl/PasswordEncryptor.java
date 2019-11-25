@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
@@ -64,7 +65,7 @@ public class PasswordEncryptor implements SebConfigCryptor {
             encryptOutput = new AES256JNCryptorOutputStream(
                     output,
                     Utils.toCharArray(context.getPassword()),
-                    10000);
+                    Constants.JN_CRYPTOR_ITERATIONS);
 
             IOUtils.copyLarge(input, encryptOutput);
 
@@ -98,8 +99,11 @@ public class PasswordEncryptor implements SebConfigCryptor {
         final CharSequence password = context.getPassword();
 
         try {
-            final byte[] version = new byte[4];
-            input.read(version);
+            final byte[] version = new byte[Constants.JN_CRYPTOR_VERSION_HEADER_SIZE];
+            final int read = input.read(version);
+            if (read != Constants.JN_CRYPTOR_VERSION_HEADER_SIZE) {
+                throw new IllegalArgumentException("Failed to verify RNCrypt version from input stream file header.");
+            }
 
             final SequenceInputStream sequenceInputStream = new SequenceInputStream(
                     new ByteArrayInputStream(version),
@@ -136,7 +140,7 @@ public class PasswordEncryptor implements SebConfigCryptor {
                     IOUtils.copy(sequenceInputStream, out);
                     final byte[] ciphertext = out.toByteArray();
                     final AES256JNCryptor cryptor = new AES256JNCryptor();
-                    cryptor.setPBKDFIterations(10000);
+                    cryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
                     final byte[] decryptData = cryptor.decryptData(ciphertext, Utils.toCharArray(password));
                     final ByteArrayInputStream decryptedIn = new ByteArrayInputStream(decryptData);
                     IOUtils.copyLarge(decryptedIn, output);

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  *          try {
  *              ... do some computation
  *              return Result.of(result);
- *          } catch (Throwable t) {
+ *          } catch (Exception error) {
  *              return Result.ofError(t);
  *          }
  *      }
@@ -57,14 +57,14 @@ public final class Result<T> {
     /** The resulting value. May be null if an error occurred */
     private final T value;
     /** The error when happened otherwise null */
-    private final Throwable error;
+    private final Exception error;
 
     private Result(final T value) {
         this.value = value;
         this.error = null;
     }
 
-    private Result(final Throwable error) {
+    private Result(final Exception error) {
         this.value = null;
         this.error = error;
     }
@@ -80,7 +80,7 @@ public final class Result<T> {
      *
      * @param errorHandler the error handling function
      * @return */
-    public T get(final Function<Throwable, T> errorHandler) {
+    public T get(final Function<Exception, T> errorHandler) {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
     }
 
@@ -90,7 +90,7 @@ public final class Result<T> {
      * @param errorHandler the error handler to handle an error if happened
      * @param supplier supplies an alternative result element on error case
      * @return returns the referenced result element or the alternative element given by the supplier on error */
-    public T get(final Consumer<Throwable> errorHandler, final Supplier<T> supplier) {
+    public T get(final Consumer<Exception> errorHandler, final Supplier<T> supplier) {
         if (this.error != null) {
             errorHandler.accept(this.error);
             return supplier.get();
@@ -102,7 +102,7 @@ public final class Result<T> {
     /** Apply a given error handler that consumes the error if there is one.
      *
      * @param errorHandler the error handler */
-    public void handleError(final Consumer<Throwable> errorHandler) {
+    public void handleError(final Consumer<Exception> errorHandler) {
         if (this.error != null) {
             errorHandler.accept(this.error);
         }
@@ -153,7 +153,7 @@ public final class Result<T> {
     }
 
     /** @return the error if some was reporter or null if there was no error */
-    public Throwable getError() {
+    public Exception getError() {
         return this.error;
     }
 
@@ -243,7 +243,7 @@ public final class Result<T> {
      *
      * @param errorHandler the error handler
      * @return self reference */
-    public Result<T> onError(final Consumer<Throwable> errorHandler) {
+    public Result<T> onError(final Consumer<Exception> errorHandler) {
         if (this.error != null) {
             errorHandler.accept(this.error);
         }
@@ -265,7 +265,7 @@ public final class Result<T> {
      *
      * @param error the error that is wrapped within the created Result
      * @return Result of specified error */
-    public static <T> Result<T> ofError(final Throwable error) {
+    public static <T> Result<T> ofError(final Exception error) {
         assert error != null : "error has null reference";
         return new Result<>(error);
     }

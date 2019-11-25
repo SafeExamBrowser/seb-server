@@ -261,7 +261,6 @@ public final class ClientConnectionTable {
         private boolean changed = false;
         private ClientConnectionData connectionData;
         private int indicatorWeight;
-        //private int[] thresholdColorIndices;
         private boolean duplicateChecked = false;
 
         UpdatableTableItem(final Long connectionId) {
@@ -349,6 +348,29 @@ public final class ClientConnectionTable {
                     .compare(this, other);
         }
 
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((this.connectionId == null) ? 0 : this.connectionId.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final UpdatableTableItem other = (UpdatableTableItem) obj;
+            if (!getOuterType().equals(other.getOuterType()))
+                return false;
+            return compareTo(other) == 0;
+        }
+
         int statusWeight() {
             return ClientConnectionTable.this.statusData.statusWeight(this.connectionData);
         }
@@ -410,6 +432,10 @@ public final class ClientConnectionTable {
                         this.connectionId);
                 this.duplicateChecked = true;
             }
+        }
+
+        private ClientConnectionTable getOuterType() {
+            return ClientConnectionTable.this;
         }
 
     }

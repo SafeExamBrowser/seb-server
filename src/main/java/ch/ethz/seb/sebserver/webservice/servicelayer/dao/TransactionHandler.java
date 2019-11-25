@@ -45,7 +45,7 @@ public interface TransactionHandler {
      *
      * @see org.springframework.transaction.support.TransactionCallback#doInTransaction
      * @see org.springframework.transaction.interceptor.TransactionAttribute#rollbackOn */
-    static void rollback(final Throwable t) {
+    static void rollback(final Exception t) {
         TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
     }
 

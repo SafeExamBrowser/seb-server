@@ -14,7 +14,9 @@ import org.joda.time.format.DateTimeFormatter;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final int SEB_FILE_HEADER_SIZE = 4;
     public static final int JN_CRYPTOR_ITERATIONS = 10000;
+    public static final int JN_CRYPTOR_VERSION_HEADER_SIZE = 1;
 
     public static final String TRUE_STRING = Boolean.TRUE.toString();
     public static final String FALSE_STRING = Boolean.FALSE.toString();
@@ -73,6 +75,7 @@ public final class Constants {
     public static final String XML_PLIST_INTEGER = "integer";
 
     public static final String OAUTH2_GRANT_TYPE_PASSWORD = "password";
+    public static final String OAUTH2_CLIENT_SECRET = "client_secret";
     public static final String OAUTH2_GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
     public static final String OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
     public static final String OAUTH2_SCOPE_READ = "read";
@@ -82,7 +85,7 @@ public final class Constants {
     public static final int RWT_MOUSE_BUTTON_2 = 2;
     public static final int RWT_MOUSE_BUTTON_3 = 3;
 
-    public static final int GZIP_HEADER_LENGTH = 10;
+    public static final int GZIP_HEADER_LENGTH = 4;
     public static final int GZIP_ID1 = 0x1F;
     public static final int GZIP_ID2 = 0x8B;
     public static final int GZIP_CM = 8;

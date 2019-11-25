@@ -121,7 +121,7 @@ public class FormHandle<T extends Entity> {
                 .getOrThrow();
     }
 
-    public boolean handleError(final Throwable error) {
+    public boolean handleError(final Exception error) {
         if (error instanceof RestCallError) {
             ((RestCallError) error)
                     .getErrorMessages()

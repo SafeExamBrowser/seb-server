@@ -186,15 +186,15 @@ public interface PageContext {
      * optional exception instance
      *
      * @param errorMessage the error message to display
-     * @param error the error as Throwable */
-    void notifyError(String errorMessage, Throwable error);
+     * @param error the error as Exception */
+    void notifyError(String errorMessage, Exception error);
 
-    /** Shows an error message to the user with the message of the given Throwable.
+    /** Shows an error message to the user with the message of the given Exception.
      * This mainly is used for debugging so far
      *
-     * @param error the Throwable to display
+     * @param error the Exception to display
      * @return adaption to be used with functional approaches */
-    <T> T notifyError(Throwable error);
+    <T> T notifyError(Exception error);
 
     /** Publish and shows a message to the user with the given localized title and
      * localized message. The message text can also be HTML text as far as RWT supports it.

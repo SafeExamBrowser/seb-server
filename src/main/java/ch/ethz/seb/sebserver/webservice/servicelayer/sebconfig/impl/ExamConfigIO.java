@@ -216,15 +216,18 @@ public class ExamConfigIO {
 
     InputStream unzip(final InputStream input) throws Exception {
 
-        final byte[] zipHeader = new byte[4];
-        input.read(zipHeader);
+        final byte[] zipHeader = new byte[Constants.GZIP_HEADER_LENGTH];
+        final int read = input.read(zipHeader);
+        if (read < Constants.GZIP_HEADER_LENGTH) {
+            throw new IllegalArgumentException("Failed to verify Zip type from input stream. Header size mismatch.");
+        }
 
         final boolean isZipped = Byte.toUnsignedInt(zipHeader[0]) == Constants.GZIP_ID1
                 && Byte.toUnsignedInt(zipHeader[1]) == Constants.GZIP_ID2
                 && Byte.toUnsignedInt(zipHeader[2]) == Constants.GZIP_CM;
 
         final InputStream sequencedInput = new SequenceInputStream(
-                new ByteArrayInputStream(zipHeader, 0, 4),
+                new ByteArrayInputStream(zipHeader, 0, Constants.GZIP_HEADER_LENGTH),
                 input);
 
         if (isZipped) {

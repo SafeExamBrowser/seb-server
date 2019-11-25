@@ -28,10 +28,12 @@ import org.springframework.security.oauth2.client.token.AccessTokenRequest;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -151,7 +153,7 @@ final class OpenEdxRestTemplateFactory {
     /** A custom ClientCredentialsAccessTokenProvider that adapts the access token request to Open edX
      * access token request protocol using a form-URL-encoded POST request according to:
      * https://course-catalog-api-guide.readthedocs.io/en/latest/authentication/index.html#getting-an-access-token */
-    private class EdxClientCredentialsAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
+    private static final class EdxClientCredentialsAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
 
         @Override
         public OAuth2AccessToken obtainAccessToken(
@@ -167,9 +169,9 @@ final class OpenEdxRestTemplateFactory {
                 headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 
                 final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-                params.add("grant_type", "client_credentials");
-                params.add("client_id", resource.getClientId());
-                params.add("client_secret", resource.getClientSecret());
+                params.add(OAuth2Utils.GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS);
+                params.add(OAuth2Utils.CLIENT_ID, resource.getClientId());
+                params.add(Constants.OAUTH2_CLIENT_SECRET, resource.getClientSecret());
 
                 final OAuth2AccessToken retrieveToken = retrieveToken(request, resource, params, headers);
                 return retrieveToken;

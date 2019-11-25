@@ -324,7 +324,7 @@ public class LmsSetupForm implements TemplateComposer {
         // ... and handle the response
         if (result.hasError()) {
             if (formHandle.handleError(result.getError())) {
-                final Throwable error = result.getError();
+                final Exception error = result.getError();
                 if (error instanceof RestCallError) {
                     throw (RestCallError) error;
                 } else {

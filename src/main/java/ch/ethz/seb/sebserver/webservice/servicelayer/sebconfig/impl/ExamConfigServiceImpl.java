@@ -38,13 +38,12 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
 
@@ -57,7 +56,6 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
     private final ExamConfigIO examConfigIO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
-    private final ConfigurationDAO configurationDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
     private final ClientCredentialService clientCredentialService;
@@ -67,7 +65,6 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final ConfigurationDAO configurationDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final Collection<ConfigurationValueValidator> validators,
             final ClientCredentialService clientCredentialService,
@@ -76,7 +73,6 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
-        this.configurationDAO = configurationDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
         this.clientCredentialService = clientCredentialService;
@@ -366,14 +362,10 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
             } catch (final Exception e) {
                 log.error("Unexpected error while trying to import SEB Exam Configuration: ", e);
-                log.debug("Make an undo on the ConfigurationNode to rollback the changes");
-                this.configurationDAO
-                        .undo(config.configurationNodeId)
-                        .getOrThrow();
 
                 if (streamDecrypted != null) {
                     final Exception exception = streamDecrypted.get();
-                    if (exception != null) {
+                    if (exception != null && exception instanceof APIMessageException) {
                         throw exception;
                     }
                 }

@@ -301,7 +301,7 @@ public class ActivitiesPane implements TemplateComposer {
 
             // SEB Client Logs
             if (viewSebClientLogs) {
-                final TreeItem sebLogs = (monitoring != null)
+                final TreeItem sebLogs = (!isSupporter)
                         ? this.widgetFactory.treeItemLocalized(
                                 monitoring,
                                 ActivityDefinition.SEB_CLIENT_LOGS.displayName)
@@ -315,12 +315,10 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            if (monitoring != null) {
-                monitoring.setExpanded(
-                        this.currentUser
-                                .get()
-                                .hasAnyRole(UserRole.EXAM_SUPPORTER));
-            }
+            monitoring.setExpanded(
+                    this.currentUser
+                            .get()
+                            .hasAnyRole(UserRole.EXAM_SUPPORTER));
         }
 
         // ---- MONITORING ---------------------------------------------------------------------

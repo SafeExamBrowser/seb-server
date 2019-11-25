@@ -356,7 +356,7 @@ public class TableFilter<ROW extends Entity> {
                 try {
                     final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
                     this.selector.setDate(parse.getYear(), parse.getMonthOfYear() - 1, parse.getDayOfMonth());
-                } catch (final Exception e) {
+                } catch (final RuntimeException e) {
                     final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
                     this.selector.setDate(now.getYear(), now.getMonthOfYear() - 1, now.getDayOfMonth());
                 }
@@ -436,7 +436,7 @@ public class TableFilter<ROW extends Entity> {
                             parse.getMonthOfYear() - 1,
                             parse.getDayOfMonth());
 
-                } catch (final Exception e) {
+                } catch (final RuntimeException e) {
                     this.fromSelector.setDate(
                             now.getYear(),
                             now.getMonthOfYear() - 1,

@@ -87,8 +87,12 @@ public class APIMessage implements Serializable {
                     Utils.asImmutableList(attributes));
         }
 
-        public APIMessage of(final Throwable error) {
+        public APIMessage of(final Exception error) {
             return new APIMessage(this.messageCode, this.systemMessage, error.getMessage());
+        }
+
+        public APIMessage of(final Exception error, final String... attributes) {
+            return new APIMessage(this.messageCode, this.systemMessage, error.getMessage(), Arrays.asList(attributes));
         }
 
         public ResponseEntity<List<APIMessage>> createErrorResponse() {

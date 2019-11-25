@@ -116,32 +116,32 @@ public abstract class RestCall<T> {
             } else {
                 return handleRestCallError(responseEntity);
             }
+        } catch (final RestClientResponseException responseError) {
 
-        } catch (final Exception e) {
-            final RestCallError restCallError = new RestCallError("Unexpected error while rest call", e);
+            final RestCallError restCallError = new RestCallError("Unexpected error while rest call", responseError);
             try {
 
-                final String responseBody = ((RestClientResponseException) e).getResponseBodyAsString();
-
+                final String responseBody = responseError.getResponseBodyAsString();
                 restCallError.errors.addAll(RestCall.this.jsonMapper.readValue(
                         responseBody,
                         new TypeReference<List<APIMessage>>() {
                         }));
 
-            } catch (final ClassCastException cce) {
-                log.error("Unexpected error-response while webservice API call for: {}", builder, e);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(e));
-            } catch (final RuntimeException re) {
-                log.error("Unexpected runtime error while webservice API call for: {}", builder, re);
-                log.error("Unexpected runtime error cause: ", e);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(re));
-            } catch (final Exception ee) {
-                log.error("Unexpected error while webservice API call for: {}", builder, ee);
-                log.error("Unexpected error cause: ", e);
-                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(ee));
+            } catch (final IOException e) {
+                restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(
+                        responseError,
+                        "NO RESPONSE AVAILABLE" + " cause: " + e.getMessage(),
+                        String.valueOf(builder)));
             }
 
             return Result.ofError(restCallError);
+        } catch (final Exception e) {
+            final RestCallError restCallError = new RestCallError("Unexpected error while rest call", e);
+            restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(
+                    e,
+                    "NO RESPONSE AVAILABLE",
+                    String.valueOf(builder)));
+            return Result.ofError(e);
         }
     }
 

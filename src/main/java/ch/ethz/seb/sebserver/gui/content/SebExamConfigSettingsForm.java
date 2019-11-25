@@ -203,7 +203,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
         }
     }
 
-    private void notifyErrorOnSave(final Throwable error, final PageContext context) {
+    private void notifyErrorOnSave(final Exception error, final PageContext context) {
         if (error instanceof APIMessageError) {
             try {
                 final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
@@ -215,7 +215,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                 }
             } catch (final PageMessageException e) {
                 throw e;
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(error);
             }
         }

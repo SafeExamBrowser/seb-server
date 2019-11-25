@@ -298,7 +298,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                             .contains(role.name());
         }
 
-        private final class ErrorHandler extends OAuth2ErrorHandler {
+        private static final class ErrorHandler extends OAuth2ErrorHandler {
             private ErrorHandler(final OAuth2ProtectedResourceDetails resource) {
                 super(resource);
             }

@@ -62,7 +62,7 @@ public class CurrentUser {
         return null;
     }
 
-    public UserInfo getOrHandleError(final Function<Throwable, UserInfo> errorHandler) {
+    public UserInfo getOrHandleError(final Function<Exception, UserInfo> errorHandler) {
         if (isAvailable()) {
             return this.authContext
                     .getLoggedInUser()
@@ -188,16 +188,23 @@ public class CurrentUser {
                                 });
 
                 if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
-                    this.privileges = exchange.getBody().stream()
-                            .reduce(new HashMap<RoleTypeKey, Privilege>(),
-                                    (map, priv) -> {
-                                        map.put(priv.roleTypeKey, priv);
-                                        return map;
-                                    },
-                                    (map1, map2) -> {
-                                        map1.putAll(map2);
-                                        return map1;
-                                    });
+                    final Collection<Privilege> privileges = exchange.getBody();
+                    if (privileges != null) {
+                        this.privileges = privileges
+                                .stream()
+                                .reduce(new HashMap<RoleTypeKey, Privilege>(),
+                                        (map, priv) -> {
+                                            map.put(priv.roleTypeKey, priv);
+                                            return map;
+                                        },
+                                        (map1, map2) -> {
+                                            map1.putAll(map2);
+                                            return map1;
+                                        });
+                    } else {
+                        log.error("Failed to get Privileges from webservice API: {}", exchange);
+                        return false;
+                    }
 
                     return true;
                 } else {

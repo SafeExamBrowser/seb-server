@@ -156,7 +156,7 @@ public interface PageService {
      * and forward to the login page with showing a successful logout message to the user. */
     void logout(PageContext pageContext);
 
-    default <T> T logoutOnError(final Throwable t, final PageContext pageContext) {
+    default <T> T logoutOnError(final Exception t, final PageContext pageContext) {
         log.error("Unexpected, Current User related error.Automatically logout and cleanup current user session. ", t);
         logout(pageContext);
         return null;

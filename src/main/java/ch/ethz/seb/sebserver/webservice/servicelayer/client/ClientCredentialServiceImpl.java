@@ -168,8 +168,8 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
     }
 
-    private final static char[] possibleCharacters = (new String(
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"))
+    private final static char[] possibleCharacters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"
                     .toCharArray();
 
     private CharSequence generateClientId() {

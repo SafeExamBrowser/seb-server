@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -45,8 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncrypti
 public final class SebConfigEncryptionServiceImpl implements SebConfigEncryptionService {
 
     private static final Logger log = LoggerFactory.getLogger(SebConfigEncryptionServiceImpl.class);
-
-    public static final int HEADER_SIZE = 4;
 
     private final Map<Strategy, SebConfigCryptor> encryptors;
 
@@ -118,8 +117,12 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             pin = new PipedInputStream(pout);
 
             Strategy strategy = null;
-            final byte[] header = new byte[HEADER_SIZE];
-            input.read(header);
+            final byte[] header = new byte[Constants.SEB_FILE_HEADER_SIZE];
+            final int read = input.read(header);
+            if (read != Constants.SEB_FILE_HEADER_SIZE) {
+                throw new IllegalArgumentException("Failed to read seb file header.");
+            }
+
             for (final Strategy s : Strategy.values()) {
                 if (Arrays.equals(s.header, header)) {
                     strategy = s;

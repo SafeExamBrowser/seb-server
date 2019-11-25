@@ -229,7 +229,7 @@ final class OpenEdxCourseAccess {
         public String end;
     }
 
-    private class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
+    private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
 
         @Override
         public void authenticate(

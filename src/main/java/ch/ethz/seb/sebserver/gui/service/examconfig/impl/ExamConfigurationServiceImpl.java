@@ -384,7 +384,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                     .call();
         }
 
-        private String verifyErrorMessage(final Throwable error) {
+        private String verifyErrorMessage(final Exception error) {
             if (error instanceof RestCallError) {
                 final List<APIMessage> errorMessages = ((RestCallError) error).getErrorMessages();
                 if (errorMessages.isEmpty()) {

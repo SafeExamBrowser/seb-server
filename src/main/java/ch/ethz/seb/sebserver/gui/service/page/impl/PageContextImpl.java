@@ -280,7 +280,7 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public void notifyError(final String errorMessage, final Throwable error) {
+    public void notifyError(final String errorMessage, final Exception error) {
         if (error instanceof APIMessageError) {
             final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
             final MessageBox messageBox = new Message(
@@ -302,7 +302,7 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public <T> T notifyError(final Throwable error) {
+    public <T> T notifyError(final Exception error) {
         notifyError(error.getMessage(), error);
         return null;
     }

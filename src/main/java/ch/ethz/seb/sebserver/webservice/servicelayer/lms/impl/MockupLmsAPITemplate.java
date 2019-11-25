@@ -149,7 +149,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
             final List<QuizData> quizzes = this.mockups
                     .stream()
                     .map(this::getExternalAddressAlias)
-                    .filter(LmsAPIService.quizFilterFunction(filterMap))
+                    .filter(LmsAPIService.quizFilterPredicate(filterMap))
                     .collect(Collectors.toList());
 
             return quizzes;

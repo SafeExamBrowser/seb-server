@@ -95,7 +95,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * @param error the error that shall be referred by created Result's
      * @param all all entity keys to create error Result for
      * @return List of Result refer to a given error for all given EntityKey instances */
-    static List<Result<EntityKey>> handleBulkActionError(final Throwable error, final Set<EntityKey> all) {
+    static List<Result<EntityKey>> handleBulkActionError(final Exception error, final Set<EntityKey> all) {
         return all.stream()
                 .map(key -> Result.<EntityKey> ofError(new BulkActionEntityException(key)))
                 .collect(Collectors.toList());

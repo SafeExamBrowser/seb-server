@@ -203,9 +203,19 @@ public class GridTable extends Composite {
 
     private void adaptColumnWidth(final Event event) {
         try {
-            this.columns.get(0).header.widthHint = 50;
-            this.columns.get(1).header.widthHint = 200;
 
+            final int currentTableWidth = super.getClientArea().width - ACTION_COLUMN_WIDTH;
+            final int widthUnit = currentTableWidth / this.columns
+                    .stream()
+                    .reduce(0,
+                            (i, c2) -> i + c2.columnDef.widthFactor,
+                            (i1, i2) -> i1 + i2);
+
+            this.columns
+                    .stream()
+                    .forEach(c -> c.header.widthHint = c.columnDef.widthFactor * widthUnit);
+
+            super.layout(true, true);
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }
