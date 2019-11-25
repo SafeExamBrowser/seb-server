@@ -38,7 +38,7 @@ public final class Indicator implements Entity {
         ;
 
         public final String name;
-        public boolean integerValue;
+        public final boolean integerValue;
 
         private IndicatorType(final String name, final boolean integerValue) {
             this.name = name;
