@@ -36,6 +36,7 @@ public class OpenEdxLmsAPITemplateFactory {
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] alternativeTokenRequestPaths;
+    private final int restrictionAPIPushCount;
 
     protected OpenEdxLmsAPITemplateFactory(
             final JSONMapper jsonMapper,
@@ -43,7 +44,8 @@ public class OpenEdxLmsAPITemplateFactory {
             final AsyncService asyncService,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths) {
+            @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths,
+            @Value("${sebserver.webservice.lms.openedx.seb.restriction.push-count:0}") final int restrictionAPIPushCount) {
 
         this.jsonMapper = jsonMapper;
         this.webserviceInfo = webserviceInfo;
@@ -53,6 +55,7 @@ public class OpenEdxLmsAPITemplateFactory {
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
+        this.restrictionAPIPushCount = restrictionAPIPushCount;
     }
 
     public Result<OpenEdxLmsAPITemplate> create(
@@ -79,7 +82,8 @@ public class OpenEdxLmsAPITemplateFactory {
             final OpenEdxCourseRestriction openEdxCourseRestriction = new OpenEdxCourseRestriction(
                     lmsSetup,
                     this.jsonMapper,
-                    openEdxRestTemplateFactory);
+                    openEdxRestTemplateFactory,
+                    this.restrictionAPIPushCount);
 
             return new OpenEdxLmsAPITemplate(
                     lmsSetup,

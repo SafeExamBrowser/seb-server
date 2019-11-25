@@ -42,17 +42,20 @@ public class OpenEdxCourseRestriction {
     private final LmsSetup lmsSetup;
     private final JSONMapper jsonMapper;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
+    private final int restrictionAPIPushCount;
 
     private OAuth2RestTemplate restTemplate;
 
     protected OpenEdxCourseRestriction(
             final LmsSetup lmsSetup,
             final JSONMapper jsonMapper,
-            final OpenEdxRestTemplateFactory openEdxRestTemplateFactory) {
+            final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
+            final int restrictionAPIPushCount) {
 
         this.lmsSetup = lmsSetup;
         this.jsonMapper = jsonMapper;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
+        this.restrictionAPIPushCount = restrictionAPIPushCount;
     }
 
     LmsSetupTestResult initAPIAccess() {
@@ -140,24 +143,9 @@ public class OpenEdxCourseRestriction {
             log.debug("PUT SEB Client restriction on course: {} : {}", courseId, restriction);
         }
 
-        return handleSebRestriction(() -> {
-            final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-
-            final OpenEdxCourseRestrictionData confirm = this.restTemplate.exchange(
-                    url,
-                    HttpMethod.PUT,
-                    new HttpEntity<>(toJson(restriction), httpHeaders),
-                    OpenEdxCourseRestrictionData.class)
-                    .getBody();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, confirm);
-            }
-
-            return true;
-        });
+        return handleSebRestriction(processSebRestrictionUpdate(pushSebRestrictionFunction(
+                restriction,
+                courseId)));
     }
 
     Result<Boolean> deleteSebRestriction(final String courseId) {
@@ -166,24 +154,97 @@ public class OpenEdxCourseRestriction {
             log.debug("DELETE SEB Client restriction on course: {}", courseId);
         }
 
-        return handleSebRestriction(() -> {
-            final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
-            final ResponseEntity<Object> exchange = this.restTemplate.exchange(
-                    url,
-                    HttpMethod.DELETE,
-                    new HttpEntity<>(new HttpHeaders()),
-                    Object.class);
+        return handleSebRestriction(processSebRestrictionUpdate(deleteSebRestrictionFunction(courseId)));
+    }
 
-            if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
+    private BooleanSupplier processSebRestrictionUpdate(final BooleanSupplier restrictionUpdate) {
+        return () -> {
+            if (this.restrictionAPIPushCount > 0) {
+                // NOTE: This is a temporary work-around for SEB Restriction API within Open edX SEB integration plugin to
+                //       apply on load-balanced infrastructure or infrastructure that has several layers of cache.
+                //       The reason for this is that the API (Open edX system) internally don't apply a resource-change that is
+                //       done within HTTP API call immediately from an outside perspective.
+                //       After a resource-change on the API is done, the system toggles between the old and the new resource
+                //       while constantly calling GET. This usually happens for about a minute or two then it stabilizes on the new resource
+                //
+                //       This may source on load-balancing or internally caching on Open edX side.
+                //       To mitigate this effect the SEB Server can be configured to apply a resource-change on the
+                //       API several times in a row to flush as match caches and reach as match as possible server instances.
+                //
+                //       Since this is a brute-force method to mitigate the problem, this should only be a temporary
+                //       work-around until a better solution on Open edX SEB integration side has been found and applied.
+
+                log.warn("SEB restriction update with multiple API push "
+                        + "(this is a temporary work-around for SEB Restriction API within Open edX SEB integration plugin)");
+
+                for (int i = 0; i < this.restrictionAPIPushCount; i++) {
+                    if (!restrictionUpdate.getAsBoolean()) {
+                        Result.ofRuntimeError(
+                                "Failed to process SEB restriction update. See logs for more information");
+                    }
                 }
 
                 return true;
             } else {
-                throw new RuntimeException("Unexpected response for deletion: " + exchange);
+                return restrictionUpdate.getAsBoolean();
             }
-        });
+        };
+    }
+
+    private BooleanSupplier pushSebRestrictionFunction(
+            final OpenEdxCourseRestrictionData restriction,
+            final String courseId) {
+
+        final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        return () -> {
+            try {
+                final OpenEdxCourseRestrictionData body = this.restTemplate.exchange(
+                        url,
+                        HttpMethod.PUT,
+                        new HttpEntity<>(toJson(restriction), httpHeaders),
+                        OpenEdxCourseRestrictionData.class)
+                        .getBody();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
+                }
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to call API for PUT. Course: ", courseId, e);
+                return false;
+            }
+
+            return true;
+        };
+    }
+
+    private BooleanSupplier deleteSebRestrictionFunction(final String courseId) {
+
+        final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
+        return () -> {
+            try {
+                final ResponseEntity<Object> exchange = this.restTemplate.exchange(
+                        url,
+                        HttpMethod.DELETE,
+                        new HttpEntity<>(new HttpHeaders()),
+                        Object.class);
+
+                if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
+                    }
+                } else {
+                    log.error("Unexpected response for deletion: {}", exchange);
+                    return false;
+                }
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to call API for DELETE. Course: ", courseId, e);
+                return false;
+            }
+
+            return true;
+        };
     }
 
     private Result<Boolean> handleSebRestriction(final BooleanSupplier task) {
