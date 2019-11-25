@@ -300,7 +300,7 @@ public class SebClientLogs implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(clientEvent.connectionId))
                 .call()
                 .get(
-                        error -> log.error("Failed to get Exam for id {}", clientEvent.examId, error),
+                        error -> log.error("Failed to get ClientConnection for id {}", clientEvent.connectionId, error),
                         () -> ClientConnection.EMPTY_CLIENT_CONNECTION);
 
         this.pageService.formBuilder(pc.copyOf(content), 3)

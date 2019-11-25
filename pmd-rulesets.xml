@@ -18,6 +18,8 @@
         <exclude name="AvoidFieldNameMatchingMethodName"/>
         <exclude name="NullAssignment"/>
         <exclude name="AvoidLiteralsInIfCondition"/>
+        <exclude name="InvalidSlf4jMessageFormat"/>
+        <exclude name="DataflowAnomalyAnalysis"/>
     </rule>
 
 </ruleset>
