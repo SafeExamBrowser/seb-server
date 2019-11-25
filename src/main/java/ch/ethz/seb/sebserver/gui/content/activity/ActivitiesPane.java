@@ -301,7 +301,7 @@ public class ActivitiesPane implements TemplateComposer {
 
             // SEB Client Logs
             if (viewSebClientLogs) {
-                final TreeItem sebLogs = (!isSupporter)
+                final TreeItem sebLogs = (isSupporter)
                         ? this.widgetFactory.treeItemLocalized(
                                 monitoring,
                                 ActivityDefinition.SEB_CLIENT_LOGS.displayName)
