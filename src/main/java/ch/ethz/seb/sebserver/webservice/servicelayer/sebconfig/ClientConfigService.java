@@ -19,7 +19,7 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkActionEvent;
 
 public interface ClientConfigService {
 

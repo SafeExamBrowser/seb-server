@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -170,7 +171,8 @@ final class ExamToConfigBindPopup {
                             .getBuilder(GetExam.class)
                             .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                             .call()
-                            .get(this.pageContext::notifyError)
+                            .onError(error -> this.pageContext.notifyLoadError(EntityType.EXAM, error))
+                            .getOrThrow()
                     : null;
 
             // get data or create new. Handle error if happen
@@ -180,7 +182,10 @@ final class ExamToConfigBindPopup {
                             .getBuilder(GetExamConfigMapping.class)
                             .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                             .call()
-                            .get(this.pageContext::notifyError);
+                            .onError(error -> this.pageContext.notifyLoadError(
+                                    EntityType.EXAM_CONFIGURATION_MAP,
+                                    error))
+                            .getOrThrow();
 
             // new PageContext with actual EntityKey
             final PageContext formContext = this.pageContext.withEntityKey(examConfigurationMap.getEntityKey());

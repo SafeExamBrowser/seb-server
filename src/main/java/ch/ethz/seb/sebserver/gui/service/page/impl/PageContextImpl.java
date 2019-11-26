@@ -280,13 +280,17 @@ public class PageContextImpl implements PageContext {
     }
 
     @Override
-    public void notifyError(final String errorMessage, final Exception error) {
+    public void notifyError(final LocTextKey message, final Exception error) {
+        final String errorMessage = message != null
+                ? this.i18nSupport.getText(message)
+                : error.getMessage();
+
         if (error instanceof APIMessageError) {
             final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
             final MessageBox messageBox = new Message(
                     getShell(),
                     this.i18nSupport.getText("sebserver.error.unexpected"),
-                    APIMessage.toHTML(errorMessages),
+                    APIMessage.toHTML(errorMessage, errorMessages),
                     SWT.ERROR);
             messageBox.setMarkupEnabled(true);
             messageBox.open(null);
@@ -299,12 +303,6 @@ public class PageContextImpl implements PageContext {
                 Utils.formatHTMLLines(errorMessage),
                 SWT.ERROR);
         messageBox.open(null);
-    }
-
-    @Override
-    public <T> T notifyError(final Exception error) {
-        notifyError(error.getMessage(), error);
-        return null;
     }
 
     @Override

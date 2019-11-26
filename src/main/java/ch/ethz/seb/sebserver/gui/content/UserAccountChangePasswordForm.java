@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
@@ -46,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * password that is also required must match the administrators current password. */
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
+    private static final String FORM_TITLE_KEY = "sebserver.useraccount.form.pwchange.title";
     private static final LocTextKey FORM_PASSWORD_NEW_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.password.new");
     private static final LocTextKey FORM_PASSWORD_NEW_CONFIRM_TEXT_KEY =
@@ -79,11 +81,12 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                 .getBuilder(GetUserAccount.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
-                .get(pageContext::notifyError);
+                .onError(error -> pageContext.notifyLoadError(EntityType.USER, error))
+                .getOrThrow();
 
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                new LocTextKey("sebserver.useraccount.form.pwchange.title", userInfo.username));
+                new LocTextKey(FORM_TITLE_KEY, userInfo.username));
 
         final boolean ownAccount = this.currentUser.get().uuid.equals(entityKey.getModelId());
 

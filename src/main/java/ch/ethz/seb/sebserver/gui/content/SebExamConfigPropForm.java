@@ -18,8 +18,6 @@ import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -70,8 +68,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Component
 @GuiProfile
 public class SebExamConfigPropForm implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(SebExamConfigPropForm.class);
 
     static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
@@ -139,13 +135,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         .getBuilder(GetExamConfigNode.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .get(pageContext::notifyError);
-        if (examConfig == null) {
-            log.error("Failed to get ConfigurationNode. "
-                    + "Error was notified to the User. "
-                    + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
+                        .getOrThrow();
 
         final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(examConfig);
         final boolean writeGrant = entityGrant.w();

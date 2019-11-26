@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 
 /** Service to address bulk actions like activation or deletion where the action
  * or state-change of one Entity has an effect on other entities that that has

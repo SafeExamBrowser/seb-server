@@ -14,7 +14,9 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -133,8 +135,16 @@ public class FormHandle<T extends Entity> {
                             fieldAccessor -> showValidationError(fieldAccessor, fve)));
             return true;
         } else {
-            log.error("Unexpected error while trying to post form: ", error);
-            this.pageContext.notifyError(error);
+            log.error("Unexpected error while trying to post form: {}", error.getMessage());
+            final EntityType resultType = this.post.getResultType();
+            if (resultType != null) {
+                this.pageContext.notifySaveError(resultType, error);
+            } else {
+                this.pageContext.notifyError(
+                        new LocTextKey(PageContext.GENERIC_SAVE_ERROR_TEXT_KEY, Constants.EMPTY_NOTE),
+                        error);
+            }
+
             return false;
         }
     }

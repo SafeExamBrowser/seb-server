@@ -197,6 +197,26 @@ public class APIMessage implements Serializable {
         return ErrorMessage.FIELD_VALIDATION.of(fieldName, args);
     }
 
+    public static String toHTML(final String errorMessage, final List<APIMessage> messages) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("<b>Failure: </b>").append(errorMessage).append("<br/><br/>");
+        builder.append("<b>Detail Messages:</b><br/><br/>");
+        messages.stream()
+                .forEach(message -> {
+                    builder
+                            .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
+                            .append(message.messageCode)
+                            .append("<br/>")
+                            .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
+                            .append(HtmlUtils.htmlEscape(message.systemMessage))
+                            .append("<br/>")
+                            .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
+                            .append(HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100)))
+                            .append("<br/><br/>");
+                });
+        return builder.toString();
+    }
+
     public static String toHTML(final Collection<APIMessage> messages) {
         final StringBuilder builder = new StringBuilder();
         builder.append("<b>Messages:</b><br/><br/>");

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -32,17 +33,16 @@ public final class PageAction {
 
     private static final Logger log = LoggerFactory.getLogger(PageAction.class);
 
-    public static final LocTextKey SUCCESS_MSG_TITLE = new LocTextKey("sebserver.page.message");
-
     public final ActionDefinition definition;
     private final Supplier<LocTextKey> confirm;
-    final LocTextKey successMessage;
     private final Supplier<Set<EntityKey>> selectionSupplier;
     private final LocTextKey noSelectionMessage;
     private PageContext pageContext;
     private final Function<PageAction, PageAction> exec;
     final boolean fireActionEvent;
     final boolean ignoreMoveAwayFromEdit;
+
+    final LocTextKey successMessage;
 
     public PageAction(
             final ActionDefinition definition,
@@ -74,6 +74,14 @@ public final class PageAction {
                 }
             }
         }
+    }
+
+    public String getName() {
+        if (this.definition != null) {
+            return this.definition.name();
+        }
+
+        return Constants.EMPTY_NOTE;
     }
 
     public EntityKey getEntityKey() {
@@ -144,7 +152,9 @@ public final class PageAction {
 
             final PageAction apply = this.exec.apply(this);
             if (this.successMessage != null) {
-                apply.pageContext.publishPageMessage(SUCCESS_MSG_TITLE, this.successMessage);
+                apply.pageContext.publishPageMessage(
+                        PageContext.SUCCESS_MSG_TITLE,
+                        this.successMessage);
             }
             return Result.of(apply);
 
@@ -153,13 +163,23 @@ public final class PageAction {
             return Result.ofError(pme);
         } catch (final RestCallError restCallError) {
             if (!restCallError.isFieldValidationError()) {
-                log.error("Failed to execute action: {}", PageAction.this, restCallError);
-                PageAction.this.pageContext.notifyError("action.error.unexpected.message", restCallError);
+                log.error("Failed to execute action: {} | error: {} | cause: {}",
+                        PageAction.this.getName(),
+                        restCallError.getMessage(),
+                        Utils.getErrorCauseMessage(restCallError));
+                PageAction.this.pageContext.notifyError(
+                        PageContext.UNEXPECTED_ERROR_KEY,
+                        restCallError);
             }
             return Result.ofError(restCallError);
         } catch (final Exception e) {
-            log.error("Failed to execute action: {}", PageAction.this, e);
-            PageAction.this.pageContext.notifyError("action.error.unexpected.message", e);
+            log.error("Failed to execute action: {} | error: {} | cause: {}",
+                    PageAction.this.getName(),
+                    e.getMessage(),
+                    Utils.getErrorCauseMessage(e));
+            PageAction.this.pageContext.notifyError(
+                    PageContext.UNEXPECTED_ERROR_KEY,
+                    e);
             return Result.ofError(e);
         }
     }
@@ -177,6 +197,31 @@ public final class PageAction {
     public PageAction withAttribute(final String name, final String value) {
         this.pageContext = this.pageContext.withAttribute(name, value);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("PageAction [definition=");
+        builder.append(this.definition);
+        builder.append(", confirm=");
+        builder.append(this.confirm);
+        builder.append(", selectionSupplier=");
+        builder.append(this.selectionSupplier);
+        builder.append(", noSelectionMessage=");
+        builder.append(this.noSelectionMessage);
+        builder.append(", pageContext=");
+        builder.append(this.pageContext);
+        builder.append(", exec=");
+        builder.append(this.exec);
+        builder.append(", fireActionEvent=");
+        builder.append(this.fireActionEvent);
+        builder.append(", ignoreMoveAwayFromEdit=");
+        builder.append(this.ignoreMoveAwayFromEdit);
+        builder.append(", successMessage=");
+        builder.append(this.successMessage);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static PageAction applySingleSelection(final PageAction action) {

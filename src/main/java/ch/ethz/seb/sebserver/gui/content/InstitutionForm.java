@@ -9,8 +9,6 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -44,14 +42,17 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class InstitutionForm implements TemplateComposer {
 
+    private static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.institution.form.title");
+    private static final LocTextKey NEW_TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.institution.form.title.new");
+
     private static final LocTextKey FORM_LOGO_IMAGE_TEXT_KEY =
             new LocTextKey("sebserver.institution.form.logoImage");
     private static final LocTextKey FORM_URL_SUFFIX_TEXT_KEY =
             new LocTextKey("sebserver.institution.form.urlSuffix");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.institution.form.name");
-
-    private static final Logger log = LoggerFactory.getLogger(InstitutionForm.class);
 
     private final PageService pageService;
     private final RestService restService;
@@ -80,14 +81,8 @@ public class InstitutionForm implements TemplateComposer {
                         .getBuilder(GetInstitution.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .get(pageContext::notifyError);
-
-        if (institution == null) {
-            log.error("Failed to get Institution. "
-                    + "Error was notified to the User. "
-                    + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.INSTITUTION, error))
+                        .getOrThrow();
 
         final EntityGrantCheck instGrant = this.currentUser.entityGrantCheck(institution);
         final boolean writeGrant = instGrant.w();
@@ -98,16 +93,10 @@ public class InstitutionForm implements TemplateComposer {
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(institution.getEntityKey());
 
-        if (log.isDebugEnabled()) {
-            log.debug("Institution Form for Institution {}", institution.name);
-        }
-
         // the default page layout with interactive title
-        final LocTextKey titleKey = new LocTextKey(
-                (isNew)
-                        ? "sebserver.institution.form.title.new"
-                        : "sebserver.institution.form.title",
-                institution.name);
+        final LocTextKey titleKey = isNew
+                ? NEW_TITLE_TEXT_KEY
+                : TITLE_TEXT_KEY;
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);

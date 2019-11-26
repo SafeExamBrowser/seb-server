@@ -94,6 +94,14 @@ public abstract class RestCall<T> {
         return this;
     }
 
+    public EntityType getResultType() {
+        if (this.typeKey != null) {
+            return this.typeKey.entityType;
+        }
+
+        return null;
+    }
+
     protected Result<T> exchange(final RestCallBuilder builder) {
 
         log.debug("Call webservice API on {} for {}", this.path, builder);

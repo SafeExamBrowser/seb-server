@@ -21,12 +21,12 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 
 /** Defines overall DAO support for bulk-actions like activate, deactivate, delete...
- *
  *
  * @param <T> The type of the Entity of a concrete BulkActionSupportDAO */
 public interface BulkActionSupportDAO<T extends Entity> {

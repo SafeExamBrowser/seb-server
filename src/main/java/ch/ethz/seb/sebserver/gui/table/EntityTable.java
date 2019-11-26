@@ -393,7 +393,7 @@ public class EntityTable<ROW extends Entity> {
                 .call()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
-                .onError(this.pageContext::notifyError);
+                .onError(this.pageContext::notifyUnexpectedError);
 
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);

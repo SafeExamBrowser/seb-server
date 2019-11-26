@@ -313,12 +313,13 @@ public interface PageService {
                 final Class<? extends RestCall<T>> restCallType) {
 
             this.exec = action -> {
+                final PageContext pageContext = action.pageContext();
                 restService.getBuilder(restCallType)
                         .withURIVariable(
                                 API.PARAM_MODEL_ID,
                                 action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
                         .call()
-                        .onError(t -> action.pageContext().notifyError(t));
+                        .onError(pageContext::notifyUnexpectedError);
                 return action;
             };
 

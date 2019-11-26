@@ -87,6 +87,10 @@ public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
+    public static final LocTextKey EXAM_FORM_TITLE_KEY =
+            new LocTextKey("sebserver.exam.form.title");
+    public static final LocTextKey EXAM_FORM_TITLE_IMPORT_KEY =
+            new LocTextKey("sebserver.exam.form.title.import");
     private static final LocTextKey CONFIG_EMPTY_LIST_MESSAGE =
             new LocTextKey("sebserver.exam.configuration.list.empty");
     private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
@@ -145,6 +149,9 @@ public class ExamForm implements TemplateComposer {
     private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION =
             new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
 
+    private final static LocTextKey SEB_RESTRICTION_ERROR =
+            new LocTextKey("sebserver.error.exam.seb.restriction");
+
     private final Map<String, LocTextKey> consistencyMessageMapping;
 
     private final static LocTextKey CONFIRM_MESSAGE_REMOVE_CONFIG =
@@ -199,15 +206,8 @@ public class ExamForm implements TemplateComposer {
         final Exam exam = (importFromQuizData
                 ? createExamFromQuizData(pageContext)
                 : getExistingExam(pageContext))
-                        .get(pageContext::notifyError);
-
-        if (exam == null) {
-            log.error(
-                    "Failed to get Exam. "
-                            + "Error was notified to the User. "
-                            + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
+                        .getOrThrow();
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
@@ -221,10 +221,9 @@ public class ExamForm implements TemplateComposer {
         }
 
         // the default page layout with title
-        final LocTextKey titleKey = new LocTextKey(
-                importFromQuizData
-                        ? "sebserver.exam.form.title.import"
-                        : "sebserver.exam.form.title");
+        final LocTextKey titleKey = importFromQuizData
+                ? EXAM_FORM_TITLE_IMPORT_KEY
+                : EXAM_FORM_TITLE_KEY;
         final Composite content = this.widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);
@@ -579,7 +578,10 @@ public class ExamForm implements TemplateComposer {
     }
 
     private PageAction setSebRestriction(final PageAction action, final boolean sebRestriction) {
-        return setSebRestriction(action, sebRestriction, t -> action.pageContext().notifyError(t));
+        return setSebRestriction(
+                action,
+                sebRestriction,
+                error -> action.pageContext().notifyError(SEB_RESTRICTION_ERROR, error));
     }
 
     private PageAction setSebRestriction(
@@ -685,7 +687,7 @@ public class ExamForm implements TemplateComposer {
                 .getBuilder(DeleteExamConfigMapping.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examConfigMappingKey.modelId)
                 .call()
-                .onError(error -> action.pageContext().notifyError(error));
+                .onError(error -> action.pageContext().notifyRemoveError(EntityType.EXAM_CONFIGURATION_MAP, error));
         return action;
     }
 
@@ -693,8 +695,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         return this.restService.getBuilder(GetExam.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(error -> pageContext.notifyError(error));
+                .call();
     }
 
     private Result<Exam> createExamFromQuizData(final PageContext pageContext) {
@@ -705,7 +706,7 @@ public class ExamForm implements TemplateComposer {
                 .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
                 .map(quizzData -> new Exam(quizzData))
-                .onError(error -> pageContext.notifyError(error));
+                .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error));
     }
 
     private String indicatorTypeName(final Indicator indicator) {

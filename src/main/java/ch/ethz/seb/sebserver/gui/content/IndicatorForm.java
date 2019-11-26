@@ -9,12 +9,11 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -40,8 +39,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class IndicatorForm implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(IndicatorForm.class);
 
     private static final LocTextKey NEW_INDICATOR_TILE_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.form.title.new");
@@ -82,7 +79,8 @@ public class IndicatorForm implements TemplateComposer {
                 .getBuilder(GetExam.class)
                 .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                 .call()
-                .get(pageContext::notifyError);
+                .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
+                .getOrThrow();
 
         // get data or create new. Handle error if happen
         final Indicator indicator = (isNew)
@@ -91,14 +89,8 @@ public class IndicatorForm implements TemplateComposer {
                         .getBuilder(GetIndicator.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .get(pageContext::notifyError);
-
-        if (indicator == null) {
-            log.error("Failed to get Indicator. "
-                    + "Error was notified to the User. "
-                    + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.INDICATOR, error))
+                        .getOrThrow();
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(indicator.getEntityKey());

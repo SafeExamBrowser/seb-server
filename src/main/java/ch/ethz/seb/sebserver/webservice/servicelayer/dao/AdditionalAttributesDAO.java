@@ -14,22 +14,50 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 
+/** Defines functionality to access additional attributes.
+ *
+ * Additional attributes are name/value pairs associated with a specified entity but stored
+ * in a separated data-base table. */
 public interface AdditionalAttributesDAO {
 
+    /** Use this to get all additional attribute records for a specific entity.
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @return Result refer to the collection of additional attribute records or to an error if happened */
     Result<Collection<AdditionalAttributeRecord>> getAdditionalAttributes(
             EntityType type,
             Long entityId);
 
+    /** Use this to save an additional attribute for a specific entity.
+     * If the additional attribute with specified name already exists for the specified entity
+     * this updates just the value for this additional attribute. Otherwise create a new instance
+     * of additional attribute with the given data
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @param name the name of the attribute
+     * @param value the value of the attribute */
     void saveAdditionalAttribute(
             EntityType type,
             Long entityId,
             String name,
             String value);
 
+    /** Use this to delete an additional attribute by identifier (primary-key)
+     *
+     * @param id identifier (primary-key) */
     void delete(Long id);
 
+    /** Use this to delete an additional attribute by its entity identifier and name.
+     *
+     * @param entityId the entity identifier (primary-key)
+     * @param name the name of the additional attribute */
     void delete(Long entityId, String name);
 
+    /** Use this to delete all additional attributes for a given entity.
+     *
+     * @param entityId the entity identifier (primary-key) */
     void deleteAll(Long entityId);
 
 }

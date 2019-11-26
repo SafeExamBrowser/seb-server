@@ -15,7 +15,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
@@ -43,6 +45,17 @@ public interface PageContext {
         public static final String CREATE_FROM_TEMPLATE = "CREATE_FROM_TEMPLATE";
 
     }
+
+    /** The resource-bundle key of the generic load entity error message. */
+    public static final String GENERIC_LOAD_ERROR_TEXT_KEY = "sebserver.error.get.entity";
+    public static final String GENERIC_REMOVE_ERROR_TEXT_KEY = "sebserver.error.remove.entity";
+    public static final String GENERIC_SAVE_ERROR_TEXT_KEY = "sebserver.error.save.entity";
+    public static final String GENERIC_ACTIVATE_ERROR_TEXT_KEY = "sebserver.error.activate.entity";
+    public static final String GENERIC_IMPORT_ERROR_TEXT_KEY = "sebserver.error.import";
+    public static final LocTextKey SUCCESS_MSG_TITLE =
+            new LocTextKey("sebserver.page.message");
+    public static final LocTextKey UNEXPECTED_ERROR_KEY =
+            new LocTextKey("sebserver.error.action.unexpected.message");
 
     /** Get the I18nSupport service
      *
@@ -187,14 +200,74 @@ public interface PageContext {
      *
      * @param errorMessage the error message to display
      * @param error the error as Exception */
-    void notifyError(String errorMessage, Exception error);
+    void notifyError(LocTextKey errorMessage, Exception error);
 
-    /** Shows an error message to the user with the message of the given Exception.
-     * This mainly is used for debugging so far
+    /** Notify a generic load error to the user by pop-up
      *
-     * @param error the Exception to display
-     * @return adaption to be used with functional approaches */
-    <T> T notifyError(Exception error);
+     * @param entityType the type of the entity
+     * @param error the original error */
+    default void notifyLoadError(final EntityType entityType, final Exception error) {
+        notifyError(
+                new LocTextKey(
+                        GENERIC_LOAD_ERROR_TEXT_KEY,
+                        getI18nSupport().getText(ResourceService.getEntityTypeNameKey(entityType))),
+                error);
+    }
+
+    /** Notify a generic remove error to the user by pop-up
+     *
+     * @param entityType the type of the entity
+     * @param error the original error */
+    default void notifyRemoveError(final EntityType entityType, final Exception error) {
+        notifyError(
+                new LocTextKey(
+                        GENERIC_REMOVE_ERROR_TEXT_KEY,
+                        getI18nSupport().getText(ResourceService.getEntityTypeNameKey(entityType))),
+                error);
+    }
+
+    /** Notify a generic save error to the user by pop-up
+     *
+     * @param entityType the type of the entity
+     * @param error the original error */
+    default void notifySaveError(final EntityType entityType, final Exception error) {
+        notifyError(
+                new LocTextKey(
+                        GENERIC_SAVE_ERROR_TEXT_KEY,
+                        getI18nSupport().getText(ResourceService.getEntityTypeNameKey(entityType))),
+                error);
+    }
+
+    /** Notify a generic activation error to the user by pop-up
+     *
+     * @param entityType the type of the entity
+     * @param error the original error */
+    default void notifyActivationError(final EntityType entityType, final Exception error) {
+        notifyError(
+                new LocTextKey(
+                        GENERIC_ACTIVATE_ERROR_TEXT_KEY,
+                        getI18nSupport().getText(ResourceService.getEntityTypeNameKey(entityType))),
+                error);
+    }
+
+    /** Notify a generic import error to the user by pop-up
+     *
+     * @param entityType the type of the entity
+     * @param error the original error */
+    default void notifyImportError(final EntityType entityType, final Exception error) {
+        notifyError(
+                new LocTextKey(
+                        GENERIC_IMPORT_ERROR_TEXT_KEY,
+                        getI18nSupport().getText(ResourceService.getEntityTypeNameKey(entityType))),
+                error);
+    }
+
+    /** Notify a generic unexpected error to the user by pop-up
+     *
+     * @param error the original error */
+    default void notifyUnexpectedError(final Exception error) {
+        notifyError(UNEXPECTED_ERROR_KEY, error);
+    }
 
     /** Publish and shows a message to the user with the given localized title and
      * localized message. The message text can also be HTML text as far as RWT supports it.

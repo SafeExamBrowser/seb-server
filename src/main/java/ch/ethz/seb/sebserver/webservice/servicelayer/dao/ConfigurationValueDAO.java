@@ -59,6 +59,13 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @return the saved table values of the attribute and configuration */
     Result<ConfigurationTableValues> saveTableValues(ConfigurationTableValues value);
 
+    /** Use this to (re)set the default value(s) for a configuration attributes of a given configuration entry.
+     * This uses also the ExamConfigInitService to initialize table values
+     *
+     * @param institutionId the institution identifier of the configuration
+     * @param configurationId the configuration identifier
+     * @param attributeId the configuration attribute identifier
+     * @return Result refer to a set of all keys of default values or to an error if happened */
     Result<Set<EntityKey>> setDefaultValues(
             Long institutionId,
             Long configurationId,

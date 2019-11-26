@@ -40,7 +40,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordDy
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ThresholdRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.IndicatorRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ThresholdRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;

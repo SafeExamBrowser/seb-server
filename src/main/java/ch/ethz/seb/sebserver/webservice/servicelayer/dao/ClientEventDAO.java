@@ -17,6 +17,11 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
 
+    /** Use this to get all matching ExtendedClientEvent from persistent storage.
+     *
+     * @param filterMap the FilterMap containing all the filter criteria
+     * @param predicate an additional predicate to filter the list
+     * @return Result refer to all matching ExtendedClientEvent from persistent storage or to an error if happened. */
     Result<Collection<ExtendedClientEvent>> allMatchingExtended(
             FilterMap filterMap,
             Predicate<ExtendedClientEvent> predicate);

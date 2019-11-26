@@ -233,6 +233,9 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
             }
 
             ConfigurationAttribute attr = tableContext.getAttribute(value.attributeId);
+            if (attr == null) {
+                return false;
+            }
             while (attr.parentId != null) {
                 if (attribute.id.equals(attr.parentId)) {
                     return true;

@@ -9,13 +9,12 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -52,8 +51,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class ConfigTemplateForm implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(ConfigTemplateForm.class);
 
     private static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.configtemplate.form.title.new");
@@ -118,14 +115,8 @@ public class ConfigTemplateForm implements TemplateComposer {
                         .getBuilder(GetExamConfigNode.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .get(pageContext::notifyError);
-
-        if (examConfig == null) {
-            log.error("Failed to get ConfigurationNode for Template. "
-                    + "Error was notified to the User. "
-                    + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
+                        .getOrThrow();
 
         final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(examConfig);
         final boolean writeGrant = entityGrant.w();

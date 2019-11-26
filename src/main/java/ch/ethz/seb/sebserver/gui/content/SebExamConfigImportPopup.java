@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -177,13 +178,16 @@ final class SebExamConfigImportPopup {
                                         } else {
                                             formHandle
                                                     .getContext()
-                                                    .notifyError(error);
+                                                    .notifyImportError(EntityType.CONFIGURATION_NODE, error);
                                         }
                                     });
                             return true;
                         }
 
-                        formHandle.getContext().notifyError(configuration.getError());
+                        formHandle.getContext().notifyError(
+                                SebExamConfigPropForm.FORM_TITLE,
+                                configuration.getError());
+
                         return true;
                     }
                 } else {
@@ -195,7 +199,7 @@ final class SebExamConfigImportPopup {
 
             return false;
         } catch (final Exception e) {
-            formHandle.getContext().notifyError(e);
+            formHandle.getContext().notifyError(SebExamConfigPropForm.FORM_TITLE, e);
             return true;
         }
     }

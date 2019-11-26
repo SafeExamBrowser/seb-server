@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -373,7 +374,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 }
 
             } catch (final Exception e) {
-                this.pageContext.notifyError(e);
+                this.pageContext.notifySaveError(EntityType.CONFIGURATION_VALUE, e);
             }
         }
 

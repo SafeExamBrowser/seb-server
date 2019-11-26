@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -169,6 +169,12 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional
     public Result<Exam> save(final Exam exam) {
         return Result.tryCatch(() -> {
+
+            // check internal persistent write-lock
+            final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(exam.id);
+            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
+                throw new IllegalStateException("Exam is currently locked: " + String.valueOf(exam));
+            }
 
             final ExamRecord examRecord = new ExamRecord(
                     exam.id,
@@ -376,7 +382,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Result<Exam> placeLock(final Long examId, final String update) {
+    public Result<Exam> placeLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
             final ExamRecord examRec = this.recordById(examId)
@@ -391,7 +397,7 @@ public class ExamDAOImpl implements ExamDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(true),
-                    update,
+                    updateId,
                     null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -404,7 +410,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Result<Exam> releaseLock(final Long examId, final String update) {
+    public Result<Exam> releaseLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
             final ExamRecord examRec = this.recordById(examId)
@@ -412,7 +418,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             // consistency check
             if (BooleanUtils.isFalse(BooleanUtils.toBooleanObject(examRec.getUpdating()))
-                    || !update.equals(examRec.getLastupdate())) {
+                    || !updateId.equals(examRec.getLastupdate())) {
 
                 throw new IllegalStateException("Exam to end update is not in expected state: " + examRec);
             }
@@ -421,7 +427,7 @@ public class ExamDAOImpl implements ExamDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
-                    update,
+                    updateId,
                     null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -461,13 +467,13 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Boolean> upToDate(final Long examId, final String lastUpdate) {
+    public Result<Boolean> upToDate(final Long examId, final String updateId) {
         return this.recordById(examId)
                 .map(rec -> {
-                    if (lastUpdate == null) {
+                    if (updateId == null) {
                         return rec.getLastupdate() == null;
                     } else {
-                        return lastUpdate.equals(rec.getLastupdate());
+                        return updateId.equals(rec.getLastupdate());
                     }
                 });
     }

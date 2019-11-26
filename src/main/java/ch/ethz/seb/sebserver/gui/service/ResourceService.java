@@ -286,6 +286,10 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public static LocTextKey getEntityTypeNameKey(final EntityType type) {
+        return new LocTextKey(ENTITY_TYPE_PREFIX + type.name());
+    }
+
     public String getEntityTypeName(final EntityType type) {
         if (type == null) {
             return Constants.EMPTY_NOTE;

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
+package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 
 import java.util.Arrays;
 import java.util.Collection;

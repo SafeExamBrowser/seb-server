@@ -12,8 +12,6 @@ import java.util.function.BooleanSupplier;
 
 import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -56,23 +54,26 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class UserAccountForm implements TemplateComposer {
 
-    private static final Logger log = LoggerFactory.getLogger(UserAccountForm.class);
+    static final LocTextKey TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.title");
+    static final LocTextKey NEW_TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.title.new");
 
-    private static final LocTextKey FORM_PASSWORD_CONFIRM_TEXT_KEY =
+    static final LocTextKey FORM_PASSWORD_CONFIRM_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.password.confirm");
-    private static final LocTextKey FORM_PASSWORD_TEXT_KEY =
+    static final LocTextKey FORM_PASSWORD_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.password");
-    private static final LocTextKey FORM_ROLES_TEXT_KEY =
+    static final LocTextKey FORM_ROLES_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.roles");
-    private static final LocTextKey FORM_TIMEZONE_TEXT_KEY =
+    static final LocTextKey FORM_TIMEZONE_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.timezone");
-    private static final LocTextKey FORM_MAIL_TEXT_KEY =
+    static final LocTextKey FORM_MAIL_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.mail");
-    private static final LocTextKey FORM_USERNAME_TEXT_KEY =
+    static final LocTextKey FORM_USERNAME_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.username");
-    private static final LocTextKey FORM_NAME_TEXT_KEY =
+    static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.name");
-    private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
+    static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.institution");
 
     private final PageService pageService;
@@ -110,15 +111,8 @@ public class UserAccountForm implements TemplateComposer {
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .get(pageContext::notifyError);
-
-        if (userAccount == null) {
-            log.error(
-                    "Failed to get UserAccount. "
-                            + "Error was notified to the User. "
-                            + "See previous logs for more infomation");
-            return;
-        }
+                        .onError(error -> pageContext.notifyLoadError(EntityType.USER, error))
+                        .getOrThrow();
 
         final boolean roleBasedEditGrant = Privilege.hasRoleBasedUserAccountEditGrant(userAccount, currentUser.get());
         // new PageContext with actual EntityKey
@@ -138,16 +132,10 @@ public class UserAccountForm implements TemplateComposer {
                 .map(inst -> inst.active)
                 .getOr(false);
 
-        if (log.isDebugEnabled()) {
-            log.debug("UserAccount Form for user {}", userAccount.getName());
-        }
-
         // the default page layout with title
-        final LocTextKey titleKey = new LocTextKey(
-                isNotNew.getAsBoolean()
-                        ? "sebserver.useraccount.form.title"
-                        : "sebserver.useraccount.form.title.new",
-                userAccount.getUsername());
+        final LocTextKey titleKey = isNotNew.getAsBoolean()
+                ? TITLE_TEXT_KEY
+                : NEW_TITLE_TEXT_KEY;
         final Composite content = widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);

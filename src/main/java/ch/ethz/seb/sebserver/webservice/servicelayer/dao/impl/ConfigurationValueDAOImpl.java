@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -51,6 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
 
 @Lazy
 @Component
@@ -63,17 +66,20 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
     private final ConfigurationRecordMapper configurationRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
+    private final ExamConfigInitService examConfigInitService;
 
     protected ConfigurationValueDAOImpl(
             final ConfigurationValueRecordMapper configurationValueRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
             final ConfigurationRecordMapper configurationRecordMapper,
-            final ConfigurationDAOBatchService configurationDAOBatchService) {
+            final ConfigurationDAOBatchService configurationDAOBatchService,
+            final ExamConfigInitService examConfigInitService) {
 
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationDAOBatchService = configurationDAOBatchService;
+        this.examConfigInitService = examConfigInitService;
     }
 
     @Override
@@ -388,10 +394,12 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                 .map(r -> new EntityKey(r.getId(), EntityType.CONFIGURATION_VALUE))
                                 .collect(Collectors.toSet()));
 
-                        // if there are table values, delete them first
+                        // if there are table values, delete them first and init defaults
                         if (tableValues != null && !tableValues.isEmpty()) {
                             this.delete(tableValues)
                                     .getOrThrow();
+
+                            initTableValues(institutionId, configurationId, attributeId);
                         }
                     }
 
@@ -413,7 +421,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         return tableValues;
                     } else {
                         if (values.size() > 1) {
-                            throw new IllegalStateException("Expacted one but get: " + values.size());
+                            throw new IllegalStateException("Expected one but get: " + values.size());
                         }
 
                         final ConfigurationAttributeRecord attribute = this.configurationAttributeRecordMapper
@@ -437,6 +445,41 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         return result;
                     }
                 });
+    }
+
+    private void initTableValues(final Long institutionId, final Long configurationId, final Long attributeId) {
+        // get table init values and save
+        final List<Long> childAttributes = this.configurationAttributeRecordMapper.selectIdsByExample()
+                .where(
+                        ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                        isEqualTo(attributeId))
+                .build()
+                .execute();
+        // get all attributes and map the names to id's
+        final Map<String, ConfigurationAttribute> attributeMap = this.configurationAttributeRecordMapper
+                .selectByExample()
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationAttributeDAOImpl::toDomainModel)
+                .map(Result::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        attr -> attr.name,
+                        Function.identity()));
+
+        this.examConfigInitService
+                .getAdditionalDefaultValues(institutionId, configurationId, attributeMap::get)
+                .stream()
+                .filter(attrValue -> childAttributes.contains(attrValue.attributeId))
+                .forEach(attrValue -> this.configurationValueRecordMapper
+                        .insert(new ConfigurationValueRecord(
+                                null,
+                                attrValue.institutionId,
+                                attrValue.configurationId,
+                                attrValue.attributeId,
+                                attrValue.listIndex,
+                                attrValue.value)));
     }
 
     // get all attributes of the table (columns) mapped to attribute id

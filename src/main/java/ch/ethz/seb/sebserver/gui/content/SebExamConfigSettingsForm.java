@@ -102,7 +102,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
             final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
-                    .onError(pageContext::notifyError)
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
                     .getOrThrow();
 
             final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
@@ -110,12 +110,12 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
                     .call()
                     .map(Utils::toSingleton)
-                    .onError(pageContext::notifyError)
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION, error))
                     .getOrThrow();
 
             final AttributeMapping attributes = this.examConfigurationService
                     .getAttributes(configNode.templateId)
-                    .onError(pageContext::notifyError)
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_ATTRIBUTE, error))
                     .getOrThrow();
 
             final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
@@ -195,11 +195,11 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .publish();
 
         } catch (final RuntimeException e) {
-            log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
+            pageContext.notifyUnexpectedError(e);
             throw e;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
-            pageContext.notifyError(e);
+            pageContext.notifyError(SebExamConfigPropForm.FORM_TITLE, e);
         }
     }
 

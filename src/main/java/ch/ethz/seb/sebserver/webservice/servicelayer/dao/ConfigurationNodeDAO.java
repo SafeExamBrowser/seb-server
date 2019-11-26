@@ -17,6 +17,12 @@ public interface ConfigurationNodeDAO extends
         EntityDAO<ConfigurationNode, ConfigurationNode>,
         BulkActionSupportDAO<ConfigurationNode> {
 
+    /** Use this to create a copy from an existing configuration.
+     *
+     * @param institutionId the institution identifier of the existing configuration
+     * @param newOwner the owner of the created copy
+     * @param copyInfo the ConfigCreationInfo containing additional copy information
+     * @return Result refer to the configuration copy root node or to an error if happened */
     Result<ConfigurationNode> createCopy(
             Long institutionId,
             String newOwner,

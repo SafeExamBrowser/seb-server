@@ -199,20 +199,15 @@ public class OpenEdxCourseRestriction {
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         return () -> {
-            try {
-                final OpenEdxCourseRestrictionData body = this.restTemplate.exchange(
-                        url,
-                        HttpMethod.PUT,
-                        new HttpEntity<>(toJson(restriction), httpHeaders),
-                        OpenEdxCourseRestrictionData.class)
-                        .getBody();
+            final OpenEdxCourseRestrictionData body = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    new HttpEntity<>(toJson(restriction), httpHeaders),
+                    OpenEdxCourseRestrictionData.class)
+                    .getBody();
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
-                }
-            } catch (final Exception e) {
-                log.error("Unexpected error while trying to call API for PUT. Course: ", courseId, e);
-                return false;
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
             }
 
             return true;
@@ -223,23 +218,18 @@ public class OpenEdxCourseRestriction {
 
         final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
         return () -> {
-            try {
-                final ResponseEntity<Object> exchange = this.restTemplate.exchange(
-                        url,
-                        HttpMethod.DELETE,
-                        new HttpEntity<>(new HttpHeaders()),
-                        Object.class);
+            final ResponseEntity<Object> exchange = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    new HttpEntity<>(new HttpHeaders()),
+                    Object.class);
 
-                if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
-                    }
-                } else {
-                    log.error("Unexpected response for deletion: {}", exchange);
-                    return false;
+            if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
                 }
-            } catch (final Exception e) {
-                log.error("Unexpected error while trying to call API for DELETE. Course: ", courseId, e);
+            } else {
+                log.error("Unexpected response for deletion: {}", exchange);
                 return false;
             }
 

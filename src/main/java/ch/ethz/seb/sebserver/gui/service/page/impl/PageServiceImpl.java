@@ -55,6 +55,8 @@ public class PageServiceImpl implements PageService {
 
     private static final LocTextKey MSG_GO_AWAY_FROM_EDIT =
             new LocTextKey("sebserver.overall.action.goAwayFromEditPageConfirm");
+    private static final LocTextKey LOGOUT_ERROR_MESSAGE =
+            new LocTextKey("sebserver.error.logout");
 
     private static final String ATTR_PAGE_STATE = "PAGE_STATE";
     private static final ListenerComparator LIST_COMPARATOR = new ListenerComparator();
@@ -234,7 +236,9 @@ public class PageServiceImpl implements PageService {
 
             if (!logoutSuccessful) {
                 log.error("Failed to logout. See logfiles for more information");
-                pageContext.notifyError(new RuntimeException("Failed to logout. See logfiles for more information"));
+                pageContext.notifyError(
+                        LOGOUT_ERROR_MESSAGE,
+                        new RuntimeException("Failed to logout. See logfiles for more information"));
             }
 
         } catch (final Exception e) {

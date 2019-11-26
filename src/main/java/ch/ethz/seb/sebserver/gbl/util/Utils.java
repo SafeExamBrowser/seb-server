@@ -407,4 +407,11 @@ public final class Utils {
                 org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
         return headers;
     }
+
+    public static final String getErrorCauseMessage(final Exception e) {
+        if (e == null || e.getCause() == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return e.getCause().getClass().getName() + " : " + e.getCause().getMessage();
+    }
 }

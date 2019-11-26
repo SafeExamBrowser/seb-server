@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -96,131 +97,138 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
         final EntityKey templateKey = pageContext.getParentEntityKey();
         final Long templateId = Long.valueOf(templateKey.modelId);
 
-        final ConfigurationNode template = this.restService
-                .getBuilder(GetExamConfigNode.class)
-                .withURIVariable(API.PARAM_MODEL_ID, templateKey.modelId)
-                .call()
-                .get(pageContext::notifyError);
+        try {
 
-        final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(template);
-        final boolean modifyGrant = entityGrant.m();
+            final ConfigurationNode template = this.restService
+                    .getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, templateKey.modelId)
+                    .call()
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
+                    .getOrThrow();
 
-        // the attribute
-        final TemplateAttribute attribute = this.restService.getBuilder(GetTemplateAttribute.class)
-                .withURIVariable(API.PARAM_PARENT_MODEL_ID, templateKey.modelId)
-                .withURIVariable(API.PARAM_MODEL_ID, attributeKey.modelId)
-                .call()
-                .getOrThrow();
+            final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(template);
+            final boolean modifyGrant = entityGrant.m();
 
-        // the follow-up configuration
-        final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
-                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, templateKey.getModelId())
-                .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
-                .call()
-                .map(Utils::toSingleton)
-                .onError(pageContext::notifyError)
-                .getOrThrow();
+            // the attribute
+            final TemplateAttribute attribute = this.restService.getBuilder(GetTemplateAttribute.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, templateKey.modelId)
+                    .withURIVariable(API.PARAM_MODEL_ID, attributeKey.modelId)
+                    .call()
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
+                    .getOrThrow();
 
-        // the default page layout with title
-        final Composite content = widgetFactory.defaultPageLayout(
-                pageContext.getParent(),
-                FORM_TITLE);
+            // the follow-up configuration
+            final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
+                    .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, templateKey.getModelId())
+                    .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
+                    .call()
+                    .map(Utils::toSingleton)
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION, error))
+                    .getOrThrow();
 
-        final PageContext formContext = pageContext.copyOf(content);
+            // the default page layout with title
+            final Composite content = widgetFactory.defaultPageLayout(
+                    pageContext.getParent(),
+                    FORM_TITLE);
 
-        final boolean hasView = attribute.getOrientation() != null;
+            final PageContext formContext = pageContext.copyOf(content);
 
-        this.pageService.formBuilder(
-                formContext, 4)
-                .readonly(true) // TODO change this for next version
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        attribute::getName))
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE,
-                        FORM_TYPE_TEXT_KEY,
-                        () -> this.resourceService.getAttributeTypeName(attribute)))
-                .addFieldIf(
-                        () -> hasView,
-                        () -> FormBuilder.singleSelection(
-                                Domain.ORIENTATION.ATTR_VIEW_ID,
-                                FORM_VIEW_TEXT_KEY,
-                                attribute.getViewModelId(),
-                                () -> this.resourceService.getViewResources(templateKey.modelId)))
-                .addFieldIf(
-                        () -> hasView,
-                        () -> FormBuilder.text(
-                                Domain.ORIENTATION.ATTR_GROUP_ID,
-                                FORM_GROUP_TEXT_KEY,
-                                attribute.getGroupId()))
-                .build();
+            final boolean hasView = attribute.getOrientation() != null;
 
-        widgetFactory.labelLocalized(
-                content,
-                CustomVariant.TEXT_H2,
-                FORM_VALUE_TEXT_KEY);
+            this.pageService.formBuilder(
+                    formContext, 4)
+                    .readonly(true) // TODO change this for next version
+                    .addField(FormBuilder.text(
+                            Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
+                            FORM_NAME_TEXT_KEY,
+                            attribute::getName))
+                    .addField(FormBuilder.text(
+                            Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE,
+                            FORM_TYPE_TEXT_KEY,
+                            () -> this.resourceService.getAttributeTypeName(attribute)))
+                    .addFieldIf(
+                            () -> hasView,
+                            () -> FormBuilder.singleSelection(
+                                    Domain.ORIENTATION.ATTR_VIEW_ID,
+                                    FORM_VIEW_TEXT_KEY,
+                                    attribute.getViewModelId(),
+                                    () -> this.resourceService.getViewResources(templateKey.modelId)))
+                    .addFieldIf(
+                            () -> hasView,
+                            () -> FormBuilder.text(
+                                    Domain.ORIENTATION.ATTR_GROUP_ID,
+                                    FORM_GROUP_TEXT_KEY,
+                                    attribute.getGroupId()))
+                    .build();
 
-        final Composite grid = new Composite(content, SWT.NONE);
-        grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        grid.setLayout(new GridLayout(6, true));
+            widgetFactory.labelLocalized(
+                    content,
+                    CustomVariant.TEXT_H2,
+                    FORM_VALUE_TEXT_KEY);
 
-        final PageContext valueContext = formContext.copyOf(grid);
+            final Composite grid = new Composite(content, SWT.NONE);
+            grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+            grid.setLayout(new GridLayout(6, true));
 
-        final Orientation defaultOrientation = getDefaultOrientation(attribute);
-        final AttributeMapping attributeMapping = this.examConfigurationService
-                .getAttributes(attribute, defaultOrientation)
-                .getOrThrow();
-        final ViewContext viewContext = this.examConfigurationService.createViewContext(
-                valueContext,
-                configuration,
-                new View(-1L, "template", 10, 0, templateId),
-                attributeMapping,
-                1, false);
+            final PageContext valueContext = formContext.copyOf(grid);
 
-        final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
-                attribute.getConfigAttribute(),
-                defaultOrientation);
+            final Orientation defaultOrientation = getDefaultOrientation(attribute);
+            final AttributeMapping attributeMapping = this.examConfigurationService
+                    .getAttributes(attribute, defaultOrientation)
+                    .getOrThrow();
+            final ViewContext viewContext = this.examConfigurationService.createViewContext(
+                    valueContext,
+                    configuration,
+                    new View(-1L, "template", 10, 0, templateId),
+                    attributeMapping,
+                    1, false);
 
-        final InputField createInputField = inputFieldBuilder.createInputField(
-                content,
-                attribute.getConfigAttribute(),
-                viewContext);
+            final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
+                    attribute.getConfigAttribute(),
+                    defaultOrientation);
 
-        viewContext.registerInputField(createInputField);
+            final InputField createInputField = inputFieldBuilder.createInputField(
+                    content,
+                    attribute.getConfigAttribute(),
+                    viewContext);
 
-        this.examConfigurationService.initInputFieldValues(
-                configuration.id,
-                Arrays.asList(viewContext));
+            viewContext.registerInputField(createInputField);
 
-        this.pageService.pageActionBuilder(formContext.clearEntityKeys())
+            this.examConfigurationService.initInputFieldValues(
+                    configuration.id,
+                    Arrays.asList(viewContext));
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
-                .withEntityKey(attributeKey)
-                .withParentEntityKey(templateKey)
-                .withExec(this.examConfigurationService::resetToDefaults)
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant)
+            this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
-                .withEntityKey(attributeKey)
-                .withParentEntityKey(templateKey)
-                .withExec(this.examConfigurationService::removeFromView)
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && hasView)
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
+                    .withEntityKey(attributeKey)
+                    .withParentEntityKey(templateKey)
+                    .withExec(this.examConfigurationService::resetToDefaults)
+                    .ignoreMoveAwayFromEdit()
+                    .publishIf(() -> modifyGrant)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW)
-                .withEntityKey(attributeKey)
-                .withParentEntityKey(templateKey)
-                .withExec(this.examConfigurationService::attachToDefaultView)
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && !hasView)
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
+                    .withEntityKey(attributeKey)
+                    .withParentEntityKey(templateKey)
+                    .withExec(this.examConfigurationService::removeFromView)
+                    .ignoreMoveAwayFromEdit()
+                    .publishIf(() -> modifyGrant && hasView)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
-                .withEntityKey(templateKey)
-                .ignoreMoveAwayFromEdit()
-                .publish();
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW)
+                    .withEntityKey(attributeKey)
+                    .withParentEntityKey(templateKey)
+                    .withExec(this.examConfigurationService::attachToDefaultView)
+                    .ignoreMoveAwayFromEdit()
+                    .publishIf(() -> modifyGrant && !hasView)
 
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
+                    .withEntityKey(templateKey)
+                    .ignoreMoveAwayFromEdit()
+                    .publish();
+
+        } catch (final Exception e) {
+            pageContext.notifyUnexpectedError(e);
+        }
     }
 
     private Orientation getDefaultOrientation(final TemplateAttribute attribute) {
