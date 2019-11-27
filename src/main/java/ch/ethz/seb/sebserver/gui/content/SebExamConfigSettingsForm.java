@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -144,6 +145,16 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                 tabItem.setControl(viewGrid);
             }
 
+            // set selection if available
+            final String viewIndex = pageContext.getAttribute("VIEW_INDEX");
+            if (StringUtils.isNotBlank(viewIndex)) {
+                try {
+                    tabFolder.setSelection(Integer.parseInt(viewIndex));
+                } catch (final NumberFormatException e) {
+                    log.warn("Failed to initialize view selection");
+                }
+            }
+
             this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
 
             final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
@@ -156,7 +167,9 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                                 .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
                                 .call()
                                 .onError(t -> notifyErrorOnSave(t, pageContext));
-                        return action;
+                        return action.withAttribute(
+                                "VIEW_INDEX",
+                                String.valueOf(tabFolder.getSelectionIndex()));
                     })
                     .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
                     .ignoreMoveAwayFromEdit()
@@ -169,7 +182,9 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                                 .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
                                 .call()
                                 .getOrThrow();
-                        return action;
+                        return action.withAttribute(
+                                "VIEW_INDEX",
+                                String.valueOf(tabFolder.getSelectionIndex()));
                     })
                     .withSuccess(KEY_UNDO_SUCCESS)
                     .ignoreMoveAwayFromEdit()

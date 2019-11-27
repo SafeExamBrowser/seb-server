@@ -294,7 +294,7 @@ public class ResourceService {
         if (type == null) {
             return Constants.EMPTY_NOTE;
         }
-        return this.i18nSupport.getText(ENTITY_TYPE_PREFIX + type.name());
+        return this.i18nSupport.getText(getEntityTypeNameKey(type));
     }
 
     public String getEntityTypeName(final UserActivityLog userLog) {

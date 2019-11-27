@@ -43,6 +43,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
+import ch.ethz.seb.sebserver.gui.service.page.MultiPageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -268,7 +269,10 @@ public class PageServiceImpl implements PageService {
             }
 
             if (!errors.isEmpty()) {
-                // TODO notify message for user
+                final String entityTypeName = this.resourceService.getEntityTypeName(entityType);
+                throw new MultiPageMessageException(
+                        new LocTextKey(PageContext.GENERIC_ACTIVATE_ERROR_TEXT_KEY, entityTypeName),
+                        errors);
             }
 
             return action;

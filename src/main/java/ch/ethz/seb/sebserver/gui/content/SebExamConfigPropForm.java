@@ -192,14 +192,14 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         FORM_DESCRIPTION_TEXT_KEY,
                         examConfig.description)
                         .asArea()
-                        .withInputSpan(3))
+                        .withInputSpan((isReadonly) ? 3 : 2))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
                         () -> resourceService.examConfigStatusResources(isAttachedToExam))
-                        .withEmptyCellSeparation(false))
+                        .withEmptyCellSeparation((isReadonly) ? false : true))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
