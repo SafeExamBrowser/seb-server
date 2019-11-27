@@ -308,7 +308,8 @@ public class ExamForm implements TemplateComposer {
                         QuizData.QUIZ_ATTR_START_URL,
                         FORM_QUIZ_URL_TEXT_KEY,
                         exam.startURL)
-                        .readonly(true))
+                        .readonly(true)
+                        .withInputSpan(7))
 
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
@@ -316,7 +317,8 @@ public class ExamForm implements TemplateComposer {
                         exam.description)
                         .asArea()
                         .readonly(true)
-                        .withInputSpan(6))
+                        .withInputSpan(6)
+                        .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_STATUS + "_display",
@@ -401,15 +403,18 @@ public class ExamForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_NODE.ATTR_NAME,
                                     CONFIG_NAME_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigName))
+                                    ExamConfigurationMap::getConfigName)
+                                            .widthProportion(2))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                                     CONFIG_DESCRIPTION_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigDescription))
-                            .withColumn(new ColumnDefinition<>(
+                                    ExamConfigurationMap::getConfigDescription)
+                                            .widthProportion(4))
+                            .withColumn(new ColumnDefinition<ExamConfigurationMap>(
                                     Domain.CONFIGURATION_NODE.ATTR_STATUS,
                                     CONFIG_STATUS_COLUMN_KEY,
-                                    this.resourceService::localizedExamConfigStatusName))
+                                    this.resourceService::localizedExamConfigStatusName)
+                                            .widthProportion(1))
                             .withDefaultActionIf(
                                     () -> editable,
                                     this::viewExamConfigPageAction)
@@ -483,15 +488,18 @@ public class ExamForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_NAME,
                                     INDICATOR_NAME_COLUMN_KEY,
-                                    Indicator::getName))
+                                    Indicator::getName)
+                                            .widthProportion(2))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_TYPE,
                                     INDICATOR_TYPE_COLUMN_KEY,
-                                    this::indicatorTypeName))
+                                    this::indicatorTypeName)
+                                            .widthProportion(1))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.THRESHOLD.REFERENCE_NAME,
                                     INDICATOR_THRESHOLD_COLUMN_KEY,
-                                    ExamForm::thresholdsValue))
+                                    ExamForm::thresholdsValue)
+                                            .widthProportion(4))
                             .withDefaultActionIf(
                                     () -> editable,
                                     () -> actionBuilder
@@ -720,7 +728,7 @@ public class ExamForm implements TemplateComposer {
             return Constants.EMPTY_NOTE;
         }
 
-        return indicator.thresholds
+        final StringBuilder builder = indicator.thresholds
                 .stream()
                 .reduce(
                         new StringBuilder(),
@@ -735,8 +743,9 @@ public class ExamForm implements TemplateComposer {
                                 .append(threshold.value).append(" (").append(threshold.color).append(")")
                                 .append("</span>")
                                 .append(" | "),
-                        (sb1, sb2) -> sb1.append(sb2))
-                .toString();
+                        (sb1, sb2) -> sb1.append(sb2));
+        builder.delete(builder.length() - 3, builder.length() - 1);
+        return builder.toString();
     }
 
     private Function<PageAction, PageAction> cancelModifyFunction() {

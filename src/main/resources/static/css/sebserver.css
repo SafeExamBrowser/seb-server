@@ -109,14 +109,12 @@ Label-SeparatorLine {
 }
 
 Label.colordark {
-    font: 12px Arial, Helvetica, monospace;
-    letter-spacing: 3.25px;
+    font: 12px "Courier New", Courier, monospace;
     color: #4a4a4a;
 }
 
 Label.colorlight {
-    font: 12px Arial, Helvetica, monospace;
-    letter-spacing: 3.25px;
+    font: 12px "Courier New", Courier, monospace;
     color: #FFFFFF;
 }
 
