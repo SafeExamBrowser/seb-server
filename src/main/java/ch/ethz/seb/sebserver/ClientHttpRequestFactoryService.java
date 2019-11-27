@@ -36,6 +36,7 @@ import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -56,15 +57,25 @@ public class ClientHttpRequestFactoryService {
     private static final Collection<String> DEV_PROFILES = Arrays.asList("dev-gui", "test", "demo", "dev-ws");
     private static final Collection<String> PROD_PROFILES = Arrays.asList("prod-gui", "prod-ws");
 
+    private final int connectTimeout;
+    private final int connectionRequestTimeout;
+    private final int readTimeout;
+
     private final Environment environment;
     private final ClientCredentialService clientCredentialService;
 
     public ClientHttpRequestFactoryService(
             final Environment environment,
-            final ClientCredentialService clientCredentialService) {
+            final ClientCredentialService clientCredentialService,
+            @Value("${sebserver.http.client.connect-timeout:15000}") final int connectTimeout,
+            @Value("${sebserver.http.client.connection-request-timeout:10000}") final int connectionRequestTimeout,
+            @Value("${sebserver.http.client.read-timeout:10000}") final int readTimeout) {
 
         this.environment = environment;
         this.clientCredentialService = clientCredentialService;
+        this.connectTimeout = connectTimeout;
+        this.connectionRequestTimeout = connectionRequestTimeout;
+        this.readTimeout = readTimeout;
     }
 
     public Result<ClientHttpRequestFactory> getClientHttpRequestFactory() {
@@ -104,6 +115,9 @@ public class ClientHttpRequestFactoryService {
                     new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(this.createProxiedClient(proxy, null));
             factory.setBufferRequestBody(false);
+            factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
+            factory.setConnectTimeout(this.connectTimeout);
+            factory.setReadTimeout(this.readTimeout);
             return factory;
 
         } else {
@@ -112,7 +126,9 @@ public class ClientHttpRequestFactoryService {
                     new HttpComponentsClientHttpRequestFactory();
 
             devClientHttpRequestFactory.setBufferRequestBody(false);
-
+            devClientHttpRequestFactory.setConnectionRequestTimeout(this.connectionRequestTimeout);
+            devClientHttpRequestFactory.setConnectTimeout(this.connectTimeout);
+            devClientHttpRequestFactory.setReadTimeout(this.readTimeout);
             return devClientHttpRequestFactory;
         }
     }
@@ -191,11 +207,14 @@ public class ClientHttpRequestFactoryService {
             final HttpClient client = HttpClients.custom()
                     .setSSLContext(sslContext)
                     .build();
-            return new HttpComponentsClientHttpRequestFactory(client);
+            final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
+            factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
+            factory.setConnectTimeout(this.connectTimeout);
+            factory.setReadTimeout(this.readTimeout);
+            return factory;
         }
     }
 
-    // TODO set connection and read timeout!? configurable!?
     private HttpClient createProxiedClient(final ProxyData proxy, final SSLContext sslContext) {
 
         final HttpHost httpHost = new HttpHost(
