@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
@@ -225,7 +224,7 @@ public class UserAccountForm implements TemplateComposer {
                 .newAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, DeactivateUserAccount.class)
-                .withConfirm(PageUtils.confirmDeactivation(userAccount, restService))
+                .withConfirm(this.pageService.confirmDeactivation(userAccount))
                 .publishIf(() -> writeGrant && readonly && institutionActive && userAccount.isActive())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)

@@ -191,7 +191,7 @@ public class UserActivityLogs implements TemplateComposer {
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS)
-                        .withExec(action -> this.showDetails(action, t.getSelectedROWData()))
+                        .withExec(action -> this.showDetails(action, t.getSingleSelectedROWData()))
                         .noEventPropagation()
                         .create())
 
@@ -201,7 +201,7 @@ public class UserActivityLogs implements TemplateComposer {
                 .newAction(ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
-                        action -> this.showDetails(action, table.getSelectedROWData()),
+                        action -> this.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
                 .publishIf(table::hasAnyContent);

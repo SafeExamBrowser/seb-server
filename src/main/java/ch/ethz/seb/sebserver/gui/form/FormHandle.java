@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -29,6 +30,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
 public class FormHandle<T extends Entity> {
@@ -77,6 +79,16 @@ public class FormHandle<T extends Entity> {
      * @return the new Action context for read-only-view */
     public final PageAction processFormSave(final PageAction action) {
         return handleFormPost(doAPIPost(), action);
+    }
+
+    public final PageAction saveAndActivate(final PageAction action) {
+        final PageAction handleFormPost = handleFormPost(doAPIPost(), action);
+        final EntityType entityType = this.post.getEntityType();
+        this.pageService.getRestService().getBuilder(entityType, CallType.ACTIVATION_ACTIVATE)
+                .withURIVariable(API.PARAM_MODEL_ID, handleFormPost.getEntityKey().getModelId())
+                .call()
+                .getOrThrow();
+        return handleFormPost;
     }
 
     /** process a form post by first resetting all field validation errors (if there are some)
@@ -136,7 +148,7 @@ public class FormHandle<T extends Entity> {
             return true;
         } else {
             log.error("Unexpected error while trying to post form: {}", error.getMessage());
-            final EntityType resultType = this.post.getResultType();
+            final EntityType resultType = this.post.getEntityType();
             if (resultType != null) {
                 this.pageContext.notifySaveError(resultType, error);
             } else {

@@ -14,11 +14,12 @@ import java.util.Set;
 
 import org.joda.time.DateTimeZone;
 
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 /** Defines a User-Account object */
-public interface UserAccount extends GrantEntity {
+public interface UserAccount extends GrantEntity, Activatable {
 
     /** The model id of the User-Account (UUID) */
     @Override
@@ -42,6 +43,7 @@ public interface UserAccount extends GrantEntity {
     Boolean getActive();
 
     /** Indicates whether the User-Account is active or not */
+    @Override
     boolean isActive();
 
     /** The language of the User-Account */

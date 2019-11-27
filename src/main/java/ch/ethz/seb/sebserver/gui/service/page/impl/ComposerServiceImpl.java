@@ -115,7 +115,7 @@ public class ComposerServiceImpl implements ComposerService {
 
         if (composer.validate(pageContext)) {
 
-            PageUtils.clearComposite(pageContext.getParent());
+            PageService.clearComposite(pageContext.getParent());
 
             try {
                 composer.compose(pageContext);

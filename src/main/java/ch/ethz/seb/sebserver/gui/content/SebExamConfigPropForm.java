@@ -347,7 +347,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
     }
 
     private ExamConfigurationMap getSelectedExamMapping(final EntityTable<ExamConfigurationMap> table) {
-        final ExamConfigurationMap selectedROWData = table.getSelectedROWData();
+        final ExamConfigurationMap selectedROWData = table.getSingleSelectedROWData();
 
         if (selectedROWData == null) {
             throw new PageMessageException(ExamList.EMPTY_SELECTION_TEXT_KEY);

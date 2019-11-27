@@ -30,7 +30,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -183,7 +182,7 @@ public class SebClientConfigForm implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(this.restService, DeactivateClientConfig.class)
-                .withConfirm(PageUtils.confirmDeactivation(clientConfig, this.restService))
+                .withConfirm(this.pageService.confirmDeactivation(clientConfig))
                 .publishIf(() -> writeGrant && isReadonly && clientConfig.isActive())
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_ACTIVATE)

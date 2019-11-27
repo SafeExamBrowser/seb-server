@@ -82,6 +82,7 @@ public class WidgetFactory {
         INACTIVE("inactive.png"),
         TOGGLE_ON("toggle_on.png"),
         TOGGLE_OFF("toggle_off.png"),
+        SWITCH("switch.png"),
         YES("yes.png"),
         NO("no.png"),
         SAVE("save.png"),
@@ -440,7 +441,7 @@ public class WidgetFactory {
     }
 
     public Table tableLocalized(final Composite parent) {
-        final Table table = new Table(parent, SWT.SINGLE | SWT.NO_SCROLL);
+        final Table table = new Table(parent, SWT.MULTI | SWT.NO_SCROLL);
         this.polyglotPageService.injectI18n(table);
         return table;
     }

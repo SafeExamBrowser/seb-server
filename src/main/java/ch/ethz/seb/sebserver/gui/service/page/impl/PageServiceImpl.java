@@ -10,9 +10,14 @@ package ch.ethz.seb.sebserver.gui.service.page.impl;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpSession;
 
@@ -22,8 +27,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -34,6 +44,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition.Type;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
@@ -41,8 +52,10 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -50,6 +63,11 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Service
 @GuiProfile
 public class PageServiceImpl implements PageService {
+
+    private static final LocTextKey CONFIRM_DEACTIVATION_NO_DEP_KEY =
+            new LocTextKey("sebserver.dialog.confirm.deactivation.noDependencies");
+
+    private static final String CONFIRM_DEACTIVATION_KEY = "sebserver.dialog.confirm.deactivation";
 
     private static final Logger log = LoggerFactory.getLogger(PageServiceImpl.class);
 
@@ -181,6 +199,80 @@ public class PageServiceImpl implements PageService {
         } else {
             exec(pageAction, callback);
         }
+    }
+
+    @Override
+    public <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final Set<? extends T> entities) {
+        final RestService restService = this.resourceService.getRestService();
+        return () -> {
+            if (entities == null || entities.isEmpty()) {
+                return null;
+            }
+
+            try {
+                final int dependencies = entities.stream()
+                        .flatMap(entity -> {
+                            final RestCall<Set<EntityKey>>.RestCallBuilder builder =
+                                    restService.<Set<EntityKey>> getBuilder(
+                                            entity.entityType(),
+                                            CallType.GET_DEPENDENCIES);
+
+                            return builder
+                                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
+                                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
+                                    .call()
+                                    .getOrThrow().stream();
+                        })
+                        .collect(Collectors.toList())
+                        .size();
+                if (dependencies > 0) {
+                    return new LocTextKey(CONFIRM_DEACTIVATION_KEY, String.valueOf(dependencies));
+                } else {
+                    return CONFIRM_DEACTIVATION_NO_DEP_KEY;
+                }
+
+            } catch (final Exception e) {
+                log.warn("Failed to get dependencyies. Error: {}", e.getMessage());
+                return new LocTextKey(CONFIRM_DEACTIVATION_KEY, "");
+            }
+        };
+    }
+
+    @Override
+    public <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
+            final EntityTable<T> table,
+            final LocTextKey noSelectionText) {
+
+        return action -> {
+            final Set<T> selectedROWData = table.getSelectedROWData();
+            if (selectedROWData == null || selectedROWData.isEmpty()) {
+                throw new PageMessageException(noSelectionText);
+            }
+
+            final RestService restService = this.resourceService.getRestService();
+            final EntityType entityType = table.getEntityType();
+
+            final Collection<Exception> errors = new ArrayList<>();
+            for (final T entity : selectedROWData) {
+                if (entity.isActive()) {
+                    restService.getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
+                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
+                            .call()
+                            .onError(errors::add);
+                } else {
+                    restService.getBuilder(entityType, CallType.ACTIVATION_ACTIVATE)
+                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
+                            .call()
+                            .onError(errors::add);
+                }
+            }
+
+            if (!errors.isEmpty()) {
+                // TODO notify message for user
+            }
+
+            return action;
+        };
     }
 
     private void exec(final PageAction pageAction, final Consumer<Result<PageAction>> callback) {

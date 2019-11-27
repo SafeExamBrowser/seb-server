@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public final class MultiSelectionCheckbox extends Composite implements Selection {
 
@@ -54,7 +54,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
     public void applyNewMapping(final List<Tuple<String>> mapping) {
         final String selectionValue = getSelectionValue();
         this.checkboxes.clear();
-        PageUtils.clearComposite(this);
+        PageService.clearComposite(this);
 
         for (final Tuple<String> tuple : mapping) {
             final Button button = new Button(this, SWT.CHECK);

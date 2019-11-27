@@ -94,7 +94,7 @@ public abstract class RestCall<T> {
         return this;
     }
 
-    public EntityType getResultType() {
+    public EntityType getEntityType() {
         if (this.typeKey != null) {
             return this.typeKey.entityType;
         }

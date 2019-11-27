@@ -120,6 +120,11 @@ public class InstitutionList implements TemplateComposer {
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .publishIf(() -> instGrant.m() && table.hasAnyContent())
+
+                .newAction(ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY)
+                .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
+                .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> instGrant.m() && table.hasAnyContent());
     }
 

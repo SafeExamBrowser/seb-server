@@ -220,7 +220,7 @@ public class ExamList implements TemplateComposer {
     }
 
     static final PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
-        final Exam exam = table.getSelectedROWData();
+        final Exam exam = table.getSingleSelectedROWData();
 
         if (exam == null) {
             throw new PageMessageException(EMPTY_SELECTION_TEXT_KEY);

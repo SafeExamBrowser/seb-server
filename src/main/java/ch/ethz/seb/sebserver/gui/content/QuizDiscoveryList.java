@@ -194,7 +194,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                                 .withExec(action -> this.showDetails(
                                         action,
-                                        t.getSelectedROWData(),
+                                        t.getSingleSelectedROWData(),
                                         institutionNameFunction))
                                 .noEventPropagation()
                                 .create())
@@ -214,7 +214,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                         table::getSelection,
                         action -> this.showDetails(
                                 action,
-                                table.getSelectedROWData(),
+                                table.getSingleSelectedROWData(),
                                 institutionNameFunction),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
@@ -235,7 +235,7 @@ public class QuizDiscoveryList implements TemplateComposer {
 
     private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {
         action.getSingleSelection();
-        final QuizData selectedROWData = table.getSelectedROWData();
+        final QuizData selectedROWData = table.getSingleSelectedROWData();
 
         if (selectedROWData.endTime != null) {
             final DateTime now = DateTime.now(DateTimeZone.UTC);

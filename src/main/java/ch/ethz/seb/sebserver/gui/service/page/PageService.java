@@ -8,23 +8,28 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -42,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -97,6 +103,45 @@ public interface PageService {
     default Function<PageAction, PageAction> backToCurrentFunction() {
         final PageState currentState = this.getCurrentState();
         return action -> (currentState != null) ? currentState.gotoAction : action;
+    }
+
+    /** Get a page action execution function for switching the activity of currently selected
+     * entities from a given entity-table.
+     *
+     * @param table the entity table
+     * @param noSelectionText LocTextKey for missing selection message
+     * @return page action execution function for switching the activity */
+    <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
+            EntityTable<T> table,
+            LocTextKey noSelectionText);
+
+    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
+     *
+     * @param entities Set of entities to collect the dependencies for
+     * @return a message supplier to notify deactivation dependencies to the user */
+    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final Set<? extends T> entities);
+
+    /** Get a message supplier to notify deactivation dependencies to the user for given entity
+     *
+     * @param entity the entity instance
+     * @return a message supplier to notify deactivation dependencies to the user */
+    default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity) {
+        return confirmDeactivation(new HashSet<>(Arrays.asList(entity)));
+    }
+
+    /** Get a message supplier to notify deactivation dependencies to the user for given entity table selection
+     *
+     * @param table the entity table
+     * @return a message supplier to notify deactivation dependencies to the user */
+    default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
+        return () -> {
+            return confirmDeactivation(table
+                    .getSelectedROWData()
+                    .stream()
+                    .filter(e -> e.isActive()) // NOTE: Activatable::isActive leads to an error here!?
+                    .collect(Collectors.toSet()))
+                            .get();
+        };
     }
 
     /** Publishes a given PageEvent to the current page tree
@@ -226,6 +271,16 @@ public interface PageService {
                 return;
             }
             parent = parent.getParent();
+        }
+    }
+
+    static void clearComposite(final Composite parent) {
+        if (parent == null) {
+            return;
+        }
+
+        for (final Control control : parent.getChildren()) {
+            control.dispose();
         }
     }
 

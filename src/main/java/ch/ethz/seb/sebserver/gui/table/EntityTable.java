@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
@@ -203,6 +204,14 @@ public class EntityTable<ROW extends Entity> {
                 this.sortOrder);
     }
 
+    public EntityType getEntityType() {
+        if (this.restCall != null) {
+            return this.restCall.getEntityType();
+        }
+
+        return null;
+    }
+
     public PageContext getPageContext() {
         if (this.pageContext == null) {
             return null;
@@ -303,13 +312,25 @@ public class EntityTable<ROW extends Entity> {
         return getRowData(item);
     }
 
-    public ROW getSelectedROWData() {
+    public ROW getSingleSelectedROWData() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
             return null;
         }
 
         return getRowData(selection[0]);
+    }
+
+    public Set<ROW> getSelectedROWData() {
+        final TableItem[] selection = this.table.getSelection();
+        if (selection == null || selection.length == 0) {
+            return Collections.emptySet();
+        }
+
+        return Arrays.asList(selection)
+                .stream()
+                .map(this::getRowData)
+                .collect(Collectors.toSet());
     }
 
     public Set<EntityKey> getSelection() {

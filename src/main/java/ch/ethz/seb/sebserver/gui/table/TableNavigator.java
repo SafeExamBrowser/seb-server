@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class TableNavigator {
@@ -40,7 +40,7 @@ public class TableNavigator {
 
     public Page<?> update(final Page<?> pageData) {
         // clear all
-        PageUtils.clearComposite(this.composite);
+        PageService.clearComposite(this.composite);
 
         if (pageData.isEmpty()) {
             // show empty message

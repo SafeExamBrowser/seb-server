@@ -26,7 +26,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.DeactivateInstitution;
@@ -143,7 +142,7 @@ public class InstitutionForm implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(this.restService, DeactivateInstitution.class)
-                .withConfirm(PageUtils.confirmDeactivation(institution, this.restService))
+                .withConfirm(this.pageService.confirmDeactivation(institution))
                 .publishIf(() -> writeGrant && isReadonly && institution.isActive())
 
                 .newAction(ActionDefinition.INSTITUTION_ACTIVATE)
@@ -156,6 +155,12 @@ public class InstitutionForm implements TemplateComposer {
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
+
+                .newAction(ActionDefinition.INSTITUTION_SAVE_AND_ACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(formHandle::saveAndActivate)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> !isReadonly && !institution.isActive())
 
                 .newAction(ActionDefinition.INSTITUTION_CANCEL_MODIFY)
                 .withEntityKey(entityKey)

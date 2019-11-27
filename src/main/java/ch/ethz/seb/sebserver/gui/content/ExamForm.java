@@ -614,7 +614,7 @@ public class ExamForm implements TemplateComposer {
                 .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA))
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                 .withSelectionSupplier(() -> {
-                    final ExamConfigurationMap selectedROWData = table.getSelectedROWData();
+                    final ExamConfigurationMap selectedROWData = table.getSingleSelectedROWData();
                     final HashSet<EntityKey> result = new HashSet<>();
                     if (selectedROWData != null) {
                         result.add(new EntityKey(

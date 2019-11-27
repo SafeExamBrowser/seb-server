@@ -40,7 +40,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -266,7 +265,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, DeactivateLmsSetup.class)
-                .withConfirm(PageUtils.confirmDeactivation(lmsSetup, restService))
+                .withConfirm(this.pageService.confirmDeactivation(lmsSetup))
                 .publishIf(() -> writeGrant && readonly && institutionActive && lmsSetup.isActive())
 
                 .newAction(ActionDefinition.LMS_SETUP_ACTIVATE)

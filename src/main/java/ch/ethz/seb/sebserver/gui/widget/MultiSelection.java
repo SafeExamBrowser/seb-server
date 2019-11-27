@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageUtils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class MultiSelection extends Composite implements Selection {
@@ -61,7 +61,7 @@ public final class MultiSelection extends Composite implements Selection {
         final String selectionValue = getSelectionValue();
         this.selected.clear();
         this.labels.clear();
-        PageUtils.clearComposite(this);
+        PageService.clearComposite(this);
 
         for (final Tuple<String> tuple : mapping) {
             final Label label = new Label(this, SWT.NONE);
