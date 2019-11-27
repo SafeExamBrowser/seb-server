@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.FormPostException;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
@@ -172,6 +173,12 @@ public final class PageAction {
                         restCallError);
             }
             return Result.ofError(restCallError);
+        } catch (final FormPostException e) {
+            log.error("Failed to execute action: {} | error: {} | cause: {}",
+                    PageAction.this.getName(),
+                    e.getMessage(),
+                    Utils.getErrorCauseMessage(e));
+            return Result.ofError(e);
         } catch (final Exception e) {
             log.error("Failed to execute action: {} | error: {} | cause: {}",
                     PageAction.this.getName(),

@@ -14,6 +14,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
+
 public final class Message extends MessageBox {
 
     private static final int NORMAL_WIDTH = 400;
@@ -28,6 +30,7 @@ public final class Message extends MessageBox {
         super(parent, type);
         super.setText(title);
         super.setMessage(message);
+        super.setMarkupEnabled(true);
     }
 
     @Override
@@ -39,7 +42,8 @@ public final class Message extends MessageBox {
         layout.marginRight = 10;
         layout.verticalSpacing = 10;
         layout.horizontalSpacing = 10;
-        super.shell.setData(RWT.CUSTOM_VARIANT, "message");
+        super.shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
+
         final Rectangle bounds = super.shell.getBounds();
         if (bounds.width < NORMAL_WIDTH) {
             bounds.x = bounds.x - (NORMAL_WIDTH - bounds.width) / 2;

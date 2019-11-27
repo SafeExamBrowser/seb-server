@@ -144,6 +144,14 @@ public final class Result<T> {
         return this.value;
     }
 
+    public T getOrThrow(final Function<Exception, RuntimeException> errorWrapper) {
+        if (this.error != null) {
+            throw errorWrapper.apply(this.error);
+        }
+
+        return this.value;
+    }
+
     /** Use this to get the resulting value or (if null) to get a given other value
      *
      * @param supplier supplier to get the value from if the computed value is null

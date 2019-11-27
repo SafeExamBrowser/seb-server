@@ -300,7 +300,7 @@ public class PageContextImpl implements PageContext {
         final MessageBox messageBox = new Message(
                 getShell(),
                 this.i18nSupport.getText("sebserver.error.unexpected"),
-                Utils.formatHTMLLines(errorMessage),
+                Utils.formatHTMLLines(errorMessage + "<br/><br/> Cause: " + error.getMessage()),
                 SWT.ERROR);
         messageBox.open(null);
     }

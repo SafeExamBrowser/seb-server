@@ -173,15 +173,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .putStaticValue(
                         Domain.CONFIGURATION_NODE.ATTR_TYPE,
                         ConfigurationType.EXAM_CONFIG.name())
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_NODE.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        examConfig.name))
-                .addField(FormBuilder.text(
-                        Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                        FORM_DESCRIPTION_TEXT_KEY,
-                        examConfig.description)
-                        .asArea())
                 .addFieldIf(
                         () -> !examConfigTemplateResources.isEmpty(),
                         () -> FormBuilder.singleSelection(
@@ -192,11 +183,23 @@ public class SebExamConfigPropForm implements TemplateComposer {
                                         : String.valueOf(examConfig.templateId),
                                 resourceService::getExamConfigTemplateResources)
                                 .readonly(!isNew))
+                .addField(FormBuilder.text(
+                        Domain.CONFIGURATION_NODE.ATTR_NAME,
+                        FORM_NAME_TEXT_KEY,
+                        examConfig.name))
+                .addField(FormBuilder.text(
+                        Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
+                        FORM_DESCRIPTION_TEXT_KEY,
+                        examConfig.description)
+                        .asArea()
+                        .withInputSpan(3))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
-                        () -> resourceService.examConfigStatusResources(isAttachedToExam)))
+                        () -> resourceService.examConfigStatusResources(isAttachedToExam))
+                        .withEmptyCellSeparation(false))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
