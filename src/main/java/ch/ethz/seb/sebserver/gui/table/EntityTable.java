@@ -484,6 +484,9 @@ public class EntityTable<ROW extends Entity> {
                 if (this.filter != null) {
                     this.filter.adaptColumnWidth(this.table.indexOf(tableColumn), newWidth);
                 }
+                if (index == this.columns.size() - 1) {
+                    tableColumn.setWidth(newWidth - 10);
+                }
 
                 index++;
             }
