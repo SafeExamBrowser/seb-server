@@ -154,6 +154,7 @@ public class EntityTable<ROW extends Entity> {
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
         this.table.setData(RWT.CUSTOM_ITEM_HEIGHT, ROW_HEIGHT);
+        this.table.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
 
         if (defaultActionFunction != null) {
             final PageAction defaultAction = defaultActionFunction.apply(this);

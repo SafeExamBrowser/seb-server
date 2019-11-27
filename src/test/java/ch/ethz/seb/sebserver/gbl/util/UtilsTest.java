@@ -13,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Collection;
 import java.util.Set;
 
+import org.eclipse.swt.graphics.RGB;
 import org.junit.Test;
 
 public class UtilsTest {
@@ -43,6 +44,26 @@ public class UtilsTest {
         assertEquals("[null]", r3.toString());
         assertEquals("[ONE, TWO]", r4.toString());
         assertEquals("[ONE, TWO]", r5.toString());
+    }
+
+    @Test
+    public void testParseRGB() {
+        String colorString = "FFFFFF";
+        assertEquals(
+                "RGB {255, 255, 255}",
+                Utils.parseRGB(colorString).toString());
+
+        colorString = "FFaa34";
+        assertEquals(
+                "RGB {255, 170, 52}",
+                Utils.parseRGB(colorString).toString());
+    }
+
+    @Test
+    public void testParseColorString() {
+        final RGB color = new RGB(255, 255, 255);
+        assertEquals("ffffff", Utils.parseColorString(color));
+
     }
 
 }

@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -266,9 +267,9 @@ public class ExamForm implements TemplateComposer {
                         exam.externalId)
 
                 .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_EXTERNAL_ID,
-                        FORM_QUIZID_TEXT_KEY,
-                        exam.externalId)
+                        QuizData.QUIZ_ATTR_NAME,
+                        FORM_NAME_TEXT_KEY,
+                        exam.name)
                         .readonly(true)
                         .withInputSpan(3)
                         .withEmptyCellSeparation(false))
@@ -298,19 +299,16 @@ public class ExamForm implements TemplateComposer {
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        exam.name)
+                        Domain.EXAM.ATTR_EXTERNAL_ID,
+                        FORM_QUIZID_TEXT_KEY,
+                        exam.externalId)
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         FORM_QUIZ_URL_TEXT_KEY,
                         exam.startURL)
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
+                        .readonly(true))
 
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
@@ -318,8 +316,7 @@ public class ExamForm implements TemplateComposer {
                         exam.description)
                         .asArea()
                         .readonly(true)
-                        .withInputSpan(6)
-                        .withEmptyCellSeparation(false))
+                        .withInputSpan(6))
 
                 .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_STATUS + "_display",
@@ -718,7 +715,6 @@ public class ExamForm implements TemplateComposer {
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
     }
 
-    // TODO find a better way to show a threshold value as text
     private static String thresholdsValue(final Indicator indicator) {
         if (indicator.thresholds.isEmpty()) {
             return Constants.EMPTY_NOTE;
@@ -728,10 +724,17 @@ public class ExamForm implements TemplateComposer {
                 .stream()
                 .reduce(
                         new StringBuilder(),
-                        (sb, threshold) -> sb.append(threshold.value)
-                                .append(Constants.URL_PORT_SEPARATOR)
+                        (sb, threshold) -> sb
+                                .append("<span style='padding: 2px 5px 2px 5px; background-color: #")
                                 .append(threshold.color)
-                                .append(Constants.EMBEDDED_LIST_SEPARATOR),
+                                .append("; ")
+                                .append((Utils.darkColor(Utils.parseRGB(threshold.color)))
+                                        ? "color: #4a4a4a; "
+                                        : "color: #FFFFFF;")
+                                .append("'>")
+                                .append(threshold.value).append(" (").append(threshold.color).append(")")
+                                .append("</span>")
+                                .append(" | "),
                         (sb1, sb2) -> sb1.append(sb2))
                 .toString();
     }

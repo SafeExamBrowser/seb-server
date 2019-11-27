@@ -108,6 +108,18 @@ Label-SeparatorLine {
     height: 1px;
 }
 
+Label.colordark {
+    font: 12px Arial, Helvetica, monospace;
+    letter-spacing: 3.25px;
+    color: #4a4a4a;
+}
+
+Label.colorlight {
+    font: 12px Arial, Helvetica, monospace;
+    letter-spacing: 3.25px;
+    color: #FFFFFF;
+}
+
 Composite.bordered {
     border: 2px;
 }

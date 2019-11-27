@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
@@ -25,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public final class ColorSelection extends Composite implements Selection {
@@ -36,8 +39,10 @@ public final class ColorSelection extends Composite implements Selection {
     private static final LocTextKey DEFAULT_SELECT_TOOLTIP_KEY = new LocTextKey("sebserver.overall.action.select");
 
     private static final int ACTION_COLUMN_WIDTH = 20;
+    private static final int ACTION_COLUMN_ADJUST = 10;
     private final ColorDialog colorDialog;
     private final Composite colorField;
+    private final Label colorLabel;
     private RGB selection;
 
     private Listener listener = null;
@@ -62,6 +67,15 @@ public final class ColorSelection extends Composite implements Selection {
         final GridData colorCell = new GridData(SWT.FILL, SWT.TOP, true, false);
         colorCell.heightHint = 20;
         this.colorField.setLayoutData(colorCell);
+        final GridLayout colorCallLayout = new GridLayout();
+        colorCallLayout.horizontalSpacing = 5;
+        colorCallLayout.verticalSpacing = 0;
+        colorCallLayout.marginHeight = 0;
+        colorCallLayout.marginTop = 2;
+        this.colorField.setLayout(colorCallLayout);
+        this.colorLabel = new Label(this.colorField, SWT.NONE);
+        this.colorLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, true, false));
+        this.colorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIGHT_COLOR_LABEL.key);
 
         final Label imageButton = widgetFactory.imageButton(
                 ImageIcon.COLOR,
@@ -94,13 +108,13 @@ public final class ColorSelection extends Composite implements Selection {
 
     @Override
     public void select(final String keys) {
-        this.selection = parseRGB(keys);
+        this.selection = Utils.parseRGB(keys);
         applySelection();
     }
 
     @Override
     public String getSelectionValue() {
-        return parseColorString(this.selection);
+        return Utils.parseColorString(this.selection);
     }
 
     @Override
@@ -125,47 +139,27 @@ public final class ColorSelection extends Composite implements Selection {
     private void applySelection() {
         if (this.selection != null) {
             this.colorField.setBackground(new Color(this.getDisplay(), this.selection));
+            this.colorLabel.setText(Utils.parseColorString(this.selection));
+            this.colorLabel.setData(RWT.CUSTOM_VARIANT, (Utils.darkColor(this.selection))
+                    ? CustomVariant.DARK_COLOR_LABEL.key
+                    : CustomVariant.LIGHT_COLOR_LABEL.key);
         } else {
             this.colorField.setBackground(null);
+            this.colorLabel.setText(StringUtils.EMPTY);
         }
+
+        this.colorField.layout(true, true);
     }
 
     private void adaptColumnWidth(final Event event) {
         try {
             final int currentTableWidth = this.getClientArea().width;
             final GridData comboCell = (GridData) this.colorField.getLayoutData();
-            comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH;
+            comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH - ACTION_COLUMN_ADJUST;
             this.layout();
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }
-    }
-
-    static String parseColorString(final RGB color) {
-        if (color == null) {
-            return null;
-        }
-
-        return toColorFractionString(color.red)
-                + toColorFractionString(color.green)
-                + toColorFractionString(color.blue);
-    }
-
-    static RGB parseRGB(final String colorString) {
-        if (StringUtils.isBlank(colorString)) {
-            return null;
-        }
-
-        final int r = Integer.parseInt(colorString.substring(0, 2), 16);
-        final int g = Integer.parseInt(colorString.substring(2, 4), 16);
-        final int b = Integer.parseInt(colorString.substring(4, 6), 16);
-
-        return new RGB(r, g, b);
-    }
-
-    static String toColorFractionString(final int fraction) {
-        final String hexString = Integer.toHexString(fraction);
-        return (hexString.length() < 2) ? "0" + hexString : hexString;
     }
 
 }

@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 
 public final class Utils {
 
+    public static final int DARK_COLOR_THRESHOLD = 400;
     public static final Predicate<?> TRUE_PREDICATE = v -> true;
     public static final Predicate<?> FALSE_PREDICATE = v -> false;
     public static final Runnable EMPTY_EXECUTION = () -> {
@@ -413,5 +414,36 @@ public final class Utils {
             return Constants.EMPTY_NOTE;
         }
         return e.getCause().getClass().getName() + " : " + e.getCause().getMessage();
+    }
+
+    public static boolean darkColor(final RGB rgb) {
+        return rgb.red + rgb.green + rgb.blue > DARK_COLOR_THRESHOLD;
+    }
+
+    public static String parseColorString(final RGB color) {
+        if (color == null) {
+            return null;
+        }
+
+        return toColorFractionString(color.red)
+                + toColorFractionString(color.green)
+                + toColorFractionString(color.blue);
+    }
+
+    public static RGB parseRGB(final String colorString) {
+        if (StringUtils.isBlank(colorString)) {
+            return null;
+        }
+
+        final int r = Integer.parseInt(colorString.substring(0, 2), 16);
+        final int g = Integer.parseInt(colorString.substring(2, 4), 16);
+        final int b = Integer.parseInt(colorString.substring(4, 6), 16);
+
+        return new RGB(r, g, b);
+    }
+
+    public static String toColorFractionString(final int fraction) {
+        final String hexString = Integer.toHexString(fraction);
+        return (hexString.length() < 2) ? "0" + hexString : hexString;
     }
 }

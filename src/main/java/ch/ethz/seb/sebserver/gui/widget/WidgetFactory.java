@@ -140,7 +140,10 @@ public class WidgetFactory {
         MESSAGE("message"),
         ERROR("error"),
         WARNING("warning"),
-        CONFIG_INPUT_READONLY("inputreadonly")
+        CONFIG_INPUT_READONLY("inputreadonly"),
+
+        DARK_COLOR_LABEL("colordark"),
+        LIGHT_COLOR_LABEL("colorlight")
 
         ;
 
