@@ -22,6 +22,7 @@
     <Match>
       <Package name="~ch\.ethz\.seb\.sebserver\.gui\..*" />
       <Bug pattern="SE_BAD_FIELD" />
+      <Bug pattern="REC_CATCH_EXCEPTION" />
     </Match>
     <Match>
       <Package name="ch.ethz.seb.sebserver.gui.content" />
@@ -31,9 +32,5 @@
       <Package name="ch.ethz.seb.sebserver.gui.service.page" />
       <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
-
-    
-    
-    
 
 </FindBugsFilter>

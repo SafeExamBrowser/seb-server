@@ -84,9 +84,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
                         Charsets.UTF_8);
 
                 _defaultLogo = FileCopyUtils.copyToString(reader);
-            } catch (final IOException e) {
-                log.warn("Failed to load default logo image from filesystem: {}", defaultLogoFileName);
-                _defaultLogo = null;
+
             } catch (final Exception e) {
                 log.warn("Failed to load default logo image from filesystem: {}", defaultLogoFileName);
                 _defaultLogo = null;
