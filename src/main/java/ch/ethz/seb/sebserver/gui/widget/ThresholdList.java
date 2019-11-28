@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -45,7 +47,7 @@ public final class ThresholdList extends Composite {
     private static final LocTextKey REMOVE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
 
     private final WidgetFactory widgetFactory;
-    private final Indicator indicator;
+    private final Supplier<IndicatorType> indicatorTypeSupplier;
     private final List<Entry> thresholds = new ArrayList<>();
 
     private final GridData valueCell;
@@ -54,13 +56,13 @@ public final class ThresholdList extends Composite {
     private final Composite updateAnchor;
 
     ThresholdList(
-            final Indicator indicator,
             final Composite parent,
             final Composite updateAnchor,
-            final WidgetFactory widgetFactory) {
+            final WidgetFactory widgetFactory,
+            final Supplier<IndicatorType> indicatorTypeSupplier) {
 
         super(parent, SWT.NONE);
-        this.indicator = indicator;
+        this.indicatorTypeSupplier = indicatorTypeSupplier;
         this.updateAnchor = updateAnchor;
         this.widgetFactory = widgetFactory;
         super.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -137,7 +139,7 @@ public final class ThresholdList extends Composite {
     private void addThreshold(final Threshold threshold) {
         final Text valueInput = this.widgetFactory.numberInput(
                 this, s -> {
-                    if (this.indicator.getType().integerValue) {
+                    if (this.indicatorTypeSupplier.get().integerValue) {
                         Integer.parseInt(s);
                     } else {
                         Double.parseDouble(s);
@@ -163,7 +165,9 @@ public final class ThresholdList extends Composite {
 
         if (threshold != null) {
             if (threshold.value != null) {
-                valueInput.setText(Indicator.getDisplayValue(this.indicator, threshold.value));
+                valueInput.setText(Indicator.getDisplayValue(
+                        this.indicatorTypeSupplier.get(),
+                        threshold.value));
             }
             if (threshold.color != null) {
                 selector.select(threshold.color);

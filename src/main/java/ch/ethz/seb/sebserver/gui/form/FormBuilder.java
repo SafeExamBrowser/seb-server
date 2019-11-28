@@ -260,7 +260,10 @@ public class FormBuilder {
             final LocTextKey label,
             final Indicator indicator) {
 
-        return new ThresholdListBuilder(name, label, indicator);
+        return new ThresholdListBuilder(
+                name,
+                label,
+                indicator.thresholds);
     }
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final LocTextKey label, final String value) {

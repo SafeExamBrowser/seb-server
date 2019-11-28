@@ -19,22 +19,22 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 
 public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
-    private final Indicator indicator;
+    private final Collection<Threshold> thresholds;
 
     protected ThresholdListBuilder(
             final String name,
             final LocTextKey label,
-            final Indicator indicator) {
+            final Collection<Threshold> thresholds) {
 
-        super(name, label, indicator.getThresholds());
-        this.indicator = indicator;
+        super(name, label, thresholds);
+        this.thresholds = thresholds;
     }
 
     @Override
@@ -46,15 +46,24 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
                 this.spanLabel);
 
         if (builder.readonly || this.readonly) {
-            // TODO do we need a read-only view for this?
+            // No read-only view needed for this so far?
             return;
         } else {
 
             final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+
             final ThresholdList thresholdList = builder.widgetFactory.thresholdList(
                     fieldGrid,
                     fieldGrid.getParent().getParent(),
-                    this.indicator);
+                    this.thresholds,
+                    () -> {
+                        try {
+                            final String fieldValue = builder.form.getFieldValue(Domain.INDICATOR.ATTR_TYPE);
+                            return IndicatorType.valueOf(fieldValue);
+                        } catch (final Exception e) {
+                            return null;
+                        }
+                    });
 
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
             thresholdList.setLayoutData(gridData);

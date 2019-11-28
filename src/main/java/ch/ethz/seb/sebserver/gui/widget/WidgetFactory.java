@@ -40,7 +40,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -58,7 +59,7 @@ public class WidgetFactory {
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
-    public static final int TEXT_AREA_INPUT_MIN_HEIGHT = 50;
+    public static final int TEXT_AREA_INPUT_MIN_HEIGHT = 100;
     public static final int TEXT_INPUT_MIN_HEIGHT = 24;
 
     public enum ImageIcon {
@@ -605,11 +606,16 @@ public class WidgetFactory {
     public ThresholdList thresholdList(
             final Composite parent,
             final Composite updateAnchor,
-            final Indicator indicator) {
+            final Collection<Threshold> thresholds,
+            final Supplier<IndicatorType> indicatorTypeSupplier) {
 
-        final ThresholdList thresholdList = new ThresholdList(indicator, parent, updateAnchor, this);
-        if (indicator.thresholds != null) {
-            thresholdList.setThresholds(indicator.thresholds);
+        final ThresholdList thresholdList = new ThresholdList(
+                parent,
+                updateAnchor,
+                this,
+                indicatorTypeSupplier);
+        if (thresholds != null) {
+            thresholdList.setThresholds(thresholds);
         }
         return thresholdList;
     }
