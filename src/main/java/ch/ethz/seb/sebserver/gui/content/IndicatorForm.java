@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -21,9 +22,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -34,6 +37,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
@@ -54,9 +58,17 @@ public class IndicatorForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.indicator.form.name");
     private static final LocTextKey FORM_EXAM_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.form.exam");
+    private static final LocTextKey FORM_DESC_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.description");
+
+    private static final String INDICATOR_TYPE_DESC_PREFIX =
+            "sebserver.exam.indicator.type.description.";
+    private static final String TYPE_DESCRIPTION_FIELD_NAME =
+            "typeDescription";
 
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final I18nSupport i18nSupport;
 
     protected IndicatorForm(
             final PageService pageService,
@@ -64,6 +76,7 @@ public class IndicatorForm implements TemplateComposer {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
+        this.i18nSupport = pageService.getI18nSupport();
     }
 
     @Override
@@ -91,6 +104,11 @@ public class IndicatorForm implements TemplateComposer {
                         .call()
                         .onError(error -> pageContext.notifyLoadError(EntityType.INDICATOR, error))
                         .getOrThrow();
+
+        final boolean typeSet = indicator.type != null;
+        final String typeDescription = (typeSet)
+                ? this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + indicator.type.name)
+                : Constants.EMPTY_NOTE;
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(indicator.getEntityKey());
@@ -124,19 +142,32 @@ public class IndicatorForm implements TemplateComposer {
                         Domain.INDICATOR.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         indicator.name))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.INDICATOR.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         (indicator.type != null) ? indicator.type.name() : null,
-                        this.resourceService::indicatorTypeResources))
+                        this.resourceService::indicatorTypeResources)
+                        .withSelectionListener(this::updateForm))
+
+                .addField(FormBuilder.text(
+                        TYPE_DESCRIPTION_FIELD_NAME,
+                        FORM_DESC_TEXT_KEY,
+                        typeDescription)
+                        .asArea()
+                        .readonly(true)
+                        .withInputSpan(3))
+
                 .addField(FormBuilder.colorSelection(
                         Domain.INDICATOR.ATTR_COLOR,
                         FORM_COLOR_TEXT_KEY,
-                        indicator.defaultColor))
+                        indicator.defaultColor)
+                        .withEmptyCellSeparation(false))
                 .addField(FormBuilder.thresholdList(
                         Domain.THRESHOLD.REFERENCE_NAME,
                         FORM_THRESHOLDS_TEXT_KEY,
-                        indicator.getThresholds()))
+                        indicator))
+
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)
                         : restService.getRestCall(SaveIndicator.class));
@@ -155,6 +186,17 @@ public class IndicatorForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
+    }
+
+    private final void updateForm(final Form form) {
+        final String typeValue = form.getFieldValue(Domain.INDICATOR.ATTR_TYPE);
+        if (StringUtils.isNotBlank(typeValue)) {
+            form.setFieldValue(
+                    TYPE_DESCRIPTION_FIELD_NAME,
+                    this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + typeValue));
+        } else {
+            form.setFieldValue(TYPE_DESCRIPTION_FIELD_NAME, Constants.EMPTY_NOTE);
+        }
     }
 
 }

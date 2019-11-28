@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -259,9 +258,9 @@ public class FormBuilder {
     public static ThresholdListBuilder thresholdList(
             final String name,
             final LocTextKey label,
-            final Collection<Threshold> value) {
+            final Indicator indicator) {
 
-        return new ThresholdListBuilder(name, label, value);
+        return new ThresholdListBuilder(name, label, indicator);
     }
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final LocTextKey label, final String value) {

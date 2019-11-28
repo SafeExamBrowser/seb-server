@@ -78,8 +78,8 @@ public class HTTPClientBot {
 
     public HTTPClientBot(final Map<String, String> args) {
 
-        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
-        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
+        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
+        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
         //this.webserviceAddress = args.getOrDefault("webserviceAddress", "https://seb.test-swissmooc.ch");
 
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");

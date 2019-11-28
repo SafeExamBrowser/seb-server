@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -605,11 +605,11 @@ public class WidgetFactory {
     public ThresholdList thresholdList(
             final Composite parent,
             final Composite updateAnchor,
-            final Collection<Threshold> values) {
+            final Indicator indicator) {
 
-        final ThresholdList thresholdList = new ThresholdList(parent, updateAnchor, this);
-        if (values != null) {
-            thresholdList.setThresholds(values);
+        final ThresholdList thresholdList = new ThresholdList(indicator, parent, updateAnchor, this);
+        if (indicator.thresholds != null) {
+            thresholdList.setThresholds(indicator.thresholds);
         }
         return thresholdList;
     }

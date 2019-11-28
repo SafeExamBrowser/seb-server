@@ -122,6 +122,10 @@ public final class Form implements FormBinding {
         return !this.formFields.isEmpty();
     }
 
+    public boolean hasField(final String fieldName) {
+        return this.formFields.containsKey(fieldName);
+    }
+
     Form putReadonlyField(final String name, final Label label, final Text field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
@@ -293,7 +297,7 @@ public final class Form implements FormBinding {
             case MULTI:
             case MULTI_COMBO:
                 return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray, errorLabel);
-            default : return createAccessor(label, selection, null, null);
+            default : return createAccessor(label, selection, null, errorLabel);
         }
     }
     private FormFieldAccessor createAccessor(

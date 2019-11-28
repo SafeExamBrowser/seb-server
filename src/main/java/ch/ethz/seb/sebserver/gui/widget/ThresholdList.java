@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -44,6 +45,7 @@ public final class ThresholdList extends Composite {
     private static final LocTextKey REMOVE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
 
     private final WidgetFactory widgetFactory;
+    private final Indicator indicator;
     private final List<Entry> thresholds = new ArrayList<>();
 
     private final GridData valueCell;
@@ -51,16 +53,14 @@ public final class ThresholdList extends Composite {
     private final GridData actionCell;
     private final Composite updateAnchor;
 
-    ThresholdList(final Composite parent, final WidgetFactory widgetFactory) {
-        this(parent, parent, widgetFactory);
-    }
-
     ThresholdList(
+            final Indicator indicator,
             final Composite parent,
             final Composite updateAnchor,
             final WidgetFactory widgetFactory) {
 
         super(parent, SWT.NONE);
+        this.indicator = indicator;
         this.updateAnchor = updateAnchor;
         this.widgetFactory = widgetFactory;
         super.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -135,7 +135,14 @@ public final class ThresholdList extends Composite {
     }
 
     private void addThreshold(final Threshold threshold) {
-        final Text valueInput = this.widgetFactory.numberInput(this, s -> Double.parseDouble(s));
+        final Text valueInput = this.widgetFactory.numberInput(
+                this, s -> {
+                    if (this.indicator.getType().integerValue) {
+                        Integer.parseInt(s);
+                    } else {
+                        Double.parseDouble(s);
+                    }
+                });
         final GridData valueCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         valueInput.setLayoutData(valueCell);
 
@@ -156,7 +163,7 @@ public final class ThresholdList extends Composite {
 
         if (threshold != null) {
             if (threshold.value != null) {
-                valueInput.setText(threshold.value.toString());
+                valueInput.setText(Indicator.getDisplayValue(this.indicator, threshold.value));
             }
             if (threshold.color != null) {
                 selector.select(threshold.color);

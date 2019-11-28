@@ -19,18 +19,22 @@ import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 
 public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
+    private final Indicator indicator;
+
     protected ThresholdListBuilder(
             final String name,
             final LocTextKey label,
-            final Collection<Threshold> value) {
+            final Indicator indicator) {
 
-        super(name, label, value);
+        super(name, label, indicator.getThresholds());
+        this.indicator = indicator;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
             final ThresholdList thresholdList = builder.widgetFactory.thresholdList(
                     fieldGrid,
                     fieldGrid.getParent().getParent(),
-                    this.value);
+                    this.indicator);
 
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
             thresholdList.setLayoutData(gridData);

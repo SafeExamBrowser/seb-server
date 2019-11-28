@@ -74,7 +74,9 @@ public final class ColorSelection extends Composite implements Selection {
         colorCallLayout.marginTop = 2;
         this.colorField.setLayout(colorCallLayout);
         this.colorLabel = new Label(this.colorField, SWT.NONE);
-        this.colorLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, true, false));
+        final GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false);
+        gridData.minimumWidth = 50;
+        this.colorLabel.setLayoutData(gridData);
         this.colorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIGHT_COLOR_LABEL.key);
 
         final Label imageButton = widgetFactory.imageButton(

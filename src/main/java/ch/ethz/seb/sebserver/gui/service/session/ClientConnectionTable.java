@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -46,6 +47,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
@@ -83,6 +85,9 @@ public final class ClientConnectionTable {
     private LinkedHashMap<Long, UpdatableTableItem> tableMapping;
     private final MultiValueMap<String, Long> sessionIds;
 
+    private final Color darkFontColor;
+    private final Color lightFontColor;
+
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
@@ -98,6 +103,9 @@ public final class ClientConnectionTable {
         final Display display = tableRoot.getDisplay();
         this.statusData = new StatusData(display);
 
+        this.darkFontColor = new Color(display, new RGB(0, 0, 0));
+        this.lightFontColor = new Color(display, new RGB(255, 255, 255));
+
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
@@ -105,9 +113,11 @@ public final class ClientConnectionTable {
 
         this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
+        gridLayout.horizontalSpacing = 100;
+        gridLayout.marginWidth = 100;
+        gridLayout.marginRight = 100;
         this.table.setLayout(gridLayout);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        //gridData.heightHint = 200;
         this.table.setLayoutData(gridData);
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
@@ -260,7 +270,8 @@ public final class ClientConnectionTable {
         final Long connectionId;
         private boolean changed = false;
         private ClientConnectionData connectionData;
-        private int indicatorWeight;
+        private int thresholdsWeight;
+        private int[] indicatorWeights = null;
         private boolean duplicateChecked = false;
 
         UpdatableTableItem(final Long connectionId) {
@@ -290,9 +301,11 @@ public final class ClientConnectionTable {
         }
 
         void updateConnectionStatusColor(final TableItem tableItem) {
-            tableItem.setBackground(
-                    2,
-                    ClientConnectionTable.this.statusData.getStatusColor(this.connectionData));
+            final Color statusColor = ClientConnectionTable.this.statusData.getStatusColor(this.connectionData);
+            tableItem.setBackground(2, statusColor);
+            tableItem.setForeground(2, Utils.darkColor(statusColor.getRGB())
+                    ? ClientConnectionTable.this.darkFontColor
+                    : ClientConnectionTable.this.lightFontColor);
         }
 
         void updateDuplicateColor(final TableItem tableItem) {
@@ -313,7 +326,7 @@ public final class ClientConnectionTable {
         }
 
         void updateIndicatorValues(final TableItem tableItem) {
-            if (this.connectionData == null) {
+            if (this.connectionData == null || this.indicatorWeights == null) {
                 return;
             }
 
@@ -325,17 +338,23 @@ public final class ClientConnectionTable {
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
                 if (fillEmpty) {
-                    tableItem.setText(indicatorData.index, Constants.EMPTY_NOTE);
+                    tableItem.setText(indicatorData.tableIndex, Constants.EMPTY_NOTE);
                     tableItem.setBackground(
-                            indicatorData.index,
+                            indicatorData.tableIndex,
                             indicatorData.defaultColor);
                 } else {
-                    tableItem.setText(indicatorData.index, getDisplayValue(indicatorValue));
+                    tableItem.setText(indicatorData.tableIndex, getDisplayValue(indicatorValue));
+                    final int weight = this.indicatorWeights[indicatorData.index];
                     final Color color =
-                            (this.indicatorWeight >= 0 && this.indicatorWeight < indicatorData.thresholdColor.length)
-                                    ? indicatorData.thresholdColor[this.indicatorWeight].color
+                            (weight >= 0 && weight < indicatorData.thresholdColor.length)
+                                    ? indicatorData.thresholdColor[weight].color
                                     : indicatorData.defaultColor;
-                    tableItem.setBackground(indicatorData.index, color);
+                    tableItem.setBackground(indicatorData.tableIndex, color);
+                    tableItem.setForeground(
+                            indicatorData.tableIndex,
+                            Utils.darkColor(color.getRGB())
+                                    ? ClientConnectionTable.this.darkFontColor
+                                    : ClientConnectionTable.this.lightFontColor);
                 }
             }
         }
@@ -376,7 +395,7 @@ public final class ClientConnectionTable {
         }
 
         int thresholdsWeight() {
-            return this.indicatorWeight;
+            return -this.thresholdsWeight;
         }
 
         String getStatusName() {
@@ -412,6 +431,10 @@ public final class ClientConnectionTable {
                 ClientConnectionTable.this.needsSort = true;
             }
 
+            if (this.indicatorWeights == null) {
+                this.indicatorWeights = new int[ClientConnectionTable.this.indicatorMapping.size()];
+            }
+
             for (int i = 0; i < connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
@@ -419,10 +442,13 @@ public final class ClientConnectionTable {
 
                 final double value = indicatorValue.getValue();
                 final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
-                if (this.indicatorWeight != indicatorWeight) {
+                if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
+                    System.out.println("**** index: " + indicatorData.index + " weight: " + indicatorWeight);
                     ClientConnectionTable.this.needsSort = true;
+                    this.thresholdsWeight -= this.indicatorWeights[indicatorData.index];
+                    this.indicatorWeights[indicatorData.index] = indicatorWeight;
+                    this.thresholdsWeight += this.indicatorWeights[indicatorData.index];
                 }
-                this.indicatorWeight = indicatorWeight;
             }
 
             this.connectionData = connectionData;

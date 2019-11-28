@@ -740,7 +740,10 @@ public class ExamForm implements TemplateComposer {
                                         ? "color: #4a4a4a; "
                                         : "color: #FFFFFF;")
                                 .append("'>")
-                                .append(threshold.value).append(" (").append(threshold.color).append(")")
+                                .append(Indicator.getDisplayValue(indicator, threshold.value))
+                                .append(" (")
+                                .append(threshold.color)
+                                .append(")")
                                 .append("</span>")
                                 .append(" | "),
                         (sb1, sb2) -> sb1.append(sb2));

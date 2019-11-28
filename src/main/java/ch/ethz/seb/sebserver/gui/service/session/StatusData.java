@@ -23,9 +23,9 @@ public class StatusData {
 
     public StatusData(final Display display) {
         this.defaultColor = new Color(display, new RGB(255, 255, 255), 255);
-        this.color1 = new Color(display, new RGB(0, 255, 0), 255);
-        this.color2 = new Color(display, new RGB(249, 166, 2), 255);
-        this.color3 = new Color(display, new RGB(255, 0, 0), 255);
+        this.color1 = new Color(display, new RGB(34, 177, 76), 255);
+        this.color2 = new Color(display, new RGB(255, 194, 14), 255);
+        this.color3 = new Color(display, new RGB(237, 28, 36), 255);
     }
 
     Color getStatusColor(final ClientConnectionData connectionData) {

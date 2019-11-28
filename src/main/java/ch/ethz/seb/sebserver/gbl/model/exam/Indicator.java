@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -160,6 +161,17 @@ public final class Indicator implements Entity {
 
     public static Indicator createNew(final Exam exam) {
         return new Indicator(null, exam.id, null, null, null, null);
+    }
+
+    public static String getDisplayValue(final Indicator indicator, final Double value) {
+        if (value == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        if (indicator.getType().integerValue) {
+            return String.valueOf(value.intValue());
+        } else {
+            return String.valueOf(value.floatValue());
+        }
     }
 
     public static final class Threshold {

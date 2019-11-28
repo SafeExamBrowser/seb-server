@@ -111,11 +111,13 @@ Label-SeparatorLine {
 Label.colordark {
     font: 12px "Courier New", Courier, monospace;
     color: #4a4a4a;
+    padding: 2px 5px 2px 5px;
 }
 
 Label.colorlight {
     font: 12px "Courier New", Courier, monospace;
     color: #FFFFFF;
+    padding: 2px 5px 2px 5px;
 }
 
 Composite.bordered {

@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.session;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 
 import org.eclipse.swt.graphics.Color;
@@ -22,29 +24,42 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 final class IndicatorData {
 
     final int index;
+    final int tableIndex;
     final Indicator indicator;
     final Color defaultColor;
     final ThresholdColor[] thresholdColor;
 
-    protected IndicatorData(final Indicator indicator, final int index, final Display display) {
+    protected IndicatorData(
+            final Indicator indicator,
+            final int index,
+            final int tableIndex,
+            final Display display) {
+
         this.indicator = indicator;
         this.index = index;
+        this.tableIndex = tableIndex;
         this.defaultColor = new Color(display, Utils.toRGB(indicator.defaultColor), 255);
         this.thresholdColor = new ThresholdColor[indicator.thresholds.size()];
+        final ArrayList<Threshold> sortedThresholds = new ArrayList<>(indicator.thresholds);
+        Collections.sort(sortedThresholds, (t1, t2) -> t1.value.compareTo(t2.value));
         for (int i = 0; i < indicator.thresholds.size(); i++) {
-            this.thresholdColor[i] = new ThresholdColor(indicator.thresholds.get(i), display);
+            this.thresholdColor[i] = new ThresholdColor(sortedThresholds.get(i), display);
         }
     }
 
     static final EnumMap<IndicatorType, IndicatorData> createFormIndicators(
             final Collection<Indicator> indicators,
             final Display display,
-            final int indexOffset) {
+            final int tableIndexOffset) {
 
         final EnumMap<IndicatorType, IndicatorData> indicatorMapping = new EnumMap<>(IndicatorType.class);
-        int i = indexOffset;
+        int i = 0;
         for (final Indicator indicator : indicators) {
-            indicatorMapping.put(indicator.type, new IndicatorData(indicator, i, display));
+            indicatorMapping.put(indicator.type, new IndicatorData(
+                    indicator,
+                    i,
+                    i + tableIndexOffset,
+                    display));
             i++;
         }
         return indicatorMapping;
@@ -53,11 +68,7 @@ final class IndicatorData {
     static final int getWeight(final IndicatorData indicatorData, final double value) {
         for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
             if (value < indicatorData.thresholdColor[j].value) {
-                if (j == 0) {
-                    return -1;
-                } else {
-                    return j - 1;
-                }
+                return (j == 0) ? -1 : j - 1;
             }
         }
 
