@@ -86,9 +86,10 @@ class ExamUpdateHandler {
 
         return this.examDAO
                 .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.save(new Exam(
+                .flatMap(e -> this.examDAO.updateState(
                         exam.id,
-                        ExamStatus.RUNNING)))
+                        ExamStatus.RUNNING,
+                        updateId))
                 .flatMap(this::applySebClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
@@ -103,9 +104,10 @@ class ExamUpdateHandler {
 
         return this.examDAO
                 .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.save(new Exam(
+                .flatMap(e -> this.examDAO.updateState(
                         exam.id,
-                        ExamStatus.FINISHED)))
+                        ExamStatus.FINISHED,
+                        updateId))
                 .flatMap(this::releaseSebClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id))

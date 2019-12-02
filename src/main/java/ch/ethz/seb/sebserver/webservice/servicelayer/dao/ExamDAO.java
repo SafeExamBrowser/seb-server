@@ -28,6 +28,17 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *         happened */
     Result<Collection<Long>> allIdsOfInstituion(Long institutionId);
 
+    /** Updates the exam status for specified exam
+     *
+     * @param examId The exam identifier
+     * @param status the exam status to update to
+     * @param updateId the update identifier to check update write lock
+     * @return Result refer to updated Exam or to an error if happened */
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    Result<Exam> updateState(Long examId, ExamStatus status, String updateId);
+
     /** Saves the Exam and updates the running exam cache. */
     @Override
     @CacheEvict(

@@ -166,6 +166,29 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public Result<Exam> updateState(final Long examId, final ExamStatus status, final String updateId) {
+        return recordById(examId)
+                .map(examRecord -> {
+                    if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRecord.getUpdating()))) {
+                        if (!updateId.equals(examRecord.getLastupdate())) {
+                            throw new IllegalStateException("Exam is currently locked: " + examRecord);
+                        }
+                    }
+
+                    final ExamRecord newExamRecord = new ExamRecord(
+                            examRecord.getId(),
+                            null, null, null, null, null, null, null, null,
+                            status.name(),
+                            null, null, null, null);
+
+                    this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
+                    return this.examRecordMapper.selectByPrimaryKey(examId);
+                })
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
     @Transactional
     public Result<Exam> save(final Exam exam) {
         return Result.tryCatch(() -> {
@@ -173,7 +196,7 @@ public class ExamDAOImpl implements ExamDAO {
             // check internal persistent write-lock
             final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(exam.id);
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
-                throw new IllegalStateException("Exam is currently locked: " + String.valueOf(exam));
+                throw new IllegalStateException("Exam is currently locked: " + exam);
             }
 
             final ExamRecord examRecord = new ExamRecord(
