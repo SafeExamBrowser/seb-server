@@ -32,7 +32,7 @@ public class InitialPermittedProcesses implements AdditionalDefaultValueProvider
 
     protected InitialPermittedProcesses(
             final XMLAttributeLoader xmlAttributeLoader,
-            @Value("${sebserver.webservice.api.exam.config.init.permittedProcesses:config/additionalPermittedProcesses.xml}") final String configFile) {
+            @Value("${sebserver.webservice.api.exam.config.init.permittedProcesses:config/initialPermittedProcesses.xml}") final String configFile) {
 
         this.xmlAttributeLoader = xmlAttributeLoader;
         this.configFile = configFile;
