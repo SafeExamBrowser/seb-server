@@ -443,7 +443,6 @@ public final class ClientConnectionTable {
                 final double value = indicatorValue.getValue();
                 final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
                 if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
-                    System.out.println("**** index: " + indicatorData.index + " weight: " + indicatorWeight);
                     ClientConnectionTable.this.needsSort = true;
                     this.thresholdsWeight -= this.indicatorWeights[indicatorData.index];
                     this.indicatorWeights[indicatorData.index] = indicatorWeight;
