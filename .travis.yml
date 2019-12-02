@@ -4,3 +4,5 @@ jdk:
 sudo: false
 install: true
 script: mvn clean install -e -P let_reporting
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
