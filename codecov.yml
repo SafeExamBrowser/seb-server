@@ -1,7 +1,4 @@
 coverage:
-  range: 50..75
+  range: "50..75"
   round: down
   precision: 2
-
-ignore:
-   - "src/main/java/ch/ethz/seb/sebserver/gui/**/*"
