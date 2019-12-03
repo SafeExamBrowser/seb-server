@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.springframework.core.annotation.Order;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -117,13 +117,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveU
 
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
-    @BeforeAll
+    @Before
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void init() {
 
     }
 
-    @AfterAll
+    @After
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void cleanup() {
 

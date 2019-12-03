@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -26,7 +26,7 @@ public class OpenEdxCourseRestrictionDataTest {
         final OpenEdxCourseRestrictionData data = new OpenEdxCourseRestrictionData(null, null, null, null, null, false);
         final String json = mapper.writeValueAsString(data);
         assertEquals(
-                "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[\"AlwaysAllowStaff\"],\"USER_BANNING_ENABLED\":false}",
+                "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[],\"USER_BANNING_ENABLED\":false}",
                 json);
     }
 

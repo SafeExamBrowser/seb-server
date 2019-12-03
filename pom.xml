@@ -174,12 +174,13 @@
                   <goal>report</goal>
                 </goals>
                 <configuration>
-                    <excludes>ch/ethz/seb/sebserver/gui/content/**/*
-                        <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
-                        <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
-                        <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
-                        <exclude>ch/ethz/seb/sebserver/gui/widget/**/*</exclude>
-                    </excludes>
+                  <excludes>
+                    ch/ethz/seb/sebserver/gui/content/**/*
+                    <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/widget/**/*</exclude>
+                  </excludes>
                 </configuration>
               </execution>
             </executions>
@@ -329,15 +330,21 @@
 
     <!-- Testing -->
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>org.junit.jupiter</groupId> -->
+    <!-- <artifactId>junit-jupiter-api</artifactId> -->
+    <!-- <scope>test</scope> -->
+    <!-- </dependency> -->
+
+    <!-- <dependency> -->
+    <!-- <groupId>org.junit.vintage</groupId> -->
+    <!-- <artifactId>junit-vintage-engine</artifactId> -->
+    <!-- <scope>test</scope> -->
+    <!-- </dependency> -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
