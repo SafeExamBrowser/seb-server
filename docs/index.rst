@@ -6,10 +6,17 @@
 SEB Server User Guide
 =====================
 
+About
+-----
+
+.. include:: ../README.rst
+
+Table of Content
+----------------
+
 .. toctree::
    :maxdepth: 3
    
-   about
    overview
    institution
    useraccount
