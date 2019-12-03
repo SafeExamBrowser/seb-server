@@ -88,7 +88,7 @@ html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     "description": "SEB Server User Guide",
     "github_user": "anhefti",
-    "github_repo": "seb-server,
+    "github_repo": "seb-server",
     "link": "#3782BE",
     "link_hover": "#3782BE",
     "page_width": "1024px",
