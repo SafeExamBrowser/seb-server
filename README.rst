@@ -7,4 +7,4 @@
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. include:: docs/about.rst
+.. include:: /docs/about.rst
