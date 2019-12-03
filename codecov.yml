@@ -4,4 +4,4 @@ coverage:
   precision: 2
 
 ignore:
-   - "/src/main/java/ch/ethz/seb/sebserver/gui/**/*"
+   - "src/main/java/ch/ethz/seb/sebserver/gui/**/*"
