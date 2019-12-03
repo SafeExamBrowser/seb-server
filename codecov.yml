@@ -1,4 +1,7 @@
 coverage:
-  range: 50..100
+  range: 50..75
   round: down
   precision: 2
+
+ignore:
+   - "ch/ethz/seb/sebserver/gui"
