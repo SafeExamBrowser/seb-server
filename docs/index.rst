@@ -6,10 +6,7 @@
 SEB Server User Guide
 =====================
 
-About
------
-
-.. include:: ../README.rst
+.. include:: about.rst
 
 Table of Content
 ----------------

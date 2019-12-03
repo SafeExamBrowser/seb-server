@@ -4,4 +4,4 @@ coverage:
   precision: 2
 
 ignore:
-   - "ch/ethz/seb/sebserver/gui"
+   - "ch/ethz/seb/sebserver/gui/**/*"
