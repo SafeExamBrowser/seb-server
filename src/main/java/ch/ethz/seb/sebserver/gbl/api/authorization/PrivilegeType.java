@@ -36,8 +36,6 @@ public enum PrivilegeType {
         }
 
         switch (this) {
-            case NONE:
-                return false;
             case READ:
                 return type == READ;
             case MODIFY:

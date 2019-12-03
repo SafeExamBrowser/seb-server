@@ -23,6 +23,7 @@ import org.springframework.web.util.HtmlUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** This class defines API error messages that are created and responded on error and/or exceptional
@@ -201,39 +202,13 @@ public class APIMessage implements Serializable {
         final StringBuilder builder = new StringBuilder();
         builder.append("<b>Failure: </b>").append("<br/><br/>").append(errorMessage).append("<br/><br/>");
         builder.append("<b>Detail Messages:</b><br/><br/>");
-        messages.stream()
-                .forEach(message -> {
-                    builder
-                            .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
-                            .append(message.messageCode)
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
-                            .append(HtmlUtils.htmlEscape(message.systemMessage))
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
-                            .append(HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100)))
-                            .append("<br/><br/>");
-                });
-        return builder.toString();
+        return buildHTML(messages, builder);
     }
 
     public static String toHTML(final Collection<APIMessage> messages) {
         final StringBuilder builder = new StringBuilder();
         builder.append("<b>Messages:</b><br/><br/>");
-        messages.stream()
-                .forEach(message -> {
-                    builder
-                            .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
-                            .append(message.messageCode)
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
-                            .append(HtmlUtils.htmlEscape(message.systemMessage))
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
-                            .append(HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100)))
-                            .append("<br/><br/>");
-                });
-        return builder.toString();
+        return buildHTML(messages, builder);
     }
 
     /** This exception can be internal used to wrap a created APIMessage
@@ -257,12 +232,12 @@ public class APIMessage implements Serializable {
         }
 
         public APIMessageException(final ErrorMessage errorMessage) {
-            super();
+            super(errorMessage.systemMessage);
             this.apiMessages = Arrays.asList(errorMessage.of());
         }
 
         public APIMessageException(final ErrorMessage errorMessage, final String detail, final String... attributes) {
-            super();
+            super(errorMessage.systemMessage);
             this.apiMessages = Arrays.asList(errorMessage.of(detail, attributes));
         }
 
@@ -284,6 +259,25 @@ public class APIMessage implements Serializable {
         public FieldValidationException(final String fieldName, final String defaultMessage) {
             this.apiMessage = APIMessage.fieldValidationError(fieldName, defaultMessage);
         }
+    }
+
+    private static String buildHTML(final Collection<APIMessage> messages, final StringBuilder builder) {
+        messages.stream()
+                .forEach(message -> {
+                    builder
+                            .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
+                            .append(message.messageCode)
+                            .append("<br/>")
+                            .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
+                            .append(HtmlUtils.htmlEscape(message.systemMessage))
+                            .append("<br/>")
+                            .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
+                            .append((message.details != null)
+                                    ? HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100))
+                                    : Constants.EMPTY_NOTE)
+                            .append("<br/><br/>");
+                });
+        return builder.toString();
     }
 
 }

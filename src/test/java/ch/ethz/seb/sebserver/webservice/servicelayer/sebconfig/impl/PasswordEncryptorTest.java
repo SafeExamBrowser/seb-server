@@ -64,7 +64,8 @@ public class PasswordEncryptorTest {
 
     @Test
     public void test2() throws IOException {
-        final PasswordEncryptor encryptor = new PasswordEncryptor();
+        final JNCryptor cryptor = new AES256JNCryptor();
+        final PasswordEncryptor encryptor = new PasswordEncryptor(cryptor);
 
         final String config = "<TestConfig></TestConfig>";
         final String pwd = "password";

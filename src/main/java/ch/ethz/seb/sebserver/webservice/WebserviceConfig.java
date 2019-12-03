@@ -10,21 +10,15 @@ package ch.ethz.seb.sebserver.webservice;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
-//TODO check if DataSourceAutoConfiguration and TokenStore bean definition is really needed here
-//or if it is possible to move them to the WebServiceSecurityConfig.
-//test with starting web and gui separately as well as together
 @Configuration
 @WebServiceProfile
-@Import(DataSourceAutoConfiguration.class)
 public class WebserviceConfig {
 
     @Lazy

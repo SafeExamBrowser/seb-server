@@ -17,10 +17,10 @@ import java.io.SequenceInputStream;
 import java.util.Set;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.AES256JNCryptorInputStream;
 import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
 import org.cryptonode.jncryptor.CryptorException;
+import org.cryptonode.jncryptor.JNCryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -43,6 +43,12 @@ public class PasswordEncryptor implements SebConfigCryptor {
     private static final Set<Strategy> STRATEGIES = Utils.immutableSetOf(
             Strategy.PASSWORD_PSWD,
             Strategy.PASSWORD_PWCC);
+
+    private final JNCryptor cryptor;
+
+    protected PasswordEncryptor(final JNCryptor cryptor) {
+        this.cryptor = cryptor;
+    }
 
     @Override
     public Set<Strategy> strategies() {
@@ -139,9 +145,9 @@ public class PasswordEncryptor implements SebConfigCryptor {
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     IOUtils.copy(sequenceInputStream, out);
                     final byte[] ciphertext = out.toByteArray();
-                    final AES256JNCryptor cryptor = new AES256JNCryptor();
-                    cryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
-                    final byte[] decryptData = cryptor.decryptData(ciphertext, Utils.toCharArray(password));
+
+                    //cryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
+                    final byte[] decryptData = this.cryptor.decryptData(ciphertext, Utils.toCharArray(password));
                     final ByteArrayInputStream decryptedIn = new ByteArrayInputStream(decryptData);
                     IOUtils.copyLarge(decryptedIn, output);
 

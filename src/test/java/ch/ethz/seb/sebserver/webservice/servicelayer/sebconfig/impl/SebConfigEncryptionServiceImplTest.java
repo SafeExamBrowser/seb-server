@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.cryptonode.jncryptor.AES256JNCryptor;
+import org.cryptonode.jncryptor.JNCryptor;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -95,8 +97,9 @@ public class SebConfigEncryptionServiceImplTest {
     }
 
     private SebConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl() {
+        final JNCryptor cryptor = new AES256JNCryptor();
         final List<SebConfigCryptor> encryptors = Arrays.asList(
-                new PasswordEncryptor(),
+                new PasswordEncryptor(cryptor),
                 new NoneEncryptor());
         return new SebConfigEncryptionServiceImpl(encryptors);
     }
