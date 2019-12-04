@@ -51,6 +51,7 @@ public class HTTPClientBot {
     private static final long ONE_SECOND = 1000; // milliseconds
     private static final long TEN_SECONDS = 10 * ONE_SECOND;
     private static final long ONE_MINUTE = 60 * ONE_SECOND;
+    private static final long ONE_HOUR = 60 * ONE_MINUTE;
 
     private static final Logger log = LoggerFactory.getLogger(HTTPClientBot.class);
 
@@ -78,8 +79,8 @@ public class HTTPClientBot {
 
     public HTTPClientBot(final Map<String, String> args) {
 
-        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
-        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
+        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
+        // this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
         //this.webserviceAddress = args.getOrDefault("webserviceAddress", "https://seb.test-swissmooc.ch");
 
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
@@ -98,7 +99,8 @@ public class HTTPClientBot {
         this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
         this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));
-        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
+//        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
+        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_HOUR)));
         this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "1"));
 
         for (int i = 0; i < this.numberOfConnections; i++) {

@@ -290,6 +290,12 @@
       <version>1.0.9.RELEASE</version>
     </dependency>
 
+    <!-- JMX -->
+<!--     <dependency> -->
+<!--       <groupId>org.jolokia</groupId> -->
+<!--       <artifactId>jolokia-core</artifactId> -->
+<!--     </dependency> -->
+
     <!-- Apache HTTP -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

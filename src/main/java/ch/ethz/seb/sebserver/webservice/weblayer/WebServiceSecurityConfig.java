@@ -46,7 +46,6 @@ import org.springframework.security.oauth2.provider.token.UserAuthenticationConv
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
@@ -285,7 +284,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
             http.antMatcher(apiEndpoint + "/**")
                     .authorizeRequests()
                     .anyRequest()
-                    .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
+                    .permitAll();
+            // .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
         }
 
     }
