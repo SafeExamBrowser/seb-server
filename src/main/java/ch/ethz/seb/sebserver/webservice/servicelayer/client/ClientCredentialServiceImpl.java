@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.client;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.CharBuffer;
 import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -172,16 +173,31 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"
                     .toCharArray();
 
-    private CharSequence generateClientId() {
+    public final static CharSequence generateClientId() {
         return RandomStringUtils.random(
                 16, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());
     }
 
-    private CharSequence generateClientSecret() throws UnsupportedEncodingException {
+    public final static CharSequence generateClientSecret() throws UnsupportedEncodingException {
+        // TODO fine a better way to generate a random char array instead of using RandomStringUtils.random which uses a String
         return RandomStringUtils.random(
                 64, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());
+    }
+
+    public final static void clearChars(final CharSequence sequence) {
+        if (sequence == null) {
+            return;
+        }
+
+        if (sequence instanceof CharBuffer) {
+            ((CharBuffer) sequence).clear();
+            return;
+        }
+
+        throw new IllegalArgumentException(
+                "Cannot clear chars on CharSequence of type: " + sequence.getClass().getName());
     }
 
 }

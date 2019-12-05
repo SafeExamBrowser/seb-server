@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -39,7 +41,12 @@ public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> 
      * @return The Collection of Results refer to the EntityKey instance or refer to an error if happened */
     Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
 
-    /** Indicates if the activatable entity with specified model identifier is currently active
+    default Result<T> setActive(final T entity, final boolean active) {
+        return setActive(new HashSet<>(Arrays.asList(entity.getEntityKey())), true)
+                .flatMap(result -> byModelId(result.iterator().next().modelId));
+    }
+
+    /** Indicates if the entity with specified model identifier is currently active
      *
      * @param modelId the model identifier of the entity
      * @return true if the entity is active, false otherwise */

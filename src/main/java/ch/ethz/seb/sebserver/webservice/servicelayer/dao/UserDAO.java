@@ -40,7 +40,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      * @param newPassword the new verified password that is encrypted and stored as the new password for the user
      *            account
      * @return a Result of user account information. Or an exception result on error case */
-    Result<UserInfo> changePassword(String modelId, String newPassword);
+    Result<UserInfo> changePassword(String modelId, CharSequence newPassword);
 
     /** Use this to get the SEBServerUser principal for a given username.
      * This should be used for internal authorization and consider only active user accounts

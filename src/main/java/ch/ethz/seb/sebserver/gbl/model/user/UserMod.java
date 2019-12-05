@@ -82,11 +82,11 @@ public final class UserMod implements UserAccount {
     @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD)
-    private final String newPassword;
+    private final CharSequence newPassword;
 
     @NotNull(message = "user:confirmNewPassword:notNull")
     @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
-    private final String confirmNewPassword;
+    private final CharSequence confirmNewPassword;
 
     @JsonCreator
     public UserMod(
@@ -94,8 +94,8 @@ public final class UserMod implements UserAccount {
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
-            @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final String newPassword,
-            @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD) final String confirmNewPassword,
+            @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final CharSequence newPassword,
+            @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD) final CharSequence confirmNewPassword,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
@@ -148,7 +148,7 @@ public final class UserMod implements UserAccount {
         return this.uuid;
     }
 
-    public String getNewPassword() {
+    public CharSequence getNewPassword() {
         return this.newPassword;
     }
 
@@ -195,7 +195,7 @@ public final class UserMod implements UserAccount {
         return EnumSet.copyOf(roles);
     }
 
-    public String getRetypedNewPassword() {
+    public CharSequence getRetypedNewPassword() {
         return this.confirmNewPassword;
     }
 

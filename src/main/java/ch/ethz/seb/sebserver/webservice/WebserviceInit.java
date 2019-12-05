@@ -15,7 +15,6 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -32,33 +31,54 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
     private static final Logger log = LoggerFactory.getLogger(WebserviceInit.class);
 
-    @Autowired
-    private Environment environment;
-    @Autowired
-    private WebserviceInfo webserviceInfo;
+    static final Logger INIT_LOGGER = LoggerFactory.getLogger("SEB SERVER INIT");
+
+    private final Environment environment;
+    private final WebserviceInfo webserviceInfo;
+    private final AdminUserInitializer adminUserInitializer;
+
+    protected WebserviceInit(
+            final Environment environment,
+            final WebserviceInfo webserviceInfo,
+            final AdminUserInitializer adminUserInitializer) {
+
+        this.environment = environment;
+        this.webserviceInfo = webserviceInfo;
+        this.adminUserInitializer = adminUserInitializer;
+    }
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
         log.info("Initialize SEB-Server Web-Service Component");
 
+        INIT_LOGGER.info("---->   ___  ___  ___   ___                          ");
+        INIT_LOGGER.info("---->  / __|| __|| _ ) / __| ___  _ _ __ __ ___  _ _ ");
+        INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
+        INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
+        INIT_LOGGER.info("---->");
+        INIT_LOGGER.info("----> SEB Server successfully started up!");
+        INIT_LOGGER.info("---->");
+
         try {
-            log.info("----> config server address: {}", this.environment.getProperty("server.address"));
-            log.info("----> config server port: {}", this.environment.getProperty("server.port"));
+            INIT_LOGGER.info("----> config server address: {}", this.environment.getProperty("server.address"));
+            INIT_LOGGER.info("----> config server port: {}", this.environment.getProperty("server.port"));
 
-            log.info("----> local host address: {}", InetAddress.getLocalHost().getHostAddress());
-            log.info("----> local host name: {}", InetAddress.getLocalHost().getHostName());
+            INIT_LOGGER.info("----> local host address: {}", InetAddress.getLocalHost().getHostAddress());
+            INIT_LOGGER.info("----> local host name: {}", InetAddress.getLocalHost().getHostName());
 
-            log.info("----> remote host address: {}", InetAddress.getLoopbackAddress().getHostAddress());
-            log.info("----> remote host name: {}", InetAddress.getLoopbackAddress().getHostName());
+            INIT_LOGGER.info("----> remote host address: {}", InetAddress.getLoopbackAddress().getHostAddress());
+            INIT_LOGGER.info("----> remote host name: {}", InetAddress.getLoopbackAddress().getHostName());
         } catch (final UnknownHostException e) {
             log.error("Unknown Host: ", e);
         }
 
-        log.info("{}", this.webserviceInfo);
+        INIT_LOGGER.info("----> {}", this.webserviceInfo);
 
         // TODO integration of Flyway for database initialization and migration:  https://flywaydb.org
         //      see also https://flywaydb.org/getstarted/firststeps/api
 
+        // Create an initial admin account if requested and not already in the data-base
+        this.adminUserInitializer.initAdminAccount();
     }
 
     @PreDestroy

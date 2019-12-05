@@ -229,7 +229,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional
-    public Result<UserInfo> changePassword(final String modelId, final String newPassword) {
+    public Result<UserInfo> changePassword(final String modelId, final CharSequence newPassword) {
         return recordByUUID(modelId)
                 .map(record -> {
                     final UserRecord newRecord = new UserRecord(
