@@ -573,7 +573,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
-    public void testSendEventToNoneEstablishedConnectionLeadsToError() throws Exception {
+    public void testSendEventToNoneEstablishedConnectionShouldBePossible() throws Exception {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 
@@ -591,13 +591,15 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 100.0,
                 "testEvent1");
         // check correct response
-        assertTrue(HttpStatus.OK.value() != sendEvent.getStatus());
+        assertTrue(HttpStatus.OK.value() == sendEvent.getStatus());
 
         final List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
                 .build()
                 .execute();
-        assertTrue(events.isEmpty());
+        assertFalse(events.isEmpty());
+        final ClientEventRecord clientEventRecord = events.get(0);
+        assertEquals("testEvent1", clientEventRecord.getText());
     }
 
     @Test
