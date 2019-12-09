@@ -319,9 +319,14 @@ public final class ClientConnectionTable {
                         ClientConnectionTable.this.sessionIds.get(this.connectionData.clientConnection.userSessionId);
                 if (list != null && list.size() > 1) {
                     tableItem.setBackground(0, ClientConnectionTable.this.statusData.color3);
+                    tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
                 } else {
                     tableItem.setBackground(0, null);
+                    tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
                 }
+            } else {
+                tableItem.setBackground(0, null);
+                tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
             }
         }
 
