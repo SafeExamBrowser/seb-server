@@ -33,6 +33,7 @@ public class WebserviceInfo {
 
     private static final Logger log = LoggerFactory.getLogger(WebserviceInfo.class);
 
+    private static final String VERSION_KEY = "sebserver.version";
     private static final String WEB_SERVICE_TEST_PROPERTY = "sebserver.test.property";
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.server.name";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
@@ -43,6 +44,7 @@ public class WebserviceInfo {
             "sebserver.webservice.api.exam.endpoint.discovery";
     private static final String WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS = "sebserver.webservice.lms.address.alias";
 
+    private final String sebServerVersion;
     private final String testProperty;
     private final String httpScheme;
     private final String hostAddress; // internal
@@ -57,6 +59,7 @@ public class WebserviceInfo {
     private Map<String, String> externalAddressAlias;
 
     public WebserviceInfo(final Environment environment) {
+        this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
         this.hostAddress = environment.getRequiredProperty(WEB_SERVICE_HOST_ADDRESS_KEY);
@@ -98,6 +101,10 @@ public class WebserviceInfo {
         } else {
             this.externalAddressAlias = Collections.emptyMap();
         }
+    }
+
+    public String getSebServerVersion() {
+        return this.sebServerVersion;
     }
 
     public String getTestProperty() {

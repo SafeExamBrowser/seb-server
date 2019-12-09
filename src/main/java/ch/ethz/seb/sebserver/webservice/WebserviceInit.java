@@ -58,21 +58,24 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         INIT_LOGGER.info("---->");
         INIT_LOGGER.info("----> SEB Server successfully started up!");
         INIT_LOGGER.info("---->");
+        INIT_LOGGER.info("----> Version: {}", this.webserviceInfo.getSebServerVersion());
 
         try {
-            INIT_LOGGER.info("----> config server address: {}", this.environment.getProperty("server.address"));
-            INIT_LOGGER.info("----> config server port: {}", this.environment.getProperty("server.port"));
-
-            INIT_LOGGER.info("----> local host address: {}", InetAddress.getLocalHost().getHostAddress());
-            INIT_LOGGER.info("----> local host name: {}", InetAddress.getLocalHost().getHostName());
-
-            INIT_LOGGER.info("----> remote host address: {}", InetAddress.getLoopbackAddress().getHostAddress());
-            INIT_LOGGER.info("----> remote host name: {}", InetAddress.getLoopbackAddress().getHostName());
+            INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
+            INIT_LOGGER.info("----> Server port: {}", this.environment.getProperty("server.port"));
+            INIT_LOGGER.info("---->");
+            INIT_LOGGER.info("----> Local-Host address: {}", InetAddress.getLocalHost().getHostAddress());
+            INIT_LOGGER.info("----> Local-Host name: {}", InetAddress.getLocalHost().getHostName());
+            INIT_LOGGER.info("---->");
+            INIT_LOGGER.info("----> Remote-Host address: {}", InetAddress.getLoopbackAddress().getHostAddress());
+            INIT_LOGGER.info("----> Remote-Host name: {}", InetAddress.getLoopbackAddress().getHostName());
         } catch (final UnknownHostException e) {
             log.error("Unknown Host: ", e);
         }
 
-        INIT_LOGGER.info("----> {}", this.webserviceInfo);
+        INIT_LOGGER.info("---->");
+        INIT_LOGGER.info("----> HTTP Scheme {}", this.webserviceInfo.getHttpScheme());
+        INIT_LOGGER.info("----> Property Override Test: {}", this.webserviceInfo.getTestProperty());
 
         // TODO integration of Flyway for database initialization and migration:  https://flywaydb.org
         //      see also https://flywaydb.org/getstarted/firststeps/api

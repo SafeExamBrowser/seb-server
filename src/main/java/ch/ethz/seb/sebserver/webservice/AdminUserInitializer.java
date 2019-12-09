@@ -51,7 +51,7 @@ class AdminUserInitializer {
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder passwordEncoder,
             @Value("${sebserver.init.adminaccount.gen-on-init:false}") final boolean initializeAdmin,
             @Value("${sebserver.init.adminaccount.username:seb-server-admin}") final String adminName,
-            @Value("${sebserver.init.organisation.name:ETHZ}") final String orgName) {
+            @Value("${sebserver.init.organisation.name:[SET_ORGANIZATION_NAME]}") final String orgName) {
 
         this.userDAO = userDAO;
         this.institutionDAO = institutionDAO;
@@ -67,72 +67,78 @@ class AdminUserInitializer {
             return;
         }
 
-        log.debug("Create initial admin account is switched on. Check database if exists...");
-        final Result<SEBServerUser> byUsername = this.userDAO.sebServerUserByUsername(this.adminName);
-        if (byUsername.hasValue()) {
+        try {
 
-            log.debug("Initial admin account already exists. Check if the password must be reset...");
+            log.debug("Create initial admin account is switched on. Check database if exists...");
+            final Result<SEBServerUser> byUsername = this.userDAO.sebServerUserByUsername(this.adminName);
+            if (byUsername.hasValue()) {
 
-            final SEBServerUser sebServerUser = byUsername.get();
-            final String password = sebServerUser.getPassword();
-            if (this.passwordEncoder.matches("admin", password)) {
+                log.debug("Initial admin account already exists. Check if the password must be reset...");
 
-                log.debug("Setting new generated password for already existing admin account");
+                final SEBServerUser sebServerUser = byUsername.get();
+                final String password = sebServerUser.getPassword();
+                if (this.passwordEncoder.matches("admin", password)) {
+
+                    log.debug("Setting new generated password for already existing admin account");
+                    final CharSequence generateAdminPassword = this.generateAdminPassword();
+                    if (generateAdminPassword != null) {
+                        this.userDAO.changePassword(
+                                sebServerUser.getUserInfo().getModelId(),
+                                generateAdminPassword);
+                        this.writeAdminCredentials(this.adminName, generateAdminPassword);
+                    }
+                }
+            } else {
                 final CharSequence generateAdminPassword = this.generateAdminPassword();
                 if (generateAdminPassword != null) {
-                    this.userDAO.changePassword(
-                            sebServerUser.getUserInfo().getModelId(),
-                            generateAdminPassword);
-                    this.writeAdminCredentials(this.adminName, generateAdminPassword);
-                }
-            }
-        } else {
-            final CharSequence generateAdminPassword = this.generateAdminPassword();
-            if (generateAdminPassword != null) {
 
-                Long institutionId = this.institutionDAO.allMatching(new FilterMap())
-                        .getOrElse(() -> Collections.emptyList())
-                        .stream()
-                        .findFirst()
-                        .filter(Institution::isActive)
-                        .map(Institution::getInstitutionId)
-                        .orElseGet(() -> -1L);
-
-                if (institutionId < 0) {
-
-                    log.debug("Create new initial institution");
-                    institutionId = this.institutionDAO.createNew(new Institution(
-                            null,
-                            this.orgName,
-                            null,
-                            null,
-                            null,
-                            true))
-                            .map(inst -> this.institutionDAO.setActive(inst, true).getOrThrow())
+                    Long institutionId = this.institutionDAO.allMatching(new FilterMap())
+                            .getOrElse(() -> Collections.emptyList())
+                            .stream()
+                            .findFirst()
+                            .filter(Institution::isActive)
                             .map(Institution::getInstitutionId)
+                            .orElseGet(() -> -1L);
+
+                    if (institutionId < 0) {
+
+                        log.debug("Create new initial institution");
+                        institutionId = this.institutionDAO.createNew(new Institution(
+                                null,
+                                this.orgName,
+                                null,
+                                null,
+                                null,
+                                true))
+                                .map(inst -> this.institutionDAO.setActive(inst, true).getOrThrow())
+                                .map(Institution::getInstitutionId)
+                                .getOrThrow();
+                    }
+
+                    this.userDAO.createNew(new UserMod(
+                            this.adminName,
+                            institutionId,
+                            this.adminName,
+                            this.adminName,
+                            generateAdminPassword,
+                            generateAdminPassword,
+                            null,
+                            null,
+                            null,
+                            new HashSet<>(Arrays.asList(UserRole.SEB_SERVER_ADMIN.name()))))
+                            .flatMap(account -> this.userDAO.setActive(account, true))
+                            .map(account -> {
+                                writeAdminCredentials(this.adminName, generateAdminPassword);
+                                return account;
+                            })
                             .getOrThrow();
                 }
-
-                this.userDAO.createNew(new UserMod(
-                        this.adminName,
-                        institutionId,
-                        this.adminName,
-                        this.adminName,
-                        generateAdminPassword,
-                        generateAdminPassword,
-                        null,
-                        null,
-                        null,
-                        new HashSet<>(Arrays.asList(UserRole.SEB_SERVER_ADMIN.name()))))
-                        .flatMap(account -> this.userDAO.setActive(account, true))
-                        .map(account -> {
-                            writeAdminCredentials(this.adminName, generateAdminPassword);
-                            return account;
-                        })
-                        .getOrThrow();
             }
+        } catch (final Exception e) {
+            WebserviceInit.INIT_LOGGER.error("---->");
+            WebserviceInit.INIT_LOGGER.error("----> SEB Server initial admin-account creation failed: ", e);
+            WebserviceInit.INIT_LOGGER.error("---->");
         }
-
     }
 
     private void writeAdminCredentials(final String name, final CharSequence pwd) {

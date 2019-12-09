@@ -96,6 +96,12 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to the specified exam or to an error if happened */
     Result<Long> forceUnlock(Long examId);
 
+    /** Used to force unlock all locked exams for a specified updateId
+     *
+     * @param updateId the update identifier
+     * @return list of identifiers of unlocked exams */
+    Result<Collection<Long>> forceUnlockAll(String updateId);
+
     /** Indicates if the exam with specified identifier has an internal write lock.
      *
      * @param examId the exam identifier

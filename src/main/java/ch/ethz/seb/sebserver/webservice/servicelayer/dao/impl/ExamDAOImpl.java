@@ -465,7 +465,9 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Result<Long> forceUnlock(final Long examId) {
 
-        log.info("forceUnlock for exam: {}", examId);
+        if (log.isDebugEnabled()) {
+            log.debug("forceUnlock for exam: {}", examId);
+        }
 
         return Result.tryCatch(() -> {
             final ExamRecord examRecord = new ExamRecord(
@@ -476,6 +478,30 @@ public class ExamDAOImpl implements ExamDAO {
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return examRecord.getId();
+        })
+                .onError(TransactionHandler::rollback);
+
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Result<Collection<Long>> forceUnlockAll(final String updateId) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("forceUnlock for updateId: {}", updateId);
+        }
+
+        return Result.tryCatch(() -> {
+            final Collection<Long> result = this.examRecordMapper.selectIdsByExample()
+                    .where(ExamRecordDynamicSqlSupport.lastupdate, isEqualTo(updateId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::forceUnlock)
+                    .flatMap(Result::skipOnError)
+                    .collect(Collectors.toList());
+
+            return result;
         })
                 .onError(TransactionHandler::rollback);
 

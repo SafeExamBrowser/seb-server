@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -150,7 +149,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             return examIdsFirstCheck;
         })
-                .onError(TransactionHandler::rollback);
+                .onError(t -> this.examDAO.forceUnlockAll(updateId));
     }
 
     @Override
@@ -180,7 +179,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     checkActiveClientConnections(exam);
 
                     // lock the exam
-                    this.examDAO.placeLock(exam.id, updateId)
+                    this.examDAO
+                            .placeLock(exam.id, updateId)
                             .getOrThrow();
 
                     // check again if there are no new active client connections in the meantime
@@ -188,7 +188,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
                     // apply the referenced change action. On error the change is rolled back and
                     // this processing returns immediately with the error
-                    final T result = changeAction.apply(mapping)
+                    final T result = changeAction
+                            .apply(mapping)
                             .onError(t -> log.error("Fauled to save exam configuration: {}",
                                     mapping.configurationNodeId))
                             .getOrThrow();
@@ -205,11 +206,13 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
                     // flush the exam cache. If there was an error during flush, it is logged but this process goes on
                     // and the saved changes are not rolled back
-                    this.examSessionService.flushCache(exam)
+                    this.examSessionService
+                            .flushCache(exam)
                             .onError(t -> log.error("Failed to flush cache for exam: {}", exam));
 
                     // release the exam lock
-                    this.examDAO.releaseLock(exam.id, updateId)
+                    this.examDAO
+                            .releaseLock(exam.id, updateId)
                             .onError(t -> log.error("Failed to release lock for exam: {}", exam));
 
                     return result;
@@ -238,7 +241,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                 configurationId);
 
         try {
-            final Configuration config = this.configurationDAO.byPK(configurationId)
+            final Configuration config = this.configurationDAO
+                    .byPK(configurationId)
                     .getOrThrow();
 
             final Collection<Long> involvedExams = this.examConfigurationMapDAO
@@ -260,7 +264,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
     @Override
     public Collection<Result<Long>> forceReleaseUpdateLocks(final Collection<Long> examIds) {
-        return examIds.stream()
+        return examIds
+                .stream()
                 .map(this.examDAO::forceUnlock)
                 .collect(Collectors.toList());
     }

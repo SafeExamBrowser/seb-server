@@ -38,7 +38,7 @@ The SEB Server Setup repository contains predefined, docker-based installation d
 Install SEB Server
 ------------------
 
-For a complete guide to install SEB Server please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/#>`_
+For a complete guide to install SEB Server please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
 
 Getting started with SEB Server
 -------------------------------

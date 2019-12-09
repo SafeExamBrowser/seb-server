@@ -293,8 +293,12 @@ public class UserDAOImpl implements UserDAO {
                     .build()
                     .execute();
 
-            return ids.stream()
-                    .map(id -> new EntityKey(id, EntityType.USER))
+            return this.userRecordMapper.selectByExample()
+                    .where(UserRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(record -> new EntityKey(record.getUuid(), EntityType.USER))
                     .collect(Collectors.toList());
         });
     }
