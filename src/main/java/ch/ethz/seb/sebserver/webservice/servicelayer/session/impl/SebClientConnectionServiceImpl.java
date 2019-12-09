@@ -9,11 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.security.Principal;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +46,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
     private final ExamSessionService examSessionService;
     private final ExamSessionCacheService examSessionCacheService;
+    private final CacheManager cacheManager;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
     private final PingHandlingStrategy pingHandlingStrategy;
@@ -52,6 +56,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     protected SebClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final ExamSessionCacheService examSessionCacheService,
+            final CacheManager cacheManager,
             final ClientConnectionDAO clientConnectionDAO,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
@@ -60,6 +65,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionCacheService;
+        this.cacheManager = cacheManager;
         this.clientConnectionDAO = clientConnectionDAO;
         this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
@@ -380,6 +386,32 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             return updatedClientConnection;
         });
+    }
+
+    @Override
+    public void updatePingEvents() {
+        try {
+
+            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+            this.examSessionService
+                    .getExamDAO()
+                    .allRunningExamIds()
+                    .getOrThrow()
+                    .stream()
+                    .flatMap(examId -> this.clientConnectionDAO
+                            .getConnectionTokens(examId)
+                            .getOrThrow()
+                            .stream())
+                    .map(token -> cache.get(token, ClientConnectionDataInternal.class))
+                    .filter(Objects::nonNull)
+                    .flatMap(connection -> connection.pingMappings.stream())
+                    .map(ping -> ping.updateLogEvent())
+                    .filter(Objects::nonNull)
+                    .forEach(this.eventHandlingStrategy::accept);
+
+        } catch (final Exception e) {
+            log.error("Failed to update ping events: ", e);
+        }
     }
 
     @Override

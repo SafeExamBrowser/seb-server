@@ -175,7 +175,7 @@ public final class Indicator implements Entity {
         }
     }
 
-    public static final class Threshold {
+    public static final class Threshold implements Comparable<Threshold> {
 
         @JsonProperty(THRESHOLD.ATTR_VALUE)
         @NotNull
@@ -204,6 +204,11 @@ public final class Indicator implements Entity {
         @Override
         public String toString() {
             return "Threshold [value=" + this.value + ", color=" + this.color + "]";
+        }
+
+        @Override
+        public int compareTo(final Threshold o) {
+            return Double.compare(this.value, (o != null) ? o.value : 0);
         }
 
     }

@@ -103,6 +103,8 @@ public interface SebClientConnectionService {
             Long institutionId,
             String clientAddress);
 
+    void updatePingEvents();
+
     /** Notify a ping for a certain client connection.
      *
      * @param connectionToken the connection token

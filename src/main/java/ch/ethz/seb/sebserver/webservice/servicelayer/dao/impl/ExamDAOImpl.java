@@ -355,6 +355,26 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<Long>> allRunningExamIds() {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectIdsByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualTo(BooleanUtils.toInteger(true)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isEqualTo(ExamStatus.RUNNING.name()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.updating,
+                            isEqualTo(BooleanUtils.toInteger(false)))
+
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<Exam>> allForRunCheck() {
         return Result.tryCatch(() -> {
             final List<ExamRecord> records = this.examRecordMapper.selectByExample()

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
@@ -83,5 +84,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     public int getPingNumber() {
         return this.pingNumber;
     }
+
+    public abstract ClientEventRecord updateLogEvent();
 
 }

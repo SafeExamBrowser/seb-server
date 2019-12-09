@@ -20,8 +20,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
 
 @Service
 class ExamSessionControlTask {
@@ -29,6 +31,7 @@ class ExamSessionControlTask {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
     private final ExamDAO examDAO;
+    private final SebClientConnectionService sebClientConnectionService;
     private final ExamUpdateHandler examUpdateHandler;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
@@ -46,20 +49,21 @@ class ExamSessionControlTask {
 
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
+            final SebClientConnectionService sebClientConnectionService,
             final ExamUpdateHandler examUpdateHandler,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
 
         this.examDAO = examDAO;
+        this.sebClientConnectionService = sebClientConnectionService;
         this.examUpdateHandler = examUpdateHandler;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
-
     }
 
     @Async
     @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
-    public void execTask() {
+    public void examRunUpdateTask() {
 
         final String updateId = this.examUpdateHandler.createUpdateId();
 
@@ -67,11 +71,17 @@ class ExamSessionControlTask {
             log.debug("Run exam runtime update task with Id: {}", updateId);
         }
 
-        controlStart(updateId);
-        controlEnd(updateId);
+        controlExamStart(updateId);
+        controlExamEnd(updateId);
     }
 
-    private void controlStart(final String updateId) {
+    @Async
+    @Scheduled(fixedRate = Constants.SECOND_IN_MILLIS)
+    public void pingEventUpdateTask() {
+        this.sebClientConnectionService.updatePingEvents();
+    }
+
+    private void controlExamStart(final String updateId) {
         if (log.isDebugEnabled()) {
             log.debug("Check starting exams: {}", updateId);
         }
@@ -95,7 +105,7 @@ class ExamSessionControlTask {
         }
     }
 
-    private void controlEnd(final String updateId) {
+    private void controlExamEnd(final String updateId) {
         if (log.isDebugEnabled()) {
             log.debug("Check ending exams: {}", updateId);
         }
