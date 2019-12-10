@@ -42,6 +42,12 @@ public class I18nSupportImpl implements I18nSupport {
 
     private static final Logger log = LoggerFactory.getLogger(I18nSupportImpl.class);
 
+    private static final String SUPPORTED_LANGUAGES_KEY = "sebserver.gui.supported.languages";
+    private static final String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
+    private static final String TIME_DISPLAYFORMAT_KEY = "sebserver.gui.time.displayformat";
+    private static final String DATETIME_DISPLAYFORMAT_KEY = "sebserver.gui.datetime.displayformat";
+    private static final String DATE_DISPLAYFORMAT_KEY = "sebserver.gui.date.displayformat";
+    private static final String DATE_DISPLAYFORMAT_TIMEZONE_KEY = "sebserver.gui.date.displayformat.timezone";
     private static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
 
     private final DateTimeFormatter timeZoneFormatter;
@@ -63,33 +69,33 @@ public class I18nSupportImpl implements I18nSupport {
 
         this.timeZoneFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
-                        "sebserver.gui.date.displayformat.timezone",
+                        DATE_DISPLAYFORMAT_TIMEZONE_KEY,
                         Constants.TIME_ZONE_OFFSET_TAIL_FORMAT));
 
         this.displayDateFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
-                        "sebserver.gui.date.displayformat",
+                        DATE_DISPLAYFORMAT_KEY,
                         Constants.DEFAULT_DISPLAY_DATE_FORMAT))
                 .withZoneUTC();
 
         this.displayDateTimeFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
-                        "sebserver.gui.datetime.displayformat",
+                        DATETIME_DISPLAYFORMAT_KEY,
                         Constants.DEFAULT_DIPLAY_DATE_TIME_FORMAT))
                 .withZoneUTC();
 
         this.displayTimeFormatter = DateTimeFormat
                 .forPattern(environment.getProperty(
-                        "sebserver.gui.time.displayformat",
+                        TIME_DISPLAYFORMAT_KEY,
                         Constants.DEFAULT_TIME_FORMAT))
                 .withZoneUTC();
 
         final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
-                "sebserver.gui.multilingual",
-                "false"));
+                MULTILINGUAL_KEY,
+                Constants.FALSE_STRING));
         if (multilingual) {
             final String languagesString = environment.getProperty(
-                    "sebserver.gui.languages",
+                    SUPPORTED_LANGUAGES_KEY,
                     Locale.ENGLISH.getLanguage());
 
             this.supportedLanguages = Utils.immutableCollectionOf(
