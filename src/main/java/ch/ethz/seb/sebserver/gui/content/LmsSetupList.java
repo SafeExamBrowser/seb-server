@@ -157,13 +157,13 @@ public class LmsSetupList implements TemplateComposer {
                 .publishIf(userGrant::iw)
 
                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent());
 
     }

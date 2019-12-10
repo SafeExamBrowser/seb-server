@@ -25,18 +25,23 @@ import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class TableFilter<ROW extends Entity> {
+
+    private static final Logger log = LoggerFactory.getLogger(TableFilter.class);
 
     private static final LocTextKey DATE_FROM_TEXT = new LocTextKey("sebserver.overall.date.from");
     private static final LocTextKey DATE_TO_TEXT = new LocTextKey("sebserver.overall.date.to");
@@ -137,6 +142,50 @@ public class TableFilter<ROW extends Entity> {
         return false;
     }
 
+    String getFilterAttributes() {
+        final StringBuilder builder = this.components
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, filter) -> sb
+                                .append(filter.attribute.columnName)
+                                .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                                .append(filter.getValue())
+                                .append(Constants.LIST_SEPARATOR),
+                        (sb1, sb2) -> sb1.append(sb2));
+        if (builder.length() > 0) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+        return builder.toString();
+    }
+
+    void setFilterAttributes(final String attribute) {
+        if (StringUtils.isBlank(attribute)) {
+            return;
+        }
+
+        try {
+            Arrays.asList(StringUtils.split(
+                    attribute,
+                    Constants.LIST_SEPARATOR_CHAR))
+                    .stream()
+                    .map(nameValue -> StringUtils.split(
+                            nameValue,
+                            Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
+                    .forEach(nameValue -> {
+                        this.components
+                                .stream()
+                                .filter(filter -> nameValue[0].equals(filter.attribute.columnName))
+                                .findFirst()
+                                .ifPresent(filter -> filter.setValue((nameValue.length > 1)
+                                        ? nameValue[1]
+                                        : StringUtils.EMPTY));
+                    });
+        } catch (final Exception e) {
+            log.error("Failed to set filter attributes: ", e);
+        }
+    }
+
     private void addActions() {
         final Composite inner = new Composite(this.composite, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(2, true);
@@ -163,7 +212,7 @@ public class TableFilter<ROW extends Entity> {
                 new LocTextKey("sebserver.overall.action.filter.clear"),
                 event -> {
                     reset();
-                    this.entityTable.applyFilter();
+                    this.entityTable.reset();
                 });
         imageButton2.setLayoutData(gridData);
     }
@@ -195,6 +244,8 @@ public class TableFilter<ROW extends Entity> {
         abstract FilterComponent reset();
 
         abstract String getValue();
+
+        abstract void setValue(String value);
 
         boolean adaptWidth(final int width) {
             final int _width = width + CELL_WIDTH_ADJUSTMENT;
@@ -244,6 +295,10 @@ public class TableFilter<ROW extends Entity> {
             return null;
         }
 
+        @Override
+        void setValue(final String value) {
+        }
+
     }
 
     private class TextFilter extends FilterComponent {
@@ -279,6 +334,13 @@ public class TableFilter<ROW extends Entity> {
             }
 
             return null;
+        }
+
+        @Override
+        void setValue(final String value) {
+            if (this.textInput != null) {
+                this.textInput.setText(value);
+            }
         }
 
     }
@@ -317,6 +379,9 @@ public class TableFilter<ROW extends Entity> {
         FilterComponent reset() {
             if (this.selector != null) {
                 this.selector.clear();
+                if (StringUtils.isNotBlank(this.attribute.initValue)) {
+                    this.selector.select(this.attribute.initValue);
+                }
             }
             return this;
         }
@@ -328,6 +393,13 @@ public class TableFilter<ROW extends Entity> {
             }
 
             return null;
+        }
+
+        @Override
+        void setValue(final String value) {
+            if (this.selector != null) {
+                this.selector.select(value);
+            }
         }
     }
 
@@ -380,12 +452,23 @@ public class TableFilter<ROW extends Entity> {
         }
 
         @Override
+        void setValue(final String value) {
+            if (this.selector != null) {
+                try {
+                    final org.joda.time.DateTime date = Utils.toDateTime(value);
+                    this.selector.setDate(date.getYear(), date.getMonthOfYear() - 1, date.getDayOfMonth());
+                } catch (final Exception e) {
+                    log.error("Failed to set date filter attribute: ", e);
+                }
+            }
+        }
+
+        @Override
         boolean adaptWidth(final int width) {
             // NOTE: for some unknown reason RWT acts differently on width-property for date selector
             //       this is to adjust date filter criteria to the list column width
             return super.adaptWidth(width - 5);
         }
-
     }
 
     // NOTE: SWT DateTime month-number starting with 0 and joda DateTime with 1!
@@ -472,6 +555,23 @@ public class TableFilter<ROW extends Entity> {
             } else {
                 return null;
             }
+        }
+
+        @Override
+        void setValue(final String value) {
+            if (this.fromSelector != null && this.toSelector != null) {
+                try {
+                    final String[] split = StringUtils.split(value, Constants.EMBEDDED_LIST_SEPARATOR);
+                    final org.joda.time.DateTime fromDate = Utils.toDateTime(split[0]);
+                    final org.joda.time.DateTime toDate = Utils.toDateTime(split[1]);
+                    this.fromSelector.setDate(fromDate.getYear(), fromDate.getMonthOfYear() - 1,
+                            fromDate.getDayOfMonth());
+                    this.toSelector.setDate(toDate.getYear(), toDate.getMonthOfYear() - 1, toDate.getDayOfMonth());
+                } catch (final Exception e) {
+                    log.error("Failed to set date range filter attribute: ", e);
+                }
+            }
+
         }
     }
 

@@ -207,7 +207,7 @@ public class ExamList implements TemplateComposer {
                 .publishIf(userGrant::im)
 
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(table::hasAnyContent)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)

@@ -231,8 +231,12 @@ public final class PageAction {
         return builder.toString();
     }
 
-    public static PageAction applySingleSelection(final PageAction action) {
+    public static PageAction applySingleSelectionAsEntityKey(final PageAction action) {
         return action.withEntityKey(action.getSingleSelection());
+    }
+
+    public static PageAction applySingleSelectionAsParentEntityKey(final PageAction action) {
+        return action.withParentEntityKey(action.getSingleSelection());
     }
 
     public static PageAction copyOf(final PageAction source) {

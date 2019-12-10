@@ -342,7 +342,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                     final ExamConfigurationMap selectedROWData = getSelectedExamMapping(table);
                     return new HashSet<>(Arrays.asList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
                 })
-                .withExec(PageAction::applySingleSelection)
+                .withExec(PageAction::applySingleSelectionAsEntityKey)
                 .create();
     }
 

@@ -106,6 +106,9 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 .and(
                         InstitutionRecordDynamicSqlSupport.name,
                         SqlBuilder.isLikeWhenPresent(filterMap.getName()))
+                .and(
+                        InstitutionRecordDynamicSqlSupport.urlSuffix,
+                        SqlBuilder.isLikeWhenPresent(filterMap.getSQLWildcard(Institution.FILTER_ATTR_URL_SUFFIX)))
                 .build()
                 .execute()
                 .stream()

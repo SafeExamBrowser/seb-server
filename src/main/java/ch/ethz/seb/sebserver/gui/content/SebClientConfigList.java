@@ -161,13 +161,13 @@ public class SebClientConfigList implements TemplateComposer {
                 .publishIf(clientConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent());
 
     }

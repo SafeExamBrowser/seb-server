@@ -56,6 +56,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -84,20 +85,20 @@ public class PageServiceImpl implements PageService {
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
     private final ResourceService resourceService;
-    private final AuthorizationContextHolder authorizationContextHolder;
+    private final CurrentUser currentUser;
 
     public PageServiceImpl(
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final ResourceService resourceService,
-            final AuthorizationContextHolder authorizationContextHolder) {
+            final CurrentUser currentUser) {
 
         this.jsonMapper = jsonMapper;
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
         this.resourceService = resourceService;
-        this.authorizationContextHolder = authorizationContextHolder;
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -112,7 +113,7 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public AuthorizationContextHolder getAuthorizationContextHolder() {
-        return this.authorizationContextHolder;
+        return this.currentUser.getAuthorizationContextHolder();
     }
 
     @Override
@@ -137,6 +138,11 @@ public class PageServiceImpl implements PageService {
         }
 
         return this.resourceService.getRestService();
+    }
+
+    @Override
+    public CurrentUser getCurrentUser() {
+        return this.currentUser;
     }
 
     @Override
@@ -317,8 +323,11 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
-        return new TableBuilder<>(this, apiCall);
+    public <T extends Entity> TableBuilder<T> entityTableBuilder(
+            final String name,
+            final RestCall<Page<T>> apiCall) {
+
+        return new TableBuilder<>(name, this, apiCall);
     }
 
     @Override
@@ -326,9 +335,7 @@ public class PageServiceImpl implements PageService {
         this.clearState();
 
         try {
-            final boolean logoutSuccessful = this.authorizationContextHolder
-                    .getAuthorizationContext()
-                    .logout();
+            final boolean logoutSuccessful = this.currentUser.logout();
 
             if (!logoutSuccessful) {
                 log.error("Failed to logout. See logfiles for more information");

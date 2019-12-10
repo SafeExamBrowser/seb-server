@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -91,6 +92,11 @@ public interface PageService {
      *
      * @return the RestService bean */
     RestService getRestService();
+
+    /** Use this to get the CurrentUser facade
+     *
+     * @return the CurrentUser facade */
+    CurrentUser getCurrentUser();
 
     /** Get the PageState of the current user.
      *
@@ -187,7 +193,19 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    <T extends Entity> TableBuilder<T> entityTableBuilder(RestCall<Page<T>> apiCall);
+    default <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
+        return entityTableBuilder(apiCall.getEntityType().name(), apiCall);
+    }
+
+    /** Get an new TableBuilder for specified page based RestCall.
+     *
+     * @param The name of the table to build
+     * @param apiCall the SEB Server API RestCall that feeds the table with data
+     * @param <T> the type of the Entity of the table
+     * @return TableBuilder of specified type */
+    <T extends Entity> TableBuilder<T> entityTableBuilder(
+            String name,
+            RestCall<Page<T>> apiCall);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *

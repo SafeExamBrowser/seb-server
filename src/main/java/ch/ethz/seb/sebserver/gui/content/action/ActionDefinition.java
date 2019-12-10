@@ -25,7 +25,8 @@ public enum ActionDefinition {
     INSTITUTION_NEW(
             new LocTextKey("sebserver.institution.action.new"),
             ImageIcon.INSTITUTION,
-            PageStateDefinitionImpl.INSTITUTION_EDIT),
+            PageStateDefinitionImpl.INSTITUTION_EDIT,
+            ActionCategory.FORM),
     INSTITUTION_VIEW_FROM_LIST(
             new LocTextKey("sebserver.institution.action.list.view"),
             ImageIcon.SHOW,
@@ -71,6 +72,11 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
+    INSTITUTION_USER_ACCOUNT_NEW(
+            new LocTextKey("sebserver.useraccount.action.new"),
+            ImageIcon.USER,
+            PageStateDefinitionImpl.USER_ACCOUNT_EDIT,
+            ActionCategory.INSTITUTION_LIST),
 
     USER_ACCOUNT_VIEW_LIST(
             new LocTextKey("sebserver.useraccount.action.list"),

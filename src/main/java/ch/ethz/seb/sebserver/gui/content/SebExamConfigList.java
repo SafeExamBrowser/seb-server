@@ -192,19 +192,19 @@ public class SebExamConfigList implements TemplateComposer {
                 .publishIf(examConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
-                .withSelect(configTable::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> configTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
@@ -217,14 +217,14 @@ public class SebExamConfigList implements TemplateComposer {
                 .publishIf(examConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
-                .withSelect(templateTable::getSelection, PageAction::applySingleSelection,
+                .withSelect(templateTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
                 .publishIf(() -> templateTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST)
                 .withSelect(
                         templateTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelection, EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && templateTable.hasAnyContent());
     }
 

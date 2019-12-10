@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -29,7 +31,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetIn
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
+import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 
 @Lazy
 @Component
@@ -49,6 +53,12 @@ public class InstitutionList implements TemplateComposer {
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.institution.info.pleaseSelect");
 
+    private final TableFilterAttribute nameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute urlSuffixFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, Institution.FILTER_ATTR_URL_SUFFIX);
+    private final TableFilterAttribute activityFilter;
+
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
@@ -64,6 +74,12 @@ public class InstitutionList implements TemplateComposer {
         this.restService = restService;
         this.currentUser = currentUser;
         this.pageSize = pageSize;
+
+        this.activityFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Institution.FILTER_ATTR_ACTIVE,
+                Constants.TRUE_STRING,
+                this.pageService.getResourceService()::activityResources);
     }
 
     @Override
@@ -84,19 +100,22 @@ public class InstitutionList implements TemplateComposer {
                                 Domain.INSTITUTION.ATTR_NAME,
                                 NAME_TEXT_KEY,
                                 Institution::getName)
-                                        .sortable())
+                                        .sortable()
+                                        .withFilter(this.nameFilter))
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_URL_SUFFIX,
                                 URL_TEXT_KEY,
                                 Institution::getUrlSuffix)
-                                        .sortable())
+                                        .sortable()
+                                        .withFilter(this.urlSuffixFilter))
                         .withColumn(new ColumnDefinition<Institution>(
                                 Domain.INSTITUTION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
                                 entity -> this.pageService
                                         .getResourceService()
                                         .localizedActivityResource().apply(entity.active))
-                                                .sortable())
+                                                .sortable()
+                                                .withFilter(this.activityFilter))
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
@@ -111,21 +130,31 @@ public class InstitutionList implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(instGrant::w)
 
-                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .publishIf(userGrant::w)
-
                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table::getSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table::getSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m() && table.hasAnyContent())
 
                 .newAction(ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> instGrant.m() && table.hasAnyContent());
+                .publishIf(() -> instGrant.m() && table.hasAnyContent())
+
+                .newAction(ActionDefinition.INSTITUTION_USER_ACCOUNT_NEW)
+                .withSelect(
+                        table::getSelection,
+                        PageAction::applySingleSelectionAsParentEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
+                .publishIf(() -> table.hasAnyContent() && userGrant.w());
     }
 
 }

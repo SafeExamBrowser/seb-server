@@ -57,6 +57,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
+import io.micrometer.core.instrument.util.StringUtils;
 
 public class EntityTable<ROW extends Entity> {
 
@@ -66,6 +67,12 @@ public class EntityTable<ROW extends Entity> {
     private static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
     private static final int HEADER_HEIGHT = 40;
     private static final int ROW_HEIGHT = 25;
+
+    private final String name;
+    private final String filterAttrName;
+    private final String sortAttrName;
+    private final String sortOrderAttrName;
+    private final String currentPageAttrName;
 
     final PageService pageService;
     final WidgetFactory widgetFactory;
@@ -92,6 +99,7 @@ public class EntityTable<ROW extends Entity> {
     boolean hideNavigation = false;
 
     EntityTable(
+            final String name,
             final int type,
             final PageContext pageContext,
             final RestCall<Page<ROW>> restCall,
@@ -104,6 +112,12 @@ public class EntityTable<ROW extends Entity> {
             final boolean hideNavigation,
             final MultiValueMap<String, String> staticQueryParams,
             final BiConsumer<TableItem, ROW> rowDecorator) {
+
+        this.name = name;
+        this.filterAttrName = name + "_filter";
+        this.sortAttrName = name + "_sort";
+        this.sortOrderAttrName = name + "_sortOrder";
+        this.currentPageAttrName = name + "_currentPage";
 
         this.composite = new Composite(pageContext.getParent(), type);
         this.pageService = pageService;
@@ -125,10 +139,6 @@ public class EntityTable<ROW extends Entity> {
         this.composite.setLayoutData(gridData);
         this.staticQueryParams = staticQueryParams;
         this.rowDecorator = rowDecorator;
-
-// TODO just for debugging, remove when tested
-//        this.composite.setBackground(new Color(parent.getDisplay(), new RGB(0, 200, 0)));
-
         this.pageSize = pageSize;
         this.filter =
                 columns
@@ -197,11 +207,18 @@ public class EntityTable<ROW extends Entity> {
         this.navigator = new TableNavigator(this);
 
         createTableColumns();
+        initCurrentPageFromUserAttr();
+        initFilterFromUserAttrs();
+        initSortFromUserAttr();
         updateTableRows(
                 this.pageNumber,
                 this.pageSize,
                 this.sortColumn,
                 this.sortOrder);
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public EntityType getEntityType() {
@@ -245,15 +262,29 @@ public class EntityTable<ROW extends Entity> {
                 this.pageSize,
                 this.sortColumn,
                 this.sortOrder);
+
+        updateCurrentPageAttr(pageSelection);
+    }
+
+    public void reset() {
+        this.applySort(null);
+        this.table.setSortColumn(null);
+        this.table.setSortDirection(SWT.NONE);
+        applyFilter();
     }
 
     public void applyFilter() {
         try {
+
             updateTableRows(
                     this.pageNumber,
                     this.pageSize,
                     this.sortColumn,
                     this.sortOrder);
+
+            updateFilterUserAttrs();
+            this.selectPage(0);
+
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply filter: ", e);
         }
@@ -269,6 +300,9 @@ public class EntityTable<ROW extends Entity> {
                     this.pageSize,
                     this.sortColumn,
                     this.sortOrder);
+
+            updateSortUserAttr();
+
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply sort: ", e);
         }
@@ -285,6 +319,9 @@ public class EntityTable<ROW extends Entity> {
                     this.pageSize,
                     this.sortColumn,
                     this.sortOrder);
+
+            updateSortUserAttr();
+
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply sort: ", e);
         }
@@ -364,6 +401,18 @@ public class EntityTable<ROW extends Entity> {
                 throw new PageMessageException(denyMessage);
             }
         });
+    }
+
+    private TableColumn getTableColumn(final String name) {
+        return Arrays.asList(this.table.getColumns())
+                .stream()
+                .filter(col -> {
+                    @SuppressWarnings("unchecked")
+                    final ColumnDefinition<ROW> def = (ColumnDefinition<ROW>) col.getData(COLUMN_DEFINITION);
+                    return name.equals(def.columnName);
+                })
+                .findFirst()
+                .orElse(null);
     }
 
     private void createTableColumns() {
@@ -556,6 +605,93 @@ public class EntityTable<ROW extends Entity> {
 
     private void handleCellSelection(final TableItem item, final int index) {
         // TODO handle selection tool-tips on cell level
+    }
+
+    private void updateCurrentPageAttr(final int page) {
+        try {
+            this.pageService
+                    .getCurrentUser()
+                    .putAttribute(this.currentPageAttrName, String.valueOf(page));
+        } catch (final Exception e) {
+            log.error("Failed to put current page attribute to current user attributes", e);
+        }
+    }
+
+    private void initCurrentPageFromUserAttr() {
+        try {
+            final String currentPage = this.pageService
+                    .getCurrentUser()
+                    .getAttribute(this.currentPageAttrName);
+            if (StringUtils.isNotBlank(currentPage)) {
+                this.selectPage(Integer.parseInt(currentPage));
+            }
+        } catch (final Exception e) {
+            log.error("Failed to get sort attribute form current user attributes", e);
+        }
+    }
+
+    private void updateSortUserAttr() {
+        try {
+            this.pageService
+                    .getCurrentUser()
+                    .putAttribute(this.sortAttrName, this.sortColumn);
+            this.pageService
+                    .getCurrentUser()
+                    .putAttribute(this.sortOrderAttrName, this.sortOrder.name());
+        } catch (final Exception e) {
+            log.error("Failed to put sort attribute to current user attributes", e);
+        }
+    }
+
+    private void initSortFromUserAttr() {
+        try {
+            final String sort = this.pageService
+                    .getCurrentUser()
+                    .getAttribute(this.sortAttrName);
+            if (StringUtils.isNotBlank(sort)) {
+                this.sortColumn = sort;
+                final TableColumn tableColumn = getTableColumn(sort);
+                if (tableColumn != null) {
+                    this.table.setSortColumn(tableColumn);
+                }
+            }
+
+            final String sortOrder = this.pageService
+                    .getCurrentUser()
+                    .getAttribute(this.sortOrderAttrName);
+            if (StringUtils.isNotBlank(sortOrder)) {
+                this.sortOrder = PageSortOrder.valueOf(sortOrder);
+                this.table.setSortDirection(this.sortOrder == PageSortOrder.ASCENDING ? SWT.UP : SWT.DOWN);
+            }
+
+        } catch (final Exception e) {
+            log.error("Failed to get sort attribute form current user attributes", e);
+        }
+    }
+
+    private void updateFilterUserAttrs() {
+        if (this.filter != null) {
+            try {
+                this.pageService
+                        .getCurrentUser()
+                        .putAttribute(this.filterAttrName, this.filter.getFilterAttributes());
+            } catch (final Exception e) {
+                log.error("Failed to put filter attributes to current user attributes", e);
+            }
+        }
+    }
+
+    private void initFilterFromUserAttrs() {
+        if (this.filter != null) {
+            try {
+                this.filter.setFilterAttributes(
+                        this.pageService
+                                .getCurrentUser()
+                                .getAttribute(this.filterAttrName));
+            } catch (final Exception e) {
+                log.error("Failed to get filter attributes form current user attributes", e);
+            }
+        }
     }
 
 }

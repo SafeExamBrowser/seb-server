@@ -519,7 +519,7 @@ public class ExamForm implements TemplateComposer {
                     .withParentEntityKey(entityKey)
                     .withSelect(
                             indicatorTable::getSelection,
-                            PageAction::applySingleSelection,
+                            PageAction::applySingleSelectionAsEntityKey,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
 

@@ -19,6 +19,7 @@ public interface Entity extends ModelIdAware {
     public static final String FILTER_ATTR_INSTITUTION = API.PARAM_INSTITUTION_ID;
     public static final String FILTER_ATTR_ACTIVE = "active";
     public static final String FILTER_ATTR_NAME = "name";
+    public static final String FILTER_ATTR_URL_SUFFIX = "urlsuffix";
 
     /** Get the type of the entity.
      *

@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 public class TableBuilder<ROW extends Entity> {
 
+    private final String name;
     private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
     private final MultiValueMap<String, String> staticQueryParams;
@@ -43,9 +44,11 @@ public class TableBuilder<ROW extends Entity> {
     private BiConsumer<TableItem, ROW> rowDecorator;
 
     public TableBuilder(
+            final String name,
             final PageService pageService,
             final RestCall<Page<ROW>> restCall) {
 
+        this.name = name;
         this.pageService = pageService;
         this.restCall = restCall;
         this.staticQueryParams = new LinkedMultiValueMap<>();
@@ -136,6 +139,7 @@ public class TableBuilder<ROW extends Entity> {
 
     public EntityTable<ROW> compose(final PageContext pageContext) {
         return new EntityTable<>(
+                this.name,
                 this.type,
                 pageContext,
                 this.restCall,

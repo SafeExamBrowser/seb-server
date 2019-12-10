@@ -45,9 +45,23 @@ public class CurrentUser {
     private final AuthorizationContextHolder authorizationContextHolder;
     private SEBServerAuthorizationContext authContext = null;
     private Map<RoleTypeKey, Privilege> privileges = null;
+    private final Map<String, String> attributes;
 
     public CurrentUser(final AuthorizationContextHolder authorizationContextHolder) {
         this.authorizationContextHolder = authorizationContextHolder;
+        this.attributes = new HashMap<>();
+    }
+
+    public void putAttribute(final String name, final String value) {
+        this.attributes.put(name, value);
+    }
+
+    public String getAttribute(final String name) {
+        return this.attributes.get(name);
+    }
+
+    public AuthorizationContextHolder getAuthorizationContextHolder() {
+        return this.authorizationContextHolder;
     }
 
     public UserInfo get() {
@@ -159,6 +173,19 @@ public class CurrentUser {
 
     public void refresh(final UserInfo userInfo) {
         this.authContext.refreshUser(userInfo);
+    }
+
+    public boolean logout() {
+        if (isAvailable()) {
+            if (this.authContext.logout()) {
+                this.authContext = null;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return this.authorizationContextHolder.getAuthorizationContext().logout();
+        }
     }
 
     private void updateContext() {

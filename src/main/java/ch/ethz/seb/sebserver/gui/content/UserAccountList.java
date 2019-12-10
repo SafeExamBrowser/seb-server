@@ -195,7 +195,7 @@ public class UserAccountList implements TemplateComposer {
                 .publishIf(userGrant::iw)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelection, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> table.hasAnyContent())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
@@ -214,7 +214,7 @@ public class UserAccountList implements TemplateComposer {
             throw new PageMessageException(NO_EDIT_RIGHT_MESSAGE);
         }
 
-        return PageAction.applySingleSelection(pageAction);
+        return PageAction.applySingleSelectionAsEntityKey(pageAction);
     }
 
     private String getLocaleDisplayText(final UserInfo userInfo) {

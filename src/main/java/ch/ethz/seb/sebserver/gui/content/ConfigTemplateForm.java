@@ -185,7 +185,9 @@ public class ConfigTemplateForm implements TemplateComposer {
                     () -> this.resourceService.getAttributeTypeResources());
 
             final EntityTable<TemplateAttribute> attrTable =
-                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetTemplateAttributePage.class))
+                    this.pageService.entityTableBuilder(
+                            Domain.CONFIGURATION_NODE.TYPE_NAME + "_Template",
+                            this.restService.getRestCall(GetTemplateAttributePage.class))
                             .withRestCallAdapter(restCall -> restCall.withURIVariable(
                                     API.PARAM_PARENT_MODEL_ID,
                                     entityKey.modelId))
@@ -226,7 +228,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                     .withParentEntityKey(entityKey)
                     .withSelect(
                             attrTable::getSelection,
-                            PageAction::applySingleSelection,
+                            PageAction::applySingleSelectionAsEntityKey,
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .publishIf(() -> attrTable.hasAnyContent())
 
