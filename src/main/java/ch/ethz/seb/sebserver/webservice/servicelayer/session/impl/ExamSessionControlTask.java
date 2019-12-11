@@ -75,7 +75,7 @@ class ExamSessionControlTask {
         controlExamEnd(updateId);
     }
 
-    @Scheduled(fixedRate = Constants.SECOND_IN_MILLIS)
+    @Scheduled(fixedRate = 15 * Constants.SECOND_IN_MILLIS)
     public void pingEventUpdateTask() {
         this.sebClientConnectionService.updatePingEvents();
     }

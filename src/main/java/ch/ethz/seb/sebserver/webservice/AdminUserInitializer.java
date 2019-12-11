@@ -143,10 +143,16 @@ class AdminUserInitializer {
 
     private void writeAdminCredentials(final String name, final CharSequence pwd) {
         WebserviceInit.INIT_LOGGER.info("---->");
+        WebserviceInit.INIT_LOGGER.info(
+                "----> ******************************************************************************************"
+                + "*****************************************************************************");
         WebserviceInit.INIT_LOGGER.info("----> SEB Server initial admin-account; name: {}, pwd: {}", name, pwd);
         WebserviceInit.INIT_LOGGER.info("---->");
         WebserviceInit.INIT_LOGGER.info(
                 "----> !!!! NOTE: Do not forget to login and reset the generated admin password immediately !!!!");
+        WebserviceInit.INIT_LOGGER.info(
+                "----> ******************************************************************************************"
+                + "*****************************************************************************");
         WebserviceInit.INIT_LOGGER.info("---->");
     }
 

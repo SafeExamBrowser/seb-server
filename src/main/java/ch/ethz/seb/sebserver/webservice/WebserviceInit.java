@@ -52,26 +52,26 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
-        INIT_LOGGER.info("---->   ___  ___  ___   ___                          ");
-        INIT_LOGGER.info("---->  / __|| __|| _ ) / __| ___  _ _ __ __ ___  _ _ ");
-        INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
-        INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
-        INIT_LOGGER.info("---->");
-        INIT_LOGGER.info("---->  Webservice");
+
+        if (!guiProfileActive()) {
+
+            INIT_LOGGER.info("---->   ___  ___  ___   ___                          ");
+            INIT_LOGGER.info("---->  / __|| __|| _ ) / __| ___  _ _ __ __ ___  _ _ ");
+            INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
+            INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
+            INIT_LOGGER.info("---->");
+        }
+
+        INIT_LOGGER.info("---->  **** Webservice ****");
         INIT_LOGGER.info("---->");
         INIT_LOGGER.info("----> Starting up...");
 
         INIT_LOGGER.info("----> ");
-        INIT_LOGGER.info("----> Init Databse with flyway...");
+        INIT_LOGGER.info("----> Init Database with flyway...");
         INIT_LOGGER.info("----> TODO ");
 
         // TODO integration of Flyway for database initialization and migration:  https://flywaydb.org
         //      see also https://flywaydb.org/getstarted/firststeps/api
-
-        INIT_LOGGER.info("----> ");
-        INIT_LOGGER.info("----> Init SEB Server Administrator account if needed...");
-        // Create an initial admin account if requested and not already in the data-base
-        this.adminUserInitializer.initAdminAccount();
 
         INIT_LOGGER.info("----> ");
         INIT_LOGGER.info("----> Start Services...");
@@ -104,12 +104,30 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         INIT_LOGGER.info("---->");
         INIT_LOGGER.info("----> Property Override Test: {}", this.webserviceInfo.getTestProperty());
 
+        // Create an initial admin account if requested and not already in the data-base
+        this.adminUserInitializer.initAdminAccount();
+
     }
 
     @PreDestroy
     public void gracefulShutdown() {
         INIT_LOGGER.info("**** Gracefully Shutdown of SEB Server instance {} ****",
                 this.webserviceInfo.getHostAddress());
+    }
+
+    private boolean guiProfileActive() {
+        final String[] activeProfiles = this.environment.getActiveProfiles();
+        if (activeProfiles == null) {
+            return false;
+        }
+
+        for (int i = 0; i < activeProfiles.length; i++) {
+            if (activeProfiles[i] != null && activeProfiles[i].contains("gui")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

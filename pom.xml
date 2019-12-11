@@ -27,35 +27,6 @@
     Java 11 (from eclipse and command-line) and one to build still on Java 8 
     to support the Jenkins build on CI-Server that still no Java 11 installed -->
   <profiles>
-
-    <profile>
-      <id>Demo</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <java.version>1.8</java.version>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <source>1.8</source>
-              <target>1.8</target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencies>
-        <dependency>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-
     <profile>
       <id>Java 11</id>
       <activation>

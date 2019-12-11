@@ -29,7 +29,7 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
         INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
         INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
         INIT_LOGGER.info("---->");
-        INIT_LOGGER.info("---->  GUI Service");
+        INIT_LOGGER.info("---->  **** GUI Service ****");
         INIT_LOGGER.info("---->");
 
         INIT_LOGGER.info("---->  GUI Service sucessfully successfully started up!");
