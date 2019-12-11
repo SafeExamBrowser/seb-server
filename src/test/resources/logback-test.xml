@@ -5,10 +5,8 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
         </encoder>
     </appender>
- 
-    <Logger name="ch.ethz.seb.sebserver.HTTPClientBot" level="TRACE" additivity="true" />
 
-    <root level="INFO" additivity="true">
+    <root level="WARN" additivity="true">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
