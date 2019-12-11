@@ -78,7 +78,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
                     throw new IllegalArgumentException("Image of type: " + defaultLogoFileName + " not supported");
                 }
 
-                final Resource resource = resourceLoader.getResource("file:" + defaultLogoFileName);
+                final Resource resource = resourceLoader.getResource(defaultLogoFileName);
                 final Reader reader = new InputStreamReader(
                         new Base64InputStream(resource.getInputStream(), true),
                         Charsets.UTF_8);
