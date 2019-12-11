@@ -38,7 +38,7 @@ public class SingleEventSaveStrategy implements EventHandlingStrategy {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void accept(final ClientEventRecord record) {
         if (record.getId() == null) {
             this.clientEventRecordMapper.insert(record);

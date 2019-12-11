@@ -16,7 +16,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +60,6 @@ class ExamSessionControlTask {
         this.examTimeSuffix = examTimeSuffix;
     }
 
-    @Async
     @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
     public void examRunUpdateTask() {
 
@@ -75,7 +73,6 @@ class ExamSessionControlTask {
         controlExamEnd(updateId);
     }
 
-    @Async
     @Scheduled(fixedRate = Constants.SECOND_IN_MILLIS)
     public void pingEventUpdateTask() {
         this.sebClientConnectionService.updatePingEvents();

@@ -142,7 +142,7 @@ final class OpenEdxCourseAccess {
     }
 
     private String getExternalLMSServerAddress(final LmsSetup lmsSetup) {
-        final String externalAddressAlias = this.webserviceInfo.getExternalAddressAlias(lmsSetup.lmsApiUrl);
+        final String externalAddressAlias = this.webserviceInfo.getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
         String _externalStartURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX;
         if (StringUtils.isNoneBlank(externalAddressAlias)) {
             try {

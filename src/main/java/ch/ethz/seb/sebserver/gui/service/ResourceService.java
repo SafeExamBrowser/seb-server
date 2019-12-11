@@ -149,7 +149,7 @@ public class ResourceService {
         final List<Tuple<String>> result = new ArrayList<>();
         result.add(new Tuple<>(Constants.TRUE_STRING, this.i18nSupport.getText("sebserver.overall.status.active")));
         result.add(new Tuple<>(Constants.FALSE_STRING, this.i18nSupport.getText("sebserver.overall.status.inactive")));
-        result.add(new Tuple<>(StringUtils.EMPTY, StringUtils.EMPTY));
+        result.add(new Tuple<>(StringUtils.EMPTY, this.i18nSupport.getText("sebserver.overall.status.all")));
         return result;
     }
 

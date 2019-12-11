@@ -195,7 +195,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     private QuizData getExternalAddressAlias(final QuizData quizData) {
-        final String externalAddressAlias = this.webserviceInfo.getExternalAddressAlias("lms.mockup.com");
+        final String externalAddressAlias = this.webserviceInfo.getLmsExternalAddressAlias("lms.mockup.com");
         if (StringUtils.isNoneBlank(externalAddressAlias)) {
             try {
 

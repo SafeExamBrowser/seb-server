@@ -21,7 +21,6 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -84,7 +83,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     }
 
-    @EventListener(ApplicationReadyEvent.class)
+    @EventListener(EventHandlingInit.class)
     protected void recover() {
         if (this.enabled) {
             runWorkers();

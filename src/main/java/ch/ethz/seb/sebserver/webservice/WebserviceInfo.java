@@ -56,7 +56,7 @@ public class WebserviceInfo {
     private final String serverURLPrefix;
     private final boolean isDistributed;
 
-    private Map<String, String> externalAddressAlias;
+    private Map<String, String> lmsExternalAddressAlias;
 
     public WebserviceInfo(final Environment environment) {
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
@@ -93,13 +93,13 @@ public class WebserviceInfo {
                             StringUtils.split(alias, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
                     mapping.put(nameValue[0], nameValue[1]);
                 }
-                this.externalAddressAlias = Collections.unmodifiableMap(mapping);
+                this.lmsExternalAddressAlias = Collections.unmodifiableMap(mapping);
             } catch (final Exception e) {
                 log.error("Failed to parse sebserver.webservice.lms.address.alias: ", e);
-                this.externalAddressAlias = Collections.emptyMap();
+                this.lmsExternalAddressAlias = Collections.emptyMap();
             }
         } else {
-            this.externalAddressAlias = Collections.emptyMap();
+            this.lmsExternalAddressAlias = Collections.emptyMap();
         }
     }
 
@@ -177,12 +177,12 @@ public class WebserviceInfo {
         return this.isDistributed;
     }
 
-    public Map<String, String> getExternalAddressAlias() {
-        return this.externalAddressAlias;
+    public Map<String, String> getLmsExternalAddressAlias() {
+        return this.lmsExternalAddressAlias;
     }
 
-    public String getExternalAddressAlias(final String internalAddress) {
-        return this.externalAddressAlias
+    public String getLmsExternalAddressAlias(final String internalAddress) {
+        return this.lmsExternalAddressAlias
                 .entrySet()
                 .stream()
                 .filter(entry -> internalAddress.contains(entry.getKey()))
@@ -212,8 +212,8 @@ public class WebserviceInfo {
         builder.append(this.serverURLPrefix);
         builder.append(", isDistributed=");
         builder.append(this.isDistributed);
-        builder.append(", externalAddressAlias=");
-        builder.append(this.externalAddressAlias);
+        builder.append(", lmsExternalAddressAlias=");
+        builder.append(this.lmsExternalAddressAlias);
         builder.append("]");
         return builder.toString();
     }
