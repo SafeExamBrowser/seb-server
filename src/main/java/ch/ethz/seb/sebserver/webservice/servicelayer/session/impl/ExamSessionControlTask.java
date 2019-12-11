@@ -21,10 +21,12 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
 
 @Service
+@WebServiceProfile
 class ExamSessionControlTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
