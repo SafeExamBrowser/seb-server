@@ -79,8 +79,8 @@ public class HTTPClientBot {
 
     public HTTPClientBot(final Map<String, String> args) {
 
-        // this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
-        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
+        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
+        //   this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
         //this.webserviceAddress = args.getOrDefault("webserviceAddress", "https://seb.test-swissmooc.ch");
 
         this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
@@ -100,7 +100,7 @@ public class HTTPClientBot {
         this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
         this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));
 //        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
-        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_HOUR)));
+        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
         this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "1"));
 
         for (int i = 0; i < this.numberOfConnections; i++) {

@@ -404,6 +404,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             .stream())
                     .map(token -> cache.get(token, ClientConnectionDataInternal.class))
                     .filter(Objects::nonNull)
+                    .filter(connection -> connection.clientConnection.status == ConnectionStatus.ESTABLISHED)
                     .flatMap(connection -> connection.pingMappings.stream())
                     .map(ping -> ping.updateLogEvent())
                     .filter(Objects::nonNull)
