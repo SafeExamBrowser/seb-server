@@ -122,7 +122,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         }
 
         for (int i = 0; i < activeProfiles.length; i++) {
-            if (activeProfiles[i] != null && activeProfiles[i].contains("gui")) {
+            if (activeProfiles[i] != null && (activeProfiles[i].contains("gui") ||
+                    activeProfiles[i].contains("demo"))) {
                 return true;
             }
         }
