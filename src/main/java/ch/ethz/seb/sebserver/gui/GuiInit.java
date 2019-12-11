@@ -24,8 +24,16 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
-        INIT_LOGGER.info("----> SEB Server GUI Component sucessfully initialized!");
+        INIT_LOGGER.info("---->   ___  ___  ___   ___                          ");
+        INIT_LOGGER.info("---->  / __|| __|| _ ) / __| ___  _ _ __ __ ___  _ _ ");
+        INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
+        INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
+        INIT_LOGGER.info("---->");
+        INIT_LOGGER.info("---->  GUI Service");
+        INIT_LOGGER.info("---->");
 
+        INIT_LOGGER.info("---->  GUI Service sucessfully successfully started up!");
+        INIT_LOGGER.info("---->");
     }
 
 }

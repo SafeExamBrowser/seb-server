@@ -57,6 +57,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
         INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
         INIT_LOGGER.info("---->");
+        INIT_LOGGER.info("---->  Webservice");
+        INIT_LOGGER.info("---->");
         INIT_LOGGER.info("----> Starting up...");
 
         INIT_LOGGER.info("----> ");
