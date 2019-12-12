@@ -117,7 +117,9 @@ public abstract class RestCall<T> {
 
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
 
-                log.info("************* {}" + responseEntity.getBody());
+                if (log.isTraceEnabled()) {
+                    log.trace("response body --> {}" + responseEntity.getBody());
+                }
 
                 return Result.of(RestCall.this.jsonMapper.readValue(
                         responseEntity.getBody(),

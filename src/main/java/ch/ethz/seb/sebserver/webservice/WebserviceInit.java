@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.EventHandlingInit;
 
@@ -33,17 +34,20 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
     static final Logger INIT_LOGGER = LoggerFactory.getLogger("SEB SERVER INIT");
 
+    private final SEBServerInit sebServerInit;
     private final Environment environment;
     private final WebserviceInfo webserviceInfo;
     private final AdminUserInitializer adminUserInitializer;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     protected WebserviceInit(
+            final SEBServerInit sebServerInit,
             final Environment environment,
             final WebserviceInfo webserviceInfo,
             final AdminUserInitializer adminUserInitializer,
             final ApplicationEventPublisher applicationEventPublisher) {
 
+        this.sebServerInit = sebServerInit;
         this.environment = environment;
         this.webserviceInfo = webserviceInfo;
         this.adminUserInitializer = adminUserInitializer;
@@ -53,18 +57,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
 
-        if (!guiProfileActive()) {
+        this.sebServerInit.init();
 
-            INIT_LOGGER.info("---->   ___  ___  ___   ___                          ");
-            INIT_LOGGER.info("---->  / __|| __|| _ ) / __| ___  _ _ __ __ ___  _ _ ");
-            INIT_LOGGER.info("---->  \\__ \\| _| | _ \\ \\__ \\/ -_)| '_|\\ V // -_)| '_|");
-            INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
-            INIT_LOGGER.info("---->");
-        }
-
-        INIT_LOGGER.info("---->  **** Webservice ****");
-        INIT_LOGGER.info("---->");
-        INIT_LOGGER.info("----> Starting up...");
+        INIT_LOGGER.info("---->  **** Webservice starting up... ****");
 
         INIT_LOGGER.info("----> ");
         INIT_LOGGER.info("----> Init Database with flyway...");
@@ -76,12 +71,12 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         INIT_LOGGER.info("----> ");
         INIT_LOGGER.info("----> Start Services...");
         INIT_LOGGER.info("----> ");
-        this.applicationEventPublisher.publishEvent(new EventHandlingInit(this));
-        INIT_LOGGER.info("----> ");
 
+        this.applicationEventPublisher.publishEvent(new EventHandlingInit(this));
+
+        INIT_LOGGER.info("----> ");
         INIT_LOGGER.info("----> SEB Server successfully started up!");
         INIT_LOGGER.info("---->");
-        INIT_LOGGER.info("----> Version: {}", this.webserviceInfo.getSebServerVersion());
 
         try {
             INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
@@ -113,22 +108,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     public void gracefulShutdown() {
         INIT_LOGGER.info("**** Gracefully Shutdown of SEB Server instance {} ****",
                 this.webserviceInfo.getHostAddress());
-    }
-
-    private boolean guiProfileActive() {
-        final String[] activeProfiles = this.environment.getActiveProfiles();
-        if (activeProfiles == null) {
-            return false;
-        }
-
-        for (int i = 0; i < activeProfiles.length; i++) {
-            if (activeProfiles[i] != null && (activeProfiles[i].contains("gui") ||
-                    activeProfiles[i].contains("demo"))) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }

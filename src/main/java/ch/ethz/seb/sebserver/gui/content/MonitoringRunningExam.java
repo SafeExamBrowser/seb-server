@@ -22,17 +22,21 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -129,10 +133,22 @@ public class MonitoringRunningExam implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.MONITOR_CLIENT_CONNECTION)
                 .withParentEntityKey(entityKey)
-                .withSelect(
-                        clientTable::getSelection,
-                        PageAction::applySingleSelectionAsEntityKey,
-                        EMPTY_SELECTION_TEXT_KEY)
+                .withExec(pageAction -> {
+                    final Tuple<String> singleSelection = clientTable.getSingleSelection();
+                    if (singleSelection == null) {
+                        throw new PageMessageException(EMPTY_SELECTION_TEXT_KEY);
+                    }
+
+                    final PageAction copyOfPageAction = PageAction.copyOf(pageAction);
+                    copyOfPageAction.withEntityKey(new EntityKey(
+                            singleSelection._1,
+                            EntityType.CLIENT_CONNECTION));
+                    copyOfPageAction.withAttribute(
+                            Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                            singleSelection._2);
+
+                    return copyOfPageAction;
+                })
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
     }
 

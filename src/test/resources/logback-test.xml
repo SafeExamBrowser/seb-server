@@ -9,4 +9,6 @@
     <root level="WARN" additivity="true">
         <appender-ref ref="STDOUT" />
     </root>
+    
+    <Logger name="ch.ethz.seb.sebserver.HTTPClientBot" level="INFO" additivity="true" />
 </configuration>

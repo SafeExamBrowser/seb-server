@@ -102,8 +102,8 @@ public class HTTPClientBot {
         this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "1"));
         this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
         this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
-        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "0"));
-        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "0"));
+        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "10000"));
+        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "20000"));
         this.errorInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS)));
 //        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
         this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
@@ -228,11 +228,16 @@ public class HTTPClientBot {
                     try {
                         final long startTime = System.currentTimeMillis();
                         final long endTime = startTime + HTTPClientBot.this.runtime;
+                        final long pingPauseStart = startTime + HTTPClientBot.this.pingPauseDelay;
+                        final long pingPauseEnd = pingPauseStart + HTTPClientBot.this.pingPause;
                         long currentTime = startTime;
                         long lastPingTime = startTime;
                         long lastErrorTime = startTime;
+
                         while (currentTime < endTime) {
-                            if (currentTime - lastPingTime >= HTTPClientBot.this.pingInterval) {
+                            if (currentTime - lastPingTime >= HTTPClientBot.this.pingInterval &&
+                                    !(currentTime > pingPauseStart && currentTime < pingPauseEnd)) {
+
                                 pingHeader.next();
                                 sendPing(pingHeader);
                                 lastPingTime = currentTime;
