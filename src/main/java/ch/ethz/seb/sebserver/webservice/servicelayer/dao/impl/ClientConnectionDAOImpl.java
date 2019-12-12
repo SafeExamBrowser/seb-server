@@ -185,7 +185,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             // first delete all related client events
             this.clientEventRecordMapper.deleteByExample()
                     .where(
-                            ClientEventRecordDynamicSqlSupport.connectionId,
+                            ClientEventRecordDynamicSqlSupport.clientConnectionId,
                             SqlBuilder.isIn(ids))
                     .build()
                     .execute();

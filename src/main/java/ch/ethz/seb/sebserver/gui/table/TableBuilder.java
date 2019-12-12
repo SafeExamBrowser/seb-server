@@ -42,6 +42,7 @@ public class TableBuilder<ROW extends Entity> {
     private boolean hideNavigation = false;
     private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
+    private boolean markupEnabled = false;
 
     public TableBuilder(
             final String name,
@@ -74,6 +75,11 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withMarkup() {
+        this.markupEnabled = true;
+        return this;
+    }
+
     public TableBuilder<ROW> withColumnIf(
             final BooleanSupplier condition,
             final Supplier<ColumnDefinition<ROW>> columnDefSupplier) {
@@ -86,6 +92,7 @@ public class TableBuilder<ROW extends Entity> {
 
     public TableBuilder<ROW> withRestCallAdapter(
             final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> adapter) {
+
         this.restCallAdapter = adapter;
         return this;
     }
@@ -140,6 +147,7 @@ public class TableBuilder<ROW extends Entity> {
     public EntityTable<ROW> compose(final PageContext pageContext) {
         return new EntityTable<>(
                 this.name,
+                this.markupEnabled,
                 this.type,
                 pageContext,
                 this.restCall,

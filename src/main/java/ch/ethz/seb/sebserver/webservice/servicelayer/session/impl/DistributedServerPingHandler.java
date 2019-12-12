@@ -73,7 +73,7 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
         }
 
         final ClientEventRecord clientEventRecord = new ClientEventRecord();
-        clientEventRecord.setConnectionId(connectionId);
+        clientEventRecord.setClientConnectionId(connectionId);
         clientEventRecord.setType(EventType.LAST_PING.id);
         clientEventRecord.setClientTime(Utils.getMillisecondsNow());
         clientEventRecord.setServerTime(Utils.getMillisecondsNow());

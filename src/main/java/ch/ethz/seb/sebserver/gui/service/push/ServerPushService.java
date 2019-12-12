@@ -77,8 +77,9 @@ public class ServerPushService {
                             update.accept(context);
                         } catch (final Exception e) {
                             log.warn(
-                                    "Failed to update on Server Push Session {}. It seems that the UISession is not available anymore. This may source from a connection interruption",
-                                    Thread.currentThread().getName(), e);
+                                    "Failed to update on Server Push Session {}. It seems that the UISession is not available anymore. "
+                                            + "This may source from a connection interruption.",
+                                    Thread.currentThread().getName(), e.getMessage());
                         }
                     });
                 }

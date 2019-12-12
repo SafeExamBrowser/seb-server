@@ -12,9 +12,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +50,7 @@ public class HTTPClientBot {
     private static final long ONE_SECOND = 1000; // milliseconds
     private static final long TEN_SECONDS = 10 * ONE_SECOND;
     private static final long ONE_MINUTE = 60 * ONE_SECOND;
+    @SuppressWarnings("unused")
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
 
     private static final Logger log = LoggerFactory.getLogger(HTTPClientBot.class);
@@ -70,38 +70,44 @@ public class HTTPClientBot {
 
     private final int numberOfConnections;
 
+    private final long establishDelay;
     private final long pingInterval;
+    private final long pingPause;
+    private final long pingPauseDelay;
     private final long errorInterval;
     private final long runtime;
     private final int connectionAttempts;
 
     private final Random random = new Random();
 
-    public HTTPClientBot(final Map<String, String> args) {
+    public HTTPClientBot(final Properties properties) {
 
-        this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://ralph.ethz.ch:8080");
-        //   this.webserviceAddress = args.getOrDefault("webserviceAddress", "http://localhost:8080");
-        //this.webserviceAddress = args.getOrDefault("webserviceAddress", "https://seb.test-swissmooc.ch");
+        //this.webserviceAddress = properties.getProperty("webserviceAddress", "http://ralph.ethz.ch:8080");
+        this.webserviceAddress = properties.getProperty("webserviceAddress", "http://localhost:8080");
+        //this.webserviceAddress = properties.getProperty("webserviceAddress", "https://seb.test-swissmooc.ch");
 
-        this.accessTokenEndpoint = args.getOrDefault("accessTokenEndpoint", "/oauth/token");
-        this.clientId = args.getOrDefault("clientId", "test");
-        this.clientSecret = args.getOrDefault("clientSecret", "test");
+        this.accessTokenEndpoint = properties.getProperty("accessTokenEndpoint", "/oauth/token");
+        this.clientId = properties.getProperty("clientId", "test");
+        this.clientSecret = properties.getProperty("clientSecret", "test");
 
-//        this.clientId = args.getOrDefault("clientId", "testtest");
+//        this.clientId = properties.getProperty("clientId", "testtest");
 //        this.clientSecret =
-//                args.getOrDefault("clientSecret", "CSXh6tQ^fdi00(XdL%6xic{q-5YlEE@Yc$Rg}H1f}JPt=P5PGH+KOhCW}oYSiC3L");
-        this.apiPath = args.getOrDefault("apiPath", "/exam-api");
-        this.apiVersion = args.getOrDefault("apiVersion", "v1");
-//        this.examId = args.getOrDefault("examId", "2");
-//        this.institutionId = args.getOrDefault("institutionId", "1");
-        this.examId = args.getOrDefault("examId", "2");
-        this.institutionId = args.getOrDefault("institutionId", "1");
-        this.numberOfConnections = Integer.parseInt(args.getOrDefault("numberOfConnections", "4"));
-        this.pingInterval = Long.parseLong(args.getOrDefault("pingInterval", "200"));
-        this.errorInterval = Long.parseLong(args.getOrDefault("errorInterval", String.valueOf(TEN_SECONDS)));
-//        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
-        this.runtime = Long.parseLong(args.getOrDefault("runtime", String.valueOf(ONE_MINUTE)));
-        this.connectionAttempts = Integer.parseInt(args.getOrDefault("connectionAttempts", "1"));
+//                properties.getProperty("clientSecret", "CSXh6tQ^fdi00(XdL%6xic{q-5YlEE@Yc$Rg}H1f}JPt=P5PGH+KOhCW}oYSiC3L");
+        this.apiPath = properties.getProperty("apiPath", "/exam-api");
+        this.apiVersion = properties.getProperty("apiVersion", "v1");
+//        this.examId = properties.getProperty("examId", "2");
+//        this.institutionId = properties.getProperty("institutionId", "1");
+        this.examId = properties.getProperty("examId", "2");
+        this.institutionId = properties.getProperty("institutionId", "1");
+        this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "1"));
+        this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
+        this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
+        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "0"));
+        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "0"));
+        this.errorInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS)));
+//        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
+        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
+        this.connectionAttempts = Integer.parseInt(properties.getProperty("connectionAttempts", "1"));
 
         for (int i = 0; i < this.numberOfConnections; i++) {
             this.executorService.execute(new ConnectionBot("connection_" + getRandomName()));
@@ -119,14 +125,7 @@ public class HTTPClientBot {
     }
 
     public static void main(final String[] args) {
-        final Map<String, String> argsMap = new HashMap<>();
-        if (args.length > 0) {
-            for (final String arg : StringUtils.split(args[0], Constants.LIST_SEPARATOR)) {
-                final String[] nameValue = StringUtils.split(arg, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
-                argsMap.put(nameValue[0], nameValue[1]);
-            }
-        }
-        new HTTPClientBot(argsMap);
+        new HTTPClientBot(System.getProperties());
     }
 
     private final class ConnectionBot implements Runnable {
@@ -328,6 +327,19 @@ public class HTTPClientBot {
         }
 
         public boolean establishConnection(final MultiValueMap<String, String> headers) {
+
+            if (HTTPClientBot.this.establishDelay > 0) {
+                try {
+
+                    log.info("Wait for connection activation -> {}", HTTPClientBot.this.establishDelay);
+
+                    Thread.sleep(HTTPClientBot.this.establishDelay);
+                } catch (final Exception e) {
+                    log.error("Failed to wait for connection activiation -> {} : {}", HTTPClientBot.this.establishDelay,
+                            e.getMessage());
+                }
+            }
+
             final HttpEntity<?> configHeader = new HttpEntity<>(
                     API.EXAM_API_USER_SESSION_ID +
                             Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +

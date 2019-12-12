@@ -209,7 +209,7 @@ public class ExamSessionCacheService {
             try {
                 return this.clientEventRecordMapper.selectByExample()
                         .where(
-                                ClientEventRecordDynamicSqlSupport.connectionId,
+                                ClientEventRecordDynamicSqlSupport.clientConnectionId,
                                 SqlBuilder.isEqualTo(clientConnection.getId()))
                         .and(
                                 ClientEventRecordDynamicSqlSupport.type,

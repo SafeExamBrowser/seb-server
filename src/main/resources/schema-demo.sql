@@ -1,7 +1,7 @@
+
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-
 
 -- -----------------------------------------------------
 -- Table `institution`
@@ -123,16 +123,16 @@ DROP TABLE IF EXISTS `client_event` ;
 
 CREATE TABLE IF NOT EXISTS `client_event` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `connection_id` BIGINT UNSIGNED NOT NULL,
+  `client_connection_id` BIGINT UNSIGNED NOT NULL,
   `type` INT(2) UNSIGNED NOT NULL,
   `client_time` BIGINT UNSIGNED NOT NULL,
   `server_time` BIGINT NOT NULL,
   `numeric_value` DECIMAL(10,4) NULL,
   `text` VARCHAR(512) NULL,
   PRIMARY KEY (`id`),
-  INDEX `eventConnectionRef_idx` (`connection_id` ASC),
+  INDEX `eventConnectionRef_idx` (`client_connection_id` ASC),
   CONSTRAINT `eventConnectionRef`
-    FOREIGN KEY (`connection_id`)
+    FOREIGN KEY (`client_connection_id`)
     REFERENCES `client_connection` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
@@ -511,6 +511,34 @@ CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `uuid` VARCHAR(255) NOT NULL,
   `service_address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`))
+;
+
+
+-- -----------------------------------------------------
+-- Table `client_instruction`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `client_instruction` ;
+
+CREATE TABLE IF NOT EXISTS `client_instruction` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `client_connection_id` BIGINT UNSIGNED NOT NULL,
+  `exam_id` BIGINT UNSIGNED NOT NULL,
+  `type` VARCHAR(45) NOT NULL,
+  `attributes` VARCHAR(4000) NULL,
+  `active` INT(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `instructionConnectionRef_idx` (`client_connection_id` ASC),
+  INDEX `instructionExamRef_idx` (`exam_id` ASC),
+  CONSTRAINT `instructionConnectionRef`
+    FOREIGN KEY (`client_connection_id`)
+    REFERENCES `client_connection` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `instructionExamRef`
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ;
 
 

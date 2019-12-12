@@ -483,6 +483,7 @@ public class ExamForm implements TemplateComposer {
                                     Indicator.FILTER_ATTR_EXAM_ID,
                                     entityKey.modelId))
                             .withEmptyMessage(INDICATOR_EMPTY_LIST_MESSAGE)
+                            .withMarkup()
                             .withPaging(5)
                             .hideNavigation()
                             .withColumn(new ColumnDefinition<>(
@@ -499,6 +500,7 @@ public class ExamForm implements TemplateComposer {
                                     Domain.THRESHOLD.REFERENCE_NAME,
                                     INDICATOR_THRESHOLD_COLUMN_KEY,
                                     ExamForm::thresholdsValue)
+                                            .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
                                     () -> editable,

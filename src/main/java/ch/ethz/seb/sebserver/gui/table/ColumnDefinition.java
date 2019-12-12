@@ -29,6 +29,7 @@ public final class ColumnDefinition<ROW extends Entity> {
     private TableFilterAttribute filterAttribute;
     private boolean localized;
     private boolean withCellTooltip = false;
+    private boolean markupEnabled = false;
 
     public ColumnDefinition(final String columnName, final LocTextKey displayName) {
         this(columnName, displayName, null);
@@ -77,6 +78,11 @@ public final class ColumnDefinition<ROW extends Entity> {
         return this;
     }
 
+    public ColumnDefinition<ROW> asMarkup() {
+        this.markupEnabled = true;
+        return this;
+    }
+
     public ColumnDefinition<ROW> localized() {
         this.localized = true;
         return this;
@@ -102,6 +108,10 @@ public final class ColumnDefinition<ROW extends Entity> {
 
     public boolean isSortable() {
         return this.sortable;
+    }
+
+    public boolean markupEnabled() {
+        return this.markupEnabled;
     }
 
     public TableFilterAttribute getFilterAttribute() {

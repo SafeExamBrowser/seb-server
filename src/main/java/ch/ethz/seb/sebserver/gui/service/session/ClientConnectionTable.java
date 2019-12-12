@@ -13,10 +13,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -169,6 +171,21 @@ public final class ClientConnectionTable {
             pageService.executePageAction(copyOfPageAction);
         });
 
+    }
+
+    public Set<EntityKey> getSelection() {
+        final int[] selectionIndices = this.table.getSelectionIndices();
+        if (selectionIndices == null || selectionIndices.length < 1) {
+            return Collections.emptySet();
+        }
+
+        final Set<EntityKey> result = new HashSet<>();
+        for (int i = 0; i < selectionIndices.length; i++) {
+            final UpdatableTableItem updatableTableItem =
+                    new ArrayList<>(this.tableMapping.values()).get(selectionIndices[0]);
+            result.add(new EntityKey(updatableTableItem.connectionId, EntityType.CLIENT_CONNECTION));
+        }
+        return result;
     }
 
     public Tuple<String> getSingleSelection() {

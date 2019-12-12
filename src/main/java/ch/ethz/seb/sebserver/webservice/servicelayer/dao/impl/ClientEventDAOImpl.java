@@ -82,7 +82,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             return this.clientEventRecordMapper
                     .selectByExample()
                     .where(
-                            ClientEventRecordDynamicSqlSupport.connectionId,
+                            ClientEventRecordDynamicSqlSupport.clientConnectionId,
                             isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
                     .and(
                             ClientEventRecordDynamicSqlSupport.type,
@@ -131,7 +131,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
                         SqlBuilder.isLikeWhenPresent(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_SESSION_ID)))
                 .and(
-                        ClientEventRecordDynamicSqlSupport.connectionId,
+                        ClientEventRecordDynamicSqlSupport.clientConnectionId,
                         isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
                 .and(
                         ClientEventRecordDynamicSqlSupport.type,
@@ -236,7 +236,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             final BigDecimal numericValue = record.getNumericValue();
             return new ClientEvent(
                     record.getId(),
-                    record.getConnectionId(),
+                    record.getClientConnectionId(),
                     (type != null) ? EventType.byId(type) : EventType.UNKNOWN,
                     record.getClientTime(),
                     record.getServerTime(),

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -116,6 +117,11 @@ public class MonitoringClientConnection implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final String connectionToken = pageContext.getAttribute(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN);
 
+        if (connectionToken == null) {
+            pageContext.notifyUnexpectedError(new IllegalAccessException("connectionToken has null reference"));
+            return;
+        }
+
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -124,15 +130,8 @@ public class MonitoringClientConnection implements TemplateComposer {
         final Exam exam = restService.getBuilder(GetExam.class)
                 .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                 .call()
+                .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
                 .getOrThrow();
-
-        if (exam == null) {
-            log.error(
-                    "Failed to get Exam. "
-                            + "Error was notified to the User. "
-                            + "See previous logs for more infomation");
-            return;
-        }
 
         final Collection<Indicator> indicators = restService.getBuilder(GetIndicators.class)
                 .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, parentEntityKey.modelId)

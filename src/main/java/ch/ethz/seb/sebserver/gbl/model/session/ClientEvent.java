@@ -26,7 +26,7 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
     /** Adapt SEB API to SEB_SEB_Server API -> timestamp == clientTime */
     public static final String ATTR_TIMESTAMP = "timestamp";
 
-    public static final String FILTER_ATTR_CONECTION_ID = Domain.CLIENT_EVENT.ATTR_CONNECTION_ID;
+    public static final String FILTER_ATTR_CONECTION_ID = Domain.CLIENT_EVENT.ATTR_CLIENT_CONNECTION_ID;
     public static final String FILTER_ATTR_TYPE = Domain.CLIENT_EVENT.ATTR_TYPE;
 
     public static final String FILTER_ATTR_CLIENT_TIME_FROM = "clientTimeForm";
@@ -69,7 +69,7 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
     @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID)
     public final Long id;
 
-    @JsonProperty(Domain.CLIENT_EVENT.ATTR_CONNECTION_ID)
+    @JsonProperty(Domain.CLIENT_EVENT.ATTR_CLIENT_CONNECTION_ID)
     public final Long connectionId;
 
     @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE)
@@ -90,7 +90,7 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
     @JsonCreator
     public ClientEvent(
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID) final Long id,
-            @JsonProperty(Domain.CLIENT_EVENT.ATTR_CONNECTION_ID) final Long connectionId,
+            @JsonProperty(Domain.CLIENT_EVENT.ATTR_CLIENT_CONNECTION_ID) final Long connectionId,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_TYPE) final EventType eventType,
             @JsonProperty(ATTR_TIMESTAMP) final Long clientTime,
             @JsonProperty(Domain.CLIENT_EVENT.ATTR_SERVER_TIME) final Long serverTime,

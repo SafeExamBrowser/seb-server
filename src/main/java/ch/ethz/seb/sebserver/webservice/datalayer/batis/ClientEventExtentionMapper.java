@@ -67,7 +67,7 @@ public interface ClientEventExtentionMapper {
                 this::selectMany,
 
                 ClientEventRecordDynamicSqlSupport.id,
-                ClientEventRecordDynamicSqlSupport.connectionId.as("connection_id"),
+                ClientEventRecordDynamicSqlSupport.clientConnectionId.as("connection_id"),
                 ClientEventRecordDynamicSqlSupport.type,
                 ClientEventRecordDynamicSqlSupport.clientTime.as("client_time"),
                 ClientEventRecordDynamicSqlSupport.serverTime.as("server_time"),
@@ -82,7 +82,7 @@ public interface ClientEventExtentionMapper {
 
                 .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                 .on(
-                        ClientEventRecordDynamicSqlSupport.clientEventRecord.connectionId,
+                        ClientEventRecordDynamicSqlSupport.clientEventRecord.clientConnectionId,
                         equalTo(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord.id));
     }
 

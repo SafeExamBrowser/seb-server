@@ -32,23 +32,23 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientEventRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.166+01:00", comments="Source Table: client_event")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.166+01:00", comments="Source Table: client_event")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.166+01:00", comments="Source Table: client_event")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     int insert(InsertStatementProvider<ClientEventRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
-        @Arg(column="connection_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="client_connection_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="type", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="client_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="server_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
@@ -57,11 +57,11 @@ public interface ClientEventRecordMapper {
     })
     ClientEventRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
-        @Arg(column="connection_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="client_connection_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="type", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="client_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="server_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
@@ -70,22 +70,22 @@ public interface ClientEventRecordMapper {
     })
     List<ClientEventRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientEventRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientEventRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientEventRecord)
                 .where(id, isEqualTo(id_))
@@ -93,12 +93,12 @@ public interface ClientEventRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default int insert(ClientEventRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientEventRecord)
                 .map(id).toProperty("id")
-                .map(connectionId).toProperty("connectionId")
+                .map(clientConnectionId).toProperty("clientConnectionId")
                 .map(type).toProperty("type")
                 .map(clientTime).toProperty("clientTime")
                 .map(serverTime).toProperty("serverTime")
@@ -108,12 +108,12 @@ public interface ClientEventRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default int insertSelective(ClientEventRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientEventRecord)
                 .map(id).toPropertyWhenPresent("id", record::getId)
-                .map(connectionId).toPropertyWhenPresent("connectionId", record::getConnectionId)
+                .map(clientConnectionId).toPropertyWhenPresent("clientConnectionId", record::getClientConnectionId)
                 .map(type).toPropertyWhenPresent("type", record::getType)
                 .map(clientTime).toPropertyWhenPresent("clientTime", record::getClientTime)
                 .map(serverTime).toPropertyWhenPresent("serverTime", record::getServerTime)
@@ -123,32 +123,32 @@ public interface ClientEventRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientEventRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, connectionId, type, clientTime, serverTime, numericValue, text)
+        return SelectDSL.selectWithMapper(this::selectMany, id, clientConnectionId, type, clientTime, serverTime, numericValue, text)
                 .from(clientEventRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientEventRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, connectionId, type, clientTime, serverTime, numericValue, text)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, clientConnectionId, type, clientTime, serverTime, numericValue, text)
                 .from(clientEventRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default ClientEventRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, connectionId, type, clientTime, serverTime, numericValue, text)
+        return SelectDSL.selectWithMapper(this::selectOne, id, clientConnectionId, type, clientTime, serverTime, numericValue, text)
                 .from(clientEventRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientEventRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientEventRecord)
                 .set(id).equalTo(record::getId)
-                .set(connectionId).equalTo(record::getConnectionId)
+                .set(clientConnectionId).equalTo(record::getClientConnectionId)
                 .set(type).equalTo(record::getType)
                 .set(clientTime).equalTo(record::getClientTime)
                 .set(serverTime).equalTo(record::getServerTime)
@@ -156,11 +156,11 @@ public interface ClientEventRecordMapper {
                 .set(text).equalTo(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientEventRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientEventRecord)
                 .set(id).equalToWhenPresent(record::getId)
-                .set(connectionId).equalToWhenPresent(record::getConnectionId)
+                .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(clientTime).equalToWhenPresent(record::getClientTime)
                 .set(serverTime).equalToWhenPresent(record::getServerTime)
@@ -168,10 +168,10 @@ public interface ClientEventRecordMapper {
                 .set(text).equalToWhenPresent(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default int updateByPrimaryKey(ClientEventRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientEventRecord)
-                .set(connectionId).equalTo(record::getConnectionId)
+                .set(clientConnectionId).equalTo(record::getClientConnectionId)
                 .set(type).equalTo(record::getType)
                 .set(clientTime).equalTo(record::getClientTime)
                 .set(serverTime).equalTo(record::getServerTime)
@@ -182,10 +182,10 @@ public interface ClientEventRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-11-12T15:37:04.635+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.167+01:00", comments="Source Table: client_event")
     default int updateByPrimaryKeySelective(ClientEventRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientEventRecord)
-                .set(connectionId).equalToWhenPresent(record::getConnectionId)
+                .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(clientTime).equalToWhenPresent(record::getClientTime)
                 .set(serverTime).equalToWhenPresent(record::getServerTime)

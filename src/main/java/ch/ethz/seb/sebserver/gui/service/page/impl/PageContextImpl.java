@@ -281,6 +281,9 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public void notifyError(final LocTextKey message, final Exception error) {
+
+        log.error("Unexpected GUI error notified: {}", error.getMessage());
+
         final String errorMessage = message != null
                 ? this.i18nSupport.getText(message)
                 : error.getMessage();

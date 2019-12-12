@@ -38,6 +38,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.HtmlUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -73,6 +74,7 @@ public class EntityTable<ROW extends Entity> {
     private final String sortAttrName;
     private final String sortOrderAttrName;
     private final String currentPageAttrName;
+    private final boolean markupEnabled;
 
     final PageService pageService;
     final WidgetFactory widgetFactory;
@@ -100,6 +102,7 @@ public class EntityTable<ROW extends Entity> {
 
     EntityTable(
             final String name,
+            final boolean markupEnabled,
             final int type,
             final PageContext pageContext,
             final RestCall<Page<ROW>> restCall,
@@ -118,6 +121,7 @@ public class EntityTable<ROW extends Entity> {
         this.sortAttrName = name + "_sort";
         this.sortOrderAttrName = name + "_sortOrder";
         this.currentPageAttrName = name + "_currentPage";
+        this.markupEnabled = markupEnabled;
 
         this.composite = new Composite(pageContext.getParent(), type);
         this.pageService = pageService;
@@ -165,7 +169,9 @@ public class EntityTable<ROW extends Entity> {
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
         this.table.setData(RWT.CUSTOM_ITEM_HEIGHT, ROW_HEIGHT);
-        this.table.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+        if (this.markupEnabled) {
+            this.table.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+        }
 
         if (defaultActionFunction != null) {
             final PageAction defaultAction = defaultActionFunction.apply(this);
@@ -484,7 +490,9 @@ public class EntityTable<ROW extends Entity> {
 
         for (final ROW row : page.content) {
             final TableItem item = new TableItem(this.table, SWT.NONE);
-            item.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+            if (this.markupEnabled) {
+                item.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+            }
             item.setData(TABLE_ROW_DATA, row);
             if (this.rowDecorator != null) {
                 this.rowDecorator.accept(item, row);
@@ -492,7 +500,7 @@ public class EntityTable<ROW extends Entity> {
 
             int index = 0;
             for (final ColumnDefinition<ROW> column : this.columns) {
-                setValueToCell(item, index, column.valueSupplier.apply(row));
+                setValueToCell(item, index, column, column.valueSupplier.apply(row));
                 index++;
             }
         }
@@ -574,24 +582,41 @@ public class EntityTable<ROW extends Entity> {
                 for (int j = 0; j < items.length; j++) {
                     @SuppressWarnings("unchecked")
                     final ROW rowData = (ROW) items[j].getData(TABLE_ROW_DATA);
-                    setValueToCell(items[j], i, columnDefinition.valueSupplier.apply(rowData));
+                    setValueToCell(items[j], i, columnDefinition, columnDefinition.valueSupplier.apply(rowData));
                 }
             }
         }
     }
 
-    private void setValueToCell(final TableItem item, final int index, final Object value) {
+    private void setValueToCell(
+            final TableItem item,
+            final int index,
+            final ColumnDefinition<ROW> columnDefinition,
+            final Object value) {
+
         if (value instanceof Boolean) {
             addBooleanCell(item, index, value);
         } else if (value instanceof DateTime) {
             item.setText(index, this.i18nSupport.formatDisplayDate((DateTime) value));
         } else {
-            if (value != null) {
-                final String val = String.valueOf(value).replace('\n', ' ');
-                item.setText(index, val);
-            } else {
-                item.setText(index, Constants.EMPTY_NOTE);
-            }
+            item.setText(index, renderTextValue(
+                    (value != null) ? String.valueOf(value) : null,
+                    columnDefinition));
+        }
+    }
+
+    private String renderTextValue(final String raw, final ColumnDefinition<ROW> columnDefinition) {
+        if (StringUtils.isBlank(raw)) {
+            return Constants.EMPTY_NOTE;
+        }
+        if (!this.markupEnabled) {
+            return raw;
+        }
+
+        if (columnDefinition.markupEnabled()) {
+            return raw;
+        } else {
+            return HtmlUtils.htmlEscapeHex(raw);
         }
     }
 
