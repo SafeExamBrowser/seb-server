@@ -122,7 +122,7 @@ final class OpenEdxCourseAccess {
                     .stream()
                     .filter(qd -> id.equals(qd.id))
                     .findFirst()
-                    .orElseThrow();
+                    .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id));
         });
     }
 
