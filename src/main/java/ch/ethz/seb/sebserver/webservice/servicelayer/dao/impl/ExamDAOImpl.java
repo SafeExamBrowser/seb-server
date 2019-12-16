@@ -89,7 +89,7 @@ public class ExamDAOImpl implements ExamDAO {
             return this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
         })
                 .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
-                .flatMap(this::toDomainModel)
+                .flatMap(this::toDomainModelCached)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -120,6 +120,7 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
+            final boolean cached = filterMap.getBoolean(Exam.FILTER_CACHED_QUIZZES);
             final String name = filterMap.getQuizName();
             final DateTime from = filterMap.getExamFromTime();
             final Predicate<Exam> quizDataFilter = exam -> {
@@ -157,7 +158,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
-            return this.toDomainModel(records)
+            return this.toDomainModel(records, cached)
                     .getOrThrow()
                     .stream()
                     .filter(quizDataFilter.and(predicate))
@@ -653,6 +654,18 @@ public class ExamDAOImpl implements ExamDAO {
         });
     }
 
+    private Result<Exam> toDomainModelCached(final ExamRecord record) {
+        return Result.tryCatch(() -> {
+
+            return this.lmsAPIService
+                    .getLmsAPITemplate(record.getLmsSetupId())
+                    .getOrThrow();
+
+        })
+                .flatMap(template -> template.getQuizFromCache(record.getExternalId()))
+                .flatMap(quizData -> this.toDomainModel(record, quizData));
+    }
+
     private Result<Exam> toDomainModel(final ExamRecord record) {
         return toDomainModel(
                 record.getLmsSetupId(),
@@ -661,6 +674,13 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     private Result<Collection<Exam>> toDomainModel(final Collection<ExamRecord> records) {
+        return toDomainModel(records, false);
+    }
+
+    private Result<Collection<Exam>> toDomainModel(
+            final Collection<ExamRecord> records,
+            final boolean cached) {
+
         return Result.tryCatch(() -> {
 
             final HashMap<Long, Collection<ExamRecord>> lmsSetupToRecordMapping = records
@@ -672,12 +692,25 @@ public class ExamDAOImpl implements ExamDAO {
             return lmsSetupToRecordMapping
                     .entrySet()
                     .stream()
-                    .flatMap(entry -> toDomainModel(entry.getKey(), entry.getValue()).getOrThrow().stream())
+                    .flatMap(entry -> toDomainModel(entry.getKey(), entry.getValue(), cached)
+                            .getOrThrow()
+                            .stream())
                     .collect(Collectors.toList());
         });
     }
 
-    private Result<Collection<Exam>> toDomainModel(final Long lmsSetupId, final Collection<ExamRecord> records) {
+    private Result<Collection<Exam>> toDomainModel(
+            final Long lmsSetupId,
+            final Collection<ExamRecord> records) {
+
+        return toDomainModel(lmsSetupId, records, false);
+    }
+
+    private Result<Collection<Exam>> toDomainModel(
+            final Long lmsSetupId,
+            final Collection<ExamRecord> records,
+            final boolean cached) {
+
         return Result.tryCatch(() -> {
 
             // map records
@@ -688,7 +721,9 @@ public class ExamDAOImpl implements ExamDAO {
             // get and map quizzes
             final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
-                    .map(template -> template.getQuizzes(recordMapping.keySet()))
+                    .map(template -> (cached)
+                            ? template.getQuizzesFromCache(recordMapping.keySet())
+                            : template.getQuizzes(recordMapping.keySet()))
                     .getOrThrow()
                     .stream()
                     .flatMap(Result::skipOnError)

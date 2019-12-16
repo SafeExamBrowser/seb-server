@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientInstruction implements Entity {
+public final class ClientInstruction implements Entity {
 
     private static final String ATTR_SEB_INSTRUCTION_NAME = "seb-instruction";
 
@@ -33,14 +33,14 @@ public class ClientInstruction implements Entity {
     @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_ID)
     public final Long id;
 
-    @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_CLIENT_CONNECTION_ID)
-    public final Long connectionId;
-
     @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_EXAM_ID)
     public final Long examId;
 
     @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_TYPE)
     public final InstructionType type;
+
+    @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_CONNECTIONS)
+    public String connectionIds;
 
     @JsonProperty(ATTR_SEB_INSTRUCTION_NAME)
     public final SebInstruction sebInstruction;
@@ -50,20 +50,20 @@ public class ClientInstruction implements Entity {
 
     @JsonCreator
     protected ClientInstruction(
-            final Long id,
-            final Long connectionId,
-            final Long examId,
-            final InstructionType type,
-            final Boolean active,
-            final Map<String, String> attributes) {
+            @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_ID) final Long id,
+            @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_EXAM_ID) final Long examId,
+            @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_TYPE) final InstructionType type,
+            @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_CONNECTIONS) final String connectionIds,
+            @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(ATTR_SEB_INSTRUCTION_NAME) final Map<String, String> attributes) {
 
-        Objects.requireNonNull(connectionId);
+        Objects.requireNonNull(connectionIds);
         Objects.requireNonNull(examId);
         Objects.requireNonNull(type);
         Objects.requireNonNull(active);
 
         this.id = id;
-        this.connectionId = connectionId;
+        this.connectionIds = connectionIds;
         this.examId = examId;
         this.type = type;
         this.sebInstruction = new SebInstruction(type, attributes);
@@ -91,8 +91,12 @@ public class ClientInstruction implements Entity {
         return this.id;
     }
 
-    public Long getConnectionId() {
-        return this.connectionId;
+    public String getConnectionIds() {
+        return this.connectionIds;
+    }
+
+    public void setConnectionIds(final String connectionIds) {
+        this.connectionIds = connectionIds;
     }
 
     public Long getExamId() {
@@ -105,6 +109,25 @@ public class ClientInstruction implements Entity {
 
     public Boolean getActive() {
         return this.active;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ClientInstruction [id=");
+        builder.append(this.id);
+        builder.append(", examId=");
+        builder.append(this.examId);
+        builder.append(", type=");
+        builder.append(this.type);
+        builder.append(", connectionIds=");
+        builder.append(this.connectionIds);
+        builder.append(", sebInstruction=");
+        builder.append(this.sebInstruction);
+        builder.append(", active=");
+        builder.append(this.active);
+        builder.append("]");
+        return builder.toString();
     }
 
     public static final class SebInstruction {

@@ -11,8 +11,6 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.Collection;
 
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -56,8 +54,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Component
 @GuiProfile
 public class MonitoringClientConnection implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(MonitoringClientConnection.class);
 
     private static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.title");

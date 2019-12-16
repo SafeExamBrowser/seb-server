@@ -89,21 +89,22 @@ public class HTTPClientBot {
         this.accessTokenEndpoint = properties.getProperty("accessTokenEndpoint", "/oauth/token");
         this.clientId = properties.getProperty("clientId", "test");
         this.clientSecret = properties.getProperty("clientSecret", "test");
-
-//        this.clientId = properties.getProperty("clientId", "testtest");
+//
+//        this.clientId = properties.getProperty("clientId", "B48_1~UnU3c0K]0c");
 //        this.clientSecret =
-//                properties.getProperty("clientSecret", "CSXh6tQ^fdi00(XdL%6xic{q-5YlEE@Yc$Rg}H1f}JPt=P5PGH+KOhCW}oYSiC3L");
+//                properties.getProperty("clientSecret",
+//                        "io0]PRpzUNVWv*Bg^B=@4!jH$r^Y$CmgheETsd}4ewIXEMq~XPHszIr+$a`S$z[(");
         this.apiPath = properties.getProperty("apiPath", "/exam-api");
         this.apiVersion = properties.getProperty("apiVersion", "v1");
 //        this.examId = properties.getProperty("examId", "2");
 //        this.institutionId = properties.getProperty("institutionId", "1");
-        this.examId = properties.getProperty("examId", "2");
+        this.examId = properties.getProperty("examId", "3");
         this.institutionId = properties.getProperty("institutionId", "1");
         this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "1"));
         this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
         this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
-        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "10000"));
-        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "20000"));
+        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "0"));
+        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "0"));
         this.errorInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS)));
 //        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
         this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));

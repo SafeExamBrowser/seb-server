@@ -10,10 +10,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -108,6 +113,44 @@ final class OpenEdxCourseAccess {
         }
 
         return LmsSetupTestResult.ofOkay();
+    }
+
+    Result<QuizData> getQuizFromCache(final String id) {
+        return Result.tryCatch(() -> {
+            return this.allQuizzesSupplier
+                    .getChached()
+                    .stream()
+                    .filter(qd -> id.equals(qd.id))
+                    .findFirst()
+                    .orElseThrow();
+        });
+    }
+
+    Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
+        return Result.tryCatch(() -> {
+            final List<QuizData> cached = this.allQuizzesSupplier.getChached();
+            if (cached == null) {
+                throw new RuntimeException("No cached quizzes");
+            }
+
+            final Map<String, QuizData> cacheMapping = cached
+                    .stream()
+                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
+
+            if (!cacheMapping.keySet().containsAll(ids)) {
+                throw new RuntimeException("Not all requested quizzes cached");
+            }
+
+            return ids
+                    .stream()
+                    .map(id -> {
+                        final QuizData q = cacheMapping.get(id);
+                        return (q == null)
+                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
+                                : Result.of(q);
+                    })
+                    .collect(Collectors.toList());
+        });
     }
 
     Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {

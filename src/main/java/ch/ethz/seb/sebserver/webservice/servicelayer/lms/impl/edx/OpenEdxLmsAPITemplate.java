@@ -66,13 +66,27 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        // TODO this can be improved in the future
+
+        new RuntimeException().printStackTrace();
+
         return getQuizzes(new FilterMap())
                 .getOrElse(() -> Collections.emptyList())
                 .stream()
                 .filter(quiz -> ids.contains(quiz.id))
                 .map(quiz -> Result.of(quiz))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return this.openEdxCourseAccess.getQuizFromCache(id)
+                .orElse(() -> getQuiz(id));
+    }
+
+    @Override
+    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        return this.openEdxCourseAccess.getQuizzesFromCache(ids)
+                .getOrElse(() -> getQuizzes(ids));
     }
 
     @Override

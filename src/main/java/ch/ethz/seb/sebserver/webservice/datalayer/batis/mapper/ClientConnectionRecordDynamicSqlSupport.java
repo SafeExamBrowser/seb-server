@@ -6,37 +6,37 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientConnectionRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.159+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.828+01:00", comments="Source Table: client_connection")
     public static final ClientConnectionRecord clientConnectionRecord = new ClientConnectionRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.159+01:00", comments="Source field: client_connection.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.828+01:00", comments="Source field: client_connection.id")
     public static final SqlColumn<Long> id = clientConnectionRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.159+01:00", comments="Source field: client_connection.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.829+01:00", comments="Source field: client_connection.institution_id")
     public static final SqlColumn<Long> institutionId = clientConnectionRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.159+01:00", comments="Source field: client_connection.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.830+01:00", comments="Source field: client_connection.exam_id")
     public static final SqlColumn<Long> examId = clientConnectionRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.834+01:00", comments="Source field: client_connection.status")
     public static final SqlColumn<String> status = clientConnectionRecord.status;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.836+01:00", comments="Source field: client_connection.connection_token")
     public static final SqlColumn<String> connectionToken = clientConnectionRecord.connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.exam_user_session_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.838+01:00", comments="Source field: client_connection.exam_user_session_id")
     public static final SqlColumn<String> examUserSessionId = clientConnectionRecord.examUserSessionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.838+01:00", comments="Source field: client_connection.client_address")
     public static final SqlColumn<String> clientAddress = clientConnectionRecord.clientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.virtual_client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.838+01:00", comments="Source field: client_connection.virtual_client_address")
     public static final SqlColumn<String> virtualClientAddress = clientConnectionRecord.virtualClientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.160+01:00", comments="Source field: client_connection.creation_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.838+01:00", comments="Source field: client_connection.creation_time")
     public static final SqlColumn<Long> creationTime = clientConnectionRecord.creationTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-12T11:08:43.159+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2019-12-13T19:17:48.828+01:00", comments="Source Table: client_connection")
     public static final class ClientConnectionRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

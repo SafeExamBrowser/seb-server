@@ -140,7 +140,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-
         return Result.tryCatch(() -> {
             if (!authenticate()) {
                 throw new IllegalArgumentException("Wrong clientId or secret");
@@ -168,6 +167,16 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 .filter(mockup -> ids.contains(mockup.id))
                 .map(mockup -> Result.of(mockup))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return getQuiz(id);
+    }
+
+    @Override
+    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        return getQuizzes(ids);
     }
 
     @Override

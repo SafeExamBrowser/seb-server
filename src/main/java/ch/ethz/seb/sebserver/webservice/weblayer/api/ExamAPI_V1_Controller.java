@@ -39,7 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.PingResponse;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebInstructionService;
 
 @WebServiceProfile
 @RestController
@@ -58,6 +59,7 @@ public class ExamAPI_V1_Controller {
     private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
     private final SebClientConnectionService sebClientConnectionService;
+    private final SebInstructionService sebInstructionService;
     private final SebClientConfigDAO sebClientConfigDAO;
     private final JSONMapper jsonMapper;
 
@@ -65,12 +67,14 @@ public class ExamAPI_V1_Controller {
             final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SebClientConnectionService sebClientConnectionService,
+            final SebInstructionService sebInstructionService,
             final SebClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper) {
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
+        this.sebInstructionService = sebInstructionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.jsonMapper = jsonMapper;
     }
@@ -305,7 +309,7 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public PingResponse ping(
+    public ClientInstruction.SebInstruction ping(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
@@ -313,9 +317,7 @@ public class ExamAPI_V1_Controller {
         this.sebClientConnectionService
                 .notifyPing(connectionToken, timestamp, pingNumber);
 
-        // TODO ping response (issue SEBSERV-74)
-
-        return null;
+        return this.sebInstructionService.getInstruction(connectionToken);
     }
 
     @RequestMapping(

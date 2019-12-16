@@ -156,7 +156,6 @@ public class SebClientLogs implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-        final RestService restService = this.resourceService.getRestService();
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -169,7 +168,7 @@ public class SebClientLogs implements TemplateComposer {
 
         // table
         final EntityTable<ExtendedClientEvent> table = this.pageService.entityTableBuilder(
-                restService.getRestCall(GetExtendedClientEventPage.class))
+                this.restService.getRestCall(GetExtendedClientEventPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
 

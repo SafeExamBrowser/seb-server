@@ -160,6 +160,14 @@ public final class Result<T> {
         return this.value != null ? this.value : supplier.get();
     }
 
+    public Result<T> orElse(final Supplier<Result<T>> supplier) {
+        return this.value != null ? this : supplier.get();
+    }
+
+    public Result<T> orElseTry(final Supplier<T> supplier) {
+        return this.value != null ? this : Result.tryCatch(() -> supplier.get());
+    }
+
     /** @return the error if some was reporter or null if there was no error */
     public Exception getError() {
         return this.error;

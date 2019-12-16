@@ -129,12 +129,15 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
                 final long currentTimeMillis = System.currentTimeMillis();
                 if (currentTimeMillis - this.lastMemoizingTime > this.maxMemoizingTime) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Max memoizing time reached. Return original error");
+                        log.warn("Max memoizing time reached. Return cached. Error: {}",
+                                result.getError().getMessage());
                     }
                     return result;
                 }
 
-                log.warn("Return cached at: {}", System.currentTimeMillis());
+                log.warn("Return cached at: {} error: {}",
+                        System.currentTimeMillis(),
+                        result.getError().getMessage());
                 return this.cached;
             }
 
@@ -156,7 +159,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
         return this.delegate.getState();
     }
 
-    T getChached() {
+    public T getChached() {
         if (this.cached == null) {
             return null;
         }

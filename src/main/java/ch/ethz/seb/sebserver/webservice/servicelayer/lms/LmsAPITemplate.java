@@ -69,6 +69,18 @@ public interface LmsAPITemplate {
      * @return Collection of all QuizData from the given id set */
     Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
+    /** Get all QuizData for the set of QuizData identifiers from LMS API in a collection
+     * of Result. If particular Quiz cannot be loaded because of errors or deletion,
+     * the Result will have an error reference.
+     *
+     * NOTE: This method looks first in the cache for all given ids.
+     * If all quizzes are cached, returns all from cache.
+     * If one quiz is not in the cache, requests all quizzes from the API and refreshes the cache
+     *
+     * @param ids the Set of Quiz identifiers to get the QuizData for
+     * @return Collection of all QuizData from the given id set */
+    Collection<Result<QuizData>> getQuizzesFromCache(Set<String> ids);
+
     default Result<QuizData> getQuiz(final String id) {
         if (StringUtils.isBlank(id)) {
             return Result.ofError(new RuntimeException("missing model id"));
@@ -79,6 +91,8 @@ public interface LmsAPITemplate {
                 .findFirst()
                 .orElse(Result.ofError(new ResourceNotFoundException(EntityType.EXAM, id)));
     }
+
+    Result<QuizData> getQuizFromCache(String id);
 
     // TODO this can be used in a future release to resolve examinee's account detail information by an
     //      examinee identifier received by on SEB-Client connection.

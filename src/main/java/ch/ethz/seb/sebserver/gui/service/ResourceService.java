@@ -469,6 +469,7 @@ public class ResourceService {
         final UserInfo userInfo = this.currentUser.get();
         return this.restService.getBuilder(GetExams.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .withQueryParam(Exam.FILTER_CACHED_QUIZZES, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
@@ -483,12 +484,27 @@ public class ResourceService {
         final UserInfo userInfo = this.currentUser.get();
         return this.restService.getBuilder(GetExamNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .withQueryParam(Exam.FILTER_CACHED_QUIZZES, Constants.TRUE_STRING)
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+    }
+
+    public Map<Long, String> getExamNameMapping() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExamNames.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .withQueryParam(Exam.FILTER_CACHED_QUIZZES, Constants.TRUE_STRING)
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(k -> StringUtils.isNotBlank(k.modelId))
+                .collect(Collectors.toMap(
+                        k -> Long.valueOf(k.modelId),
+                        k -> k.name));
     }
 
     public List<Tuple<String>> getViewResources() {
@@ -551,19 +567,6 @@ public class ResourceService {
         }
         return this.i18nSupport
                 .getText(CONFIG_ATTRIBUTE_TYPE_PREFIX + type.name());
-    }
-
-    public Map<Long, String> getExamNameMapping() {
-        final UserInfo userInfo = this.currentUser.get();
-        return this.restService.getBuilder(GetExamNames.class)
-                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
-                .call()
-                .getOr(Collections.emptyList())
-                .stream()
-                .filter(k -> StringUtils.isNotBlank(k.modelId))
-                .collect(Collectors.toMap(
-                        k -> Long.valueOf(k.modelId),
-                        k -> k.name));
     }
 
     public List<Tuple<String>> getExamConfigTemplateResources() {

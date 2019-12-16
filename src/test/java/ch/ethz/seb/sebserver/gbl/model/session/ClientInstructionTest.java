@@ -28,10 +28,10 @@ public class ClientInstructionTest {
         final JSONMapper mapper = new JSONMapper();
 
         final ClientInstruction instruction =
-                new ClientInstruction(2L, 45L, 3L, InstructionType.SEB_QUIT, true, Collections.emptyMap());
+                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", true, Collections.emptyMap());
         final String stringValue = mapper.writeValueAsString(instruction);
         assertEquals(
-                "{\"id\":2,\"clientConnectionId\":45,\"examId\":3,\"type\":\"SEB_QUIT\",\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{}},\"active\":true}",
+                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connections\":\"3L\",\"active\":true,\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{}}}",
                 stringValue);
 
         final String sebInstructionValue = mapper.writeValueAsString(instruction.getSebInstruction());
@@ -49,10 +49,10 @@ public class ClientInstructionTest {
         attributes.put("attr3", "value3");
 
         final ClientInstruction instruction =
-                new ClientInstruction(2L, 45L, 3L, InstructionType.SEB_QUIT, true, attributes);
+                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", true, attributes);
         final String stringValue = mapper.writeValueAsString(instruction);
         assertEquals(
-                "{\"id\":2,\"clientConnectionId\":45,\"examId\":3,\"type\":\"SEB_QUIT\",\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{\"attr2\":\"value2\",\"attr1\":\"value1\",\"attr3\":\"value3\"}},\"active\":true}",
+                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connections\":\"3L\",\"active\":true,\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{\"attr2\":\"value2\",\"attr1\":\"value1\",\"attr3\":\"value3\"}}}",
                 stringValue);
 
         final String sebInstructionValue = mapper.writeValueAsString(instruction.getSebInstruction());
