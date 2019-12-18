@@ -98,7 +98,9 @@ public class WidgetFactory {
         INSTITUTION("institution.png"),
         LMS_SETUP("lmssetup.png"),
         INDICATOR("indicator.png"),
-        TEMPLATE("template.png");
+        TEMPLATE("template.png"),
+        DISABLE("disable.png"),
+        SEND_QUIT("send-quit.png");
 
         private String fileName;
         private ImageData image = null;

@@ -14,7 +14,23 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public interface IndicatorValue extends IndicatorValueHolder {
 
+    /** Use this to get the type of indicator this value was computed from.
+     *
+     * @return the type of indicator this value was computed from. */
     @JsonProperty(SimpleIndicatorValue.ATTR_INDICATOR_TYPE)
     IndicatorType getType();
+
+    /** Use this to get the display value of the value of given IndicatorValue.
+     * Since the internal value is a double this gets the correct display value for the InticatorType
+     *
+     * @param indicatorValue
+     * @return the display value of the given IndicatorValue */
+    public static String getDisplayValue(final IndicatorValue indicatorValue) {
+        if (indicatorValue.getType().integerValue) {
+            return String.valueOf((int) indicatorValue.getValue());
+        } else {
+            return String.valueOf(indicatorValue.getValue());
+        }
+    }
 
 }

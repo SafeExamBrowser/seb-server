@@ -19,6 +19,7 @@ public final class API {
     }
 
     public static final String SEB_FILE_EXTENSION = "seb";
+
     public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
     public static final String PARAM_INSTITUTION_ID = "institutionId";
     public static final String PARAM_MODEL_ID = "modelId";
@@ -26,8 +27,11 @@ public final class API {
     public static final String PARAM_PARENT_MODEL_ID = "parentModelId";
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
-    public static final String PARAM_CLIENT_CONFIG_SECRET = "client_config_secret";
     public static final String PARAM_VIEW_ID = "viewId";
+    public static final String PARAM_INSTRUCTION_TYPE = "instructionType";
+    public static final String PARAM_INSTRUCTION_ATTRIBUTES = "instructionAttributes";
+    public static final String PARAM_INSTRUCTION_CONNECTION_TOKENS = "instructionConnectinTokens";
+
     public static final String DEFAULT_CONFIG_TEMPLATE_ID = String.valueOf(ConfigurationNode.DEFAULT_TEMPLATE_ID);
 
     public static final String INSTITUTION_VAR_PATH_SEGMENT = "/{" + PARAM_INSTITUTION_ID + "}";
@@ -35,8 +39,8 @@ public final class API {
     public static final String PARENT_MODEL_ID_VAR_PATH_SEGMENT = "/{" + PARAM_PARENT_MODEL_ID + "}";
 
     public static final String OAUTH_ENDPOINT = "/oauth";
-    public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token"; // TODO to config properties?
-    public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token"; // TODO to config properties?
+    public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token";
+    public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
 
     public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + "/me";
     public static final String SELF_PATH_SEGMENT = "/self";
@@ -144,8 +148,8 @@ public final class API {
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";
 
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
-    public static final String EXAM_MONITORING_EXAM_ID_PATH_SEGMENT =
-            "/{" + EXAM_API_PARAM_EXAM_ID + "}";
+    public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
+    public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
 

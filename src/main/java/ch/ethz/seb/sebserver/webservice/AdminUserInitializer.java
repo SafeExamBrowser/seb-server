@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -135,25 +136,25 @@ class AdminUserInitializer {
                 }
             }
         } catch (final Exception e) {
-            WebserviceInit.INIT_LOGGER.error("---->");
-            WebserviceInit.INIT_LOGGER.error("----> SEB Server initial admin-account creation failed: ", e);
-            WebserviceInit.INIT_LOGGER.error("---->");
+            SEBServerInit.INIT_LOGGER.error("---->");
+            SEBServerInit.INIT_LOGGER.error("----> SEB Server initial admin-account creation failed: ", e);
+            SEBServerInit.INIT_LOGGER.error("---->");
         }
     }
 
     private void writeAdminCredentials(final String name, final CharSequence pwd) {
-        WebserviceInit.INIT_LOGGER.info("---->");
-        WebserviceInit.INIT_LOGGER.info(
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info(
                 "----> ******************************************************************************************"
-                + "*****************************************************************************");
-        WebserviceInit.INIT_LOGGER.info("----> SEB Server initial admin-account; name: {}, pwd: {}", name, pwd);
-        WebserviceInit.INIT_LOGGER.info("---->");
-        WebserviceInit.INIT_LOGGER.info(
+                        + "*****************************************************************************");
+        SEBServerInit.INIT_LOGGER.info("----> SEB Server initial admin-account; name: {}, pwd: {}", name, pwd);
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info(
                 "----> !!!! NOTE: Do not forget to login and reset the generated admin password immediately !!!!");
-        WebserviceInit.INIT_LOGGER.info(
+        SEBServerInit.INIT_LOGGER.info(
                 "----> ******************************************************************************************"
-                + "*****************************************************************************");
-        WebserviceInit.INIT_LOGGER.info("---->");
+                        + "*****************************************************************************");
+        SEBServerInit.INIT_LOGGER.info("---->");
     }
 
     private CharSequence generateAdminPassword() {

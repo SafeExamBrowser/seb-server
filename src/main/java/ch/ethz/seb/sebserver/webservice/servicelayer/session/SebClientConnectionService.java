@@ -17,6 +17,11 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 /** Service interface defining functionality to handle SEB client connections on running exams. */
 public interface SebClientConnectionService {
 
+    /** Use this to get the underling ExamSessionService
+     *
+     * @return get the underling ExamSessionService */
+    ExamSessionService getExamSessionService();
+
     /** If a SEB client connects to the SEB Server the first time for a exam session,
      * this is used to create a ClientConnection for this connection attempt.
      * So this starts the SEB Client - SEB Server handshake.
@@ -96,13 +101,26 @@ public interface SebClientConnectionService {
      * @param connectionToken The connection-token that was given on ClientConnection creation and that identifies the
      *            connection
      * @param institutionId institution identifier
-     * @param clientAddress The clients remote IP address
      * @return A Result refer to the closed ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> closeConnection(
             String connectionToken,
             Long institutionId,
             String clientAddress);
 
+    /** This is used to disable a undefined or requested ClientConnection attempt from the SEB Server side
+     * <p>
+     * This will save the existing ClientConnection that is in UNDEFINED or REQUESTED state, in new DISABLED state and
+     * flush all caches.
+     *
+     * @param connectionToken The connection-token that was given on ClientConnection creation and that identifies the
+     *            connection
+     * @param institutionId institution identifier
+     * @return A Result refer to the closed ClientConnection instance, or refer to an error if happened */
+    Result<ClientConnection> disableConnection(String connectionToken, Long institutionId);
+
+    /** Used to check current cached ping times of all running connections and
+     * if a ping time is overflowing, creating a ping overflow event or if an
+     * overflowed ping is back to normal, a ping back to normal event. */
     void updatePingEvents();
 
     /** Notify a ping for a certain client connection.

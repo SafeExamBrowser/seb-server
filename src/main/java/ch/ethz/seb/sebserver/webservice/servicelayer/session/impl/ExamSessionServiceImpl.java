@@ -83,6 +83,21 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public ClientConnectionDAO getClientConnectionDAO() {
+        return this.clientConnectionDAO;
+    }
+
+    @Override
+    public ExamSessionCacheService getExamSessionCacheService() {
+        return this.examSessionCacheService;
+    }
+
+    @Override
+    public CacheManager getCacheManager() {
+        return this.cacheManager;
+    }
+
+    @Override
     public Result<Collection<APIMessage>> checkRunningExamConsistency(final Long examId) {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();

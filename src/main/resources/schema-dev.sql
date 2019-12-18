@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
+  INDEX `connectionTokenRef` (`connection_token` ASC),
   CONSTRAINT `clientConnectionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
@@ -533,19 +534,23 @@ DROP TABLE IF EXISTS `client_instruction` ;
 CREATE TABLE IF NOT EXISTS `client_instruction` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `exam_id` BIGINT UNSIGNED NOT NULL,
+  `connection_token` VARCHAR(255) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
-  `connections` VARCHAR(4000) NOT NULL,
   `attributes` VARCHAR(4000) NULL,
-  `active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `instructionExamRef_idx` (`exam_id` ASC),
+  INDEX `instructionConnectionRef` (`connection_token` ASC),
   CONSTRAINT `instructionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `instructionConnectionRef`
+    FOREIGN KEY (`connection_token`)
+    REFERENCES `client_connection` (`connection_token`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

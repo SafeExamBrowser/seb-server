@@ -185,7 +185,22 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean isLoggedIn() {
             final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
-            return accessToken != null && !StringUtils.isEmpty(accessToken.toString());
+            if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
+                return false;
+            }
+
+            try {
+                final ResponseEntity<String> forEntity =
+                        this.restTemplate.getForEntity(this.currentUserURI, String.class);
+                if (forEntity.getStatusCode() != HttpStatus.OK) {
+                    return false;
+                }
+            } catch (final Exception e) {
+                log.error("Failed to verify logged in user: {}", e.getMessage());
+                return false;
+            }
+
+            return true;
         }
 
         @Override
@@ -223,7 +238,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             }
             // mark the RestTemplate as disposed
             this.restTemplate.enabled = false;
-
             return true;
         }
 

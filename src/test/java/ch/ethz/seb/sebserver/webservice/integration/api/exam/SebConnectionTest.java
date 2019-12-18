@@ -476,7 +476,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
-    public void testSendPingToNoneEstablishedConnectionIsIgnored() throws Exception {
+    public void testSendPingToNoneEstablishedConnection() throws Exception {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 

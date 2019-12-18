@@ -81,6 +81,19 @@ public final class Utils {
 
     /** Get an immutable List from a Collection of elements
      *
+     * @param values elements
+     * @return immutable List */
+    @SafeVarargs
+    public static <T> List<T> immutableListOf(final T... values) {
+        if (values == null) {
+            return Collections.emptyList();
+        }
+
+        return immutableListOf(Arrays.asList(values));
+    }
+
+    /** Get an immutable List from a Collection of elements
+     *
      * @param collection Collection of elements
      * @return immutable List */
     public static <T> List<T> immutableListOf(final Collection<T> collection) {
@@ -445,5 +458,35 @@ public final class Utils {
     public static String toColorFractionString(final int fraction) {
         final String hexString = Integer.toHexString(fraction);
         return (hexString.length() < 2) ? "0" + hexString : hexString;
+    }
+
+    public static String toJsonArrayValue(final Map<String, String> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return StringUtils.EMPTY;
+        }
+
+        final StringBuilder builder = attributes
+                .entrySet()
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, entry) -> sb
+                                .append(Constants.DOUBLE_QUOTE)
+                                .append(entry.getKey())
+                                .append(Constants.DOUBLE_QUOTE)
+                                .append(Constants.COLON)
+                                .append(Constants.DOUBLE_QUOTE)
+                                .append(entry.getValue())
+                                .append(Constants.DOUBLE_QUOTE)
+                                .append(Constants.COMMA),
+                        (sb1, sb2) -> sb1.append(sb2));
+
+        if (builder.length() > 0) {
+            return builder
+                    .deleteCharAt(builder.length() - 1)
+                    .toString();
+        } else {
+            return StringUtils.EMPTY;
+        }
     }
 }

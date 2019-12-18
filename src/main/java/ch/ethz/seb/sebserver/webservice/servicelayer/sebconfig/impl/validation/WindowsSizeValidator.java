@@ -40,7 +40,7 @@ public class WindowsSizeValidator implements ConfigurationValueValidator {
             return true;
         }
 
-        final String number = (value.value.endsWith(Constants.PERCENTAGE))
+        final String number = (value.value.endsWith(Constants.PERCENTAGE_STRING))
                 ? value.value.substring(0, value.value.length() - 1)
                 : value.value;
 

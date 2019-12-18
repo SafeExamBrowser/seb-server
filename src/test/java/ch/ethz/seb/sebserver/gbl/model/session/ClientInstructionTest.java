@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,16 +27,12 @@ public class ClientInstructionTest {
         final JSONMapper mapper = new JSONMapper();
 
         final ClientInstruction instruction =
-                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", true, Collections.emptyMap());
+                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", null);
         final String stringValue = mapper.writeValueAsString(instruction);
         assertEquals(
-                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connections\":\"3L\",\"active\":true,\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{}}}",
+                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connectionToken\":\"3L\",\"attributes\":{}}",
                 stringValue);
 
-        final String sebInstructionValue = mapper.writeValueAsString(instruction.getSebInstruction());
-        assertEquals(
-                "{\"instruction\":\"SEB_QUIT\",\"attributes\":{}}",
-                sebInstructionValue);
     }
 
     @Test
@@ -49,16 +44,12 @@ public class ClientInstructionTest {
         attributes.put("attr3", "value3");
 
         final ClientInstruction instruction =
-                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", true, attributes);
+                new ClientInstruction(2L, 45L, InstructionType.SEB_QUIT, "3L", attributes);
         final String stringValue = mapper.writeValueAsString(instruction);
         assertEquals(
-                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connections\":\"3L\",\"active\":true,\"seb-instruction\":{\"instruction\":\"SEB_QUIT\",\"attributes\":{\"attr2\":\"value2\",\"attr1\":\"value1\",\"attr3\":\"value3\"}}}",
+                "{\"id\":2,\"examId\":45,\"type\":\"SEB_QUIT\",\"connectionToken\":\"3L\",\"attributes\":{\"attr2\":\"value2\",\"attr1\":\"value1\",\"attr3\":\"value3\"}}",
                 stringValue);
 
-        final String sebInstructionValue = mapper.writeValueAsString(instruction.getSebInstruction());
-        assertEquals(
-                "{\"instruction\":\"SEB_QUIT\",\"attributes\":{\"attr2\":\"value2\",\"attr1\":\"value1\",\"attr3\":\"value3\"}}",
-                sebInstructionValue);
     }
 
 }

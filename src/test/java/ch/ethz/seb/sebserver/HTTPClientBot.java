@@ -75,6 +75,7 @@ public class HTTPClientBot {
     private final long pingPause;
     private final long pingPauseDelay;
     private final long errorInterval;
+    private final long warnInterval;
     private final long runtime;
     private final int connectionAttempts;
 
@@ -98,14 +99,15 @@ public class HTTPClientBot {
         this.apiVersion = properties.getProperty("apiVersion", "v1");
 //        this.examId = properties.getProperty("examId", "2");
 //        this.institutionId = properties.getProperty("institutionId", "1");
-        this.examId = properties.getProperty("examId", "3");
+        this.examId = properties.getProperty("examId", "2");
         this.institutionId = properties.getProperty("institutionId", "1");
-        this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "1"));
+        this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
         this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
         this.pingPause = Long.parseLong(properties.getProperty("pingPause", "0"));
         this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "0"));
         this.errorInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS)));
+        this.warnInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS / 2)));
 //        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
         this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));
         this.connectionAttempts = Integer.parseInt(properties.getProperty("connectionAttempts", "1"));
@@ -224,7 +226,8 @@ public class HTTPClientBot {
                 if (getConfig(headers) && establishConnection(headers)) {
 
                     final PingEntity pingHeader = new PingEntity(headers);
-                    final EventEntity eventHeader = new EventEntity(eventHeaders);
+                    final EventEntity errorHeader = new EventEntity(eventHeaders, "ERROR_LOG");
+                    final EventEntity warnHeader = new EventEntity(eventHeaders, "WARN_LOG");
 
                     try {
                         final long startTime = System.currentTimeMillis();
@@ -234,19 +237,28 @@ public class HTTPClientBot {
                         long currentTime = startTime;
                         long lastPingTime = startTime;
                         long lastErrorTime = startTime;
+                        long lastWarnTime = startTime;
 
                         while (currentTime < endTime) {
                             if (currentTime - lastPingTime >= HTTPClientBot.this.pingInterval &&
                                     !(currentTime > pingPauseStart && currentTime < pingPauseEnd)) {
 
                                 pingHeader.next();
-                                sendPing(pingHeader);
+                                if (!sendPing(pingHeader)) {
+                                    // expecting a quit instruction was sent here
+                                    return;
+                                }
                                 lastPingTime = currentTime;
                             }
                             if (currentTime - lastErrorTime >= HTTPClientBot.this.errorInterval) {
-                                eventHeader.next();
-                                sendErrorEvent(eventHeader);
+                                errorHeader.next();
+                                sendEvent(errorHeader);
                                 lastErrorTime = currentTime;
+                            }
+                            if (currentTime - lastWarnTime >= HTTPClientBot.this.warnInterval) {
+                                warnHeader.next();
+                                sendEvent(warnHeader);
+                                lastWarnTime = currentTime;
                             }
                             try {
                                 Thread.sleep(50);
@@ -380,12 +392,16 @@ public class HTTPClientBot {
         private boolean sendPing(final HttpEntity<String> pingHeader) {
             try {
 
-                this.restTemplate.exchange(
+                final ResponseEntity<String> exchange = this.restTemplate.exchange(
                         this.pingURI,
                         HttpMethod.POST,
                         pingHeader,
                         new ParameterizedTypeReference<String>() {
                         });
+
+                if (exchange.hasBody() && exchange.getBody().contains("SEB_QUIT")) {
+                    return false;
+                }
 
                 return true;
             } catch (final Exception e) {
@@ -394,7 +410,7 @@ public class HTTPClientBot {
             }
         }
 
-        private boolean sendErrorEvent(final HttpEntity<String> eventHeader) {
+        private boolean sendEvent(final HttpEntity<String> eventHeader) {
             try {
 
                 this.restTemplate.exchange(
@@ -513,12 +529,14 @@ public class HTTPClientBot {
 
     private static class EventEntity extends HttpEntity<String> {
         private final String eventBodyTemplate =
-                "{ \"type\": \"ERROR_LOG\", \"timestamp\": %s, \"text\": \"some error " + UUID.randomUUID() + " \" }";
+                "{ \"type\": \"%s\", \"timestamp\": %s, \"text\": \"some error " + UUID.randomUUID() + " \" }";
 
         private long timestamp = 0;
+        private final String eventType;
 
-        protected EventEntity(final MultiValueMap<String, String> headers) {
+        protected EventEntity(final MultiValueMap<String, String> headers, final String eventType) {
             super(headers);
+            this.eventType = eventType;
         }
 
         void next() {
@@ -527,7 +545,7 @@ public class HTTPClientBot {
 
         @Override
         public String getBody() {
-            return String.format(this.eventBodyTemplate, this.timestamp);
+            return String.format(this.eventBodyTemplate, this.eventType, this.timestamp);
         }
 
         @Override

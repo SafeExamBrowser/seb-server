@@ -13,18 +13,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -45,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
@@ -54,6 +56,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class ClientConnectionTable {
@@ -81,6 +84,7 @@ public final class ClientConnectionTable {
     private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
     private final Table table;
     private final StatusData statusData;
+    private final EnumSet<ConnectionStatus> statusFilter;
 
     private int tableWidth;
     private boolean needsSort = false;
@@ -105,15 +109,17 @@ public final class ClientConnectionTable {
         final Display display = tableRoot.getDisplay();
         this.statusData = new StatusData(display);
 
-        this.darkFontColor = new Color(display, new RGB(0, 0, 0));
-        this.lightFontColor = new Color(display, new RGB(255, 255, 255));
+        this.darkFontColor = new Color(display, Constants.BLACK_RGB);
+        this.lightFontColor = new Color(display, Constants.WHITE_RGB);
 
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
-        this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.SINGLE | SWT.V_SCROLL);
+        this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
+
+        this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
         gridLayout.horizontalSpacing = 100;
         gridLayout.marginWidth = 100;
@@ -150,8 +156,24 @@ public final class ClientConnectionTable {
         return this.widgetFactory;
     }
 
+    public boolean isEmpty() {
+        return this.tableMapping.isEmpty();
+    }
+
     public Exam getExam() {
         return this.exam;
+    }
+
+    public boolean isStatusHidden(final ConnectionStatus status) {
+        return this.statusFilter.contains(status);
+    }
+
+    public void hideStatus(final ConnectionStatus status) {
+        this.statusFilter.add(status);
+    }
+
+    public void showStatus(final ConnectionStatus status) {
+        this.statusFilter.remove(status);
     }
 
     public void withDefaultAction(final PageAction pageAction, final PageService pageService) {
@@ -171,6 +193,44 @@ public final class ClientConnectionTable {
             pageService.executePageAction(copyOfPageAction);
         });
 
+    }
+
+    public Set<String> getConnectionTokens(
+            final Predicate<ClientConnection> filter,
+            final boolean selected) {
+
+        if (selected) {
+            final int[] selectionIndices = this.table.getSelectionIndices();
+            if (selectionIndices == null || selectionIndices.length < 1) {
+                return Collections.emptySet();
+            }
+
+            final Set<String> result = new HashSet<>();
+            for (int i = 0; i < selectionIndices.length; i++) {
+                final UpdatableTableItem updatableTableItem =
+                        new ArrayList<>(this.tableMapping.values())
+                                .get(selectionIndices[0]);
+                if (filter.test(updatableTableItem.connectionData.clientConnection)) {
+
+                    result.add(updatableTableItem.connectionData.clientConnection.connectionToken);
+                }
+            }
+            return result;
+        } else {
+            return this.tableMapping
+                    .values()
+                    .stream()
+                    .map(item -> item.connectionData.clientConnection)
+                    .filter(filter)
+                    .map(ClientConnection::getConnectionToken)
+                    .collect(Collectors.toSet());
+        }
+    }
+
+    public void removeSelection() {
+        if (this.table != null) {
+            this.table.deselectAll();
+        }
     }
 
     public Set<EntityKey> getSelection() {
@@ -274,14 +334,6 @@ public final class ClientConnectionTable {
                         (e1, e2) -> e1, LinkedHashMap::new));
     }
 
-    private static String getDisplayValue(final IndicatorValue indicatorValue) {
-        if (indicatorValue.getType().integerValue) {
-            return String.valueOf((int) indicatorValue.getValue());
-        } else {
-            return String.valueOf(indicatorValue.getValue());
-        }
-    }
-
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
 
         final Long connectionId;
@@ -303,11 +355,16 @@ public final class ClientConnectionTable {
         }
 
         void update(final TableItem tableItem) {
+            if (ClientConnectionTable.this.statusFilter.contains(this.connectionData.clientConnection.status)) {
+                tableItem.dispose();
+                return;
+            }
             updateData(tableItem);
             if (this.connectionData != null) {
                 updateConnectionStatusColor(tableItem);
                 updateIndicatorValues(tableItem);
                 updateDuplicateColor(tableItem);
+
             }
         }
 
@@ -360,23 +417,23 @@ public final class ClientConnectionTable {
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
                 if (fillEmpty) {
-                    tableItem.setText(indicatorData.tableIndex, Constants.EMPTY_NOTE);
-                    tableItem.setBackground(
-                            indicatorData.tableIndex,
-                            indicatorData.defaultColor);
+                    final String value = (indicatorData.indicator.type.showOnlyInActiveState)
+                            ? Constants.EMPTY_NOTE
+                            : IndicatorValue.getDisplayValue(indicatorValue);
+                    tableItem.setText(indicatorData.tableIndex, value);
+                    tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
+                    tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
                 } else {
-                    tableItem.setText(indicatorData.tableIndex, getDisplayValue(indicatorValue));
+                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(indicatorValue));
                     final int weight = this.indicatorWeights[indicatorData.index];
-                    final Color color =
-                            (weight >= 0 && weight < indicatorData.thresholdColor.length)
-                                    ? indicatorData.thresholdColor[weight].color
-                                    : indicatorData.defaultColor;
-                    tableItem.setBackground(indicatorData.tableIndex, color);
-                    tableItem.setForeground(
-                            indicatorData.tableIndex,
-                            Utils.darkColor(color.getRGB())
-                                    ? ClientConnectionTable.this.darkFontColor
-                                    : ClientConnectionTable.this.lightFontColor);
+                    if (weight >= 0 && weight < indicatorData.thresholdColor.length) {
+                        final ThresholdColor thresholdColor = indicatorData.thresholdColor[weight];
+                        tableItem.setBackground(indicatorData.tableIndex, thresholdColor.color);
+                        tableItem.setForeground(indicatorData.tableIndex, thresholdColor.textColor);
+                    } else {
+                        tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
+                        tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
+                    }
                 }
             }
         }
@@ -462,13 +519,18 @@ public final class ClientConnectionTable {
                 final IndicatorData indicatorData =
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
-                final double value = indicatorValue.getValue();
-                final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
-                if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
-                    ClientConnectionTable.this.needsSort = true;
-                    this.thresholdsWeight -= this.indicatorWeights[indicatorData.index];
-                    this.indicatorWeights[indicatorData.index] = indicatorWeight;
-                    this.thresholdsWeight += this.indicatorWeights[indicatorData.index];
+                if (indicatorData == null) {
+                    log.error("No IndicatorData of type: {} found", indicatorValue.getType());
+                } else {
+
+                    final double value = indicatorValue.getValue();
+                    final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
+                    if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
+                        ClientConnectionTable.this.needsSort = true;
+                        this.thresholdsWeight -= this.indicatorWeights[indicatorData.index];
+                        this.indicatorWeights[indicatorData.index] = indicatorWeight;
+                        this.thresholdsWeight += this.indicatorWeights[indicatorData.index];
+                    }
                 }
             }
 

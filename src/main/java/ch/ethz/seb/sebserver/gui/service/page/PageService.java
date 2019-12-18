@@ -315,6 +315,7 @@ public interface PageService {
         private Function<PageAction, PageAction> exec;
         private boolean fireActionEvent = true;
         private boolean ignoreMoveAwayFromEdit = false;
+        private PageAction switchAction;
 
         protected PageActionBuilder(final PageService pageService, final PageContext pageContext) {
             this.pageService = pageService;
@@ -331,6 +332,7 @@ public interface PageService {
             exec = null;
             fireActionEvent = true;
             ignoreMoveAwayFromEdit = false;
+            switchAction = null;
             return this;
         }
 
@@ -344,7 +346,8 @@ public interface PageService {
                     pageContext,
                     exec,
                     fireActionEvent,
-                    ignoreMoveAwayFromEdit);
+                    ignoreMoveAwayFromEdit,
+                    switchAction);
         }
 
         public PageActionBuilder publish() {
@@ -358,6 +361,11 @@ public interface PageService {
             }
 
             return this.publish();
+        }
+
+        public PageActionBuilder withSwitchAction(final PageAction switchAction) {
+            this.switchAction = switchAction;
+            return this;
         }
 
         public PageActionBuilder withExec(final Function<PageAction, PageAction> exec) {
@@ -396,11 +404,6 @@ public interface PageService {
                 return action;
             };
 
-            return this;
-        }
-
-        public PageActionBuilder withConfirm(final String confirmationMessageKey) {
-            this.confirm = () -> new LocTextKey(confirmationMessageKey);
             return this;
         }
 

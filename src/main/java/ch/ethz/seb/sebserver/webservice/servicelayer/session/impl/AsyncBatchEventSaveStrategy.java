@@ -29,6 +29,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
+import ch.ethz.seb.sebserver.SEBServerInitEvent;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -80,13 +83,22 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
     @Override
     public void enable() {
         this.enabled = true;
-
     }
 
-    @EventListener(EventHandlingInit.class)
+    @EventListener(SEBServerInitEvent.class)
     protected void recover() {
         if (this.enabled) {
+            SEBServerInit.INIT_LOGGER.info("------>");
+            SEBServerInit.INIT_LOGGER.info("------> Start {} Event-Batch-Store Worker-Threads",
+                    NUMBER_OF_WORKER_THREADS);
+
             runWorkers();
+
+            try {
+                Thread.sleep(Constants.SECOND_IN_MILLIS);
+            } catch (final Exception e) {
+                log.error("Failed to wait");
+            }
         }
     }
 
@@ -113,8 +125,6 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
         }
 
         this.workersRunning = true;
-
-        log.info("Start {} Event-Batch-Store Worker-Threads", NUMBER_OF_WORKER_THREADS);
         for (int i = 0; i < NUMBER_OF_WORKER_THREADS; i++) {
             this.executor.execute(batchSave());
         }
@@ -123,7 +133,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
     private Runnable batchSave() {
         return () -> {
 
-            log.debug("Worker Thread {} running", Thread.currentThread());
+            SEBServerInit.INIT_LOGGER.info("> Worker Thread {} running", Thread.currentThread());
 
             final Collection<ClientEventRecord> events = new ArrayList<>();
             final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(

@@ -15,11 +15,14 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.SEBServerInit;
+import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -27,7 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnection
 
 @Service
 @WebServiceProfile
-class ExamSessionControlTask {
+class ExamSessionControlTask implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
@@ -36,6 +39,11 @@ class ExamSessionControlTask {
     private final ExamUpdateHandler examUpdateHandler;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
+    private final String examTaskCron;
+    private final long pingUpdateRate;
+
+    private boolean examRunUpdateActive = false;
+    private boolean lostPingUpdateActive = false;
 
     // TODO for distributed systems we need a data-base based priority and flag that the individual
     //      tasks can check and set so that only one task is actually processing and the other just checks
@@ -53,17 +61,46 @@ class ExamSessionControlTask {
             final SebClientConnectionService sebClientConnectionService,
             final ExamUpdateHandler examUpdateHandler,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
-            @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
+            @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
+            @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
+            @Value("${sebserver.webservice.api.seb.lostping.update:15000}") final Long pingUpdateRate) {
 
         this.examDAO = examDAO;
         this.sebClientConnectionService = sebClientConnectionService;
         this.examUpdateHandler = examUpdateHandler;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
+        this.examTaskCron = examTaskCron;
+        this.pingUpdateRate = pingUpdateRate;
+    }
+
+    @EventListener(SEBServerInitEvent.class)
+    public void init() {
+        SEBServerInit.INIT_LOGGER.info("------>");
+        SEBServerInit.INIT_LOGGER.info("------> Activate exam run controller background task");
+        SEBServerInit.INIT_LOGGER.info("--------> Task runs on an cron-job interval of {}", this.examTaskCron);
+        SEBServerInit.INIT_LOGGER.info(
+                "--------> Real exam running time span is expanded on {} before start and {} milliseconds after ending",
+                this.examTimePrefix,
+                this.examTimeSuffix);
+
+        this.examRunUpdateActive = true;
+
+        SEBServerInit.INIT_LOGGER.info("------>");
+        SEBServerInit.INIT_LOGGER.info(
+                "------> Activate SEB lost-ping-event update background task on a fix rate of: {} milliseconds",
+                this.pingUpdateRate);
+
+        this.lostPingUpdateActive = true;
+
     }
 
     @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
     public void examRunUpdateTask() {
+
+        if (!this.examRunUpdateActive) {
+            return;
+        }
 
         final String updateId = this.examUpdateHandler.createUpdateId();
 
@@ -75,8 +112,13 @@ class ExamSessionControlTask {
         controlExamEnd(updateId);
     }
 
-    @Scheduled(fixedRate = 15 * Constants.SECOND_IN_MILLIS)
+    @Scheduled(fixedRateString = "${sebserver.webservice.api.seb.lostping.update:15000}")
     public void pingEventUpdateTask() {
+
+        if (!this.lostPingUpdateActive) {
+            return;
+        }
+
         this.sebClientConnectionService.updatePingEvents();
     }
 
@@ -127,6 +169,12 @@ class ExamSessionControlTask {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exams: ", e);
         }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        this.examRunUpdateActive = false;
+        this.lostPingUpdateActive = false;
     }
 
 }

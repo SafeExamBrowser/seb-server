@@ -153,6 +153,10 @@ public class DefaultPageLayout implements TemplateComposer {
                         this.polyglotPageService.getI18nSupport().getText("sebserver.logout.success.message"),
                         SWT.ICON_INFORMATION);
                 logoutSuccess.open(null);
+
+                // TODO Try to invalidate RWT's user session.
+                //      This seems to be more difficult then expected and just invalidate the HttpSession dosn't work
+                //      Try to send a redirect JSON to the client: https://bugs.eclipse.org/bugs/show_bug.cgi?id=388249
             });
         }
     }

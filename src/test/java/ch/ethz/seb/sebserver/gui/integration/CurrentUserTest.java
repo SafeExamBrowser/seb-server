@@ -27,7 +27,15 @@ public class CurrentUserTest extends GuiIntegrationTest {
         final CurrentUser currentUser = new CurrentUser(authorizationContextHolder);
 
         // no user is logged in for now
-        assertNull(currentUser.get());
+        try {
+            currentUser.get();
+            fail("exception expected here");
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
+        // user is not available
+        assertFalse(currentUser.isAvailable());
 
         // login as SEB Administrator
         authorizationContextHolder.getAuthorizationContext().login("admin", "admin");

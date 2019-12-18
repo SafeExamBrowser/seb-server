@@ -42,6 +42,7 @@ public final class PageAction {
     private final Function<PageAction, PageAction> exec;
     final boolean fireActionEvent;
     final boolean ignoreMoveAwayFromEdit;
+    private PageAction switchAction;
 
     final LocTextKey successMessage;
 
@@ -54,7 +55,8 @@ public final class PageAction {
             final PageContext pageContext,
             final Function<PageAction, PageAction> exec,
             final boolean fireActionEvent,
-            final boolean ignoreMoveAwayFromEdit) {
+            final boolean ignoreMoveAwayFromEdit,
+            final PageAction switchAction) {
 
         this.definition = definition;
         this.confirm = confirm;
@@ -65,6 +67,10 @@ public final class PageAction {
         this.exec = (exec != null) ? exec : Function.identity();
         this.fireActionEvent = fireActionEvent;
         this.ignoreMoveAwayFromEdit = ignoreMoveAwayFromEdit;
+        this.switchAction = switchAction;
+        if (this.switchAction != null) {
+            this.switchAction.switchAction = this;
+        }
 
         if (this.pageContext != null) {
             this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.TRUE_STRING);
@@ -83,6 +89,10 @@ public final class PageAction {
         }
 
         return Constants.EMPTY_NOTE;
+    }
+
+    public PageAction getSwitchAction() {
+        return this.switchAction;
     }
 
     public EntityKey getEntityKey() {
@@ -134,6 +144,16 @@ public final class PageAction {
 
     void applyAction(final Consumer<Result<PageAction>> callback) {
         if (this.confirm != null) {
+            // if selection is needed, check selection fist, before confirm dialog
+            if (this.selectionSupplier != null) {
+                try {
+                    getMultiSelection();
+                } catch (final PageMessageException pme) {
+                    PageAction.this.pageContext.publishPageMessage(pme);
+                    return;
+                }
+            }
+
             final LocTextKey confirmMessage = this.confirm.get();
             if (confirmMessage != null) {
                 this.pageContext.applyConfirmDialog(confirmMessage,
@@ -249,7 +269,8 @@ public final class PageAction {
                 source.pageContext.copy(),
                 source.exec,
                 source.fireActionEvent,
-                source.ignoreMoveAwayFromEdit);
+                source.ignoreMoveAwayFromEdit,
+                source.switchAction);
     }
 
 }

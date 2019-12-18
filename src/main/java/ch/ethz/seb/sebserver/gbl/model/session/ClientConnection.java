@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.util.function.Predicate;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +28,7 @@ public final class ClientConnection implements GrantEntity {
         ESTABLISHED,
         CLOSED,
         ABORTED,
-        RELEASED
+        DISABLED
     }
 
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
@@ -220,6 +222,10 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.creationTime);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus status) {
+        return connection -> connection.status == status;
     }
 
 }

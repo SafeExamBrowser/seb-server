@@ -121,6 +121,10 @@ public abstract class RestCall<T> {
                     log.trace("response body --> {}" + responseEntity.getBody());
                 }
 
+                if (!responseEntity.hasBody()) {
+                    return Result.ofEmpty();
+                }
+
                 return Result.of(RestCall.this.jsonMapper.readValue(
                         responseEntity.getBody(),
                         RestCall.this.typeKey.typeRef));

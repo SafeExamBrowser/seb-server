@@ -12,12 +12,16 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+import org.springframework.cache.CacheManager;
+
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
@@ -26,6 +30,21 @@ public interface ExamSessionService {
      *
      * @return the underling ExamDAO service. */
     ExamDAO getExamDAO();
+
+    /** get the underling ClientConnectionDAO
+     *
+     * @return the underling ClientConnectionDAO */
+    ClientConnectionDAO getClientConnectionDAO();
+
+    /** Get the underling ExamSessionCacheService
+     *
+     * @return the underling ExamSessionCacheService */
+    ExamSessionCacheService getExamSessionCacheService();
+
+    /** Get the underling CacheManager
+     *
+     * @return the underling CacheManager */
+    CacheManager getCacheManager();
 
     /** Use this to check the consistency of a running Exam.
      * Current consistency checks are:

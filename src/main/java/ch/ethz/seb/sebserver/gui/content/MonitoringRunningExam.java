@@ -9,7 +9,10 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -27,6 +30,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -50,6 +55,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
+import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
 
 @Lazy
 @Component
@@ -60,21 +66,28 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
+    private static final LocTextKey CONFIRM_QUIT_SELECTED =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected.confirm");
+    private static final LocTextKey CONFIRM_QUIT_ALL =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final InstructionProcessor instructionProcessor;
     private final long pollInterval;
 
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final ResourceService resourceService,
+            final InstructionProcessor instructionProcessor,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
         this.resourceService = resourceService;
+        this.instructionProcessor = instructionProcessor;
         this.pollInterval = pollInterval;
     }
 
@@ -108,7 +121,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
-                        .withURIVariable(API.EXAM_API_PARAM_EXAM_ID, exam.getModelId());
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId());
 
         final ClientConnectionTable clientTable = new ClientConnectionTable(
                 this.pageService,
@@ -119,7 +132,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         clientTable.withDefaultAction(
                 actionBuilder
-                        .newAction(ActionDefinition.MONITOR_CLIENT_CONNECTION)
+                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                         .withParentEntityKey(entityKey)
                         .create(),
                 this.pageService);
@@ -130,8 +143,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 context -> clientTable.updateValues(),
                 updateTableGUI(clientTable));
 
+        final BooleanSupplier privilege = () -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
+
         actionBuilder
-                .newAction(ActionDefinition.MONITOR_CLIENT_CONNECTION)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                 .withParentEntityKey(entityKey)
                 .withExec(pageAction -> {
                     final Tuple<String> singleSelection = clientTable.getSingleSelection();
@@ -149,7 +165,74 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return copyOfPageAction;
                 })
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+                .publishIf(privilege)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_QUIT_ALL)
+                .withExec(action -> this.quitSebClients(action, clientTable, true))
+                .noEventPropagation()
+                .publishIf(privilege)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_QUIT_SELECTED)
+                .withSelect(
+                        clientTable::getSelection,
+                        action -> this.quitSebClients(action, clientTable, false),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(privilege);
+
+        if (privilege.getAsBoolean()) {
+            final PageAction showClosedConnections =
+                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                            .withExec(action -> {
+                                clientTable.showStatus(ConnectionStatus.CLOSED);
+                                return action;
+                            })
+                            .noEventPropagation()
+                            .create();
+
+            final PageAction hideClosedConnections =
+                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                            .withExec(action -> {
+                                clientTable.hideStatus(ConnectionStatus.CLOSED);
+                                return action;
+                            })
+                            .noEventPropagation()
+                            .withSwitchAction(showClosedConnections)
+                            .create();
+
+            this.pageService.publishAction(clientTable.isStatusHidden(ConnectionStatus.CLOSED)
+                    ? showClosedConnections
+                    : hideClosedConnections);
+        }
+    }
+
+    private PageAction quitSebClients(
+            final PageAction action,
+            final ClientConnectionTable clientTable,
+            final boolean all) {
+
+        final Predicate<ClientConnection> activePredicate = ClientConnection
+                .getStatusPredicate(ConnectionStatus.ESTABLISHED);
+
+        final Set<String> connectionTokens = clientTable.getConnectionTokens(
+                activePredicate,
+                !all);
+
+        if (connectionTokens.isEmpty()) {
+            return action;
+        }
+
+        this.instructionProcessor.propagateSebQuitInstruction(
+                clientTable.getExam().id,
+                connectionTokens,
+                action.pageContext());
+
+        clientTable.removeSelection();
+        return action;
     }
 
     private final Consumer<ServerPushContext> updateTableGUI(final ClientConnectionTable clientTable) {

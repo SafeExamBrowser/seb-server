@@ -198,6 +198,15 @@ public final class Form implements FormBinding {
         fieldAccessor.setBackgroundColor(color);
     }
 
+    public void setFieldTextColor(final String attributeName, final Color color) {
+        final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
+        if (fieldAccessor == null) {
+            return;
+        }
+
+        fieldAccessor.setTextColor(color);
+    }
+
     public void allVisible() {
         process(
                 Utils.truePredicate(),
@@ -451,6 +460,12 @@ public final class Form implements FormBinding {
         public void setBackgroundColor(final Color color) {
             if (this.control != null) {
                 this.control.setBackground(color);
+            }
+        }
+
+        public void setTextColor(final Color color) {
+            if (this.control != null) {
+                this.control.setForeground(color);
             }
         }
 

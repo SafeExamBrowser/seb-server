@@ -36,8 +36,8 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Component
-@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @GuiProfile
+@Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class CurrentUser {
 
     private static final Logger log = LoggerFactory.getLogger(CurrentUser.class);
@@ -65,15 +65,14 @@ public class CurrentUser {
     }
 
     public UserInfo get() {
+
         if (isAvailable()) {
             return this.authContext
                     .getLoggedInUser()
                     .getOrThrow();
         }
 
-        log.warn("Current user requested but no user is currently logged in");
-
-        return null;
+        return handleIllegalSessionState();
     }
 
     public UserInfo getOrHandleError(final Function<Exception, UserInfo> errorHandler) {
@@ -83,9 +82,13 @@ public class CurrentUser {
                     .get(errorHandler);
         }
 
-        log.warn("Current user requested but no user is currently logged in");
+        return handleIllegalSessionState();
+    }
 
-        return null;
+    private UserInfo handleIllegalSessionState() {
+        log.warn("Current user requested but no user is currently logged in");
+        this.logout();
+        throw new IllegalUserSessionStateException("User not logged in");
     }
 
     public GrantCheck grantCheck(final EntityType entityType) {
@@ -176,6 +179,10 @@ public class CurrentUser {
     }
 
     public boolean logout() {
+        if (this.attributes != null) {
+            this.attributes.clear();
+        }
+
         if (isAvailable()) {
             if (this.authContext.logout()) {
                 this.authContext = null;
@@ -184,7 +191,14 @@ public class CurrentUser {
                 return false;
             }
         } else {
-            return this.authorizationContextHolder.getAuthorizationContext().logout();
+            try {
+                return this.authorizationContextHolder
+                        .getAuthorizationContext()
+                        .logout();
+            } catch (final Exception e) {
+                log.warn("Unexpected error while logout: {}", e.getMessage());
+                return false;
+            }
         }
     }
 

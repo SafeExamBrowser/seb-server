@@ -13,7 +13,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -21,12 +23,15 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.IllegalUserSessionStateException;
+import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy
 @Service
@@ -120,9 +125,20 @@ public class ComposerServiceImpl implements ComposerService {
             try {
                 composer.compose(pageContext);
                 PageService.updateScrolledComposite(pageContext.getParent());
+
+            } catch (final IllegalUserSessionStateException e) {
+                log.warn("Illegal user session state detected... ceanup user session and forward to login page.");
+                pageContext.forwardToLoginPage();
+                final MessageBox logoutSuccess = new Message(
+                        pageContext.getShell(),
+                        this.i18nSupport.getText("sebserver.logout"),
+                        this.i18nSupport.getText("sebserver.logout.invalid-session.message"),
+                        SWT.ICON_INFORMATION);
+                logoutSuccess.open(null);
+                return;
             } catch (final RuntimeException e) {
                 log.warn("Failed to compose: {}, pageContext: {}", name, pageContext, e);
-                throw e;
+                pageContext.notifyError(new LocTextKey("sebserver.error.unexpected"), e);
             } catch (final Exception e) {
                 log.error("Failed to compose: {}, pageContext: {}", name, pageContext, e);
             }

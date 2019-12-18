@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 @Component
 public class SEBServerInit {
 
-    private static final Logger INIT_LOGGER = LoggerFactory.getLogger("SEB SERVER INIT");
+    public static final Logger INIT_LOGGER = LoggerFactory.getLogger("SEB SERVER INIT");
 
     private final Environment environment;
     private final WebserviceInfo webserviceInfo;

@@ -35,7 +35,7 @@ public class GetClientConnectionData extends RestCall<ClientConnectionData> {
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT +
-                        API.EXAM_MONITORING_EXAM_ID_PATH_SEGMENT +
+                        API.MODEL_ID_VAR_PATH_SEGMENT +
                         API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT);
     }
 

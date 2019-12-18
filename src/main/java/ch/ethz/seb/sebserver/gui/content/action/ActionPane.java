@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -163,6 +164,13 @@ public class ActionPane implements TemplateComposer {
 
             if (!treeItem.isDisposed()) {
                 treeItem.getParent().deselectAll();
+                final PageAction switchAction = action.getSwitchAction();
+                if (switchAction != null) {
+                    final PolyglotPageService polyglotPageService = this.pageService.getPolyglotPageService();
+                    polyglotPageService.injectI18n(treeItem, switchAction.definition.title);
+                    treeItem.setImage(switchAction.definition.icon.getImage(treeItem.getDisplay()));
+                    treeItem.setData(ACTION_EVENT_CALL_KEY, switchAction);
+                }
             }
         });
 

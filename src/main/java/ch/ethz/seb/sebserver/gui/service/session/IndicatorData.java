@@ -16,6 +16,7 @@ import java.util.EnumMap;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
@@ -27,6 +28,7 @@ final class IndicatorData {
     final int tableIndex;
     final Indicator indicator;
     final Color defaultColor;
+    final Color defaultTextColor;
     final ThresholdColor[] thresholdColor;
 
     protected IndicatorData(
@@ -39,6 +41,10 @@ final class IndicatorData {
         this.index = index;
         this.tableIndex = tableIndex;
         this.defaultColor = new Color(display, Utils.toRGB(indicator.defaultColor), 255);
+        this.defaultTextColor = Utils.darkColor(this.defaultColor.getRGB())
+                ? new Color(display, Constants.BLACK_RGB)
+                : new Color(display, Constants.WHITE_RGB);
+
         this.thresholdColor = new ThresholdColor[indicator.thresholds.size()];
         final ArrayList<Threshold> sortedThresholds = new ArrayList<>(indicator.thresholds);
         Collections.sort(sortedThresholds, (t1, t2) -> t1.value.compareTo(t2.value));
@@ -78,10 +84,14 @@ final class IndicatorData {
     static final class ThresholdColor {
         final double value;
         final Color color;
+        final Color textColor;
 
         protected ThresholdColor(final Threshold threshold, final Display display) {
             this.value = threshold.value;
             this.color = new Color(display, Utils.toRGB(threshold.color), 255);
+            this.textColor = Utils.darkColor(this.color.getRGB())
+                    ? new Color(display, Constants.BLACK_RGB)
+                    : new Color(display, Constants.WHITE_RGB);
         }
     }
 

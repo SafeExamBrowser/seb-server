@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebInstructionService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -51,26 +52,29 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     private final ClientConnectionDAO clientConnectionDAO;
     private final PingHandlingStrategy pingHandlingStrategy;
     private final SebClientConfigDAO sebClientConfigDAO;
+    private final SebInstructionService sebInstructionService;
     private final WebserviceInfo webserviceInfo;
 
     protected SebClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
-            final ExamSessionCacheService examSessionCacheService,
-            final CacheManager cacheManager,
-            final ClientConnectionDAO clientConnectionDAO,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
             final SebClientConfigDAO sebClientConfigDAO,
-            final WebserviceInfo webserviceInfo) {
+            final SebInstructionService sebInstructionService) {
 
         this.examSessionService = examSessionService;
-        this.examSessionCacheService = examSessionCacheService;
-        this.cacheManager = cacheManager;
-        this.clientConnectionDAO = clientConnectionDAO;
+        this.examSessionCacheService = examSessionService.getExamSessionCacheService();
+        this.cacheManager = examSessionService.getCacheManager();
+        this.clientConnectionDAO = examSessionService.getClientConnectionDAO();
         this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
-        this.webserviceInfo = webserviceInfo;
+        this.sebInstructionService = sebInstructionService;
+        this.webserviceInfo = sebInstructionService.getWebserviceInfo();
+    }
+
+    public ExamSessionService getExamSessionService() {
+        return this.examSessionService;
     }
 
     @Override
@@ -215,11 +219,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             null))
                     .getOrThrow();
 
-            // evict cached ClientConnection
-            this.examSessionCacheService.evictClientConnection(connectionToken);
-            // and load updated ClientConnection into cache
-            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getActiveClientConnection(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection =
+                    cacheEvictAndLoad(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -311,11 +312,8 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             checkExamIntegrity(updatedClientConnection.examId);
 
-            // evict cached ClientConnection
-            this.examSessionCacheService.evictClientConnection(connectionToken);
-            // and load updated ClientConnection into cache
-            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getActiveClientConnection(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection =
+                    cacheEvictAndLoad(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -357,16 +355,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             ClientConnection updatedClientConnection;
             if (clientConnection.status != ConnectionStatus.CLOSED) {
-                updatedClientConnection = this.clientConnectionDAO.save(new ClientConnection(
-                        clientConnection.id,
-                        null,
-                        null,
-                        ConnectionStatus.CLOSED,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null)).getOrThrow();
+                updatedClientConnection = saveInState(
+                        clientConnection,
+                        ConnectionStatus.CLOSED);
 
                 if (log.isDebugEnabled()) {
                     log.debug("SEB client connection: successfully closed ClientConnection: {}",
@@ -377,13 +368,45 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            // evict cached ClientConnection
-            this.examSessionCacheService.evictClientConnection(connectionToken);
-            // evict also cached ping record
-            this.examSessionCacheService.evictPingRecord(connectionToken);
-            // and load updated ClientConnection into cache
-            this.examSessionCacheService.getActiveClientConnection(connectionToken);
+            evictCaches(connectionToken);
+            return updatedClientConnection;
+        });
+    }
 
+    @Override
+    public Result<ClientConnection> disableConnection(final String connectionToken, final Long institutionId) {
+        return Result.tryCatch(() -> {
+            if (log.isDebugEnabled()) {
+                log.debug("SEB client connection: SEB Server disable attempt for "
+                        + "instituion {} "
+                        + "connectionToken {} ",
+                        institutionId,
+                        connectionToken);
+            }
+
+            final ClientConnection clientConnection = this.clientConnectionDAO
+                    .byConnectionToken(connectionToken)
+                    .getOrThrow();
+
+            ClientConnection updatedClientConnection;
+            if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED ||
+                    clientConnection.status == ConnectionStatus.UNDEFINED ||
+                    clientConnection.status == ConnectionStatus.AUTHENTICATED) {
+
+                updatedClientConnection = saveInState(
+                        clientConnection,
+                        ConnectionStatus.DISABLED);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("SEB client connection: successfully disabled ClientConnection: {}",
+                            clientConnection);
+                }
+            } else {
+                log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
+                updatedClientConnection = clientConnection;
+            }
+
+            evictCaches(connectionToken);
             return updatedClientConnection;
         });
     }
@@ -422,9 +445,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final int pingNumber) {
 
         this.pingHandlingStrategy.notifyPing(connectionToken, timestamp, pingNumber);
-
-        // TODO here we can return a SEB instruction if available
-        return null;
+        return this.sebInstructionService.getInstructionJSON(connectionToken);
     }
 
     @Override
@@ -576,6 +597,29 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             throw new APIConstraintViolationException(
                     "Exam is currently has no default SEB Exam configuration attached");
         }
+    }
+
+    private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
+        return this.clientConnectionDAO.save(new ClientConnection(
+                clientConnection.id, null, null,
+                status, null, null, null, null, null))
+                .getOrThrow();
+    }
+
+    private void evictCaches(final String connectionToken) {
+        // evict cached ClientConnection
+        this.examSessionCacheService.evictClientConnection(connectionToken);
+        // evict also cached ping record
+        this.examSessionCacheService.evictPingRecord(connectionToken);
+        // and load updated ClientConnection into cache
+        this.examSessionCacheService.getActiveClientConnection(connectionToken);
+    }
+
+    private ClientConnectionDataInternal cacheEvictAndLoad(final String connectionToken) {
+        // evict cached ClientConnection
+        this.examSessionCacheService.evictClientConnection(connectionToken);
+        // and load updated ClientConnection into cache
+        return this.examSessionCacheService.getActiveClientConnection(connectionToken);
     }
 
 }

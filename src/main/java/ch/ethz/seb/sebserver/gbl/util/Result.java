@@ -54,6 +54,10 @@ public final class Result<T> {
 
     private static final Logger log = LoggerFactory.getLogger(Result.class);
 
+    /** This unique Result instance marks an empty result (value == null) that has no errors
+     * and can be used for as result for void return types. */
+    public static final Result<Void> EMPTY = new Result<>(null);
+
     /** The resulting value. May be null if an error occurred */
     private final T value;
     /** The error when happened otherwise null */
@@ -294,17 +298,18 @@ public final class Result<T> {
         return ofError(new RuntimeException(message));
     }
 
-    public static <T> Result<T> ofTODO() {
-        return ofTODO("No Comment");
-    }
-
-    public static <T> Result<T> ofTODO(final String message) {
-        return ofError(new RuntimeException("TODO: " + message));
-    }
-
     public static <T> Result<T> tryCatch(final TryCatchSupplier<T> supplier) {
         try {
             return Result.of(supplier.get());
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
+    public static Result<Void> tryCatch(final Runnable runnable) {
+        try {
+            runnable.run();
+            return Result.EMPTY;
         } catch (final Exception e) {
             return Result.ofError(e);
         }
@@ -325,6 +330,11 @@ public final class Result<T> {
         } else {
             return Stream.of(result.value);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Result<T> ofEmpty() {
+        return (Result<T>) EMPTY;
     }
 
     @Override

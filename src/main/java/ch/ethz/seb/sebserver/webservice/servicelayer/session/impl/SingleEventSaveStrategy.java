@@ -9,9 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
+import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -35,6 +38,14 @@ public class SingleEventSaveStrategy implements EventHandlingStrategy {
 
     public SingleEventSaveStrategy(final ClientEventRecordMapper clientEventRecordMapper) {
         this.clientEventRecordMapper = clientEventRecordMapper;
+    }
+
+    @EventListener(SEBServerInitEvent.class)
+    public void init() {
+        if (this.enabled) {
+            SEBServerInit.INIT_LOGGER.info("------>");
+            SEBServerInit.INIT_LOGGER.info("------> Run SingleEventSaveStrategy for SEB event handling");
+        }
     }
 
     @Override

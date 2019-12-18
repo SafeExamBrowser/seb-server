@@ -34,17 +34,22 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING(Names.LAST_PING, true),
-        ERROR_COUNT(Names.ERROR_COUNT, true)
-
-        ;
+        LAST_PING(Names.LAST_PING, true, true),
+        ERROR_COUNT(Names.ERROR_COUNT, true, false),
+        WARN_COUNT(Names.WARN_COUNT, true, false);
 
         public final String name;
         public final boolean integerValue;
+        public final boolean showOnlyInActiveState;
 
-        private IndicatorType(final String name, final boolean integerValue) {
+        private IndicatorType(
+                final String name,
+                final boolean integerValue,
+                final boolean showOnlyInActiveState) {
+
             this.name = name;
             this.integerValue = integerValue;
+            this.showOnlyInActiveState = showOnlyInActiveState;
         }
 
         @Override
@@ -55,6 +60,7 @@ public final class Indicator implements Entity {
         public interface Names {
             public static final String LAST_PING = "LAST_PING";
             public static final String ERROR_COUNT = "ERROR_COUNT";
+            public static final String WARN_COUNT = "WARN_COUNT";
         }
     }
 

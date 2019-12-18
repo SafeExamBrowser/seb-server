@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.EnumMap;
 
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 
 public class ClientConnectionDetails {
 
@@ -65,6 +66,7 @@ public class ClientConnectionDetails {
             final Collection<Indicator> indicators) {
 
         final Display display = pageContext.getRoot().getDisplay();
+
         this.pageService = pageService;
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
@@ -108,7 +110,6 @@ public class ClientConnectionDetails {
                 });
 
         this.formhandle = formBuilder.build();
-
     }
 
     public void updateData(final ServerPushContext context) {
@@ -148,17 +149,28 @@ public class ClientConnectionDetails {
                 .forEach(indValue -> {
                     final IndicatorData indData = this.indicatorMapping.get(indValue.getType());
                     final double value = indValue.getValue();
+                    final String displayValue = IndicatorValue.getDisplayValue(indValue);
 
                     if (this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED) {
-                        form.setFieldValue(indData.indicator.name, Constants.EMPTY_NOTE);
+
+                        form.setFieldValue(
+                                indData.indicator.name,
+                                (indData.indicator.type.showOnlyInActiveState)
+                                        ? Constants.EMPTY_NOTE
+                                        : displayValue);
                         form.setFieldColor(indData.indicator.name, indData.defaultColor);
+                        form.setFieldTextColor(indData.indicator.name, indData.defaultTextColor);
                     } else {
+                        form.setFieldValue(indData.indicator.name, displayValue);
                         final int weight = IndicatorData.getWeight(indData, value);
-                        final Color color = (weight >= 0 && weight < indData.thresholdColor.length)
-                                ? indData.thresholdColor[weight].color
-                                : indData.defaultColor;
-                        form.setFieldValue(indData.indicator.name, String.valueOf(value));
-                        form.setFieldColor(indData.indicator.name, color);
+                        if (weight >= 0 && weight < indData.thresholdColor.length) {
+                            final ThresholdColor thresholdColor = indData.thresholdColor[weight];
+                            form.setFieldColor(indData.indicator.name, thresholdColor.color);
+                            form.setFieldTextColor(indData.indicator.name, thresholdColor.textColor);
+                        } else {
+                            form.setFieldColor(indData.indicator.name, indData.defaultColor);
+                            form.setFieldTextColor(indData.indicator.name, indData.defaultTextColor);
+                        }
                     }
                 });
     }

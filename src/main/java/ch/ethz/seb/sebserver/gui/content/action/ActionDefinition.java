@@ -550,16 +550,48 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.RUNNING_EXAM_LIST),
-    MONITOR_CLIENT_CONNECTION(
+    MONITOR_EXAM_CLIENT_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.CLIENT_EVENT_LIST),
+    MONITOR_EXAM_CLIENT_CONNECTION_QUIT(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit"),
+            ImageIcon.SEND_QUIT,
+            PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.FORM),
+    MONITOR_EXAM_QUIT_SELECTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit"),
+            ImageIcon.SEND_QUIT,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.CLIENT_EVENT_LIST),
+    MONITOR_EXAM_QUIT_ALL(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all"),
+            ImageIcon.SEND_QUIT,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FORM),
     MONITOR_EXAM_FROM_DETAILS(
             new LocTextKey("sebserver.monitoring.exam.action.detail.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.VARIA),
+            ActionCategory.FORM),
+
+    MONITOR_EXAM_DISABLE_SELECTED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.disable"),
+            ImageIcon.DISABLE,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.CLIENT_EVENT_LIST),
+
+    MONITOR_EXAM_HIDE_CLOSED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.closed"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FORM),
+    MONITOR_EXAM_SHOW_CLOSED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.closed"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FORM),
 
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),

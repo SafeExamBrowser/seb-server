@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl;
 
+import org.eclipse.swt.graphics.RGB;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -26,19 +27,32 @@ public final class Constants {
     public static final long HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;
     public static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
 
-    public static final Character LIST_SEPARATOR_CHAR = ',';
-    public static final Character COMPLEX_VALUE_SEPARATOR = ':';
-    public static final String LIST_SEPARATOR = ",";
-    public static final String EMBEDDED_LIST_SEPARATOR = "|";
+    public static final Character CURLY_BRACE_OPEN = '{';
+    public static final Character CURLY_BRACE_CLOSE = '}';
+    public static final Character COLON = ':';
+    public static final Character SEMICOLON = ';';
+    public static final Character PERCENTAGE = '%';
+    public static final Character SLASH = '/';
+    public static final Character BACKSLASH = '\\';
+    public static final Character QUOTE = '"';
+    public static final Character DOUBLE_QUOTE = '\'';
+    public static final Character COMMA = ',';
+    public static final Character PIPE = '|';
+    public static final Character AMPERSAND = '&';
+    public static final Character EQUALITY_SIGN = '=';
+    public static final Character LIST_SEPARATOR_CHAR = COMMA;
+    public static final Character COMPLEX_VALUE_SEPARATOR = COLON;
+
+    public static final String PERCENTAGE_STRING = Constants.PERCENTAGE.toString();
+    public static final String LIST_SEPARATOR = COMMA.toString();
+    public static final String EMBEDDED_LIST_SEPARATOR = PIPE.toString();
     public static final String NO_NAME = "NONE";
     public static final String EMPTY_NOTE = "--";
-    public static final String FORM_URL_ENCODED_SEPARATOR = "&";
-    public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = "=";
-    public static final String URL_PORT_SEPARATOR = ":";
-    public static final String URL_ADDRESS_SEPARATOR = "://";
-    public static final String URL_PATH_SEPARATOR = "/";
-
-    public static final String PERCENTAGE = "%";
+    public static final String FORM_URL_ENCODED_SEPARATOR = AMPERSAND.toString();
+    public static final String FORM_URL_ENCODED_NAME_VALUE_SEPARATOR = EQUALITY_SIGN.toString();
+    public static final String URL_PORT_SEPARATOR = COLON.toString();
+    public static final String URL_ADDRESS_SEPARATOR = COLON.toString() + SLASH.toString() + SLASH.toString();
+    public static final String URL_PATH_SEPARATOR = SLASH.toString();
 
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";
@@ -89,5 +103,8 @@ public final class Constants {
     public static final int GZIP_ID1 = 0x1F;
     public static final int GZIP_ID2 = 0x8B;
     public static final int GZIP_CM = 8;
+
+    public static final RGB WHITE_RGB = new RGB(255, 255, 255);
+    public static final RGB BLACK_RGB = new RGB(0, 0, 0);
 
 }

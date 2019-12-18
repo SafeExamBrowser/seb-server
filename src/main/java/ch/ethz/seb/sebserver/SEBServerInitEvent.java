@@ -6,15 +6,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver;
 
 import org.springframework.context.ApplicationEvent;
 
-public class EventHandlingInit extends ApplicationEvent {
+public class SEBServerInitEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = -3608628289559324471L;
 
-    public EventHandlingInit(final Object source) {
+    public SEBServerInitEvent(final Object source) {
         super(source);
     }
 }

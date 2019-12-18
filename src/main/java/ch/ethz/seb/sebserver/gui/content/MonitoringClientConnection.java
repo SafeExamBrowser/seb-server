@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClient
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
+import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
@@ -72,11 +73,14 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.value");
     private static final LocTextKey LIST_COLUMN_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.text");
+    private static final LocTextKey CONFIRM_QUIT =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
     private final ResourceService resourceService;
     private final I18nSupport i18nSupport;
+    private final InstructionProcessor instructionProcessor;
     private final long pollInterval;
     private final int pageSize;
 
@@ -88,6 +92,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final ServerPushService serverPushService,
             final PageService pageService,
             final ResourceService resourceService,
+            final InstructionProcessor instructionProcessor,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -95,6 +100,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = resourceService;
         this.i18nSupport = resourceService.getI18nSupport();
+        this.instructionProcessor = instructionProcessor;
         this.pollInterval = pollInterval;
         this.pageSize = pageSize;
 
@@ -136,7 +142,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final RestCall<ClientConnectionData>.RestCallBuilder getConnectionData =
                 restService.getBuilder(GetClientConnectionData.class)
-                        .withURIVariable(API.EXAM_API_PARAM_EXAM_ID, exam.getModelId())
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                         .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
 
         final ClientConnectionDetails clientConnectionDetails = new ClientConnectionDetails(
@@ -204,6 +210,18 @@ public class MonitoringClientConnection implements TemplateComposer {
                         pageContext
                                 .clearAttributes()
                                 .clearEntityKeys())
+
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_QUIT)
+                .withConfirm(() -> CONFIRM_QUIT)
+                .withExec(action -> {
+                    this.instructionProcessor.propagateSebQuitInstruction(
+                            exam.id,
+                            connectionToken,
+                            pageContext);
+                    return action;
+                })
+                .noEventPropagation()
+                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER))
 
                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_DETAILS)
                 .withEntityKey(parentEntityKey)
