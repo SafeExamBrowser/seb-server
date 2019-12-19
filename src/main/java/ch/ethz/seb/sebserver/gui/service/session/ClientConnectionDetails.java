@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.EnumMap;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +22,12 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -50,13 +51,15 @@ public class ClientConnectionDetails {
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
     private final PageService pageService;
+    private final ResourceService resourceService;
     private final Exam exam;
     private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
     private final FormHandle<?> formhandle;
-    private final StatusData statusColor;
+    private final ColorData colorData;
 
     private ClientConnectionData connectionData = null;
+    private boolean statusChanged = true;
 
     public ClientConnectionDetails(
             final PageService pageService,
@@ -68,12 +71,14 @@ public class ClientConnectionDetails {
         final Display display = pageContext.getRoot().getDisplay();
 
         this.pageService = pageService;
+        this.resourceService = pageService.getResourceService();
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
-        this.statusColor = new StatusData(display);
+        this.colorData = new ColorData(display);
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
+                this.colorData,
                 NUMBER_OF_NONE_INDICATOR_ROWS);
 
         final FormBuilder formBuilder = this.pageService.formBuilder(pageContext, 4)
@@ -94,7 +99,8 @@ public class ClientConnectionDetails {
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         CONNECTION_STATUS_TEXT_KEY,
-                        Constants.EMPTY_NOTE))
+                        Constants.EMPTY_NOTE)
+                        .asColorbox())
                 .addEmptyCell();
 
         this.indicatorMapping
@@ -105,6 +111,7 @@ public class ClientConnectionDetails {
                             indData.indicator.name,
                             new LocTextKey(indData.indicator.name),
                             Constants.EMPTY_NOTE)
+                            .asColorbox()
                             .withDefaultLabel(indData.indicator.name))
                             .addEmptyCell();
                 });
@@ -113,12 +120,19 @@ public class ClientConnectionDetails {
     }
 
     public void updateData(final ServerPushContext context) {
-        this.connectionData = this.restCallBuilder
+        final ClientConnectionData connectionData = this.restCallBuilder
                 .call()
                 .get(error -> {
                     log.error("Unexpected error while trying to get current client connection data: ", error);
                     return null;
                 });
+
+        if (this.connectionData != null && connectionData != null) {
+            this.statusChanged =
+                    this.connectionData.clientConnection.status != connectionData.clientConnection.status ||
+                            this.connectionData.missingPing != connectionData.missingPing;
+        }
+        this.connectionData = connectionData;
     }
 
     public void updateGUI(final ServerPushContext context) {
@@ -135,13 +149,16 @@ public class ClientConnectionDetails {
                 Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
                 this.connectionData.clientConnection.clientAddress);
 
-        // update status
-        form.setFieldValue(
-                Domain.CLIENT_CONNECTION.ATTR_STATUS,
-                getStatusName());
-        form.setFieldColor(
-                Domain.CLIENT_CONNECTION.ATTR_STATUS,
-                this.statusColor.getStatusColor(this.connectionData));
+        if (this.statusChanged) {
+            // update status
+            form.setFieldValue(
+                    Domain.CLIENT_CONNECTION.ATTR_STATUS,
+                    this.resourceService.localizedClientConnectionStatusName(this.connectionData));
+            final Color statusColor = this.colorData.getStatusColor(this.connectionData);
+            final Color statusTextColor = this.colorData.getStatusTextColor(statusColor);
+            form.setFieldColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusColor);
+            form.setFieldTextColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusTextColor);
+        }
 
         // update indicators
         this.connectionData.getIndicatorValues()
@@ -151,7 +168,7 @@ public class ClientConnectionDetails {
                     final double value = indValue.getValue();
                     final String displayValue = IndicatorValue.getDisplayValue(indValue);
 
-                    if (this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED) {
+                    if (!this.connectionData.clientConnection.status.establishedStatus) {
 
                         form.setFieldValue(
                                 indData.indicator.name,
@@ -173,13 +190,6 @@ public class ClientConnectionDetails {
                         }
                     }
                 });
-    }
-
-    String getStatusName() {
-        return this.pageService.getResourceService().localizedClientConnectionStatusName(
-                (this.connectionData != null && this.connectionData.clientConnection != null)
-                        ? this.connectionData.clientConnection.status
-                        : ConnectionStatus.UNDEFINED);
     }
 
 }

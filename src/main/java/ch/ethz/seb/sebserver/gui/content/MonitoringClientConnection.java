@@ -211,6 +211,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .clearAttributes()
                                 .clearEntityKeys())
 
+                .newAction(ActionDefinition.MONITOR_EXAM_FROM_DETAILS)
+                .withEntityKey(parentEntityKey)
+                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER))
+
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_QUIT)
                 .withConfirm(() -> CONFIRM_QUIT)
                 .withExec(action -> {
@@ -221,10 +225,6 @@ public class MonitoringClientConnection implements TemplateComposer {
                     return action;
                 })
                 .noEventPropagation()
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER))
-
-                .newAction(ActionDefinition.MONITOR_EXAM_FROM_DETAILS)
-                .withEntityKey(parentEntityKey)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
 
     }

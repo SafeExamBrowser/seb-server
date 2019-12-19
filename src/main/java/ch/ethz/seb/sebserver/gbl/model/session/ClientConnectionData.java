@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ClientConnectionData {
@@ -24,6 +26,8 @@ public class ClientConnectionData {
     public final ClientConnection clientConnection;
     @JsonProperty("indicatorValues")
     public final List<? extends IndicatorValue> indicatorValues;
+    @JsonIgnore
+    public final boolean missingPing;
 
     @JsonCreator
     protected ClientConnectionData(
@@ -32,6 +36,12 @@ public class ClientConnectionData {
 
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
+        this.missingPing = clientConnection.status == ConnectionStatus.ACTIVE &&
+                this.indicatorValues.stream()
+                        .filter(ind -> ind.getType() == IndicatorType.LAST_PING)
+                        .findFirst()
+                        .map(ind -> (long) ind.getValue())
+                        .orElse(0L) > 5000;
     }
 
     protected ClientConnectionData(
@@ -40,6 +50,7 @@ public class ClientConnectionData {
 
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
+        this.missingPing = false;
     }
 
     @JsonIgnore

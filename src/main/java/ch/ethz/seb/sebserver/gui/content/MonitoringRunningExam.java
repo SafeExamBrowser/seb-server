@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.eclipse.swt.SWT;
@@ -184,30 +185,61 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(privilege);
 
+        clientTable.hideStatus(ConnectionStatus.DISABLED);
+
         if (privilege.getAsBoolean()) {
-            final PageAction showClosedConnections =
-                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                            .withExec(action -> {
-                                clientTable.showStatus(ConnectionStatus.CLOSED);
-                                return action;
-                            })
-                            .noEventPropagation()
-                            .create();
 
-            final PageAction hideClosedConnections =
-                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                            .withExec(action -> {
-                                clientTable.hideStatus(ConnectionStatus.CLOSED);
-                                return action;
-                            })
-                            .noEventPropagation()
-                            .withSwitchAction(showClosedConnections)
-                            .create();
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
 
-            this.pageService.publishAction(clientTable.isStatusHidden(ConnectionStatus.CLOSED)
-                    ? showClosedConnections
-                    : hideClosedConnections);
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+
         }
+    }
+
+    private static final Function<PageAction, PageAction> showStateViewAction(
+            final ClientConnectionTable clientTable,
+            final ConnectionStatus status) {
+
+        return action -> {
+            clientTable.showStatus(status);
+            return action;
+        };
+    }
+
+    private static final Function<PageAction, PageAction> hideStateViewAction(
+            final ClientConnectionTable clientTable,
+            final ConnectionStatus status) {
+
+        return action -> {
+            clientTable.hideStatus(status);
+            return action;
+        };
     }
 
     private PageAction quitSebClients(
@@ -216,7 +248,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final boolean all) {
 
         final Predicate<ClientConnection> activePredicate = ClientConnection
-                .getStatusPredicate(ConnectionStatus.ESTABLISHED);
+                .getStatusPredicate(ConnectionStatus.ACTIVE);
 
         final Set<String> connectionTokens = clientTable.getConnectionTokens(
                 activePredicate,

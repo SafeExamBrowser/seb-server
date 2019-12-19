@@ -323,17 +323,18 @@ public interface PageService {
         }
 
         public PageActionBuilder newAction(final ActionDefinition definition) {
-            pageContext = originalPageContext.copy();
-            this.definition = definition;
-            confirm = null;
-            successMessage = null;
-            selectionSupplier = null;
-            noSelectionMessage = null;
-            exec = null;
-            fireActionEvent = true;
-            ignoreMoveAwayFromEdit = false;
-            switchAction = null;
-            return this;
+            final PageActionBuilder newBuilder = new PageActionBuilder(this.pageService, this.originalPageContext);
+            newBuilder.pageContext = originalPageContext.copy();
+            newBuilder.definition = definition;
+            newBuilder.confirm = null;
+            newBuilder.successMessage = null;
+            newBuilder.selectionSupplier = null;
+            newBuilder.noSelectionMessage = null;
+            newBuilder.exec = null;
+            newBuilder.fireActionEvent = true;
+            newBuilder.ignoreMoveAwayFromEdit = false;
+            newBuilder.switchAction = null;
+            return newBuilder;
         }
 
         public PageAction create() {

@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
@@ -62,11 +63,17 @@ public class ClientIndicatorFactory {
                     .allForExam(clientConnection.examId)
                     .getOrThrow();
 
+            boolean pingIndicatorAvailable = false;
+
             for (final Indicator indicatorDef : examIndicators) {
                 try {
 
                     final ClientIndicator indicator = this.applicationContext
                             .getBean(indicatorDef.type.name(), ClientIndicator.class);
+
+                    if (!pingIndicatorAvailable) {
+                        pingIndicatorAvailable = indicatorDef.type == IndicatorType.LAST_PING;
+                    }
 
                     indicator.init(
                             indicatorDef,
@@ -79,6 +86,16 @@ public class ClientIndicatorFactory {
                             e);
                 }
             }
+
+            // If there is no ping interval indicator set from the exam, we add a hidden one
+            // to at least create missing ping events and track missing state
+            if (!pingIndicatorAvailable) {
+                final PingIntervalClientIndicator pingIndicator = this.applicationContext
+                        .getBean(PingIntervalClientIndicator.class);
+                pingIndicator.hidden = true;
+                result.add(pingIndicator);
+            }
+
         } catch (final RuntimeException e) {
             log.error("Failed to create ClientIndicator for ClientConnection: {}", clientConnection);
             throw e;

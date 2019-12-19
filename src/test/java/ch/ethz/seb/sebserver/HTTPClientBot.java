@@ -104,8 +104,8 @@ public class HTTPClientBot {
         this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "4"));
         this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
         this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
-        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "0"));
-        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "0"));
+        this.pingPause = Long.parseLong(properties.getProperty("pingPause", "20000"));
+        this.pingPauseDelay = Long.parseLong(properties.getProperty("pingPauseDelay", "5000"));
         this.errorInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS)));
         this.warnInterval = Long.parseLong(properties.getProperty("errorInterval", String.valueOf(TEN_SECONDS / 2)));
 //        this.runtime = Long.parseLong(properties.getProperty("runtime", String.valueOf(ONE_MINUTE)));

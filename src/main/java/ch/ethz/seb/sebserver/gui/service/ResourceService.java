@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -72,6 +73,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 /** Defines functionality to get resources or functions of resources to feed e.g. selection or
  * combo-box content. */
 public class ResourceService {
+
+    private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING";
 
     public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = (t1, t2) -> t1._2.compareTo(t2._2);
 
@@ -434,6 +437,24 @@ public class ResourceService {
 
         return this.i18nSupport
                 .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
+    }
+
+    public String localizedClientConnectionStatusName(final ClientConnectionData connectionData) {
+        if (connectionData == null) {
+            final String name = ConnectionStatus.UNDEFINED.name();
+            return this.i18nSupport.getText(
+                    SEB_CONNECTION_STATUS_KEY_PREFIX + name,
+                    name);
+        }
+        if (connectionData.missingPing) {
+            return this.i18nSupport.getText(
+                    SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
+                    MISSING_CLIENT_PING_NAME_KEY);
+        } else {
+            return localizedClientConnectionStatusName((connectionData.clientConnection != null)
+                    ? connectionData.clientConnection.status
+                    : ConnectionStatus.UNDEFINED);
+        }
     }
 
     public String localizedClientConnectionStatusName(final ConnectionStatus status) {

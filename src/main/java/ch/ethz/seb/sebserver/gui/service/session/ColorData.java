@@ -12,20 +12,26 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
-public class StatusData {
+public class ColorData {
 
+    final Color darkColor;
+    final Color lightColor;
     final Color defaultColor;
     final Color color1;
     final Color color2;
     final Color color3;
 
-    public StatusData(final Display display) {
-        this.defaultColor = new Color(display, new RGB(255, 255, 255), 255);
+    public ColorData(final Display display) {
+        this.defaultColor = new Color(display, new RGB(220, 220, 220), 255);
         this.color1 = new Color(display, new RGB(34, 177, 76), 255);
         this.color2 = new Color(display, new RGB(255, 194, 14), 255);
         this.color3 = new Color(display, new RGB(237, 28, 36), 255);
+        this.darkColor = new Color(display, Constants.BLACK_RGB);
+        this.lightColor = new Color(display, Constants.WHITE_RGB);
     }
 
     Color getStatusColor(final ClientConnectionData connectionData) {
@@ -34,13 +40,17 @@ public class StatusData {
         }
 
         switch (connectionData.clientConnection.status) {
-            case ESTABLISHED:
-                return this.color1;
-            case ABORTED:
-                return this.color3;
-            default:
+            case ACTIVE:
+                return (connectionData.missingPing) ? this.color2 : this.color1;
+            case DISABLED:
                 return this.color2;
+            default:
+                return this.defaultColor;
         }
+    }
+
+    Color getStatusTextColor(final Color statusColor) {
+        return Utils.darkColor(statusColor.getRGB()) ? this.darkColor : this.lightColor;
     }
 
     int statusWeight(final ClientConnectionData connectionData) {
@@ -49,13 +59,11 @@ public class StatusData {
         }
 
         switch (connectionData.clientConnection.status) {
-            case ABORTED:
-                return 0;
             case CONNECTION_REQUESTED:
             case AUTHENTICATED:
                 return 1;
-            case ESTABLISHED:
-                return 2;
+            case ACTIVE:
+                return (connectionData.missingPing) ? 0 : 2;
             case CLOSED:
                 return 3;
             default:

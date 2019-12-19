@@ -50,7 +50,8 @@ public class TableFilter<ROW extends Entity> {
         TEXT,
         SINGLE_SELECTION,
         DATE,
-        DATE_RANGE
+        DATE_RANGE,
+        DATE_TIME_RANGE
     }
 
     private final Composite composite;
@@ -125,6 +126,8 @@ public class TableFilter<ROW extends Entity> {
                 return new Date(attribute);
             case DATE_RANGE:
                 return new DateRange(attribute);
+            case DATE_TIME_RANGE:
+                return new DateRange(attribute, true);
             default:
                 throw new IllegalArgumentException("Unsupported FilterAttributeType: " + attribute.type);
         }
@@ -476,17 +479,25 @@ public class TableFilter<ROW extends Entity> {
 
         private Composite innerComposite;
         private final GridData rw1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        private DateTime fromSelector;
-        private DateTime toSelector;
+        private DateTime fromDateSelector;
+        private DateTime toDateSelector;
+        private DateTime fromTimeSelector;
+        private DateTime toTimeSelector;
+        private final boolean withTime;
 
         DateRange(final TableFilterAttribute attribute) {
+            this(attribute, false);
+        }
+
+        DateRange(final TableFilterAttribute attribute, final boolean withTime) {
             super(attribute);
+            this.withTime = withTime;
         }
 
         @Override
         FilterComponent build(final Composite parent) {
             this.innerComposite = new Composite(parent, SWT.NONE);
-            final GridLayout gridLayout = new GridLayout(2, false);
+            final GridLayout gridLayout = new GridLayout((this.withTime) ? 3 : 2, false);
             gridLayout.marginHeight = 0;
             gridLayout.marginWidth = 0;
             gridLayout.horizontalSpacing = 5;
@@ -496,13 +507,25 @@ public class TableFilter<ROW extends Entity> {
 
             TableFilter.this.entityTable.widgetFactory
                     .labelLocalized(this.innerComposite, DATE_FROM_TEXT);
-            this.fromSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
-            this.fromSelector.setLayoutData(this.rw1);
+            this.fromDateSelector =
+                    new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
+            this.fromDateSelector.setLayoutData(this.rw1);
+            if (this.withTime) {
+                this.fromTimeSelector =
+                        new DateTime(this.innerComposite, SWT.TIME | SWT.BORDER);
+                this.fromTimeSelector.setLayoutData(this.rw1);
+            }
 
             TableFilter.this.entityTable.widgetFactory
                     .labelLocalized(this.innerComposite, DATE_TO_TEXT);
-            this.toSelector = new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
-            this.toSelector.setLayoutData(this.rw1);
+            this.toDateSelector =
+                    new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
+            this.toDateSelector.setLayoutData(this.rw1);
+            if (this.withTime) {
+                this.toTimeSelector =
+                        new DateTime(this.innerComposite, SWT.TIME | SWT.BORDER);
+                this.toTimeSelector.setLayoutData(this.rw1);
+            }
 
             return this;
         }
@@ -510,44 +533,66 @@ public class TableFilter<ROW extends Entity> {
         @Override
         FilterComponent reset() {
             final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
-            if (this.fromSelector != null) {
+            if (this.fromDateSelector != null) {
                 try {
                     final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
 
-                    this.fromSelector.setDate(
+                    this.fromDateSelector.setDate(
                             parse.getYear(),
                             parse.getMonthOfYear() - 1,
                             parse.getDayOfMonth());
+                    if (this.fromTimeSelector != null) {
+                        this.fromTimeSelector.setTime(
+                                parse.getHourOfDay(),
+                                parse.getMinuteOfHour(),
+                                parse.getSecondOfMinute());
+                    }
 
                 } catch (final RuntimeException e) {
-                    this.fromSelector.setDate(
+                    this.fromDateSelector.setDate(
                             now.getYear(),
                             now.getMonthOfYear() - 1,
                             now.getDayOfMonth());
+                    if (this.fromTimeSelector != null) {
+                        this.fromTimeSelector.setTime(
+                                now.getHourOfDay(),
+                                now.getMinuteOfHour(),
+                                now.getSecondOfMinute());
+                    }
                 }
             }
-            if (this.toSelector != null) {
-                this.toSelector.setDate(
+            if (this.toDateSelector != null) {
+                this.toDateSelector.setDate(
                         now.getYear(),
                         now.getMonthOfYear() - 1,
                         now.getDayOfMonth());
+                if (this.toTimeSelector != null) {
+                    this.toTimeSelector.setTime(
+                            now.getHourOfDay(),
+                            now.getMinuteOfHour(),
+                            now.getSecondOfMinute());
+                }
             }
             return this;
         }
 
         @Override
         String getValue() {
-            if (this.fromSelector != null && this.toSelector != null) {
+            if (this.fromDateSelector != null && this.toDateSelector != null) {
                 final org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
-                        .withYear(this.fromSelector.getYear())
-                        .withMonthOfYear(this.fromSelector.getMonth() + 1)
-                        .withDayOfMonth(this.fromSelector.getDay())
-                        .withTimeAtStartOfDay();
+                        .withYear(this.fromDateSelector.getYear())
+                        .withMonthOfYear(this.fromDateSelector.getMonth() + 1)
+                        .withDayOfMonth(this.fromDateSelector.getDay())
+                        .withHourOfDay((this.fromTimeSelector != null) ? this.fromTimeSelector.getHours() : 0)
+                        .withMinuteOfHour((this.fromTimeSelector != null) ? this.fromTimeSelector.getMinutes() : 0)
+                        .withSecondOfMinute((this.fromTimeSelector != null) ? this.fromTimeSelector.getSeconds() : 0);
                 final org.joda.time.DateTime toDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
-                        .withYear(this.toSelector.getYear())
-                        .withMonthOfYear(this.toSelector.getMonth() + 1)
-                        .withDayOfMonth(this.toSelector.getDay())
-                        .withTime(23, 59, 59, 0);
+                        .withYear(this.toDateSelector.getYear())
+                        .withMonthOfYear(this.toDateSelector.getMonth() + 1)
+                        .withDayOfMonth(this.toDateSelector.getDay())
+                        .withHourOfDay((this.toTimeSelector != null) ? this.toTimeSelector.getHours() : 0)
+                        .withMinuteOfHour((this.toTimeSelector != null) ? this.toTimeSelector.getMinutes() : 0)
+                        .withSecondOfMinute((this.toTimeSelector != null) ? this.toTimeSelector.getSeconds() : 0);
 
                 return fromDate.toString(Constants.STANDARD_DATE_TIME_FORMATTER) +
                         Constants.EMBEDDED_LIST_SEPARATOR +
@@ -559,14 +604,33 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         void setValue(final String value) {
-            if (this.fromSelector != null && this.toSelector != null) {
+            if (this.fromDateSelector != null && this.toDateSelector != null) {
                 try {
                     final String[] split = StringUtils.split(value, Constants.EMBEDDED_LIST_SEPARATOR);
                     final org.joda.time.DateTime fromDate = Utils.toDateTime(split[0]);
                     final org.joda.time.DateTime toDate = Utils.toDateTime(split[1]);
-                    this.fromSelector.setDate(fromDate.getYear(), fromDate.getMonthOfYear() - 1,
+                    this.fromDateSelector.setDate(
+                            fromDate.getYear(),
+                            fromDate.getMonthOfYear() - 1,
                             fromDate.getDayOfMonth());
-                    this.toSelector.setDate(toDate.getYear(), toDate.getMonthOfYear() - 1, toDate.getDayOfMonth());
+                    if (this.fromTimeSelector != null) {
+                        this.fromTimeSelector.setTime(
+                                fromDate.getHourOfDay(),
+                                fromDate.getMinuteOfHour(),
+                                fromDate.getSecondOfMinute());
+                    }
+
+                    this.toDateSelector.setDate(
+                            toDate.getYear(),
+                            toDate.getMonthOfYear() - 1,
+                            toDate.getDayOfMonth());
+                    if (this.toTimeSelector != null) {
+                        this.toTimeSelector.setTime(
+                                toDate.getHourOfDay(),
+                                toDate.getMinuteOfHour(),
+                                toDate.getSecondOfMinute());
+                    }
+
                 } catch (final Exception e) {
                     log.error("Failed to set date range filter attribute: ", e);
                 }

@@ -333,8 +333,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     private static boolean isActiveConnection(final ClientConnectionData connection) {
-        if (connection.clientConnection.status == ConnectionStatus.ESTABLISHED
-                || connection.clientConnection.status == ConnectionStatus.AUTHENTICATED) {
+        if (connection.clientConnection.status.establishedStatus) {
             return true;
         }
 

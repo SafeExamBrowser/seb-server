@@ -112,7 +112,7 @@ class ExamSessionControlTask implements DisposableBean {
         controlExamEnd(updateId);
     }
 
-    @Scheduled(fixedRateString = "${sebserver.webservice.api.seb.lostping.update:15000}")
+    @Scheduled(fixedRateString = "${sebserver.webservice.api.seb.lostping.update:5000}")
     public void pingEventUpdateTask() {
 
         if (!this.lostPingUpdateActive) {

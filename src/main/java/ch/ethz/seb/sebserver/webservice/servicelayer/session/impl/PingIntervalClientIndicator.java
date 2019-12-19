@@ -39,6 +39,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     private long pingErrorThreshold;
     private boolean isOnError = false;
 
+    boolean hidden = false;
+
     public PingIntervalClientIndicator(final ClientEventExtentionMapper clientEventExtentionMapper) {
         super(clientEventExtentionMapper);
         this.cachingEnabled = true;
@@ -70,7 +72,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     @Override
     public double getValue() {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-        return now - super.currentValue;
+        return now - super.getValue();
     }
 
     @Override

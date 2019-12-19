@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.form;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -27,6 +28,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     boolean isNumber = false;
     Consumer<String> numberCheck = null;
     boolean isArea = false;
+    boolean isColorbox = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
@@ -53,6 +55,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public TextFieldBuilder asColorbox() {
+        this.isColorbox = true;
+        return this;
+    }
+
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
@@ -75,6 +82,9 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         if (this.isArea) {
             gridData.minimumHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
+        } else if (this.isColorbox) {
+            gridData.minimumHeight = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+            textInput.setData(RWT.CUSTOM_VARIANT, "colorbox");
         }
         textInput.setLayoutData(gridData);
         if (StringUtils.isNoneBlank(this.value)) {

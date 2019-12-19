@@ -16,7 +16,6 @@ import java.util.EnumMap;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
@@ -35,6 +34,7 @@ final class IndicatorData {
             final Indicator indicator,
             final int index,
             final int tableIndex,
+            final ColorData colorData,
             final Display display) {
 
         this.indicator = indicator;
@@ -42,20 +42,21 @@ final class IndicatorData {
         this.tableIndex = tableIndex;
         this.defaultColor = new Color(display, Utils.toRGB(indicator.defaultColor), 255);
         this.defaultTextColor = Utils.darkColor(this.defaultColor.getRGB())
-                ? new Color(display, Constants.BLACK_RGB)
-                : new Color(display, Constants.WHITE_RGB);
+                ? colorData.darkColor
+                : colorData.lightColor;
 
         this.thresholdColor = new ThresholdColor[indicator.thresholds.size()];
         final ArrayList<Threshold> sortedThresholds = new ArrayList<>(indicator.thresholds);
         Collections.sort(sortedThresholds, (t1, t2) -> t1.value.compareTo(t2.value));
         for (int i = 0; i < indicator.thresholds.size(); i++) {
-            this.thresholdColor[i] = new ThresholdColor(sortedThresholds.get(i), display);
+            this.thresholdColor[i] = new ThresholdColor(sortedThresholds.get(i), display, colorData);
         }
     }
 
     static final EnumMap<IndicatorType, IndicatorData> createFormIndicators(
             final Collection<Indicator> indicators,
             final Display display,
+            final ColorData colorData,
             final int tableIndexOffset) {
 
         final EnumMap<IndicatorType, IndicatorData> indicatorMapping = new EnumMap<>(IndicatorType.class);
@@ -65,6 +66,7 @@ final class IndicatorData {
                     indicator,
                     i,
                     i + tableIndexOffset,
+                    colorData,
                     display));
             i++;
         }
@@ -86,12 +88,12 @@ final class IndicatorData {
         final Color color;
         final Color textColor;
 
-        protected ThresholdColor(final Threshold threshold, final Display display) {
+        protected ThresholdColor(final Threshold threshold, final Display display, final ColorData colorData) {
             this.value = threshold.value;
             this.color = new Color(display, Utils.toRGB(threshold.color), 255);
             this.textColor = Utils.darkColor(this.color.getRGB())
-                    ? new Color(display, Constants.BLACK_RGB)
-                    : new Color(display, Constants.WHITE_RGB);
+                    ? colorData.darkColor
+                    : colorData.lightColor;
         }
     }
 

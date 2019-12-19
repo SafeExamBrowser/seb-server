@@ -582,16 +582,36 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.CLIENT_EVENT_LIST),
 
+    MONITOR_EXAM_HIDE_REQUESTED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.requested"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FILTER),
+    MONITOR_EXAM_SHOW_REQUESTED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.requested"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FILTER),
     MONITOR_EXAM_HIDE_CLOSED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.closed"),
             ImageIcon.TOGGLE_OFF,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FORM),
+            ActionCategory.FILTER),
     MONITOR_EXAM_SHOW_CLOSED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.show.closed"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FORM),
+            ActionCategory.FILTER),
+    MONITOR_EXAM_HIDE_DISABLED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.disabled"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FILTER),
+    MONITOR_EXAM_SHOW_DISABLED_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.disabled"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FILTER),
 
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),

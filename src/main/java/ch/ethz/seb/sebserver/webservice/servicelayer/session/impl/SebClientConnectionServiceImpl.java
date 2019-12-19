@@ -73,6 +73,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         this.webserviceInfo = sebInstructionService.getWebserviceInfo();
     }
 
+    @Override
     public ExamSessionService getExamSessionService() {
         return this.examSessionService;
     }
@@ -220,7 +221,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     .getOrThrow();
 
             final ClientConnectionDataInternal activeClientConnection =
-                    cacheEvictAndLoad(connectionToken);
+                    realoadConnectionCache(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -286,7 +287,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     clientConnection.id,
                     null,
                     (examId != null) ? examId : clientConnection.examId,
-                    ConnectionStatus.ESTABLISHED,
+                    ConnectionStatus.ACTIVE,
                     null,
                     userSessionId,
                     null,
@@ -298,7 +299,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     clientConnection.connectionToken == null ||
                     establishedClientConnection.examId == null ||
                     clientConnection.clientAddress == null ||
-                    establishedClientConnection.status != ConnectionStatus.ESTABLISHED) {
+                    establishedClientConnection.status != ConnectionStatus.ACTIVE) {
 
                 log.error("ClientConnection integrity violation, clientConnection: {}, establishedClientConnection: {}",
                         clientConnection,
@@ -313,7 +314,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             checkExamIntegrity(updatedClientConnection.examId);
 
             final ClientConnectionDataInternal activeClientConnection =
-                    cacheEvictAndLoad(connectionToken);
+                    realoadConnectionCache(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -368,7 +369,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            evictCaches(connectionToken);
+            realoadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
     }
@@ -406,7 +407,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            evictCaches(connectionToken);
+            realoadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
     }
@@ -427,9 +428,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             .stream())
                     .map(token -> cache.get(token, ClientConnectionDataInternal.class))
                     .filter(Objects::nonNull)
-                    .filter(connection -> connection.clientConnection.status == ConnectionStatus.ESTABLISHED)
-                    .flatMap(connection -> connection.pingMappings.stream())
-                    .map(ping -> ping.updateLogEvent())
+                    .filter(connection -> connection.pingIndicator != null &&
+                            connection.clientConnection.status.establishedStatus)
+                    .map(connection -> connection.pingIndicator.updateLogEvent())
                     .filter(Objects::nonNull)
                     .forEach(this.eventHandlingStrategy::accept);
 
@@ -497,7 +498,6 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         }
     }
 
-    // TODO maybe we need a stronger connectionToken but for now a simple UUID is used
     private String createToken() {
         return UUID.randomUUID().toString();
     }
@@ -606,18 +606,11 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 .getOrThrow();
     }
 
-    private void evictCaches(final String connectionToken) {
+    private ClientConnectionDataInternal realoadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
         // evict also cached ping record
         this.examSessionCacheService.evictPingRecord(connectionToken);
-        // and load updated ClientConnection into cache
-        this.examSessionCacheService.getActiveClientConnection(connectionToken);
-    }
-
-    private ClientConnectionDataInternal cacheEvictAndLoad(final String connectionToken) {
-        // evict cached ClientConnection
-        this.examSessionCacheService.evictClientConnection(connectionToken);
         // and load updated ClientConnection into cache
         return this.examSessionCacheService.getActiveClientConnection(connectionToken);
     }

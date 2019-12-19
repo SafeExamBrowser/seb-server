@@ -51,7 +51,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
@@ -77,13 +77,13 @@ public final class ClientConnectionTable {
 
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
-    private final PageService pageService;
     private final WidgetFactory widgetFactory;
+    private final ResourceService resourceService;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
     private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
     private final Table table;
-    private final StatusData statusData;
+    private final ColorData colorData;
     private final EnumSet<ConnectionStatus> statusFilter;
 
     private int tableWidth;
@@ -101,13 +101,13 @@ public final class ClientConnectionTable {
             final Collection<Indicator> indicators,
             final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
 
-        this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
+        this.resourceService = pageService.getResourceService();
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
 
         final Display display = tableRoot.getDisplay();
-        this.statusData = new StatusData(display);
+        this.colorData = new ColorData(display);
 
         this.darkFontColor = new Color(display, Constants.BLACK_RGB);
         this.lightFontColor = new Color(display, Constants.WHITE_RGB);
@@ -115,6 +115,7 @@ public final class ClientConnectionTable {
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
+                this.colorData,
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
@@ -209,9 +210,8 @@ public final class ClientConnectionTable {
             for (int i = 0; i < selectionIndices.length; i++) {
                 final UpdatableTableItem updatableTableItem =
                         new ArrayList<>(this.tableMapping.values())
-                                .get(selectionIndices[0]);
+                                .get(selectionIndices[i]);
                 if (filter.test(updatableTableItem.connectionData.clientConnection)) {
-
                     result.add(updatableTableItem.connectionData.clientConnection.connectionToken);
                 }
             }
@@ -375,11 +375,10 @@ public final class ClientConnectionTable {
         }
 
         void updateConnectionStatusColor(final TableItem tableItem) {
-            final Color statusColor = ClientConnectionTable.this.statusData.getStatusColor(this.connectionData);
+            final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.connectionData);
+            final Color statusTextColor = ClientConnectionTable.this.colorData.getStatusTextColor(statusColor);
             tableItem.setBackground(2, statusColor);
-            tableItem.setForeground(2, Utils.darkColor(statusColor.getRGB())
-                    ? ClientConnectionTable.this.darkFontColor
-                    : ClientConnectionTable.this.lightFontColor);
+            tableItem.setForeground(2, statusTextColor);
         }
 
         void updateDuplicateColor(final TableItem tableItem) {
@@ -392,7 +391,7 @@ public final class ClientConnectionTable {
                 final List<Long> list =
                         ClientConnectionTable.this.sessionIds.get(this.connectionData.clientConnection.userSessionId);
                 if (list != null && list.size() > 1) {
-                    tableItem.setBackground(0, ClientConnectionTable.this.statusData.color3);
+                    tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
                     tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
                 } else {
                     tableItem.setBackground(0, null);
@@ -409,14 +408,12 @@ public final class ClientConnectionTable {
                 return;
             }
 
-            final boolean fillEmpty = this.connectionData.clientConnection.status != ConnectionStatus.ESTABLISHED;
-
             for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
-                if (fillEmpty) {
+                if (!this.connectionData.clientConnection.status.establishedStatus) {
                     final String value = (indicatorData.indicator.type.showOnlyInActiveState)
                             ? Constants.EMPTY_NOTE
                             : IndicatorValue.getDisplayValue(indicatorValue);
@@ -470,7 +467,7 @@ public final class ClientConnectionTable {
         }
 
         int statusWeight() {
-            return ClientConnectionTable.this.statusData.statusWeight(this.connectionData);
+            return ClientConnectionTable.this.colorData.statusWeight(this.connectionData);
         }
 
         int thresholdsWeight() {
@@ -478,10 +475,8 @@ public final class ClientConnectionTable {
         }
 
         String getStatusName() {
-            return ClientConnectionTable.this.pageService.getResourceService().localizedClientConnectionStatusName(
-                    (this.connectionData != null && this.connectionData.clientConnection != null)
-                            ? this.connectionData.clientConnection.status
-                            : ConnectionStatus.UNDEFINED);
+            return ClientConnectionTable.this.resourceService
+                    .localizedClientConnectionStatusName(this.connectionData);
         }
 
         String getConnectionAddress() {

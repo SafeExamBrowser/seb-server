@@ -298,6 +298,16 @@ Text[MULTI]:read-only {
     padding: 0px 0px 0px 0px;
 }
 
+Text:disabled.colorbox,
+Text:read-only.colorbox, 
+Text[MULTI]:disabled.colorbox,
+Text[MULTI]:read-only.colorbox {
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    padding: 0px 10px 0px 10px;
+}
+
 
 /* Combo default theme */
 Combo, Combo[BORDER] {

@@ -95,7 +95,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
             runWorkers();
 
             try {
-                Thread.sleep(Constants.SECOND_IN_MILLIS);
+                Thread.sleep(Constants.SECOND_IN_MILLIS / 2);
             } catch (final Exception e) {
                 log.error("Failed to wait");
             }
@@ -110,8 +110,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     @Override
     public void accept(final ClientEventRecord record) {
-        if (!this.workersRunning) {
-            log.error("Received ClientEvent on none enabled AsyncBatchEventSaveStrategy. ClientEvent is ignored");
+        if (record == null || !this.workersRunning) {
             return;
         }
 

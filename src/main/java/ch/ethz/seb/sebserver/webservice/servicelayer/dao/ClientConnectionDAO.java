@@ -50,6 +50,7 @@ public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientC
     Result<ClientConnection> createNew(ClientConnection data);
 
     @Override
+    // TODO check if this is needed
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> save(ClientConnection data);
 

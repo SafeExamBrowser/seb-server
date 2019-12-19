@@ -28,7 +28,7 @@ public enum ActionCategory {
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 100),
-    ;
+    FILTER(new LocTextKey("sebserver.overall.action.category.filter"), 50);
 
     public final LocTextKey title;
     public final int slotPosition;
