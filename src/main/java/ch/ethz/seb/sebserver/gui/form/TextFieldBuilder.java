@@ -52,6 +52,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     public TextFieldBuilder asArea() {
         this.isArea = true;
+        this.titleValign = SWT.CENTER;
         return this;
     }
 
@@ -63,16 +64,8 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label lab = (this.label != null)
-                ? builder.labelLocalized(
-                        builder.formParent,
-                        this.label,
-                        this.defaultLabel,
-                        this.spanLabel,
-                        (this.isArea) ? SWT.TOP : SWT.CENTER)
-                : null;
-
-        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final Text textInput = (this.isNumber)
                 ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly)
                 : (this.isArea)
@@ -95,12 +88,13 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
         if (readonly) {
             textInput.setEditable(false);
-            builder.form.putReadonlyField(this.name, lab, textInput);
+            builder.form.putReadonlyField(this.name, titleLabel, textInput);
         } else {
-            final Label errorLabel = Form.createErrorLabel(fieldGrid);
-            builder.form.putField(this.name, lab, textInput, errorLabel);
+            final Label errorLabel = createErrorLabel(fieldGrid);
+            builder.form.putField(this.name, titleLabel, textInput, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
         }
 
     }
+
 }

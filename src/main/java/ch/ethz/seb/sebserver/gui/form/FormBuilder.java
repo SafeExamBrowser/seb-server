@@ -15,7 +15,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -24,7 +23,6 @@ import org.eclipse.swt.widgets.TabItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -35,11 +33,10 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class FormBuilder {
 
-    private static final int FORM_ROW_HEIGHT = 25;
+    public static final int FORM_ROW_HEIGHT = 25;
 
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
@@ -281,56 +278,6 @@ public class FormBuilder {
                 label,
                 value,
                 (supportedFiles != null) ? Arrays.asList(supportedFiles) : Collections.emptyList());
-    }
-
-    Label labelLocalized(
-            final Composite parent,
-            final LocTextKey locTextKey,
-            final String defaultText,
-            final int hspan) {
-
-        return labelLocalized(parent, locTextKey, defaultText, hspan, SWT.CENTER);
-    }
-
-    Label labelLocalized(
-            final Composite parent,
-            final LocTextKey locTextKey,
-            final String defaultText,
-            final int hspan,
-            final int verticalAlignment) {
-
-        final Label label = this.widgetFactory.labelLocalized(
-                parent,
-                locTextKey,
-                (StringUtils.isNotBlank(defaultText) ? defaultText : locTextKey.name));
-        final GridData gridData = new GridData(SWT.LEFT, verticalAlignment, true, true, hspan, 1);
-        gridData.heightHint = FORM_ROW_HEIGHT;
-        label.setLayoutData(gridData);
-        label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
-        return label;
-    }
-
-    Label valueLabel(
-            final Composite parent,
-            final String value,
-            final int hspan,
-            final boolean centered) {
-
-        final Label label = new Label(parent, SWT.NONE);
-        label.setText((StringUtils.isNotBlank(value)) ? value : Constants.EMPTY_NOTE);
-        final GridData gridData = new GridData(
-                SWT.FILL,
-                (centered) ? SWT.CENTER : SWT.TOP,
-                true, false,
-                hspan, 1);
-
-        if (centered) {
-            label.setAlignment(SWT.CENTER);
-            label.setData(RWT.CUSTOM_VARIANT, CustomVariant.FORM_CENTER.key);
-        }
-
-        label.setLayoutData(gridData);
-        return label;
     }
 
 }

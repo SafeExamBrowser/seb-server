@@ -39,18 +39,13 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                this.spanLabel);
-
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
         if (builder.readonly || this.readonly) {
             // No read-only view needed for this so far?
             return;
         } else {
 
-            final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+            final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
 
             final ThresholdList thresholdList = builder.widgetFactory.thresholdList(
                     fieldGrid,
@@ -68,8 +63,8 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
             final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
             thresholdList.setLayoutData(gridData);
 
-            final Label errorLabel = Form.createErrorLabel(fieldGrid);
-            builder.form.putField(this.name, lab, thresholdList, errorLabel);
+            final Label errorLabel = createErrorLabel(fieldGrid);
+            builder.form.putField(this.name, titleLabel, thresholdList, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
         }
 

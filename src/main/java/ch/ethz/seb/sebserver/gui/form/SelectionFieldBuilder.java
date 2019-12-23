@@ -55,25 +55,18 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label lab = (this.label != null)
-                ? builder.labelLocalized(
-                        builder.formParent,
-                        this.label,
-                        this.defaultLabel,
-                        this.spanLabel,
-                        SWT.TOP)
-                : null;
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
 
         if (builder.readonly || this.readonly) {
-            buildReadOnly(builder, lab);
+            buildReadOnly(builder, titleLabel);
         } else {
-            buildInput(builder, lab);
+            buildInput(builder, titleLabel);
         }
     }
 
-    private void buildInput(final FormBuilder builder, final Label lab) {
+    private void buildInput(final FormBuilder builder, final Label titleLabel) {
 
-        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final String actionKey = (this.label != null) ? this.label.name + ".action" : null;
         final Selection selection = builder.widgetFactory.selectionLocalized(
                 this.type,
@@ -87,8 +80,8 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         ((Control) selection).setLayoutData(gridData);
         selection.select(this.value);
 
-        final Label errorLabel = Form.createErrorLabel(fieldGrid);
-        builder.form.putField(this.name, lab, selection, errorLabel);
+        final Label errorLabel = createErrorLabel(fieldGrid);
+        builder.form.putField(this.name, titleLabel, selection, errorLabel);
 
         if (this.selectionListener != null) {
             ((Control) selection).addListener(SWT.Selection, e -> {
@@ -100,7 +93,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     }
 
     /* Build the read-only representation of the selection field */
-    private void buildReadOnly(final FormBuilder builder, final Label lab) {
+    private void buildReadOnly(final FormBuilder builder, final Label titleLabel) {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
@@ -127,7 +120,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         } else {
             builder.form.putReadonlyField(
                     this.name,
-                    lab,
+                    titleLabel,
                     buildReadonlyLabel(builder.formParent, this.value, this.spanInput));
             builder.setFieldVisible(this.visible, this.name);
         }

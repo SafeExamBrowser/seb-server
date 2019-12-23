@@ -26,15 +26,8 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label lab = (this.label != null)
-                ? builder.labelLocalized(
-                        builder.formParent,
-                        this.label,
-                        this.defaultLabel,
-                        this.spanLabel)
-                : null;
-
-        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final Button checkbox = builder.widgetFactory.buttonLocalized(
                 fieldGrid,
                 SWT.CHECK,
@@ -48,7 +41,7 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
             checkbox.setEnabled(false);
         }
 
-        builder.form.putField(this.name, lab, checkbox);
+        builder.form.putField(this.name, titleLabel, checkbox);
     }
 
 }

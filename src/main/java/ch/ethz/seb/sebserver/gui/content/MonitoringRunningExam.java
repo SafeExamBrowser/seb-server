@@ -9,11 +9,9 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -31,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -71,6 +68,8 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected.confirm");
     private static final LocTextKey CONFIRM_QUIT_ALL =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all.confirm");
+    private static final LocTextKey CONFIRM_DISABLE_SELECTED =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -183,7 +182,19 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.quitSebClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege);
+                .publishIf(privilege)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_DISABLE_SELECTED)
+                .withSelect(
+                        clientTable::getSelection,
+                        action -> this.disableSebClients(action, clientTable, false),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(privilege)
+
+        ;
 
         clientTable.hideStatus(ConnectionStatus.DISABLED);
 
@@ -228,6 +239,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         return action -> {
             clientTable.showStatus(status);
+            clientTable.removeSelection();
             return action;
         };
     }
@@ -238,6 +250,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         return action -> {
             clientTable.hideStatus(status);
+            clientTable.removeSelection();
             return action;
         };
     }
@@ -247,20 +260,27 @@ public class MonitoringRunningExam implements TemplateComposer {
             final ClientConnectionTable clientTable,
             final boolean all) {
 
-        final Predicate<ClientConnection> activePredicate = ClientConnection
-                .getStatusPredicate(ConnectionStatus.ACTIVE);
-
-        final Set<String> connectionTokens = clientTable.getConnectionTokens(
-                activePredicate,
-                !all);
-
-        if (connectionTokens.isEmpty()) {
-            return action;
-        }
-
         this.instructionProcessor.propagateSebQuitInstruction(
                 clientTable.getExam().id,
-                connectionTokens,
+                statesPredicate -> clientTable.getConnectionTokens(
+                        statesPredicate,
+                        !all),
+                action.pageContext());
+
+        clientTable.removeSelection();
+        return action;
+    }
+
+    private PageAction disableSebClients(
+            final PageAction action,
+            final ClientConnectionTable clientTable,
+            final boolean all) {
+
+        this.instructionProcessor.disableConnection(
+                clientTable.getExam().id,
+                statesPredicate -> clientTable.getConnectionTokens(
+                        statesPredicate,
+                        !all),
                 action.pageContext());
 
         clientTable.removeSelection();

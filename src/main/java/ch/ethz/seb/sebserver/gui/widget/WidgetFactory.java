@@ -100,7 +100,8 @@ public class WidgetFactory {
         INDICATOR("indicator.png"),
         TEMPLATE("template.png"),
         DISABLE("disable.png"),
-        SEND_QUIT("send-quit.png");
+        SEND_QUIT("send-quit.png"),
+        HELP("help.png");
 
         private String fileName;
         private ImageData image = null;
@@ -500,6 +501,14 @@ public class WidgetFactory {
         final GridData data = new GridData(SWT.FILL, SWT.TOP, true, true);
         label.setLayoutData(data);
         return label;
+    }
+
+    public Label imageButton(
+            final ImageIcon type,
+            final Composite parent,
+            final LocTextKey toolTip) {
+
+        return this.imageButton(type, parent, toolTip, null);
     }
 
     public Label imageButton(

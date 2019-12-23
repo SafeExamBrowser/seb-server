@@ -34,14 +34,8 @@ public class FileUploadFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                1);
-
-        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final FileUploadSelection fileUpload = builder.widgetFactory.fileUploadSelection(
                 fieldGrid,
                 builder.readonly || this.readonly,
@@ -50,8 +44,8 @@ public class FileUploadFieldBuilder extends FieldBuilder<String> {
         fileUpload.setLayoutData(gridData);
         fileUpload.setFileName(this.value);
 
-        final Label errorLabel = Form.createErrorLabel(fieldGrid);
-        builder.form.putField(this.name, lab, fileUpload, errorLabel);
+        final Label errorLabel = createErrorLabel(fieldGrid);
+        builder.form.putField(this.name, titleLabel, fileUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
     }
 

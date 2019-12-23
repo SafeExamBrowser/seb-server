@@ -110,11 +110,13 @@ public class InstitutionForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        institution.name))
+                        institution.name)
+                        .withInfoLeft(new LocTextKey("some info text here!\nwith line brake")))
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_URL_SUFFIX,
                         FORM_URL_SUFFIX_TEXT_KEY,
-                        institution.urlSuffix))
+                        institution.urlSuffix)
+                        .withInfoRight(new LocTextKey("some info text here!\nwith line brake")))
                 .addField(FormBuilder.imageUpload(
                         Domain.INSTITUTION.ATTR_LOGO_IMAGE,
                         FORM_LOGO_IMAGE_TEXT_KEY,

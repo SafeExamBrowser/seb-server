@@ -231,7 +231,8 @@ public class ExamMonitoringController {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+            @RequestParam(
+                    name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                     required = true) final String connectionToken) {
 
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
@@ -242,7 +243,8 @@ public class ExamMonitoringController {
                         .onError(error -> log.error("Failed to disable SEB client connection: {}", token));
             }
         } else {
-            this.sebClientConnectionService.disableConnection(connectionToken, institutionId)
+            this.sebClientConnectionService
+                    .disableConnection(connectionToken, institutionId)
                     .getOrThrow();
         }
 

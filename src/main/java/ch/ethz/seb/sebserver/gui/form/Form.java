@@ -21,12 +21,8 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -510,31 +506,6 @@ public final class Form implements FormBinding {
                 this.hasError = false;
             }
         }
-    }
-
-    public static Composite createFieldGrid(final Composite parent, final int hspan) {
-        final Composite fieldGrid = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout();
-        gridLayout.verticalSpacing = 0;
-        gridLayout.marginHeight = 0;
-        gridLayout.marginWidth = 0;
-        gridLayout.marginRight = 0;
-        fieldGrid.setLayout(gridLayout);
-
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        gridData.horizontalSpan = hspan;
-        fieldGrid.setLayoutData(gridData);
-
-        return fieldGrid;
-    }
-
-    public static Label createErrorLabel(final Composite innerGrid) {
-        final Label errorLabel = new Label(innerGrid, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
-        errorLabel.setLayoutData(gridData);
-        errorLabel.setVisible(false);
-        errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
-        return errorLabel;
     }
 
 }

@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.form.Form;
+import ch.ethz.seb.sebserver.gui.form.FieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
@@ -102,7 +102,7 @@ public class TextFieldBuilder implements InputFieldBuilder {
                 attribute,
                 orientation,
                 text,
-                Form.createErrorLabel(innerGrid));
+                FieldBuilder.createErrorLabel(innerGrid));
 
         if (viewContext.readonly) {
             text.setEditable(false);

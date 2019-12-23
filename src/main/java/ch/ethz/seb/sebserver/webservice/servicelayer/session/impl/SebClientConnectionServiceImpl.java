@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.security.Principal;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -374,6 +375,13 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
         });
     }
 
+    private static final Predicate<ClientConnection> DISABLE_STATE_PREDICATE = ClientConnection
+            .getStatusPredicate(
+                    ConnectionStatus.UNDEFINED,
+                    ConnectionStatus.CONNECTION_REQUESTED,
+                    ConnectionStatus.AUTHENTICATED,
+                    ConnectionStatus.CLOSED);
+
     @Override
     public Result<ClientConnection> disableConnection(final String connectionToken, final Long institutionId) {
         return Result.tryCatch(() -> {
@@ -390,9 +398,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     .getOrThrow();
 
             ClientConnection updatedClientConnection;
-            if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED ||
-                    clientConnection.status == ConnectionStatus.UNDEFINED ||
-                    clientConnection.status == ConnectionStatus.AUTHENTICATED) {
+            if (DISABLE_STATE_PREDICATE.test(clientConnection)) {
 
                 updatedClientConnection = saveInState(
                         clientConnection,

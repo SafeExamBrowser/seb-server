@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.util.EnumSet;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -232,6 +233,16 @@ public final class ClientConnection implements GrantEntity {
 
     public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus status) {
         return connection -> connection.status == status;
+    }
+
+    public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus... status) {
+        final EnumSet<ConnectionStatus> stati = EnumSet.allOf(ConnectionStatus.class);
+        if (status != null) {
+            for (int i = 0; i < status.length; i++) {
+                stati.add(status[i]);
+            }
+        }
+        return connection -> stati.contains(connection.status);
     }
 
 }

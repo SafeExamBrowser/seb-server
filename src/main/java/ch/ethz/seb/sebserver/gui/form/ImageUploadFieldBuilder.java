@@ -37,14 +37,8 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-
-        final Label lab = builder.labelLocalized(
-                builder.formParent,
-                this.label,
-                this.defaultLabel,
-                1);
-
-        final Composite fieldGrid = Form.createFieldGrid(builder.formParent, this.spanInput);
+        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final ImageUploadSelection imageUpload = builder.widgetFactory.imageUploadLocalized(
                 fieldGrid,
                 new LocTextKey("sebserver.overall.upload"),
@@ -55,8 +49,8 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);
 
-        final Label errorLabel = Form.createErrorLabel(fieldGrid);
-        builder.form.putField(this.name, lab, imageUpload, errorLabel);
+        final Label errorLabel = createErrorLabel(fieldGrid);
+        builder.form.putField(this.name, titleLabel, imageUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
     }
 
