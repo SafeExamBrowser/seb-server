@@ -10,8 +10,11 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -22,17 +25,17 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class TableNavigator {
 
-    private final static int PAGE_NAV_SIZE = 10;
+    private final static int PAGE_NAV_SIZE = 9;
 
     private final Composite composite;
     private final EntityTable<?> entityTable;
 
     TableNavigator(final EntityTable<?> entityTable) {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         this.composite.setLayoutData(gridData);
-        final GridLayout layout = new GridLayout(3, true);
-        layout.marginLeft = 20;
+        final GridLayout layout = new GridLayout(3, false);
+        layout.marginLeft = 10;
         this.composite.setLayout(layout);
 
         this.entityTable = entityTable;
@@ -66,7 +69,6 @@ public class TableNavigator {
         final GridData gridData = new GridData(SWT.CENTER, SWT.TOP, true, false);
         numNav.setLayoutData(gridData);
         final RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-
         numNav.setLayout(rowLayout);
 
         if (numberOfPages > 1) {
@@ -95,7 +97,11 @@ public class TableNavigator {
 
     private void createPagingHeader(final int page, final int of) {
         final Label pageHeader = new Label(this.composite, SWT.NONE);
-        pageHeader.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        gridData.widthHint = 100;
+        gridData.minimumWidth = 100;
+        gridData.verticalAlignment = SWT.CENTER;
+        pageHeader.setLayoutData(gridData);
         pageHeader.setText("Page " + page + "/" + of);
     }
 
@@ -107,11 +113,14 @@ public class TableNavigator {
         final Label pageLabel = new Label(parent, SWT.NONE);
 
         pageLabel.setText(" " + String.valueOf(page) + " ");
+        pageLabel.setLayoutData(new RowData(22, 16));
+        pageLabel.setAlignment(SWT.CENTER);
         if (selectable) {
             pageLabel.setData(RWT.CUSTOM_VARIANT, "action");
             pageLabel.addListener(SWT.MouseDown, event -> {
                 this.entityTable.selectPage(page);
             });
+            pageLabel.setBackground(new Color(parent.getDisplay(), new RGB(245, 245, 245)));
         }
     }
 

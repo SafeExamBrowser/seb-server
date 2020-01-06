@@ -101,7 +101,7 @@ public class HTTPClientBot {
 //        this.institutionId = properties.getProperty("institutionId", "1");
         this.examId = properties.getProperty("examId", "2");
         this.institutionId = properties.getProperty("institutionId", "1");
-        this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "4"));
+        this.numberOfConnections = Integer.parseInt(properties.getProperty("numberOfConnections", "100"));
         this.pingInterval = Long.parseLong(properties.getProperty("pingInterval", "200"));
         this.establishDelay = Long.parseLong(properties.getProperty("establishDelay", "0"));
         this.pingPause = Long.parseLong(properties.getProperty("pingPause", "20000"));
