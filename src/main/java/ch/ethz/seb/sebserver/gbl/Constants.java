@@ -8,9 +8,17 @@
 
 package ch.ethz.seb.sebserver.gbl;
 
+import java.util.Collection;
+
 import org.eclipse.swt.graphics.RGB;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.core.ParameterizedTypeReference;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
@@ -106,5 +114,12 @@ public final class Constants {
 
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
+
+    public static final TypeReference<Collection<APIMessage>> TYPE_REFERENCE_API_MESSAGE = new TypeReference<>() {
+    };
+
+    public static final ParameterizedTypeReference<Collection<Privilege>> TYPE_REFERENCE_PRIVILEGES =
+            new ParameterizedTypeReference<>() {
+            };
 
 }

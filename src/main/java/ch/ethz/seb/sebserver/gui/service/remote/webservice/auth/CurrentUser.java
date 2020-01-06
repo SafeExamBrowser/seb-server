@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -25,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
@@ -183,6 +183,8 @@ public class CurrentUser {
             this.attributes.clear();
         }
 
+        this.privileges = null;
+
         if (isAvailable()) {
             if (this.authContext.logout()) {
                 this.authContext = null;
@@ -225,8 +227,7 @@ public class CurrentUser {
                                         .toUriString(),
                                 HttpMethod.GET,
                                 HttpEntity.EMPTY,
-                                new ParameterizedTypeReference<Collection<Privilege>>() {
-                                });
+                                Constants.TYPE_REFERENCE_PRIVILEGES);
 
                 if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                     final Collection<Privilege> privileges = exchange.getBody();

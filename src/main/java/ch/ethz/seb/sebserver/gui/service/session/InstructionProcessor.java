@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -149,8 +147,7 @@ public class InstructionProcessor {
                 try {
                     final Collection<APIMessage> errorMessage = this.jsonMapper.readValue(
                             response,
-                            new TypeReference<Collection<APIMessage>>() {
-                            });
+                            Constants.TYPE_REFERENCE_API_MESSAGE);
 
                     pageContext.notifyUnexpectedError(new RestCallError(
                             "Failed to propagate SEB client instruction: ",
