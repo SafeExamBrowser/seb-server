@@ -724,7 +724,7 @@ TabItem:selected:hover:first {
 
 
 Widget-ToolTip {
-    padding: 1px 3px 2px 3px;
+    padding: 10px 5px 10px 5px;
     background-color: #82be1e;
     border: 1px solid #3C5A0F;
     border-radius: 2px 2px 2px 2px;

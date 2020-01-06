@@ -23,6 +23,10 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public abstract class FieldBuilder<T> {
+
+    public static final String TOOLTIP_KEY_SUFFIX_LEFT = ".tooltip.left";
+    public static final String TOOLTIP_KEY_SUFFIX_RIGHT = ".tooltip.right";
+
     int spanLabel = -1;
     int spanInput = -1;
     int spanEmptyCell = -1;
@@ -32,18 +36,19 @@ public abstract class FieldBuilder<T> {
     boolean readonly = false;
     boolean visible = true;
     String defaultLabel = null;
-    LocTextKey infoText;
-    boolean infoLeft = false;
-    boolean infoRight = false;
 
     final String name;
     final LocTextKey label;
+    final LocTextKey tooltipKeyLeft;
+    final LocTextKey tooltipKeyRight;
     final T value;
 
     protected FieldBuilder(final String name, final LocTextKey label, final T value) {
         this.name = name;
         this.label = label;
         this.value = value;
+        this.tooltipKeyLeft = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LEFT) : null;
+        this.tooltipKeyRight = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_RIGHT) : null;
     }
 
     public FieldBuilder<T> withDefaultLabel(final String defaultLabel) {
@@ -53,18 +58,6 @@ public abstract class FieldBuilder<T> {
 
     public FieldBuilder<T> withLabelSpan(final int span) {
         this.spanLabel = span;
-        return this;
-    }
-
-    public FieldBuilder<T> withInfoLeft(final LocTextKey infoText) {
-        this.infoText = infoText;
-        this.infoLeft = true;
-        return this;
-    }
-
-    public FieldBuilder<T> withInfoRight(final LocTextKey infoText) {
-        this.infoText = infoText;
-        this.infoRight = true;
         return this;
     }
 
@@ -111,23 +104,26 @@ public abstract class FieldBuilder<T> {
             final FieldBuilder<?> fieldBuilder) {
 
         final Composite infoGrid = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout(2, false);
+        final GridLayout gridLayout = new GridLayout(3, false);
         gridLayout.verticalSpacing = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         gridLayout.marginRight = 0;
         infoGrid.setLayout(gridLayout);
 
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false);
         infoGrid.setLayoutData(gridData);
 
-        if (fieldBuilder.infoText != null && fieldBuilder.infoLeft) {
+        if (fieldBuilder.tooltipKeyLeft != null &&
+                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyLeft, ""))) {
+
             final Label info = builder.widgetFactory.imageButton(
                     WidgetFactory.ImageIcon.HELP,
                     infoGrid,
-                    fieldBuilder.infoText);
+                    fieldBuilder.tooltipKeyLeft);
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
+
         final Label lab = (fieldBuilder.label != null)
                 ? labelLocalized(
                         builder.widgetFactory,
@@ -138,11 +134,13 @@ public abstract class FieldBuilder<T> {
                         fieldBuilder.titleValign)
                 : null;
 
-        if (fieldBuilder.infoText != null && fieldBuilder.infoRight) {
+        if (fieldBuilder.tooltipKeyRight != null &&
+                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
+
             final Label info = builder.widgetFactory.imageButton(
                     WidgetFactory.ImageIcon.HELP,
                     infoGrid,
-                    fieldBuilder.infoText);
+                    fieldBuilder.tooltipKeyRight);
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
