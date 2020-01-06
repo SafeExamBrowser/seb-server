@@ -115,11 +115,15 @@ public final class Constants {
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
 
-    public static final TypeReference<Collection<APIMessage>> TYPE_REFERENCE_API_MESSAGE = new TypeReference<>() {
-    };
-
+    public static final TypeReference<Collection<APIMessage>> TYPE_REFERENCE_API_MESSAGE =
+            new TypeReferenceAPIMessage();
     public static final ParameterizedTypeReference<Collection<Privilege>> TYPE_REFERENCE_PRIVILEGES =
-            new ParameterizedTypeReference<>() {
-            };
+            new TypeReferencePrivileges();
+
+    public static final class TypeReferenceAPIMessage extends TypeReference<Collection<APIMessage>> {
+    }
+
+    public static final class TypeReferencePrivileges extends ParameterizedTypeReference<Collection<Privilege>> {
+    }
 
 }
