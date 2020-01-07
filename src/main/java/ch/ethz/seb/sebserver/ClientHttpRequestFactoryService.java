@@ -183,7 +183,7 @@ public class ClientHttpRequestFactoryService {
                     .toCharArray();
 
             if (password.length < 3) {
-                log.error("Missing or incorrect trust-store password: " + String.valueOf(password));
+                log.error("Missing or incorrect trust-store password");
                 throw new IllegalArgumentException("Missing or incorrect trust-store password");
             }
 

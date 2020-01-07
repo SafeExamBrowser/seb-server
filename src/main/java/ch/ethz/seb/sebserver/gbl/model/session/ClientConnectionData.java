@@ -16,8 +16,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ClientConnectionData {
@@ -26,31 +24,32 @@ public class ClientConnectionData {
     public final ClientConnection clientConnection;
     @JsonProperty("indicatorValues")
     public final List<? extends IndicatorValue> indicatorValues;
-    @JsonIgnore
-    public final boolean missingPing;
+
+    public final Boolean missingPing;
 
     @JsonCreator
-    protected ClientConnectionData(
+    public ClientConnectionData(
+            @JsonProperty("missingPing") final Boolean missingPing,
             @JsonProperty("clientConnection") final ClientConnection clientConnection,
             @JsonProperty("indicatorValues") final Collection<? extends SimpleIndicatorValue> indicatorValues) {
 
+        this.missingPing = missingPing;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
-        this.missingPing = clientConnection.status == ConnectionStatus.ACTIVE &&
-                this.indicatorValues.stream()
-                        .filter(ind -> ind.getType() == IndicatorType.LAST_PING)
-                        .findFirst()
-                        .map(ind -> (long) ind.getValue())
-                        .orElse(0L) > 5000;
     }
 
     protected ClientConnectionData(
-            @JsonProperty("clientConnection") final ClientConnection clientConnection,
-            @JsonProperty("indicatorValues") final List<? extends IndicatorValue> indicatorValues) {
+            final ClientConnection clientConnection,
+            final List<? extends IndicatorValue> indicatorValues) {
 
+        this.missingPing = null;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
-        this.missingPing = false;
+    }
+
+    @JsonProperty("missingPing")
+    public Boolean getMissingPing() {
+        return this.missingPing;
     }
 
     @JsonIgnore

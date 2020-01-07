@@ -36,8 +36,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(PingIntervalClientIndicator.class);
 
-    private long pingErrorThreshold;
-    private boolean isOnError = false;
+    long pingErrorThreshold;
+    boolean missingPing = false;
 
     boolean hidden = false;
 
@@ -84,9 +84,9 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     public ClientEventRecord updateLogEvent() {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis();
         final long value = now - (long) super.currentValue;
-        if (this.isOnError) {
+        if (this.missingPing) {
             if (this.pingErrorThreshold > value) {
-                this.isOnError = false;
+                this.missingPing = false;
                 return new ClientEventRecord(
                         null,
                         this.connectionId,
@@ -98,7 +98,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             }
         } else {
             if (this.pingErrorThreshold < value) {
-                this.isOnError = true;
+                this.missingPing = true;
                 return new ClientEventRecord(
                         null,
                         this.connectionId,

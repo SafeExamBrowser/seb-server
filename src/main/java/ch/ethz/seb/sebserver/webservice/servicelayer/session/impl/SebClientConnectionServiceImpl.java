@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -385,6 +387,17 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     @Override
     public Result<ClientConnection> disableConnection(final String connectionToken, final Long institutionId) {
         return Result.tryCatch(() -> {
+            final ClientConnectionData connectionData = getExamSessionService()
+                    .getConnectionData(connectionToken)
+                    .getOrThrow();
+
+            // An active connection can only be disabled if we have a missing ping
+            if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE &&
+                    !BooleanUtils.isTrue(connectionData.getMissingPing())) {
+
+                return connectionData.clientConnection;
+            }
+
             if (log.isDebugEnabled()) {
                 log.debug("SEB client connection: SEB Server disable attempt for "
                         + "instituion {} "

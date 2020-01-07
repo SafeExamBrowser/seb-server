@@ -62,4 +62,13 @@ public class InstitutionTest {
                 json);
     }
 
+    @Test
+    public void testNullValues() throws Exception {
+        final JSONMapper jsonMapper = new JSONMapper();
+
+        final Institution inst = new Institution(1L, null, "suffix", "logo", "theme", null);
+        final String jsonString = jsonMapper.writeValueAsString(inst);
+        assertEquals("{\"id\":1,\"urlSuffix\":\"suffix\",\"logoImage\":\"logo\",\"themeName\":\"theme\"}", jsonString);
+    }
+
 }

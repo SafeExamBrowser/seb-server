@@ -28,6 +28,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.graphics.RGB;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -375,6 +376,13 @@ public final class Utils {
         return builder.toString();
     }
 
+    public static String escapeHTML_XML_EcmaScript(final String string) {
+        return StringEscapeUtils.escapeXml11(
+                StringEscapeUtils.escapeHtml4(
+                        StringEscapeUtils.escapeEcmaScript(string)));
+    }
+
+    // https://www.owasp.org/index.php/HTTP_Response_Splitting
     public static String preventResponseSplittingAttack(final String string) {
         final int xni = string.indexOf('\n');
         final int xri = string.indexOf('\r');

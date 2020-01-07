@@ -14,6 +14,8 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -59,6 +61,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
 
         return this.indicatorMapping.get(eventType);
+    }
+
+    @Override
+    @JsonProperty("missingPing")
+    public Boolean getMissingPing() {
+        return this.pingIndicator.missingPing;
     }
 
 }

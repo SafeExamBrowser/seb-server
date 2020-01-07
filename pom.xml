@@ -262,10 +262,10 @@
     </dependency>
 
     <!-- JMX -->
-<!--     <dependency> -->
-<!--       <groupId>org.jolokia</groupId> -->
-<!--       <artifactId>jolokia-core</artifactId> -->
-<!--     </dependency> -->
+    <!-- <dependency> -->
+    <!-- <groupId>org.jolokia</groupId> -->
+    <!-- <artifactId>jolokia-core</artifactId> -->
+    <!-- </dependency> -->
 
     <!-- Apache HTTP -->
     <dependency>
@@ -302,6 +302,11 @@
       <groupId>org.cryptonode.jncryptor</groupId>
       <artifactId>jncryptor</artifactId>
       <version>1.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.8</version>
     </dependency>
 
 

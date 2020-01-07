@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.api;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
@@ -29,6 +30,7 @@ public class JSONMapper extends ObjectMapper {
         super.configure(
                 com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID,
                 false);
+        super.setSerializationInclusion(Include.NON_NULL);
     }
 
 }

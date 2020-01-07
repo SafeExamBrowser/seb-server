@@ -61,8 +61,9 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
                         downloadFileName);
             }
 
-            final String header =
-                    "attachment; filename=\"" + Utils.preventResponseSplittingAttack(downloadFileName) + "\"";
+            final String header = "attachment; filename=\"" +
+                    Utils.escapeHTML_XML_EcmaScript(Utils.preventResponseSplittingAttack(downloadFileName)) +
+                    "\"";
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
