@@ -101,7 +101,10 @@ public class WidgetFactory {
         TEMPLATE("template.png"),
         DISABLE("disable.png"),
         SEND_QUIT("send-quit.png"),
-        HELP("help.png");
+        HELP("help.png"),
+        LOCK("lock.png"),
+        UNLOCK("unlock.png"),
+        RESTRICTION("restriction.png");
 
         private String fileName;
         private ImageData image = null;

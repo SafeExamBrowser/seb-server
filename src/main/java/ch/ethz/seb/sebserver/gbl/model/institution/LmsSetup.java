@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.institution;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -34,9 +37,25 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
 
+    public enum Features {
+        COURSE_API,
+        SEB_RESTICTION,
+        COURSE_STRUCTURE_API,
+    }
+
     public enum LmsType {
-        MOCKUP,
-        OPEN_EDX
+        MOCKUP(Features.COURSE_API),
+        OPEN_EDX(Features.COURSE_API, Features.SEB_RESTICTION);
+
+        public final EnumSet<Features> features;
+
+        private LmsType(final Features... features) {
+            if (features != null && features.length >= 1) {
+                this.features = EnumSet.copyOf(Arrays.asList(features));
+            } else {
+                this.features = EnumSet.noneOf(Features.class);
+            }
+        }
     }
 
     @JsonProperty(LMS_SETUP.ATTR_ID)

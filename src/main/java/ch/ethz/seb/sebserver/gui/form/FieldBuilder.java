@@ -103,6 +103,10 @@ public abstract class FieldBuilder<T> {
             final FormBuilder builder,
             final FieldBuilder<?> fieldBuilder) {
 
+        if (fieldBuilder.label == null) {
+            return null;
+        }
+
         final Composite infoGrid = new Composite(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(3, false);
         gridLayout.verticalSpacing = 0;
@@ -110,8 +114,8 @@ public abstract class FieldBuilder<T> {
         gridLayout.marginWidth = 0;
         gridLayout.marginRight = 0;
         infoGrid.setLayout(gridLayout);
-
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.horizontalSpan = (fieldBuilder.spanLabel > 0) ? fieldBuilder.spanLabel : 1;
         infoGrid.setLayoutData(gridData);
 
         if (fieldBuilder.tooltipKeyLeft != null &&
@@ -124,15 +128,13 @@ public abstract class FieldBuilder<T> {
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
-        final Label lab = (fieldBuilder.label != null)
-                ? labelLocalized(
-                        builder.widgetFactory,
-                        infoGrid,
-                        fieldBuilder.label,
-                        fieldBuilder.defaultLabel,
-                        (fieldBuilder.spanLabel > 0) ? fieldBuilder.spanLabel : 1,
-                        fieldBuilder.titleValign)
-                : null;
+        final Label label = labelLocalized(
+                builder.widgetFactory,
+                infoGrid,
+                fieldBuilder.label,
+                fieldBuilder.defaultLabel,
+                1,
+                fieldBuilder.titleValign);
 
         if (fieldBuilder.tooltipKeyRight != null &&
                 StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
@@ -144,7 +146,7 @@ public abstract class FieldBuilder<T> {
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
-        return lab;
+        return label;
     }
 
     public static Label labelLocalized(
@@ -169,7 +171,7 @@ public abstract class FieldBuilder<T> {
                 parent,
                 locTextKey,
                 (StringUtils.isNotBlank(defaultText) ? defaultText : locTextKey.name));
-        final GridData gridData = new GridData(SWT.LEFT, verticalAlignment, true, true, hspan, 1);
+        final GridData gridData = new GridData(SWT.LEFT, verticalAlignment, false, false, hspan, 1);
         gridData.heightHint = FormBuilder.FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);
         label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);

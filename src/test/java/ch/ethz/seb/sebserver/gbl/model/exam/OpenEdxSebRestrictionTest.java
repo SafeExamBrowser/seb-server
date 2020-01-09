@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
+package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,15 +15,14 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 
-public class OpenEdxCourseRestrictionDataTest {
+public class OpenEdxSebRestrictionTest {
 
     @Test
     public void testEmpty1() throws JsonProcessingException {
         final JSONMapper mapper = new JSONMapper();
 
-        final OpenEdxCourseRestrictionData data = new OpenEdxCourseRestrictionData(null, null, null, null, null, false);
+        final OpenEdxSebRestriction data = new OpenEdxSebRestriction(null, null, null, null, null, false);
         final String json = mapper.writeValueAsString(data);
         assertEquals(
                 "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[],\"USER_BANNING_ENABLED\":false}",
@@ -34,8 +33,8 @@ public class OpenEdxCourseRestrictionDataTest {
     public void testEmpty2() throws JsonProcessingException {
         final JSONMapper mapper = new JSONMapper();
 
-        final OpenEdxCourseRestrictionData data =
-                new OpenEdxCourseRestrictionData(new SebRestrictionData(null, null, null, null));
+        final OpenEdxSebRestriction data =
+                OpenEdxSebRestriction.from(new SebRestriction(null, null, null, null));
         final String json = mapper.writeValueAsString(data);
         assertEquals(
                 "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[\"AlwaysAllowStaff\"],\"USER_BANNING_ENABLED\":false}",

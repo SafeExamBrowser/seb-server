@@ -84,6 +84,17 @@ public final class LmsSetupTestResult {
                 .isPresent();
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LmsSetupTestResult [errors=");
+        builder.append(this.errors);
+        builder.append(", missingLMSSetupAttribute=");
+        builder.append(this.missingLMSSetupAttribute);
+        builder.append("]");
+        return builder.toString();
+    }
+
     public static final LmsSetupTestResult ofOkay() {
         return new LmsSetupTestResult();
     }
@@ -124,6 +135,18 @@ public final class LmsSetupTestResult {
             this.errorType = errorType;
             this.message = message;
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Error [errorType=");
+            builder.append(this.errorType);
+            builder.append(", message=");
+            builder.append(this.message);
+            builder.append("]");
+            return builder.toString();
+        }
+
     }
 
 }

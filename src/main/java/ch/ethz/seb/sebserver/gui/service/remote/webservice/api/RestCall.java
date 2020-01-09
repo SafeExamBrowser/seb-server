@@ -262,6 +262,11 @@ public abstract class RestCall<T> {
         }
 
         public RestCallBuilder withBody(final Object body) {
+            if (body == null) {
+                this.body = null;
+                return this;
+            }
+
             if (body instanceof String) {
                 this.body = String.valueOf(body);
                 return this;

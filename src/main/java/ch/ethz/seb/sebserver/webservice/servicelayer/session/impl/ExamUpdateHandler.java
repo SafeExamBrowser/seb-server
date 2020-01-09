@@ -8,12 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -22,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -30,9 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
 
 @Lazy
 @Service
@@ -42,24 +33,25 @@ class ExamUpdateHandler {
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
     private final ExamDAO examDAO;
-    private final ExamConfigService sebExamConfigService;
-    private final LmsAPIService lmsAPIService;
+    private final SebRestrictionService sebRestrictionService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
-            final ExamConfigService sebExamConfigService,
-            final LmsAPIService lmsAPIService,
+            final SebRestrictionService sebRestrictionService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
 
         this.examDAO = examDAO;
-        this.sebExamConfigService = sebExamConfigService;
-        this.lmsAPIService = lmsAPIService;
+        this.sebRestrictionService = sebRestrictionService;
         this.updatePrefix = webserviceInfo.getHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
         this.examTimeSuffix = examTimeSuffix;
+    }
+
+    public SebRestrictionService getSebRestrictionService() {
+        return this.sebRestrictionService;
     }
 
     String createUpdateId() {
@@ -90,7 +82,7 @@ class ExamUpdateHandler {
                         exam.id,
                         ExamStatus.RUNNING,
                         updateId))
-                .flatMap(this::applySebClientRestriction)
+                .flatMap(this.sebRestrictionService::applySebClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
                         .onError(unlookError -> log.error("Failed to force unlook update look for exam: {}" + exam.id)))
@@ -108,89 +100,10 @@ class ExamUpdateHandler {
                         exam.id,
                         ExamStatus.FINISHED,
                         updateId))
-                .flatMap(this::releaseSebClientRestriction)
+                .flatMap(this.sebRestrictionService::releaseSebClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id))
                 .getOrThrow();
-    }
-
-    Result<Exam> applySebClientRestriction(final Exam exam) {
-        if (exam.lmsSebRestriction) {
-            if (log.isDebugEnabled()) {
-                log.debug("Skip SEB Client restrictions for exam: {} already restricted", exam);
-            }
-
-            return Result.of(exam);
-        }
-
-        return Result.tryCatch(() -> {
-
-            final SebRestrictionData sebRestrictionData = createSebRestrictionData(exam);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Appling SEB Client restriction on LMS with: {}", sebRestrictionData);
-            }
-
-            return this.lmsAPIService
-                    .getLmsAPITemplate(exam.lmsSetupId)
-                    .flatMap(lmsTemplate -> lmsTemplate.applySebClientRestriction(sebRestrictionData))
-                    .map(data -> exam)
-                    .getOrThrow();
-        });
-    }
-
-    Result<Exam> updateSebClientRestriction(final Exam exam) {
-        if (!exam.lmsSebRestriction) {
-            if (log.isDebugEnabled()) {
-                log.debug("Skip SEB Client restrictions update for exam: {}", exam);
-            }
-
-            return Result.of(exam);
-        }
-
-        return Result.tryCatch(() -> {
-
-            final SebRestrictionData sebRestrictionData = createSebRestrictionData(exam);
-
-            return this.lmsAPIService
-                    .getLmsAPITemplate(exam.lmsSetupId)
-                    .flatMap(lmsTemplate -> lmsTemplate.updateSebClientRestriction(sebRestrictionData))
-                    .map(data -> exam)
-                    .getOrThrow();
-        });
-    }
-
-    Result<Exam> releaseSebClientRestriction(final Exam exam) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Release SEB Client restrictions for exam: {}", exam);
-        }
-
-        return this.lmsAPIService
-                .getLmsAPITemplate(exam.lmsSetupId)
-                .flatMap(template -> template.releaseSebClientRestriction(exam));
-    }
-
-    private SebRestrictionData createSebRestrictionData(final Exam exam) {
-        final Collection<String> configKeys = this.sebExamConfigService
-                .generateConfigKeys(exam.institutionId, exam.id)
-                .getOrThrow();
-
-        final Collection<String> browserExamKeys = new ArrayList<>();
-        final String browserExamKeysString = exam.getBrowserExamKeys();
-        if (StringUtils.isNotBlank(browserExamKeysString)) {
-            browserExamKeys.addAll(Arrays.asList(StringUtils.split(
-                    browserExamKeysString,
-                    Constants.LIST_SEPARATOR)));
-        }
-
-        final SebRestrictionData sebRestrictionData = new SebRestrictionData(
-                exam,
-                configKeys,
-                browserExamKeys,
-                // TODO when we have more restriction details available from the Exam, put it to the map
-                Collections.emptyMap());
-        return sebRestrictionData;
     }
 
 }

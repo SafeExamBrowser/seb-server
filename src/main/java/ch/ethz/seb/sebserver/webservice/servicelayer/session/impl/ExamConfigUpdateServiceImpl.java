@@ -13,23 +13,20 @@ import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -129,15 +126,18 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
             for (final Exam exam : exams) {
-                if (exam.getStatus() == ExamStatus.RUNNING) {
-                    this.updateSebClientRestriction(exam)
+                if (exam.getStatus() == ExamStatus.RUNNING && BooleanUtils.isTrue(exam.lmsSebRestriction)) {
+                    this.examUpdateHandler
+                            .getSebRestrictionService()
+                            .applySebClientRestriction(exam)
                             .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
                 }
             }
 
             // evict each Exam from cache and release the update-lock on DB
             for (final Exam exam : exams) {
-                this.examSessionService.flushCache(exam)
+                this.examSessionService
+                        .flushCache(exam)
                         .onError(t -> log.error("Failed to flush Exam from cache: {}", exam, t));
             }
 
@@ -170,7 +170,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     // if the exam is running...
                     final String updateId = this.examUpdateHandler.createUpdateId();
                     if (log.isDebugEnabled()) {
-                        log.debug("Process SEB Exam Configuration mapping update for: {} with update-id {}",
+                        log.debug(
+                                "Process SEB Exam Configuration mapping update for: {} with update-id {}",
                                 mapping,
                                 updateId);
                     }
@@ -194,14 +195,15 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                                     mapping.configurationNodeId))
                             .getOrThrow();
 
-                    // update seb client restriction if the feature is activated
+                    // update seb client restriction if the feature is activated for the exam
                     if (exam.lmsSebRestriction) {
-                        final Result<Exam> updateSebClientRestriction = this.updateSebClientRestriction(exam);
-                        // if there was an error during update, it is logged but this process goes on
-                        // and the saved changes are not rolled back
-                        if (updateSebClientRestriction.hasError()) {
-                            log.error("Failed to update SEB Client restriction on LMS for exam: {}", exam);
-                        }
+                        this.examUpdateHandler
+                                .getSebRestrictionService()
+                                .applySebClientRestriction(exam)
+                                .onError(t -> log.error(
+                                        "Failed to update SEB Client restriction for Exam: {}",
+                                        exam,
+                                        t));
                     }
 
                     // flush the exam cache. If there was an error during flush, it is logged but this process goes on
@@ -225,7 +227,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         if (this.examSessionService.getConnectionData(exam.id)
                 .getOrThrow()
                 .stream()
-                .filter(ExamConfigUpdateServiceImpl::isActiveConnection)
+                .filter(ExamSessionService::isActiveConnection)
                 .count() > 0) {
 
             throw new APIMessage.APIMessageException(
@@ -271,21 +273,6 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     @Override
-    public Result<Exam> applySebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.applySebClientRestriction(exam);
-    }
-
-    @Override
-    public Result<Exam> updateSebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.updateSebClientRestriction(exam);
-    }
-
-    @Override
-    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
-        return this.examUpdateHandler.releaseSebClientRestriction(exam);
-    }
-
-    @Override
     public Result<Collection<Long>> checkRunningExamIntegrity(final Long configurationNodeId) {
         final Collection<Long> involvedExams = this.examConfigurationMapDAO
                 .getExamIdsForConfigNodeId(configurationNodeId)
@@ -303,7 +290,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .getOrThrow()
                             .stream();
                 })
-                .filter(ExamConfigUpdateServiceImpl::isActiveConnection)
+                .filter(ExamSessionService::isActiveConnection)
                 .count();
 
         // if we have active SEB client connection on any running exam that
@@ -316,36 +303,6 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             // otherwise we return the involved identifiers exams to further processing
             return Result.of(involvedExams);
         }
-    }
-
-    @Override
-    public boolean hasActiveSebClientConnections(final Long examId) {
-        if (examId == null || !this.examSessionService.isExamRunning(examId)) {
-            return false;
-        }
-
-        return this.examSessionService.getConnectionData(examId)
-                .getOrThrow()
-                .stream()
-                .filter(ExamConfigUpdateServiceImpl::isActiveConnection)
-                .findFirst()
-                .isPresent();
-    }
-
-    private static boolean isActiveConnection(final ClientConnectionData connection) {
-        if (connection.clientConnection.status.establishedStatus) {
-            return true;
-        }
-
-        if (connection.clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-            final Long creationTime = connection.clientConnection.getCreationTime();
-            final long millisecondsNow = Utils.getMillisecondsNow();
-            if (millisecondsNow - creationTime < 30 * Constants.SECOND_IN_MILLIS) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void checkIntegrityDoubleCheck(

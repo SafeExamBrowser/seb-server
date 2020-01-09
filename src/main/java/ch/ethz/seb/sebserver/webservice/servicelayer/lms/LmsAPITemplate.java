@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -104,20 +105,16 @@ public interface LmsAPITemplate {
      * @param exam the exam to get the SEB restriction data for
      * @return Result refer to the SebRestrictionData instance or to an ResourceNotFoundException if restriction is
      *         missing or to another exception on unexpected error case */
-    Result<SebRestrictionData> getSebClientRestriction(Exam exam);
+    Result<SebRestriction> getSebClientRestriction(Exam exam);
 
     /** Applies a SEB Client restriction within the LMS with the given attributes.
      *
+     * @param externalExamId The exam identifier from LMS side (Exam.externalId)
      * @param sebRestrictionData containing all data for SEB Client restriction
      * @return Result refer to the given SebRestrictionData if restriction was successful or to an error if not */
-    Result<SebRestrictionData> applySebClientRestriction(SebRestrictionData sebRestrictionData);
-
-    /** Updates a SEB Client restriction within the LMS with the given attributes.
-     *
-     * @param sebRestrictionData containing all data for SEB Client restriction
-     * @return Result refer to the given SebRestrictionData if updating restriction was successful or to an error if
-     *         not */
-    Result<SebRestrictionData> updateSebClientRestriction(SebRestrictionData sebRestrictionData);
+    Result<SebRestriction> applySebClientRestriction(
+            String externalExamId,
+            SebRestriction sebRestrictionData);
 
     /** Releases an already applied SEB Client restriction within the LMS for a given Exam.
      * This completely removes the SEB Client restriction on LMS side.

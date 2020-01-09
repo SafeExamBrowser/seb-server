@@ -45,9 +45,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 
-final class ExamToConfigBindPopup {
+final class ExamToConfigBindingForm {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamToConfigBindPopup.class);
+    private static final Logger log = LoggerFactory.getLogger(ExamToConfigBindingForm.class);
 
     private static final LocTextKey NEW_CONFIG_MAPPING_TILE_TEXT_KEY =
             new LocTextKey("sebserver.exam.configuration.form.title.new");

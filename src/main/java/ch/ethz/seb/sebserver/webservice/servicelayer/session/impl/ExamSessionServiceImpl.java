@@ -31,6 +31,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -120,22 +122,28 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
                 // check SEB restriction available and restricted
                 // if SEB restriction is not available no consistency violation message is added
-                this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
-                        .map(t -> {
-                            if (t.testCourseRestrictionAPI().isOk()) {
-                                return t;
-                            } else {
-                                throw new RuntimeException();
-                            }
-                        })
-                        .flatMap(t -> t.getSebClientRestriction(exam))
-                        .onError(error -> {
-                            if (error instanceof NoSebRestrictionException) {
-                                result.add(
-                                        ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION
-                                                .of(exam.getModelId()));
-                            }
-                        });
+                final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
+                        .getOr(null);
+                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION)) {
+                    this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
+                            .map(t -> {
+                                if (t.testCourseRestrictionAPI().isOk()) {
+                                    return t;
+                                } else {
+                                    throw new NoSebRestrictionException();
+                                }
+                            })
+                            .flatMap(t -> t.getSebClientRestriction(exam))
+                            .onError(error -> {
+                                if (error instanceof NoSebRestrictionException) {
+                                    result.add(
+                                            ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION
+                                                    .of(exam.getModelId()));
+                                } else {
+                                    throw new RuntimeException("Unexpected error: ", error);
+                                }
+                            });
+                }
 
                 // check indicator exists
                 if (this.indicatorDAO.allForExam(examId)
@@ -148,6 +156,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             return result;
         });
+    }
+
+    @Override
+    public boolean hasActiveSebClientConnections(final Long examId) {
+        if (examId == null || !this.isExamRunning(examId)) {
+            return false;
+        }
+
+        return this.getConnectionData(examId)
+                .getOrThrow()
+                .stream()
+                .filter(ExamSessionService::isActiveConnection)
+                .findFirst()
+                .isPresent();
     }
 
     @Override

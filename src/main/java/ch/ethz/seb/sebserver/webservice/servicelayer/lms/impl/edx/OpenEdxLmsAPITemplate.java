@@ -18,13 +18,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 
 final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
@@ -66,9 +67,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-
-        new RuntimeException().printStackTrace();
-
         return getQuizzes(new FilterMap())
                 .getOrElse(() -> Collections.emptyList())
                 .stream()
@@ -90,43 +88,29 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestrictionData> getSebClientRestriction(final Exam exam) {
+    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
         if (log.isDebugEnabled()) {
             log.debug("Get SEB Client restriction for Exam: {}", exam);
         }
 
         return this.openEdxCourseRestriction
                 .getSebRestriction(exam.externalId)
-                .map(edxData -> new SebRestrictionData(exam, edxData));
+                .map(restriction -> SebRestriction.from(exam.id, restriction));
     }
 
     @Override
-    public Result<SebRestrictionData> applySebClientRestriction(final SebRestrictionData sebRestrictionData) {
+    public Result<SebRestriction> applySebClientRestriction(
+            final String externalExamId,
+            final SebRestriction sebRestrictionData) {
 
         if (log.isDebugEnabled()) {
             log.debug("Apply SEB Client restriction: {}", sebRestrictionData);
         }
 
-        return Result.tryCatch(() -> {
-
-            this.openEdxCourseRestriction.pushSebRestriction(
-                    sebRestrictionData.exam.externalId,
-                    new OpenEdxCourseRestrictionData(sebRestrictionData))
-                    .getOrThrow();
-
-            return sebRestrictionData;
-        });
-    }
-
-    @Override
-    public Result<SebRestrictionData> updateSebClientRestriction(final SebRestrictionData sebRestrictionData) {
-        if (log.isDebugEnabled()) {
-            log.debug("Apply SEB Client restriction: {}", sebRestrictionData);
-        }
-
-        return this.openEdxCourseRestriction.pushSebRestriction(
-                sebRestrictionData.exam.externalId,
-                new OpenEdxCourseRestrictionData(sebRestrictionData))
+        return this.openEdxCourseRestriction
+                .putSebRestriction(
+                        externalExamId,
+                        OpenEdxSebRestriction.from(sebRestrictionData))
                 .map(result -> sebRestrictionData);
     }
 

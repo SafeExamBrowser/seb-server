@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,6 +48,9 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -60,8 +65,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -77,7 +82,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final LmsAPIService lmsAPIService;
     private final ExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
-    private final ExamConfigUpdateService examConfigUpdateService;
+    private final SebRestrictionService sebRestrictionService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -90,7 +95,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final UserDAO userDAO,
             final ExamConfigService sebExamConfigService,
             final ExamSessionService examSessionService,
-            final ExamConfigUpdateService examConfigUpdateService) {
+            final SebRestrictionService sebRestrictionService) {
 
         super(authorization,
                 bulkActionService,
@@ -104,7 +109,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.lmsAPIService = lmsAPIService;
         this.sebExamConfigService = sebExamConfigService;
         this.examSessionService = examSessionService;
-        this.examConfigUpdateService = examConfigUpdateService;
+        this.sebRestrictionService = sebRestrictionService;
     }
 
     @Override
@@ -215,63 +220,94 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    // ****************************************************************************
+    // **** SEB Restriction
+
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
-            method = RequestMethod.PATCH,
+            method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Exam switchSebRestriction(
-            @PathVariable final Long modelId,
-            @RequestParam(name = Domain.EXAM.ATTR_LMS_SEB_RESTRICTION, required = true) final boolean sebRestriction,
+    public SebRestriction getSebRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(this.sebRestrictionService::getSebRestrictionFromExam)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Exam saveSebRestrictionData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final SebRestriction sebRestriction) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO.byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(exam -> this.sebRestrictionService.saveSebRestrictionToExam(exam, sebRestriction))
+                .flatMap(exam -> BooleanUtils.isTrue(exam.lmsSebRestriction)
+                        ? this.applySebRestriction(exam, true)
+                        : Result.of(exam))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
+            method = RequestMethod.PUT,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Exam applySebRestriction(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
 
         checkModifyPrivilege(institutionId);
 
-        return this.entityDAO.byPK(modelId)
+        return this.entityDAO.byPK(examlId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(this::checkNoActiveSebClientConnections)
-                .flatMap(exam -> this.applySebRestriction(exam, sebRestriction))
+                .flatMap(exam -> this.applySebRestriction(exam, true))
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
 
-    public static Page<Exam> buildSortedExamPage(
-            final Integer pageNumber,
-            final Integer pageSize,
-            final String sort,
-            final List<Exam> exams) {
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Exam deleteSebRestriction(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
 
-        if (!StringUtils.isBlank(sort)) {
-            final String sortBy = PageSortOrder.decode(sort);
-            if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
-            }
-            if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.type.compareTo(exam2.type));
-            }
-            if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.startTime.compareTo(exam2.startTime));
-            }
-        }
-
-        if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
-            Collections.reverse(exams);
-        }
-
-        final int start = (pageNumber - 1) * pageSize;
-        int end = start + pageSize;
-        if (exams.size() < end) {
-            end = exams.size();
-        }
-        return new Page<>(
-                exams.size() / pageSize,
-                pageNumber,
-                sort,
-                exams.subList(start, end));
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO.byPK(examlId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(exam -> this.applySebRestriction(exam, false))
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
     }
+
+    // **** SEB Restriction
+    // ****************************************************************************
 
     @Override
     protected Exam createNew(final POSTMapper postParams) {
@@ -327,7 +363,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     private Result<Exam> checkNoActiveSebClientConnections(final Exam exam) {
-        if (this.examConfigUpdateService.hasActiveSebClientConnections(exam.id)) {
+        if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
             return Result.ofError(new APIMessageException(
                     APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                             .of("Exam currently has active SEB Client connections.")));
@@ -336,19 +372,77 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.of(exam);
     }
 
-    private Result<Exam> applySebRestriction(final Exam exam, final boolean sebRestriction) {
+    private Result<Exam> applySebRestriction(final Exam exam, final boolean restrict) {
+        final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
+                .getOrThrow();
 
-        if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == sebRestriction) {
+        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION)) {
+            return Result.ofError(new UnsupportedOperationException(
+                    "SEB Restriction feature not available for LMS type: " + lmsSetup.lmsType));
+        }
+
+        if (BooleanUtils.toBoolean(exam.lmsSebRestriction) == restrict) {
             return Result.of(exam);
         }
 
-        if (sebRestriction) {
-            return this.examConfigUpdateService.applySebClientRestriction(exam)
-                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, sebRestriction));
+        if (restrict) {
+            if (!this.lmsAPIService
+                    .getLmsSetup(exam.lmsSetupId)
+                    .getOrThrow().lmsType.features.contains(Features.SEB_RESTICTION)) {
+
+                return Result.ofError(new APIMessageException(
+                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
+                                .of("The LMS for this Exam has no SEB restriction feature")));
+            }
+
+            if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
+                return Result.ofError(new APIMessageException(
+                        APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                .of("Exam currently has active SEB Client connections.")));
+            }
+
+            return this.checkNoActiveSebClientConnections(exam)
+                    .flatMap(this.sebRestrictionService::applySebClientRestriction)
+                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, restrict));
         } else {
-            return this.examConfigUpdateService.releaseSebClientRestriction(exam)
-                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, sebRestriction));
+            return this.sebRestrictionService.releaseSebClientRestriction(exam)
+                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, restrict));
         }
+    }
+
+    public static Page<Exam> buildSortedExamPage(
+            final Integer pageNumber,
+            final Integer pageSize,
+            final String sort,
+            final List<Exam> exams) {
+
+        if (!StringUtils.isBlank(sort)) {
+            final String sortBy = PageSortOrder.decode(sort);
+            if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
+            }
+            if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.type.compareTo(exam2.type));
+            }
+            if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
+                Collections.sort(exams, (exam1, exam2) -> exam1.startTime.compareTo(exam2.startTime));
+            }
+        }
+
+        if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+            Collections.reverse(exams);
+        }
+
+        final int start = (pageNumber - 1) * pageSize;
+        int end = start + pageSize;
+        if (exams.size() < end) {
+            end = exams.size();
+        }
+        return new Page<>(
+                exams.size() / pageSize,
+                pageNumber,
+                sort,
+                exams.subList(start, end));
     }
 
 }

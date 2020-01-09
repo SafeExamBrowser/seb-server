@@ -36,6 +36,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction.PermissionComponent;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction.WhiteListPath;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -100,6 +102,8 @@ public class ResourceService {
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
     public static final String LMSSETUP_PROXY_AUTH_TYPE_PREFIX = "sebserver.lmssetup.form.proxy.auth-type.";
     public static final String CONFIG_ATTRIBUTE_TYPE_PREFIX = "sebserver.configtemplate.attr.type.";
+    public static final String SEB_RESTRICTION_WHITE_LIST_PREFIX = "sebserver.exam.form.sebrestriction.whiteListPaths.";
+    public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
 
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
@@ -599,6 +603,26 @@ public class ResourceService {
                 .getOr(Collections.emptyList())
                 .stream()
                 .map(node -> new Tuple<>(node.getModelId(), node.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> sebRestrictionWhiteListResources() {
+        return Arrays.asList(WhiteListPath.values())
+                .stream()
+                .map(type -> new Tuple<>(
+                        type.name(),
+                        this.i18nSupport.getText(SEB_RESTRICTION_WHITE_LIST_PREFIX + type.name(), type.key)))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> sebRestrictionPermissionResources() {
+        return Arrays.asList(PermissionComponent.values())
+                .stream()
+                .map(type -> new Tuple<>(
+                        type.name(),
+                        this.i18nSupport.getText(SEB_RESTRICTION_PERMISSIONS_PREFIX + type.name(), type.key)))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

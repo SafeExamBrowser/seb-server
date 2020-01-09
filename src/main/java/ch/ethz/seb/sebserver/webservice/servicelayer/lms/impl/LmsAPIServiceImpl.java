@@ -80,6 +80,11 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     }
 
     @Override
+    public Result<LmsSetup> getLmsSetup(final Long id) {
+        return this.lmsSetupDAO.byPK(id);
+    }
+
+    @Override
     public Result<Page<QuizData>> requestQuizDataPage(
             final int pageNumber,
             final int pageSize,
@@ -89,37 +94,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         return getAllQuizzesFromLMSSetups(filterMap)
                 .map(LmsAPIService.quizzesSortFunction(sort))
                 .map(LmsAPIService.quizzesToPageFunction(sort, pageNumber, pageSize));
-    }
-
-    /** Collect all QuizData from all affecting LmsSetup.
-     * If filterMap contains a LmsSetup identifier, only the QuizData from that LmsSetup is collected.
-     * Otherwise QuizData from all active LmsSetup of the current institution are collected.
-     *
-     * @param filterMap the FilterMap containing either an LmsSetup identifier or an institution identifier
-     * @return list of QuizData from all affecting LmsSetup */
-    private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
-
-        return Result.tryCatch(() -> {
-            // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
-            final Long lmsSetupId = filterMap.getLmsSetupId();
-            if (lmsSetupId != null) {
-                return getLmsAPITemplate(lmsSetupId)
-                        .flatMap(template -> template.getQuizzes(filterMap))
-                        .getOrThrow();
-            }
-
-            // case 2. get quizzes from all LmsSetups of specified institution
-            final Long institutionId = filterMap.getInstitutionId();
-            return new ArrayList<>(this.lmsSetupDAO.all(institutionId, true)
-                    .getOrThrow()
-                    .stream()
-                    .map(this::getLmsAPITemplate)
-                    .flatMap(Result::onErrorLogAndSkip)
-                    .map(template -> template.getQuizzes(filterMap))
-                    .flatMap(Result::onErrorLogAndSkip)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toSet()));
-        });
     }
 
     @Override
@@ -162,6 +136,37 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 : null;
 
         return test(createLmsSetupTemplate(lmsSetup, lmsCredentials, proxyData));
+    }
+
+    /** Collect all QuizData from all affecting LmsSetup.
+     * If filterMap contains a LmsSetup identifier, only the QuizData from that LmsSetup is collected.
+     * Otherwise QuizData from all active LmsSetup of the current institution are collected.
+     *
+     * @param filterMap the FilterMap containing either an LmsSetup identifier or an institution identifier
+     * @return list of QuizData from all affecting LmsSetup */
+    private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
+
+        return Result.tryCatch(() -> {
+            // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
+            final Long lmsSetupId = filterMap.getLmsSetupId();
+            if (lmsSetupId != null) {
+                return getLmsAPITemplate(lmsSetupId)
+                        .flatMap(template -> template.getQuizzes(filterMap))
+                        .getOrThrow();
+            }
+
+            // case 2. get quizzes from all LmsSetups of specified institution
+            final Long institutionId = filterMap.getInstitutionId();
+            return new ArrayList<>(this.lmsSetupDAO.all(institutionId, true)
+                    .getOrThrow()
+                    .stream()
+                    .map(this::getLmsAPITemplate)
+                    .flatMap(Result::onErrorLogAndSkip)
+                    .map(template -> template.getQuizzes(filterMap))
+                    .flatMap(Result::onErrorLogAndSkip)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toSet()));
+        });
     }
 
     private Result<LmsAPITemplate> getLmsAPITemplate(final LmsSetup lmsSetup) {

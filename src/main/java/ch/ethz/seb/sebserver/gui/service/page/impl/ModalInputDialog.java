@@ -36,6 +36,7 @@ public class ModalInputDialog<T> extends Dialog {
     public static final int DEFAULT_DIALOG_HEIGHT = 600;
     public static final int DEFAULT_DIALOG_BUTTON_WIDTH = 100;
     public static final int LARGE_DIALOG_WIDTH = 600;
+    public static final int VERY_LARGE_DIALOG_WIDTH = 800;
 
     private static final LocTextKey CANCEL_TEXT_KEY =
             new LocTextKey("sebserver.overall.action.cancel");
@@ -64,6 +65,11 @@ public class ModalInputDialog<T> extends Dialog {
 
     public ModalInputDialog<T> setLargeDialogWidth() {
         this.dialogWidth = LARGE_DIALOG_WIDTH;
+        return this;
+    }
+
+    public ModalInputDialog<T> setVeryLargeDialogWidth() {
+        this.dialogWidth = VERY_LARGE_DIALOG_WIDTH;
         return this;
     }
 

@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -103,7 +104,7 @@ public class OpenEdxCourseRestriction {
         return LmsSetupTestResult.ofOkay();
     }
 
-    Result<OpenEdxCourseRestrictionData> getSebRestriction(final String courseId) {
+    Result<OpenEdxSebRestriction> getSebRestriction(final String courseId) {
 
         if (log.isDebugEnabled()) {
             log.debug("GET SEB Client restriction on course: {}", courseId);
@@ -115,11 +116,11 @@ public class OpenEdxCourseRestriction {
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
             try {
-                final OpenEdxCourseRestrictionData data = this.restTemplate.exchange(
+                final OpenEdxSebRestriction data = this.restTemplate.exchange(
                         url,
                         HttpMethod.GET,
                         new HttpEntity<>(httpHeaders),
-                        OpenEdxCourseRestrictionData.class)
+                        OpenEdxSebRestriction.class)
                         .getBody();
 
                 if (log.isDebugEnabled()) {
@@ -135,9 +136,9 @@ public class OpenEdxCourseRestriction {
         });
     }
 
-    Result<Boolean> pushSebRestriction(
+    Result<Boolean> putSebRestriction(
             final String courseId,
-            final OpenEdxCourseRestrictionData restriction) {
+            final OpenEdxSebRestriction restriction) {
 
         if (log.isDebugEnabled()) {
             log.debug("PUT SEB Client restriction on course: {} : {}", courseId, restriction);
@@ -192,18 +193,18 @@ public class OpenEdxCourseRestriction {
     }
 
     private BooleanSupplier pushSebRestrictionFunction(
-            final OpenEdxCourseRestrictionData restriction,
+            final OpenEdxSebRestriction restriction,
             final String courseId) {
 
         final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         return () -> {
-            final OpenEdxCourseRestrictionData body = this.restTemplate.exchange(
+            final OpenEdxSebRestriction body = this.restTemplate.exchange(
                     url,
                     HttpMethod.PUT,
                     new HttpEntity<>(toJson(restriction), httpHeaders),
-                    OpenEdxCourseRestrictionData.class)
+                    OpenEdxSebRestriction.class)
                     .getBody();
 
             if (log.isDebugEnabled()) {
@@ -272,7 +273,7 @@ public class OpenEdxCourseRestriction {
         return Result.of(this.restTemplate);
     }
 
-    private String toJson(final OpenEdxCourseRestrictionData restriction) {
+    private String toJson(final OpenEdxSebRestriction restriction) {
         try {
             return this.jsonMapper.writeValueAsString(restriction);
         } catch (final JsonProcessingException e) {

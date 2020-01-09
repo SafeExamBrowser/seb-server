@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,15 +24,15 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SetExamSebRestriction extends RestCall<Exam> {
+public class ActivateSebRestriction extends RestCall<Exam> {
 
-    public SetExamSebRestriction() {
+    public ActivateSebRestriction() {
         super(new TypeKey<>(
-                CallType.SAVE,
-                EntityType.EXAM,
+                CallType.ACTIVATION_ACTIVATE,
+                EntityType.EXAM_SEB_RESTRICTION,
                 new TypeReference<Exam>() {
                 }),
-                HttpMethod.PATCH,
+                HttpMethod.PUT,
                 MediaType.APPLICATION_JSON_UTF8,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT

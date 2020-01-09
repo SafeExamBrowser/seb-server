@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.Collection;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -79,34 +78,5 @@ public interface ExamConfigUpdateService {
      * @return Result refer to a list of identifiers of involved Exams or refer to an error on integrity violation or
      *         processing error */
     Result<Collection<Long>> checkRunningExamIntegrity(final Long configurationNodeId);
-
-    /** Use this to check if a specified Exam has currently active SEB Client connections.
-     *
-     * Active SEB Client connections are established connections that are not yet closed and
-     * connection attempts that are older the a defined time interval.
-     *
-     * @param examId The Exam identifier
-     * @return true if the given Exam has currently no active client connection, false otherwise. */
-    boolean hasActiveSebClientConnections(final Long examId);
-
-    /** Used to apply SEB Client restriction within the LMS API for a specified Exam, if
-     * the exam has activated the SEB Client restriction
-     *
-     * @param exam the Exam instance
-     * @return Result refer to the Exam instance or to an error if happened */
-    Result<Exam> applySebClientRestriction(Exam exam);
-
-    /** Used to update SEB Client restriction within the LMS API for a specified Exam, if
-     * the exam has activated the SEB Client restriction and the Exam is already running.
-     *
-     * @param exam the Exam instance
-     * @return Result refer to the Exam instance or to an error if happened */
-    Result<Exam> updateSebClientRestriction(Exam exam);
-
-    /** Used to release SEB Client restriction within the LMS API for a specified Exam.
-     *
-     * @param exam the Exam instance
-     * @return Result refer to the Exam instance or to an error if happened */
-    Result<Exam> releaseSebClientRestriction(Exam exam);
 
 }

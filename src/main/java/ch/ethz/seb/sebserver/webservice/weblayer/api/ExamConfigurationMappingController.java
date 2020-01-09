@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -54,6 +55,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     private final ExamDAO examDao;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
+    private final ExamSessionService examSessionService;
 
     protected ExamConfigurationMappingController(
             final AuthorizationService authorization,
@@ -64,7 +66,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             final BeanValidationService beanValidationService,
             final ExamDAO examDao,
             final ConfigurationNodeDAO configurationNodeDAO,
-            final ExamConfigUpdateService examConfigUpdateService) {
+            final ExamConfigUpdateService examConfigUpdateService,
+            final ExamSessionService examSessionService) {
 
         super(
                 authorization,
@@ -77,6 +80,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         this.examDao = examDao;
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigUpdateService = examConfigUpdateService;
+        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -229,7 +233,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     private ExamConfigurationMap checkNoActiveClientConnections(final ExamConfigurationMap entity) {
-        if (this.examConfigUpdateService.hasActiveSebClientConnections(entity.examId)) {
+        if (this.examSessionService.hasActiveSebClientConnections(entity.examId)) {
             throw new APIMessageException(ErrorMessage.INTEGRITY_VALIDATION.of(
                     "The Exam is currently running and has active SEB Client connections"));
         }

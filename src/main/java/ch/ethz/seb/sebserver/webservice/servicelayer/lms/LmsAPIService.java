@@ -34,6 +34,31 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
  * changes this service will be notifies about the change and release the related LmsAPITemplate from cache. */
 public interface LmsAPIService {
 
+    /** Get the specified LmsSetup model by primary key
+     *
+     * @param id The identifier (PK) of the LmsSetup model
+     * @return Result refer to the LmsSetup model for specified id or to an error if happened */
+    Result<LmsSetup> getLmsSetup(Long id);
+
+    /** Get the specified LmsSetup model by modelId
+     *
+     * @param id The identifier (PK) of the LmsSetup model
+     * @return Result refer to the LmsSetup model for specified id or to an error if happened */
+    default Result<LmsSetup> getLmsSetup(final String modelId) {
+        return Result.tryCatch(() -> {
+            return getLmsSetup(Long.parseLong(modelId))
+                    .getOrThrow();
+        });
+    }
+
+    /** Used to get a specified page of QuizData from all active LMS Setup of the current users
+     * institution, filtered by the given FilterMap.
+     *
+     * @param pageNumber the page number from the QuizData list to get
+     * @param pageSize the page size
+     * @param sort the sort parameter
+     * @param filterMap the FilterMap containing all filter criteria
+     * @return the specified Page of QuizData form all active LMS Setups of the current users institution */
     Result<Page<QuizData>> requestQuizDataPage(
             final int pageNumber,
             final int pageSize,

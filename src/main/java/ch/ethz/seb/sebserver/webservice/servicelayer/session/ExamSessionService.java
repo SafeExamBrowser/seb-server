@@ -14,10 +14,13 @@ import java.util.function.Predicate;
 
 import org.springframework.cache.CacheManager;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -57,6 +60,15 @@ public interface ExamSessionService {
      * @return Result of one APIMessage per consistency check if the check failed. An empty Collection of everything is
      *         okay. */
     Result<Collection<APIMessage>> checkRunningExamConsistency(Long examId);
+
+    /** Use this to check if a specified Exam has currently active SEB Client connections.
+     *
+     * Active SEB Client connections are established connections that are not yet closed and
+     * connection attempts that are older the a defined time interval.
+     *
+     * @param examId The Exam identifier
+     * @return true if the given Exam has currently no active client connection, false otherwise. */
+    boolean hasActiveSebClientConnections(final Long examId);
 
     /** Checks if a specified Exam has at least a default SEB Exam configuration attached.
      *
@@ -140,5 +152,25 @@ public interface ExamSessionService {
      * @param exam The Exam instance
      * @return Result with reference to the given Exam or to an error if happened */
     Result<Exam> flushCache(final Exam exam);
+
+    /** Checks if the given ClientConnectionData is an active SEB client connection.
+     *
+     * @param connection ClientConnectionData instance
+     * @return true if the given ClientConnectionData is an active SEB client connection */
+    public static boolean isActiveConnection(final ClientConnectionData connection) {
+        if (connection.clientConnection.status.establishedStatus) {
+            return true;
+        }
+
+        if (connection.clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
+            final Long creationTime = connection.clientConnection.getCreationTime();
+            final long millisecondsNow = Utils.getMillisecondsNow();
+            if (millisecondsNow - creationTime < 30 * Constants.SECOND_IN_MILLIS) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 }

@@ -28,6 +28,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     boolean isNumber = false;
     Consumer<String> numberCheck = null;
     boolean isArea = false;
+    int areaMinHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
     boolean isColorbox = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
@@ -48,6 +49,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         this.isNumber = true;
         this.numberCheck = numberCheck;
         return this;
+    }
+
+    public TextFieldBuilder asArea(final int minHeight) {
+        this.areaMinHeight = minHeight;
+        return asArea();
     }
 
     public TextFieldBuilder asArea() {
@@ -74,7 +80,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         if (this.isArea) {
-            gridData.minimumHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
+            gridData.minimumHeight = this.areaMinHeight;
         } else if (this.isColorbox) {
             gridData.minimumHeight = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
             textInput.setData(RWT.CUSTOM_VARIANT, "colorbox");

@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -34,7 +35,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionData;
 
 final class MockupLmsAPITemplate implements LmsAPITemplate {
 
@@ -180,20 +180,17 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestrictionData> getSebClientRestriction(final Exam exam) {
+    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
         log.info("Apply SEB Client restriction for Exam: {}", exam);
         return Result.ofError(new NoSebRestrictionException());
     }
 
     @Override
-    public Result<SebRestrictionData> applySebClientRestriction(final SebRestrictionData sebRestrictionData) {
-        log.info("Apply SEB Client restriction: {}", sebRestrictionData);
-        return Result.of(sebRestrictionData);
-    }
+    public Result<SebRestriction> applySebClientRestriction(
+            final String externalExamId,
+            final SebRestriction sebRestrictionData) {
 
-    @Override
-    public Result<SebRestrictionData> updateSebClientRestriction(final SebRestrictionData sebRestrictionData) {
-        log.info("Update SEB Client restriction: {}", sebRestrictionData);
+        log.info("Apply SEB Client restriction: {}", sebRestrictionData);
         return Result.of(sebRestrictionData);
     }
 
