@@ -149,6 +149,7 @@ public class SebExamConfigList implements TemplateComposer {
 
         // configuration template table
         widgetFactory.label(content, "");
+        widgetFactory.labelSeparator(content);
         widgetFactory.labelLocalizedTitle(
                 content,
                 TITLE_TEMPLATE_TEXT_KEY);
@@ -192,7 +193,8 @@ public class SebExamConfigList implements TemplateComposer {
                 .publishIf(examConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
-                .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> configTable.hasAnyContent())
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)

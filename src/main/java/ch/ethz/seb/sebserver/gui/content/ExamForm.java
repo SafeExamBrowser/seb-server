@@ -394,6 +394,8 @@ public class ExamForm implements TemplateComposer {
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
 
+            this.widgetFactory.labelSeparator(content);
+
             // List of SEB Configuration
             this.widgetFactory.labelLocalized(
                     content,
@@ -478,6 +480,8 @@ public class ExamForm implements TemplateComposer {
                             CONFIG_EMPTY_SELECTION_TEXT_KEY)
                     .noEventPropagation()
                     .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent());
+
+            this.widgetFactory.labelSeparator(content);
 
             // List of Indicators
             this.widgetFactory.labelLocalized(

@@ -289,6 +289,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         if (isAttachedToExam) {
 
+            widgetFactory.labelSeparator(content);
             widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,

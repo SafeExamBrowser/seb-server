@@ -611,7 +611,7 @@ public class ResourceService {
         return Arrays.asList(WhiteListPath.values())
                 .stream()
                 .map(type -> new Tuple<>(
-                        type.name(),
+                        type.key,
                         this.i18nSupport.getText(SEB_RESTRICTION_WHITE_LIST_PREFIX + type.name(), type.key)))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
@@ -621,7 +621,7 @@ public class ResourceService {
         return Arrays.asList(PermissionComponent.values())
                 .stream()
                 .map(type -> new Tuple<>(
-                        type.name(),
+                        type.key,
                         this.i18nSupport.getText(SEB_RESTRICTION_PERMISSIONS_PREFIX + type.name(), type.key)))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());

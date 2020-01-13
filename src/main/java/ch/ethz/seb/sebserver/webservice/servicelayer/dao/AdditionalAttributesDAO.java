@@ -38,7 +38,7 @@ public interface AdditionalAttributesDAO {
      * @param entityId the entity identifier (primary key)
      * @param name the name of the attribute
      * @param value the value of the attribute */
-    void saveAdditionalAttribute(
+    Result<AdditionalAttributeRecord> saveAdditionalAttribute(
             EntityType type,
             Long entityId,
             String name,

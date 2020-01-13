@@ -501,7 +501,7 @@ public class WidgetFactory {
 
     public Label labelSeparator(final Composite parent) {
         final Label label = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-        final GridData data = new GridData(SWT.FILL, SWT.TOP, true, true);
+        final GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
         label.setLayoutData(data);
         return label;
     }

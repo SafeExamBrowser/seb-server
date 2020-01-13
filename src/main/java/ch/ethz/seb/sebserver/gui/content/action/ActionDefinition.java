@@ -250,12 +250,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     EXAM_ENABLE_SEB_RESTRICTION(
             new LocTextKey("sebserver.exam.action.sebrestriction.enable"),
-            ImageIcon.LOCK,
+            ImageIcon.UNLOCK,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
     EXAM_DISABLE_SEB_RESTRICTION(
             new LocTextKey("sebserver.exam.action.sebrestriction.disable"),
-            ImageIcon.UNLOCK,
+            ImageIcon.LOCK,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
 

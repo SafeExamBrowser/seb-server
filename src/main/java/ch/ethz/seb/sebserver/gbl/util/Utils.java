@@ -175,6 +175,56 @@ public final class Utils {
                 .collect(Collectors.toList()));
     }
 
+    public static Collection<String> getListOfLines(final String list) {
+        if (list == null) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.asList(StringUtils.split(
+                streamlineCarriageReturn(list),
+                Constants.CARRIAGE_RETURN));
+    }
+
+    public static String convertCarriageReturnToListSeparator(final String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return streamlineCarriageReturn(value.trim())
+                .replace(Constants.CARRIAGE_RETURN, Constants.LIST_SEPARATOR_CHAR);
+    }
+
+    public static String convertListSeparatorToCarriageReturn(final String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value
+                .trim()
+                .replace(Constants.LIST_SEPARATOR_CHAR, Constants.CARRIAGE_RETURN);
+    }
+
+    public static String streamlineCarriageReturn(final String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.replace('\r', '\n')
+                .replace("\r\n", "\n");
+    }
+
+    public static Collection<String> getListFromString(final String list) {
+        return getListFromString(list, Constants.LIST_SEPARATOR);
+    }
+
+    public static Collection<String> getListFromString(final String list, final String separator) {
+        if (list == null) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.asList(StringUtils.split(list, separator));
+    }
+
     public static Result<Long> dateTimeStringToTimestamp(final String startTime) {
         return Result.tryCatch(() -> {
             return DateTime.parse(startTime, Constants.STANDARD_DATE_TIME_FORMATTER).getMillis();

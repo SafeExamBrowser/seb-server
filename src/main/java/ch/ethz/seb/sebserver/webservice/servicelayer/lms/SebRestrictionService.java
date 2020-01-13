@@ -29,10 +29,9 @@ public interface SebRestrictionService {
      * and given additional restriction properties within the AdditionalAttrtibutes linked
      * to the given Exam.
      *
-     *
-     * @param exam
-     * @param sebRestriction
-     * @return */
+     * @param exam the Exam instance to save the SEB restrictions for
+     * @param sebRestriction SebRestriction data containing generic and LMS specific restriction attributes
+     * @return Result refer to the given Exam instance or to an error if happened */
     Result<Exam> saveSebRestrictionToExam(Exam exam, SebRestriction sebRestriction);
 
     /** Used to apply SEB Client restriction within the LMS API for a specified Exam.

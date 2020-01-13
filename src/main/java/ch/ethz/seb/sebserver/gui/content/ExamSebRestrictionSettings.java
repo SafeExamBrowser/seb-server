@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -16,14 +19,14 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -54,6 +57,10 @@ public class ExamSebRestrictionSettings {
             new LocTextKey("sebserver.exam.form.sebrestriction.WHITELIST_PATHS");
     private final static LocTextKey SEB_RESTRICTION_FORM_EDX_PERMISSIONS =
             new LocTextKey("sebserver.exam.form.sebrestriction.PERMISSION_COMPONENTS");
+    private final static LocTextKey SEB_RESTRICTION_FORM_EDX_BLACKLIST_CHAPTERS =
+            new LocTextKey("sebserver.exam.form.sebrestriction.BLACKLIST_CHAPTERS");
+    private final static LocTextKey SEB_RESTRICTION_FORM_EDX_USER_BANNING_ENABLED =
+            new LocTextKey("sebserver.exam.form.sebrestriction.USER_BANNING_ENABLED");
 
     static final String PAGE_CONTEXT_ATTR_LMS_TYPE = "ATTR_LMS_TYPE";
 
@@ -66,7 +73,8 @@ public class ExamSebRestrictionSettings {
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setVeryLargeDialogWidth();
+                                    .setDialogWidth(740)
+                                    .setDialogHeight(400);
 
             final SebRestrictionPropertiesForm bindFormContext = new SebRestrictionPropertiesForm(
                     pageService,
@@ -96,19 +104,35 @@ public class ExamSebRestrictionSettings {
         final LmsType lmsType = getLmsType(pageContext);
         SebRestriction bodyValue = null;
         try {
-            final JSONMapper jsonMapper = pageService.getJSONMapper();
-            if (lmsType == LmsType.OPEN_EDX) {
-                final OpenEdxSebRestriction edxProperties = jsonMapper.readValue(
-                        formHandle.getFormBinding().getFormAsJson(),
-                        OpenEdxSebRestriction.class);
-                bodyValue = SebRestriction.from(Long.parseLong(entityKey.modelId), edxProperties);
-            } else {
-                bodyValue = jsonMapper.readValue(
-                        formHandle.getFormBinding().getFormAsJson(),
-                        SebRestriction.class);
-            }
-        } catch (final Exception e) {
+            final Form form = formHandle.getForm();
+            final Collection<String> browserKeys = Utils.getListOfLines(
+                    form.getFieldValue(SebRestriction.ATTR_BROWSER_KEYS));
 
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            if (lmsType == LmsType.OPEN_EDX) {
+                additionalAttributes.put(
+                        OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
+                        form.getFieldValue(OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS));
+                additionalAttributes.put(
+                        OpenEdxSebRestriction.ATTR_WHITELIST_PATHS,
+                        form.getFieldValue(OpenEdxSebRestriction.ATTR_WHITELIST_PATHS));
+                additionalAttributes.put(
+                        OpenEdxSebRestriction.ATTR_USER_BANNING_ENABLED,
+                        form.getFieldValue(OpenEdxSebRestriction.ATTR_USER_BANNING_ENABLED));
+                additionalAttributes.put(
+                        OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS,
+                        Utils.convertCarriageReturnToListSeparator(
+                                form.getFieldValue(OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS)));
+            }
+
+            bodyValue = new SebRestriction(
+                    Long.parseLong(entityKey.modelId),
+                    null,
+                    browserKeys,
+                    additionalAttributes);
+
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
 
         return !pageService
@@ -116,17 +140,8 @@ public class ExamSebRestrictionSettings {
                 .getBuilder(SaveSebRestriction.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withBody(bodyValue)
-                //.withFormBinding(formHandle.getFormBinding())
                 .call()
                 .onError(formHandle::handleError)
-                .map(mapping -> {
-                    pageService.executePageAction(
-                            pageService.pageActionBuilder(pageContext.clearEntityKeys())
-                                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                                    .withEntityKey(pageContext.getParentEntityKey())
-                                    .create());
-                    return mapping;
-                })
                 .hasError();
     }
 
@@ -152,15 +167,22 @@ public class ExamSebRestrictionSettings {
             final EntityKey entityKey = this.pageContext.getEntityKey();
             final LmsType lmsType = getLmsType(this.pageContext);
 
+            final Composite content = this.pageService
+                    .getWidgetFactory()
+                    .createPopupScrollComposite(parent);
+
             final SebRestriction sebRestriction = restService
                     .getBuilder(GetSebRestriction.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();
 
-            final PageContext formContext = this.pageContext.clearEntityKeys();
+            final PageContext formContext = this.pageContext
+                    .copyOf(content)
+                    .clearEntityKeys();
+
             final FormHandle<SebRestriction> formHandle = this.pageService.formBuilder(
-                    formContext.copyOf(parent), 3)
+                    formContext, 3)
                     .withDefaultSpanEmptyCell(0)
                     .withEmptyCellSeparation(false)
                     .readonly(false)
@@ -168,14 +190,14 @@ public class ExamSebRestrictionSettings {
                     .addField(FormBuilder.text(
                             SebRestriction.ATTR_CONFIG_KEYS,
                             SEB_RESTRICTION_FORM_CONFIG_KEYS,
-                            StringUtils.join(sebRestriction.getConfigKeys(), '\n'))
-                            .asArea(25)
+                            StringUtils.join(sebRestriction.getConfigKeys(), Constants.CARRIAGE_RETURN))
+                            .asArea(50)
                             .readonly(true))
 
                     .addField(FormBuilder.text(
                             SebRestriction.ATTR_BROWSER_KEYS,
                             SEB_RESTRICTION_FORM_BROWSER_KEYS,
-                            StringUtils.join(sebRestriction.getBrowserExamKeys(), '\n'))
+                            StringUtils.join(sebRestriction.getBrowserExamKeys(), Constants.CARRIAGE_RETURN))
                             .asArea())
 
                     .addFieldIf(
@@ -195,6 +217,26 @@ public class ExamSebRestrictionSettings {
                                     sebRestriction.getAdditionalProperties()
                                             .get(OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS),
                                     () -> resourceService.sebRestrictionPermissionResources()))
+
+                    .addFieldIf(
+                            () -> lmsType == LmsType.OPEN_EDX,
+                            () -> FormBuilder.text(
+                                    OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS,
+                                    SEB_RESTRICTION_FORM_EDX_BLACKLIST_CHAPTERS,
+                                    Utils.convertListSeparatorToCarriageReturn(
+                                            sebRestriction
+                                                    .getAdditionalProperties()
+                                                    .get(OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS)))
+                                    .asArea())
+
+                    .addFieldIf(
+                            () -> lmsType == LmsType.OPEN_EDX,
+                            () -> FormBuilder.checkbox(
+                                    OpenEdxSebRestriction.ATTR_USER_BANNING_ENABLED,
+                                    SEB_RESTRICTION_FORM_EDX_USER_BANNING_ENABLED,
+                                    sebRestriction
+                                            .getAdditionalProperties()
+                                            .get(OpenEdxSebRestriction.ATTR_USER_BANNING_ENABLED)))
 
                     .build();
 

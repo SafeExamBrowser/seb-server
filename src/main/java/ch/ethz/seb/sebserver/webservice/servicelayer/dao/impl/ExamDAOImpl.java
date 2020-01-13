@@ -206,11 +206,17 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.supporter != null)
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    (exam.type != null) ? exam.type.name() : null,
+                    (exam.type != null)
+                            ? exam.type.name()
+                            : null,
                     exam.quitPassword,
-                    null, // browser keys
-                    (exam.status != null) ? exam.status.name() : null,
-                    BooleanUtils.toIntegerObject(exam.lmsSebRestriction),
+                    exam.browserExamKeys,
+                    (exam.status != null)
+                            ? exam.status.name()
+                            : null,
+                    (exam.lmsSebRestriction != null)
+                            ? BooleanUtils.toIntegerObject(exam.lmsSebRestriction)
+                            : null,
                     null, // updating
                     null, // lastUpdate
                     null // active

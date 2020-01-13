@@ -59,53 +59,60 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
     @Override
     @Transactional
-    public void saveAdditionalAttribute(
+    public Result<AdditionalAttributeRecord> saveAdditionalAttribute(
             final EntityType type,
             final Long entityId,
             final String name,
             final String value) {
 
-        if (value == null) {
-            this.delete(entityId, name);
-            return;
-        }
+        return Result.tryCatch(() -> {
+            if (value == null) {
+                Result.ofError(new IllegalArgumentException(
+                        "value cannot be null. Use delete to delete an additional attribute"));
+            }
 
-        final Optional<Long> id = this.additionalAttributeRecordMapperer
-                .selectIdsByExample()
-                .where(
-                        AdditionalAttributeRecordDynamicSqlSupport.entityType,
-                        SqlBuilder.isEqualTo(type.name()))
-                .and(
-                        AdditionalAttributeRecordDynamicSqlSupport.entityId,
-                        SqlBuilder.isEqualTo(entityId))
-                .and(
-                        AdditionalAttributeRecordDynamicSqlSupport.name,
-                        SqlBuilder.isEqualTo(name))
-                .build()
-                .execute()
-                .stream()
-                .findFirst();
+            final Optional<Long> id = this.additionalAttributeRecordMapperer
+                    .selectIdsByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(type.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(entityId))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo(name))
+                    .build()
+                    .execute()
+                    .stream()
+                    .findFirst();
 
-        if (id.isPresent()) {
-            final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
-                    id.get(),
-                    type.name(),
-                    entityId,
-                    name,
-                    value);
-            this.additionalAttributeRecordMapperer
-                    .updateByPrimaryKeySelective(rec);
-        } else {
-            final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
-                    null,
-                    type.name(),
-                    entityId,
-                    name,
-                    value);
-            this.additionalAttributeRecordMapperer
-                    .insert(rec);
-        }
+            if (id.isPresent()) {
+                final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
+                        id.get(),
+                        type.name(),
+                        entityId,
+                        name,
+                        value);
+                this.additionalAttributeRecordMapperer
+                        .updateByPrimaryKeySelective(rec);
 
+                return this.additionalAttributeRecordMapperer
+                        .selectByPrimaryKey(rec.getId());
+            } else {
+                final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
+                        null,
+                        type.name(),
+                        entityId,
+                        name,
+                        value);
+                this.additionalAttributeRecordMapperer
+                        .insert(rec);
+
+                return this.additionalAttributeRecordMapperer
+                        .selectByPrimaryKey(rec.getId());
+            }
+        });
     }
 
     @Override

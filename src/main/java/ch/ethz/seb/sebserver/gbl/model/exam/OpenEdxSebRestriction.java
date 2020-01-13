@@ -93,7 +93,7 @@ public class OpenEdxSebRestriction {
     public final Collection<String> permissionComponents;
 
     @JsonProperty(ATTR_USER_BANNING_ENABLED)
-    public final boolean banningEnabled;
+    public final Boolean banningEnabled;
 
     @JsonCreator
     OpenEdxSebRestriction(
