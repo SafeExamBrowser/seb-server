@@ -2,3 +2,6 @@ coverage:
   range: "40...75"
   round: down
   precision: 2
+  
+fixes:
+  -"::seb-server/"
