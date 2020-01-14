@@ -147,6 +147,8 @@
                 <configuration>
                   <excludes>
                     <exclude>ch/ethz/seb/sebserver/gui/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/mapper/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/webservice/datalayer/batis/model/**/*</exclude>
                   </excludes>
                 </configuration>
               </execution>
