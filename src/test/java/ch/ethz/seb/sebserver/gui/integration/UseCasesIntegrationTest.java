@@ -1420,4 +1420,24 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
     }
 
+    @Test
+    @Order(13)
+    // *************************************
+    // Use Case 13: Login as examAdmin2 and use newly created configuration
+    // - change configuration status to "Ready to Use"
+    public void testUsecase13() throws IOException {
+
+    }
+
+    @Test
+    @Order(14)
+    // *************************************
+    // Use Case 14: Login as examAdmin2 and use newly created configuration
+    // - create template from it
+    // - get all templates
+    // - check newly created template
+    public void testUsecase14() throws IOException {
+
+    }
+
 }

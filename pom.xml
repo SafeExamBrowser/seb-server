@@ -146,11 +146,7 @@
                 </goals>
                 <configuration>
                   <excludes>
-                    ch/ethz/seb/sebserver/gui/content/**/*
-                    <exclude>ch/ethz/seb/sebserver/gui/content/**/*</exclude>
-                    <exclude>ch/ethz/seb/sebserver/gui/form/**/*</exclude>
-                    <exclude>ch/ethz/seb/sebserver/gui/table/**/*</exclude>
-                    <exclude>ch/ethz/seb/sebserver/gui/widget/**/*</exclude>
+                    <exclude>ch/ethz/seb/sebserver/gui/**/*</exclude>
                   </excludes>
                 </configuration>
               </execution>
