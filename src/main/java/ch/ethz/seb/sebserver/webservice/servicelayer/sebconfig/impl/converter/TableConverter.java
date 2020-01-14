@@ -121,7 +121,7 @@ public class TableConverter implements AttributeValueConverter {
 
             out.write(Utils.toByteArray(String.format(
                     (xml) ? XML_KEY_TEMPLATE : JSON_KEY_TEMPLATE,
-                    extractName(attribute))));
+                    AttributeValueConverter.extractName(attribute))));
 
             if (noValues) {
                 out.write((xml) ? XML_EMPTY_ARRAY : JSON_EMPTY_ARRAY);
@@ -136,7 +136,7 @@ public class TableConverter implements AttributeValueConverter {
             } else {
                 out.write(Utils.toByteArray(String.format(
                         (xml) ? XML_KEY_TEMPLATE : JSON_KEY_TEMPLATE,
-                        extractName(attribute))));
+                        AttributeValueConverter.extractName(attribute))));
             }
         }
 

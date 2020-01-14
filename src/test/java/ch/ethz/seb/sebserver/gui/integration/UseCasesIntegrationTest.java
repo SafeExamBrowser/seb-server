@@ -18,16 +18,22 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -48,7 +54,10 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
@@ -90,10 +99,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ActivateExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeactivateExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportPlainXML;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValuePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
@@ -103,6 +112,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
@@ -973,6 +984,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Order(10)
     // *************************************
     // Use Case 10: Login as examAdmin2 and create a new SEB Exam Configuration
+    // - test creation
     // - save configuration in history
     // - change some attribute
     // - process an undo
@@ -986,15 +998,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetConfigurationPage(),
                 new GetConfigurations(),
                 new SaveExamConfigHistory(),
-                new ExportExamConfig(),
-                new GetFollowupConfiguration(),
+                new GetConfigurationTableValues(),
                 new SebExamConfigUndo(),
                 new SaveExamConfigValue(),
                 new SaveExamConfigTableValues(),
                 new GetConfigurationValuePage(),
                 new GetConfigurationValues(),
-                new ActivateExamConfig(),
-                new DeactivateExamConfig(),
+                new GetConfigAttributes(),
                 new GetUserAccountNames());
 
         // get user id
@@ -1062,6 +1072,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(valuesResponse.hasError());
         List<ConfigurationValue> values = valuesResponse.get();
         assertFalse(values.isEmpty());
+
+        UsecaseTestUtils.testProhibitedProcessesInit(
+                followup.getModelId(),
+                restService);
+        UsecaseTestUtils.testPermittedProcessesInit(
+                followup.getModelId(),
+                restService);
 
         // update a value -- grab first
         final ConfigurationValue value = values.get(0);
@@ -1170,29 +1187,22 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Test
     @Order(11)
     // *************************************
-    // Use Case 11: Login as examAdmin2 and create a new SEB Exam Configuration
-    // - table value add, delete, modify
-    // - export
+    // Use Case 11: Login as examAdmin2 and get newly created exam configuration
+    // - get permitted processes table values
+    // - modify permitted processes table values
+    // - save permitted processes table values
+    // - check save OK
     public void testUsecase11() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
-                new NewExamConfig(),
-                new GetExamConfigNode(),
+                new GetConfigAttributes(),
                 new GetExamConfigNodePage(),
-                new GetConfigurationPage(),
                 new GetConfigurations(),
+                new GetConfigurationPage(),
                 new SaveExamConfigHistory(),
-                new ExportExamConfig(),
-                new GetFollowupConfiguration(),
-                new SebExamConfigUndo(),
-                new SaveExamConfigValue(),
-                new SaveExamConfigTableValues(),
-                new GetConfigurationValuePage(),
-                new GetConfigurationValues(),
-                new ActivateExamConfig(),
-                new DeactivateExamConfig(),
-                new GetUserAccountNames());
+                new GetConfigurationTableValues(),
+                new SaveExamConfigTableValues());
 
         // get configuration page
         final Result<Page<ConfigurationNode>> pageResponse = restService
@@ -1206,6 +1216,208 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         final ConfigurationNode configurationNode = page.content.get(0);
         assertEquals("New Exam Config", configurationNode.name);
+
+        // get follow-up configuration
+        final Result<List<Configuration>> configHistoryResponse = restService
+                .getBuilder(GetConfigurations.class)
+                .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, configurationNode.getModelId())
+                .call();
+
+        final List<Configuration> configHistory = configHistoryResponse.get();
+        final Configuration followup = configHistory
+                .stream()
+                .filter(config -> BooleanUtils.isTrue(config.followup))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Followup Node not found"));
+
+        final ConfigurationTableValues permittedProcessValues = UsecaseTestUtils.getTableValues(
+                "73",
+                followup.getModelId(),
+                restService);
+
+        assertNotNull(permittedProcessValues);
+        assertFalse(permittedProcessValues.values.isEmpty());
+
+        // get all configuration attributes
+        final Map<Long, ConfigurationAttribute> attributes = restService
+                .getBuilder(GetConfigAttributes.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toMap(attr -> attr.id, Function.identity()));
+
+        // create new row by copy the values
+        final List<TableValue> newTableValues = permittedProcessValues.values
+                .stream()
+                .map(attr -> new TableValue(attr.attributeId, 1, attributes.get(attr.attributeId).defaultValue))
+                .collect(Collectors.toList());
+        newTableValues.addAll(permittedProcessValues.values);
+
+        // test institutional integrity violation
+        try {
+            final ConfigurationTableValues newTableValue = new ConfigurationTableValues(
+                    1000L,
+                    followup.id,
+                    73L,
+                    newTableValues);
+
+            restService.getBuilder(SaveExamConfigTableValues.class)
+                    .withBody(newTableValue)
+                    .call()
+                    .getOrThrow();
+
+            fail("Exception expected here");
+        } catch (final Exception e) {
+            assertEquals("Unexpected error while rest call", e.getMessage());
+        }
+
+        // test follow-up integrity violation
+        try {
+            final ConfigurationTableValues newTableValue = new ConfigurationTableValues(
+                    configHistory.get(0).id,
+                    followup.id,
+                    73L,
+                    newTableValues);
+
+            restService.getBuilder(SaveExamConfigTableValues.class)
+                    .withBody(newTableValue)
+                    .call()
+                    .getOrThrow();
+
+            fail("Exception expected here");
+        } catch (final Exception e) {
+            assertEquals("Unexpected error while rest call", e.getMessage());
+        }
+
+        final ConfigurationTableValues newTableValue = new ConfigurationTableValues(
+                followup.institutionId,
+                followup.id,
+                73L,
+                newTableValues);
+
+        final ConfigurationTableValues savedValues = restService.getBuilder(SaveExamConfigTableValues.class)
+                .withBody(newTableValue)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedValues);
+        assertFalse(savedValues.values.isEmpty());
+        assertTrue(savedValues.values.size() == newTableValues.size());
+    }
+
+    @Test
+    @Order(12)
+    // *************************************
+    // Use Case 12: Login as examAdmin2 and use newly created configuration
+    // - get follow-up configuration by API
+    // - import
+    // - export
+    public void testUsecase12() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetConfigAttributes(),
+                new GetExamConfigNodePage(),
+                new SaveExamConfigHistory(),
+                new ExportExamConfig(),
+                new ImportNewExamConfig(),
+                new ImportExamConfigOnExistingConfig(),
+                new ExportPlainXML(),
+                new GetFollowupConfiguration());
+
+        // get all configuration attributes
+        final Collection<ConfigurationAttribute> attributes = restService
+                .getBuilder(GetConfigAttributes.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toList());
+
+        // get configuration page
+        final Result<Page<ConfigurationNode>> pageResponse = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call();
+
+        assertNotNull(pageResponse);
+        assertFalse(pageResponse.hasError());
+        final Page<ConfigurationNode> page = pageResponse.get();
+        assertFalse(page.content.isEmpty());
+
+        final ConfigurationNode configurationNode = page.content.get(0);
+        assertEquals("New Exam Config", configurationNode.name);
+
+        final Configuration followup = restService
+                .getBuilder(GetFollowupConfiguration.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configurationNode.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(followup);
+        assertTrue(followup.followup);
+
+        // export1
+        final InputStream input = restService
+                .getBuilder(ExportPlainXML.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configurationNode.getModelId())
+                .call()
+                .getOrThrow();
+
+        final String xmlString = StreamUtils.copyToString(input, Charsets.UTF_8);
+        assertNotNull(xmlString);
+        for (final ConfigurationAttribute attribute : attributes) {
+            if (attribute.name.contains(".") || attribute.name.equals("kioskMode")) {
+                continue;
+            }
+            if (!xmlString.contains(attribute.name)) {
+                fail("missing attribute: " + attribute.name);
+            }
+        }
+
+        // import plain config
+        InputStream inputStream = new ClassPathResource("importTest.seb").getInputStream();
+        Configuration importedConfig = restService
+                .getBuilder(ImportNewExamConfig.class)
+                .withBody(inputStream)
+                .withHeader(Domain.CONFIGURATION_NODE.ATTR_NAME, "Imported Test Configuration")
+                .call()
+                .getOrThrow();
+
+        assertNotNull(importedConfig);
+
+        // import with the same name should cause an exception
+        try {
+            restService
+                    .getBuilder(ImportNewExamConfig.class)
+                    .withBody(inputStream)
+                    .withHeader(Domain.CONFIGURATION_NODE.ATTR_NAME, "Imported Test Configuration")
+                    .withHeader(API.IMPORT_PASSWORD_ATTR_NAME, "123")
+                    .call()
+                    .getOrThrow();
+            fail("Expecting an exception here");
+        } catch (final Exception e) {
+
+        }
+
+        // import encrypted config with password encryption
+        inputStream = new ClassPathResource("importTest_123.seb").getInputStream();
+        importedConfig = restService
+                .getBuilder(ImportNewExamConfig.class)
+                .withBody(inputStream)
+                .withHeader(Domain.CONFIGURATION_NODE.ATTR_NAME, "Imported Encrypted Test Configuration")
+                .withHeader(API.IMPORT_PASSWORD_ATTR_NAME, "123")
+                .call()
+                .getOrThrow();
+
+        assertNotNull(importedConfig);
+
+        // import config within existing configuration
+        inputStream = new ClassPathResource("importTest.seb").getInputStream();
+        importedConfig = restService
+                .getBuilder(ImportExamConfigOnExistingConfig.class)
+                .withBody(inputStream)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(importedConfig.getConfigurationNodeId()))
+                .call()
+                .getOrThrow();
     }
 
 }

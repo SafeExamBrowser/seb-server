@@ -93,7 +93,7 @@ public class IntegerConverter implements AttributeValueConverter {
 
         out.write(Utils.toByteArray(String.format(
                 template,
-                extractName(attribute),
+                AttributeValueConverter.extractName(attribute),
                 intVal)));
     }
 

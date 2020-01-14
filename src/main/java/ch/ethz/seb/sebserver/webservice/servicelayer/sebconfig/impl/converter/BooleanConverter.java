@@ -77,7 +77,7 @@ public class BooleanConverter implements AttributeValueConverter {
         out.write(Utils.toByteArray(
                 String.format(
                         template,
-                        extractName(attribute),
+                        AttributeValueConverter.extractName(attribute),
                         (value != null && value.value != null) ? value.value : defaultValue)));
     }
 

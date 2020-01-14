@@ -34,7 +34,9 @@ public class GetFollowupConfiguration extends RestCall<Configuration> {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT);
+                API.CONFIGURATION_NODE_ENDPOINT +
+                        API.MODEL_ID_VAR_PATH_SEGMENT +
+                        API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT);
     }
 
 }

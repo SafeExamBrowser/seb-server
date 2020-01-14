@@ -72,7 +72,7 @@ public interface AttributeValueConverter {
      *
      * @param attribute
      * @return the SEB configuration attribute name */
-    default String extractName(final ConfigurationAttribute attribute) {
+    static String extractName(final ConfigurationAttribute attribute) {
         final int lastIndexOf = attribute.name.lastIndexOf('.');
         if (lastIndexOf > 0) {
             return attribute.name.substring(lastIndexOf + 1, attribute.name.length());

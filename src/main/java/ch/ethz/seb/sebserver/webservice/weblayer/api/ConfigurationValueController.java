@@ -96,7 +96,7 @@ public class ConfigurationValueController extends EntityController<Configuration
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ConfigurationTableValues getTableValueBy(
+    public ConfigurationTableValues getTableValue(
             @RequestParam(
                     name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
                     required = true) final Long attributeId,

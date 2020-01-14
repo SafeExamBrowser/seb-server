@@ -88,12 +88,12 @@ public class StringConverter implements AttributeValueConverter {
         if (StringUtils.isNotBlank(val)) {
             out.write(Utils.toByteArray(String.format(
                     template,
-                    extractName(attribute),
+                    AttributeValueConverter.extractName(attribute),
                     val)));
         } else {
             out.write(Utils.toByteArray(String.format(
                     emptyTemplate,
-                    extractName(attribute))));
+                    AttributeValueConverter.extractName(attribute))));
         }
     }
 

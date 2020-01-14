@@ -91,7 +91,7 @@ public class ArrayOfStringConverter implements AttributeValueConverter {
             final StringBuilder sb = new StringBuilder();
             sb.append(String.format(
                     (xml) ? XML_TEMPLATE : JSON_TEMPLATE,
-                    extractName(attribute)));
+                    AttributeValueConverter.extractName(attribute)));
 
             for (final String v : values) {
                 sb.append(String.format(
@@ -112,7 +112,7 @@ public class ArrayOfStringConverter implements AttributeValueConverter {
         } else {
             out.write(Utils.toByteArray(String.format(
                     (xml) ? XML_TEMPLATE_EMPTY : JSON_TEMPLATE_EMPTY,
-                    extractName(attribute))));
+                    AttributeValueConverter.extractName(attribute))));
         }
     }
 
