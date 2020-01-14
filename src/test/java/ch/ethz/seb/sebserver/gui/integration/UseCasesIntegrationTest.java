@@ -56,9 +56,12 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
@@ -112,9 +115,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
@@ -1426,18 +1432,68 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // Use Case 13: Login as examAdmin2 and use newly created configuration
     // - change configuration status to "Ready to Use"
     public void testUsecase13() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetConfigAttributes(),
+                new GetExamConfigNodePage(),
+                new SaveExamConfig());
 
+        // get configuration from page
+        final ConfigurationNode config = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call()
+                .getOrThrow().content
+                        .get(0);
+        assertEquals("New Exam Config", config.name);
+
+        final ConfigurationNode newConfig = new ConfigurationNode(
+                config.id,
+                config.institutionId,
+                config.templateId,
+                config.name,
+                config.description,
+                ConfigurationType.EXAM_CONFIG,
+                config.owner,
+                ConfigurationStatus.READY_TO_USE);
+
+        final ConfigurationNode savedConfig = restService
+                .getBuilder(SaveExamConfig.class)
+                .withBody(newConfig)
+                .call()
+                .getOrThrow();
+
+        assertTrue(savedConfig.status == ConfigurationStatus.READY_TO_USE);
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     // *************************************
-    // Use Case 14: Login as examAdmin2 and use newly created configuration
-    // - create template from it
-    // - get all templates
-    // - check newly created template
-    public void testUsecase14() throws IOException {
+    // Use Case 15: Login as examAdmin2 and get views and orientations
+    // - test Views API
+    public void testUsecase15() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetViews(),
+                new GetViewPage(),
+                new GetOrientationPage(),
+                new GetOrientations());
 
+        final List<View> views = restService
+                .getBuilder(GetViews.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(views);
+        assertTrue(views.size() == 11);
+
+        final List<Orientation> orientations = restService
+                .getBuilder(GetOrientations.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(orientations);
     }
 
 }

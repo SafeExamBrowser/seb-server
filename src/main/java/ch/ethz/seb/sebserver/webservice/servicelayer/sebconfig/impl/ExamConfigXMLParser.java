@@ -34,6 +34,46 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigXMLParser.class);
 
+    // comma separated list of SEB exam config keys that can be ignored on imports
+    // See: https://jira.let.ethz.ch/browse/SEBSERV-100
+    private static final Set<String> SEB_EXAM_CONFIG_KEYS_TO_IGNORE = new HashSet<>(Arrays.asList(
+            // SEB Server specific
+            "sebMode",
+            "sebServerFallback",
+            "sebServerURL",
+
+            // Obsolete on SEB Server
+            "startURL",
+            "startURLAllowDeepLink",
+            "startURLAppendQueryParameter",
+
+            // These keys don't exist anymore:
+            "examConfigKeyContainedKeys",
+            "allowWLAN",
+            "insideSebEnableEnableNetworkConnectionSelector",
+            "ignoreQuitPassword",
+            "oskBehavior",
+            "outsideSebEnableChangeAPassword",
+            "outsideSebEnableEaseOfAccess",
+            "outsideSebEnableLockThisComputer",
+            "outsideSebEnableLogOff",
+            "outsideSebEnableShutDownurlFilterRegex",
+            "outsideSebEnableStartTaskManager",
+            "outsideSebEnableSwitchUser",
+            "outsideSebEnableVmWareClientShade",
+            "enableURLContentFilter",
+            "enableURLFilter",
+            "prohibitedProcesses.windowHandlingProcess",
+            "permittedProcesses.windowHandlingProcess",
+            "backgroundOpenSEBConfig",
+
+            // These keys are only used internally
+            "urlFilterRegex",
+            "urlFilterTrustedContent",
+            "blacklistURLFilter",
+            "whitelistURLFilter",
+            "URLFilterIgnoreList"));
+
     private static final Set<String> VALUE_ELEMENTS = new HashSet<>(Arrays.asList(
             Constants.XML_PLIST_BOOLEAN_FALSE,
             Constants.XML_PLIST_BOOLEAN_TRUE,
@@ -381,7 +421,11 @@ public class ExamConfigXMLParser extends DefaultHandler {
                 return handleKioskMode(name, listIndex, value);
             }
 
-            log.warn("Unknown attribute. name={} value={}", name, value);
+            if (SEB_EXAM_CONFIG_KEYS_TO_IGNORE.contains(name)) {
+                log.debug("Black-listed attribute. name={} value={}", name, value);
+            } else {
+                log.warn("Unknown attribute. name={} value={}", name, value);
+            }
             return null;
         }
 

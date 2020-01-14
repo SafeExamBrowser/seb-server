@@ -13,11 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,36 +53,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEnc
 public class ExamConfigServiceImpl implements ExamConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigServiceImpl.class);
-
-    // comma separated list of SEB exam config keys that can be ignored on imports
-    // See: https://jira.let.ethz.ch/browse/SEBSERV-100
-    private static final Set<String> SEB_EXAM_CONFIG_KEYS_TO_IGNORE = new HashSet<>(Arrays.asList(
-
-            // These keys don't exist anymore:
-            "examConfigKeyContainedKeys",
-            "allowWLAN",
-            "insideSebEnableEnableNetworkConnectionSelector",
-            "ignoreQuitPassword",
-            "oskBehavior",
-            "outsideSebEnableChangeAPassword",
-            "outsideSebEnableEaseOfAccess",
-            "outsideSebEnableLockThisComputer",
-            "outsideSebEnableLogOff",
-            "outsideSebEnableShutDownurlFilterRegex",
-            "outsideSebEnableStartTaskManager",
-            "outsideSebEnableSwitchUser",
-            "outsideSebEnableVmWareClientShade",
-            "enableURLContentFilter",
-            "enableURLFilter",
-            "prohibitedProcesses.windowHandlingProcess",
-            "backgroundOpenSEBConfig",
-
-            // These keys are only used internally
-            "urlFilterRegex",
-            "urlFilterTrustedContent",
-            "blacklistURLFilter",
-            "whitelistURLFilter",
-            "URLFilterIgnoreList"));
 
     private final ExamConfigIO examConfigIO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
