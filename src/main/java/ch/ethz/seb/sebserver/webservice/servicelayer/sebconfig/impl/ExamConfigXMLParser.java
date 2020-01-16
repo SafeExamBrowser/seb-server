@@ -61,6 +61,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             "outsideSebEnableStartTaskManager",
             "outsideSebEnableSwitchUser",
             "outsideSebEnableVmWareClientShade",
+            "outsideSebEnableShutDown",
             "enableURLContentFilter",
             "enableURLFilter",
             "prohibitedProcesses.windowHandlingProcess",

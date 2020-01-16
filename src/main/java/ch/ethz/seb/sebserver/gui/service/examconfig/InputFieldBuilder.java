@@ -21,8 +21,6 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 
 public interface InputFieldBuilder {
 
-    String RES_BUNDLE_KEY_PREFIX = "sebserver.examconfig.attribute.";
-
     /** Called by the InputFieldBuilderSupplier bean instance on initialization to avoid
      * circular dependencies.
      *

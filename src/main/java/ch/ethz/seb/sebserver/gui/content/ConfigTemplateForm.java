@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -76,6 +78,7 @@ public class ConfigTemplateForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final I18nSupport i18nSupport;
     private final ResourceService resourceService;
     private final ExamConfigurationService examConfigurationService;
 
@@ -93,6 +96,7 @@ public class ConfigTemplateForm implements TemplateComposer {
         this.pageService = pageService;
         this.restService = restService;
         this.currentUser = currentUser;
+        this.i18nSupport = pageService.getI18nSupport();
         this.resourceService = pageService.getResourceService();
         this.examConfigurationService = examConfigurationService;
 
@@ -195,27 +199,31 @@ public class ConfigTemplateForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
                                     ATTRIBUTES_LIST_NAME_TEXT_KEY,
-                                    TemplateAttribute::getName)
+                                    this::getAttributeName)
                                             .withFilter(this.nameFilter)
-                                            .sortable())
+                                            .sortable()
+                                            .widthProportion(3))
                             .withColumn(new ColumnDefinition<TemplateAttribute>(
                                     Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE,
                                     ATTRIBUTES_LIST_TYPE_TEXT_KEY,
                                     resourceService::getAttributeTypeName)
                                             .withFilter(typeFilter)
-                                            .sortable())
+                                            .sortable()
+                                            .widthProportion(1))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.ORIENTATION.ATTR_VIEW_ID,
                                     ATTRIBUTES_LIST_VIEW_TEXT_KEY,
                                     resourceService.getViewNameFunction(entityKey.modelId))
                                             .withFilter(viewFilter)
-                                            .sortable())
+                                            .sortable()
+                                            .widthProportion(1))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.ORIENTATION.ATTR_GROUP_ID,
                                     ATTRIBUTES_LIST_GROUP_TEXT_KEY,
                                     TemplateAttribute::getGroupId)
                                             .withFilter(this.groupFilter)
-                                            .sortable())
+                                            .sortable()
+                                            .widthProportion(1))
                             .withDefaultAction(pageActionBuilder
                                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
                                     .withParentEntityKey(entityKey)
@@ -293,6 +301,18 @@ public class ConfigTemplateForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
+    }
+
+    private String getAttributeName(final TemplateAttribute attribute) {
+
+        final String name = this.i18nSupport.getText(
+                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.getName(),
+                "");
+        if (StringUtils.isNotBlank(name)) {
+            return attribute.getName() + " (" + name + ")";
+        } else {
+            return attribute.getName();
+        }
     }
 
     private final PageAction resetToDefaults(
