@@ -579,20 +579,27 @@ public class TableFilter<ROW extends Entity> {
         @Override
         String getValue() {
             if (this.fromDateSelector != null && this.toDateSelector != null) {
-                final org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
                         .withYear(this.fromDateSelector.getYear())
                         .withMonthOfYear(this.fromDateSelector.getMonth() + 1)
                         .withDayOfMonth(this.fromDateSelector.getDay())
                         .withHourOfDay((this.fromTimeSelector != null) ? this.fromTimeSelector.getHours() : 0)
                         .withMinuteOfHour((this.fromTimeSelector != null) ? this.fromTimeSelector.getMinutes() : 0)
                         .withSecondOfMinute((this.fromTimeSelector != null) ? this.fromTimeSelector.getSeconds() : 0);
-                final org.joda.time.DateTime toDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                org.joda.time.DateTime toDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
                         .withYear(this.toDateSelector.getYear())
                         .withMonthOfYear(this.toDateSelector.getMonth() + 1)
                         .withDayOfMonth(this.toDateSelector.getDay())
                         .withHourOfDay((this.toTimeSelector != null) ? this.toTimeSelector.getHours() : 0)
                         .withMinuteOfHour((this.toTimeSelector != null) ? this.toTimeSelector.getMinutes() : 0)
                         .withSecondOfMinute((this.toTimeSelector != null) ? this.toTimeSelector.getSeconds() : 0);
+
+                if (this.fromTimeSelector == null) {
+                    fromDate = fromDate.withTimeAtStartOfDay();
+                }
+                if (this.toTimeSelector == null) {
+                    toDate = toDate.plusDays(1).withTimeAtStartOfDay();
+                }
 
                 return fromDate.toString(Constants.STANDARD_DATE_TIME_FORMATTER) +
                         Constants.EMBEDDED_LIST_SEPARATOR +
@@ -635,7 +642,6 @@ public class TableFilter<ROW extends Entity> {
                     log.error("Failed to set date range filter attribute: ", e);
                 }
             }
-
         }
     }
 

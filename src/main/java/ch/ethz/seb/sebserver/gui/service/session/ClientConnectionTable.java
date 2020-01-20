@@ -64,18 +64,16 @@ public final class ClientConnectionTable {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
     private static final int BOTTOM_PADDING = 20;
+    private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
     private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
             "sebserver.monitoring.connection.list.column.indicator.";
-
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
     private final static LocTextKey CONNECTION_ADDRESS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.address");
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status");
-
-    private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;

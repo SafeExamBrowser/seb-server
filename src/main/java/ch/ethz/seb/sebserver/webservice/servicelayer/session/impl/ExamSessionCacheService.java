@@ -77,7 +77,8 @@ public class ExamSessionCacheService {
     @Cacheable(
             cacheNames = CACHE_NAME_RUNNING_EXAM,
             key = "#examId",
-            unless = "#result == null")
+            unless = "#result == null",
+            sync = true)
     public Exam getRunningExam(final Long examId) {
 
         if (log.isDebugEnabled()) {
@@ -165,7 +166,8 @@ public class ExamSessionCacheService {
     @Cacheable(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#exam.id",
-            unless = "#result == null")
+            unless = "#result == null",
+            sync = true)
     public InMemorySebConfig getDefaultSebConfigForExam(final Exam exam) {
         try {
 
@@ -195,7 +197,8 @@ public class ExamSessionCacheService {
     @Cacheable(
             cacheNames = CACHE_NAME_PING_RECORD,
             key = "#connectionToken",
-            unless = "#result == null")
+            unless = "#result == null",
+            sync = true)
     @Transactional
     public ClientEventRecord getPingRecord(final String connectionToken) {
         if (log.isDebugEnabled()) {
