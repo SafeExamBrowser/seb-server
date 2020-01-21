@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
@@ -123,6 +124,11 @@ public final class Form implements FormBinding {
     }
 
     Form putReadonlyField(final String name, final Label label, final Text field) {
+        this.formFields.add(name, createReadonlyAccessor(label, field));
+        return this;
+    }
+
+    Form putReadonlyField(final String name, final Label label, final Browser field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
     }
@@ -280,6 +286,12 @@ public final class Form implements FormBinding {
     // following are FormFieldAccessor implementations for all field types
     //@formatter:off
     private FormFieldAccessor createReadonlyAccessor(final Label label, final Text field) {
+        return new FormFieldAccessor(label, field, null) {
+            @Override public String getStringValue() { return null; }
+            @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
+        };
+    }
+    private FormFieldAccessor createReadonlyAccessor(final Label label, final Browser field) {
         return new FormFieldAccessor(label, field, null) {
             @Override public String getStringValue() { return null; }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }

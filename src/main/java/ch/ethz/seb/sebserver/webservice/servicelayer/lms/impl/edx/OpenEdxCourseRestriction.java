@@ -114,6 +114,7 @@ public class OpenEdxCourseRestriction {
             final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
 
             try {
                 final OpenEdxSebRestriction data = this.restTemplate.exchange(
@@ -199,6 +200,7 @@ public class OpenEdxCourseRestriction {
         final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
         return () -> {
             final OpenEdxSebRestriction body = this.restTemplate.exchange(
                     url,
@@ -219,10 +221,12 @@ public class OpenEdxCourseRestriction {
 
         final String url = this.lmsSetup.lmsApiUrl + getSebRestrictionUrl(courseId);
         return () -> {
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
             final ResponseEntity<Object> exchange = this.restTemplate.exchange(
                     url,
                     HttpMethod.DELETE,
-                    new HttpEntity<>(new HttpHeaders()),
+                    new HttpEntity<>(httpHeaders),
                     Object.class);
 
             if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {

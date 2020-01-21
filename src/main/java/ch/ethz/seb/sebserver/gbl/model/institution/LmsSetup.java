@@ -45,7 +45,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     public enum LmsType {
         MOCKUP(Features.COURSE_API),
-        OPEN_EDX(Features.COURSE_API, Features.SEB_RESTICTION);
+        OPEN_EDX(Features.COURSE_API, Features.SEB_RESTICTION),
+        MOODLE(Features.COURSE_API);
 
         public final EnumSet<Features> features;
 

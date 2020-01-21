@@ -257,9 +257,10 @@ public class QuizDiscoveryList implements TemplateComposer {
 
         action.getSingleSelection();
 
-        final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
+        final ModalInputDialog<Void> dialog = new ModalInputDialog<Void>(
                 action.pageContext().getParent().getShell(),
-                this.widgetFactory);
+                this.widgetFactory)
+                        .setLargeDialogWidth();
 
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
@@ -277,7 +278,7 @@ public class QuizDiscoveryList implements TemplateComposer {
         final Composite parent = pc.getParent();
         final Composite grid = this.widgetFactory.createPopupScrollComposite(parent);
 
-        this.pageService.formBuilder(pc.copyOf(grid), 3)
+        final FormBuilder formbuilder = this.pageService.formBuilder(pc.copyOf(grid), 3)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addFieldIf(
@@ -299,7 +300,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         QUIZ_DETAILS_DESCRIPTION_TEXT_KEY,
                         quizData.description)
-                        .asArea())
+                        .asHTML())
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
                         QUIZ_DETAILS_STARTTIME_TEXT_KEY,
@@ -311,8 +312,20 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         QUIZ_DETAILS_URL_TEXT_KEY,
-                        quizData.startURL))
-                .build();
+                        quizData.startURL));
+
+        if (!quizData.additionalAttributes.isEmpty()) {
+            quizData.additionalAttributes
+                    .entrySet()
+                    .stream()
+                    .forEach(entry -> formbuilder
+                            .addField(FormBuilder.text(
+                                    entry.getKey(),
+                                    new LocTextKey(entry.getKey()),
+                                    entry.getValue())));
+        }
+
+        formbuilder.build();
     }
 
 }

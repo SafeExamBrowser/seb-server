@@ -194,7 +194,7 @@ public interface PageService {
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
     default <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
-        return entityTableBuilder(apiCall.getEntityType().name(), apiCall);
+        return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }
 
     /** Get an new TableBuilder for specified page based RestCall.

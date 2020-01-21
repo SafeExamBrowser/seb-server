@@ -269,8 +269,28 @@ public final class Utils {
         return dateTime.withZone(DateTimeZone.UTC);
     }
 
+    public static DateTime toDateTimeUTC(final Long timestamp) {
+        if (timestamp == null) {
+            return null;
+        } else {
+            return toDateTimeUTC(timestamp.longValue());
+        }
+    }
+
     public static DateTime toDateTimeUTC(final long timestamp) {
         return new DateTime(timestamp, DateTimeZone.UTC);
+    }
+
+    public static DateTime toDateTimeUTCUnix(final Long timestamp) {
+        if (timestamp == null || timestamp.longValue() <= 0) {
+            return null;
+        } else {
+            return toDateTimeUTCUnix(timestamp.longValue());
+        }
+    }
+
+    public static DateTime toDateTimeUTCUnix(final long timestamp) {
+        return new DateTime(timestamp * 1000, DateTimeZone.UTC);
     }
 
     public static Long toTimestamp(final String dateString) {
@@ -547,4 +567,48 @@ public final class Utils {
             return StringUtils.EMPTY;
         }
     }
+
+    public static String toAppFormUrlEncodedBody(final MultiValueMap<String, String> attributes) {
+        return attributes
+                .entrySet()
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, entry) -> {
+                            final String name = entry.getKey();
+                            final List<String> values = entry.getValue();
+                            if (values == null || values.isEmpty()) {
+                                return sb;
+                            }
+                            if (sb.length() > 0) {
+                                sb.append(Constants.AMPERSAND);
+                            }
+                            if (sb.length() == 1) {
+                                return sb.append(name).append(Constants.EQUALITY_SIGN).append(values.get(0));
+                            }
+                            return sb.append(toAppFormUrlEncodedBody(name, values));
+                        },
+                        (sb1, sb2) -> sb1.append(sb2))
+                .toString();
+    }
+
+    public static final String toAppFormUrlEncodedBody(final String name, final Collection<String> array) {
+        final String _name = name.contains(String.valueOf(Constants.SQUARE_BRACE_OPEN))
+                ? name
+                : name + Constants.SQUARE_BRACE_OPEN + Constants.SQUARE_BRACE_CLOSE;
+
+        return array
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, entry) -> {
+                            if (sb.length() > 0) {
+                                sb.append(Constants.AMPERSAND);
+                            }
+                            return sb.append(_name).append(Constants.EQUALITY_SIGN).append(entry);
+                        },
+                        (sb1, sb2) -> sb1.append(sb2))
+                .toString();
+    }
+
 }

@@ -10,15 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,21 +30,21 @@ import org.springframework.security.oauth2.client.http.AccessTokenRequiredExcept
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
  * See also: https://course-catalog-api-guide.readthedocs.io */
-final class OpenEdxCourseAccess {
+final class OpenEdxCourseAccess extends CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseAccess.class);
 
@@ -59,7 +54,6 @@ final class OpenEdxCourseAccess {
     private final LmsSetup lmsSetup;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
-    private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesSupplier;
 
     private OAuth2RestTemplate restTemplate;
 
@@ -69,16 +63,10 @@ final class OpenEdxCourseAccess {
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService) {
 
+        super(asyncService);
         this.lmsSetup = lmsSetup;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
-        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(
-                allQuizzesSupplier(),
-                3,
-                Constants.MINUTE_IN_MILLIS,
-                Constants.MINUTE_IN_MILLIS,
-                true,
-                Constants.HOUR_IN_MILLIS);
     }
 
     LmsSetupTestResult initAPIAccess() {
@@ -114,51 +102,52 @@ final class OpenEdxCourseAccess {
 
         return LmsSetupTestResult.ofOkay();
     }
+//
+//    Result<QuizData> getQuizFromCache(final String id) {
+//        return Result.tryCatch(() -> {
+//            return this.allQuizzesSupplier
+//                    .getChached()
+//                    .stream()
+//                    .filter(qd -> id.equals(qd.id))
+//                    .findFirst()
+//                    .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id));
+//        });
+//    }
+//
+//    Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
+//        return Result.tryCatch(() -> {
+//            final List<QuizData> cached = this.allQuizzesSupplier.getChached();
+//            if (cached == null) {
+//                throw new RuntimeException("No cached quizzes");
+//            }
+//
+//            final Map<String, QuizData> cacheMapping = cached
+//                    .stream()
+//                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
+//
+//            if (!cacheMapping.keySet().containsAll(ids)) {
+//                throw new RuntimeException("Not all requested quizzes cached");
+//            }
+//
+//            return ids
+//                    .stream()
+//                    .map(id -> {
+//                        final QuizData q = cacheMapping.get(id);
+//                        return (q == null)
+//                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
+//                                : Result.of(q);
+//                    })
+//                    .collect(Collectors.toList());
+//        });
+//    }
 
-    Result<QuizData> getQuizFromCache(final String id) {
-        return Result.tryCatch(() -> {
-            return this.allQuizzesSupplier
-                    .getChached()
-                    .stream()
-                    .filter(qd -> id.equals(qd.id))
-                    .findFirst()
-                    .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id));
-        });
-    }
+//    Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
+//        return this.allQuizzesSupplier.get()
+//                .map(LmsAPIService.quizzesFilterFunction(filterMap));
+//    }
 
-    Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.tryCatch(() -> {
-            final List<QuizData> cached = this.allQuizzesSupplier.getChached();
-            if (cached == null) {
-                throw new RuntimeException("No cached quizzes");
-            }
-
-            final Map<String, QuizData> cacheMapping = cached
-                    .stream()
-                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-            if (!cacheMapping.keySet().containsAll(ids)) {
-                throw new RuntimeException("Not all requested quizzes cached");
-            }
-
-            return ids
-                    .stream()
-                    .map(id -> {
-                        final QuizData q = cacheMapping.get(id);
-                        return (q == null)
-                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
-                                : Result.of(q);
-                    })
-                    .collect(Collectors.toList());
-        });
-    }
-
-    Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.allQuizzesSupplier.get()
-                .map(LmsAPIService.quizzesFilterFunction(filterMap));
-    }
-
-    private Supplier<List<QuizData>> allQuizzesSupplier() {
+    @Override
+    protected Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> {
             return getRestTemplate()
                     .map(this::collectAllQuizzes)
@@ -254,6 +243,7 @@ final class OpenEdxCourseAccess {
     }
 
     /** Maps a OpenEdX course API course page */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     static final class EdXPage {
         public Integer count;
         public String previous;
@@ -263,6 +253,7 @@ final class OpenEdxCourseAccess {
     }
 
     /** Maps the OpenEdX course API course data */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     static final class CourseData {
         public String id;
         public String name;

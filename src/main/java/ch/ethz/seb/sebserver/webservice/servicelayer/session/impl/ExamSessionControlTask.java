@@ -158,7 +158,7 @@ class ExamSessionControlTask implements DisposableBean {
             final Map<Long, String> updated = this.examDAO.allForEndCheck()
                     .getOrThrow()
                     .stream()
-                    .filter(exam -> exam.endTime.plus(this.examTimeSuffix).isBefore(now))
+                    .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
                     .map(exam -> this.examUpdateHandler.setFinished(exam, updateId))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 

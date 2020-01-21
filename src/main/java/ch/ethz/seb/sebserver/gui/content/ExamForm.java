@@ -312,7 +312,7 @@ public class ExamForm implements TemplateComposer {
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         exam.description)
-                        .asArea()
+                        .asHTML()
                         .readonly(true)
                         .withInputSpan(6)
                         .withEmptyCellSeparation(false))

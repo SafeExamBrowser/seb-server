@@ -14,6 +14,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class Message extends MessageBox {
@@ -35,7 +36,13 @@ public final class Message extends MessageBox {
 
     @Override
     protected void prepareOpen() {
-        super.prepareOpen();
+        try {
+            super.prepareOpen();
+        } catch (final IllegalArgumentException e) {
+            // fallback on markup text error
+            super.setMessage(Utils.escapeHTML_XML_EcmaScript(super.getMessage()));
+            super.prepareOpen();
+        }
         final GridLayout layout = (GridLayout) super.shell.getLayout();
         layout.marginTop = 10;
         layout.marginLeft = 10;

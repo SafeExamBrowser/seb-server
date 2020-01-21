@@ -8,11 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,19 +66,10 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        return getQuizzes(new FilterMap())
-                .getOrElse(() -> Collections.emptyList())
-                .stream()
-                .filter(quiz -> ids.contains(quiz.id))
-                .map(quiz -> Result.of(quiz))
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public Result<QuizData> getQuizFromCache(final String id) {
-        return this.openEdxCourseAccess.getQuizFromCache(id)
-                .orElse(() -> getQuiz(id));
+        return getQuizzesFromCache(new HashSet<>(Arrays.asList(id)))
+                .iterator()
+                .next();
     }
 
     @Override

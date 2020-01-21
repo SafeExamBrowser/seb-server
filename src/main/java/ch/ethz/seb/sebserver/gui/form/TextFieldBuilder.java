@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -24,12 +25,17 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class TextFieldBuilder extends FieldBuilder<String> {
 
+    private static final String HTML_TEXT_BLOCK_START =
+            "<span style=\"font: 12px Arial, Helvetica, sans-serif;color: #4a4a4a;\">";
+    private static final String HTML_TEXT_BLOCK_END = "</span>";
+
     boolean isPassword = false;
     boolean isNumber = false;
     Consumer<String> numberCheck = null;
     boolean isArea = false;
     int areaMinHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
     boolean isColorbox = false;
+    boolean isHTML = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
@@ -62,6 +68,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public TextFieldBuilder asHTML() {
+        this.isHTML = true;
+        return this;
+    }
+
     public TextFieldBuilder asColorbox() {
         this.isColorbox = true;
         return this;
@@ -72,6 +83,21 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         final boolean readonly = builder.readonly || this.readonly;
         final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
+
+        if (readonly && this.isHTML) {
+            final Browser browser = new Browser(fieldGrid, SWT.NONE);
+            final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
+            gridData.minimumHeight = this.areaMinHeight;
+            browser.setLayoutData(gridData);
+            if (StringUtils.isNoneBlank(this.value)) {
+                browser.setText(HTML_TEXT_BLOCK_START + this.value + HTML_TEXT_BLOCK_END);
+            } else if (readonly) {
+                browser.setText(Constants.EMPTY_NOTE);
+            }
+            builder.form.putReadonlyField(this.name, titleLabel, browser);
+            return;
+        }
+
         final Text textInput = (this.isNumber)
                 ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly)
                 : (this.isArea)

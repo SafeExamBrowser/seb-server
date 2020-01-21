@@ -213,7 +213,7 @@ public class EntityTable<ROW extends Entity> {
         this.navigator = new TableNavigator(this);
 
         createTableColumns();
-        initCurrentPageFromUserAttr();
+        this.pageNumber = initCurrentPageFromUserAttr();
         initFilterFromUserAttrs();
         initSortFromUserAttr();
         updateTableRows(
@@ -269,7 +269,7 @@ public class EntityTable<ROW extends Entity> {
                 this.sortColumn,
                 this.sortOrder);
 
-        updateCurrentPageAttr(pageSelection);
+        updateCurrentPageAttr();
     }
 
     public void reset() {
@@ -282,14 +282,8 @@ public class EntityTable<ROW extends Entity> {
     public void applyFilter() {
         try {
 
-            updateTableRows(
-                    this.pageNumber,
-                    this.pageSize,
-                    this.sortColumn,
-                    this.sortOrder);
-
             updateFilterUserAttrs();
-            this.selectPage(0);
+            this.selectPage(1);
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply filter: ", e);
@@ -301,11 +295,13 @@ public class EntityTable<ROW extends Entity> {
             this.sortColumn = columnName;
             this.sortOrder = PageSortOrder.ASCENDING;
 
-            updateTableRows(
-                    this.pageNumber,
-                    this.pageSize,
-                    this.sortColumn,
-                    this.sortOrder);
+            if (columnName != null) {
+                updateTableRows(
+                        this.pageNumber,
+                        this.pageSize,
+                        this.sortColumn,
+                        this.sortOrder);
+            }
 
             updateSortUserAttr();
 
@@ -632,26 +628,29 @@ public class EntityTable<ROW extends Entity> {
         // TODO handle selection tool-tips on cell level
     }
 
-    private void updateCurrentPageAttr(final int page) {
+    private void updateCurrentPageAttr() {
         try {
             this.pageService
                     .getCurrentUser()
-                    .putAttribute(this.currentPageAttrName, String.valueOf(page));
+                    .putAttribute(this.currentPageAttrName, String.valueOf(this.pageNumber));
         } catch (final Exception e) {
             log.error("Failed to put current page attribute to current user attributes", e);
         }
     }
 
-    private void initCurrentPageFromUserAttr() {
+    private int initCurrentPageFromUserAttr() {
         try {
             final String currentPage = this.pageService
                     .getCurrentUser()
                     .getAttribute(this.currentPageAttrName);
             if (StringUtils.isNotBlank(currentPage)) {
-                this.selectPage(Integer.parseInt(currentPage));
+                return Integer.parseInt(currentPage);
+            } else {
+                return 1;
             }
         } catch (final Exception e) {
             log.error("Failed to get sort attribute form current user attributes", e);
+            return 1;
         }
     }
 

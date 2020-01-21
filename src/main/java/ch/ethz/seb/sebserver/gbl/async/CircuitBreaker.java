@@ -75,7 +75,6 @@ public final class CircuitBreaker<T> {
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function */
     CircuitBreaker(final AsyncRunner asyncRunner) {
-
         this(
                 asyncRunner,
                 DEFAULT_MAX_FAILING_ATTEMPTS,
@@ -174,7 +173,9 @@ public final class CircuitBreaker<T> {
 
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
-                return Result.ofError(OPEN_STATE_EXCEPTION);
+                return Result.ofError(new RuntimeException(
+                        "Set CircuitBraker to half-open state. Cause: ",
+                        result.getError()));
             } else {
                 // try again
                 return protectedRun(supplier);
@@ -202,7 +203,9 @@ public final class CircuitBreaker<T> {
             }
 
             this.state = State.OPEN;
-            return Result.ofError(OPEN_STATE_EXCEPTION);
+            return Result.ofError(new RuntimeException(
+                    "Set CircuitBraker to open state. Cause: ",
+                    result.getError()));
         } else {
             // on success go to CLODED state
             if (log.isDebugEnabled()) {

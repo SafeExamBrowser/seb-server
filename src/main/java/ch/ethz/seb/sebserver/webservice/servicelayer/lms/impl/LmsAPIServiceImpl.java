@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx.OpenEdxLmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleLmsAPITemplateFactory;
 
 @Lazy
 @Service
@@ -49,16 +50,19 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientCredentialService clientCredentialService;
     private final WebserviceInfo webserviceInfo;
     private final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory;
+    private final MoodleLmsAPITemplateFactory moodleLmsAPITemplateFactory;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
             final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory,
+            final MoodleLmsAPITemplateFactory moodleLmsAPITemplateFactory,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final WebserviceInfo webserviceInfo) {
 
         this.openEdxLmsAPITemplateFactory = openEdxLmsAPITemplateFactory;
+        this.moodleLmsAPITemplateFactory = moodleLmsAPITemplateFactory;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
         this.webserviceInfo = webserviceInfo;
@@ -225,6 +229,10 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         this.webserviceInfo);
             case OPEN_EDX:
                 return this.openEdxLmsAPITemplateFactory
+                        .create(lmsSetup, credentials, proxyData)
+                        .getOrThrow();
+            case MOODLE:
+                return this.moodleLmsAPITemplateFactory
                         .create(lmsSetup, credentials, proxyData)
                         .getOrThrow();
 
