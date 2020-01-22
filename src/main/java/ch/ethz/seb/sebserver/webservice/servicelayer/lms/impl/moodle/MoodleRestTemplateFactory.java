@@ -275,14 +275,6 @@ final class MoodleRestTemplateFactory {
                 functionReqEntity = new HttpEntity<>(null);
             }
 
-//            // NOTE: The interpretation of a multi-value GET parameter on a URL quesry part
-//            //       seems to be very PHP specific. It must have the form of:
-//            //       ... &param[]=x&param[]=y& ...
-//            //       And the square bracket must not be escaped on the URL like: %5B%5D
-//            String urlString = queryParam.toUriString()
-//            .replaceAll("%5B", "[")
-//            .replaceAll("%5D", "]");
-
             final ResponseEntity<String> response = super.exchange(
                     queryParam.toUriString(),
                     usePOST ? HttpMethod.POST : HttpMethod.GET,

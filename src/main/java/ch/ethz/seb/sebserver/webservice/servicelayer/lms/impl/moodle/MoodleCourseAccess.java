@@ -183,7 +183,6 @@ public class MoodleCourseAccess extends CourseAccess {
                 .stream()
                 .map(courseQuizData -> {
                     final String startURI = uriPrefix + courseData.id;
-                    additionalAttrs.put("coursemodule", courseQuizData.coursemodule);
                     additionalAttrs.put("timelimit", String.valueOf(courseQuizData.timelimit));
                     return new QuizData(
                             courseQuizData.id,

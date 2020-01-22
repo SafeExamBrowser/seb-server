@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
@@ -85,6 +87,9 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.details.title");
     private final static LocTextKey NO_IMPORT_OF_OUT_DATED_QUIZ =
             new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
+
+    private final static String TEXT_KEY_ADDITIONAL_ATTR_PREFIX =
+            "sebserver.quizdiscovery.quiz.details.additional.";
 
     // filter attribute models
     private final TableFilterAttribute institutionFilter;
@@ -270,6 +275,9 @@ public class QuizDiscoveryList implements TemplateComposer {
         return action;
     }
 
+    private static final Collection<String> ADDITIONAL_HTML_ATTRIBUTES = Arrays.asList(
+            "course_summary");
+
     private void createDetailsForm(
             final QuizData quizData,
             final PageContext pc,
@@ -318,14 +326,43 @@ public class QuizDiscoveryList implements TemplateComposer {
             quizData.additionalAttributes
                     .entrySet()
                     .stream()
-                    .forEach(entry -> formbuilder
-                            .addField(FormBuilder.text(
-                                    entry.getKey(),
-                                    new LocTextKey(entry.getKey()),
-                                    entry.getValue())));
+                    .forEach(entry -> {
+                        LocTextKey titleKey = new LocTextKey(TEXT_KEY_ADDITIONAL_ATTR_PREFIX + entry.getKey());
+                        if (!this.pageService.getI18nSupport().hasText(titleKey)) {
+                            titleKey = new LocTextKey(entry.getKey());
+                        }
+                        formbuilder
+                                .addField(FormBuilder.text(
+                                        entry.getKey(),
+                                        titleKey,
+                                        toAdditionalValue(entry.getKey(), entry.getValue()))
+                                        .asHTML(ADDITIONAL_HTML_ATTRIBUTES.contains(entry.getKey())));
+                    });
         }
 
         formbuilder.build();
+    }
+
+    private String toAdditionalValue(final String name, final String value) {
+        if ("timecreated".equals(name)) {
+            try {
+                return this.pageService
+                        .getI18nSupport()
+                        .formatDisplayDate(Utils.toDateTimeUTCUnix(Long.parseLong(value)));
+            } catch (final Exception e) {
+                return value;
+            }
+        } else if ("timelimit".equals(name)) {
+            try {
+                return this.pageService
+                        .getI18nSupport()
+                        .formatDisplayTime(Utils.toDateTimeUTCUnix(Long.parseLong(value)));
+            } catch (final Exception e) {
+                return value;
+            }
+        } else {
+            return value;
+        }
     }
 
 }

@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class TableFilter<ROW extends Entity> {
@@ -418,10 +419,7 @@ public class TableFilter<ROW extends Entity> {
         @Override
         FilterComponent build(final Composite parent) {
             final Composite innerComposite = createInnerComposite(parent);
-            final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
-
-            this.selector = new DateTime(innerComposite, SWT.DATE | SWT.BORDER);
-            this.selector.setLayoutData(gridData);
+            this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(innerComposite);
             return this;
         }
 
@@ -478,7 +476,7 @@ public class TableFilter<ROW extends Entity> {
     private class DateRange extends FilterComponent {
 
         private Composite innerComposite;
-        private final GridData rw1 = new GridData(SWT.FILL, SWT.FILL, true, true);
+        //private final GridData rw1 = new GridData(SWT.FILL, SWT.FILL, true, true);
         private DateTime fromDateSelector;
         private DateTime toDateSelector;
         private DateTime fromTimeSelector;
@@ -505,26 +503,17 @@ public class TableFilter<ROW extends Entity> {
             this.innerComposite.setLayout(gridLayout);
             this.innerComposite.setLayoutData(this.rowData);
 
-            TableFilter.this.entityTable.widgetFactory
-                    .labelLocalized(this.innerComposite, DATE_FROM_TEXT);
-            this.fromDateSelector =
-                    new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
-            this.fromDateSelector.setLayoutData(this.rw1);
+            final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
+            wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
+            this.fromDateSelector = wf.dateSelector(this.innerComposite);
             if (this.withTime) {
-                this.fromTimeSelector =
-                        new DateTime(this.innerComposite, SWT.TIME | SWT.BORDER);
-                this.fromTimeSelector.setLayoutData(this.rw1);
+                this.fromTimeSelector = wf.timeSelector(this.innerComposite);
             }
 
-            TableFilter.this.entityTable.widgetFactory
-                    .labelLocalized(this.innerComposite, DATE_TO_TEXT);
-            this.toDateSelector =
-                    new DateTime(this.innerComposite, SWT.DATE | SWT.BORDER);
-            this.toDateSelector.setLayoutData(this.rw1);
+            wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
+            this.toDateSelector = wf.dateSelector(this.innerComposite);
             if (this.withTime) {
-                this.toTimeSelector =
-                        new DateTime(this.innerComposite, SWT.TIME | SWT.BORDER);
-                this.toTimeSelector.setLayoutData(this.rw1);
+                this.toTimeSelector = wf.timeSelector(this.innerComposite);
             }
 
             return this;

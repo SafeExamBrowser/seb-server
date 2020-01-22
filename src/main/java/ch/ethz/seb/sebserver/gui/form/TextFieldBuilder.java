@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -73,6 +75,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public FieldBuilder<?> asHTML(final boolean html) {
+        this.isHTML = html;
+        return this;
+    }
+
     public TextFieldBuilder asColorbox() {
         this.isColorbox = true;
         return this;
@@ -88,9 +95,10 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             final Browser browser = new Browser(fieldGrid, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
             gridData.minimumHeight = this.areaMinHeight;
+            browser.setBackground(new Color(builder.formParent.getDisplay(), new RGB(240, 240, 240)));
             browser.setLayoutData(gridData);
             if (StringUtils.isNoneBlank(this.value)) {
-                browser.setText(HTML_TEXT_BLOCK_START + this.value + HTML_TEXT_BLOCK_END);
+                browser.setText(createHTMLText(this.value));
             } else if (readonly) {
                 browser.setText(Constants.EMPTY_NOTE);
             }
@@ -127,6 +135,16 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             builder.setFieldVisible(this.visible, this.name);
         }
 
+    }
+
+    private String createHTMLText(final String text) {
+        return HTML_TEXT_BLOCK_START
+                + text
+                        .replace("<a", "<span")
+                        .replace("</a", "</span")
+                        .replace("<A", "<span")
+                        .replace("</A", "</span")
+                + HTML_TEXT_BLOCK_END;
     }
 
 }

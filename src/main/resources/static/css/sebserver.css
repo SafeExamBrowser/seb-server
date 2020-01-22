@@ -398,6 +398,26 @@ DateTime-DropDownButton {
     width: 30px;
 }
 
+DateTime-Calendar-Navbar {
+    border: none;
+    border-radius: 0;
+    background-color: #1F407A;
+    background-image: gradient(linear, left top, left bottom, from(#1F407A), to(#1F407A));
+    color: white;
+    font: 12px Arial, Helvetica, sans-serif;
+    text-shadow: none;
+}
+
+DateTime-Field:selected, DateTime-Calendar-Day:selected {
+    background-color: #1F407A;
+    color: #ffffff;
+}
+
+DateTime-Calendar-Day:selected:hover {
+    background-color: #1F407A;
+    color: #ffffff;
+}
+
 /* Message titlebar */
 Shell.message {
   font: 12px Arial, Helvetica, sans-serif;

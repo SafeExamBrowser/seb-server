@@ -25,6 +25,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -615,6 +616,27 @@ public class WidgetFactory {
         }
 
         return selection;
+    }
+
+    public DateTime dateSelector(final Composite parent) {
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final DateTime dateTime = new DateTime(parent, SWT.DATE | SWT.BORDER | SWT.DROP_DOWN);
+        dateTime.setLayoutData(gridData);
+        return dateTime;
+    }
+
+    public DateTime timeSelector(final Composite parent) {
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final DateTime dateTime = new DateTime(parent, SWT.TIME | SWT.BORDER | SWT.SHORT);
+        dateTime.setLayoutData(gridData);
+        return dateTime;
+    }
+
+    public DateTime timeSelectorWithSeconds(final Composite parent) {
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final DateTime dateTime = new DateTime(parent, SWT.TIME | SWT.BORDER | SWT.MEDIUM);
+        dateTime.setLayoutData(gridData);
+        return dateTime;
     }
 
     public ThresholdList thresholdList(
