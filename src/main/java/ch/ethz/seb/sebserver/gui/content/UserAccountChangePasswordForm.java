@@ -91,8 +91,7 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
         final boolean ownAccount = this.currentUser.get().uuid.equals(entityKey.getModelId());
 
         // The Password Change form
-        final FormHandle<UserInfo> formHandle = this.pageService.formBuilder(
-                pageContext.copyOf(content), 4)
+        final FormHandle<UserInfo> formHandle = this.pageService.formBuilder(pageContext.copyOf(content))
                 .readonly(false)
                 .putStaticValueIf(() -> entityKey != null,
                         Domain.USER.ATTR_UUID,

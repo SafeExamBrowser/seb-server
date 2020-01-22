@@ -261,7 +261,8 @@ public class SebClientLogs implements TemplateComposer {
                 CustomVariant.TEXT_H3,
                 DETAILS_EVENT_TILE_TEXT_KEY);
 
-        this.pageService.formBuilder(pc.copyOf(content), 3)
+        this.pageService.formBuilder(pc.copyOf(content))
+                .withDefaultSpanInput(6)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(
@@ -302,7 +303,8 @@ public class SebClientLogs implements TemplateComposer {
                         error -> log.error("Failed to get ClientConnection for id {}", clientEvent.connectionId, error),
                         () -> ClientConnection.EMPTY_CLIENT_CONNECTION);
 
-        this.pageService.formBuilder(pc.copyOf(content), 3)
+        this.pageService.formBuilder(pc.copyOf(content))
+                .withDefaultSpanInput(6)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(
@@ -336,7 +338,8 @@ public class SebClientLogs implements TemplateComposer {
                         error -> log.error("Failed to get Exam for id {}", clientEvent.examId, error),
                         () -> Exam.EMPTY_EXAM);
 
-        this.pageService.formBuilder(pc.copyOf(content), 3)
+        this.pageService.formBuilder(pc.copyOf(content))
+                .withDefaultSpanInput(6)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(

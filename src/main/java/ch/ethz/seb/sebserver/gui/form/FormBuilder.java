@@ -48,8 +48,8 @@ public class FormBuilder {
     public final Form form;
 
     boolean readonly = false;
-    private int defaultSpanLabel = 1;
-    private int defaultSpanInput = 2;
+    private int defaultSpanLabel = 2;
+    private int defaultSpanInput = 5;
     private int defaultSpanEmptyCell = 1;
     private boolean emptyCellSeparation = true;
 
@@ -188,8 +188,10 @@ public class FormBuilder {
 
     private void empty(final Composite parent, final int hspan, final int vspan) {
         final Label empty = new Label(parent, SWT.LEFT);
-        empty.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, hspan, vspan));
-        empty.setText("");
+        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false, hspan, vspan);
+        gridData.minimumWidth = 0;
+        gridData.widthHint = 0;
+        empty.setLayoutData(gridData);
     }
 
     public static CheckboxFieldBuilder checkbox(final String name, final LocTextKey label) {

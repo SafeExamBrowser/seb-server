@@ -162,7 +162,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         final List<Tuple<String>> examConfigTemplateResources = resourceService.getExamConfigTemplateResources();
         final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.CONFIGURATION_NODE.ATTR_ID,
@@ -191,8 +191,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         examConfig.description)
-                        .asArea()
-                        .withInputSpan((isReadonly) ? 3 : 2))
+                        .asArea())
 
                 .addField(FormBuilder.singleSelection(
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,

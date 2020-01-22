@@ -95,7 +95,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             final Browser browser = new Browser(fieldGrid, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
             gridData.minimumHeight = this.areaMinHeight;
-            browser.setBackground(new Color(builder.formParent.getDisplay(), new RGB(240, 240, 240)));
+            browser.setBackground(new Color(builder.formParent.getDisplay(), new RGB(250, 250, 250)));
             browser.setLayoutData(gridData);
             if (StringUtils.isNoneBlank(this.value)) {
                 browser.setText(createHTMLText(this.value));

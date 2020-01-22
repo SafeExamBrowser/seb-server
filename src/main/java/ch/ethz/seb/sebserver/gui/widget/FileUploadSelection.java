@@ -196,11 +196,6 @@ public class FileUploadSelection extends Composite {
         }
 
         void close() {
-            try {
-                this.pOut.flush();
-            } catch (final Exception e) {
-                log.error("Unexpected error while trying to flush: ", e);
-            }
             IOUtils.closeQuietly(this.pOut);
         }
     }

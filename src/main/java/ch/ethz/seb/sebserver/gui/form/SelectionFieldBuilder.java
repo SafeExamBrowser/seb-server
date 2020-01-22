@@ -104,9 +104,11 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
             gridLayout.marginHeight = 0;
             gridLayout.marginWidth = 0;
             composite.setLayout(gridLayout);
+            composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.spanInput, 1));
             if (StringUtils.isBlank(this.value)) {
                 final Label label = new Label(composite, SWT.NONE);
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
+
                 label.setLayoutData(gridData);
                 label.setText(this.value);
             } else {
@@ -115,7 +117,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                         .stream()
                         .filter(tuple -> keys.contains(tuple._1))
                         .map(tuple -> tuple._1)
-                        .forEach(v -> buildReadonlyLabel(composite, v, 0));
+                        .forEach(v -> buildReadonlyLabel(composite, v, 1));
             }
         } else {
             builder.form.putReadonlyField(
@@ -128,7 +130,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     private Text buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
         final Text label = new Text(composite, SWT.READ_ONLY);
-        final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, true, true, hspan, 1);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true, hspan, 1);
         gridData.verticalIndent = 0;
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);

@@ -182,8 +182,8 @@ public class ExamSebRestrictionSettings {
                     .clearEntityKeys();
 
             final FormHandle<SebRestriction> formHandle = this.pageService.formBuilder(
-                    formContext, 3)
-                    .withDefaultSpanEmptyCell(0)
+                    formContext)
+                    .withDefaultSpanInput(6)
                     .withEmptyCellSeparation(false)
                     .readonly(false)
 

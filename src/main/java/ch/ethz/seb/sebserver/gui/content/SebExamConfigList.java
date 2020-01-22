@@ -149,10 +149,10 @@ public class SebExamConfigList implements TemplateComposer {
 
         // configuration template table
         widgetFactory.label(content, "");
-        widgetFactory.labelSeparator(content);
         widgetFactory.labelLocalizedTitle(
                 content,
                 TITLE_TEMPLATE_TEXT_KEY);
+        widgetFactory.labelSeparator(content);
 
         final EntityTable<ConfigurationNode> templateTable =
                 this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigNodePage.class))

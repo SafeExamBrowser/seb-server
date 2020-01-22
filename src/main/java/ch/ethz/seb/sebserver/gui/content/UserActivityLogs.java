@@ -223,8 +223,7 @@ public class UserActivityLogs implements TemplateComposer {
         final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
                 action.pageContext().getParent().getShell(),
                 this.widgetFactory);
-
-        //dialog.setDialogHeight(400);
+        dialog.setLargeDialogWidth();
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
                 action.pageContext(),
@@ -238,7 +237,8 @@ public class UserActivityLogs implements TemplateComposer {
         final Composite parent = pc.getParent();
         final Composite grid = this.widgetFactory.createPopupScrollComposite(parent);
 
-        this.pageService.formBuilder(pc.copyOf(grid), 3)
+        this.pageService.formBuilder(pc.copyOf(grid))
+                .withDefaultSpanInput(6)
                 .withEmptyCellSeparation(false)
                 .readonly(true)
                 .addField(FormBuilder.text(

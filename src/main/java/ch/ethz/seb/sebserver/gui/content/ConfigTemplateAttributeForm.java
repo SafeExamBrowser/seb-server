@@ -135,8 +135,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
 
             final boolean hasView = attribute.getOrientation() != null;
 
-            this.pageService.formBuilder(
-                    formContext, 4)
+            this.pageService.formBuilder(formContext)
                     .readonly(true) // TODO change this for next version
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
@@ -161,12 +160,18 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                                     attribute.getGroupId()))
                     .build();
 
+            final Composite valSpace = new Composite(content, SWT.NONE);
+            valSpace.setLayout(new GridLayout());
+            valSpace.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
             widgetFactory.labelLocalized(
-                    content,
+                    valSpace,
                     CustomVariant.TEXT_H2,
                     FORM_VALUE_TEXT_KEY);
 
-            final Composite grid = new Composite(content, SWT.NONE);
+            widgetFactory.labelSeparator(valSpace);
+
+            final Composite grid = new Composite(valSpace, SWT.NONE);
             grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
             grid.setLayout(new GridLayout(6, true));
 
@@ -188,7 +193,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     defaultOrientation);
 
             final InputField createInputField = inputFieldBuilder.createInputField(
-                    content,
+                    grid,
                     attribute.getConfigAttribute(),
                     viewContext);
 

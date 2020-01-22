@@ -225,10 +225,13 @@ final class SebExamConfigImportPopup {
         @Override
         public Supplier<FormHandle<ConfigurationNode>> compose(final Composite parent) {
 
+            final Composite grid = this.pageService.getWidgetFactory()
+                    .createPopupScrollComposite(parent);
+
             final ResourceService resourceService = this.pageService.getResourceService();
             final List<Tuple<String>> examConfigTemplateResources = resourceService.getExamConfigTemplateResources();
             final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
-                    this.pageContext.copyOf(parent), 4)
+                    this.pageContext.copyOf(grid))
                     .readonly(false)
                     .addField(FormBuilder.fileUpload(
                             API.IMPORT_FILE_ATTR_NAME,

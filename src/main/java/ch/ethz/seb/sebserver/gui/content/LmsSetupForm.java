@@ -148,8 +148,8 @@ public class LmsSetupForm implements TemplateComposer {
         final FormHandle<LmsSetup> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content), 8)
                 .withDefaultSpanLabel(2)
-                .withDefaultSpanInput(4)
-                .withDefaultSpanEmptyCell(2)
+                .withDefaultSpanInput(5)
+                .withDefaultSpanEmptyCell(1)
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_ID,
@@ -208,7 +208,7 @@ public class LmsSetupForm implements TemplateComposer {
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
                                 FORM_PROXY_HOST_KEY,
                                 (StringUtils.isNotBlank(lmsSetup.getProxyHost())) ? lmsSetup.getProxyHost() : null)
-                                .withInputSpan(2)
+                                .withInputSpan(3)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
                         isEdit,
@@ -231,7 +231,7 @@ public class LmsSetupForm implements TemplateComposer {
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
                                 FORM_PROXY_AUTH_CREDENTIALS_KEY,
                                 (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null)
-                                .withInputSpan(2)
+                                .withInputSpan(3)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
                         isEdit,

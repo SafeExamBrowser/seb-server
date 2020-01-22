@@ -159,6 +159,10 @@ final class ExamToConfigBindingForm {
 
         @Override
         public Supplier<FormHandle<ExamConfigurationMap>> compose(final Composite parent) {
+
+            final Composite grid = this.pageService.getWidgetFactory()
+                    .createPopupScrollComposite(parent);
+
             final RestService restService = this.pageService.getRestService();
             final ResourceService resourceService = this.pageService.getResourceService();
 
@@ -191,7 +195,7 @@ final class ExamToConfigBindingForm {
             final PageContext formContext = this.pageContext.withEntityKey(examConfigurationMap.getEntityKey());
 
             final FormHandle<ExamConfigurationMap> formHandle = this.pageService.formBuilder(
-                    formContext.copyOf(parent), 4)
+                    formContext.copyOf(grid))
                     .readonly(false)
                     .putStaticValueIf(() -> !isNew,
                             Domain.EXAM_CONFIGURATION_MAP.ATTR_ID,

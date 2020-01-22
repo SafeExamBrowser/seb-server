@@ -123,7 +123,7 @@ public class SebClientConfigForm implements TemplateComposer {
 
         // The SebClientConfig form
         final FormHandle<SebClientConfig> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ID,

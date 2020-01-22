@@ -141,7 +141,7 @@ public class ConfigTemplateForm implements TemplateComposer {
 
         // The SebClientConfig form
         final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.CONFIGURATION_NODE.ATTR_ID,

@@ -181,6 +181,15 @@ public interface PageService {
      * @param pageAction the PageAction to publish */
     void publishAction(final PageAction pageAction);
 
+    /** Get a new FormBuilder for the given PageContext
+     * This FormBuilder uses the standard form grid which has 8 rows (2 title, 5 input and 1 right-space)
+     *
+     * @param pageContext the PageContext on that the FormBuilder should work
+     * @return a FormBuilder instance for the given PageContext and with number of rows */
+    default FormBuilder formBuilder(final PageContext pageContext) {
+        return formBuilder(pageContext, 8);
+    }
+
     /** Get a new FormBuilder for the given PageContext and with number of rows.
      *
      * @param pageContext the PageContext on that the FormBuilder should work

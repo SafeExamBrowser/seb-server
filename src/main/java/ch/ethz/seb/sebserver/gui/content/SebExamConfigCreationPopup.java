@@ -152,9 +152,12 @@ final class SebExamConfigCreationPopup {
         @Override
         public Supplier<FormHandle<ConfigCreationInfo>> compose(final Composite parent) {
 
+            final Composite grid = this.pageService.getWidgetFactory()
+                    .createPopupScrollComposite(parent);
+
             final EntityKey entityKey = this.pageContext.getEntityKey();
             final FormHandle<ConfigCreationInfo> formHandle = this.pageService.formBuilder(
-                    this.pageContext.copyOf(parent), 4)
+                    this.pageContext.copyOf(grid))
                     .readonly(false)
                     .putStaticValueIf(
                             () -> !this.createFromTemplate,

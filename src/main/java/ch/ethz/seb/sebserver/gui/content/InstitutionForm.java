@@ -102,7 +102,7 @@ public class InstitutionForm implements TemplateComposer {
 
         // The Institution form
         final FormHandle<Institution> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.INSTITUTION.ATTR_ID,

@@ -102,49 +102,6 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
         return LmsSetupTestResult.ofOkay();
     }
-//
-//    Result<QuizData> getQuizFromCache(final String id) {
-//        return Result.tryCatch(() -> {
-//            return this.allQuizzesSupplier
-//                    .getChached()
-//                    .stream()
-//                    .filter(qd -> id.equals(qd.id))
-//                    .findFirst()
-//                    .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id));
-//        });
-//    }
-//
-//    Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-//        return Result.tryCatch(() -> {
-//            final List<QuizData> cached = this.allQuizzesSupplier.getChached();
-//            if (cached == null) {
-//                throw new RuntimeException("No cached quizzes");
-//            }
-//
-//            final Map<String, QuizData> cacheMapping = cached
-//                    .stream()
-//                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-//
-//            if (!cacheMapping.keySet().containsAll(ids)) {
-//                throw new RuntimeException("Not all requested quizzes cached");
-//            }
-//
-//            return ids
-//                    .stream()
-//                    .map(id -> {
-//                        final QuizData q = cacheMapping.get(id);
-//                        return (q == null)
-//                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
-//                                : Result.of(q);
-//                    })
-//                    .collect(Collectors.toList());
-//        });
-//    }
-
-//    Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-//        return this.allQuizzesSupplier.get()
-//                .map(LmsAPIService.quizzesFilterFunction(filterMap));
-//    }
 
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier() {

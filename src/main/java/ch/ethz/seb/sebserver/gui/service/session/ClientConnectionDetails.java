@@ -81,7 +81,7 @@ public class ClientConnectionDetails {
                 this.colorData,
                 NUMBER_OF_NONE_INDICATOR_ROWS);
 
-        final FormBuilder formBuilder = this.pageService.formBuilder(pageContext, 4)
+        final FormBuilder formBuilder = this.pageService.formBuilder(pageContext)
                 .readonly(true)
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
@@ -95,7 +95,7 @@ public class ClientConnectionDetails {
                         Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
                         CONNECTION_ADDRESS_TEXT_KEY,
                         Constants.EMPTY_NOTE))
-                .withDefaultSpanInput(1)
+                .withDefaultSpanInput(3)
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         CONNECTION_STATUS_TEXT_KEY,

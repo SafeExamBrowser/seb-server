@@ -297,9 +297,15 @@ public class PageServiceImpl implements PageService {
                             .getUISession()
                             .getHttpSession();
 
-                    if (action != null && action.definition != null && action.definition.targetState != null) {
+                    if (action != null &&
+                            action.fireActionEvent &&
+                            action.definition != null &&
+                            action.definition.targetState != null) {
+
                         final PageState pageState = new PageState(action.definition.targetState, action);
-                        log.debug("Set session PageState: {} : {}", pageState, httpSession.getId());
+                        if (log.isDebugEnabled()) {
+                            log.debug("Set session PageState: {} : {}", pageState, httpSession.getId());
+                        }
                         httpSession.setAttribute(ATTR_PAGE_STATE, pageState);
                     }
                 } catch (final Exception e) {

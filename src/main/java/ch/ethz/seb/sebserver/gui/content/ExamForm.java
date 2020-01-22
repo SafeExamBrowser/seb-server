@@ -42,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -71,7 +70,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -379,6 +377,7 @@ public class ExamForm implements TemplateComposer {
                                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                                 .call()
                                 .getOrThrow().lmsType.name())
+                .noEventPropagation()
                 .publishIf(() -> sebRestrictionAvailable && readonly)
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
@@ -394,13 +393,13 @@ public class ExamForm implements TemplateComposer {
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
 
-            this.widgetFactory.labelSeparator(content);
-
             // List of SEB Configuration
+            this.widgetFactory.label(content, "");
             this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
                     CONFIG_LIST_TITLE_KEY);
+            this.widgetFactory.labelSeparator(content);
 
             final EntityTable<ExamConfigurationMap> configurationTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
@@ -481,13 +480,13 @@ public class ExamForm implements TemplateComposer {
                     .noEventPropagation()
                     .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent());
 
-            this.widgetFactory.labelSeparator(content);
-
             // List of Indicators
+            this.widgetFactory.label(content, "");
             this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
                     INDICATOR_LIST_TITLE_KEY);
+            this.widgetFactory.labelSeparator(content);
 
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetIndicatorPage.class))
@@ -568,18 +567,11 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSebRestrictionAPI(final Exam exam) {
-        final boolean hasFeature = this.restService.getBuilder(GetLmsSetup.class)
+        return this.restService.getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                 .call()
                 .onError(t -> log.error("Failed to check SEB restriction API: ", t))
                 .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION))
-                .getOr(false);
-
-        return hasFeature && this.restService.getBuilder(TestLmsSetup.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
-                .call()
-                .onError(t -> log.error("Failed to check SEB restriction API: ", t))
-                .map(result -> !result.hasError(LmsSetupTestResult.ErrorType.QUIZ_RESTRICTION_API_REQUEST))
                 .getOr(false);
     }
 

@@ -122,7 +122,7 @@ public class IndicatorForm implements TemplateComposer {
                 titleKey);
 
         final FormHandle<Indicator> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.INDICATOR.ATTR_ID,
@@ -156,7 +156,7 @@ public class IndicatorForm implements TemplateComposer {
                         typeDescription)
                         .asArea()
                         .readonly(true)
-                        .withInputSpan(3))
+                        .withInputSpan(6))
 
                 .addField(FormBuilder.colorSelection(
                         Domain.INDICATOR.ATTR_COLOR,

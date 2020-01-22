@@ -141,7 +141,7 @@ public class UserAccountForm implements TemplateComposer {
 
         // The UserAccount form
         final FormHandle<UserInfo> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 4)
+                formContext.copyOf(content))
                 .readonly(readonly)
                 .putStaticValueIf(isNotNew,
                         Domain.USER.ATTR_UUID,
