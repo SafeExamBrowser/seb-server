@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 @GuiProfile
 public class WebserviceURIService {
 
+    private final String servletContextPath;
     private final String webserviceServerAddress;
     private final UriComponentsBuilder webserviceURIBuilder;
 
@@ -26,12 +27,15 @@ public class WebserviceURIService {
             @Value("${sebserver.gui.webservice.protocol}") final String webserviceProtocol,
             @Value("${sebserver.gui.webservice.address}") final String webserviceServerAdress,
             @Value("${sebserver.gui.webservice.port}") final String webserviceServerPort,
+            @Value("${server.servlet.context-path}") final String servletContextPath,
             @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath) {
 
+        this.servletContextPath = servletContextPath;
         this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAdress + ":" + webserviceServerPort;
         this.webserviceURIBuilder = UriComponentsBuilder
                 .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAdress)
                 .port(webserviceServerPort)
+                .path(servletContextPath)
                 .path(webserviceAPIPath);
     }
 
@@ -45,12 +49,14 @@ public class WebserviceURIService {
 
     public String getOAuthTokenURI() {
         return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
+                .path(this.servletContextPath)
                 .path(API.OAUTH_TOKEN_ENDPOINT)
                 .toUriString();
     }
 
     public String getOAuthRevokeTokenURI() {
         return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
+                .path(this.servletContextPath)
                 .path(API.OAUTH_REVOKE_TOKEN_ENDPOINT)
                 .toUriString();
     }

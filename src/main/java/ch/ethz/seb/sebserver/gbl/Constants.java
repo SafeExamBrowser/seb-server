@@ -23,6 +23,9 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final String DEFAULT_LANG_CODE = "en";
+    public static final String DEFAULT_TIME_ZONE_CODE = "UTC";
+
     public static final int SEB_FILE_HEADER_SIZE = 4;
     public static final int JN_CRYPTOR_ITERATIONS = 10000;
     public static final int JN_CRYPTOR_VERSION_HEADER_SIZE = 1;

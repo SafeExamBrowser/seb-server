@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,18 +12,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.content.MainPage;
+import ch.ethz.seb.sebserver.gui.content.RegisterPage;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 
-/** Default main page works with the DefaultPageLayout and the
- * SEBMainPage template */
 @Lazy
 @Component
 @GuiProfile
-public class DefaultMainPage implements PageDefinition {
+public class DefaultRegisterPage implements PageDefinition {
 
     @Override
     public Class<? extends TemplateComposer> composer() {
@@ -34,7 +32,7 @@ public class DefaultMainPage implements PageDefinition {
     public PageContext applyPageContext(final PageContext pageContext) {
         return pageContext.withAttribute(
                 AttributeKeys.PAGE_TEMPLATE_COMPOSER_NAME,
-                MainPage.class.getName());
+                RegisterPage.class.getName());
     }
 
 }

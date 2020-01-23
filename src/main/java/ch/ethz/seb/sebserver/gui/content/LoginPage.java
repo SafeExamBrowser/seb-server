@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -20,6 +21,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultRegisterPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import ch.ethz.seb.sebserver.gui.widget.Message;
@@ -44,12 +47,20 @@ public class LoginPage implements TemplateComposer {
     private final AuthorizationContextHolder authorizationContextHolder;
     private final WidgetFactory widgetFactory;
     private final I18nSupport i18nSupport;
+    private final DefaultRegisterPage defaultRegisterPage;
+    private final boolean registreringEnabled;
 
-    public LoginPage(final PageService pageService) {
+    public LoginPage(
+            final PageService pageService,
+            final DefaultRegisterPage defaultRegisterPage,
+            @Value("${sebserver.gui.self-registering:false}") final Boolean registreringEnabled) {
+
         this.pageService = pageService;
         this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
         this.widgetFactory = pageService.getWidgetFactory();
         this.i18nSupport = pageService.getI18nSupport();
+        this.defaultRegisterPage = defaultRegisterPage;
+        this.registreringEnabled = BooleanUtils.toBoolean(registreringEnabled);
     }
 
     @Override
@@ -61,7 +72,7 @@ public class LoginPage implements TemplateComposer {
         rowLayout.marginWidth = 20;
         rowLayout.marginRight = 100;
         loginGroup.setLayout(rowLayout);
-        loginGroup.setData(RWT.CUSTOM_VARIANT, "login");
+        loginGroup.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN.key);
 
         final Label name = this.widgetFactory.labelLocalized(loginGroup, "sebserver.login.username");
         name.setLayoutData(new GridData(300, -1));
@@ -75,15 +86,19 @@ public class LoginPage implements TemplateComposer {
         final Text loginPassword = this.widgetFactory.passwordInput(loginGroup);
         loginPassword.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 
-        final Button button = this.widgetFactory.buttonLocalized(loginGroup, "sebserver.login.login");
-        gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
-        gridData.verticalIndent = 10;
-        button.setLayoutData(gridData);
-
         final SEBServerAuthorizationContext authorizationContext = this.authorizationContextHolder
                 .getAuthorizationContext(RWT.getUISession().getHttpSession());
 
-        button.addListener(SWT.Selection, event -> {
+        final Composite buttons = new Composite(loginGroup, SWT.NONE);
+        buttons.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        buttons.setLayout(new GridLayout(2, false));
+        buttons.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN_BACK.key);
+
+        final Button loginButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.login");
+        gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        gridData.verticalIndent = 10;
+        loginButton.setLayoutData(gridData);
+        loginButton.addListener(SWT.Selection, event -> {
             login(
                     pageContext,
                     loginName.getText(),
@@ -117,6 +132,15 @@ public class LoginPage implements TemplateComposer {
             }
         });
 
+        if (this.registreringEnabled) {
+            final Button registerButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.register");
+            gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+            gridData.verticalIndent = 10;
+            registerButton.setLayoutData(gridData);
+            registerButton.addListener(SWT.Selection, event -> {
+                pageContext.forwardToPage(this.defaultRegisterPage);
+            });
+        }
     }
 
     private void login(

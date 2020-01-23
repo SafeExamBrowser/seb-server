@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,12 +41,16 @@ import org.springframework.web.client.RestTemplate;
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 
 @Lazy
 @Component
-final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntryPoint {
+@GuiProfile
+public final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    private static final String INST_SUFFIX_ATTRIBUTE = "instSuffix";
 
     private static final Logger log = LoggerFactory.getLogger(InstitutionalAuthenticationEntryPoint.class);
 
@@ -111,7 +116,7 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
         if (StringUtils.isNotBlank(logoImageBase64)) {
             request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
-            request.getSession().setAttribute("themeId", "sms");
+            request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, institutionalEndpoint);
             forwardToEntryPoint(request, response, this.guiEntryPoint);
         } else {
             request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
@@ -132,19 +137,31 @@ final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntry
         dispatcher.forward(request, response);
     }
 
-    private String extractInstitutionalEndpoint(final HttpServletRequest request) {
+    public static String extractInstitutionalEndpoint(final HttpServletRequest request) {
         final String requestURI = request.getRequestURI();
 
         if (log.isDebugEnabled()) {
             log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
         }
 
-        final String instPrefix = requestURI.replaceAll("/", "");
-        if (StringUtils.isBlank(instPrefix)) {
+        try {
+            return requestURI.substring(
+                    requestURI.lastIndexOf(Constants.SLASH) + 1,
+                    requestURI.length());
+        } catch (final Exception e) {
+            log.error("Fauled to extract institutional URL suffix: {}", e.getMessage());
             return null;
         }
+    }
 
-        return instPrefix;
+    public static String extractInstitutionalEndpoint() {
+        try {
+            final Object attribute = RWT.getUISession().getHttpSession().getAttribute(INST_SUFFIX_ATTRIBUTE);
+            return (attribute != null) ? String.valueOf(attribute) : null;
+        } catch (final Exception e) {
+            log.warn("Failed to extract institutional endpoint form user session: {}", e.getMessage());
+            return null;
+        }
     }
 
     private String requestLogoImage(final String institutionalEndpoint) {

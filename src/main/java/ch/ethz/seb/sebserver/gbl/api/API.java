@@ -46,8 +46,13 @@ public final class API {
     public static final String SELF_PATH_SEGMENT = "/self";
 
     public static final String INFO_ENDPOINT = "/info";
+    public static final String INFO_PARAM_INST_SUFFIX = "urlSuffix";
+    public static final String INFO_INST_PATH_SEGMENT = "/institution";
+    public static final String INFO_INST_ENDPOINT = INFO_INST_PATH_SEGMENT + "/{" + INFO_PARAM_INST_SUFFIX + "}";
     public static final String LOGO_PATH_SEGMENT = "/logo";
-    public static final String INSTITUTIONAL_LOGO_PATH = LOGO_PATH_SEGMENT + "/{urlSuffix}";
+
+    public static final String INSTITUTIONAL_LOGO_PATH = LOGO_PATH_SEGMENT + "/{" + INFO_PARAM_INST_SUFFIX + "}";
+    public static final String REGISTER_ENDPOINT = "/register";
 
     public static final String NAMES_PATH_SEGMENT = "/names";
 

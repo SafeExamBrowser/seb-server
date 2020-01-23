@@ -38,8 +38,6 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
             // OAuth entry-points
             new AntPathRequestMatcher(API.OAUTH_REVOKE_TOKEN_ENDPOINT),
-            // GUI entry-point
-//            new AntPathRequestMatcher(guiEntryPoint),
             // RAP/RWT resources has to be accessible
             new AntPathRequestMatcher("/rwt-resources/**"),
             // project specific static resources

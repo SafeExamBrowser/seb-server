@@ -80,7 +80,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                 .ignoring()
                 .antMatchers("/error")
                 .antMatchers(this.examAPIDiscoveryEndpoint)
-                .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**");
+                .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**")
+                .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**")
+                .antMatchers(this.adminAPIEndpoint + API.REGISTER_ENDPOINT);
     }
 
     @RequestMapping("/error")

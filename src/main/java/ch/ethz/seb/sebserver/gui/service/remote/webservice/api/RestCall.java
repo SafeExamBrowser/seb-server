@@ -59,6 +59,7 @@ public abstract class RestCall<T> {
         GET_DEPENDENCIES,
         GET_LIST,
         NEW,
+        REGISTER,
         SAVE,
         DELETE,
         ACTIVATION_ACTIVATE,

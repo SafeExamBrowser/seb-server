@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.function.BooleanSupplier;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -74,16 +76,21 @@ public class UserAccountForm implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.name");
     static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.institution");
+    static final LocTextKey FORM_LANG_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.language");
 
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final boolean multilingual;
 
     protected UserAccountForm(
             final PageService pageService,
-            final ResourceService resourceService) {
+            final ResourceService resourceService,
+            @Value("${sebserver.gui.multilingual:false}") final Boolean multilingual) {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
+        this.multilingual = BooleanUtils.toBoolean(multilingual);
     }
 
     @Override
@@ -149,7 +156,8 @@ public class UserAccountForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.USER.ATTR_INSTITUTION_ID,
                         String.valueOf(userAccount.getInstitutionId()))
-                .putStaticValue(
+                .putStaticValueIf(
+                        () -> !this.multilingual,
                         Domain.USER.ATTR_LANGUAGE,
                         "en")
                 .addFieldIf(
@@ -172,12 +180,13 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_EMAIL,
                         FORM_MAIL_TEXT_KEY,
                         userAccount.getEmail()))
-//                .addField(FormBuilder.singleSelection(
-//                        Domain.USER.ATTR_LANGUAGE,
-//                        "sebserver.useraccount.form.language",
-//                        userAccount.getLanguage().getLanguage(),
-//                        this.resourceService::languageResources)
-//                        .readonly(true))
+                .addFieldIf(
+                        () -> this.multilingual,
+                        () -> FormBuilder.singleSelection(
+                                Domain.USER.ATTR_LANGUAGE,
+                                FORM_LANG_TEXT_KEY,
+                                userAccount.getLanguage().getLanguage(),
+                                this.resourceService::languageResources))
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
                         FORM_TIMEZONE_TEXT_KEY,

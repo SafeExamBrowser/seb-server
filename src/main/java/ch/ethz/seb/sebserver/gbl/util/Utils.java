@@ -436,6 +436,10 @@ public final class Utils {
         return toCharArray(CharBuffer.wrap(chars));
     }
 
+    public static void clear(final CharSequence charSequence) {
+        clearCharArray(toCharArray(charSequence));
+    }
+
     public static String toString(final CharSequence charSequence) {
         if (charSequence == null) {
             return null;

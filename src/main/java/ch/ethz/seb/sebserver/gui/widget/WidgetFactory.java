@@ -152,7 +152,10 @@ public class WidgetFactory {
         CONFIG_INPUT_READONLY("inputreadonly"),
 
         DARK_COLOR_LABEL("colordark"),
-        LIGHT_COLOR_LABEL("colorlight")
+        LIGHT_COLOR_LABEL("colorlight"),
+
+        LOGIN("login"),
+        LOGIN_BACK("login-back")
 
         ;
 
