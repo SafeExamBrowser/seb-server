@@ -316,7 +316,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
 
-        return new CompletableFuture<String>().completeAsync(
+        return CompletableFuture.supplyAsync(
                 () -> this.sebClientConnectionService
                         .notifyPing(connectionToken, timestamp, pingNumber),
                 this.executor);
