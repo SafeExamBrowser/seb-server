@@ -74,6 +74,8 @@ public class UserAccountForm implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.username");
     static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.name");
+    static final LocTextKey FORM_SURNAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.surname");
     static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.institution");
     static final LocTextKey FORM_LANG_TEXT_KEY =
@@ -173,6 +175,10 @@ public class UserAccountForm implements TemplateComposer {
                         FORM_NAME_TEXT_KEY,
                         userAccount.getName()))
                 .addField(FormBuilder.text(
+                        Domain.USER.ATTR_SURNAME,
+                        FORM_SURNAME_TEXT_KEY,
+                        userAccount.getSurname()))
+                .addField(FormBuilder.text(
                         Domain.USER.ATTR_USERNAME,
                         FORM_USERNAME_TEXT_KEY,
                         userAccount.getUsername()))
@@ -194,7 +200,7 @@ public class UserAccountForm implements TemplateComposer {
                         this.resourceService::timeZoneResources))
                 .addFieldIf(
                         () -> modifyGrant,
-                        () -> FormBuilder.multiSelection(
+                        () -> FormBuilder.multiCheckboxSelection(
                                 USER_ROLE.REFERENCE_NAME,
                                 FORM_ROLES_TEXT_KEY,
                                 StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
@@ -248,7 +254,6 @@ public class UserAccountForm implements TemplateComposer {
                             .map(userInfo -> {
                                 if (ownAccount) {
                                     currentUser.refresh(userInfo);
-                                    pageContext.forwardToMainPage();
                                 }
                                 return userInfo;
                             }),

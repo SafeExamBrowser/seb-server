@@ -63,6 +63,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "{\"uuid\":\"user1\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"SEBAdmin\","
+                        + "\"surname\":\"\","
                         + "\"username\":\"admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
@@ -81,6 +82,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
+                        + "\"surname\":\"\","
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
@@ -104,6 +106,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "{\"uuid\":\"user2\","
                         + "\"institutionId\":1,"
                         + "\"name\":\"Institutional1 Admin\","
+                        + "\"surname\":\"\","
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin@nomail.nomail\","
                         + "\"active\":true,"
@@ -583,6 +586,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 user.uuid,
                 user.getInstitutionId(),
                 user.getName(),
+                user.getSurname(),
                 "newUser1",
                 "newUser@nomail.nomail",
                 user.getActive(),
@@ -743,7 +747,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andReturn().getResponse().getContentAsString();
 
         final UserInfo userInfo = new UserInfo(
-                "NewTestUser", 2L, "NewTestUser", "NewTestUser",
+                "NewTestUser", 2L, "NewTestUser", "", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
         final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
@@ -770,7 +774,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .andReturn().getResponse().getContentAsString();
 
         final UserInfo userInfo = new UserInfo(
-                "NewTestUser", 2L, "NewTestUser", "NewTestUser",
+                "NewTestUser", 2L, "NewTestUser", "", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
         //final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");

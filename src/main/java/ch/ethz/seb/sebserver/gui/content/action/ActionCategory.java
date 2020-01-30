@@ -27,7 +27,7 @@ public enum ActionCategory {
     CLIENT_EVENT_LIST(new LocTextKey("sebserver.monitoring.exam.connection.list.actions"), 1),
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
-    VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 100),
+    VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 0),
     FILTER(new LocTextKey("sebserver.overall.action.category.filter"), 50);
 
     public final LocTextKey title;

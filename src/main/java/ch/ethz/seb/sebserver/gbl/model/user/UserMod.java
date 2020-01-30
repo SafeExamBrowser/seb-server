@@ -46,11 +46,16 @@ public final class UserMod implements UserAccount {
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
-    /** Full name of the user */
+    /** first (or full) name of the user */
     @NotNull(message = "user:name:notNull")
     @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
+
+    /** surname of the user */
+    @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
+    @JsonProperty(USER.ATTR_SURNAME)
+    public final String surname;
 
     /** The internal user name */
     @NotNull(message = "user:username:notNull")
@@ -93,6 +98,7 @@ public final class UserMod implements UserAccount {
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
+            @JsonProperty(USER.ATTR_SURNAME) final String surname,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD) final CharSequence newPassword,
             @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD) final CharSequence confirmNewPassword,
@@ -106,6 +112,7 @@ public final class UserMod implements UserAccount {
         this.newPassword = newPassword;
         this.confirmNewPassword = confirmNewPassword;
         this.name = name;
+        this.surname = surname;
         this.username = username;
         this.email = email;
         this.language = (language != null) ? language : Locale.ENGLISH;
@@ -121,6 +128,7 @@ public final class UserMod implements UserAccount {
         this.newPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_NEW_PASSWORD);
         this.confirmNewPassword = postAttrMapper.getString(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD);
         this.name = postAttrMapper.getString(USER.ATTR_NAME);
+        this.surname = postAttrMapper.getString(USER.ATTR_SURNAME);
         this.username = postAttrMapper.getString(USER.ATTR_USERNAME);
         this.email = postAttrMapper.getString(USER.ATTR_EMAIL);
         this.language = postAttrMapper.getLocale(USER.ATTR_LANGUAGE);
@@ -155,6 +163,11 @@ public final class UserMod implements UserAccount {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getSurname() {
+        return this.surname;
     }
 
     @Override
@@ -235,6 +248,8 @@ public final class UserMod implements UserAccount {
         builder.append(this.institutionId);
         builder.append(", name=");
         builder.append(this.name);
+        builder.append(", surname=");
+        builder.append(this.surname);
         builder.append(", username=");
         builder.append(this.username);
         builder.append(", email=");
@@ -257,7 +272,7 @@ public final class UserMod implements UserAccount {
         return new UserMod(
                 UUID.randomUUID().toString(),
                 institutionId,
-                null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null);
     }
 
 }

@@ -47,6 +47,7 @@ public class ActivitiesPane implements TemplateComposer {
     private static final String SKIP_EXPAND = "SKIP_EXPAND";
 
     private static final String ATTR_ACTIVITY_SELECTION = "ACTIVITY_SELECTION";
+    private static final LocTextKey TITLE_KEY = new LocTextKey("sebserver.activitiespane.title");
 
     private final WidgetFactory widgetFactory;
     private final CurrentUser currentUser;
@@ -66,13 +67,15 @@ public class ActivitiesPane implements TemplateComposer {
         final UserInfo userInfo = this.currentUser
                 .getOrHandleError(t -> this.pageService.logoutOnError(t, pageContext));
 
-        final Label activities = this.widgetFactory.labelLocalized(
-                pageContext.getParent(),
-                CustomVariant.TEXT_H2,
-                new LocTextKey("sebserver.activitiespane.title"));
-        final GridData activitiesGridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        activitiesGridData.horizontalIndent = 20;
-        activities.setLayoutData(activitiesGridData);
+        if (this.pageService.getI18nSupport().hasText(TITLE_KEY)) {
+            final Label activities = this.widgetFactory.labelLocalized(
+                    pageContext.getParent(),
+                    CustomVariant.TEXT_H2,
+                    TITLE_KEY);
+            final GridData activitiesGridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+            activitiesGridData.horizontalIndent = 20;
+            activities.setLayoutData(activitiesGridData);
+        }
 
         final Tree navigation = this.widgetFactory.treeLocalized(
                 pageContext.getParent(),

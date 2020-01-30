@@ -63,6 +63,8 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.list.column.user");
     private static final LocTextKey DATE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.dateTime");
+    private static final LocTextKey DETAILS_DATE_TEXT_KEY =
+            new LocTextKey("sebserver.seblogs.details.dateTime");
     private static final LocTextKey ACTIVITY_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.activityType");
     private static final LocTextKey ENTITY_TYPE_TEXT_KEY =
@@ -179,7 +181,7 @@ public class UserActivityLogs implements TemplateComposer {
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
-                        DATE_TEXT_KEY,
+                        new LocTextKey(DATE_TEXT_KEY.name, this.i18nSupport.getUsersTimeZoneTitleSuffix()),
                         this::getLogTime)
                                 .withFilter(new TableFilterAttribute(
                                         CriteriaType.DATE_RANGE,
@@ -259,9 +261,10 @@ public class UserActivityLogs implements TemplateComposer {
                         userActivityLog.entityId))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
-                        DATE_TEXT_KEY,
+                        DETAILS_DATE_TEXT_KEY,
                         this.widgetFactory.getI18nSupport()
-                                .formatDisplayDateTime(Utils.toDateTimeUTC(userActivityLog.timestamp))))
+                                .formatDisplayDateTime(Utils.toDateTimeUTC(userActivityLog.timestamp)) + " " +
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_MESSAGE,
                         MESSAGE_TEXT_KEY,

@@ -13,6 +13,8 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
@@ -21,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -35,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -59,19 +63,22 @@ public class ExamAPI_V1_Controller {
     private final SebClientConnectionService sebClientConnectionService;
     private final SebClientConfigDAO sebClientConfigDAO;
     private final JSONMapper jsonMapper;
+    private final Executor executor;
 
     protected ExamAPI_V1_Controller(
             final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SebClientConnectionService sebClientConnectionService,
             final SebClientConfigDAO sebClientConfigDAO,
-            final JSONMapper jsonMapper) {
+            final JSONMapper jsonMapper,
+            @Qualifier(AsyncServiceSpringConfig.EXAMP_AIP_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.jsonMapper = jsonMapper;
+        this.executor = executor;
     }
 
     @RequestMapping(
@@ -304,13 +311,15 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String ping(
+    public CompletableFuture<String> ping(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
 
-        return this.sebClientConnectionService
-                .notifyPing(connectionToken, timestamp, pingNumber);
+        return new CompletableFuture<String>().completeAsync(
+                () -> this.sebClientConnectionService
+                        .notifyPing(connectionToken, timestamp, pingNumber),
+                this.executor);
     }
 
     @RequestMapping(

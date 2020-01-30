@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -87,15 +88,18 @@ public class UserAccountList implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final int pageSize;
+    private final boolean multilingual;
 
     protected UserAccountList(
             final PageService pageService,
             final ResourceService resourceService,
-            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize,
+            @Value("${sebserver.gui.multilingual:false}") final Boolean ml) {
 
         this.pageService = pageService;
         this.resourceService = resourceService;
         this.pageSize = pageSize;
+        this.multilingual = BooleanUtils.isTrue(ml);
 
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -165,14 +169,15 @@ public class UserAccountList implements TemplateComposer {
                                 .sortable()
                                 .widthProportion(3))
 
-                .withColumn(new ColumnDefinition<>(
-                        Domain.USER.ATTR_LANGUAGE,
-                        LANG_TEXT_KEY,
-                        this::getLocaleDisplayText)
-                                .withFilter(this.languageFilter)
-                                .localized()
-                                .sortable()
-                                .widthProportion(1))
+                .withColumnIf(() -> this.multilingual,
+                        () -> new ColumnDefinition<>(
+                                Domain.USER.ATTR_LANGUAGE,
+                                LANG_TEXT_KEY,
+                                this::getLocaleDisplayText)
+                                        .withFilter(this.languageFilter)
+                                        .localized()
+                                        .sortable()
+                                        .widthProportion(1))
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_ACTIVE,

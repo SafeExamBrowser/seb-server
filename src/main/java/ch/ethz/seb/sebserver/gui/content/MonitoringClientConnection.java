@@ -192,13 +192,15 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .widthProportion(1))
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_EVENT.ATTR_CLIENT_TIME,
-                        LIST_COLUMN_CLIENT_TIME_KEY,
+                        new LocTextKey(LIST_COLUMN_CLIENT_TIME_KEY.name,
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()),
                         this::getClientTime)
                                 .sortable()
                                 .widthProportion(1))
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
-                        LIST_COLUMN_SERVER_TIME_KEY,
+                        new LocTextKey(LIST_COLUMN_SERVER_TIME_KEY.name,
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()),
                         this::getServerTime)
                                 .sortable()
                                 .widthProportion(1))

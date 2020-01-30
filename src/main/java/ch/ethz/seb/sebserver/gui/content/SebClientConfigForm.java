@@ -143,7 +143,7 @@ public class SebClientConfigForm implements TemplateComposer {
                         () -> FormBuilder.text(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
                                 FORM_DATE_TEXT_KEY,
-                                i18nSupport.formatDisplayDate(clientConfig.date))
+                                i18nSupport.formatDisplayDateWithTimeZone(clientConfig.date))
                                 .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,

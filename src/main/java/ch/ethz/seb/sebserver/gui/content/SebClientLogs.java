@@ -197,7 +197,9 @@ public class SebClientLogs implements TemplateComposer {
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
-                        TIME_TEXT_KEY,
+                        new LocTextKey(
+                                TIME_TEXT_KEY.name,
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()),
                         this::getEventTime)
                                 .withFilter(new TableFilterAttribute(
                                         CriteriaType.DATE_TIME_RANGE,
@@ -272,11 +274,13 @@ public class SebClientLogs implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.CLIENT_EVENT.ATTR_CLIENT_TIME,
                         FORM_CLIENTTIME_TEXT_KEY,
-                        this.i18nSupport.formatDisplayDateTime(clientEvent.clientTime)))
+                        this.i18nSupport.formatDisplayDateTime(clientEvent.clientTime) + " " +
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()))
                 .addField(FormBuilder.text(
                         Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
                         FORM_SERVERTIME_TEXT_KEY,
-                        this.i18nSupport.formatDisplayDateTime(clientEvent.serverTime)))
+                        this.i18nSupport.formatDisplayDateTime(clientEvent.serverTime) + " " +
+                                this.i18nSupport.getUsersTimeZoneTitleSuffix()))
                 .addField(FormBuilder.text(
                         Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE,
                         FORM_VALUE_TEXT_KEY,
@@ -357,11 +361,11 @@ public class SebClientLogs implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
                         FORM_START_TIME_TEXT_KEY,
-                        this.i18nSupport.formatDisplayDateTime(exam.startTime)))
+                        this.i18nSupport.formatDisplayDateWithTimeZone(exam.startTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
                         FORM_END_TIME_TEXT_KEY,
-                        this.i18nSupport.formatDisplayDateTime(exam.endTime)))
+                        this.i18nSupport.formatDisplayDateWithTimeZone(exam.endTime)))
                 .build();
 
     }

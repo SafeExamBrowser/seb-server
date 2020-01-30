@@ -10,12 +10,8 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
@@ -35,7 +31,6 @@ public class TableNavigator {
         final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         this.composite.setLayoutData(gridData);
         final GridLayout layout = new GridLayout(3, false);
-        layout.marginLeft = 10;
         this.composite.setLayout(layout);
 
         this.entityTable = entityTable;
@@ -68,7 +63,7 @@ public class TableNavigator {
         final Composite numNav = new Composite(this.composite, SWT.NONE);
         final GridData gridData = new GridData(SWT.CENTER, SWT.TOP, true, false);
         numNav.setLayoutData(gridData);
-        final RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
+        final GridLayout rowLayout = new GridLayout(PAGE_NAV_SIZE + 5, true);
         numNav.setLayout(rowLayout);
 
         if (numberOfPages > 1) {
@@ -89,7 +84,7 @@ public class TableNavigator {
                 createPageNumberLabel(i, i != pageNumber, numNav);
             }
 
-            createForwardLabel(pageNumber < numberOfPages, pageNumber, numNav);
+            createForwardLabel(pageNumber < numberOfPages, pageNumber, numberOfPages, numNav);
         }
 
         return pageData;
@@ -97,12 +92,12 @@ public class TableNavigator {
 
     private void createPagingHeader(final int page, final int of) {
         final Label pageHeader = new Label(this.composite, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        final GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
         gridData.widthHint = 100;
         gridData.minimumWidth = 100;
-        gridData.verticalAlignment = SWT.CENTER;
+        gridData.heightHint = 16;
         pageHeader.setLayoutData(gridData);
-        pageHeader.setText("Page " + page + "/" + of);
+        pageHeader.setText("Page " + page + " / " + of);
     }
 
     private void createPageNumberLabel(
@@ -110,34 +105,50 @@ public class TableNavigator {
             final boolean selectable,
             final Composite parent) {
 
+        final GridData rowData = new GridData(22, 16);
         final Label pageLabel = new Label(parent, SWT.NONE);
-
         pageLabel.setText(" " + String.valueOf(page) + " ");
-        pageLabel.setLayoutData(new RowData(22, 16));
+        pageLabel.setLayoutData(rowData);
         pageLabel.setAlignment(SWT.CENTER);
         if (selectable) {
-            pageLabel.setData(RWT.CUSTOM_VARIANT, "action");
+            pageLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
             pageLabel.addListener(SWT.MouseDown, event -> {
                 this.entityTable.selectPage(page);
             });
-            pageLabel.setBackground(new Color(parent.getDisplay(), new RGB(245, 245, 245)));
         }
     }
 
     private void createForwardLabel(
             final boolean visible,
             final int pageNumber,
+            final int numberOfPages,
             final Composite parent) {
 
+        final GridData rowData = new GridData(22, 16);
         final Label forward = new Label(parent, SWT.NONE);
         forward.setText(">");
-        forward.setData(RWT.CUSTOM_VARIANT, "action");
+        forward.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
+        forward.setLayoutData(rowData);
+        forward.setAlignment(SWT.CENTER);
         if (visible) {
             forward.addListener(SWT.MouseDown, event -> {
                 this.entityTable.selectPage(pageNumber + 1);
             });
         } else {
             forward.setVisible(false);
+        }
+
+        final Label end = new Label(parent, SWT.NONE);
+        end.setText(">>");
+        end.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
+        end.setLayoutData(rowData);
+        end.setAlignment(SWT.CENTER);
+        if (visible) {
+            end.addListener(SWT.MouseDown, event -> {
+                this.entityTable.selectPage(numberOfPages);
+            });
+        } else {
+            end.setVisible(false);
         }
     }
 
@@ -146,9 +157,25 @@ public class TableNavigator {
             final int pageNumber,
             final Composite parent) {
 
+        final GridData rowData = new GridData(22, 16);
+        final Label start = new Label(parent, SWT.NONE);
+        start.setText("<<");
+        start.setLayoutData(rowData);
+        start.setAlignment(SWT.CENTER);
+        start.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
+        if (visible) {
+            start.addListener(SWT.MouseDown, event -> {
+                this.entityTable.selectPage(1);
+            });
+        } else {
+            start.setVisible(false);
+        }
+
         final Label backward = new Label(parent, SWT.NONE);
         backward.setText("<");
-        backward.setData(RWT.CUSTOM_VARIANT, "action");
+        backward.setLayoutData(rowData);
+        backward.setAlignment(SWT.CENTER);
+        backward.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
         if (visible) {
             backward.addListener(SWT.MouseDown, event -> {
                 this.entityTable.selectPage(pageNumber - 1);
@@ -156,6 +183,7 @@ public class TableNavigator {
         } else {
             backward.setVisible(false);
         }
+
     }
 
 }

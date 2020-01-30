@@ -34,11 +34,23 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone offset information if the currents user time-zone is different form UTC
      *
      * @param date the DateTime instance
      * @return date formatted date String to display */
     String formatDisplayDate(DateTime date);
+
+    /** Format a DateTime to a text format to display with additional time zone name at the end.
+     * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
+     * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
+     *
+     * Adds time-zone offset information if the currents user time-zone is different form UTC
+     *
+     * @param date the DateTime instance
+     * @return date formatted date String to display */
+    default String formatDisplayDateWithTimeZone(final DateTime date) {
+        return formatDisplayDate(date) + " " + this.getUsersTimeZoneTitleSuffix();
+    }
 
     /** Format a time-stamp (milliseconds) to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'

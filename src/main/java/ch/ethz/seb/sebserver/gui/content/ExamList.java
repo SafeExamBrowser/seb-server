@@ -203,8 +203,9 @@ public class ExamList implements TemplateComposer {
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
 
-                .newAction(ActionDefinition.EXAM_IMPORT)
-                .publishIf(userGrant::im)
+// Removed as discussed in SEBSERV-52
+//                .newAction(ActionDefinition.EXAM_IMPORT)
+//                .publishIf(userGrant::im)
 
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)

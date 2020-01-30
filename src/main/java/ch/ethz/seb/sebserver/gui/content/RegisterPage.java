@@ -19,8 +19,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -38,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.InstitutionalAuthenticationEntryPoint;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -51,8 +48,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class RegisterPage implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(RegisterPage.class);
 
     static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.login.register.form.title");
@@ -70,6 +65,8 @@ public class RegisterPage implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.username");
     static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.name");
+    static final LocTextKey FORM_SURNAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.surname");
     static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.institution");
     static final LocTextKey FORM_LANG_TEXT_KEY =
@@ -78,8 +75,6 @@ public class RegisterPage implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final WidgetFactory widgetFactory;
-    private final I18nSupport i18nSupport;
-    private final WebserviceURIService webserviceURIService;
     private final RestTemplate restTemplate;
     private final boolean multilingual;
 
@@ -92,8 +87,6 @@ public class RegisterPage implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.widgetFactory = pageService.getWidgetFactory();
-        this.i18nSupport = pageService.getI18nSupport();
-        this.webserviceURIService = webserviceURIService;
         this.multilingual = BooleanUtils.toBoolean(multilingual);
 
         this.restTemplate = new RestTemplate();
@@ -148,6 +141,9 @@ public class RegisterPage implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
                         FORM_NAME_TEXT_KEY))
+                .addField(FormBuilder.text(
+                        Domain.USER.ATTR_SURNAME,
+                        FORM_SURNAME_TEXT_KEY))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_USERNAME,
                         FORM_USERNAME_TEXT_KEY))

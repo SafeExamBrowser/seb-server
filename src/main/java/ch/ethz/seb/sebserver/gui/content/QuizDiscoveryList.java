@@ -59,18 +59,12 @@ public class QuizDiscoveryList implements TemplateComposer {
     // localized text keys
     private static final LocTextKey QUIZ_DETAILS_URL_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.url");
-    private static final LocTextKey QUIZ_DETAILS_ENDTIME_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
-    private static final LocTextKey QUIZ_DETAILS_STARTTIME_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.starttime");
     private static final LocTextKey QUIZ_DETAILS_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.description");
-    private static final LocTextKey QUIZ_DETAILS_NAME_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.name");
-    private static final LocTextKey QUIZ_DETAILS_INSTITUION_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.institution");
-    private static final LocTextKey QUIZ_DETAILS_LMS_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.lms");
+    private static final LocTextKey QUIZ_DETAILS_START_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.starttime");
+    private static final LocTextKey QUIZ_DETAILS_END_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.title");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
@@ -83,6 +77,10 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.list.column.lmssetup");
     private final static LocTextKey NAME_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.column.name");
+    private final static LocTextKey START_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.list.column.starttime");
+    private final static LocTextKey END_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.list.column.endtime");
     private final static LocTextKey DETAILS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.title");
     private final static LocTextKey NO_IMPORT_OF_OUT_DATED_QUIZ =
@@ -176,7 +174,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
-                                        "sebserver.quizdiscovery.list.column.starttime",
+                                        START_TIME_TEXT_KEY.name,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 QuizData::getStartTime)
                                         .withFilter(new TableFilterAttribute(
@@ -190,7 +188,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_END_TIME,
                                 new LocTextKey(
-                                        "sebserver.quizdiscovery.list.column.endtime",
+                                        END_TIME_TEXT_KEY.name,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 QuizData::getEndTime)
                                         .sortable())
@@ -207,12 +205,12 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
-        final GrantCheck lmsSetupGrant = currentUser.grantCheck(EntityType.LMS_SETUP);
         final GrantCheck examGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
 
-                .newAction(ActionDefinition.LMS_SETUP_NEW)
-                .publishIf(lmsSetupGrant::iw)
+// Removed as discussed in SEBSERV-52
+//                .newAction(ActionDefinition.LMS_SETUP_NEW)
+//                .publishIf(lmsSetupGrant::iw)
 
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                 .withSelect(
@@ -294,16 +292,16 @@ public class QuizDiscoveryList implements TemplateComposer {
                         () -> this.resourceService.getCurrentUser().get().hasRole(UserRole.SEB_SERVER_ADMIN),
                         () -> FormBuilder.text(
                                 QuizData.QUIZ_ATTR_INSTITUION_ID,
-                                QUIZ_DETAILS_INSTITUION_TEXT_KEY,
+                                INSTITUION_TEXT_KEY,
                                 institutionNameFunction.apply(quizData.getModelId())))
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,
-                        QUIZ_DETAILS_LMS_TEXT_KEY,
+                        LMS_TEXT_KEY,
                         String.valueOf(quizData.lmsSetupId),
                         () -> this.resourceService.lmsSetupResource()))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
-                        QUIZ_DETAILS_NAME_TEXT_KEY,
+                        NAME_TEXT_KEY,
                         quizData.name))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
@@ -312,12 +310,12 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .asHTML())
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
-                        QUIZ_DETAILS_STARTTIME_TEXT_KEY,
-                        this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.startTime)))
+                        QUIZ_DETAILS_START_TIME_TEXT_KEY,
+                        this.widgetFactory.getI18nSupport().formatDisplayDateWithTimeZone(quizData.startTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
-                        QUIZ_DETAILS_ENDTIME_TEXT_KEY,
-                        this.widgetFactory.getI18nSupport().formatDisplayDate(quizData.endTime)))
+                        QUIZ_DETAILS_END_TIME_TEXT_KEY,
+                        this.widgetFactory.getI18nSupport().formatDisplayDateWithTimeZone(quizData.endTime)))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         QUIZ_DETAILS_URL_TEXT_KEY,

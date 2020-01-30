@@ -72,6 +72,7 @@ public class RegisterUserController {
     public UserInfo registerNewUser(
             @RequestParam(name = Domain.USER.ATTR_INSTITUTION_ID, required = true) final String institutionId,
             @RequestParam(name = Domain.USER.ATTR_NAME, required = true) final String name,
+            @RequestParam(name = Domain.USER.ATTR_SURNAME, required = false) final String surname,
             @RequestParam(name = Domain.USER.ATTR_USERNAME, required = true) final String username,
             @RequestParam(name = Domain.USER.ATTR_EMAIL, required = false) final String email,
             @RequestParam(
@@ -131,6 +132,7 @@ public class RegisterUserController {
                 null,
                 instId,
                 name,
+                surname,
                 username,
                 rawPWD,
                 rawRPWD,

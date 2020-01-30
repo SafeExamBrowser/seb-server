@@ -37,6 +37,20 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         return executor;
     }
 
+    public static final String EXAMP_AIP_EXECUTOR_BEAN_NAME = "ExamAPIAsyncServiceExecutorBean";
+
+    @Bean(name = EXAMP_AIP_EXECUTOR_BEAN_NAME)
+    public Executor examAPIThreadPoolTaskExecutor() {
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(200);
+        executor.setMaxPoolSize(2000);
+        executor.setQueueCapacity(2000);
+        executor.setThreadNamePrefix("examService-");
+        executor.initialize();
+        executor.setWaitForTasksToCompleteOnShutdown(false);
+        return executor;
+    }
+
     @Override
     public Executor getAsyncExecutor() {
         return threadPoolTaskExecutor();

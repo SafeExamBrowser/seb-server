@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.template.ImageCell;
 import org.eclipse.rap.rwt.template.Template;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 public class ActionPane implements TemplateComposer {
 
     private static final String ACTION_EVENT_CALL_KEY = "ACTION_EVENT_CALL";
+    private static final LocTextKey TITLE_KEY = new LocTextKey("sebserver.actionpane.title");
 
     private final PageService pageService;
     private final WidgetFactory widgetFactory;
@@ -61,11 +63,14 @@ public class ActionPane implements TemplateComposer {
         final Label label = this.widgetFactory.labelLocalized(
                 pageContext.getParent(),
                 CustomVariant.TEXT_H2,
-                new LocTextKey("sebserver.actionpane.title"));
+                TITLE_KEY);
 
         final GridData titleLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
         titleLayout.verticalIndent = 10;
         titleLayout.horizontalIndent = 10;
+        if (StringUtils.isBlank(label.getText())) {
+            titleLayout.heightHint = 0;
+        }
         label.setLayoutData(titleLayout);
 
         label.setData(
@@ -107,7 +112,9 @@ public class ActionPane implements TemplateComposer {
         final Composite composite = new Composite(parent, SWT.NONE);
         final GridData layout = new GridData(SWT.FILL, SWT.TOP, true, false);
         composite.setLayoutData(layout);
-        composite.setLayout(new GridLayout());
+        final GridLayout gridLayout = new GridLayout();
+        gridLayout.marginHeight = 0;
+        composite.setLayout(gridLayout);
         composite.setData(RWT.CUSTOM_VARIANT, "actionPane");
         composite.setData("CATEGORY", category);
 
@@ -121,14 +128,12 @@ public class ActionPane implements TemplateComposer {
         }
 
         // title
-        if (category.title != null) {
+        if (this.pageService.getI18nSupport().hasText(category.title)) {
             final Label actionsTitle = this.widgetFactory.labelLocalized(
                     composite,
                     CustomVariant.TEXT_H3,
                     category.title);
             final GridData titleLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
-            titleLayout.horizontalIndent = 10;
-            titleLayout.verticalIndent = 10;
             actionsTitle.setLayoutData(titleLayout);
         }
 

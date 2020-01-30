@@ -40,16 +40,6 @@ public class AsyncService {
                 timeToRecover);
     }
 
-//    public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
-//            final Supplier<T> blockingSupplier) {
-//
-//        return new MemoizingCircuitBreaker<>(
-//                this.asyncRunner,
-//                blockingSupplier,
-//                true,
-//                Constants.HOUR_IN_MILLIS);
-//    }
-
     public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
             final Supplier<T> blockingSupplier,
             final int maxFailingAttempts,

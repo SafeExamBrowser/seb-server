@@ -349,7 +349,7 @@ public class ResourceService {
         return DateTimeZone
                 .getAvailableIDs()
                 .stream()
-                .map(id -> new Tuple<>(id, DateTimeZone.forID(id).getName(0, currentLocale) + " (" + id + ")"))
+                .map(id -> new Tuple<>(id, id + " (" + DateTimeZone.forID(id).getName(0, currentLocale) + ")"))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

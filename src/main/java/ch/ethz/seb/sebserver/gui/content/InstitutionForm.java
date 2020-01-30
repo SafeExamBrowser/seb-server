@@ -86,7 +86,6 @@ public class InstitutionForm implements TemplateComposer {
         final EntityGrantCheck instGrant = this.currentUser.entityGrantCheck(institution);
         final boolean writeGrant = instGrant.w();
         final boolean modifyGrant = instGrant.m();
-        final boolean userWriteGrant = this.currentUser.grantCheck(EntityType.USER).w();
         final boolean isReadonly = pageContext.isReadonly();
 
         // new PageContext with actual EntityKey
@@ -131,9 +130,10 @@ public class InstitutionForm implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
 
-                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .withParentEntityKey(entityKey)
-                .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
+// Removed as discussed in SEBSERV-52
+//                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
+//                .withParentEntityKey(entityKey)
+//                .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY)
                 .withEntityKey(entityKey)

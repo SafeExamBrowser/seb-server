@@ -80,11 +80,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SEBServerUser getSuperUser() {
-        return SUPER_USER;
-    }
-
-    @Override
     public void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder) {
         final PropertyEditorSupport usersInstitutionDefaultEditor = new PropertyEditorSupport() {
             @Override
@@ -122,18 +117,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private static final SEBServerUser SUPER_USER = new SEBServerUser(
-            -1L,
-            new UserInfo("SEB_SERVER_SUPER_USER", -1L, "superUser", "superUser", null, false, null, null,
-                    Arrays.asList(UserRole.values())
-                            .stream()
-                            .map(ur -> ur.name())
-                            .collect(Collectors.toSet())),
-            null);
-
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", null, false, null, null,
+            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", "anonymous", null, false, null,
+                    null,
                     Arrays.asList(UserRole.values())
                             .stream()
                             .map(ur -> ur.name())

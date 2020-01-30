@@ -46,14 +46,8 @@ public interface UserService {
      * @return an overall anonymous user with no rights */
     SEBServerUser getAnonymousUser();
 
-    /** Gets a overall super user with all rights. This can be used for background jobs that are
-     * not user specific but system specific.
-     *
-     * @return an overall super user with all rights */
-    SEBServerUser getSuperUser();
-
     /** Binds the current users institution identifier as default value to a
-     * 
+     *
      * @RequestParam of type API.PARAM_INSTITUTION_ID if needed. See EntityController class for example
      * @param binder Springs WebDataBinder is injected on controller side */
     void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder);

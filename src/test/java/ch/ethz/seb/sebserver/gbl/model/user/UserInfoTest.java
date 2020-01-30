@@ -25,18 +25,21 @@ public class UserInfoTest {
     @Test
     public void pageOfUserAccount() throws Exception {
         final Page<UserInfo> page = new Page<>(2, 1, "name", Arrays.asList(
-                new UserInfo("id1", 1L, "user1", "user1", "user1@inst2.none", true, Locale.ENGLISH, DateTimeZone.UTC,
+                new UserInfo("id1", 1L, "user1", "", "user1", "user1@inst2.none", true, Locale.ENGLISH,
+                        DateTimeZone.UTC,
                         new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name()))),
-                new UserInfo("id2", 3L, "user2", "user2", "user2@inst2.none", true, Locale.ENGLISH, DateTimeZone.UTC,
+                new UserInfo("id2", 3L, "user2", "", "user2", "user2@inst2.none", true, Locale.ENGLISH,
+                        DateTimeZone.UTC,
                         new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name()))),
-                new UserInfo("id3", 4L, "user3", "user3", "user3@inst2.none", false, Locale.GERMAN, DateTimeZone.UTC,
+                new UserInfo("id3", 4L, "user3", "", "user3", "user3@inst2.none", false, Locale.GERMAN,
+                        DateTimeZone.UTC,
                         new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())))));
 
         final JSONMapper jsonMapper = new JSONMapper();
         //final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();
         final String json = jsonMapper.writeValueAsString(page);
         assertEquals(
-                "{\"number_of_pages\":2,\"page_number\":1,\"sort\":\"name\",\"content\":[{\"uuid\":\"id1\",\"institutionId\":1,\"name\":\"user1\",\"username\":\"user1\",\"email\":\"user1@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id2\",\"institutionId\":3,\"name\":\"user2\",\"username\":\"user2\",\"email\":\"user2@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id3\",\"institutionId\":4,\"name\":\"user3\",\"username\":\"user3\",\"email\":\"user3@inst2.none\",\"active\":false,\"language\":\"de\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]}],\"page_size\":3}",
+                "{\"number_of_pages\":2,\"page_number\":1,\"sort\":\"name\",\"content\":[{\"uuid\":\"id1\",\"institutionId\":1,\"name\":\"user1\",\"surname\":\"\",\"username\":\"user1\",\"email\":\"user1@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id2\",\"institutionId\":3,\"name\":\"user2\",\"surname\":\"\",\"username\":\"user2\",\"email\":\"user2@inst2.none\",\"active\":true,\"language\":\"en\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]},{\"uuid\":\"id3\",\"institutionId\":4,\"name\":\"user3\",\"surname\":\"\",\"username\":\"user3\",\"email\":\"user3@inst2.none\",\"active\":false,\"language\":\"de\",\"timezone\":\"UTC\",\"userRoles\":[\"EXAM_ADMIN\"]}],\"page_size\":3}",
                 json);
 
     }

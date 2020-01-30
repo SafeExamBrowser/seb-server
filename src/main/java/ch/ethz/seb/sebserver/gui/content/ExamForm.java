@@ -281,14 +281,14 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
                         FORM_STARTTIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDate(exam.startTime))
+                        i18nSupport.formatDisplayDateWithTimeZone(exam.startTime))
                         .readonly(true)
                         .withInputSpan(3)
                         .withEmptyCellSeparation(false))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
                         FORM_ENDTIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDate(exam.endTime))
+                        i18nSupport.formatDisplayDateWithTimeZone(exam.endTime))
                         .readonly(true)
                         .withInputSpan(3)
                         .withEmptyCellSeparation(false))

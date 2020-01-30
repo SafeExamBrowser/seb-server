@@ -63,11 +63,16 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
-    /** Full name of the user */
+    /** First name of the user */
     @NotNull(message = "user:name:notNull")
     @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
+
+    /** Surname of the user */
+    @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
+    @JsonProperty(USER.ATTR_SURNAME)
+    public final String surname;
 
     /** The internal user name */
     @NotNull(message = "user:username:notNull")
@@ -106,6 +111,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(USER.ATTR_NAME) final String name,
+            @JsonProperty(USER.ATTR_SURNAME) final String surname,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
@@ -116,6 +122,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
         this.uuid = uuid;
         this.institutionId = institutionId;
         this.name = name;
+        this.surname = surname;
         this.username = username;
         this.email = email;
         this.active = BooleanUtils.isTrue(active);
@@ -151,6 +158,11 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getSurname() {
+        return this.surname;
     }
 
     @Override
@@ -280,6 +292,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
                 userInfo.getInstitutionId(),
                 userInfo.getName(),
                 userInfo.getUsername(),
+                userInfo.getSurname(),
                 userInfo.getEmail(),
                 userInfo.getActive(),
                 userInfo.getLanguage(),
@@ -291,6 +304,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
      *
      * @param userInfo UserInfo instance to copy
      * @param name new name or null if the name of given userInfo should be taken
+     * @param surname new surname or null if the name of given userInfo should be taken
      * @param username new username or null if the username of given userInfo should be taken
      * @param email new email or null if the email of given userInfo should be taken
      * @param language new language or null if the language of given userInfo should be taken
@@ -301,6 +315,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
             final UserInfo userInfo,
             final String name,
             final String username,
+            final String surname,
             final String email,
             final Locale language,
             final DateTimeZone timeZone,
@@ -310,6 +325,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
                 (name != null) ? name : userInfo.getName(),
+                (surname != null) ? surname : userInfo.getSurname(),
                 (username != null) ? username : userInfo.getUsername(),
                 (email != null) ? email : userInfo.getEmail(),
                 userInfo.getActive(),
@@ -318,19 +334,11 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
                 (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles);
     }
 
-    public static final UserInfo withName(final UserInfo userInfo, final String name) {
-        return of(userInfo, name, null, null, null, null, (String[]) null);
-    }
-
-    public static final UserInfo withUserName(final UserInfo userInfo, final String username) {
-        return of(userInfo, null, username, null, null, null, (String[]) null);
-    }
-
     public static final UserInfo withEMail(final UserInfo userInfo, final String email) {
-        return of(userInfo, null, null, email, null, null, (String[]) null);
+        return of(userInfo, null, null, null, email, null, null, (String[]) null);
     }
 
     public static final UserInfo withRoles(final UserInfo userInfo, final String... roles) {
-        return of(userInfo, null, null, null, null, null, roles);
+        return of(userInfo, null, null, null, null, null, null, roles);
     }
 }

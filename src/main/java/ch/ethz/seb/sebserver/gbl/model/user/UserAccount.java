@@ -29,9 +29,12 @@ public interface UserAccount extends GrantEntity, Activatable {
     @Override
     Long getInstitutionId();
 
-    /** The name of the User-Account */
+    /** The first name of the User */
     @Override
     String getName();
+
+    /** The surname of the User */
+    String getSurname();
 
     /** The user-name or login-name of the User-Account */
     String getUsername();

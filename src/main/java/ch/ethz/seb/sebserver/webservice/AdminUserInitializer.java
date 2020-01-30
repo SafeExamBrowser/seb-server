@@ -121,6 +121,7 @@ class AdminUserInitializer {
                             institutionId,
                             this.adminName,
                             this.adminName,
+                            this.adminName,
                             generateAdminPassword,
                             generateAdminPassword,
                             null,

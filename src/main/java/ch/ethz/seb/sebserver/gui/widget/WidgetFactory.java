@@ -155,7 +155,9 @@ public class WidgetFactory {
         LIGHT_COLOR_LABEL("colorlight"),
 
         LOGIN("login"),
-        LOGIN_BACK("login-back")
+        LOGIN_BACK("login-back"),
+
+        LIST_NAVIGATION("list-nav")
 
         ;
 
@@ -188,7 +190,7 @@ public class WidgetFactory {
         final GridLayout contentLayout = new GridLayout();
         contentLayout.marginLeft = 10;
         content.setLayout(contentLayout);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         content.setLayoutData(gridData);
         return content;
     }

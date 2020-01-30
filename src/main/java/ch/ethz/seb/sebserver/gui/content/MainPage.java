@@ -86,7 +86,7 @@ public class MainPage implements TemplateComposer {
                 mainSash,
                 scrolledComposite -> {
                     final Composite reusult = new Composite(scrolledComposite, SWT.NONE);
-                    reusult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+                    reusult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
                     final GridLayout contentOuterlayout = new GridLayout();
                     contentOuterlayout.marginHeight = 0;
                     contentOuterlayout.marginWidth = 0;

@@ -257,8 +257,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (812, 'allowWlan', 'CHECKBOX', null, null, null, null, 'false'),
     (813, 'hookKeys', 'CHECKBOX', null, null, null, null, 'true'),
     
-    (900, 'examSessionClearCookiesOnEnd', 'CHECKBOX', null, null, null, null, 'false'),
-    (901, 'examSessionClearCookiesOnStart', 'CHECKBOX', null, null, null, null, 'false'),
+    (900, 'examSessionClearCookiesOnEnd', 'CHECKBOX', null, null, null, null, 'true'),
+    (901, 'examSessionClearCookiesOnStart', 'CHECKBOX', null, null, null, null, 'true'),
     (902, 'showBackToStartButton', 'CHECKBOX', null, null, null, null, 'true'),
     (903, 'showSettingsInApp', 'CHECKBOX', null, null, null, null, 'false'),
     (904, 'browserUserAgentWinTouchModeIPad', 'TEXT_FIELD', null, null, null, null, 'Mozilla/5.0 (iPad; CPU OS 12_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1'),

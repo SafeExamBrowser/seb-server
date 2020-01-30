@@ -313,6 +313,7 @@ public final class Form implements FormBinding {
         switch (selection.type()) {
             case MULTI:
             case MULTI_COMBO:
+            case MULTI_CHECKBOX:
                 return createAccessor(label, selection, Form::adaptCommaSeparatedStringToJsonArray, errorLabel);
             default : return createAccessor(label, selection, null, errorLabel);
         }

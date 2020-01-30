@@ -106,7 +106,8 @@ public interface LmsAPIService {
         //final DateTime now = DateTime.now(DateTimeZone.UTC);
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
-            final boolean startTimeFilter = (from == null) || (q.startTime != null && q.startTime.isAfter(from));
+            final boolean startTimeFilter =
+                    (from == null) || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
             return nameFilter && startTimeFilter /* && endTimeFilter */;
         };
     }

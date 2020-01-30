@@ -69,7 +69,7 @@ public class AuthorizationServiceTest {
     }
 
     private SEBServerUser getUser(final UserRole... roles) {
-        final UserInfo userInfo = new UserInfo("test", 1L, "test", "test", "mail", true, Locale.ENGLISH,
+        final UserInfo userInfo = new UserInfo("test", 1L, "test", "", "test", "mail", true, Locale.ENGLISH,
                 DateTimeZone.UTC,
                 roles != null
                         ? new HashSet<>(Arrays.asList(roles).stream().map(r -> r.name()).collect(Collectors.toList()))

@@ -237,6 +237,15 @@ public class FormBuilder {
         return new SelectionFieldBuilder(Selection.Type.MULTI, name, label, value, itemsSupplier);
     }
 
+    public static SelectionFieldBuilder multiCheckboxSelection(
+            final String name,
+            final LocTextKey label,
+            final String value,
+            final Supplier<List<Tuple<String>>> itemsSupplier) {
+
+        return new SelectionFieldBuilder(Selection.Type.MULTI_CHECKBOX, name, label, value, itemsSupplier);
+    }
+
     public static SelectionFieldBuilder multiComboSelection(
             final String name,
             final LocTextKey label,

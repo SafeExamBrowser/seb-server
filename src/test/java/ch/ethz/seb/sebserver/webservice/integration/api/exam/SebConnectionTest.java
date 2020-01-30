@@ -465,12 +465,16 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("0", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
 
         super.sendPing(accessToken, connectionToken, 1);
+        Thread.sleep(200);
         assertEquals("1", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 2);
+        Thread.sleep(200);
         assertEquals("2", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 3);
+        Thread.sleep(200);
         assertEquals("3", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 5);
+        Thread.sleep(200);
         assertEquals("5", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
     }
 

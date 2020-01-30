@@ -32,6 +32,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -200,8 +201,8 @@ public class TableFilter<ROW extends Entity> {
         inner.setLayout(gridLayout);
         inner.setLayoutData(new RowData());
 
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
-
+        final GridData gridData = new GridData(SWT.FILL, SWT.BOTTOM, true, true);
+        gridData.heightHint = 20;
         final Label imageButton = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.SEARCH,
                 inner,
@@ -411,9 +412,15 @@ public class TableFilter<ROW extends Entity> {
     private class Date extends FilterComponent {
 
         private DateTime selector;
+        private final DateTimeZone timeZone;
 
         Date(final TableFilterAttribute attribute) {
             super(attribute);
+            final UserInfo userInfo = TableFilter.this.entityTable.pageService.getCurrentUser().get();
+            this.timeZone =
+                    (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC))
+                            ? userInfo.timeZone
+                            : DateTimeZone.UTC;
         }
 
         @Override
@@ -440,7 +447,7 @@ public class TableFilter<ROW extends Entity> {
         @Override
         String getValue() {
             if (this.selector != null) {
-                final org.joda.time.DateTime date = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                final org.joda.time.DateTime date = org.joda.time.DateTime.now(this.timeZone)
                         .withYear(this.selector.getYear())
                         .withMonthOfYear(this.selector.getMonth() + 1)
                         .withDayOfMonth(this.selector.getDay())
@@ -456,7 +463,9 @@ public class TableFilter<ROW extends Entity> {
         void setValue(final String value) {
             if (this.selector != null) {
                 try {
-                    final org.joda.time.DateTime date = Utils.toDateTime(value);
+                    final org.joda.time.DateTime date = new org.joda.time.DateTime(
+                            Utils.toDateTime(value),
+                            this.timeZone);
                     this.selector.setDate(date.getYear(), date.getMonthOfYear() - 1, date.getDayOfMonth());
                 } catch (final Exception e) {
                     log.error("Failed to set date filter attribute: ", e);
@@ -482,6 +491,7 @@ public class TableFilter<ROW extends Entity> {
         private DateTime fromTimeSelector;
         private DateTime toTimeSelector;
         private final boolean withTime;
+        private final DateTimeZone timeZone;
 
         DateRange(final TableFilterAttribute attribute) {
             this(attribute, false);
@@ -490,6 +500,11 @@ public class TableFilter<ROW extends Entity> {
         DateRange(final TableFilterAttribute attribute, final boolean withTime) {
             super(attribute);
             this.withTime = withTime;
+            final UserInfo userInfo = TableFilter.this.entityTable.pageService.getCurrentUser().get();
+            this.timeZone =
+                    (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC))
+                            ? userInfo.timeZone
+                            : DateTimeZone.UTC;
         }
 
         @Override
@@ -521,10 +536,12 @@ public class TableFilter<ROW extends Entity> {
 
         @Override
         FilterComponent reset() {
-            final org.joda.time.DateTime now = org.joda.time.DateTime.now(DateTimeZone.UTC);
+            final org.joda.time.DateTime now = org.joda.time.DateTime.now(this.timeZone);
             if (this.fromDateSelector != null) {
                 try {
-                    final org.joda.time.DateTime parse = org.joda.time.DateTime.parse(this.attribute.initValue);
+                    final org.joda.time.DateTime parse = new org.joda.time.DateTime(
+                            org.joda.time.DateTime.parse(this.attribute.initValue),
+                            this.timeZone);
 
                     this.fromDateSelector.setDate(
                             parse.getYear(),
@@ -568,14 +585,14 @@ public class TableFilter<ROW extends Entity> {
         @Override
         String getValue() {
             if (this.fromDateSelector != null && this.toDateSelector != null) {
-                org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                org.joda.time.DateTime fromDate = org.joda.time.DateTime.now(this.timeZone)
                         .withYear(this.fromDateSelector.getYear())
                         .withMonthOfYear(this.fromDateSelector.getMonth() + 1)
                         .withDayOfMonth(this.fromDateSelector.getDay())
                         .withHourOfDay((this.fromTimeSelector != null) ? this.fromTimeSelector.getHours() : 0)
                         .withMinuteOfHour((this.fromTimeSelector != null) ? this.fromTimeSelector.getMinutes() : 0)
                         .withSecondOfMinute((this.fromTimeSelector != null) ? this.fromTimeSelector.getSeconds() : 0);
-                org.joda.time.DateTime toDate = org.joda.time.DateTime.now(DateTimeZone.UTC)
+                org.joda.time.DateTime toDate = org.joda.time.DateTime.now(this.timeZone)
                         .withYear(this.toDateSelector.getYear())
                         .withMonthOfYear(this.toDateSelector.getMonth() + 1)
                         .withDayOfMonth(this.toDateSelector.getDay())
@@ -603,8 +620,10 @@ public class TableFilter<ROW extends Entity> {
             if (this.fromDateSelector != null && this.toDateSelector != null) {
                 try {
                     final String[] split = StringUtils.split(value, Constants.EMBEDDED_LIST_SEPARATOR);
-                    final org.joda.time.DateTime fromDate = Utils.toDateTime(split[0]);
-                    final org.joda.time.DateTime toDate = Utils.toDateTime(split[1]);
+                    final org.joda.time.DateTime fromDate =
+                            new org.joda.time.DateTime(Utils.toDateTime(split[0]), this.timeZone);
+                    final org.joda.time.DateTime toDate =
+                            new org.joda.time.DateTime(Utils.toDateTime(split[1]), this.timeZone);
                     this.fromDateSelector.setDate(
                             fromDate.getYear(),
                             fromDate.getMonthOfYear() - 1,

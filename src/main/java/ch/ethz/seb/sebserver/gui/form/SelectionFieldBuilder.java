@@ -94,7 +94,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     /* Build the read-only representation of the selection field */
     private void buildReadOnly(final FormBuilder builder, final Label titleLabel) {
-        if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO) {
+        if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO || this.type == Type.MULTI_CHECKBOX) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
             //gridLayout.verticalSpacing = 5;

@@ -51,6 +51,21 @@ Label.action {
     text-shadow: none;
 }
 
+Label.list-nav {
+    font: 12px Arial, Helvetica, sans-serif;
+    color: #ffffff;
+    background-color: #595959;
+    background-image: none;
+    background-repeat: repeat;
+    background-position: left top;
+    border: none;
+    border-radius: 0;
+    text-decoration: none;
+    cursor: default;
+    opacity: 1;
+    text-shadow: none;
+}
+
 Label.h1 {
     font: 25px Arial, Helvetica, sans-serif;
     height: 28px;

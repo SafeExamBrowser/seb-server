@@ -208,6 +208,7 @@ public class UserDAOImpl implements UserDAO {
                     userMod.institutionId,
                     UUID.randomUUID().toString(),
                     userMod.name,
+                    userMod.surname,
                     userMod.username,
                     this.userPasswordEncoder.encode(userMod.getNewPassword()),
                     userMod.email,
@@ -238,6 +239,7 @@ public class UserDAOImpl implements UserDAO {
                             null,
                             null,
                             null,
+                            null,
                             this.userPasswordEncoder.encode(newPassword),
                             null,
                             null,
@@ -263,6 +265,7 @@ public class UserDAOImpl implements UserDAO {
                             null,
                             null,
                             userInfo.name,
+                            userInfo.surname,
                             userInfo.username,
                             null,
                             (userInfo.email == null) ? "" : userInfo.email,
@@ -285,7 +288,7 @@ public class UserDAOImpl implements UserDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final UserRecord userRecord = new UserRecord(
-                    null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
 
             this.userRecordMapper.updateByExampleSelective(userRecord)
@@ -471,6 +474,7 @@ public class UserDAOImpl implements UserDAO {
                     record.getUuid(),
                     record.getInstitutionId(),
                     record.getName(),
+                    record.getSurname(),
                     record.getUsername(),
                     record.getEmail(),
                     BooleanUtils.toBooleanObject(record.getActive()),

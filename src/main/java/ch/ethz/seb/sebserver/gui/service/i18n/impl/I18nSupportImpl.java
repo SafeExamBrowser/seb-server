@@ -50,6 +50,7 @@ public class I18nSupportImpl implements I18nSupport {
     private static final String DATE_DISPLAYFORMAT_TIMEZONE_KEY = "sebserver.gui.date.displayformat.timezone";
     private static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
 
+    @SuppressWarnings("unused")
     private final DateTimeFormatter timeZoneFormatter;
     private final DateTimeFormatter displayDateFormatter;
     private final DateTimeFormatter displayDateTimeFormatter;
@@ -171,7 +172,7 @@ public class I18nSupportImpl implements I18nSupport {
         if (userInfo.timeZone == null || userInfo.timeZone.equals(DateTimeZone.UTC)) {
             return "";
         } else {
-            return "(UTC|" + this.currentUser.get().timeZone.getID() + ")";
+            return "(" + this.currentUser.get().timeZone.getID() + ")";
         }
     }
 
@@ -191,7 +192,7 @@ public class I18nSupportImpl implements I18nSupport {
             return false;
         }
 
-        return getText(key.name, (String) null) != null;
+        return StringUtils.isNotBlank(getText(key.name, (String) null));
     }
 
     private String formatDisplayDate(final DateTime date, final DateTimeFormatter formatter) {
@@ -206,15 +207,11 @@ public class I18nSupportImpl implements I18nSupport {
             dateUTC = date.withZone(DateTimeZone.UTC);
         }
 
-        final String dateTimeStringUTC = dateUTC.toString(formatter);
         final UserInfo userInfo = this.currentUser.get();
         if (userInfo != null && userInfo.timeZone != null && !userInfo.timeZone.equals(DateTimeZone.UTC)) {
-
-            return dateTimeStringUTC + dateUTC
-                    .withZone(userInfo.timeZone)
-                    .toString(this.timeZoneFormatter);
+            return dateUTC.toString(formatter.withZone(userInfo.timeZone));
         } else {
-            return dateTimeStringUTC;
+            return dateUTC.toString(formatter);
         }
     }
 

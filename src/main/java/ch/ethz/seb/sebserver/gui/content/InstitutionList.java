@@ -123,7 +123,6 @@ public class InstitutionList implements TemplateComposer {
 
         // propagate content actions to action-pane
         final GrantCheck instGrant = this.currentUser.grantCheck(EntityType.INSTITUTION);
-        final GrantCheck userGrant = this.currentUser.grantCheck(EntityType.USER);
 
         pageActionBuilder
 
@@ -149,12 +148,14 @@ public class InstitutionList implements TemplateComposer {
                 .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> instGrant.m() && table.hasAnyContent())
 
-                .newAction(ActionDefinition.INSTITUTION_USER_ACCOUNT_NEW)
-                .withSelect(
-                        table::getSelection,
-                        PageAction::applySingleSelectionAsParentEntityKey,
-                        EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent() && userGrant.w());
+// Removed as discussed in SEBSERV-52
+//                .newAction(ActionDefinition.INSTITUTION_USER_ACCOUNT_NEW)
+//                .withSelect(
+//                        table::getSelection,
+//                        PageAction::applySingleSelectionAsParentEntityKey,
+//                        EMPTY_SELECTION_TEXT_KEY)
+//                .publishIf(() -> table.hasAnyContent() && userGrant.w())
+        ;
     }
 
 }
