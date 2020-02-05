@@ -235,8 +235,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                         ? "true"
                         : "false",
                 (StringUtils.isNotBlank(config.fallbackStartURL))
-                        ? "    <key>startURL</key>%n" +
-                                "    <string>" + config.fallbackStartURL + "</string>%n"
+                        ? "<key>startURL</key>\r\n    <string>" + config.fallbackStartURL + "</string>\r\n"
                         : "",
                 this.webserviceInfo.getExternalServerURL(),
                 String.valueOf(config.institutionId),
