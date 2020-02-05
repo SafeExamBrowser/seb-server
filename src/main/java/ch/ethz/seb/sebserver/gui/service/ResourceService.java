@@ -335,7 +335,7 @@ public class ResourceService {
      * @return list of language key/name tuples for all supported languages in the language of the current users
      *         locale */
     public List<Tuple<String>> languageResources() {
-        final Locale currentLocale = this.i18nSupport.getCurrentLocale();
+        final Locale currentLocale = this.i18nSupport.getUsersLanguageLocale();
         return this.i18nSupport.supportedLanguages()
                 .stream()
                 .map(locale -> new Tuple<>(locale.toLanguageTag(), locale.getDisplayLanguage(currentLocale)))
@@ -345,7 +345,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> timeZoneResources() {
-        final Locale currentLocale = this.i18nSupport.getCurrentLocale();
+        final Locale currentLocale = this.i18nSupport.getUsersLanguageLocale();
         return DateTimeZone
                 .getAvailableIDs()
                 .stream()

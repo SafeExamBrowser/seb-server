@@ -202,7 +202,7 @@ public class ExamSebRestrictionSettings {
 
                     .addFieldIf(
                             () -> lmsType == LmsType.OPEN_EDX,
-                            () -> FormBuilder.multiSelection(
+                            () -> FormBuilder.multiCheckboxSelection(
                                     OpenEdxSebRestriction.ATTR_WHITELIST_PATHS,
                                     SEB_RESTRICTION_FORM_EDX_WHITE_LIST_PATHS,
                                     sebRestriction.getAdditionalProperties()
@@ -211,7 +211,7 @@ public class ExamSebRestrictionSettings {
 
                     .addFieldIf(
                             () -> lmsType == LmsType.OPEN_EDX,
-                            () -> FormBuilder.multiSelection(
+                            () -> FormBuilder.multiCheckboxSelection(
                                     OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
                                     SEB_RESTRICTION_FORM_EDX_PERMISSIONS,
                                     sebRestriction.getAdditionalProperties()

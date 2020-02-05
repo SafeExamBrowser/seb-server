@@ -133,7 +133,8 @@ public class ComposerServiceImpl implements ComposerService {
                         pageContext.getShell(),
                         this.i18nSupport.getText("sebserver.logout"),
                         this.i18nSupport.getText("sebserver.logout.invalid-session.message"),
-                        SWT.ICON_INFORMATION);
+                        SWT.ICON_INFORMATION,
+                        this.i18nSupport);
                 logoutSuccess.open(null);
                 return;
             } catch (final RuntimeException e) {

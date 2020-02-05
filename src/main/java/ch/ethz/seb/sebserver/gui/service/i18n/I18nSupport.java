@@ -17,18 +17,27 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public interface I18nSupport {
 
+    public static final String SUPPORTED_LANGUAGES_KEY = "sebserver.gui.supported.languages";
+    public static final String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
+    public static final String FORMAL_LOCALE_KEY = "sebserver.gui.date.displayformat";
+    public static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
+
     /** Get all supported languages as a collection of Locale
      *
      * @return all supported languages as a collection of Locale */
     Collection<Locale> supportedLanguages();
 
-    /** Get the current Locale either form a user if this is called from a logged in user context or the
-     * applications default locale.
+    /** Get the current users language based Locale (from user info language selection)
+     * Or the default language Locale if the user has not defined any language
      *
-     * @return the current Locale to use in context */
-    Locale getCurrentLocale();
+     * @return the current user language Locale to use in context */
+    Locale getUsersLanguageLocale();
 
-    void setSessionLocale(Locale locale);
+    /** Get the current users format based Locale (from user info format selection)
+     * Or the default format Locale if the user has not defined any language
+     *
+     * @return the current user format Locale to use in context */
+    Locale getUsersFormatLocale();
 
     /** Format a DateTime to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
@@ -49,7 +58,7 @@ public interface I18nSupport {
      * @param date the DateTime instance
      * @return date formatted date String to display */
     default String formatDisplayDateWithTimeZone(final DateTime date) {
-        return formatDisplayDate(date) + " " + this.getUsersTimeZoneTitleSuffix();
+        return formatDisplayDateTime(date) + " " + this.getUsersTimeZoneTitleSuffix();
     }
 
     /** Format a time-stamp (milliseconds) to a text format to display.

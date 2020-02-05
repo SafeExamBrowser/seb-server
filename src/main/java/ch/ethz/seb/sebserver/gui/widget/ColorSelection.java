@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.widget;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
@@ -43,6 +45,7 @@ public final class ColorSelection extends Composite implements Selection {
     private final ColorDialog colorDialog;
     private final Composite colorField;
     private final Label colorLabel;
+    private final I18nSupport i18nSupport;
     private RGB selection;
 
     private Listener listener = null;
@@ -61,7 +64,8 @@ public final class ColorSelection extends Composite implements Selection {
         gridLayout.horizontalSpacing = 0;
         setLayout(gridLayout);
 
-        this.colorDialog = new ColorDialog(this.getShell(), SWT.NONE);
+        this.i18nSupport = widgetFactory.getI18nSupport();
+        this.colorDialog = widgetFactory.getColorDialog(this);
 
         this.colorField = new Composite(this, SWT.NONE);
         final GridData colorCell = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -125,6 +129,8 @@ public final class ColorSelection extends Composite implements Selection {
     }
 
     private void addColorSelection(final Event event) {
+        final Locale locale = RWT.getLocale();
+        RWT.setLocale(this.i18nSupport.getUsersLanguageLocale());
         this.colorDialog.open(code -> {
             if (code == SWT.CANCEL) {
                 return;
@@ -136,6 +142,7 @@ public final class ColorSelection extends Composite implements Selection {
                 this.listener.handleEvent(event);
             }
         });
+        RWT.setLocale(locale);
     }
 
     private void applySelection() {

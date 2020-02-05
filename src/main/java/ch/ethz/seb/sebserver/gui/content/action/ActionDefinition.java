@@ -37,11 +37,7 @@ public enum ActionDefinition {
             ImageIcon.EDIT,
             PageStateDefinitionImpl.INSTITUTION_EDIT,
             ActionCategory.INSTITUTION_LIST),
-    INSTITUTION_TOGGLE_ACTIVITY(
-            new LocTextKey("sebserver.overall.action.toggle-activity"),
-            ImageIcon.SWITCH,
-            PageStateDefinitionImpl.INSTITUTION_LIST,
-            ActionCategory.INSTITUTION_LIST),
+
     INSTITUTION_MODIFY(
             new LocTextKey("sebserver.institution.action.modify"),
             ImageIcon.EDIT,
@@ -72,6 +68,12 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
+    INSTITUTION_TOGGLE_ACTIVITY(
+            new LocTextKey("sebserver.overall.action.toggle-activity"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.INSTITUTION_LIST,
+            ActionCategory.INSTITUTION_LIST),
+
     INSTITUTION_USER_ACCOUNT_NEW(
             new LocTextKey("sebserver.useraccount.action.new"),
             ImageIcon.USER,

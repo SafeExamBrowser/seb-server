@@ -6,25 +6,25 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientInstructionRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.010+01:00", comments="Source Table: client_instruction")
     public static final ClientInstructionRecord clientInstructionRecord = new ClientInstructionRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source field: client_instruction.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.010+01:00", comments="Source field: client_instruction.id")
     public static final SqlColumn<Long> id = clientInstructionRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source field: client_instruction.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.011+01:00", comments="Source field: client_instruction.exam_id")
     public static final SqlColumn<Long> examId = clientInstructionRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source field: client_instruction.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.011+01:00", comments="Source field: client_instruction.connection_token")
     public static final SqlColumn<String> connectionToken = clientInstructionRecord.connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source field: client_instruction.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.011+01:00", comments="Source field: client_instruction.type")
     public static final SqlColumn<String> type = clientInstructionRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.281+01:00", comments="Source field: client_instruction.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.011+01:00", comments="Source field: client_instruction.attributes")
     public static final SqlColumn<String> attributes = clientInstructionRecord.attributes;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-01-29T14:47:50.280+01:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-02-05T10:36:22.010+01:00", comments="Source Table: client_instruction")
     public static final class ClientInstructionRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

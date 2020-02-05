@@ -68,6 +68,11 @@ public class WebserviceInfo {
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
 
+        if (StringUtils.isEmpty(this.webserverName)) {
+            log.warn("NOTE: External server name, property : 'sebserver.webservice.http.external.servername' "
+                    + "is not set from configuration. The external server name is set to the server address!");
+        }
+
         final UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
                 .scheme(this.httpScheme)
                 .host((StringUtils.isNotBlank(this.webserverName))

@@ -224,7 +224,7 @@ public class UserAccountList implements TemplateComposer {
 
     private String getLocaleDisplayText(final UserInfo userInfo) {
         return (userInfo.language != null)
-                ? userInfo.language.getDisplayLanguage(this.pageService.getI18nSupport().getCurrentLocale())
+                ? userInfo.language.getDisplayLanguage(this.pageService.getI18nSupport().getUsersLanguageLocale())
                 : Constants.EMPTY_NOTE;
     }
 

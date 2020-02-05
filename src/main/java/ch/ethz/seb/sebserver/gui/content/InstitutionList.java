@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Set;
+import java.util.function.Consumer;
+
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -19,12 +22,14 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionPage;
@@ -119,6 +124,7 @@ public class InstitutionList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
+                        .withSelectionListener(getSelectionPublisher(pageContext))
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
@@ -134,19 +140,19 @@ public class InstitutionList implements TemplateComposer {
                         table::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent())
+                .publishIf(() -> table.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(
                         table::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> instGrant.m() && table.hasAnyContent())
+                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> instGrant.m() && table.hasAnyContent())
+                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false)
 
 // Removed as discussed in SEBSERV-52
 //                .newAction(ActionDefinition.INSTITUTION_USER_ACCOUNT_NEW)
@@ -156,6 +162,30 @@ public class InstitutionList implements TemplateComposer {
 //                        EMPTY_SELECTION_TEXT_KEY)
 //                .publishIf(() -> table.hasAnyContent() && userGrant.w())
         ;
+    }
+
+    private final Consumer<Set<Institution>> getSelectionPublisher(final PageContext pageContext) {
+        return rows -> {
+            this.pageService.firePageEvent(new ActionActivationEvent(
+                    false,
+                    ActionDefinition.INSTITUTION_VIEW_FROM_LIST,
+                    ActionDefinition.INSTITUTION_MODIFY_FROM_LIST,
+                    ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY),
+                    pageContext);
+            if (!rows.isEmpty()) {
+                this.pageService.firePageEvent(new ActionActivationEvent(
+                        true,
+                        new Tuple<>(
+                                ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY,
+                                rows.iterator().next().active
+                                        ? ActionDefinition.INSTITUTION_DEACTIVATE
+                                        : ActionDefinition.INSTITUTION_ACTIVATE),
+                        ActionDefinition.INSTITUTION_VIEW_FROM_LIST,
+                        ActionDefinition.INSTITUTION_MODIFY_FROM_LIST,
+                        ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY),
+                        pageContext);
+            }
+        };
     }
 
 }

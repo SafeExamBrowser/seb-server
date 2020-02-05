@@ -151,7 +151,8 @@ public class DefaultPageLayout implements TemplateComposer {
                         pageContext.getShell(),
                         this.polyglotPageService.getI18nSupport().getText("sebserver.logout"),
                         this.polyglotPageService.getI18nSupport().getText("sebserver.logout.success.message"),
-                        SWT.ICON_INFORMATION);
+                        SWT.ICON_INFORMATION,
+                        pageContext.getI18nSupport());
                 logoutSuccess.open(null);
 
                 // TODO Try to invalidate RWT's user session.

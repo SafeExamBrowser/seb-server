@@ -230,14 +230,14 @@ public class PageContextImpl implements PageContext {
                 this.root.getShell(),
                 this.i18nSupport.getText("sebserver.dialog.confirm.title"),
                 this.i18nSupport.getText(confirmMessage),
-                SWT.OK | SWT.CANCEL);
+                SWT.OK | SWT.CANCEL,
+                this.i18nSupport);
         messageBox.setMarkupEnabled(true);
         messageBox.open(new ConfirmDialogCallback(callback));
     }
 
     @Override
     public void forwardToPage(final PageDefinition pageDefinition) {
-
         this.composerService.compose(
                 pageDefinition.composer(),
                 pageDefinition.applyPageContext(copyOf(this.root)));
@@ -262,7 +262,8 @@ public class PageContextImpl implements PageContext {
                         ? this.i18nSupport.getText(title)
                         : "",
                 this.i18nSupport.getText(message),
-                SWT.NONE);
+                SWT.NONE,
+                this.i18nSupport);
 
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);
@@ -274,7 +275,8 @@ public class PageContextImpl implements PageContext {
                 getShell(),
                 this.i18nSupport.getText("sebserver.page.message"),
                 this.i18nSupport.getText(pme.getMessageKey()),
-                SWT.NONE);
+                SWT.NONE,
+                this.i18nSupport);
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);
     }
@@ -294,7 +296,8 @@ public class PageContextImpl implements PageContext {
                     getShell(),
                     this.i18nSupport.getText("sebserver.error.unexpected"),
                     APIMessage.toHTML(errorMessage, errorMessages),
-                    SWT.ERROR);
+                    SWT.ERROR,
+                    this.i18nSupport);
             messageBox.setMarkupEnabled(true);
             messageBox.open(null);
             return;
@@ -304,7 +307,8 @@ public class PageContextImpl implements PageContext {
                 getShell(),
                 this.i18nSupport.getText("sebserver.error.unexpected"),
                 Utils.formatHTMLLines(errorMessage + "<br/><br/> Cause: " + error.getMessage()),
-                SWT.ERROR);
+                SWT.ERROR,
+                this.i18nSupport);
         messageBox.open(null);
     }
 

@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -207,6 +208,7 @@ public class UserDAOImpl implements UserDAO {
                     null,
                     userMod.institutionId,
                     UUID.randomUUID().toString(),
+                    DateTime.now(DateTimeZone.UTC),
                     userMod.name,
                     userMod.surname,
                     userMod.username,
@@ -240,6 +242,7 @@ public class UserDAOImpl implements UserDAO {
                             null,
                             null,
                             null,
+                            null,
                             this.userPasswordEncoder.encode(newPassword),
                             null,
                             null,
@@ -262,6 +265,7 @@ public class UserDAOImpl implements UserDAO {
 
                     final UserRecord newRecord = new UserRecord(
                             record.getId(),
+                            null,
                             null,
                             null,
                             userInfo.name,
@@ -288,7 +292,7 @@ public class UserDAOImpl implements UserDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final UserRecord userRecord = new UserRecord(
-                    null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
 
             this.userRecordMapper.updateByExampleSelective(userRecord)
@@ -473,6 +477,7 @@ public class UserDAOImpl implements UserDAO {
             return new UserInfo(
                     record.getUuid(),
                     record.getInstitutionId(),
+                    record.getCreationDate(),
                     record.getName(),
                     record.getSurname(),
                     record.getUsername(),

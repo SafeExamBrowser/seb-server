@@ -68,6 +68,7 @@ public class MainPage implements TemplateComposer {
 
         final Composite parent = pageContext.getParent();
         parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        WidgetFactory.setTestId(parent, "main-page");
 
         final SashForm mainSash = new SashForm(parent, SWT.HORIZONTAL);
         final GridLayout gridLayout = new GridLayout();

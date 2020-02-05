@@ -92,6 +92,7 @@ public class EntityTable<ROW extends Entity> {
     private final TableNavigator navigator;
     private final MultiValueMap<String, String> staticQueryParams;
     private final BiConsumer<TableItem, ROW> rowDecorator;
+    private final Consumer<Set<ROW>> selectionListener;
 
     int pageNumber = 1;
     int pageSize;
@@ -114,7 +115,8 @@ public class EntityTable<ROW extends Entity> {
             final Function<EntityTable<ROW>, PageAction> defaultActionFunction,
             final boolean hideNavigation,
             final MultiValueMap<String, String> staticQueryParams,
-            final BiConsumer<TableItem, ROW> rowDecorator) {
+            final BiConsumer<TableItem, ROW> rowDecorator,
+            final Consumer<Set<ROW>> selectionListener) {
 
         this.name = name;
         this.filterAttrName = name + "_filter";
@@ -143,6 +145,7 @@ public class EntityTable<ROW extends Entity> {
         this.composite.setLayoutData(gridData);
         this.staticQueryParams = staticQueryParams;
         this.rowDecorator = rowDecorator;
+        this.selectionListener = selectionListener;
         this.pageSize = pageSize;
         this.filter =
                 columns
@@ -208,6 +211,10 @@ public class EntityTable<ROW extends Entity> {
                     return;
                 }
             }
+        });
+
+        this.table.addListener(SWT.Selection, event -> {
+            this.notifySelectionChange();
         });
 
         this.navigator = new TableNavigator(this);
@@ -470,6 +477,7 @@ public class EntityTable<ROW extends Entity> {
 
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);
+        this.notifySelectionChange();
     }
 
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {
@@ -593,7 +601,7 @@ public class EntityTable<ROW extends Entity> {
         if (value instanceof Boolean) {
             addBooleanCell(item, index, value);
         } else if (value instanceof DateTime) {
-            item.setText(index, this.i18nSupport.formatDisplayDate((DateTime) value));
+            item.setText(index, this.i18nSupport.formatDisplayDateTime((DateTime) value));
         } else {
             item.setText(index, renderTextValue(
                     (value != null) ? String.valueOf(value) : null,
@@ -626,6 +634,14 @@ public class EntityTable<ROW extends Entity> {
 
     private void handleCellSelection(final TableItem item, final int index) {
         // TODO handle selection tool-tips on cell level
+    }
+
+    private void notifySelectionChange() {
+        if (this.selectionListener == null) {
+            return;
+        }
+
+        this.selectionListener.accept(this.getSelectedROWData());
     }
 
     private void updateCurrentPageAttr() {

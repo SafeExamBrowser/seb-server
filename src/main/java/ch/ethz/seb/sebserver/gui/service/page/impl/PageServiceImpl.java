@@ -317,8 +317,8 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public void publishAction(final PageAction pageAction) {
-        this.firePageEvent(new ActionPublishEvent(pageAction), pageAction.pageContext());
+    public void publishAction(final PageAction pageAction, final boolean active) {
+        this.firePageEvent(new ActionPublishEvent(pageAction, active), pageAction.pageContext());
     }
 
     @Override

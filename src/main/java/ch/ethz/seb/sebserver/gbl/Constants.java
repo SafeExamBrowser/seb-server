@@ -71,7 +71,7 @@ public final class Constants {
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";
 
-    public static final String DEFAULT_DIPLAY_DATE_TIME_FORMAT = "MM-dd-yyyy HH:mm:ss";
+    //public static final String DEFAULT_DIPLAY_DATE_TIME_FORMAT = "MM-dd-yyyy HH:mm:ss";
     public static final String DEFAULT_DISPLAY_DATE_FORMAT = "MM-dd-yyyy";
     public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 

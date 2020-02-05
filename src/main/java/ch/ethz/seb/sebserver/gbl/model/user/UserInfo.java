@@ -23,6 +23,7 @@ import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.util.CollectionUtils;
 
@@ -62,6 +63,9 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     @NotNull
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
+
+    @JsonProperty(USER.ATTR_CREATION_DATE)
+    public final DateTime creationDate;
 
     /** First name of the user */
     @NotNull(message = "user:name:notNull")
@@ -110,6 +114,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
     public UserInfo(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
             @JsonProperty(USER.ATTR_INSTITUTION_ID) final Long institutionId,
+            @JsonProperty(USER.ATTR_CREATION_DATE) final DateTime creationDate,
             @JsonProperty(USER.ATTR_NAME) final String name,
             @JsonProperty(USER.ATTR_SURNAME) final String surname,
             @JsonProperty(USER.ATTR_USERNAME) final String username,
@@ -121,6 +126,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
 
         this.uuid = uuid;
         this.institutionId = institutionId;
+        this.creationDate = creationDate;
         this.name = name;
         this.surname = surname;
         this.username = username;
@@ -143,6 +149,11 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
 
     public String getUuid() {
         return this.uuid;
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return this.creationDate;
     }
 
     @Override
@@ -264,8 +275,12 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
         builder.append(this.uuid);
         builder.append(", institutionId=");
         builder.append(this.institutionId);
+        builder.append(", creationDate=");
+        builder.append(this.creationDate);
         builder.append(", name=");
         builder.append(this.name);
+        builder.append(", surname=");
+        builder.append(this.surname);
         builder.append(", username=");
         builder.append(this.username);
         builder.append(", email=");
@@ -290,6 +305,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
         return new UserInfo(
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
+                userInfo.creationDate,
                 userInfo.getName(),
                 userInfo.getUsername(),
                 userInfo.getSurname(),
@@ -324,6 +340,7 @@ public final class UserInfo implements UserAccount, Activatable, Serializable {
         return new UserInfo(
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
+                userInfo.creationDate,
                 (name != null) ? name : userInfo.getName(),
                 (surname != null) ? surname : userInfo.getSurname(),
                 (username != null) ? username : userInfo.getUsername(),

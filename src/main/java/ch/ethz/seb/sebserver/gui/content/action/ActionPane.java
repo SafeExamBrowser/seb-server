@@ -18,6 +18,9 @@ import org.eclipse.rap.rwt.template.ImageCell;
 import org.eclipse.rap.rwt.template.Template;
 import org.eclipse.rap.rwt.template.TextCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +36,8 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
@@ -79,20 +84,93 @@ public class ActionPane implements TemplateComposer {
                     @Override
                     public void notify(final ActionPublishEvent event) {
                         final Composite parent = pageContext.getParent();
-
                         final Tree treeForGroup = getTreeForGroup(parent, event.action.definition);
-
                         final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                                 treeForGroup,
                                 event.action.definition.title);
 
-                        actionItem.setImage(event.action.definition.icon.getImage(
-                                pageContext.getParent().getDisplay()));
+                        final Image image = event.active
+                                ? event.action.definition.icon.getImage(parent.getDisplay())
+                                : event.action.definition.icon.getGreyedImage(parent.getDisplay());
 
+                        if (!event.active) {
+                            actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
+                        }
+
+                        actionItem.setImage(image);
                         actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
                         parent.layout();
                     }
                 });
+
+        final Composite composite = new Composite(pageContext.getParent(), SWT.NONE);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        final GridLayout gridLayout = new GridLayout();
+        gridLayout.horizontalSpacing = 0;
+        gridData.heightHint = 0;
+        composite.setLayoutData(gridData);
+        composite.setLayout(gridLayout);
+
+        composite.setData(
+                PageEventListener.LISTENER_ATTRIBUTE_KEY,
+                new ActionActivationEventListener() {
+                    @Override
+                    public void notify(final ActionActivationEvent event) {
+                        final Composite parent = pageContext.getParent();
+                        for (final ActionDefinition ad : event.actions) {
+                            final TreeItem actionItem = findAction(parent, ad);
+                            if (actionItem == null) {
+                                continue;
+                            }
+
+                            final Image image = event.activation
+                                    ? ad.icon.getImage(parent.getDisplay())
+                                    : ad.icon.getGreyedImage(parent.getDisplay());
+                            actionItem.setImage(image);
+                            if (event.activation) {
+                                actionItem.setForeground(null);
+                            } else {
+                                actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
+                            }
+                        }
+
+                        if (event.decoration != null) {
+                            final TreeItem actionItemToDecorate = findAction(parent, event.decoration._1);
+                            if (actionItemToDecorate != null && event.decoration._2 != null) {
+                                actionItemToDecorate.setImage(0,
+                                        event.decoration._2.icon.getImage(parent.getDisplay()));
+                                ActionPane.this.pageService.getPolyglotPageService().injectI18n(
+                                        actionItemToDecorate,
+                                        event.decoration._2.title);
+                            }
+                        }
+                    }
+                });
+    }
+
+    private TreeItem findAction(final Composite parent, final ActionDefinition actionDefinition) {
+        final Tree treeForGroup = getTreeForGroup(parent, actionDefinition);
+        if (treeForGroup == null) {
+            return null;
+        }
+
+        for (int i = 0; i < treeForGroup.getItemCount(); i++) {
+            final TreeItem item = treeForGroup.getItem(i);
+            if (item == null) {
+                continue;
+            }
+
+            final PageAction action = (PageAction) item.getData(ACTION_EVENT_CALL_KEY);
+            if (action == null) {
+                continue;
+            }
+
+            if (action.definition == actionDefinition) {
+                return item;
+            }
+        }
+
+        return null;
     }
 
     private Tree getTreeForGroup(final Composite parent, final ActionDefinition actionDefinition) {
@@ -150,7 +228,8 @@ public class ActionPane implements TemplateComposer {
                 .setWidth(40)
                 .setTop(0)
                 .setBottom(0, 0)
-                .setHorizontalAlignment(SWT.LEFT);
+                .setHorizontalAlignment(SWT.LEFT)
+                .setBackground(null);
         imageCell.setBindingIndex(0);
         final TextCell textCell = new TextCell(template);
         textCell.setLeft(0, 30)

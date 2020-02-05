@@ -56,13 +56,16 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void setDefaultPageLocale(final Composite root) {
-        setPageLocale(root, this.i18nSupport.getCurrentLocale());
+        setPageLocale(root, this.i18nSupport.getUsersLanguageLocale());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void setPageLocale(final Composite root, final Locale locale) {
-        this.i18nSupport.setSessionLocale(locale);
+        RWT.getUISession()
+                .getHttpSession()
+                .setAttribute(I18nSupport.ATTR_CURRENT_SESSION_LOCALE, locale);
+
         ComposerService.traversePageTree(
                 root,
                 comp -> comp.getData(POLYGLOT_WIDGET_FUNCTION_KEY) != null,
@@ -191,7 +194,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             languageSelection.setData(
                     POLYGLOT_WIDGET_FUNCTION_KEY,
                     (Consumer<Label>) label -> label.setVisible(
-                            !this.i18nSupport.getCurrentLocale()
+                            !this.i18nSupport.getUsersLanguageLocale()
                                     .getLanguage()
                                     .equals(locale.getLanguage())));
             languageSelection.setData(RWT.CUSTOM_VARIANT, "header");

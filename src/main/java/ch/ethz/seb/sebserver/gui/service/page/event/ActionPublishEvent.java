@@ -14,10 +14,12 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
  * The ActionPane is listening to this events and render specified actions on notify */
 public class ActionPublishEvent implements PageEvent {
 
+    public final boolean active;
     public final PageAction action;
 
-    public ActionPublishEvent(final PageAction action) {
+    public ActionPublishEvent(final PageAction action, final boolean active) {
         this.action = action;
+        this.active = active;
     }
 
 }

@@ -3,7 +3,7 @@ INSERT IGNORE INTO institution VALUES
     ;
 
 INSERT IGNORE INTO user VALUES 
-    (1, 1, 'super-admin', 'super-admin', '', 'super-admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'super-admin@nomail.nomail', 'en', 'UTC', 1)
+    (1, 1, 'super-admin', '2019-01-01', 'super-admin', '', 'super-admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'super-admin@nomail.nomail', 'en', 'UTC', 1)
     ;
     
 INSERT IGNORE INTO user_role VALUES

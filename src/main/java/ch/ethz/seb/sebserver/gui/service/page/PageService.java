@@ -178,8 +178,9 @@ public interface PageService {
      * All ActionPublishEventListeners that are registered within the current page will
      * receive the ActionPublishEvent sent by this.
      *
-     * @param pageAction the PageAction to publish */
-    void publishAction(final PageAction pageAction);
+     * @param pageAction the PageAction to publish
+     * @param active indicates whether the action is active or not */
+    void publishAction(final PageAction pageAction, boolean active);
 
     /** Get a new FormBuilder for the given PageContext
      * This FormBuilder uses the standard form grid which has 8 rows (2 title, 5 input and 1 right-space)
@@ -361,16 +362,24 @@ public interface PageService {
         }
 
         public PageActionBuilder publish() {
-            pageService.publishAction(create());
+            return publish(true);
+        }
+
+        public PageActionBuilder publish(final boolean active) {
+            pageService.publishAction(create(), active);
             return this;
         }
 
         public PageActionBuilder publishIf(final BooleanSupplier condition) {
+            return publishIf(condition, true);
+        }
+
+        public PageActionBuilder publishIf(final BooleanSupplier condition, final boolean active) {
             if (!condition.getAsBoolean()) {
                 return this;
             }
 
-            return this.publish();
+            return this.publish(active);
         }
 
         public PageActionBuilder withSwitchAction(final PageAction switchAction) {

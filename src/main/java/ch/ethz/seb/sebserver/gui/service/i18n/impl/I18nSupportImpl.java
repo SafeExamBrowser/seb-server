@@ -42,19 +42,7 @@ public class I18nSupportImpl implements I18nSupport {
 
     private static final Logger log = LoggerFactory.getLogger(I18nSupportImpl.class);
 
-    private static final String SUPPORTED_LANGUAGES_KEY = "sebserver.gui.supported.languages";
-    private static final String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
-    private static final String TIME_DISPLAYFORMAT_KEY = "sebserver.gui.time.displayformat";
-    private static final String DATETIME_DISPLAYFORMAT_KEY = "sebserver.gui.datetime.displayformat";
-    private static final String DATE_DISPLAYFORMAT_KEY = "sebserver.gui.date.displayformat";
-    private static final String DATE_DISPLAYFORMAT_TIMEZONE_KEY = "sebserver.gui.date.displayformat.timezone";
-    private static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
-
-    @SuppressWarnings("unused")
-    private final DateTimeFormatter timeZoneFormatter;
-    private final DateTimeFormatter displayDateFormatter;
-    private final DateTimeFormatter displayDateTimeFormatter;
-    private final DateTimeFormatter displayTimeFormatter;
+    private final Locale defaultFormatLocale;
     private final CurrentUser currentUser;
     private final MessageSource messageSource;
     private final Locale defaultLocale = Locale.ENGLISH;
@@ -68,28 +56,11 @@ public class I18nSupportImpl implements I18nSupport {
         this.currentUser = currentUser;
         this.messageSource = messageSource;
 
-        this.timeZoneFormatter = DateTimeFormat
-                .forPattern(environment.getProperty(
-                        DATE_DISPLAYFORMAT_TIMEZONE_KEY,
-                        Constants.TIME_ZONE_OFFSET_TAIL_FORMAT));
+        final String defaultForamtLocaleString = environment.getProperty(
+                FORMAL_LOCALE_KEY,
+                Constants.DEFAULT_LANG_CODE);
 
-        this.displayDateFormatter = DateTimeFormat
-                .forPattern(environment.getProperty(
-                        DATE_DISPLAYFORMAT_KEY,
-                        Constants.DEFAULT_DISPLAY_DATE_FORMAT))
-                .withZoneUTC();
-
-        this.displayDateTimeFormatter = DateTimeFormat
-                .forPattern(environment.getProperty(
-                        DATETIME_DISPLAYFORMAT_KEY,
-                        Constants.DEFAULT_DIPLAY_DATE_TIME_FORMAT))
-                .withZoneUTC();
-
-        this.displayTimeFormatter = DateTimeFormat
-                .forPattern(environment.getProperty(
-                        TIME_DISPLAYFORMAT_KEY,
-                        Constants.DEFAULT_TIME_FORMAT))
-                .withZoneUTC();
+        this.defaultFormatLocale = Locale.forLanguageTag(defaultForamtLocaleString);
 
         final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
                 MULTILINGUAL_KEY,
@@ -117,19 +88,13 @@ public class I18nSupportImpl implements I18nSupport {
     }
 
     @Override
-    public void setSessionLocale(final Locale locale) {
-        try {
-            RWT.getUISession()
-                    .getHttpSession()
-                    .setAttribute(ATTR_CURRENT_SESSION_LOCALE, locale);
-            RWT.setLocale(locale);
-        } catch (final IllegalStateException e) {
-            log.error("Set current locale for session failed: ", e);
-        }
+    public Locale getUsersFormatLocale() {
+        // TODO here also a user based format locale can be verified on the future
+        return this.defaultFormatLocale;
     }
 
     @Override
-    public Locale getCurrentLocale() {
+    public Locale getUsersLanguageLocale() {
         // first session-locale if available
         try {
             final Locale sessionLocale = (Locale) RWT.getUISession()
@@ -153,17 +118,20 @@ public class I18nSupportImpl implements I18nSupport {
 
     @Override
     public String formatDisplayDate(final DateTime date) {
-        return formatDisplayDate(date, this.displayDateFormatter);
+        final String pattern = DateTimeFormat.patternForStyle("M-", getUsersFormatLocale());
+        return formatDisplayDate(date, DateTimeFormat.forPattern(pattern));
     }
 
     @Override
     public String formatDisplayDateTime(final DateTime date) {
-        return formatDisplayDate(date, this.displayDateTimeFormatter);
+        final String pattern = DateTimeFormat.patternForStyle("MS", getUsersFormatLocale());
+        return formatDisplayDate(date, DateTimeFormat.forPattern(pattern));
     }
 
     @Override
     public String formatDisplayTime(final DateTime date) {
-        return formatDisplayDate(date, this.displayTimeFormatter);
+        final String pattern = DateTimeFormat.patternForStyle("-S", getUsersFormatLocale());
+        return formatDisplayDate(date, DateTimeFormat.forPattern(pattern));
     }
 
     @Override
@@ -178,7 +146,7 @@ public class I18nSupportImpl implements I18nSupport {
 
     @Override
     public String getText(final String key, final String def, final Object... args) {
-        return this.messageSource.getMessage(key, args, def, this.getCurrentLocale());
+        return this.messageSource.getMessage(key, args, def, this.getUsersLanguageLocale());
     }
 
     @Override

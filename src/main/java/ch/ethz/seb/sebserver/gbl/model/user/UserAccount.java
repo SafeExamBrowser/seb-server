@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -28,6 +29,9 @@ public interface UserAccount extends GrantEntity, Activatable {
     /** The institution identifier where the User-Account belongs to */
     @Override
     Long getInstitutionId();
+
+    /** Get the date when the user account was created */
+    DateTime getCreationDate();
 
     /** The first name of the User */
     @Override

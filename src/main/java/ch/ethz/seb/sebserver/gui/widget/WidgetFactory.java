@@ -13,10 +13,13 @@ import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLO
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
+import org.eclipse.rap.rwt.widgets.WidgetUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
@@ -24,6 +27,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Group;
@@ -36,6 +40,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -57,6 +62,9 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 @Service
 @GuiProfile
 public class WidgetFactory {
+
+    private static final String ADD_HTML_ATTR_ARIA_ROLE = "role";
+    private static final String ADD_HTML_ATTR_TEST_ID = "test-id";
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
@@ -107,8 +115,9 @@ public class WidgetFactory {
         UNLOCK("unlock.png"),
         RESTRICTION("restriction.png");
 
-        private String fileName;
+        public String fileName;
         private ImageData image = null;
+        private ImageData greyedImage = null;
 
         private ImageIcon(final String fileName) {
             this.fileName = fileName;
@@ -126,6 +135,26 @@ public class WidgetFactory {
             }
 
             return new Image(device, this.image);
+        }
+
+        public Image getGreyedImage(final Device device) {
+            if (this.greyedImage == null) {
+                try {
+                    final InputStream resourceAsStream =
+                            WidgetFactory.class.getResourceAsStream("/static/images/" + this.fileName);
+                    this.greyedImage = new ImageData(resourceAsStream);
+                    this.greyedImage.alpha = -1;
+                    for (int y = 0; y < this.greyedImage.height; y++) {
+                        for (int x = 0; x < this.greyedImage.width; x++) {
+                            this.greyedImage.setAlpha(x, y, this.greyedImage.getAlpha(x, y) / 3);
+                        }
+                    }
+                } catch (final Exception e) {
+                    log.error("Failed to load resource image: {}", this.fileName, e);
+                }
+            }
+
+            return new Image(device, this.greyedImage);
         }
     }
 
@@ -190,7 +219,7 @@ public class WidgetFactory {
         final GridLayout contentLayout = new GridLayout();
         contentLayout.marginLeft = 10;
         content.setLayout(contentLayout);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         content.setLayoutData(gridData);
         return content;
     }
@@ -454,7 +483,7 @@ public class WidgetFactory {
     }
 
     public Table tableLocalized(final Composite parent) {
-        final Table table = new Table(parent, SWT.MULTI | SWT.NO_SCROLL);
+        final Table table = new Table(parent, SWT.NO_SCROLL);
         this.polyglotPageService.injectI18n(table);
         return table;
     }
@@ -624,6 +653,7 @@ public class WidgetFactory {
     }
 
     public DateTime dateSelector(final Composite parent) {
+        RWT.setLocale(Locale.GERMANY);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         final DateTime dateTime = new DateTime(parent, SWT.DATE | SWT.BORDER | SWT.DROP_DOWN);
         dateTime.setLayoutData(gridData);
@@ -642,6 +672,10 @@ public class WidgetFactory {
         final DateTime dateTime = new DateTime(parent, SWT.TIME | SWT.BORDER | SWT.MEDIUM);
         dateTime.setLayoutData(gridData);
         return dateTime;
+    }
+
+    public ColorDialog getColorDialog(final Composite parent) {
+        return new ColorDialog(parent.getShell(), SWT.NONE);
     }
 
     public ThresholdList thresholdList(
@@ -705,6 +739,33 @@ public class WidgetFactory {
             supportedFiles.forEach(ext -> fileUploadSelection.withSupportFor(ext));
         }
         return fileUploadSelection;
+    }
+
+    public static void setTestId(final Widget widget, final String value) {
+        setAttribute(widget, ADD_HTML_ATTR_TEST_ID, value);
+    }
+
+    public static void setARIARole(final Widget widget, final String value) {
+        setAttribute(widget, ADD_HTML_ATTR_ARIA_ROLE, value);
+    }
+
+    private static void setAttribute(final Widget widget, final String name, final String value) {
+        if (!widget.isDisposed()) {
+            final String $el = widget instanceof Text ? "$input" : "$el";
+            final String id = WidgetUtil.getId(widget);
+            exec("rap.getObject( '", id, "' ).", $el, ".attr( '", name, "', '", value, "' );");
+        }
+    }
+
+    private static void exec(final String... strings) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("try{");
+        for (final String str : strings) {
+            builder.append(str);
+        }
+        builder.append("}catch(e){}");
+        final JavaScriptExecutor executor = RWT.getClient().getService(JavaScriptExecutor.class);
+        executor.execute(builder.toString());
     }
 
 }

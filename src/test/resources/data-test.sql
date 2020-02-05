@@ -5,13 +5,13 @@ INSERT INTO institution VALUES
     ;
 
 INSERT INTO user VALUES 
-    (1, 1, 'user1', 'SEBAdmin', '', 'admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (2, 1, 'user2', 'Institutional1 Admin', '', 'inst1Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (5, 1, 'user5', 'Exam Supporter', '', 'examSupporter', '', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (3, 2, 'user3', 'Institutional2 Admin', '', 'inst2Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (4, 2, 'user4', 'ExamAdmin1', '', 'examAdmin1', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
-    (6, 2, 'user6', 'Deactivated', '', 'deactivatedUser', '$2a$08$YICtiLuceLMeY4EE3TyMGuBNt6SXmAE9HZKilzS9RP00nn4OhexBm', 'user@nomail.nomail', 'en', 'UTC', 0),
-    (7, 2, 'user7', 'User', '', 'user1', '$2a$08$YICtiLuceLMeY4EE3TyMGuBNt6SXmAE9HZKilzS9RP00nn4OhexBm', 'user@nomail.nomail', 'en', 'UTC', 1)
+    (1, 1, 'user1', '2019-01-01', 'SEBAdmin', '', 'admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
+    (2, 1, 'user2', '2019-01-01', 'Institutional1 Admin', '', 'inst1Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
+    (5, 1, 'user5', '2019-01-01', 'Exam Supporter', '', 'examSupporter', '', 'admin@nomail.nomail', 'en', 'UTC', 1),
+    (3, 2, 'user3', '2019-01-01', 'Institutional2 Admin', '', 'inst2Admin', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
+    (4, 2, 'user4', '2019-01-01', 'ExamAdmin1', '', 'examAdmin1', '$2a$08$c2GKYEYoUVXH1Yb8GXVXVu66ltPvbZgLMcVSXRH.LgZNF/YeaYB8m', 'admin@nomail.nomail', 'en', 'UTC', 1),
+    (6, 2, 'user6', '2019-01-01', 'Deactivated', '', 'deactivatedUser', '$2a$08$YICtiLuceLMeY4EE3TyMGuBNt6SXmAE9HZKilzS9RP00nn4OhexBm', 'user@nomail.nomail', 'en', 'UTC', 0),
+    (7, 2, 'user7', '2019-01-01', 'User', '', 'user1', '$2a$08$YICtiLuceLMeY4EE3TyMGuBNt6SXmAE9HZKilzS9RP00nn4OhexBm', 'user@nomail.nomail', 'en', 'UTC', 1)
     ;
     
 INSERT INTO user_role VALUES

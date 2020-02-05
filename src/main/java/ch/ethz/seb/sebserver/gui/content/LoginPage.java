@@ -66,6 +66,8 @@ public class LoginPage implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final Composite parent = pageContext.getParent();
+        WidgetFactory.setTestId(parent, "login-page");
+        WidgetFactory.setARIARole(parent, "composite");
 
         final Composite loginGroup = new Composite(parent, SWT.NONE);
         final GridLayout rowLayout = new GridLayout();
@@ -158,10 +160,18 @@ public class LoginPage implements TemplateComposer {
 
             if (loggedIn) {
                 // Set users locale on page after successful login
-                this.i18nSupport.setSessionLocale(
-                        authorizationContext
-                                .getLoggedInUser()
-                                .getOrThrow().language);
+                try {
+                    RWT.getUISession()
+                            .getHttpSession()
+                            .setAttribute(I18nSupport.ATTR_CURRENT_SESSION_LOCALE, authorizationContext
+                                    .getLoggedInUser()
+                                    .getOrThrow().language);
+
+                } catch (final IllegalStateException e) {
+                    log.error("Set current locale for session failed: ", e);
+                }
+
+                RWT.setLocale(this.i18nSupport.getUsersFormatLocale());
 
                 pageContext.forwardToMainPage();
 
@@ -183,7 +193,8 @@ public class LoginPage implements TemplateComposer {
                 pageContext.getShell(),
                 this.i18nSupport.getText("sebserver.login.failed.title"),
                 this.i18nSupport.getText(message, message),
-                SWT.ERROR);
+                SWT.ERROR,
+                this.i18nSupport);
         error.open(null);
     }
 

@@ -119,7 +119,8 @@ public class UserServiceImpl implements UserService {
 
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, "anonymous", "anonymous", "anonymous", null, false, null,
+            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null, false,
+                    null,
                     null,
                     Arrays.asList(UserRole.values())
                             .stream()

@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -42,6 +44,7 @@ public class TableBuilder<ROW extends Entity> {
     private boolean hideNavigation = false;
     private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
+    private Consumer<Set<ROW>> selectionListener;
     private boolean markupEnabled = false;
 
     public TableBuilder(
@@ -102,6 +105,11 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
+    public TableBuilder<ROW> withSelectionListener(final Consumer<Set<ROW>> selectionListener) {
+        this.selectionListener = selectionListener;
+        return this;
+    }
+
     public TableBuilder<ROW> withStaticFilter(final String name, final String value) {
         this.staticQueryParams.add(name, value);
         return this;
@@ -159,7 +167,8 @@ public class TableBuilder<ROW extends Entity> {
                 this.defaultActionFunction,
                 this.hideNavigation,
                 this.staticQueryParams,
-                this.rowDecorator);
+                this.rowDecorator,
+                this.selectionListener);
     }
 
 }

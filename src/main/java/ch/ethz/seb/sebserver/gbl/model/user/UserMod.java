@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -149,6 +150,11 @@ public final class UserMod implements UserAccount {
     @Override
     public Long getInstitutionId() {
         return this.institutionId;
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return null;
     }
 
     @Override

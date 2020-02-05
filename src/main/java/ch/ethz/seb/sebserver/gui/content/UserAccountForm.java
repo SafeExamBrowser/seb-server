@@ -78,6 +78,8 @@ public class UserAccountForm implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.surname");
     static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.institution");
+    static final LocTextKey FORM_CREATION_DATE_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.form.creationdate");
     static final LocTextKey FORM_LANG_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.language");
 
@@ -170,6 +172,13 @@ public class UserAccountForm implements TemplateComposer {
                                 String.valueOf(userAccount.getInstitutionId()),
                                 () -> this.resourceService.institutionResource())
                                 .readonlyIf(isNotNew))
+                .addFieldIf(
+                        () -> readonly,
+                        () -> FormBuilder.text(
+                                Domain.USER.ATTR_CREATION_DATE,
+                                FORM_CREATION_DATE_TEXT_KEY,
+                                this.pageService.getI18nSupport().formatDisplayDate(userAccount.getCreationDate()))
+                                .readonly(true))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
