@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -133,20 +134,19 @@ public class SebInstructionServiceImpl implements SebInstructionService {
                     .append(Constants.COLON)
                     .append(Constants.DOUBLE_QUOTE)
                     .append(clientInstruction.getType())
-                    .append(Constants.DOUBLE_QUOTE)
-                    .append(Constants.COMMA)
-                    .append(Constants.DOUBLE_QUOTE)
-                    .append(JSON_ATTR)
-                    .append(Constants.DOUBLE_QUOTE)
-                    .append(Constants.COLON);
-            if (attributes == null || attributes.isEmpty()) {
-                sBuilder.append(Constants.NULL);
+                    .append(Constants.DOUBLE_QUOTE);
 
-            } else {
-                sBuilder.append(Constants.CURLY_BRACE_OPEN)
+            if (StringUtils.isNotBlank(attributes)) {
+                sBuilder.append(Constants.COMMA)
+                        .append(Constants.DOUBLE_QUOTE)
+                        .append(JSON_ATTR)
+                        .append(Constants.DOUBLE_QUOTE)
+                        .append(Constants.COLON)
+                        .append(Constants.CURLY_BRACE_OPEN)
                         .append(attributes)
                         .append(Constants.CURLY_BRACE_CLOSE);
             }
+
             return sBuilder
                     .append(Constants.CURLY_BRACE_CLOSE)
                     .toString();

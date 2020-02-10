@@ -41,6 +41,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -85,10 +86,13 @@ public final class ClientConnectionTable {
     private final Table table;
     private final ColorData colorData;
     private final EnumSet<ConnectionStatus> statusFilter;
+    private String statusFilterParam = "";
+    private boolean statusFilterChanged = false;
 
     private int tableWidth;
     private boolean needsSort = false;
     private LinkedHashMap<Long, UpdatableTableItem> tableMapping;
+    private final Set<Long> toDelete = new HashSet<>();
     private final MultiValueMap<String, Long> sessionIds;
 
     private final Color darkFontColor;
@@ -180,39 +184,6 @@ public final class ClientConnectionTable {
         saveStatusFilter();
     }
 
-    private void saveStatusFilter() {
-        try {
-            this.resourceService
-                    .getCurrentUser()
-                    .putAttribute(
-                            USER_SESSION_STATUS_FILTER_ATTRIBUTE,
-                            StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR));
-        } catch (final Exception e) {
-            log.warn("Failed to save status filter to user session");
-        }
-    }
-
-    private void loadStatusFilter() {
-        try {
-            final String attribute = this.resourceService
-                    .getCurrentUser()
-                    .getAttribute(USER_SESSION_STATUS_FILTER_ATTRIBUTE);
-            if (attribute != null) {
-                this.statusFilter.clear();
-                Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
-                        .forEach(name -> this.statusFilter.add(ConnectionStatus.valueOf(name)));
-
-            } else {
-                this.statusFilter.clear();
-                this.statusFilter.add(ConnectionStatus.DISABLED);
-            }
-        } catch (final Exception e) {
-            log.warn("Failed to load status filter to user session");
-            this.statusFilter.clear();
-            this.statusFilter.add(ConnectionStatus.DISABLED);
-        }
-    }
-
     public void withDefaultAction(final PageAction pageAction, final PageService pageService) {
         this.table.addListener(SWT.MouseDoubleClick, event -> {
             final Tuple<String> selection = getSingleSelection();
@@ -300,7 +271,12 @@ public final class ClientConnectionTable {
     }
 
     public void updateValues() {
+        if (this.statusFilterChanged) {
+            this.toDelete.clear();
+            this.toDelete.addAll(this.tableMapping.keySet());
+        }
         this.restCallBuilder
+                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
                 .call()
                 .get(error -> {
                     log.error("Error poll connection data: ", error);
@@ -312,7 +288,21 @@ public final class ClientConnectionTable {
                             data.getConnectionId(),
                             connectionId -> new UpdatableTableItem(connectionId));
                     tableItem.push(data);
+                    if (this.statusFilterChanged) {
+                        this.toDelete.remove(data.getConnectionId());
+                    }
                 });
+
+        if (this.statusFilterChanged && !this.toDelete.isEmpty()) {
+            this.toDelete.stream().forEach(id -> {
+                final UpdatableTableItem item = this.tableMapping.remove(id);
+                final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
+                if (list != null) {
+                    list.remove(id);
+                }
+            });
+            this.statusFilterChanged = false;
+        }
     }
 
     public void updateGUI() {
@@ -368,6 +358,45 @@ public final class ClientConnectionTable {
                         Entry::getKey,
                         Entry::getValue,
                         (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+    private void saveStatusFilter() {
+        try {
+            this.resourceService
+                    .getCurrentUser()
+                    .putAttribute(
+                            USER_SESSION_STATUS_FILTER_ATTRIBUTE,
+                            StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR));
+        } catch (final Exception e) {
+            log.warn("Failed to save status filter to user session");
+        } finally {
+            this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
+            this.statusFilterChanged = true;
+        }
+    }
+
+    private void loadStatusFilter() {
+        try {
+            final String attribute = this.resourceService
+                    .getCurrentUser()
+                    .getAttribute(USER_SESSION_STATUS_FILTER_ATTRIBUTE);
+            if (attribute != null) {
+                this.statusFilter.clear();
+                Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
+                        .forEach(name -> this.statusFilter.add(ConnectionStatus.valueOf(name)));
+
+            } else {
+                this.statusFilter.clear();
+                this.statusFilter.add(ConnectionStatus.DISABLED);
+            }
+        } catch (final Exception e) {
+            log.warn("Failed to load status filter to user session");
+            this.statusFilter.clear();
+            this.statusFilter.add(ConnectionStatus.DISABLED);
+        } finally {
+            this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
+            this.statusFilterChanged = true;
+        }
     }
 
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
@@ -567,8 +596,12 @@ public final class ClientConnectionTable {
 
             this.connectionData = connectionData;
 
-            if (!this.duplicateChecked && StringUtils.isNotBlank(connectionData.clientConnection.userSessionId)) {
-                ClientConnectionTable.this.sessionIds.add(connectionData.clientConnection.userSessionId,
+            if (!this.duplicateChecked &&
+                    this.connectionData.clientConnection.status != ConnectionStatus.DISABLED &&
+                    StringUtils.isNotBlank(connectionData.clientConnection.userSessionId)) {
+
+                ClientConnectionTable.this.sessionIds.add(
+                        connectionData.clientConnection.userSessionId,
                         this.connectionId);
                 this.duplicateChecked = true;
             }

@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
@@ -49,12 +47,10 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -64,11 +60,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
@@ -84,7 +80,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
-    private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ExamAdminService examAdminService;
     private final LmsAPIService lmsAPIService;
     private final ExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
@@ -99,10 +95,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final BeanValidationService beanValidationService,
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
+            final ExamAdminService examAdminService,
             final ExamConfigService sebExamConfigService,
             final ExamSessionService examSessionService,
-            final SebRestrictionService sebRestrictionService,
-            final AdditionalAttributesDAO additionalAttributesDAO) {
+            final SebRestrictionService sebRestrictionService) {
 
         super(authorization,
                 bulkActionService,
@@ -113,7 +109,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         this.examDAO = examDAO;
         this.userDAO = userDAO;
-        this.additionalAttributesDAO = additionalAttributesDAO;
+        this.examAdminService = examAdminService;
         this.lmsAPIService = lmsAPIService;
         this.sebExamConfigService = sebExamConfigService;
         this.examSessionService = examSessionService;
@@ -337,29 +333,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        return Result.tryCatch(() -> {
-
-            final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(entity.lmsSetupId)
-                    .getOrThrow();
-
-            // if we have an Open edX LMS involved, add additional initial SEB restriction attributes
-            if (lmsSetup.lmsType == LmsType.OPEN_EDX) {
-                final List<String> permissions = Arrays.asList(
-                        OpenEdxSebRestriction.PermissionComponent.ALWAYS_ALLOW_STUFF.key,
-                        OpenEdxSebRestriction.PermissionComponent.CHECK_CONFIG_KEY.key);
-
-                this.additionalAttributesDAO.saveAdditionalAttribute(
-                        EntityType.EXAM,
-                        entity.id,
-                        SebRestrictionService.SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX +
-                                OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
-                        StringUtils.join(permissions, Constants.LIST_SEPARATOR_CHAR))
-                        .getOrThrow();
-
-            }
-
-            return entity;
-        });
+        return this.examAdminService
+                .addDefaultIndicator(entity)
+                .flatMap(this.examAdminService::applyAdditionalSEBRestrictions);
     }
 
     @Override

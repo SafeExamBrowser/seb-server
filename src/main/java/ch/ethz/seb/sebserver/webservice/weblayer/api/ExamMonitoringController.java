@@ -187,7 +187,7 @@ public class ExamMonitoringController {
                         examId,
                         filterStates.isEmpty()
                                 ? Objects::nonNull
-                                : conn -> conn != null && filterStates.contains(conn.clientConnection.status))
+                                : conn -> conn != null && !filterStates.contains(conn.clientConnection.status))
                 .getOrThrow();
     }
 

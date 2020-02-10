@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -180,7 +181,7 @@ final class MoodleRestTemplateFactory {
         private CharSequence accessToken = null;
 
         private final Map<String, String> tokenReqURIVars;
-        private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(null);
+        private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
 
         protected MoodleAPIRestTemplate(
 
@@ -272,7 +273,7 @@ final class MoodleRestTemplateFactory {
                 functionReqEntity = new HttpEntity<>(body, headers);
 
             } else {
-                functionReqEntity = new HttpEntity<>(null);
+                functionReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
             }
 
             final ResponseEntity<String> response = super.exchange(
