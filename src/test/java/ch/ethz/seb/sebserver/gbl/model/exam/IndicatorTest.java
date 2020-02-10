@@ -40,7 +40,7 @@ public class IndicatorTest {
         final JSONMapper mapper = new JSONMapper();
         final String jsonString = mapper.writeValueAsString(indicator);
         assertEquals(
-                "{\"examId\":1,\"name\":\"Ping\",\"type\":\"LAST_PING\",\"color\":\"b4b4b4\",\"thresholds\":[{\"value\":2000.0,\"color\":\"22b14c\"},{\"value\":5000.0,\"color\":\"ff7e00\"}",
+                "{\"examId\":1,\"name\":\"Ping\",\"type\":\"LAST_PING\",\"color\":\"b4b4b4\",\"thresholds\":[{\"value\":2000.0,\"color\":\"22b14c\"},{\"value\":5000.0,\"color\":\"ff7e00\"},{\"value\":10000.0,\"color\":\"ed1c24\"}]}",
                 jsonString);
 
         final String threholds =
