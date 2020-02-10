@@ -40,7 +40,7 @@ public class MoodleLmsAPITemplateFactory {
             final AsyncService asyncService,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths}") final String alternativeTokenRequestPaths) {
+            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
