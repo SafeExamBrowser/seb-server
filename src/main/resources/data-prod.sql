@@ -265,7 +265,6 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (913, 'allowiOSVersionNumberMinor', 'INTEGER', null, null, null, null, '3'),
     (914, 'allowiOSVersionNumberPatch', 'INTEGER', null, null, null, null, '5'),
     (915, 'browserURLSalt', 'CHECKBOX', null, null, null, null, 'true'),
-    (916, 'examKeySalt', 'TEXT_FIELD', null, null, null, null, null),
     (917, 'browserUserAgentiOS', 'SINGLE_SELECTION', null, '0,1,2,3', null, null, '0'),
     (918, 'browserUserAgentiOSCustom', 'TEXT_FIELD', null, null, null, null, ''),
     (919, 'browserWindowShowURL', 'SINGLE_SELECTION', null, '0,1,2,3', null, null, '0'),
