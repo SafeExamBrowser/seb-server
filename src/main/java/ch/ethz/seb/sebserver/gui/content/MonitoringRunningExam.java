@@ -192,43 +192,77 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.disableSebClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege)
-
-        ;
-
-        clientTable.hideStatus(ConnectionStatus.DISABLED);
+                .publishIf(privilege);
 
         if (privilege.getAsBoolean()) {
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
+            if (clientTable.isStatusHidden(ConnectionStatus.CLOSED)) {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            } else {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            }
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
-                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
-                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
+            if (clientTable.isStatusHidden(ConnectionStatus.CONNECTION_REQUESTED)) {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                                        .withExec(
+                                                hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            } else {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                                        .withExec(
+                                                showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            }
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
-                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
-                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
+            if (clientTable.isStatusHidden(ConnectionStatus.DISABLED)) {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+                        .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+                                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            } else {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                        .noEventPropagation()
+                        .withSwitchAction(
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+                                        .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                                        .noEventPropagation()
+                                        .create())
+                        .publish();
+            }
 
         }
     }

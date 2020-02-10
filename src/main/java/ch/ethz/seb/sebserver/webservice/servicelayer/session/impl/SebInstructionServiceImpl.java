@@ -123,8 +123,9 @@ public class SebInstructionServiceImpl implements SebInstructionService {
                 log.error("Failed to delete SEB client instruction on persistent storage: ", delete.getError());
             }
 
-            // {"instruction":"%s", "attributes":{%s}}
-            return new StringBuilder()
+            // {"instruction":"%s", "attributes":%s}
+            final String attributes = clientInstruction.getAttributes();
+            final StringBuilder sBuilder = new StringBuilder()
                     .append(Constants.CURLY_BRACE_OPEN)
                     .append(Constants.DOUBLE_QUOTE)
                     .append(JSON_INST)
@@ -137,10 +138,16 @@ public class SebInstructionServiceImpl implements SebInstructionService {
                     .append(Constants.DOUBLE_QUOTE)
                     .append(JSON_ATTR)
                     .append(Constants.DOUBLE_QUOTE)
-                    .append(Constants.COLON)
-                    .append(Constants.CURLY_BRACE_OPEN)
-                    .append(clientInstruction.getAttributes())
-                    .append(Constants.CURLY_BRACE_CLOSE)
+                    .append(Constants.COLON);
+            if (attributes == null || attributes.isEmpty()) {
+                sBuilder.append(Constants.NULL);
+
+            } else {
+                sBuilder.append(Constants.CURLY_BRACE_OPEN)
+                        .append(attributes)
+                        .append(Constants.CURLY_BRACE_CLOSE);
+            }
+            return sBuilder
                     .append(Constants.CURLY_BRACE_CLOSE)
                     .toString();
         }

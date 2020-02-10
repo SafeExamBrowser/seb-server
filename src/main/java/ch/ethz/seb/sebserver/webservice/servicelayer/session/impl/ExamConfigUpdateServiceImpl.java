@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -224,12 +225,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     private void checkActiveClientConnections(final Exam exam) {
-        if (this.examSessionService.getConnectionData(exam.id)
-                .getOrThrow()
-                .stream()
-                .filter(ExamSessionService::isActiveConnection)
-                .count() > 0) {
-
+        if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
             throw new APIMessage.APIMessageException(
                     ErrorMessage.INTEGRITY_VALIDATION,
                     "Integrity violation: There are currently active SEB Client connection.");
@@ -286,7 +282,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         final long activeConnections = involvedExams
                 .stream()
                 .flatMap(examId -> {
-                    return this.examSessionService.getConnectionData(examId)
+                    return this.examSessionService.getConnectionData(examId, Objects::nonNull)
                             .getOrThrow()
                             .stream();
                 })

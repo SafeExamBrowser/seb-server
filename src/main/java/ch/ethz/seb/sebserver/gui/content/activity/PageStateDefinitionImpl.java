@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content.activity;
 
 import ch.ethz.seb.sebserver.gui.content.ConfigTemplateAttributeForm;
 import ch.ethz.seb.sebserver.gui.content.ConfigTemplateForm;
+import ch.ethz.seb.sebserver.gui.content.ConfigTemplateList;
 import ch.ethz.seb.sebserver.gui.content.ExamForm;
 import ch.ethz.seb.sebserver.gui.content.ExamList;
 import ch.ethz.seb.sebserver.gui.content.IndicatorForm;
@@ -68,8 +69,12 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     SEB_EXAM_CONFIG_EDIT(Type.FORM_IN_TIME_EDIT, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
 
-    SEB_EXAM_CONFIG_TEMPLATE_VIEW(Type.FORM_VIEW, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
-    SEB_EXAM_CONFIG_TEMPLATE_EDIT(Type.FORM_EDIT, ConfigTemplateForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_TEMPLATE_LIST(Type.LIST_VIEW, ConfigTemplateList.class,
+            ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
+    SEB_EXAM_CONFIG_TEMPLATE_VIEW(Type.FORM_VIEW, ConfigTemplateForm.class,
+            ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
+    SEB_EXAM_CONFIG_TEMPLATE_EDIT(Type.FORM_EDIT, ConfigTemplateForm.class,
+            ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
 
     SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT(
             Type.FORM_EDIT,

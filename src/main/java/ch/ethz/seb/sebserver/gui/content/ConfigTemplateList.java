@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -41,31 +41,22 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SebExamConfigList implements TemplateComposer {
+public class ConfigTemplateList implements TemplateComposer {
 
     private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
             new LocTextKey("sebserver.examconfig.list.action.no.modify.privilege");
-    private static final LocTextKey EMPTY_CONFIG_LIST_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.list.empty");
-    private static final LocTextKey TITLE_CONFIGURATION_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.list.title");
+    private static final LocTextKey TITLE_TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.list.title");
+    private static final LocTextKey EMPTY_TEMPLATE_LIST_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.list.empty");
     private static final LocTextKey INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.institution");
     private static final LocTextKey NAME_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.name");
     private static final LocTextKey DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.description");
-    private static final LocTextKey STATUS_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.list.column.status");
-    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.info.pleaseSelect");
-
-    private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
-    private final TableFilterAttribute descFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ConfigurationNode.FILTER_ATTR_DESCRIPTION);
-    private final TableFilterAttribute statusFilter;
+    private static final LocTextKey EMPTY_TEMPLATE_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.info.pleaseSelect");
 
     private final PageService pageService;
     private final RestService restService;
@@ -73,7 +64,13 @@ public class SebExamConfigList implements TemplateComposer {
     private final ResourceService resourceService;
     private final int pageSize;
 
-    protected SebExamConfigList(
+    private final TableFilterAttribute institutionFilter;
+    private final TableFilterAttribute nameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute descFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, ConfigurationNode.FILTER_ATTR_DESCRIPTION);
+
+    protected ConfigTemplateList(
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,
@@ -89,11 +86,6 @@ public class SebExamConfigList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
                 this.resourceService::institutionResource);
-
-        this.statusFilter = new TableFilterAttribute(
-                CriteriaType.SINGLE_SELECTION,
-                ConfigurationNode.FILTER_ATTR_STATUS,
-                this.resourceService::examConfigStatusResources);
     }
 
     @Override
@@ -101,19 +93,20 @@ public class SebExamConfigList implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                TITLE_CONFIGURATION_TEXT_KEY);
+                TITLE_TEMPLATE_TEXT_KEY);
 
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
-        // exam configuration table
-        final EntityTable<ConfigurationNode> configTable =
-                this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigNodePage.class))
+        final EntityTable<ConfigurationNode> templateTable =
+                this.pageService.entityTableBuilder(
+                        TITLE_TEMPLATE_TEXT_KEY.name,
+                        this.restService.getRestCall(GetExamConfigNodePage.class))
                         .withStaticFilter(
                                 Domain.CONFIGURATION_NODE.ATTR_TYPE,
-                                ConfigurationType.EXAM_CONFIG.name())
-                        .withEmptyMessage(EMPTY_CONFIG_LIST_TEXT_KEY)
+                                ConfigurationType.TEMPLATE.name())
+                        .withEmptyMessage(EMPTY_TEMPLATE_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withColumnIf(
                                 () -> isSEBAdmin,
@@ -135,46 +128,28 @@ public class SebExamConfigList implements TemplateComposer {
                                 ConfigurationNode::getDescription)
                                         .withFilter(this.descFilter)
                                         .sortable())
-                        .withColumn(new ColumnDefinition<ConfigurationNode>(
-                                Domain.CONFIGURATION_NODE.ATTR_STATUS,
-                                STATUS_TEXT_KEY,
-                                this.resourceService::localizedExamConfigStatusName)
-                                        .withFilter(this.statusFilter)
-                                        .sortable())
                         .withDefaultAction(pageActionBuilder
-                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
+                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
                                 .create())
                         .compose(pageContext.copyOf(content));
 
         final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
         pageActionBuilder
-                // Exam Configuration actions...
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_NEW)
+                // Exam Configuration template actions...
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_NEW)
                 .publishIf(examConfigGrant::iw)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
-                .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
-                        EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> configTable.hasAnyContent())
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
+                .withSelect(templateTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
+                .publishIf(() -> templateTable.hasAnyContent())
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST)
                 .withSelect(
-                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
+                        templateTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        PageAction::applySingleSelectionAsEntityKey, EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
+                .publishIf(() -> examConfigGrant.im() && templateTable.hasAnyContent());
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_FROM_LIST)
-                .withSelect(
-                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
-                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
-                .withExec(SebExamConfigImportPopup.importFunction(this.pageService, true))
-                .noEventPropagation()
-                .publishIf(() -> examConfigGrant.im())
-
-        ;
     }
 
 }

@@ -164,12 +164,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return false;
         }
 
-        return this.getConnectionData(examId)
+        return !this.getConnectionData(examId, ExamSessionService::isActiveConnection)
                 .getOrThrow()
-                .stream()
-                .filter(ExamSessionService::isActiveConnection)
-                .findFirst()
-                .isPresent();
+                .isEmpty();
     }
 
     @Override
@@ -313,14 +310,17 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<ClientConnectionData>> getConnectionData(final Long examId) {
+    public Result<Collection<ClientConnectionData>> getConnectionData(
+            final Long examId,
+            final Predicate<ClientConnectionData> filter) {
+
         return Result.tryCatch(() -> {
             return this.clientConnectionDAO
                     .getConnectionTokens(examId)
                     .getOrThrow()
                     .stream()
                     .map(this.examSessionCacheService::getActiveClientConnection)
-                    .filter(data -> data != null)
+                    .filter(filter)
                     .collect(Collectors.toList());
         });
     }

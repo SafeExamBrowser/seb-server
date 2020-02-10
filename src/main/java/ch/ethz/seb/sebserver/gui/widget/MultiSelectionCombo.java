@@ -10,52 +10,45 @@ package ch.ethz.seb.sebserver.gui.widget;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.widgets.DropDown;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public final class MultiSelectionCombo extends Composite implements Selection {
 
     private static final Logger log = LoggerFactory.getLogger(MultiSelectionCombo.class);
     private static final long serialVersionUID = -7787134114963647332L;
-    private static final int ACTION_COLUMN_WIDTH = 20;
-
-    private static final LocTextKey DEFAULT_ADD_TOOLTIP_KEY = new LocTextKey("sebserver.overall.add");
-    private static final LocTextKey DEFAULT_REMOVE_TOOLTIP_KEY = new LocTextKey("sebserver.overall.remove");
 
     private final WidgetFactory widgetFactory;
-    private final Combo combo;
-    private final LocTextKey addTextKey;
-    private final LocTextKey removeTextKey;
 
-    private final List<Tuple<Control>> selectionControls = new ArrayList<>();
+    private final List<Control> selectionControls = new ArrayList<>();
+
+    private final List<Tuple<String>> valueMapping = new ArrayList<>();
+    private final List<Tuple<String>> availableValues = new ArrayList<>();
     private final List<Tuple<String>> selectedValues = new ArrayList<>();
-    private final Map<String, String> mapping = new HashMap<>();
 
-    private final GridData comboCell;
-    private final GridData actionCell;
+    private final DropDown dropDown;
+    private final Text textInput;
+    private final GridData textCell;
     private final Composite updateAnchor;
 
     private Listener listener = null;
@@ -68,14 +61,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
         super(parent, SWT.NONE);
         this.widgetFactory = widgetFactory;
-        this.addTextKey = (locTextPrefix != null)
-                ? new LocTextKey(locTextPrefix + ".add")
-                : DEFAULT_ADD_TOOLTIP_KEY;
-        this.removeTextKey = (locTextPrefix != null)
-                ? new LocTextKey(locTextPrefix + ".remove")
-                : DEFAULT_REMOVE_TOOLTIP_KEY;
 
-        final GridLayout gridLayout = new GridLayout(2, false);
+        final GridLayout gridLayout = new GridLayout();
         gridLayout.verticalSpacing = 1;
         gridLayout.marginLeft = 0;
         gridLayout.marginHeight = 0;
@@ -84,20 +71,41 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         setLayout(gridLayout);
 
         this.addListener(SWT.Resize, this::adaptColumnWidth);
+        this.textInput = widgetFactory.textInput(this);
+        this.textCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
+        this.textInput.setLayoutData(this.textCell);
+        this.dropDown = new DropDown(this.textInput, SWT.NONE);
+        this.textInput.addListener(SWT.FocusIn, event -> {
+            openDropDown();
+        });
+        this.textInput.addListener(SWT.Modify, event -> {
+            openDropDown();
+        });
+        this.dropDown.addListener(SWT.Selection, event -> {
+            final int selectionIndex = this.dropDown.getSelectionIndex();
+            if (selectionIndex >= 0) {
+                final String selectedItem = this.dropDown.getItems()[selectionIndex];
+                addSelection(itemForName(selectedItem));
+            }
+        });
 
-        this.combo = new Combo(this, SWT.NONE);
-        this.comboCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        this.combo.setLayoutData(this.comboCell);
-
-        final Label imageButton = widgetFactory.imageButton(
-                ImageIcon.ADD_BOX,
-                this,
-                this.addTextKey,
-                this::addComboSelection);
-        this.actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-        this.actionCell.widthHint = ACTION_COLUMN_WIDTH;
-        imageButton.setLayoutData(this.actionCell);
         this.updateAnchor = updateAnchor;
+    }
+
+    private void openDropDown() {
+        final String text = this.textInput.getText();
+        if (text == null) {
+            this.dropDown.setVisible(false);
+            return;
+        }
+        final Collection<String> items = this.availableValues
+                .stream()
+                .filter(it -> it._2 != null && it._2.startsWith(text))
+                .map(t -> t._2)
+                .collect(Collectors.toList());
+        this.dropDown.setItems(items.toArray(new String[items.size()]));
+        this.dropDown.setSelectionIndex(0);
+        this.dropDown.setVisible(true);
     }
 
     @Override
@@ -112,8 +120,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
     @Override
     public void applyNewMapping(final List<Tuple<String>> mapping) {
-        this.mapping.putAll(mapping.stream()
-                .collect(Collectors.toMap(t -> t._1, t -> t._2)));
+        this.valueMapping.clear();
+        this.valueMapping.addAll(mapping);
         this.clear();
     }
 
@@ -126,7 +134,20 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
         Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR))
                 .stream()
+                .map(this::itemForName)
                 .forEach(this::addSelection);
+    }
+
+    private Tuple<String> itemForName(final String name) {
+        final Optional<Tuple<String>> findFirst = this.availableValues
+                .stream()
+                .filter(it -> it._2 != null && it._2.equals(name))
+                .findFirst();
+        if (findFirst.isPresent()) {
+            return findFirst.get();
+        }
+
+        return null;
     }
 
     @Override
@@ -151,61 +172,28 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.selectedValues.clear();
         this.selectionControls
                 .stream()
-                .forEach(t -> {
-                    t._1.dispose();
-                    t._2.dispose();
-                });
+                .forEach(Control::dispose);
         this.selectionControls.clear();
-        this.combo.setItems(this.mapping.values().toArray(new String[this.mapping.size()]));
+        this.availableValues.clear();
+        this.availableValues.addAll(this.valueMapping);
     }
 
-    private void addComboSelection(final Event event) {
-        final int selectionIndex = this.combo.getSelectionIndex();
-        if (selectionIndex < 0) {
+    private void addSelection(final Tuple<String> item) {
+        if (item == null) {
             return;
         }
 
-        final String itemName = this.combo.getItem(selectionIndex);
-        if (itemName == null) {
-            return;
-        }
+        this.selectedValues.add(item);
+        final Label label = this.widgetFactory.label(this, item._2);
+        label.setData(OPTION_VALUE, item._2);
+        final GridData textCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
+        label.setLayoutData(textCell);
+        label.addListener(SWT.MouseDoubleClick, event -> {
+            removeComboSelection(event);
+        });
+        this.selectionControls.add(label);
 
-        final Optional<Entry<String, String>> findFirst = this.mapping.entrySet()
-                .stream()
-                .filter(entity -> entity.getValue().equals(itemName))
-                .findFirst();
-
-        if (!findFirst.isPresent()) {
-            return;
-        }
-
-        addSelection(findFirst.get().getKey());
-        if (this.listener != null) {
-            this.listener.handleEvent(event);
-        }
-    }
-
-    private void addSelection(final String itemKey) {
-        final String itemName = this.mapping.get(itemKey);
-        if (itemName == null) {
-            return;
-        }
-
-        this.selectedValues.add(new Tuple<>(itemKey, itemName));
-        final Label label = this.widgetFactory.label(this, itemName);
-        final Label imageButton = this.widgetFactory.imageButton(
-                ImageIcon.REMOVE_BOX,
-                this,
-                this.removeTextKey,
-                this::removeComboSelection);
-        imageButton.setData(OPTION_VALUE, itemName);
-        final GridData actionCell = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-        actionCell.widthHint = ACTION_COLUMN_WIDTH;
-        imageButton.setLayoutData(actionCell);
-
-        this.selectionControls.add(new Tuple<>(label, imageButton));
-
-        this.combo.remove(itemName);
+        this.availableValues.remove(item);
         PageService.updateScrolledComposite(this);
         this.updateAnchor.layout(true, true);
 
@@ -217,22 +205,20 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         }
 
         final String selectionKey = (String) event.widget.getData(OPTION_VALUE);
-        final Optional<Tuple<Control>> findFirst = this.selectionControls.stream()
-                .filter(t -> selectionKey.equals(t._2.getData(OPTION_VALUE)))
+        final Optional<Control> findFirst = this.selectionControls.stream()
+                .filter(t -> selectionKey.equals(t.getData(OPTION_VALUE)))
                 .findFirst();
         if (!findFirst.isPresent()) {
             return;
         }
 
-        final Tuple<Control> tuple = findFirst.get();
-        final int indexOf = this.selectionControls.indexOf(tuple);
-        this.selectionControls.remove(tuple);
-
-        tuple._1.dispose();
-        tuple._2.dispose();
+        final Control control = findFirst.get();
+        final int indexOf = this.selectionControls.indexOf(control);
+        this.selectionControls.remove(control);
+        control.dispose();
 
         final Tuple<String> value = this.selectedValues.remove(indexOf);
-        this.combo.add(value._2, this.combo.getItemCount());
+        this.availableValues.add(value);
 
         PageService.updateScrolledComposite(this);
         this.updateAnchor.layout(true, true);
@@ -244,7 +230,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
     private void adaptColumnWidth(final Event event) {
         try {
             final int currentTableWidth = this.getClientArea().width;
-            this.comboCell.widthHint = currentTableWidth - ACTION_COLUMN_WIDTH;
+            this.textCell.widthHint = currentTableWidth;
             this.layout();
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);

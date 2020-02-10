@@ -214,6 +214,18 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
+            // SEB Exam Config Template
+            if (examConfigRead) {
+                final TreeItem examConfigTemplate = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE.displayName);
+                injectActivitySelection(
+                        examConfigTemplate,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_LIST)
+                                .create());
+            }
+
             sebConfigs.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 

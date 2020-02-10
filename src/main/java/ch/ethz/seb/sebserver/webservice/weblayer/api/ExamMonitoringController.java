@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 import javax.validation.Valid;
 
@@ -23,6 +25,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -153,7 +157,8 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
 
         // check overall privilege
         this.authorization.checkRole(
@@ -169,8 +174,20 @@ public class ExamMonitoringController {
                     this.authorization.getUserService().getCurrentUser().getUserInfo());
         }
 
+        final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
+        if (StringUtils.isNoneBlank(hiddenStates)) {
+            final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
+            for (int i = 0; i < split.length; i++) {
+                filterStates.add(ConnectionStatus.valueOf(split[0]));
+            }
+        }
+
         return this.examSessionService
-                .getConnectionData(examId)
+                .getConnectionData(
+                        examId,
+                        filterStates.isEmpty()
+                                ? Objects::nonNull
+                                : conn -> conn != null && filterStates.contains(conn.clientConnection.status))
                 .getOrThrow();
     }
 

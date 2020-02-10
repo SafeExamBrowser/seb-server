@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,6 +66,7 @@ public final class ClientConnectionTable {
 
     private static final int BOTTOM_PADDING = 20;
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
+    private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER_ATTRIBUTE";
 
     private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
             "sebserver.monitoring.connection.list.column.indicator.";
@@ -117,6 +119,7 @@ public final class ClientConnectionTable {
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
+        loadStatusFilter();
 
         this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
@@ -169,10 +172,45 @@ public final class ClientConnectionTable {
 
     public void hideStatus(final ConnectionStatus status) {
         this.statusFilter.add(status);
+        saveStatusFilter();
     }
 
     public void showStatus(final ConnectionStatus status) {
         this.statusFilter.remove(status);
+        saveStatusFilter();
+    }
+
+    private void saveStatusFilter() {
+        try {
+            this.resourceService
+                    .getCurrentUser()
+                    .putAttribute(
+                            USER_SESSION_STATUS_FILTER_ATTRIBUTE,
+                            StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR));
+        } catch (final Exception e) {
+            log.warn("Failed to save status filter to user session");
+        }
+    }
+
+    private void loadStatusFilter() {
+        try {
+            final String attribute = this.resourceService
+                    .getCurrentUser()
+                    .getAttribute(USER_SESSION_STATUS_FILTER_ATTRIBUTE);
+            if (attribute != null) {
+                this.statusFilter.clear();
+                Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
+                        .forEach(name -> this.statusFilter.add(ConnectionStatus.valueOf(name)));
+
+            } else {
+                this.statusFilter.clear();
+                this.statusFilter.add(ConnectionStatus.DISABLED);
+            }
+        } catch (final Exception e) {
+            log.warn("Failed to load status filter to user session");
+            this.statusFilter.clear();
+            this.statusFilter.add(ConnectionStatus.DISABLED);
+        }
     }
 
     public void withDefaultAction(final PageAction pageAction, final PageService pageService) {

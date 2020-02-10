@@ -467,6 +467,9 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
 
+    SEB_EXAM_CONFIG_TEMPLATE_LIST(
+            new LocTextKey("sebserver.configtemplate.action.list"),
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_LIST),
     SEB_EXAM_CONFIG_TEMPLATE_NEW(
             new LocTextKey("sebserver.configtemplate.action.list.new"),
             ImageIcon.TEMPLATE,

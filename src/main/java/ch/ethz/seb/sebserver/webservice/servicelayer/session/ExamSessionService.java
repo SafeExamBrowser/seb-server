@@ -136,9 +136,12 @@ public interface ExamSessionService {
      * a subset of them.
      *
      * @param examId The exam identifier
+     * @param filter a filter predicate to apply
      * @return collection of ClientConnectionData of all active SEB client connections
      *         of a running exam */
-    Result<Collection<ClientConnectionData>> getConnectionData(Long examId);
+    Result<Collection<ClientConnectionData>> getConnectionData(
+            Long examId,
+            Predicate<ClientConnectionData> filter);
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.
