@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -46,7 +45,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  *
  * This domain model is immutable and thread-save */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class UserInfo implements UserAccount, Activatable, Serializable {
+public final class UserInfo implements UserAccount, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
@@ -61,10 +61,24 @@ public class InfoController {
     }
 
     @RequestMapping(
+            path = API.INFO_INST_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<EntityName> getInstitutionInfo() {
+        return this.institutionDAO
+                .all(null, true)
+                .getOrThrow()
+                .stream()
+                .filter(inst -> BooleanUtils.isTrue(inst.active))
+                .map(inst -> new EntityName(inst.getEntityKey(), inst.name))
+                .collect(Collectors.toList());
+    }
+
+    @RequestMapping(
             path = API.INFO_INST_ENDPOINT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<EntityKey> getInstitutionInfo(@PathVariable(required = false) final String urlSuffix) {
+    public Collection<EntityName> getInstitutionInfo(@PathVariable final String urlSuffix) {
         return this.institutionDAO
                 .all(null, true)
                 .getOrThrow()
@@ -72,7 +86,7 @@ public class InfoController {
                 .filter(inst -> BooleanUtils.isTrue(inst.active) &&
                         (inst.urlSuffix == null ||
                                 urlSuffix.equals(inst.urlSuffix)))
-                .map(inst -> inst.getEntityKey())
+                .map(inst -> new EntityName(inst.getEntityKey(), inst.name))
                 .collect(Collectors.toList());
     }
 

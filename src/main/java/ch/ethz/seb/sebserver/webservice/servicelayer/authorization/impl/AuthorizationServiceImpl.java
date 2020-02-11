@@ -123,7 +123,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
         // grants for configuration
         addPrivilege(EntityType.CONFIGURATION)
@@ -134,7 +134,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
         // grants for configuration value
         addPrivilege(EntityType.CONFIGURATION_VALUE)
@@ -145,7 +145,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withInstitutionalPrivilege(PrivilegeType.MODIFY)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for configuration attributes

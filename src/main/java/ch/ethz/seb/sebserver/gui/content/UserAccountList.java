@@ -182,7 +182,7 @@ public class UserAccountList implements TemplateComposer {
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_ACTIVE,
                         ACTIVE_TEXT_KEY,
-                        UserInfo::getActive)
+                        this.pageService.getResourceService().<UserInfo> localizedActivityFunction())
                                 .sortable()
                                 .withFilter(this.activityFilter)
                                 .widthProportion(1))

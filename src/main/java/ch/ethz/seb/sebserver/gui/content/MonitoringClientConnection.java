@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -145,6 +146,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                         .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                         .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
 
+        final ClientConnectionData connectionData = getConnectionData
+                .call()
+                .getOrThrow();
+
         final ClientConnectionDetails clientConnectionDetails = new ClientConnectionDetails(
                 this.pageService,
                 pageContext.copyOf(content),
@@ -227,7 +232,8 @@ public class MonitoringClientConnection implements TemplateComposer {
                     return action;
                 })
                 .noEventPropagation()
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
+                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
 
     }
 

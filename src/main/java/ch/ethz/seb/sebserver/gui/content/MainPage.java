@@ -86,13 +86,13 @@ public class MainPage implements TemplateComposer {
         final Composite content = PageService.createManagedVScrolledComposite(
                 mainSash,
                 scrolledComposite -> {
-                    final Composite reusult = new Composite(scrolledComposite, SWT.NONE);
-                    reusult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+                    final Composite result = new Composite(scrolledComposite, SWT.NONE);
+                    result.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
                     final GridLayout contentOuterlayout = new GridLayout();
                     contentOuterlayout.marginHeight = 0;
                     contentOuterlayout.marginWidth = 0;
-                    reusult.setLayout(contentOuterlayout);
-                    return reusult;
+                    result.setLayout(contentOuterlayout);
+                    return result;
                 },
                 false);
 

@@ -74,12 +74,6 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.INSTITUTION_LIST,
             ActionCategory.INSTITUTION_LIST),
 
-    INSTITUTION_USER_ACCOUNT_NEW(
-            new LocTextKey("sebserver.useraccount.action.new"),
-            ImageIcon.USER,
-            PageStateDefinitionImpl.USER_ACCOUNT_EDIT,
-            ActionCategory.INSTITUTION_LIST),
-
     USER_ACCOUNT_VIEW_LIST(
             new LocTextKey("sebserver.useraccount.action.list"),
             PageStateDefinitionImpl.USER_ACCOUNT_LIST),
@@ -272,7 +266,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
     EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP(
-            new LocTextKey("sebserver.examconfig.action.view"),
+            new LocTextKey("sebserver.exam.configuration.action.list.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.EXAM_CONFIG_MAPPING_LIST),
@@ -388,7 +382,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
     SEB_EXAM_CONFIG_VIEW_PROP(
-            new LocTextKey("sebserver.examconfig.action.view"),
+            new LocTextKey("sebserver.examconfig.action.view.properties"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.FORM),

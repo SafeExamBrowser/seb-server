@@ -185,6 +185,7 @@ public class WidgetFactory {
 
         LOGIN("login"),
         LOGIN_BACK("login-back"),
+        SCROLL("scroll"),
 
         LIST_NAVIGATION("list-nav")
 

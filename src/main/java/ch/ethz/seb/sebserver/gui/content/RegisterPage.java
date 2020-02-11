@@ -31,16 +31,20 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.InstitutionalAuthenticationEntryPoint;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
+import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionInfo;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -71,6 +75,14 @@ public class RegisterPage implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.institution");
     static final LocTextKey FORM_LANG_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.language");
+    static final LocTextKey ACTION_CREATE =
+            new LocTextKey("sebserver.login.register.do");
+    static final LocTextKey ACTION_CANCEL =
+            new LocTextKey("sebserver.overall.action.cancel");
+    static final LocTextKey MESSAGE_SUCCESS_TILE =
+            new LocTextKey("sebserver.page.message");
+    static final LocTextKey MESSAGE_SUCCESS_TEXT =
+            new LocTextKey("sebserver.login.register.success");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -101,6 +113,20 @@ public class RegisterPage implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
+        final Composite parent = PageService.createManagedVScrolledComposite(
+                pageContext.getParent(),
+                scrolledComposite -> {
+                    final Composite result = new Composite(scrolledComposite, SWT.NONE);
+                    result.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+                    final GridLayout contentOuterlayout = new GridLayout();
+                    contentOuterlayout.marginHeight = 0;
+                    contentOuterlayout.marginWidth = 0;
+                    result.setLayout(contentOuterlayout);
+                    result.setData(RWT.CUSTOM_VARIANT, "register");
+                    return result;
+                },
+                false);
+
         final String institutionId = InstitutionalAuthenticationEntryPoint
                 .extractInstitutionalEndpoint();
 
@@ -119,14 +145,11 @@ public class RegisterPage implements TemplateComposer {
                 .sorted(ResourceService.RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
 
-        final Composite content = this.widgetFactory.defaultPageLayout(
-                pageContext.getParent(),
-                TITLE_TEXT_KEY);
-        content.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN.key);
+        this.widgetFactory.labelLocalizedTitle(parent, TITLE_TEXT_KEY);
 
         // The UserAccount form
-        final FormBuilder formBuilder = this.pageService.formBuilder(
-                pageContext.copyOf(content))
+        final FormHandle<UserInfo> registerForm = this.pageService.formBuilder(
+                pageContext.copyOf(parent))
                 .readonly(false)
                 .putStaticValueIf(
                         () -> !this.multilingual,
@@ -169,25 +192,44 @@ public class RegisterPage implements TemplateComposer {
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                         FORM_PASSWORD_CONFIRM_TEXT_KEY)
-                        .asPasswordField());
+                        .asPasswordField())
 
-        //formBuilder.formParent.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN_BACK.key);
-        formBuilder.build();
+                .build();
 
-        final Composite buttons = new Composite(content, SWT.NONE);
+        final Composite buttons = new Composite(parent, SWT.NONE);
         buttons.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        buttons.setLayout(new GridLayout(2, false));
+        final GridLayout gridLayout = new GridLayout(2, false);
+        gridLayout.marginWidth = 20;
+        gridLayout.marginTop = 0;
+        gridLayout.marginBottom = 20;
+        buttons.setLayout(gridLayout);
         buttons.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN_BACK.key);
 
-        final Button registerButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.register");
+        final Button registerButton = this.widgetFactory.buttonLocalized(buttons, ACTION_CREATE);
         GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         registerButton.setLayoutData(gridData);
         registerButton.addListener(SWT.Selection, event -> {
 
+            registerForm.getForm().clearErrors();
+            final Result<UserInfo> onError = this.pageService
+                    .getRestService()
+                    .getBuilder(RegisterNewUser.class)
+                    .withRestTemplate(this.restTemplate)
+                    .withFormBinding(registerForm.getForm())
+                    .call()
+                    .onError(registerForm::handleError);
+
+            if (onError.hasError()) {
+                return;
+            }
+
+            pageContext.forwardToLoginPage();
+            pageContext.publishPageMessage(MESSAGE_SUCCESS_TILE, MESSAGE_SUCCESS_TEXT);
+
         });
 
-        final Button cancelButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.overall.action.cancel");
+        final Button cancelButton = this.widgetFactory.buttonLocalized(buttons, ACTION_CANCEL);
         gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         cancelButton.setLayoutData(gridData);

@@ -139,6 +139,8 @@ Composite {
     background-color: transparent;
 }
 
+
+
 Composite.bordered {
     border: 2px;
 }
@@ -194,6 +196,13 @@ Composite.login {
     padding: 15px 8px 8px 8px;
     border: 1px solid #bdbdbd;
     border-radius: 2px;
+}
+
+Composite.register {
+    background-color: #EAECEE;
+    margin: 20px 0 0 0;
+    padding: 15px 8px 8px 8px;
+    border: none;
 }
 
 Composite.login-back {

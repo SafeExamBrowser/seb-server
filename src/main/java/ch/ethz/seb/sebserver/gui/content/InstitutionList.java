@@ -113,14 +113,12 @@ public class InstitutionList implements TemplateComposer {
                                 Institution::getUrlSuffix)
                                         .sortable()
                                         .withFilter(this.urlSuffixFilter))
-                        .withColumn(new ColumnDefinition<Institution>(
+                        .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
-                                entity -> this.pageService
-                                        .getResourceService()
-                                        .localizedActivityResource().apply(entity.active))
-                                                .sortable()
-                                                .withFilter(this.activityFilter))
+                                this.pageService.getResourceService().<Institution> localizedActivityFunction())
+                                        .sortable()
+                                        .withFilter(this.activityFilter))
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
@@ -152,16 +150,7 @@ public class InstitutionList implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false)
-
-// Removed as discussed in SEBSERV-52
-//                .newAction(ActionDefinition.INSTITUTION_USER_ACCOUNT_NEW)
-//                .withSelect(
-//                        table::getSelection,
-//                        PageAction::applySingleSelectionAsParentEntityKey,
-//                        EMPTY_SELECTION_TEXT_KEY)
-//                .publishIf(() -> table.hasAnyContent() && userGrant.w())
-        ;
+                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false);
     }
 
     private final Consumer<Set<Institution>> getSelectionPublisher(final PageContext pageContext) {

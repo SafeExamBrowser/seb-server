@@ -67,6 +67,9 @@ public class ActivitiesPane implements TemplateComposer {
         final UserInfo userInfo = this.currentUser
                 .getOrHandleError(t -> this.pageService.logoutOnError(t, pageContext));
 
+        final boolean isSupporterOnly = userInfo.hasRole(UserRole.EXAM_SUPPORTER) &&
+                !userInfo.hasAnyRole(UserRole.EXAM_ADMIN, UserRole.INSTITUTIONAL_ADMIN, UserRole.SEB_SERVER_ADMIN);
+
         if (this.pageService.getI18nSupport().hasText(TITLE_KEY)) {
             final Label activities = this.widgetFactory.labelLocalized(
                     pageContext.getParent(),
@@ -185,7 +188,7 @@ public class ActivitiesPane implements TemplateComposer {
                 PrivilegeType.READ,
                 EntityType.CONFIGURATION_NODE);
 
-        if (clientConfigRead || examConfigRead) {
+        if ((clientConfigRead || examConfigRead) && !isSupporterOnly) {
             final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.SEB_CONFIGURATION.displayName);
@@ -236,8 +239,9 @@ public class ActivitiesPane implements TemplateComposer {
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
 
         final boolean lmsRead = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.LMS_SETUP);
-        final boolean examRead = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
+        final boolean examRead = userInfo.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
                 this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM);
+        final boolean examWrite = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.EXAM);
 
         // Exam Administration
         final TreeItem examadmin = this.widgetFactory.treeItemLocalized(
@@ -246,7 +250,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         if (examRead || lmsRead) {
             // LMS Setup
-            if (lmsRead) {
+            if (lmsRead && !isSupporterOnly) {
                 final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
                         examadmin,
                         ActivityDefinition.LMS_SETUP.displayName);
@@ -257,18 +261,19 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            // Exam (Quiz Discovery)
             if (examRead) {
 
-                // Quiz Discovery
-                final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
-                        examadmin,
-                        ActivityDefinition.QUIZ_DISCOVERY.displayName);
-                injectActivitySelection(
-                        quizDiscovery,
-                        actionBuilder
-                                .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
-                                .create());
+                if (examWrite) {
+                    // Quiz Discovery
+                    final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
+                            examadmin,
+                            ActivityDefinition.QUIZ_DISCOVERY.displayName);
+                    injectActivitySelection(
+                            quizDiscovery,
+                            actionBuilder
+                                    .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                                    .create());
+                }
 
                 // Exam
                 final TreeItem exam = this.widgetFactory.treeItemLocalized(

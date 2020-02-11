@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 /** All activity types */
 public enum UserLogActivityType {
+    REGISTER,
     CREATE,
     IMPORT,
     EXPORT,

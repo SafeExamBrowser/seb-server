@@ -43,7 +43,7 @@ public final class UserMod implements UserAccount {
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
-    @NotNull
+    @NotNull(message = "user:institutionId:notNull")
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 

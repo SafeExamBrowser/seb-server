@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -26,52 +27,58 @@ public interface UserActivityLogDAO extends
     /** Create a user activity log entry for the current user of activity type CREATE
      *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logCreate(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logCreate(E entity);
+
+    /** Create a user activity log entry for a user registration event
+     *
+     * @param account the UserAccount
+     * @return Result of the UserAccount or referring to an Error if happened */
+    Result<UserAccount> logRegisterAccount(UserAccount account);
 
     /** Creates a user activity log entry for SEB Exam Configuration save in history action
-     * 
+     *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logSaveToHistory(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logSaveToHistory(E entity);
 
-    /** Creates a user activity log entry for SEB Exam Configuration undoy action
-     * 
+    /** Creates a user activity log entry for SEB Exam Configuration undo action
+     *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logUndo(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logUndo(E entity);
 
     /** Create a user activity log entry for the current user of activity type IMPORT
      *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logImport(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logImport(E entity);
 
     /** Create a user activity log entry for the current user of activity type EXPORT
      *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logExport(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logExport(E entity);
 
     /** Create a user activity log entry for the current user of activity type MODIFY
      *
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
-    public <E extends Entity> Result<E> logModify(E entity);
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logModify(E entity);
 
     /** Creates a user activity log entry for the current user.
      *
      * @param activityType the activity type
      * @param entity the Entity
      * @param message an optional message
-     * @return Result of the Entity or referring to an Error id happened */
+     * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> log(UserLogActivityType activityType, E entity, String message);
 
     /** Creates a user activity log entry for the current user.
      *
      * @param actionType the action type
      * @param entity the Entity
-     * @return Result of the Entity or referring to an Error id happened */
+     * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> log(UserLogActivityType activityType, E entity);
 
     /** Creates a user activity log entry for the current user.
@@ -86,7 +93,7 @@ public interface UserActivityLogDAO extends
      * @param activityType the activity type
      * @param entityType the EntityType
      * @param message the message
-     * @return Result of the Entity or referring to an Error id happened */
+     * @return Result of the Entity or referring to an Error if happened */
     <T> Result<T> log(UserLogActivityType activityType, EntityType entityType, String entityId, String message, T data);
 
     /** Creates a user activity log entry.
@@ -95,7 +102,7 @@ public interface UserActivityLogDAO extends
      * @param activityType the activity type
      * @param entity the Entity
      * @param message an optional message
-     * @return Result of the Entity or referring to an Error id happened */
+     * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> log(
             SEBServerUser user,
             UserLogActivityType activityType,
@@ -108,7 +115,7 @@ public interface UserActivityLogDAO extends
      * @param activityType the activity type
      * @param entityType the entity type
      * @param entityId the entity id (primary key or UUID)
-     * @return Result of the Entity or referring to an Error id happened */
+     * @return Result of the Entity or referring to an Error if happened */
     default <E extends Entity> Result<E> log(
             final SEBServerUser user,
             final UserLogActivityType activityType,

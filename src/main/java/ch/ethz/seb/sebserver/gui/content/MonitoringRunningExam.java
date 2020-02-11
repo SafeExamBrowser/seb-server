@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -64,6 +67,8 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
+    private static final LocTextKey EMPTY_ACTIVE_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.emptySelection.active");
     private static final LocTextKey CONFIRM_QUIT_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected.confirm");
     private static final LocTextKey CONFIRM_QUIT_ALL =
@@ -178,9 +183,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_SELECTED)
                 .withSelect(
-                        clientTable::getSelection,
+                        () -> this.selectionForQuitInstruction(clientTable),
                         action -> this.quitSebClients(action, clientTable, false),
-                        EMPTY_SELECTION_TEXT_KEY)
+                        EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(privilege)
 
@@ -287,6 +292,17 @@ public class MonitoringRunningExam implements TemplateComposer {
             clientTable.removeSelection();
             return action;
         };
+    }
+
+    private Set<EntityKey> selectionForQuitInstruction(final ClientConnectionTable clientTable) {
+        final Set<String> connectionTokens = clientTable.getConnectionTokens(
+                ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE),
+                true);
+        if (connectionTokens == null || connectionTokens.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return clientTable.getSelection();
     }
 
     private PageAction quitSebClients(

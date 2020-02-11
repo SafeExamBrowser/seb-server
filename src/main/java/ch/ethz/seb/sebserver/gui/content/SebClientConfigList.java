@@ -145,7 +145,7 @@ public class SebClientConfigList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE,
                                 ACTIVE_TEXT_KEY,
-                                SebClientConfig::getActive)
+                                this.pageService.getResourceService().<SebClientConfig> localizedActivityFunction())
                                         .withFilter(this.activityFilter)
                                         .sortable())
                         .withDefaultAction(pageActionBuilder

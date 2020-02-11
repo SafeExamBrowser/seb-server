@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -85,6 +86,24 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional
     public <E extends Entity> Result<E> logCreate(final E entity) {
         return log(UserLogActivityType.CREATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public Result<UserAccount> logRegisterAccount(final UserAccount account) {
+        return Result.tryCatch(() -> {
+
+            this.userLogRecordMapper.insertSelective(new UserActivityLogRecord(
+                    null,
+                    account.getModelId(),
+                    System.currentTimeMillis(),
+                    UserLogActivityType.REGISTER.name(),
+                    EntityType.USER.name(),
+                    account.getModelId(),
+                    toMessage(account)));
+
+            return account;
+        });
     }
 
     @Override

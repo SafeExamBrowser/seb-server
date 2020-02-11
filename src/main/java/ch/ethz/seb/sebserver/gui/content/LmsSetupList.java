@@ -141,7 +141,7 @@ public class LmsSetupList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_ACTIVE,
                                 ACTIVITY_TEXT_KEY,
-                                LmsSetup::getActive)
+                                this.pageService.getResourceService().<LmsSetup> localizedActivityFunction())
                                         .withFilter(this.activityFilter)
                                         .sortable())
                         .withDefaultAction(actionBuilder

@@ -425,7 +425,7 @@ public class ExamForm implements TemplateComposer {
                                     this.resourceService::localizedExamConfigStatusName)
                                             .widthProportion(1))
                             .withDefaultActionIf(
-                                    () -> editable,
+                                    () -> modifyGrant,
                                     this::viewExamConfigPageAction)
 
                             .compose(pageContext.copyOf(content));
@@ -447,7 +447,7 @@ public class ExamForm implements TemplateComposer {
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                     .withParentEntityKey(entityKey)
                     .withEntityKey(configMapKey)
-                    .publishIf(() -> modifyGrant && editable && configurationTable.hasAnyContent())
+                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent())
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
@@ -514,7 +514,7 @@ public class ExamForm implements TemplateComposer {
                                             .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
-                                    () -> editable,
+                                    () -> modifyGrant,
                                     () -> actionBuilder
                                             .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                                             .withParentEntityKey(entityKey)
@@ -526,7 +526,7 @@ public class ExamForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                     .withParentEntityKey(entityKey)
-                    .publishIf(() -> modifyGrant && editable)
+                    .publishIf(() -> modifyGrant)
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
@@ -534,7 +534,7 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable)
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
@@ -542,7 +542,7 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent() && editable);
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
         }
     }
 

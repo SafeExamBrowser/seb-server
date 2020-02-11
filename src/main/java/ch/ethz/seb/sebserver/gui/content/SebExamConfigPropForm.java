@@ -216,13 +216,13 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW)
+                .withEntityKey(entityKey)
+                .publishIf(() -> isReadonly)
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly && !settingsReadonly)
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW)
-                .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && isReadonly && settingsReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
                 .withEntityKey(entityKey)
@@ -286,7 +286,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
-        if (isAttachedToExam) {
+        if (isAttachedToExam && isReadonly) {
 
             widgetFactory.labelSeparator(content);
             widgetFactory.labelLocalized(

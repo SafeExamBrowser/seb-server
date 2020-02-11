@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -412,6 +413,11 @@ public class ResourceService {
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+    }
+
+    public <T extends Activatable> Function<T, String> localizedActivityFunction() {
+        final Function<Boolean, String> localizedActivityResource = localizedActivityResource();
+        return activatable -> localizedActivityResource.apply(activatable.isActive());
     }
 
     public Function<Boolean, String> localizedActivityResource() {
