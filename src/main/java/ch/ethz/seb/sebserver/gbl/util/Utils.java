@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -145,7 +146,7 @@ public final class Utils {
 
     /** Use this to create an immutable Set of specified type from varargs
      *
-     * @param values elements of the new immutable Set
+     * @param items elements of the new immutable Set
      * @return an immutable Set of specified type with given elements */
     @SafeVarargs
     public static <T> Set<T> immutableSetOf(final T... items) {
@@ -168,11 +169,9 @@ public final class Utils {
     }
 
     public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
-        return Collections.unmodifiableCollection(Arrays.asList(
-                enumClass.getEnumConstants())
-                .stream()
+        return Arrays.stream(enumClass.getEnumConstants())
                 .map(e -> new Tuple<>(e.name(), e.name()))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toUnmodifiableList());
     }
 
     public static Collection<String> getListOfLines(final String list) {
@@ -226,9 +225,9 @@ public final class Utils {
     }
 
     public static Result<Long> dateTimeStringToTimestamp(final String startTime) {
-        return Result.tryCatch(() -> {
-            return DateTime.parse(startTime, Constants.STANDARD_DATE_TIME_FORMATTER).getMillis();
-        });
+        return Result.tryCatch(() -> DateTime
+                .parse(startTime, Constants.STANDARD_DATE_TIME_FORMATTER)
+                .getMillis());
     }
 
     public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {
@@ -263,7 +262,7 @@ public final class Utils {
     public static DateTime toDateTimeUTC(final String dateString) {
         final DateTime dateTime = toDateTime(dateString);
         if (dateTime == null) {
-            return dateTime;
+            return null;
         }
 
         return dateTime.withZone(DateTimeZone.UTC);
@@ -282,7 +281,7 @@ public final class Utils {
     }
 
     public static DateTime toDateTimeUTCUnix(final Long timestamp) {
-        if (timestamp == null || timestamp.longValue() <= 0) {
+        if (timestamp == null || timestamp <= 0) {
             return null;
         } else {
             return toDateTimeUTCUnix(timestamp.longValue());
@@ -298,7 +297,7 @@ public final class Utils {
             return null;
         }
 
-        return toDateTime(dateString).getMillis();
+        return Objects.requireNonNull(toDateTime(dateString)).getMillis();
     }
 
     public static Long toTimestampUTC(final String dateString) {
@@ -306,7 +305,7 @@ public final class Utils {
             return null;
         }
 
-        return toDateTimeUTC(dateString).getMillis();
+        return Objects.requireNonNull(toDateTimeUTC(dateString)).getMillis();
     }
 
     public static String toJsonArray(final String string) {
@@ -322,7 +321,7 @@ public final class Utils {
         }
     }
 
-    public static final String formatHTMLLines(final String message) {
+    public static String formatHTMLLines(final String message) {
         return (message != null)
                 ? message.replace("\n", "<br/>")
                 : null;
@@ -336,7 +335,7 @@ public final class Utils {
         return text.replace("</br>", "\n");
     }
 
-    public static final String encodeFormURL_UTF_8(final String value) {
+    public static String encodeFormURL_UTF_8(final String value) {
         if (StringUtils.isBlank(value)) {
             return value;
         }
@@ -349,7 +348,7 @@ public final class Utils {
         }
     }
 
-    public static final String decodeFormURL_UTF_8(final String value) {
+    public static String decodeFormURL_UTF_8(final String value) {
         if (StringUtils.isBlank(value)) {
             return value;
         }
@@ -453,9 +452,7 @@ public final class Utils {
             return null;
         }
 
-        final StringBuilder builder = new StringBuilder();
-        builder.append(charSequence);
-        return builder.toString();
+        return String.valueOf(charSequence);
     }
 
     public static String escapeHTML_XML_EcmaScript(final String string) {
@@ -493,7 +490,7 @@ public final class Utils {
         return DateTime.now(DateTimeZone.UTC).getMillis();
     }
 
-    public static final RGB toRGB(final String rgbString) {
+    public static RGB toRGB(final String rgbString) {
         if (StringUtils.isNotBlank(rgbString)) {
             return new RGB(
                     Integer.parseInt(rgbString.substring(0, 2), 16),
@@ -504,7 +501,7 @@ public final class Utils {
         }
     }
 
-    public static final MultiValueMap<String, String> createJsonContentHeader() {
+    public static MultiValueMap<String, String> createJsonContentHeader() {
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.set(
                 HttpHeaders.CONTENT_TYPE,
@@ -512,7 +509,7 @@ public final class Utils {
         return headers;
     }
 
-    public static final String getErrorCauseMessage(final Exception e) {
+    public static String getErrorCauseMessage(final Exception e) {
         if (e == null || e.getCause() == null) {
             return Constants.EMPTY_NOTE;
         }
@@ -569,7 +566,7 @@ public final class Utils {
                                 .append(entry.getValue())
                                 .append(Constants.DOUBLE_QUOTE)
                                 .append(Constants.COMMA),
-                        (sb1, sb2) -> sb1.append(sb2));
+                        StringBuilder::append);
 
         if (builder.length() > 0) {
             return builder
@@ -600,11 +597,11 @@ public final class Utils {
                             }
                             return sb.append(toAppFormUrlEncodedBody(name, values));
                         },
-                        (sb1, sb2) -> sb1.append(sb2))
+                        StringBuilder::append)
                 .toString();
     }
 
-    public static final String toAppFormUrlEncodedBody(final String name, final Collection<String> array) {
+    public static String toAppFormUrlEncodedBody(final String name, final Collection<String> array) {
         final String _name = name.contains(String.valueOf(Constants.SQUARE_BRACE_OPEN))
                 ? name
                 : name + Constants.SQUARE_BRACE_OPEN + Constants.SQUARE_BRACE_CLOSE;
@@ -619,7 +616,7 @@ public final class Utils {
                             }
                             return sb.append(_name).append(Constants.EQUALITY_SIGN).append(entry);
                         },
-                        (sb1, sb2) -> sb1.append(sb2))
+                        StringBuilder::append)
                 .toString();
     }
 
