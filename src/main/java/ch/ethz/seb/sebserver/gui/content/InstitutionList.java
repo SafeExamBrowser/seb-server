@@ -8,28 +8,23 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Set;
-import java.util.function.Consumer;
-
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionPage;
@@ -83,7 +78,7 @@ public class InstitutionList implements TemplateComposer {
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Institution.FILTER_ATTR_ACTIVE,
-                Constants.TRUE_STRING,
+                StringUtils.EMPTY,
                 this.pageService.getResourceService()::activityResources);
     }
 
@@ -122,7 +117,14 @@ public class InstitutionList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                                 .create())
-                        .withSelectionListener(getSelectionPublisher(pageContext))
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY,
+                                ActionDefinition.INSTITUTION_ACTIVATE,
+                                ActionDefinition.INSTITUTION_DEACTIVATE,
+                                pageContext,
+                                ActionDefinition.INSTITUTION_VIEW_FROM_LIST,
+                                ActionDefinition.INSTITUTION_MODIFY_FROM_LIST,
+                                ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY))
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
@@ -151,30 +153,6 @@ public class InstitutionList implements TemplateComposer {
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> instGrant.m() && table.hasAnyContent(), false);
-    }
-
-    private final Consumer<Set<Institution>> getSelectionPublisher(final PageContext pageContext) {
-        return rows -> {
-            this.pageService.firePageEvent(new ActionActivationEvent(
-                    false,
-                    ActionDefinition.INSTITUTION_VIEW_FROM_LIST,
-                    ActionDefinition.INSTITUTION_MODIFY_FROM_LIST,
-                    ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY),
-                    pageContext);
-            if (!rows.isEmpty()) {
-                this.pageService.firePageEvent(new ActionActivationEvent(
-                        true,
-                        new Tuple<>(
-                                ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY,
-                                rows.iterator().next().active
-                                        ? ActionDefinition.INSTITUTION_DEACTIVATE
-                                        : ActionDefinition.INSTITUTION_ACTIVATE),
-                        ActionDefinition.INSTITUTION_VIEW_FROM_LIST,
-                        ActionDefinition.INSTITUTION_MODIFY_FROM_LIST,
-                        ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY),
-                        pageContext);
-            }
-        };
     }
 
 }

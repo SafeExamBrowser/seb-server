@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.form.FieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
@@ -91,7 +92,8 @@ public class TextFieldBuilder implements InputFieldBuilder {
                 attribute,
                 i18nSupport);
         if (toolTipKey != null) {
-            final Consumer<Text> updateFunction = t -> t.setToolTipText(i18nSupport.getText(toolTipKey));
+            final Consumer<Text> updateFunction =
+                    t -> t.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(toolTipKey)));
             text.setData(
                     PolyglotPageService.POLYGLOT_ITEM_TOOLTIP_DATA_KEY,
                     updateFunction);

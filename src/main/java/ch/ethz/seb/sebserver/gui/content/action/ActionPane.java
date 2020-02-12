@@ -131,6 +131,7 @@ public class ActionPane implements TemplateComposer {
                                 actionItem.setForeground(null);
                             } else {
                                 actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
+                                ActionPane.this.pageService.getPolyglotPageService().injectI18n(actionItem, ad.title);
                             }
                         }
 

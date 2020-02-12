@@ -40,7 +40,6 @@ public class ComposerServiceImpl implements ComposerService {
 
     private static final Logger log = LoggerFactory.getLogger(ComposerServiceImpl.class);
 
-    // TODO configurable
     private final Class<? extends PageDefinition> loginPageType = DefaultLoginPage.class;
     private final Class<? extends PageDefinition> mainPageType = DefaultMainPage.class;
 

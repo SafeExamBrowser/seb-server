@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public final class MultiSelectionCheckbox extends Composite implements Selection {
@@ -83,7 +84,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                 .forEach(tuple -> {
                     final Button button = this.checkboxes.get(tuple._1);
                     if (button != null) {
-                        button.setToolTipText(tuple._2);
+                        button.setToolTipText(Utils.formatLineBreaks(tuple._2));
                     }
                 });
     }

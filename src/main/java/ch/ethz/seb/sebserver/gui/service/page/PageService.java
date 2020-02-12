@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -41,6 +42,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
@@ -147,6 +149,63 @@ public interface PageService {
                     .filter(e -> e.isActive()) // NOTE: Activatable::isActive leads to an error here!?
                     .collect(Collectors.toSet()))
                             .get();
+        };
+    }
+
+    /** Use this to get an table selection action publisher that processes the action
+     * activation on table selection.
+     *
+     * @param pageContext the current PageContext
+     * @param actionDefinitions list of action definitions that activity should be toggled on table selection
+     * @return the selection publisher that handles this defines action activation on table selection */
+    default <T extends Entity> Consumer<Set<T>> getSelectionPublisher(
+            final PageContext pageContext,
+            final ActionDefinition... actionDefinitions) {
+
+        return rows -> {
+            firePageEvent(
+                    new ActionActivationEvent(!rows.isEmpty(), actionDefinitions),
+                    pageContext);
+        };
+    }
+
+    /** Use this to get an table selection action publisher that processes the action
+     * activation on table selection.
+     * </p>
+     * This additional has the ability to define a entity activity action that is toggles in
+     * case of the selected entity
+     *
+     * @param toggle the base entity activity action definition
+     * @param activate the entity activation action definition
+     * @param deactivate the entity deactivation action definition
+     * @param pageContext the current PageContext
+     * @param actionDefinitions list of action definitions that activity should be toggled on table selection
+     * @return the selection publisher that handles this defines action activation on table selection */
+    default <T extends Activatable> Consumer<Set<T>> getSelectionPublisher(
+            final ActionDefinition toggle,
+            final ActionDefinition activate,
+            final ActionDefinition deactivate,
+            final PageContext pageContext,
+            final ActionDefinition... actionDefinitions) {
+
+        return rows -> {
+
+            if (!rows.isEmpty()) {
+                firePageEvent(
+                        new ActionActivationEvent(
+                                true,
+                                new Tuple<>(
+                                        toggle,
+                                        rows.iterator().next().isActive()
+                                                ? deactivate
+                                                : activate),
+                                actionDefinitions),
+                        pageContext);
+            } else {
+                firePageEvent(
+                        new ActionActivationEvent(false, actionDefinitions),
+                        pageContext);
+            }
         };
     }
 

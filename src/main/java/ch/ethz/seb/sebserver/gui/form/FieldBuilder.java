@@ -24,6 +24,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public abstract class FieldBuilder<T> {
 
+    public static final LocTextKey MANDATORY_TEXT_KEY = new LocTextKey("sebserver.form.mandatory");
+    public static final String TOOLTIP_KEY_SUFFIX_LABEL = ".tooltip";
     public static final String TOOLTIP_KEY_SUFFIX_LEFT = ".tooltip.left";
     public static final String TOOLTIP_KEY_SUFFIX_RIGHT = ".tooltip.right";
 
@@ -36,9 +38,11 @@ public abstract class FieldBuilder<T> {
     boolean readonly = false;
     boolean visible = true;
     String defaultLabel = null;
+    boolean isMandatory = false;
 
     final String name;
     final LocTextKey label;
+    final LocTextKey tooltipLabel;
     final LocTextKey tooltipKeyLeft;
     final LocTextKey tooltipKeyRight;
     final T value;
@@ -47,6 +51,7 @@ public abstract class FieldBuilder<T> {
         this.name = name;
         this.label = label;
         this.value = value;
+        this.tooltipLabel = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LABEL) : null;
         this.tooltipKeyLeft = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LEFT) : null;
         this.tooltipKeyRight = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_RIGHT) : null;
     }
@@ -58,6 +63,16 @@ public abstract class FieldBuilder<T> {
 
     public FieldBuilder<T> withLabelSpan(final int span) {
         this.spanLabel = span;
+        return this;
+    }
+
+    public FieldBuilder<T> mandatory() {
+        this.isMandatory = true;
+        return this;
+    }
+
+    public FieldBuilder<T> mandatory(final boolean mandatory) {
+        this.isMandatory = mandatory;
         return this;
     }
 
@@ -108,7 +123,7 @@ public abstract class FieldBuilder<T> {
         }
 
         final Composite infoGrid = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout(3, false);
+        final GridLayout gridLayout = new GridLayout(4, false);
         gridLayout.verticalSpacing = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
@@ -128,13 +143,25 @@ public abstract class FieldBuilder<T> {
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
+        final boolean hasLabelTooltip = (fieldBuilder.tooltipLabel != null &&
+                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipLabel, "")));
+
         final Label label = labelLocalized(
                 builder.widgetFactory,
                 infoGrid,
                 fieldBuilder.label,
                 fieldBuilder.defaultLabel,
+                (hasLabelTooltip) ? fieldBuilder.tooltipLabel : null,
                 1,
                 fieldBuilder.titleValign);
+
+        if (fieldBuilder.isMandatory) {
+            final Label mandatory = builder.widgetFactory.imageButton(
+                    WidgetFactory.ImageIcon.MANDATORY,
+                    infoGrid,
+                    MANDATORY_TEXT_KEY);
+            mandatory.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        }
 
         if (fieldBuilder.tooltipKeyRight != null &&
                 StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
@@ -156,7 +183,7 @@ public abstract class FieldBuilder<T> {
             final String defaultText,
             final int hspan) {
 
-        return labelLocalized(widgetFactory, parent, locTextKey, defaultText, hspan, SWT.CENTER);
+        return labelLocalized(widgetFactory, parent, locTextKey, defaultText, null, hspan, SWT.CENTER);
     }
 
     public static final Label labelLocalized(
@@ -164,13 +191,18 @@ public abstract class FieldBuilder<T> {
             final Composite parent,
             final LocTextKey locTextKey,
             final String defaultText,
+            final LocTextKey tooltipTextKey,
             final int hspan,
             final int verticalAlignment) {
 
+        final LocTextKey labelKey = StringUtils.isNotBlank(defaultText)
+                ? new LocTextKey(defaultText)
+                : locTextKey;
+
         final Label label = widgetFactory.labelLocalized(
                 parent,
-                locTextKey,
-                (StringUtils.isNotBlank(defaultText) ? defaultText : locTextKey.name));
+                labelKey,
+                tooltipTextKey);
         final GridData gridData = new GridData(SWT.LEFT, verticalAlignment, false, false, hspan, 1);
         gridData.heightHint = FormBuilder.FORM_ROW_HEIGHT;
         label.setLayoutData(gridData);

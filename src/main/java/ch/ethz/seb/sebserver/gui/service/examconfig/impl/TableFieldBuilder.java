@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -41,8 +42,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 @GuiProfile
 public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
-    private static final String ADD_TOOLTIP_SUFFIX = ".add.tooltip";
-    private static final String REMOVE_TOOLTIP_SUFFIX = ".remove.tooltip";
+    private static final String TOOLTIP_SUFFIX = ".tooltip";
+    private static final String ADD_TOOLTIP_SUFFIX = ".add" + TOOLTIP_SUFFIX;
+    private static final String REMOVE_TOOLTIP_SUFFIX = ".remove" + TOOLTIP_SUFFIX;
 
     protected TableFieldBuilder(
             final RestService restService,
@@ -79,7 +81,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                             columnAttribute.name),
                     new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             columnAttribute.name +
-                            ".tootltip"));
+                            TOOLTIP_SUFFIX));
             column.setWidth(100);
             column.setResizable(false);
             column.setMoveable(false);
@@ -88,15 +90,14 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
         final TableInputField tableField = new TableInputField(
                 tableContext,
                 table);
-
         if (!viewContext.readonly) {
             TableColumn column = new TableColumn(table, SWT.NONE);
             column.setImage(ImageIcon.ADD_BOX_WHITE.getImage(parent.getDisplay()));
-            column.setToolTipText(viewContext.i18nSupport.getText(
+            column.setToolTipText(Utils.formatLineBreaks(viewContext.i18nSupport.getText(
                     ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             attribute.name +
                             ADD_TOOLTIP_SUFFIX,
-                    "Add new"));
+                    "Add new")));
             column.setWidth(20);
             column.setResizable(false);
             column.setMoveable(false);
@@ -107,11 +108,11 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
             column = new TableColumn(table, SWT.NONE);
             column.setImage(ImageIcon.REMOVE_BOX_WHITE.getImage(parent.getDisplay()));
-            column.setToolTipText(viewContext.i18nSupport.getText(
+            column.setToolTipText(Utils.formatLineBreaks(viewContext.i18nSupport.getText(
                     ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             attribute.name +
                             REMOVE_TOOLTIP_SUFFIX,
-                    "Remove Selected"));
+                    "Remove Selected")));
             column.setWidth(20);
             column.setResizable(false);
             column.setMoveable(false);

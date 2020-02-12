@@ -54,7 +54,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
     INSTITUTION_SAVE_AND_ACTIVATE(
-            new LocTextKey("sebserver.institution.action.activate"),
+            new LocTextKey("sebserver.form.action.save.activate"),
             ImageIcon.ACTIVE,
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
@@ -70,7 +70,7 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     INSTITUTION_TOGGLE_ACTIVITY(
             new LocTextKey("sebserver.overall.action.toggle-activity"),
-            ImageIcon.TOGGLE_OFF,
+            ImageIcon.SWITCH,
             PageStateDefinitionImpl.INSTITUTION_LIST,
             ActionCategory.INSTITUTION_LIST),
 

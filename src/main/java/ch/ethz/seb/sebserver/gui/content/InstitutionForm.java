@@ -109,7 +109,8 @@ public class InstitutionForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        institution.name))
+                        institution.name)
+                        .mandatory(!isReadonly))
                 .addField(FormBuilder.text(
                         Domain.INSTITUTION.ATTR_URL_SUFFIX,
                         FORM_URL_SUFFIX_TEXT_KEY,

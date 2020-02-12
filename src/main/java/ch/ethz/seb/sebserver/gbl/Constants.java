@@ -48,8 +48,8 @@ public final class Constants {
     public static final Character PERCENTAGE = '%';
     public static final Character SLASH = '/';
     public static final Character BACKSLASH = '\\';
-    public static final Character QUOTE = '"';
-    public static final Character DOUBLE_QUOTE = '\'';
+    public static final Character QUOTE = '\'';
+    public static final Character DOUBLE_QUOTE = '"';
     public static final Character COMMA = ',';
     public static final Character PIPE = '|';
     public static final Character AMPERSAND = '&';

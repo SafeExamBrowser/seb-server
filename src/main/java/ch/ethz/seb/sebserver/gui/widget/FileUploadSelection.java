@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
@@ -82,7 +83,7 @@ public class FileUploadSelection extends Composite {
             this.fileUpload = new FileUpload(this, SWT.NONE);
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
             this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-            this.fileUpload.setToolTipText(this.i18nSupport.getText(PLEASE_SELECT_TEXT));
+            this.fileUpload.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(PLEASE_SELECT_TEXT)));
             this.inputReceiver = new InputReceiver();
             this.uploadHandler = new FileUploadHandler(this.inputReceiver);
 
@@ -148,7 +149,7 @@ public class FileUploadSelection extends Composite {
             this.fileName.setText(this.i18nSupport.getText(PLEASE_SELECT_TEXT));
         }
         if (!this.readonly) {
-            this.fileUpload.setToolTipText(this.i18nSupport.getText(PLEASE_SELECT_TEXT));
+            this.fileUpload.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(PLEASE_SELECT_TEXT)));
         }
     }
 

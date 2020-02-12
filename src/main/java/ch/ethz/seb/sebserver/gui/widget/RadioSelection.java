@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public final class RadioSelection extends Composite implements Selection {
@@ -80,7 +81,7 @@ public final class RadioSelection extends Composite implements Selection {
                 .forEach(tuple -> {
                     final Button button = this.radioButtons.get(tuple._1);
                     if (button != null) {
-                        button.setToolTipText(tuple._2);
+                        button.setToolTipText(Utils.formatLineBreaks(tuple._2));
                     }
                 });
     }

@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -116,7 +117,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                 b.setText(this.i18nSupport.getText(locTextKey));
             }
             if (locToolTipKey != null) {
-                b.setToolTipText(this.i18nSupport.getText(locToolTipKey));
+                b.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locToolTipKey)));
             }
         };
         button.setData(POLYGLOT_WIDGET_FUNCTION_KEY, buttonFunction);
@@ -160,7 +161,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
         if (this.i18nSupport.hasText(locTooltipKey)) {
             tableColumn.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
-            tableColumn.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+            tableColumn.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
         }
     }
 
@@ -183,7 +184,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
         if (this.i18nSupport.hasText(locTooltipKey)) {
             tabItem.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
-            tabItem.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+            tabItem.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
         }
     }
 
@@ -215,7 +216,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                 label.setText(i18nSupport.getText(locTextKey));
             }
             if (locToolTipKey != null) {
-                label.setToolTipText(i18nSupport.getText(locToolTipKey));
+                label.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey)));
             }
         };
     }
@@ -230,7 +231,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                 group.setText(i18nSupport.getText(locTextKey));
             }
             if (locToolTipKey != null) {
-                group.setToolTipText(i18nSupport.getText(locToolTipKey, StringUtils.EMPTY));
+                group.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey, StringUtils.EMPTY)));
             }
         };
     }

@@ -577,6 +577,8 @@ FileUpload:pressed {
     border: none;
     border-radius: 0px;
     text-shadow: none;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
 }
 
 
@@ -778,15 +780,15 @@ TabItem:selected:hover:first {
 
 
 Widget-ToolTip {
-    padding: 10px 5px 10px 5px;
-    background-color: #82be1e;
+    padding: 10px 10px 10px 10px;
+    background-color: #D3D9DB;
     border: 1px solid #3C5A0F;
-    border-radius: 2px 2px 2px 2px;
+    border-radius: 1px 1px 1px 1px;
     color: #4a4a4a;
     opacity: 1;
     animation: fadeIn 200ms linear, fadeOut 600ms ease-out;
     box-shadow: 3px 4px 2px rgba(0, 0, 0, 0.3);
-    text-align: center;
+    text-align: left;
 }
 
 Widget-ToolTip-Pointer {

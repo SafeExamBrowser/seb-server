@@ -19,6 +19,8 @@ import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 
 public final class ColumnDefinition<ROW extends Entity> {
 
+    private static final String TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
+
     final String columnName;
     final LocTextKey displayName;
     final Function<ROW, ?> valueSupplier;
@@ -55,7 +57,7 @@ public final class ColumnDefinition<ROW extends Entity> {
 
         this.columnName = columnName;
         this.displayName = displayName;
-        this.tooltip = tooltip;
+        this.tooltip = (tooltip != null) ? tooltip : new LocTextKey(displayName.name + TOOLTIP_TEXT_KEY_SUFFIX);
         this.widthProportion = widthProportion;
         this.valueSupplier = valueSupplier;
         this.filterAttribute = filterAttribute;

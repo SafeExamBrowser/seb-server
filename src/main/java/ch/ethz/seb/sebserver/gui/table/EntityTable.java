@@ -64,6 +64,8 @@ public class EntityTable<ROW extends Entity> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
+    private static final LocTextKey DEFAULT_SORT_COLUMN_TOOLTIP_KEY =
+            new LocTextKey("sebserver.table.column.sort.default.tooltip");
     private static final String COLUMN_DEFINITION = "COLUMN_DEFINITION";
     private static final String TABLE_ROW_DATA = "TABLE_ROW_DATA";
     private static final int HEADER_HEIGHT = 40;
@@ -425,11 +427,23 @@ public class EntityTable<ROW extends Entity> {
     }
 
     private void createTableColumns() {
+        final String sortText = this.i18nSupport.getText(DEFAULT_SORT_COLUMN_TOOLTIP_KEY, "");
+
         for (final ColumnDefinition<ROW> column : this.columns) {
+
+            final LocTextKey _tooltip = column.getTooltip();
+            final LocTextKey tooltip = (_tooltip != null && this.i18nSupport.hasText(_tooltip))
+                    ? (column.isSortable())
+                            ? new LocTextKey(_tooltip.name, sortText)
+                            : new LocTextKey(_tooltip.name, "")
+                    : (column.isSortable())
+                            ? DEFAULT_SORT_COLUMN_TOOLTIP_KEY
+                            : null;
+
             final TableColumn tableColumn = this.widgetFactory.tableColumnLocalized(
                     this.table,
                     column.displayName,
-                    column.getTooltip());
+                    tooltip);
 
             tableColumn.addListener(SWT.Resize, this::adaptColumnWidthChange);
             tableColumn.setData(COLUMN_DEFINITION, column);

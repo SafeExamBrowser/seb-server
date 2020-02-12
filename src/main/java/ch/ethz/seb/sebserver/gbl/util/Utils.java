@@ -328,6 +328,14 @@ public final class Utils {
                 : null;
     }
 
+    public static String formatLineBreaks(final String text) {
+        if (text == null) {
+            return null;
+        }
+
+        return text.replace("</br>", "\n");
+    }
+
     public static final String encodeFormURL_UTF_8(final String value) {
         if (StringUtils.isBlank(value)) {
             return value;

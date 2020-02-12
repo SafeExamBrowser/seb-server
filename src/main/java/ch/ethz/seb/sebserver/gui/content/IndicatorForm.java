@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -107,7 +108,7 @@ public class IndicatorForm implements TemplateComposer {
 
         final boolean typeSet = indicator.type != null;
         final String typeDescription = (typeSet)
-                ? this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + indicator.type.name)
+                ? Utils.formatLineBreaks(this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + indicator.type.name))
                 : Constants.EMPTY_NOTE;
 
         // new PageContext with actual EntityKey

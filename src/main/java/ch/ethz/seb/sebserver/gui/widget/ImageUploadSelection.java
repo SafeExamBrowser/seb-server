@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
@@ -77,6 +78,7 @@ public final class ImageUploadSelection extends Composite {
         gridLayout.horizontalSpacing = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
+        gridLayout.marginLeft = 0;
         gridLayout.verticalSpacing = 0;
         super.setLayout(gridLayout);
 
@@ -87,7 +89,9 @@ public final class ImageUploadSelection extends Composite {
         if (!readonly) {
             this.fileUpload = new FileUpload(this, SWT.NONE);
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
-            this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+            final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+            gridData.horizontalIndent = 0;
+            this.fileUpload.setLayoutData(gridData);
 
             final FileUploadHandler uploadHandler = new FileUploadHandler(new ImageReceiver());
             this.fileUpload.addListener(SWT.Selection, event -> {
@@ -128,7 +132,7 @@ public final class ImageUploadSelection extends Composite {
 
     public void setSelectionText(final String text) {
         if (this.fileUpload != null) {
-            this.fileUpload.setToolTipText(text);
+            this.fileUpload.setToolTipText(Utils.formatLineBreaks(text));
         }
     }
 

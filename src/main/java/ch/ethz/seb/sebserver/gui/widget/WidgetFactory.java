@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -74,6 +75,7 @@ public class WidgetFactory {
     public enum ImageIcon {
         MAXIMIZE("maximize.png"),
         MINIMIZE("minimize.png"),
+        MANDATORY("mandatory.png"),
         ADD("add.png"),
         REMOVE("remove.png"),
         ADD_BOX("add_box.png"),
@@ -324,16 +326,6 @@ public class WidgetFactory {
     public Label labelLocalized(final Composite parent, final String locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(label, new LocTextKey(locTextKey));
-        return label;
-    }
-
-    public Label labelLocalized(final Composite parent, final LocTextKey locTextKey, final String defaultText) {
-        final Label label = new Label(parent, SWT.NONE);
-        if (this.i18nSupport.hasText(locTextKey)) {
-            this.polyglotPageService.injectI18n(label, locTextKey);
-        } else {
-            label.setText(defaultText);
-        }
         return label;
     }
 
@@ -637,7 +629,7 @@ public class WidgetFactory {
                 try {
                     ss.applyNewMapping(itemsSupplier.get());
                     if (toolTipTextKey != null) {
-                        ss.setToolTipText(this.i18nSupport.getText(toolTipTextKey));
+                        ss.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(toolTipTextKey)));
                     }
                     if (itemsToolTipSupplier != null) {
                         ss.applyToolTipsForItems(itemsToolTipSupplier.get());
