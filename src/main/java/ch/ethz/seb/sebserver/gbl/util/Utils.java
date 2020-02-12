@@ -169,9 +169,9 @@ public final class Utils {
     }
 
     public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
-        return Arrays.stream(enumClass.getEnumConstants())
+        return Collections.unmodifiableList(Arrays.stream(enumClass.getEnumConstants())
                 .map(e -> new Tuple<>(e.name(), e.name()))
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toList()));
     }
 
     public static Collection<String> getListOfLines(final String list) {
