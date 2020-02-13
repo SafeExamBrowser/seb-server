@@ -109,6 +109,11 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
+    USER_ACCOUNT_SAVE_AND_ACTIVATE(
+            new LocTextKey("sebserver.form.action.save.activate"),
+            ImageIcon.ACTIVE,
+            PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
+            ActionCategory.FORM),
     USER_ACCOUNT_ACTIVATE(
             new LocTextKey("sebserver.useraccount.action.activate"),
             ImageIcon.TOGGLE_OFF,
@@ -119,12 +124,18 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
-    USER_ACCOUNT_CHANGE_PASSOWRD(
+    USER_ACCOUNT_TOGGLE_ACTIVITY(
+            new LocTextKey("sebserver.overall.action.toggle-activity"),
+            ImageIcon.SWITCH,
+            PageStateDefinitionImpl.USER_ACCOUNT_LIST,
+            ActionCategory.USER_ACCOUNT_LIST),
+
+    USER_ACCOUNT_CHANGE_PASSWORD(
             new LocTextKey("sebserver.useraccount.action.change.password"),
             ImageIcon.SECURE,
             PageStateDefinitionImpl.USER_ACCOUNT_PASSWORD_CHANGE,
             ActionCategory.FORM),
-    USER_ACCOUNT_CHANGE_PASSOWRD_SAVE(
+    USER_ACCOUNT_CHANGE_PASSWORD_SAVE(
             new LocTextKey("sebserver.useraccount.action.change.password.save"),
             ImageIcon.SAVE,
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
@@ -353,6 +364,11 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_SAVE_AND_ACTIVATE(
+            new LocTextKey("sebserver.form.action.save.activate"),
+            ImageIcon.ACTIVE,
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
     SEB_CLIENT_CONFIG_ACTIVATE(
             new LocTextKey("sebserver.clientconfig.action.activate"),
             ImageIcon.TOGGLE_OFF,
@@ -363,6 +379,11 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY(
+            new LocTextKey("sebserver.overall.action.toggle-activity"),
+            ImageIcon.SWITCH,
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST,
+            ActionCategory.SEB_CLIENT_CONFIG_LIST),
     SEB_CLIENT_CONFIG_EXPORT(
             new LocTextKey("sebserver.clientconfig.action.export"),
             ImageIcon.EXPORT,
@@ -407,11 +428,7 @@ public enum ActionDefinition {
             ImageIcon.EDIT_SETTINGS,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_VIEW(
-            new LocTextKey("sebserver.examconfig.action.view"),
-            ImageIcon.EDIT_SETTINGS,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
-            ActionCategory.FORM),
+
     SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
             ImageIcon.CANCEL,
@@ -422,6 +439,7 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
             ActionCategory.FORM),
+
     SEB_EXAM_CONFIG_EXPORT_PLAIN_XML(
             new LocTextKey("sebserver.examconfig.action.export.plainxml"),
             ImageIcon.EXPORT,
@@ -641,15 +659,15 @@ public enum ActionDefinition {
     public final PageStateDefinition targetState;
     public final ActionCategory category;
 
-    private ActionDefinition(final LocTextKey title, final PageStateDefinition targetState) {
+    ActionDefinition(final LocTextKey title, final PageStateDefinition targetState) {
         this(title, null, targetState, ActionCategory.VARIA);
     }
 
-    private ActionDefinition(final LocTextKey title, final ImageIcon icon, final PageStateDefinition targetState) {
+    ActionDefinition(final LocTextKey title, final ImageIcon icon, final PageStateDefinition targetState) {
         this(title, icon, targetState, ActionCategory.VARIA);
     }
 
-    private ActionDefinition(
+    ActionDefinition(
             final LocTextKey title,
             final ImageIcon icon,
             final ActionCategory category) {
@@ -657,7 +675,7 @@ public enum ActionDefinition {
         this(title, icon, null, category);
     }
 
-    private ActionDefinition(
+    ActionDefinition(
             final LocTextKey title,
             final ImageIcon icon,
             final PageStateDefinition targetState,

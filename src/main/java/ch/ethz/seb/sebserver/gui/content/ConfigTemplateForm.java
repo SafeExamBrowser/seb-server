@@ -64,6 +64,8 @@ public class ConfigTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.form.description");
     private static final LocTextKey ATTRIBUTES_LIST_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attrs.list.title");
+    private static final LocTextKey ATTRIBUTES_LIST_TITLE_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.attrs.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private static final LocTextKey ATTRIBUTES_LIST_NAME_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attrs.list.name");
     private static final LocTextKey ATTRIBUTES_LIST_VIEW_TEXT_KEY =
@@ -158,7 +160,8 @@ public class ConfigTemplateForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        examConfig.name))
+                        examConfig.name)
+                    .mandatory(!isReadonly))
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
@@ -174,10 +177,13 @@ public class ConfigTemplateForm implements TemplateComposer {
 
         if (isReadonly) {
 
-            widgetFactory.label(content, "");
-            widgetFactory.labelLocalizedTitle(
+            widgetFactory.label(content, StringUtils.EMPTY);
+            widgetFactory.labelLocalized(
                     content,
-                    ATTRIBUTES_LIST_TITLE_TEXT_KEY);
+                    WidgetFactory.CustomVariant.TEXT_H3,
+                    ATTRIBUTES_LIST_TITLE_TEXT_KEY,
+                    ATTRIBUTES_LIST_TITLE_TOOLTIP_TEXT_KEY);
+            widgetFactory.labelSeparator(content);
 
             final TableFilterAttribute viewFilter = new TableFilterAttribute(
                     CriteriaType.SINGLE_SELECTION,
@@ -186,7 +192,7 @@ public class ConfigTemplateForm implements TemplateComposer {
             final TableFilterAttribute typeFilter = new TableFilterAttribute(
                     CriteriaType.SINGLE_SELECTION,
                     TemplateAttribute.FILTER_ATTR_TYPE,
-                    () -> this.resourceService.getAttributeTypeResources());
+                    this.resourceService::getAttributeTypeResources);
 
             final EntityTable<TemplateAttribute> attrTable =
                     this.pageService.entityTableBuilder(
@@ -228,6 +234,14 @@ public class ConfigTemplateForm implements TemplateComposer {
                                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
                                     .withParentEntityKey(entityKey)
                                     .create())
+
+                            .withSelectionListener(this.pageService.getSelectionPublisher(
+                                    pageContext,
+                                    ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT,
+                                    ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT,
+                                    ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW,
+                                    ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_ATTACH_DEFAULT_VIEW))
+
                             .compose(pageContext.copyOf(content));
 
             pageActionBuilder
@@ -238,7 +252,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             attrTable::getSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
-                    .publishIf(() -> attrTable.hasAnyContent())
+                    .publishIf(attrTable::hasAnyContent, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT)
                     .withParentEntityKey(entityKey)
@@ -247,7 +261,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.resetToDefaults(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent())
+                    .publishIf(attrTable::hasAnyContent, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW)
                     .withParentEntityKey(entityKey)
@@ -256,7 +270,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.removeFormView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent())
+                    .publishIf(attrTable::hasAnyContent, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_ATTACH_DEFAULT_VIEW)
                     .withParentEntityKey(entityKey)
@@ -265,7 +279,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.attachView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent());
+                    .publishIf(attrTable::hasAnyContent, false);
         }
 
         pageActionBuilder
@@ -315,7 +329,7 @@ public class ConfigTemplateForm implements TemplateComposer {
         }
     }
 
-    private final PageAction resetToDefaults(
+    private PageAction resetToDefaults(
             final PageAction action,
             final EntityTable<TemplateAttribute> attrTable) {
 
@@ -325,7 +339,7 @@ public class ConfigTemplateForm implements TemplateComposer {
         return resetToDefaults;
     }
 
-    private final PageAction removeFormView(
+    private PageAction removeFormView(
             final PageAction action,
             final EntityTable<TemplateAttribute> attrTable) {
 
@@ -335,7 +349,7 @@ public class ConfigTemplateForm implements TemplateComposer {
         return removeFormView;
     }
 
-    private final PageAction attachView(
+    private PageAction attachView(
             final PageAction action,
             final EntityTable<TemplateAttribute> attrTable) {
 

@@ -8,15 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.swt.widgets.Composite;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -45,6 +36,14 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import org.apache.commons.lang3.BooleanUtils;
+import org.eclipse.swt.widgets.Composite;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 @Lazy
 @Component
@@ -190,6 +189,16 @@ public class UserAccountList implements TemplateComposer {
                 .withDefaultAction(actionBuilder
                         .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                         .create())
+
+                .withSelectionListener(this.pageService.getSelectionPublisher(
+                        ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY,
+                        ActionDefinition.USER_ACCOUNT_ACTIVATE,
+                        ActionDefinition.USER_ACCOUNT_DEACTIVATE,
+                        pageContext,
+                        ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST,
+                        ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST,
+                        ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY))
+
                 .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
@@ -201,11 +210,16 @@ public class UserAccountList implements TemplateComposer {
 
                 .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent())
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, this::editAction, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent());
+                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false)
+
+                .newAction(ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY)
+                .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
+                .withConfirm(this.pageService.confirmDeactivation(table))
+                .publishIf(() -> userGrant.m() && table.hasAnyContent(), false);
     }
 
     private PageAction editAction(final PageAction pageAction) {

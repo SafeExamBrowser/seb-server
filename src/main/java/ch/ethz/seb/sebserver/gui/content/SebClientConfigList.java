@@ -151,6 +151,16 @@ public class SebClientConfigList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                                 .create())
+
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                ActionDefinition.SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY,
+                                ActionDefinition.SEB_CLIENT_CONFIG_ACTIVATE,
+                                ActionDefinition.SEB_CLIENT_CONFIG_DEACTIVATE,
+                                pageContext,
+                                ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST,
+                                ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST,
+                                ActionDefinition.SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY))
+
                         .compose(pageContext.copyOf(content));
 
         final GrantCheck clientConfigGrant = this.currentUser.grantCheck(EntityType.SEB_CLIENT_CONFIGURATION);
@@ -162,13 +172,20 @@ public class SebClientConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent())
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent());
+                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false)
+
+                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY)
+                .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
+                .withConfirm(this.pageService.confirmDeactivation(table))
+                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false);
+
+
 
     }
 

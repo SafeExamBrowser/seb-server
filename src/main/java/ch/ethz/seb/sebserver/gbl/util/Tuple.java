@@ -30,6 +30,15 @@ public class Tuple<T> {
         return this._2;
     }
 
+    @SuppressWarnings("unchecked")
+    public <TT extends Tuple<T>> TT adaptTo(Class<TT> type) {
+        if (type.equals(this.getClass())) {
+            return (TT) this;
+        }
+
+        return null;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

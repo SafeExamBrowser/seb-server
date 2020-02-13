@@ -116,7 +116,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             if (locTextKey != null) {
                 b.setText(this.i18nSupport.getText(locTextKey));
             }
-            if (locToolTipKey != null) {
+            if (i18nSupport.hasText(locToolTipKey)) {
                 b.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locToolTipKey)));
             }
         };
@@ -200,13 +200,11 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                                     .equals(locale.getLanguage())));
             languageSelection.setData(RWT.CUSTOM_VARIANT, "header");
             languageSelection.setText("|  " + locale.getLanguage().toUpperCase(locale));
-            languageSelection.addListener(SWT.MouseDown, event -> {
-                this.setPageLocale(composerCtx.getRoot(), locale);
-            });
+            languageSelection.addListener(SWT.MouseDown, event -> this.setPageLocale(composerCtx.getRoot(), locale));
         }
     }
 
-    private static final Consumer<Label> labelFunction(
+    private static Consumer<Label> labelFunction(
             final LocTextKey locTextKey,
             final LocTextKey locToolTipKey,
             final I18nSupport i18nSupport) {
@@ -215,13 +213,13 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             if (locTextKey != null) {
                 label.setText(i18nSupport.getText(locTextKey));
             }
-            if (locToolTipKey != null) {
+            if (i18nSupport.hasText(locToolTipKey)) {
                 label.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey)));
             }
         };
     }
 
-    private static final Consumer<Group> groupFunction(
+    private static Consumer<Group> groupFunction(
             final LocTextKey locTextKey,
             final LocTextKey locToolTipKey,
             final I18nSupport i18nSupport) {
@@ -230,13 +228,13 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             if (locTextKey != null) {
                 group.setText(i18nSupport.getText(locTextKey));
             }
-            if (locToolTipKey != null) {
+            if (i18nSupport.hasText(locToolTipKey)) {
                 group.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey, StringUtils.EMPTY)));
             }
         };
     }
 
-    private static final void updateLocale(final TabItem[] items, final I18nSupport i18nSupport) {
+    private static void updateLocale(final TabItem[] items, final I18nSupport i18nSupport) {
         if (items == null) {
             return;
         }
@@ -249,7 +247,7 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
         }
     }
 
-    private static final void updateLocale(final TreeItem[] items, final I18nSupport i18nSupport) {
+    private static void updateLocale(final TreeItem[] items, final I18nSupport i18nSupport) {
         if (items == null) {
             return;
         }

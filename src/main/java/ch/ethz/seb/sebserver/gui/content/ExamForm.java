@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.tomcat.util.buf.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
@@ -394,7 +394,7 @@ public class ExamForm implements TemplateComposer {
         if (readonly && !importFromQuizData) {
 
             // List of SEB Configuration
-            this.widgetFactory.label(content, "");
+            this.widgetFactory.label(content, StringUtils.EMPTY);
             this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,

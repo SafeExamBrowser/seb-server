@@ -75,11 +75,10 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
             ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
     SEB_EXAM_CONFIG_TEMPLATE_EDIT(Type.FORM_EDIT, ConfigTemplateForm.class,
             ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
-
     SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT(
             Type.FORM_EDIT,
             ConfigTemplateAttributeForm.class,
-            ActivityDefinition.SEB_EXAM_CONFIG),
+            ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),
 
     MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
     MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS),

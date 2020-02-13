@@ -25,6 +25,7 @@ public final class Constants {
 
     public static final String DEFAULT_LANG_CODE = "en";
     public static final String DEFAULT_TIME_ZONE_CODE = "UTC";
+    public static final String TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
 
     public static final int SEB_FILE_HEADER_SIZE = 4;
     public static final int JN_CRYPTOR_ITERATIONS = 10000;

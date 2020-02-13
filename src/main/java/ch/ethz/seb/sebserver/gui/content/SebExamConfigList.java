@@ -144,6 +144,12 @@ public class SebExamConfigList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())
+
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST,
+                                ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST))
+
                         .compose(pageContext.copyOf(content));
 
         final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
@@ -155,20 +161,18 @@ public class SebExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                 .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> configTable.hasAnyContent())
+                .publishIf(configTable::hasAnyContent, false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent())
+                .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                 .withExec(SebExamConfigImportPopup.importFunction(this.pageService, true))
                 .noEventPropagation()
-                .publishIf(() -> examConfigGrant.im())
-
-        ;
+                .publishIf(examConfigGrant::im);
     }
 
 }

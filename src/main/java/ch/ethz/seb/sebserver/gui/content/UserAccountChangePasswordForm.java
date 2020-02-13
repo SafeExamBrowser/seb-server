@@ -44,7 +44,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * If the current user is the owner of the User-Account the password is required and must
  * match the users current password.
  * If the current user is an administrator that has to reset another users password the
- * password that is also required must match the administrators current password. */
+ * password that is also required must match the administrators current password.
+ **/
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
     private static final String FORM_TITLE_KEY = "sebserver.useraccount.form.pwchange.title";
@@ -99,22 +100,25 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_PASSWORD,
                         FORM_PASSWORD_TEXT_KEY)
-                        .asPasswordField())
+                        .asPasswordField()
+                        .mandatory())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
                         FORM_PASSWORD_NEW_TEXT_KEY)
-                        .asPasswordField())
+                        .asPasswordField()
+                        .mandatory())
                 .addFieldIf(
                         () -> entityKey != null,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                                 FORM_PASSWORD_NEW_CONFIRM_TEXT_KEY)
-                                .asPasswordField())
+                                .asPasswordField()
+                                .mandatory())
                 .buildFor(this.restService.getRestCall(ChangePassword.class));
 
         this.pageService.pageActionBuilder(pageContext)
 
-                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD_SAVE)
+                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSWORD_SAVE)
                 .withExec(action -> {
                     final PageAction saveAction = formHandle.processFormSave(action);
                     if (ownAccount) {

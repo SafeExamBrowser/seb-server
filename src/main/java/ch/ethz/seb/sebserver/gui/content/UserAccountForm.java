@@ -116,7 +116,7 @@ public class UserAccountForm implements TemplateComposer {
         final UserAccount userAccount = isNew.getAsBoolean()
                 ? UserMod.createNew((parentEntityKey != null)
                         ? Long.valueOf(parentEntityKey.modelId)
-                        : user.institutionId)
+                        : currentUser.get().institutionId)
                 : restService
                         .getBuilder(GetUserAccount.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -136,11 +136,12 @@ public class UserAccountForm implements TemplateComposer {
                 PrivilegeType.WRITE,
                 EntityType.USER);
 
-        final boolean institutionActive = restService.getBuilder(GetInstitution.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
-                .call()
-                .map(inst -> inst.active)
-                .getOr(false);
+        final boolean institutionActive = userAccount.getInstitutionId() != null &&
+                restService.getBuilder(GetInstitution.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userAccount.getInstitutionId()))
+                        .call()
+                        .map(inst -> inst.active)
+                        .getOr(false);
 
         // the default page layout with title
         final LocTextKey titleKey = isNotNew.getAsBoolean()
@@ -170,8 +171,9 @@ public class UserAccountForm implements TemplateComposer {
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 FORM_INSTITUTION_TEXT_KEY,
                                 String.valueOf(userAccount.getInstitutionId()),
-                                () -> this.resourceService.institutionResource())
-                                .readonlyIf(isNotNew))
+                                this.resourceService::institutionResource)
+                                .readonlyIf(isNotNew)
+                                .mandatory(!readonly))
                 .addFieldIf(
                         () -> readonly,
                         () -> FormBuilder.text(
@@ -182,15 +184,18 @@ public class UserAccountForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        userAccount.getName()))
+                        userAccount.getName())
+                        .mandatory(!readonly))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_SURNAME,
                         FORM_SURNAME_TEXT_KEY,
-                        userAccount.getSurname()))
+                        userAccount.getSurname())
+                        .mandatory(!readonly))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_USERNAME,
                         FORM_USERNAME_TEXT_KEY,
-                        userAccount.getUsername()))
+                        userAccount.getUsername())
+                        .mandatory(!readonly))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_EMAIL,
                         FORM_MAIL_TEXT_KEY,
@@ -206,7 +211,8 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_TIMEZONE,
                         FORM_TIMEZONE_TEXT_KEY,
                         userAccount.getTimeZone().getID(),
-                        this.resourceService::timeZoneResources))
+                        this.resourceService::timeZoneResources)
+                        .mandatory(!readonly))
                 .addFieldIf(
                         () -> modifyGrant,
                         () -> FormBuilder.multiCheckboxSelection(
@@ -214,19 +220,22 @@ public class UserAccountForm implements TemplateComposer {
                                 FORM_ROLES_TEXT_KEY,
                                 StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
                                 this.resourceService::userRoleResources)
-                                .visibleIf(writeGrant))
+                                .visibleIf(writeGrant)
+                                .mandatory(!readonly))
                 .addFieldIf(
                         isNew,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_NEW_PASSWORD,
                                 FORM_PASSWORD_TEXT_KEY)
-                                .asPasswordField())
+                                .asPasswordField()
+                                .mandatory(!readonly))
                 .addFieldIf(
                         isNew,
                         () -> FormBuilder.text(
                                 PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                                 FORM_PASSWORD_CONFIRM_TEXT_KEY)
-                                .asPasswordField())
+                                .asPasswordField()
+                                .mandatory(!readonly))
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewUserAccount.class)
                         : restService.getRestCall(SaveUserAccount.class));
@@ -241,7 +250,7 @@ public class UserAccountForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
-                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSOWRD)
+                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSWORD)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive && userAccount.isActive())
 
@@ -258,22 +267,25 @@ public class UserAccountForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)
-                .withExec(action -> {
-                    return formHandle.handleFormPost(formHandle.doAPIPost()
-                            .map(userInfo -> {
-                                if (ownAccount) {
-                                    currentUser.refresh(userInfo);
-                                }
-                                return userInfo;
-                            }),
-                            action);
-                })
+                .withExec(action -> formHandle.handleFormPost(formHandle.doAPIPost()
+                        .map(userInfo -> {
+                            if (ownAccount) {
+                                currentUser.refresh(userInfo);
+                            }
+                            return userInfo;
+                        }),
+                        action))
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.USER_ACCOUNT_SAVE_AND_ACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(formHandle::saveAndActivate)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> !readonly && !ownAccount && !userAccount.isActive())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly);
     }
-
 }

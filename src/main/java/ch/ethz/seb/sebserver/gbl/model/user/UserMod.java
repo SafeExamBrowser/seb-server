@@ -49,11 +49,12 @@ public final class UserMod implements UserAccount {
 
     /** first (or full) name of the user */
     @NotNull(message = "user:name:notNull")
-    @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
+    @Size(max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** surname of the user */
+    @NotNull(message = "user:surname:notNull")
     @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_SURNAME)
     public final String surname;

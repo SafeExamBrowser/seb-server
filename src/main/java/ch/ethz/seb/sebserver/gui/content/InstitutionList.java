@@ -140,7 +140,7 @@ public class InstitutionList implements TemplateComposer {
                         table::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent(), false)
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(

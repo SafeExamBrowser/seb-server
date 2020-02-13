@@ -197,6 +197,9 @@ public class UserActivityLogs implements TemplateComposer {
                         .noEventPropagation()
                         .create())
 
+                .withSelectionListener(this.pageService.getSelectionPublisher(
+                        pageContext,
+                        ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS))
                 .compose(pageContext.copyOf(content));
 
         actionBuilder
@@ -206,11 +209,11 @@ public class UserActivityLogs implements TemplateComposer {
                         action -> this.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent);
+                .publishIf(table::hasAnyContent, false);
 
     }
 
-    private final String getLogTime(final UserActivityLog log) {
+    private String getLogTime(final UserActivityLog log) {
         if (log == null || log.timestamp == null) {
             return Constants.EMPTY_NOTE;
         }

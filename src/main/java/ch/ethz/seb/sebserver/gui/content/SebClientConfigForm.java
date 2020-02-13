@@ -196,6 +196,12 @@ public class SebClientConfigForm implements TemplateComposer {
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
+                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_SAVE_AND_ACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(formHandle::saveAndActivate)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> !isReadonly && !clientConfig.isActive())
+
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())

@@ -59,7 +59,7 @@ public final class UserInfo implements UserAccount, Serializable {
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
-    @NotNull
+    @NotNull(message = "user:institutionId:notNull")
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
@@ -68,11 +68,12 @@ public final class UserInfo implements UserAccount, Serializable {
 
     /** First name of the user */
     @NotNull(message = "user:name:notNull")
-    @Size(min = 3, max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
+    @Size(max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** Surname of the user */
+    @NotNull(message = "user:surname:notNull")
     @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_SURNAME)
     public final String surname;
@@ -215,7 +216,7 @@ public final class UserInfo implements UserAccount, Serializable {
     public EnumSet<UserRole> getUserRoles() {
         return EnumSet.copyOf(
                 getRoles().stream()
-                        .map(r -> UserRole.valueOf(r))
+                        .map(UserRole::valueOf)
                         .collect(Collectors.toList()));
     }
 
@@ -300,7 +301,7 @@ public final class UserInfo implements UserAccount, Serializable {
      *
      * @param userInfo UserInfo instance to copy
      * @return copied UserInfo instance */
-    public static final UserInfo of(final UserInfo userInfo) {
+    public static UserInfo of(final UserInfo userInfo) {
         return new UserInfo(
                 userInfo.getUuid(),
                 userInfo.getInstitutionId(),
@@ -326,7 +327,7 @@ public final class UserInfo implements UserAccount, Serializable {
      * @param timeZone new timeZone or null if the timeZone of given userInfo should be taken
      * @param roles new timeZone or null if the roles of given userInfo should be taken
      * @return copied UserInfo instance with the given attributes */
-    public static final UserInfo of(
+    public static UserInfo of(
             final UserInfo userInfo,
             final String name,
             final String username,
@@ -350,11 +351,11 @@ public final class UserInfo implements UserAccount, Serializable {
                 (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles);
     }
 
-    public static final UserInfo withEMail(final UserInfo userInfo, final String email) {
+    public static UserInfo withEMail(final UserInfo userInfo, final String email) {
         return of(userInfo, null, null, null, email, null, null, (String[]) null);
     }
 
-    public static final UserInfo withRoles(final UserInfo userInfo, final String... roles) {
+    public static UserInfo withRoles(final UserInfo userInfo, final String... roles) {
         return of(userInfo, null, null, null, null, null, null, roles);
     }
 }

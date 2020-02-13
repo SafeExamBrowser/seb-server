@@ -8,8 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Arrays;
+import java.util.Collections;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -68,6 +69,8 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.attr.form.group");
     private static final LocTextKey FORM_VALUE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attr.form.value");
+    private static final LocTextKey FORM_VALUE_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.attr.form.value" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
     private final PageService pageService;
     private final RestService restService;
@@ -164,11 +167,12 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             valSpace.setLayout(new GridLayout());
             valSpace.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
+            widgetFactory.label(content, StringUtils.EMPTY);
             widgetFactory.labelLocalized(
                     valSpace,
-                    CustomVariant.TEXT_H2,
-                    FORM_VALUE_TEXT_KEY);
-
+                    CustomVariant.TEXT_H3,
+                    FORM_VALUE_TEXT_KEY,
+                    FORM_VALUE_TOOLTIP_TEXT_KEY);
             widgetFactory.labelSeparator(valSpace);
 
             final Composite grid = new Composite(valSpace, SWT.NONE);
@@ -201,7 +205,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
 
             this.examConfigurationService.initInputFieldValues(
                     configuration.id,
-                    Arrays.asList(viewContext));
+                    Collections.singletonList(viewContext));
 
             this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 

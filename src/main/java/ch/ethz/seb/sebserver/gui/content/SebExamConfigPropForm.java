@@ -9,14 +9,17 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -94,7 +97,9 @@ public class SebExamConfigPropForm implements TemplateComposer {
     static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-config.confirm");
     static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.form.attched-to");
+            new LocTextKey("sebserver.examconfig.form.attached-to");
+    static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.attached-to" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
@@ -186,7 +191,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        examConfig.name))
+                        examConfig.name)
+                        .mandatory(!isReadonly))
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
@@ -198,7 +204,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
                         () -> resourceService.examConfigStatusResources(isAttachedToExam))
-                        .withEmptyCellSeparation((isReadonly) ? false : true))
+                        .withEmptyCellSeparation(!isReadonly))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
@@ -214,15 +220,13 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW)
-                .withEntityKey(entityKey)
-                .publishIf(() -> isReadonly)
+                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && isReadonly && !settingsReadonly)
+                .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
+                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
                 .withEntityKey(entityKey)
@@ -288,11 +292,13 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         if (isAttachedToExam && isReadonly) {
 
-            widgetFactory.labelSeparator(content);
+            widgetFactory.label(content, StringUtils.EMPTY);
             widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
-                    FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY);
+                    FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY,
+                    FORM_ATTACHED_EXAMS_TITLE_TOOLTIP_TEXT_KEY);
+            widgetFactory.labelSeparator(content);
 
             final EntityTable<ExamConfigurationMap> table =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
@@ -314,12 +320,16 @@ public class SebExamConfigPropForm implements TemplateComposer {
                                             this.pageService.getI18nSupport().getUsersTimeZoneTitleSuffix()),
                                     ExamConfigurationMap::getExamStartTime))
 
-                            .withColumn(new ColumnDefinition<ExamConfigurationMap>(
+                            .withColumn(new ColumnDefinition<>(
                                     Domain.EXAM.ATTR_TYPE,
                                     ExamList.COLUMN_TITLE_TYPE_KEY,
                                     resourceService::localizedExamTypeName))
 
                             .withDefaultAction(this::showExamAction)
+
+                            .withSelectionListener(this.pageService.getSelectionPublisher(
+                                    pageContext,
+                                    ActionDefinition.EXAM_VIEW_FROM_LIST))
 
                             .compose(pageContext.copyOf(content));
 
@@ -331,7 +341,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         return pageAction.withEntityKey(
                                 new EntityKey(selectedExamMapping.examId, EntityType.EXAM));
                     })
-                    .publishIf(table::hasAnyContent);
+                    .publishIf(table::hasAnyContent, false);
         }
     }
 
@@ -340,7 +350,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelectionSupplier(() -> {
                     final ExamConfigurationMap selectedROWData = getSelectedExamMapping(table);
-                    return new HashSet<>(Arrays.asList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
+                    return new HashSet<>(Collections.singletonList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
                 })
                 .withExec(PageAction::applySingleSelectionAsEntityKey)
                 .create();

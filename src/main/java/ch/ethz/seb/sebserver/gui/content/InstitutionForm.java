@@ -131,11 +131,6 @@ public class InstitutionForm implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_NEW)
                 .publishIf(() -> writeGrant && isReadonly)
 
-// Removed as discussed in SEBSERV-52
-//                .newAction(ActionDefinition.USER_ACCOUNT_NEW)
-//                .withParentEntityKey(entityKey)
-//                .publishIf(() -> userWriteGrant && isReadonly && institution.isActive())
-
                 .newAction(ActionDefinition.INSTITUTION_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)

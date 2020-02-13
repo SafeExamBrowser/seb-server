@@ -43,7 +43,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class ConfigTemplateList implements TemplateComposer {
 
-    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
             new LocTextKey("sebserver.examconfig.list.action.no.modify.privilege");
     private static final LocTextKey TITLE_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.list.title");
@@ -131,6 +131,12 @@ public class ConfigTemplateList implements TemplateComposer {
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
                                 .create())
+
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST,
+                                ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST))
+
                         .compose(pageContext.copyOf(content));
 
         final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
@@ -142,14 +148,12 @@ public class ConfigTemplateList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
                 .withSelect(templateTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
-                .publishIf(() -> templateTable.hasAnyContent())
+                .publishIf(templateTable::hasAnyContent, false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST)
                 .withSelect(
-                        templateTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        templateTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && templateTable.hasAnyContent());
-
+                .publishIf(() -> examConfigGrant.im() && templateTable.hasAnyContent(), false);
     }
-
 }

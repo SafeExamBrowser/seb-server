@@ -20,6 +20,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Tuple3;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,6 +82,7 @@ public class ResourceService {
     private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING";
 
     public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = (t1, t2) -> t1._2.compareTo(t2._2);
+    public static final Comparator<Tuple3<String>> RESOURCE_COMPARATOR_TUPLE_3 = (t1, t2) -> t1._2.compareTo(t2._2);
 
     public static final EnumSet<EntityType> ENTITY_TYPE_EXCLUDE_MAP = EnumSet.of(
             EntityType.ADDITIONAL_ATTRIBUTES,
@@ -101,7 +104,6 @@ public class ResourceService {
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
-    public static final String LMSSETUP_PROXY_AUTH_TYPE_PREFIX = "sebserver.lmssetup.form.proxy.auth-type.";
     public static final String CONFIG_ATTRIBUTE_TYPE_PREFIX = "sebserver.configtemplate.attr.type.";
     public static final String SEB_RESTRICTION_WHITE_LIST_PREFIX = "sebserver.exam.form.sebrestriction.whiteListPaths.";
     public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
@@ -200,10 +202,13 @@ public class ResourceService {
     public List<Tuple<String>> indicatorTypeResources() {
         return Arrays.asList(IndicatorType.values())
                 .stream()
-                .map(type -> new Tuple<>(
+                .map(type -> new Tuple3<>(
                         type.name(),
-                        this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name())))
-                .sorted(RESOURCE_COMPARATOR)
+                        this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                EXAM_INDICATOR_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR_TUPLE_3)
                 .collect(Collectors.toList());
     }
 
@@ -219,9 +224,12 @@ public class ResourceService {
     public List<Tuple<String>> userRoleResources() {
         return UserRole.publicRolesForUser(this.currentUser.get())
                 .stream()
-                .map(ur -> new Tuple<>(
+                .map(ur -> new Tuple3<>(
                         ur.name(),
-                        this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name())))
+                        this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                USERACCOUNT_ROLE_PREFIX + ur.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -332,7 +340,6 @@ public class ResourceService {
     /** Get a list of language key/name tuples for all supported languages in the
      * language of the current users locale.
      *
-     * @param i18nSupport I18nSupport to get the actual current users locale
      * @return list of language key/name tuples for all supported languages in the language of the current users
      *         locale */
     public List<Tuple<String>> languageResources() {
@@ -359,9 +366,13 @@ public class ResourceService {
         return Arrays.asList(ExamType.values())
                 .stream()
                 .filter(type -> type != ExamType.UNDEFINED)
-                .map(type -> new Tuple<>(
+                .map(type -> new Tuple3<>(
                         type.name(),
-                        this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name())))
+                        this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name()) + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))
+                        ))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -380,9 +391,13 @@ public class ResourceService {
                         return status != ConfigurationStatus.IN_USE;
                     }
                 })
-                .map(type -> new Tuple<>(
+                .map(type -> new Tuple3<>(
                         type.name(),
-                        this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())))
+                        this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()) + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))
+                        ))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

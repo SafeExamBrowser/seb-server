@@ -176,6 +176,11 @@ public interface I18nSupport {
      * @return the text in current language parsed from localized text */
     String getText(String key, Locale locale, String def, Object... args);
 
+    /** Indicates if there is a localized text defined for a specified LocTextKey
+     *
+     * @param locTextKey the LocTextKey instance
+     * @return true if there is a localized text defined for a specified LocTextKey, false otherwise
+     */
     boolean hasText(LocTextKey locTextKey);
 
 }
