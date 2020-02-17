@@ -43,9 +43,10 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
-    private static final String MOOLDE_QUIZ_START_URL_PATH = "/mod/quiz/view.php?id=";
+    private static final String MOODLE_QUIZ_START_URL_PATH = "/mod/quiz/view.php?id=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
+    private static final String MOODLE_COURSE_API_COURSE_IDS = "courseids";
 
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
@@ -96,20 +97,18 @@ public class MoodleCourseAccess extends CourseAccess {
 
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier() {
-        return () -> {
-            return getRestTemplate()
-                    .map(this::collectAllQuizzes)
-                    .getOrThrow();
-        };
+        return () -> getRestTemplate()
+                .map(this::collectAllQuizzes)
+                .getOrThrow();
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
-        final String urlPrefix = this.lmsSetup.lmsApiUrl + MOOLDE_QUIZ_START_URL_PATH;
+        final String urlPrefix = this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH;
         return collectAllCourses(
                 restTemplate)
                         .stream()
                         .reduce(
-                                new ArrayList<QuizData>(),
+                                new ArrayList<>(),
                                 (list, courseData) -> {
                                     list.addAll(quizDataOf(
                                             this.lmsSetup,
@@ -138,7 +137,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
             // then get all quizzes of courses and filter
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.put("courseids", new ArrayList<>(courseData.keySet()));
+            attributes.put(MOODLE_COURSE_API_COURSE_IDS, new ArrayList<>(courseData.keySet()));
 
             final String quizzesJSON = restTemplate.callMoodleAPIFunction(
                     MOODLE_QUIZ_API_FUNCTION_NAME,
@@ -149,7 +148,6 @@ public class MoodleCourseAccess extends CourseAccess {
                     CourseQuizData.class);
 
             courseQuizData.quizzes
-                    .stream()
                     .forEach(quiz -> {
                         final CourseData course = courseData.get(quiz.course);
                         if (course != null) {
@@ -166,24 +164,24 @@ public class MoodleCourseAccess extends CourseAccess {
         }
     }
 
+    static Map<String, String> additionalAttrs = new HashMap<>();
     private static List<QuizData> quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
             final String uriPrefix) {
 
-        final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.clear();
-        additionalAttrs.put("timecreated", String.valueOf(courseData.timecreated));
-        additionalAttrs.put("course_shortname", courseData.shortname);
-        additionalAttrs.put("course_fullname", courseData.fullname);
-        additionalAttrs.put("course_displayname", courseData.displayname);
-        additionalAttrs.put("course_summary", courseData.summary);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_FULL_NAME, courseData.full_name);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
 
         return courseData.quizzes
                 .stream()
                 .map(courseQuizData -> {
                     final String startURI = uriPrefix + courseData.id;
-                    additionalAttrs.put("timelimit", String.valueOf(courseQuizData.timelimit));
+                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
                             courseQuizData.id,
                             lmsSetup.getInstitutionId(),
@@ -191,13 +189,12 @@ public class MoodleCourseAccess extends CourseAccess {
                             lmsSetup.getLmsType(),
                             courseQuizData.name,
                             courseQuizData.intro,
-                            Utils.toDateTimeUTCUnix(courseData.startdate),
-                            Utils.toDateTimeUTCUnix(courseData.enddate),
+                            Utils.toDateTimeUTCUnix(courseData.start_date),
+                            Utils.toDateTimeUTCUnix(courseData.end_date),
                             startURI,
                             additionalAttrs);
                 })
                 .collect(Collectors.toList());
-
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
@@ -218,34 +215,34 @@ public class MoodleCourseAccess extends CourseAccess {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class CourseData {
         final String id;
-        final String shortname;
-        final String fullname;
-        final String displayname;
+        final String short_name;
+        final String full_name;
+        final String display_name;
         final String summary;
-        final Long startdate; // unixtime milliseconds UTC
-        final Long enddate; // unixtime milliseconds UTC
-        final Long timecreated; // unixtime milliseconds UTC
+        final Long start_date;   // unix-time milliseconds UTC
+        final Long end_date;     // unix-time milliseconds UTC
+        final Long time_created; // unix-time milliseconds UTC
         final Collection<CourseQuiz> quizzes = new ArrayList<>();
 
         @JsonCreator
         protected CourseData(
                 @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String shortname,
-                @JsonProperty(value = "fullname") final String fullname,
-                @JsonProperty(value = "displayname") final String displayname,
+                @JsonProperty(value = "shortname") final String short_name,
+                @JsonProperty(value = "fullname") final String full_name,
+                @JsonProperty(value = "displayname") final String display_name,
                 @JsonProperty(value = "summary") final String summary,
-                @JsonProperty(value = "startdate") final Long startdate,
-                @JsonProperty(value = "enddate") final Long enddate,
-                @JsonProperty(value = "timecreated") final Long timecreated) {
+                @JsonProperty(value = "startdate") final Long start_date,
+                @JsonProperty(value = "enddate") final Long end_date,
+                @JsonProperty(value = "timecreated") final Long time_created) {
 
             this.id = id;
-            this.shortname = shortname;
-            this.fullname = fullname;
-            this.displayname = displayname;
+            this.short_name = short_name;
+            this.full_name = full_name;
+            this.display_name = display_name;
             this.summary = summary;
-            this.startdate = startdate;
-            this.enddate = enddate;
-            this.timecreated = timecreated;
+            this.start_date = start_date;
+            this.end_date = end_date;
+            this.time_created = time_created;
         }
 
     }
@@ -266,26 +263,26 @@ public class MoodleCourseAccess extends CourseAccess {
     static final class CourseQuiz {
         final String id;
         final String course;
-        final String coursemodule;
+        final String course_module;
         final String name;
         final String intro; // HTML
-        final Long timelimit; // unixtime milliseconds UTC
+        final Long time_limit; // unix-time milliseconds UTC
 
         @JsonCreator
         protected CourseQuiz(
                 @JsonProperty(value = "id") final String id,
                 @JsonProperty(value = "course") final String course,
-                @JsonProperty(value = "coursemodule") final String coursemodule,
+                @JsonProperty(value = "coursemodule") final String course_module,
                 @JsonProperty(value = "name") final String name,
                 @JsonProperty(value = "intro") final String intro,
-                @JsonProperty(value = "timelimit") final Long timelimit) {
+                @JsonProperty(value = "timelimit") final Long time_limit) {
 
             this.id = id;
             this.course = course;
-            this.coursemodule = coursemodule;
+            this.course_module = course_module;
             this.name = name;
             this.intro = intro;
-            this.timelimit = timelimit;
+            this.time_limit = time_limit;
         }
 
     }

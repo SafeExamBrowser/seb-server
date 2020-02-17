@@ -40,13 +40,13 @@ public class ClientConnectionDetails {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionDetails.class);
 
     private final static LocTextKey EXAM_NAME_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.examname");
+            new LocTextKey("sebserver.monitoring.connection.form.exam");
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.id");
+            new LocTextKey("sebserver.monitoring.connection.form.id");
     private final static LocTextKey CONNECTION_ADDRESS_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.address");
+            new LocTextKey("sebserver.monitoring.connection.form.address");
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.status");
+            new LocTextKey("sebserver.monitoring.connection.form.status");
 
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
@@ -100,26 +100,23 @@ public class ClientConnectionDetails {
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         CONNECTION_STATUS_TEXT_KEY,
                         Constants.EMPTY_NOTE)
-                        .asColorbox())
+                        .asColorBox())
                 .addEmptyCell();
 
         this.indicatorMapping
                 .values()
-                .stream()
-                .forEach(indData -> {
-                    formBuilder.addField(FormBuilder.text(
-                            indData.indicator.name,
-                            new LocTextKey(indData.indicator.name),
-                            Constants.EMPTY_NOTE)
-                            .asColorbox()
-                            .withDefaultLabel(indData.indicator.name))
-                            .addEmptyCell();
-                });
+                .forEach(indData -> formBuilder.addField(FormBuilder.text(
+                        indData.indicator.name,
+                        new LocTextKey(indData.indicator.name),
+                        Constants.EMPTY_NOTE)
+                        .asColorBox()
+                        .withDefaultLabel(indData.indicator.name))
+                        .addEmptyCell());
 
         this.formhandle = formBuilder.build();
     }
 
-    public void updateData(final ServerPushContext context) {
+    public void updateData() {
         final ClientConnectionData connectionData = this.restCallBuilder
                 .call()
                 .get(error -> {
@@ -135,7 +132,7 @@ public class ClientConnectionDetails {
         this.connectionData = connectionData;
     }
 
-    public void updateGUI(final ServerPushContext context) {
+    public void updateGUI() {
         if (this.connectionData == null) {
             return;
         }
@@ -162,7 +159,6 @@ public class ClientConnectionDetails {
 
         // update indicators
         this.connectionData.getIndicatorValues()
-                .stream()
                 .forEach(indValue -> {
                     final IndicatorData indData = this.indicatorMapping.get(indValue.getType());
                     final double value = indValue.getValue();

@@ -192,7 +192,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     // this processing returns immediately with the error
                     final T result = changeAction
                             .apply(mapping)
-                            .onError(t -> log.error("Fauled to save exam configuration: {}",
+                            .onError(t -> log.error("Failed to save exam configuration: {}",
                                     mapping.configurationNodeId))
                             .getOrThrow();
 

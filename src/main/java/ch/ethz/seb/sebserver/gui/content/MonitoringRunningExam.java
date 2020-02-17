@@ -135,12 +135,18 @@ public class MonitoringRunningExam implements TemplateComposer {
                 indicators,
                 restCall);
 
-        clientTable.withDefaultAction(
-                actionBuilder
-                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
-                        .withParentEntityKey(entityKey)
-                        .create(),
-                this.pageService);
+        clientTable
+                .withDefaultAction(
+                    actionBuilder
+                            .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                            .withParentEntityKey(entityKey)
+                            .create(),
+                    this.pageService)
+                .withSelectionListener(this.pageService.getSelectionPublisher(
+                        pageContext,
+                        ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
+                        ActionDefinition.MONITOR_EXAM_QUIT_SELECTED,
+                        ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION));
 
         this.serverPushService.runServerPush(
                 new ServerPushContext(content, Utils.truePredicate()),
@@ -170,7 +176,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return copyOfPageAction;
                 })
-                .publishIf(privilege)
+                .publishIf(privilege, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
                 .withEntityKey(entityKey)
@@ -187,7 +193,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.quitSebClients(action, clientTable, false),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege)
+                .publishIf(privilege, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION)
                 .withEntityKey(entityKey)
@@ -197,7 +203,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.disableSebClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege);
+                .publishIf(privilege, false);
 
         if (privilege.getAsBoolean()) {
 
@@ -272,7 +278,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
-    private static final Function<PageAction, PageAction> showStateViewAction(
+    private static Function<PageAction, PageAction> showStateViewAction(
             final ClientConnectionTable clientTable,
             final ConnectionStatus status) {
 
@@ -283,7 +289,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         };
     }
 
-    private static final Function<PageAction, PageAction> hideStateViewAction(
+    private static Function<PageAction, PageAction> hideStateViewAction(
             final ClientConnectionTable clientTable,
             final ConnectionStatus status) {
 
@@ -337,7 +343,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         return action;
     }
 
-    private final Consumer<ServerPushContext> updateTableGUI(final ClientConnectionTable clientTable) {
+    private Consumer<ServerPushContext> updateTableGUI(final ClientConnectionTable clientTable) {
         return context -> {
             if (!context.isDisposed()) {
                 try {

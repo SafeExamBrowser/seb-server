@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -82,6 +84,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final ResourceService resourceService;
     private final I18nSupport i18nSupport;
     private final InstructionProcessor instructionProcessor;
+    private final SebClientLogDetailsPopup sebClientLogDetailsPopup;
     private final long pollInterval;
     private final int pageSize;
 
@@ -94,6 +97,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final PageService pageService,
             final ResourceService resourceService,
             final InstructionProcessor instructionProcessor,
+            final SebClientLogDetailsPopup sebClientLogDetailsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -103,6 +107,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.i18nSupport = resourceService.getI18nSupport();
         this.instructionProcessor = instructionProcessor;
         this.pollInterval = pollInterval;
+        this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
         this.pageSize = pageSize;
 
         this.typeFilter = new TableFilterAttribute(
@@ -160,29 +165,38 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.serverPushService.runServerPush(
                 new ServerPushContext(content, Utils.truePredicate()),
                 this.pollInterval,
-                clientConnectionDetails::updateData,
-                clientConnectionDetails::updateGUI);
+                context1 -> clientConnectionDetails.updateData(),
+                context -> clientConnectionDetails.updateGUI());
 
         widgetFactory.labelLocalized(
                 content,
                 CustomVariant.TEXT_H3,
                 EVENT_LIST_TITLE_KEY);
 
+        PageService.PageActionBuilder actionBuilder = this.pageService
+                .pageActionBuilder(
+                        pageContext
+                                .clearAttributes()
+                                .clearEntityKeys());
+
+
         // client event table for this connection
-        this.pageService.entityTableBuilder(restService.getRestCall(GetClientEventPage.class))
+        this.pageService.entityTableBuilder(restService.getRestCall(GetExtendedClientEventPage.class))
                 .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                 .withPaging(this.pageSize)
                 .withRestCallAdapter(restCallBuilder -> restCallBuilder.withQueryParam(
                         ClientEvent.FILTER_ATTR_CONECTION_ID,
                         entityKey.modelId))
-                .withColumn(new ColumnDefinition<ClientEvent>(
+
+                .withColumn(new ColumnDefinition<ExtendedClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_TYPE,
                         LIST_COLUMN_TYPE_KEY,
                         this.resourceService::getEventTypeName)
                                 .withFilter(this.typeFilter)
                                 .sortable()
                                 .widthProportion(2))
-                .withColumn(new ColumnDefinition<>(
+
+                .withColumn(new ColumnDefinition<ExtendedClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_TEXT,
                         LIST_COLUMN_TEXT_KEY,
                         ClientEvent::getText)
@@ -190,19 +204,22 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .sortable()
                                 .withCellTooltip()
                                 .widthProportion(4))
-                .withColumn(new ColumnDefinition<>(
+
+                .withColumn(new ColumnDefinition<ExtendedClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE,
                         LIST_COLUMN_VALUE_KEY,
                         ClientEvent::getValue)
                                 .widthProportion(1))
-                .withColumn(new ColumnDefinition<>(
+
+                .withColumn(new ColumnDefinition<ExtendedClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_CLIENT_TIME,
                         new LocTextKey(LIST_COLUMN_CLIENT_TIME_KEY.name,
                                 this.i18nSupport.getUsersTimeZoneTitleSuffix()),
                         this::getClientTime)
                                 .sortable()
                                 .widthProportion(1))
-                .withColumn(new ColumnDefinition<>(
+
+                .withColumn(new ColumnDefinition<ExtendedClientEvent>(
                         Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
                         new LocTextKey(LIST_COLUMN_SERVER_TIME_KEY.name,
                                 this.i18nSupport.getUsersTimeZoneTitleSuffix()),
@@ -210,15 +227,17 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .sortable()
                                 .widthProportion(1))
 
+                .withDefaultAction(t -> actionBuilder
+                        .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
+                        .withExec(action -> sebClientLogDetailsPopup.showDetails(action, t.getSingleSelectedROWData()))
+                        .noEventPropagation()
+                        .create())
+
                 .compose(pageContext.copyOf(content));
 
-        this.pageService
-                .pageActionBuilder(
-                        pageContext
-                                .clearAttributes()
-                                .clearEntityKeys())
 
-                .newAction(ActionDefinition.MONITOR_EXAM_FROM_DETAILS)
+        actionBuilder
+                .newAction(ActionDefinition.MONITOR_EXAM_BACK_TO_OVERVIEW)
                 .withEntityKey(parentEntityKey)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER))
 
@@ -237,7 +256,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     }
 
-    private final String getClientTime(final ClientEvent event) {
+    private String getClientTime(final ClientEvent event) {
         if (event == null || event.getClientTime() == null) {
             return Constants.EMPTY_NOTE;
         }
@@ -246,7 +265,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .formatDisplayTime(Utils.toDateTimeUTC(event.getClientTime()));
     }
 
-    private final String getServerTime(final ClientEvent event) {
+    private String getServerTime(final ClientEvent event) {
         if (event == null || event.getServerTime() == null) {
             return Constants.EMPTY_NOTE;
         }

@@ -21,10 +21,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.bcel.Const;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
@@ -70,13 +72,19 @@ public final class ClientConnectionTable {
     private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER_ATTRIBUTE";
 
     private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
-            "sebserver.monitoring.connection.list.column.indicator.";
+            "sebserver.exam.indicator.type.description.";
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
+    private final static LocTextKey CONNECTION_ID_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.id" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONNECTION_ADDRESS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.address");
+    private final static LocTextKey CONNECTION_ADDRESS_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.address" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status");
+    private final static LocTextKey CONNECTION_STATUS_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.status" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;
@@ -88,6 +96,7 @@ public final class ClientConnectionTable {
     private final EnumSet<ConnectionStatus> statusFilter;
     private String statusFilterParam = "";
     private boolean statusFilterChanged = false;
+    private Consumer<Set<EntityKey>> selectionListener;
 
     private int tableWidth;
     private boolean needsSort = false;
@@ -136,21 +145,27 @@ public final class ClientConnectionTable {
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
 
+        this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
+
         this.widgetFactory.tableColumnLocalized(
                 this.table,
-                CONNECTION_ID_TEXT_KEY);
+                CONNECTION_ID_TEXT_KEY,
+                CONNECTION_ID_TOOLTIP_TEXT_KEY);
         this.widgetFactory.tableColumnLocalized(
                 this.table,
-                CONNECTION_ADDRESS_TEXT_KEY);
+                CONNECTION_ADDRESS_TEXT_KEY,
+                CONNECTION_ADDRESS_TOOLTIP_TEXT_KEY);
         this.widgetFactory.tableColumnLocalized(
                 this.table,
-                CONNECTION_STATUS_TEXT_KEY);
+                CONNECTION_STATUS_TEXT_KEY,
+                CONNECTION_STATUS_TOOLTIP_TEXT_KEY);
         for (final Indicator indDef : indicators) {
-            final TableColumn tc = new TableColumn(this.table, SWT.NONE);
-            final String indicatorName = this.widgetFactory.getI18nSupport().getText(
-                    INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name,
-                    indDef.name);
-            tc.setText(indicatorName);
+            TableColumn tableColumn = widgetFactory.tableColumnLocalized(
+                    this.table,
+                    new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name),
+                    new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.type.name)
+            );
+            tableColumn.setText(indDef.name);
         }
 
         this.tableMapping = new LinkedHashMap<>();
@@ -184,7 +199,7 @@ public final class ClientConnectionTable {
         saveStatusFilter();
     }
 
-    public void withDefaultAction(final PageAction pageAction, final PageService pageService) {
+    public ClientConnectionTable withDefaultAction(final PageAction pageAction, final PageService pageService) {
         this.table.addListener(SWT.MouseDoubleClick, event -> {
             final Tuple<String> selection = getSingleSelection();
             if (selection == null) {
@@ -200,7 +215,7 @@ public final class ClientConnectionTable {
                     selection._2);
             pageService.executePageAction(copyOfPageAction);
         });
-
+        return this;
     }
 
     public Set<String> getConnectionTokens(
@@ -237,7 +252,13 @@ public final class ClientConnectionTable {
     public void removeSelection() {
         if (this.table != null) {
             this.table.deselectAll();
+            this.notifySelectionChange();
         }
+    }
+
+    public ClientConnectionTable withSelectionListener(Consumer<Set<EntityKey>> selectionListener) {
+        this.selectionListener = selectionListener;
+        return this;
     }
 
     public Set<EntityKey> getSelection() {
@@ -282,11 +303,10 @@ public final class ClientConnectionTable {
                     log.error("Error poll connection data: ", error);
                     return Collections.emptyList();
                 })
-                .stream()
                 .forEach(data -> {
                     final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
                             data.getConnectionId(),
-                            connectionId -> new UpdatableTableItem(connectionId));
+                            UpdatableTableItem::new);
                     tableItem.push(data);
                     if (this.statusFilterChanged) {
                         this.toDelete.remove(data.getConnectionId());
@@ -294,7 +314,7 @@ public final class ClientConnectionTable {
                 });
 
         if (this.statusFilterChanged && !this.toDelete.isEmpty()) {
-            this.toDelete.stream().forEach(id -> {
+            this.toDelete.forEach(id -> {
                 final UpdatableTableItem item = this.tableMapping.remove(id);
                 final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
                 if (list != null) {
@@ -397,6 +417,14 @@ public final class ClientConnectionTable {
             this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
             this.statusFilterChanged = true;
         }
+    }
+
+    private void notifySelectionChange() {
+        if (this.selectionListener == null) {
+            return;
+        }
+
+        this.selectionListener.accept(this.getSelection());
     }
 
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {

@@ -118,10 +118,25 @@ public interface PageService {
      *
      * @param table the entity table
      * @param noSelectionText LocTextKey for missing selection message
+     * @param testBeforeActivation a function to test before activation. This function shall throw an error if test fails.
+     *                             My be null if no specific test is needed before activation
      * @return page action execution function for switching the activity */
     <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
             EntityTable<T> table,
-            LocTextKey noSelectionText);
+            LocTextKey noSelectionText,
+            Function<PageAction, PageAction> testBeforeActivation);
+
+    /** Get a page action execution function for switching the activity of currently selected
+     * entities from a given entity-table.
+     *
+     * @param table the entity table
+     * @param noSelectionText LocTextKey for missing selection message
+     * @return page action execution function for switching the activity */
+    default <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
+            EntityTable<T> table,
+            LocTextKey noSelectionText) {
+        return this.activationToggleActionFunction(table, noSelectionText, null);
+    }
 
     /** Get a message supplier to notify deactivation dependencies to the user for all given entities
      *
@@ -142,14 +157,12 @@ public interface PageService {
      * @param table the entity table
      * @return a message supplier to notify deactivation dependencies to the user */
     default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
-        return () -> {
-            return confirmDeactivation(table
-                    .getSelectedROWData()
-                    .stream()
-                    .filter(e -> e.isActive()) // NOTE: Activatable::isActive leads to an error here!?
-                    .collect(Collectors.toSet()))
-                            .get();
-        };
+        return () -> confirmDeactivation(table
+                .getSelectedROWData()
+                .stream()
+                .filter(Activatable::isActive) // NOTE: Activatable::isActive leads to an error here!?
+                .collect(Collectors.toSet()))
+                        .get();
     }
 
     /** Use this to get an table selection action publisher that processes the action
@@ -158,15 +171,13 @@ public interface PageService {
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
      * @return the selection publisher that handles this defines action activation on table selection */
-    default <T extends Entity> Consumer<Set<T>> getSelectionPublisher(
+    default <T> Consumer<Set<T>> getSelectionPublisher(
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return rows -> {
-            firePageEvent(
-                    new ActionActivationEvent(!rows.isEmpty(), actionDefinitions),
-                    pageContext);
-        };
+        return rows -> firePageEvent(
+                new ActionActivationEvent(!rows.isEmpty(), actionDefinitions),
+                pageContext);
     }
 
     /** Use this to get an table selection action publisher that processes the action
@@ -268,7 +279,7 @@ public interface PageService {
 
     /** Get an new TableBuilder for specified page based RestCall.
      *
-     * @param The name of the table to build
+     * @param name The name of the table to build
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
@@ -298,7 +309,7 @@ public interface PageService {
     void clearState();
 
     /** Key to store the ScrolledComposite update function within Control data map */
-    static String SCROLLED_COMPOSITE_UPDATE = "SCROLLED_COMPOSITE_UPDATE";
+    String SCROLLED_COMPOSITE_UPDATE = "SCROLLED_COMPOSITE_UPDATE";
 
     /** Creates a ScrolledComposite with content supplied the given content creation function.
      * The content creation function is used to create the content Composite as a child of the
@@ -371,7 +382,7 @@ public interface PageService {
         }
     }
 
-    public class PageActionBuilder {
+    class PageActionBuilder {
         private final PageService pageService;
         private final PageContext originalPageContext;
 

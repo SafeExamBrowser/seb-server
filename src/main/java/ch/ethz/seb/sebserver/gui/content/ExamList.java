@@ -197,30 +197,30 @@ public class ExamList implements TemplateComposer {
                                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                                 .create())
 
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.EXAM_VIEW_FROM_LIST,
+                                ActionDefinition.EXAM_MODIFY_FROM_LIST))
+
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
-
-// Removed as discussed in SEBSERV-52
-//                .newAction(ActionDefinition.EXAM_IMPORT)
-//                .publishIf(userGrant::im)
-
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent)
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
                         action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent());
+                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);
 
     }
 
-    static final PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
+    static PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {
         final Exam exam = table.getSingleSelectedROWData();
 
         if (exam == null) {
@@ -237,22 +237,20 @@ public class ExamList implements TemplateComposer {
         return action.withEntityKey(action.getSingleSelection());
     }
 
-    static final BiConsumer<TableItem, ExamConfigurationMap> decorateOnExamMapConsistency(
+    static BiConsumer<TableItem, ExamConfigurationMap> decorateOnExamMapConsistency(
             final PageService pageService) {
 
-        return (item, examMap) -> {
-            pageService.getRestService().getBuilder(GetExam.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examMap.examId))
-                    .call()
-                    .ifPresent(exam -> decorateOnExamConsistency(item, exam, pageService));
-        };
+        return (item, examMap) -> pageService.getRestService().getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examMap.examId))
+                .call()
+                .ifPresent(exam -> decorateOnExamConsistency(item, exam, pageService));
     }
 
-    static final BiConsumer<TableItem, Exam> decorateOnExamConsistency(final PageService pageService) {
+    static BiConsumer<TableItem, Exam> decorateOnExamConsistency(final PageService pageService) {
         return (item, exam) -> decorateOnExamConsistency(item, exam, pageService);
     }
 
-    static final void decorateOnExamConsistency(
+    static void decorateOnExamConsistency(
             final TableItem item,
             final Exam exam,
             final PageService pageService) {

@@ -90,7 +90,7 @@ final class SebExamConfigCreationPopup {
         };
     }
 
-    private static final boolean doCreate(
+    private static boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final boolean copyAsTemplate,

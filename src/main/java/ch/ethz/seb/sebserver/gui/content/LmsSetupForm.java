@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gui.form.Form;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -84,6 +85,8 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.proxy.port");
     private static final LocTextKey FORM_PROXY_AUTH_CREDENTIALS_KEY =
             new LocTextKey("sebserver.lmssetup.form.proxy.auth-credentials");
+    public static final LocTextKey LMS_SETUP_TEST_OK =
+            new LocTextKey("sebserver.lmssetup.action.test.ok");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -160,38 +163,49 @@ public class LmsSetupForm implements TemplateComposer {
                 .putStaticValueIf(isNotNew,
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
                         String.valueOf(lmsSetup.getLmsType()))
+
                 .addFieldIf(
                         isSEBAdmin,
                         () -> FormBuilder.singleSelection(
                                 Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                 FORM_INSTITUTION_TEXT_KEY,
                                 String.valueOf(lmsSetup.getInstitutionId()),
-                                () -> this.resourceService.institutionResource())
+                                this.resourceService::institutionResource)
                                 .readonly(true))
+
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        lmsSetup.getName()))
+                        lmsSetup.getName())
+                    .mandatory(!readonly))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         (lmsType != null) ? lmsType.name() : LmsType.MOCKUP.name(),
                         this.resourceService::lmsTypeResources)
-                        .readonlyIf(isNotNew))
+                        .readonlyIf(isNotNew)
+                        .mandatory(!readonly))
+
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_URL,
                         FORM_URL_TEXT_KEY,
-                        lmsSetup.getLmsApiUrl()))
+                        lmsSetup.getLmsApiUrl())
+                        .mandatory(!readonly))
+
                 .addField(FormBuilder.text(
                         Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME,
                         FORM_CLIENTNAME_LMS_TEXT_KEY,
-                        (lmsSetup.getLmsAuthName() != null) ? lmsSetup.getLmsAuthName() : null))
+                        lmsSetup.getLmsAuthName())
+                        .mandatory(!readonly))
+
                 .addFieldIf(
                         isEdit,
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                                 FORM_SECRET_LMS_TEXT_KEY)
-                                .asPasswordField())
+                                .asPasswordField()
+                                .mandatory(!readonly))
 
                 .addFieldIf(
                         () -> readonly,
@@ -230,7 +244,7 @@ public class LmsSetupForm implements TemplateComposer {
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
                                 FORM_PROXY_AUTH_CREDENTIALS_KEY,
-                                (lmsSetup.getProxyAuthUsername() != null) ? lmsSetup.getProxyAuthUsername() : null)
+                                lmsSetup.getProxyAuthUsername())
                                 .withInputSpan(3)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
@@ -256,12 +270,6 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
-                .newAction(ActionDefinition.LMS_SETUP_TEST_AND_SAVE)
-                .withEntityKey(entityKey)
-                .withExec(action -> this.testAdHoc(action, formHandle))
-                .ignoreMoveAwayFromEdit()
-                .publishIf(() -> modifyGrant && !readonly)
-
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, DeactivateLmsSetup.class)
@@ -270,7 +278,7 @@ public class LmsSetupForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.LMS_SETUP_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(action -> activate(action, formHandle))
+                .withExec(action -> activate(action, formHandle, restService))
                 .publishIf(() -> writeGrant && readonly && institutionActive && !lmsSetup.isActive())
 
                 .newAction(ActionDefinition.LMS_SETUP_SAVE)
@@ -279,6 +287,17 @@ public class LmsSetupForm implements TemplateComposer {
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
 
+                .newAction(ActionDefinition.LMS_SETUP_SAVE_AND_ACTIVATE)
+                .withEntityKey(entityKey)
+                .withExec(action -> {
+                    this.testAdHoc(action, formHandle);
+                    PageAction newAction = formHandle.saveAndActivate(action);
+                    pageContext.publishInfo(LMS_SETUP_TEST_OK);
+                    return newAction;
+                })
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> !readonly && !lmsSetup.isActive())
+
                 .newAction(ActionDefinition.LMS_SETUP_CANCEL_MODIFY)
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
@@ -286,11 +305,15 @@ public class LmsSetupForm implements TemplateComposer {
     }
 
     /** Save and test connection before activation */
-    private PageAction activate(final PageAction action, final FormHandle<LmsSetup> formHandle) {
+    public static PageAction activate(
+            final PageAction action,
+            final FormHandle<LmsSetup> formHandle,
+            final RestService restService) {
+
         // first test the LMS Setup. If this fails the action execution will stops
-        final PageAction testLmsSetup = this.testLmsSetup(action, formHandle, false);
+        final PageAction testLmsSetup = testLmsSetup(action, formHandle, restService);
         // if LMS Setup test was successful, the activation action applies
-        this.resourceService.getRestService().getBuilder(ActivateLmsSetup.class)
+        restService.getBuilder(ActivateLmsSetup.class)
                 .withURIVariable(
                         API.PARAM_MODEL_ID,
                         action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
@@ -306,7 +329,7 @@ public class LmsSetupForm implements TemplateComposer {
         // reset previous errors
         formHandle.process(
                 Utils.truePredicate(),
-                fieldAccessor -> fieldAccessor.resetError());
+                Form.FormFieldAccessor::resetError);
 
         // first test the connection on ad hoc object
         final Result<LmsSetupTestResult> result = this.resourceService.getRestService()
@@ -326,44 +349,29 @@ public class LmsSetupForm implements TemplateComposer {
             }
         }
 
-        return handleTestResult(
-                action,
-                a -> {
-                    // try to save the LmsSetup
-                    final PageAction processFormSave = formHandle.processFormSave(a);
-                    processFormSave.pageContext().publishInfo(
-                            new LocTextKey("sebserver.lmssetup.action.test.ok"));
-                    return processFormSave;
-                },
-                result.getOrThrow());
+        return action;
     }
 
     /** LmsSetup test action implementation */
-    private PageAction testLmsSetup(
+    public static PageAction testLmsSetup(
             final PageAction action,
-            final FormHandle<LmsSetup> formHandle, final boolean saveFirst) {
-
-        if (saveFirst) {
-            final Result<LmsSetup> postResult = formHandle.doAPIPost();
-            if (postResult.hasError()) {
-                formHandle.handleError(postResult.getError());
-                postResult.getOrThrow();
-            }
-        }
+            final FormHandle<LmsSetup> formHandle,
+            final RestService restService) {
 
         // Call the testing endpoint with the specified data to test
         final EntityKey entityKey = action.getEntityKey();
-        final RestService restService = this.resourceService.getRestService();
         final Result<LmsSetupTestResult> result = restService.getBuilder(TestLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.getModelId())
                 .call();
 
         // ... and handle the response
         if (result.hasError()) {
-            if (formHandle.handleError(result.getError())) {
+            if (formHandle != null && formHandle.handleError(result.getError())) {
                 throw new PageMessageException(
                         new LocTextKey("sebserver.lmssetup.action.test.missingParameter"));
             }
+
+            result.getOrThrow();
         }
 
         return handleTestResult(
@@ -377,7 +385,7 @@ public class LmsSetupForm implements TemplateComposer {
                 result.getOrThrow());
     }
 
-    private PageAction handleTestResult(
+    private static PageAction handleTestResult(
             final PageAction action,
             final Function<PageAction, PageAction> onOK,
             final LmsSetupTestResult testResult) {

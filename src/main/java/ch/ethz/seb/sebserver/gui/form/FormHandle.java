@@ -132,7 +132,7 @@ public class FormHandle<T extends Entity> {
                     return resultAction;
                 })
                 .onError(this::handleError)
-                .getOrThrow(error -> new FormPostException(error));
+                .getOrThrow(FormPostException::new);
     }
 
     public boolean handleError(final Exception error) {

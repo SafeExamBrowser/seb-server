@@ -144,9 +144,20 @@ public class LmsSetupList implements TemplateComposer {
                                 this.pageService.getResourceService().<LmsSetup> localizedActivityFunction())
                                         .withFilter(this.activityFilter)
                                         .sortable())
+
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                                 .create())
+
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY,
+                                ActionDefinition.LMS_SETUP_ACTIVATE,
+                                ActionDefinition.LMS_SETUP_DEACTIVATE,
+                                pageContext,
+                                ActionDefinition.LMS_SETUP_VIEW_FROM_LIST,
+                                ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST,
+                                ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY))
+
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
@@ -158,13 +169,21 @@ public class LmsSetupList implements TemplateComposer {
 
                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> table.hasAnyContent())
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent());
+                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false)
+
+                .newAction(ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY)
+                .withExec(this.pageService.activationToggleActionFunction(
+                        table,
+                        EMPTY_SELECTION_TEXT_KEY,
+                        action -> LmsSetupForm.testLmsSetup(action, null, restService)))
+                .withConfirm(this.pageService.confirmDeactivation(table))
+                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);
 
     }
 

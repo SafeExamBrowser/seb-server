@@ -34,7 +34,7 @@ public final class QuizData implements GrantEntity {
     public static final String ATTR_ADDITIONAL_ATTRIBUTES = "ADDITIONAL_ATTRIBUTES";
 
     public static final String QUIZ_ATTR_ID = "quiz_id";
-    public static final String QUIZ_ATTR_INSTITUION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
+    public static final String QUIZ_ATTR_INSTITUTION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
     public static final String QUIZ_ATTR_LMS_SETUP_ID = "lms_setup_id";
     public static final String QUIZ_ATTR_LMS_TYPE = "lms_setup_type";
     public static final String QUIZ_ATTR_NAME = "quiz_name";
@@ -43,10 +43,17 @@ public final class QuizData implements GrantEntity {
     public static final String QUIZ_ATTR_END_TIME = "quiz_end_time";
     public static final String QUIZ_ATTR_START_URL = "quiz_start_url";
 
+    public static final String ATTR_ADDITIONAL_CREATION_TIME = "time_created";
+    public static final String ATTR_ADDITIONAL_SHORT_NAME = "course_short_name";
+    public static final String ATTR_ADDITIONAL_FULL_NAME = "course_full_name";
+    public static final String ATTR_ADDITIONAL_DISPLAY_NAME = "course_display_name";
+    public static final String ATTR_ADDITIONAL_SUMMARY = "course_summary";
+    public static final String ATTR_ADDITIONAL_TIME_LIMIT = "time_limit";
+
     @JsonProperty(QUIZ_ATTR_ID)
     public final String id;
 
-    @JsonProperty(QUIZ_ATTR_INSTITUION_ID)
+    @JsonProperty(QUIZ_ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
     @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID)
@@ -76,7 +83,7 @@ public final class QuizData implements GrantEntity {
     @JsonCreator
     public QuizData(
             @JsonProperty(QUIZ_ATTR_ID) final String id,
-            @JsonProperty(QUIZ_ATTR_INSTITUION_ID) final Long institutionId,
+            @JsonProperty(QUIZ_ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID) final Long lmsSetupId,
             @JsonProperty(QUIZ_ATTR_LMS_TYPE) final LmsType lmsType,
             @JsonProperty(QUIZ_ATTR_NAME) final String name,

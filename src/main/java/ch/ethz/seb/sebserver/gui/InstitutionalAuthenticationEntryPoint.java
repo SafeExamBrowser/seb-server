@@ -141,7 +141,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         final String requestURI = request.getRequestURI();
 
         if (log.isDebugEnabled()) {
-            log.debug("Trying to verify insitution from requested entrypoint url: {}", requestURI);
+            log.debug("Trying to verify institution from requested entrypoint url: {}", requestURI);
         }
 
         try {
@@ -149,7 +149,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                     requestURI.lastIndexOf(Constants.SLASH) + 1,
                     requestURI.length());
         } catch (final Exception e) {
-            log.error("Fauled to extract institutional URL suffix: {}", e.getMessage());
+            log.error("Failed to extract institutional URL suffix: {}", e.getMessage());
             return null;
         }
     }

@@ -142,20 +142,23 @@ public class IndicatorForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         Domain.INDICATOR.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        indicator.name))
+                        indicator.name)
+                        .mandatory(!isReadonly))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.INDICATOR.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         (indicator.type != null) ? indicator.type.name() : null,
                         this.resourceService::indicatorTypeResources)
-                        .withSelectionListener(this::updateForm))
+                        .withSelectionListener(this::updateForm)
+                        .mandatory(!isReadonly))
 
                 .addField(FormBuilder.text(
                         TYPE_DESCRIPTION_FIELD_NAME,
                         FORM_DESC_TEXT_KEY,
                         typeDescription)
                         .asArea()
+                        .asHTML(true)
                         .readonly(true)
                         .withInputSpan(6))
 
@@ -189,7 +192,7 @@ public class IndicatorForm implements TemplateComposer {
 
     }
 
-    private final void updateForm(final Form form) {
+    private void updateForm(final Form form) {
         final String typeValue = form.getFieldValue(Domain.INDICATOR.ATTR_TYPE);
         if (StringUtils.isNotBlank(typeValue)) {
             form.setFieldValue(

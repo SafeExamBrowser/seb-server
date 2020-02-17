@@ -104,7 +104,6 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
         }
 
         Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR))
-                .stream()
                 .forEach(key -> {
                     final Button button = this.checkboxes.get(key);
                     if (button != null) {
@@ -120,7 +119,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                 this.checkboxes
                         .values()
                         .stream()
-                        .filter(button -> button.getSelection())
+                        .filter(Button::getSelection)
                         .map(button -> (String) button.getData(OPTION_VALUE))
                         .collect(Collectors.toList()).toArray());
     }
@@ -129,7 +128,6 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
     public void clear() {
         this.checkboxes
                 .values()
-                .stream()
                 .forEach(button -> button.setSelection(false));
     }
 

@@ -164,8 +164,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> lmsTypeResources() {
-        return Arrays.asList(LmsType.values())
-                .stream()
+        return Arrays.stream(LmsType.values())
                 .filter(lmsType -> lmsType != LmsType.MOCKUP || this.mock_lms_enabled)
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
@@ -175,8 +174,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> clientEventTypeResources() {
-        return Arrays.asList(EventType.values())
-                .stream()
+        return Arrays.stream(EventType.values())
                 .filter(eventType -> !CLIENT_EVENT_TYPE_EXCLUDE_MAP.contains(eventType))
                 .map(eventType -> new Tuple<>(
                         eventType.name(),
@@ -200,8 +198,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> indicatorTypeResources() {
-        return Arrays.asList(IndicatorType.values())
-                .stream()
+        return Arrays.stream(IndicatorType.values())
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name()),
@@ -295,8 +292,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> entityTypeResources() {
-        return Arrays.asList(EntityType.values())
-                .stream()
+        return Arrays.stream(EntityType.values())
                 .filter(type -> !ENTITY_TYPE_EXCLUDE_MAP.contains(type))
                 .map(type -> new Tuple<>(type.name(), getEntityTypeName(type)))
                 .sorted(RESOURCE_COMPARATOR)
@@ -319,8 +315,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> userActivityTypeResources() {
-        return Arrays.asList(UserLogActivityType.values())
-                .stream()
+        return Arrays.stream(UserLogActivityType.values())
                 .map(type -> new Tuple<>(type.name(), getUserActivityTypeName(type)))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
@@ -363,16 +358,13 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> examTypeResources() {
-        return Arrays.asList(ExamType.values())
-                .stream()
-                .filter(type -> type != ExamType.UNDEFINED)
+        return Arrays.stream(ExamType.values())
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
-                                this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name()) + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
-                                StringUtils.EMPTY))
-                        ))
+                                EXAM_INDICATOR_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -382,8 +374,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam) {
-        return Arrays.asList(ConfigurationStatus.values())
-                .stream()
+        return Arrays.stream(ConfigurationStatus.values())
                 .filter(status -> {
                     if (isAttachedToExam) {
                         return status != ConfigurationStatus.READY_TO_USE;
@@ -579,8 +570,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> getAttributeTypeResources() {
-        return Arrays.asList(AttributeType.values())
-                .stream()
+        return Arrays.stream(AttributeType.values())
                 .filter(type -> !ATTRIBUTE_TYPES_NOT_DISPLAYED.contains(type))
                 .map(type -> new Tuple<>(getAttributeTypeFilterName(type), getAttributeTypeName(type)))
                 .sorted(RESOURCE_COMPARATOR)
@@ -629,21 +619,25 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> sebRestrictionWhiteListResources() {
-        return Arrays.asList(WhiteListPath.values())
-                .stream()
-                .map(type -> new Tuple<>(
+        return Arrays.stream(WhiteListPath.values())
+                .map(type -> new Tuple3<>(
                         type.key,
-                        this.i18nSupport.getText(SEB_RESTRICTION_WHITE_LIST_PREFIX + type.name(), type.key)))
+                        this.i18nSupport.getText(SEB_RESTRICTION_WHITE_LIST_PREFIX + type.name(), type.key),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                SEB_RESTRICTION_WHITE_LIST_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
 
     public List<Tuple<String>> sebRestrictionPermissionResources() {
-        return Arrays.asList(PermissionComponent.values())
-                .stream()
-                .map(type -> new Tuple<>(
+        return Arrays.stream(PermissionComponent.values())
+                .map(type -> new Tuple3<>(
                         type.key,
-                        this.i18nSupport.getText(SEB_RESTRICTION_PERMISSIONS_PREFIX + type.name(), type.key)))
+                        this.i18nSupport.getText(SEB_RESTRICTION_PERMISSIONS_PREFIX + type.name(), type.key),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                SEB_RESTRICTION_PERMISSIONS_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

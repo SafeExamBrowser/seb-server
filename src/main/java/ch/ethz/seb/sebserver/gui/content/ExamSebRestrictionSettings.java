@@ -49,6 +49,10 @@ public class ExamSebRestrictionSettings {
     private final static LocTextKey SEB_RESTRICTION_FORM_TITLE =
             new LocTextKey("sebserver.exam.action.sebrestriction.details");
 
+    private final static LocTextKey SEB_RESTRICTION_FORM_INFO =
+            new LocTextKey("sebserver.exam.form.sebrestriction.info");
+    private final static LocTextKey SEB_RESTRICTION_FORM_INFO_TEXT =
+            new LocTextKey("sebserver.exam.form.sebrestriction.info-text");
     private final static LocTextKey SEB_RESTRICTION_FORM_CONFIG_KEYS =
             new LocTextKey("sebserver.exam.form.sebrestriction.configKeys");
     private final static LocTextKey SEB_RESTRICTION_FORM_BROWSER_KEYS =
@@ -95,7 +99,7 @@ public class ExamSebRestrictionSettings {
         };
     }
 
-    private static final boolean doCreate(
+    private static boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<?> formHandle) {
@@ -188,6 +192,14 @@ public class ExamSebRestrictionSettings {
                     .readonly(false)
 
                     .addField(FormBuilder.text(
+                            "Info",
+                            SEB_RESTRICTION_FORM_INFO,
+                            pageService.getI18nSupport().getText(SEB_RESTRICTION_FORM_INFO_TEXT))
+                            .asArea(50)
+                            .asHTML()
+                            .readonly(true))
+
+                    .addField(FormBuilder.text(
                             SebRestriction.ATTR_CONFIG_KEYS,
                             SEB_RESTRICTION_FORM_CONFIG_KEYS,
                             StringUtils.join(sebRestriction.getConfigKeys(), Constants.CARRIAGE_RETURN))
@@ -207,7 +219,7 @@ public class ExamSebRestrictionSettings {
                                     SEB_RESTRICTION_FORM_EDX_WHITE_LIST_PATHS,
                                     sebRestriction.getAdditionalProperties()
                                             .get(OpenEdxSebRestriction.ATTR_WHITELIST_PATHS),
-                                    () -> resourceService.sebRestrictionWhiteListResources()))
+                                    resourceService::sebRestrictionWhiteListResources))
 
                     .addFieldIf(
                             () -> lmsType == LmsType.OPEN_EDX,
@@ -216,7 +228,7 @@ public class ExamSebRestrictionSettings {
                                     SEB_RESTRICTION_FORM_EDX_PERMISSIONS,
                                     sebRestriction.getAdditionalProperties()
                                             .get(OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS),
-                                    () -> resourceService.sebRestrictionPermissionResources()))
+                                    resourceService::sebRestrictionPermissionResources))
 
                     .addFieldIf(
                             () -> lmsType == LmsType.OPEN_EDX,

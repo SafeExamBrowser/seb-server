@@ -114,7 +114,7 @@ final class ExamToConfigBindingForm {
         };
     }
 
-    private static final boolean doCreate(
+    private static boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<ExamConfigurationMap> formHandle) {
@@ -212,7 +212,8 @@ final class ExamToConfigBindingForm {
                             CONFIG_MAPPING_NAME_TEXT_KEY,
                             String.valueOf(examConfigurationMap.configurationNodeId),
                             resourceService::examConfigurationSelectionResources)
-                            .withSelectionListener(form -> updateFormValuesFromConfigSelection(form, resourceService)))
+                            .withSelectionListener(form -> updateFormValuesFromConfigSelection(form, resourceService))
+                    .mandatory())
 
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,

@@ -131,13 +131,17 @@ public class MonitoringRunningExamList implements TemplateComposer {
                                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                                 .create())
 
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.MONITOR_EXAM_FROM_LIST))
+
                         .compose(pageContext.copyOf(content));
 
         actionBuilder
 
                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 
     }
 

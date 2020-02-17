@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -41,10 +42,18 @@ public final class ThresholdList extends Composite {
     private static final int ACTION_COLUMN_WIDTH = 20;
 
     private static final String COLOR_SELECTION_TEXT_KEY = "sebserver.exam.indicator.thresholds.select.color";
-    private static final LocTextKey VALUE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.value");
-    private static final LocTextKey COLOR_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.color");
-    private static final LocTextKey ADD_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.add");
-    private static final LocTextKey REMOVE_TEXT_KEY = new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
+    private static final LocTextKey VALUE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.value");
+    private static final LocTextKey VALUE_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.value" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    private static final LocTextKey COLOR_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.color");
+    private static final LocTextKey COLOR_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.color" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    private static final LocTextKey ADD_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.add");
+    private static final LocTextKey REMOVE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.thresholds.list.remove");
 
     private final WidgetFactory widgetFactory;
     private final Supplier<IndicatorType> indicatorTypeSupplier;
@@ -80,14 +89,16 @@ public final class ThresholdList extends Composite {
         final Label valueTitle = widgetFactory.labelLocalized(
                 this,
                 CustomVariant.TITLE_LABEL,
-                VALUE_TEXT_KEY);
+                VALUE_TEXT_KEY,
+                VALUE_TOOLTIP_TEXT_KEY);
         this.valueCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         valueTitle.setLayoutData(this.valueCell);
 
         final Label colorTitle = widgetFactory.labelLocalized(
                 this,
                 CustomVariant.TITLE_LABEL,
-                COLOR_TEXT_KEY);
+                COLOR_TEXT_KEY,
+                COLOR_TOOLTIP_TEXT_KEY);
         this.colorCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         colorTitle.setLayoutData(this.colorCell);
 
@@ -103,9 +114,7 @@ public final class ThresholdList extends Composite {
     public void setThresholds(final Collection<Threshold> thresholds) {
         clearList();
         if (thresholds != null) {
-            thresholds
-                    .stream()
-                    .forEach(this::addThreshold);
+            thresholds.forEach(this::addThreshold);
         }
     }
 
@@ -122,13 +131,11 @@ public final class ThresholdList extends Composite {
                 .stream()
                 .filter(entry -> entry.getValue() == null || StringUtils.isBlank(entry.getColor()))
                 .collect(Collectors.toList())
-                .stream()
-                .forEach(entry -> removeThreshold(entry));
+                .forEach(this::removeThreshold);
     }
 
     private void clearList() {
-        this.thresholds.stream()
-                .forEach(e -> e.dispose());
+        this.thresholds.forEach(Entry::dispose);
         this.thresholds.clear();
     }
 

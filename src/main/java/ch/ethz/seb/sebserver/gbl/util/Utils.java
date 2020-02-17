@@ -332,7 +332,9 @@ public final class Utils {
             return null;
         }
 
-        return text.replace("</br>", "\n");
+        return text
+                .replace("<br/>", "\n")
+                .replace("<br></br>", "\n");
     }
 
     public static String encodeFormURL_UTF_8(final String value) {

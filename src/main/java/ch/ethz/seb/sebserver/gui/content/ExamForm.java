@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -117,6 +118,8 @@ public class ExamForm implements TemplateComposer {
 
     private final static LocTextKey CONFIG_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.configuration.list.title");
+    private final static LocTextKey CONFIG_LIST_TITLE_TOOLTIP_KEY =
+            new LocTextKey("sebserver.exam.configuration.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONFIG_NAME_COLUMN_KEY =
             new LocTextKey("sebserver.exam.configuration.list.column.name");
     private final static LocTextKey CONFIG_DESCRIPTION_COLUMN_KEY =
@@ -128,6 +131,8 @@ public class ExamForm implements TemplateComposer {
 
     private final static LocTextKey INDICATOR_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.indicator.list.title");
+    private final static LocTextKey INDICATOR_LIST_TITLE_TOOLTIP_KEY =
+            new LocTextKey("sebserver.exam.indicator.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey INDICATOR_TYPE_COLUMN_KEY =
             new LocTextKey("sebserver.exam.indicator.list.column.type");
     private final static LocTextKey INDICATOR_NAME_COLUMN_KEY =
@@ -326,11 +331,12 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
-                        String.valueOf(exam.type),
+                        (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
                         this.resourceService::examTypeResources)
                         .withLabelSpan(2)
                         .withInputSpan(4)
-                        .withEmptyCellSpan(2))
+                        .withEmptyCellSpan(2)
+                        .mandatory(!readonly))
 
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
@@ -339,7 +345,8 @@ public class ExamForm implements TemplateComposer {
                         this.resourceService::examSupporterResources)
                         .withLabelSpan(2)
                         .withInputSpan(4)
-                        .withEmptyCellSpan(2))
+                        .withEmptyCellSpan(2)
+                        .mandatory(!readonly))
 
                 .buildFor(importFromQuizData
                         ? this.restService.getRestCall(ImportAsExam.class)
@@ -398,7 +405,8 @@ public class ExamForm implements TemplateComposer {
             this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
-                    CONFIG_LIST_TITLE_KEY);
+                    CONFIG_LIST_TITLE_KEY,
+                    CONFIG_LIST_TITLE_TOOLTIP_KEY);
             this.widgetFactory.labelSeparator(content);
 
             final EntityTable<ExamConfigurationMap> configurationTable =
@@ -428,6 +436,13 @@ public class ExamForm implements TemplateComposer {
                                     () -> modifyGrant,
                                     this::viewExamConfigPageAction)
 
+                            .withSelectionListener(this.pageService.getSelectionPublisher(
+                                    pageContext,
+                                    ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP,
+                                    ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST,
+                                    ActionDefinition.EXAM_CONFIGURATION_EXPORT,
+                                    ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY))
+
                             .compose(pageContext.copyOf(content));
 
             final EntityKey configMapKey = (configurationTable.hasAnyContent())
@@ -447,7 +462,7 @@ public class ExamForm implements TemplateComposer {
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                     .withParentEntityKey(entityKey)
                     .withEntityKey(configMapKey)
-                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent())
+                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent(), false)
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
@@ -461,7 +476,7 @@ public class ExamForm implements TemplateComposer {
                         }
                         return null;
                     })
-                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable)
+                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable, false)
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
                     .withParentEntityKey(entityKey)
@@ -470,7 +485,7 @@ public class ExamForm implements TemplateComposer {
                             this::downloadExamConfigAction,
                             CONFIG_EMPTY_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent())
+                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent(), false)
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                     .withSelect(
@@ -478,14 +493,15 @@ public class ExamForm implements TemplateComposer {
                             this::getExamConfigKey,
                             CONFIG_EMPTY_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent());
+                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent(), false);
 
             // List of Indicators
-            this.widgetFactory.label(content, "");
+            this.widgetFactory.label(content, StringUtils.EMPTY);
             this.widgetFactory.labelLocalized(
                     content,
                     CustomVariant.TEXT_H3,
-                    INDICATOR_LIST_TITLE_KEY);
+                    INDICATOR_LIST_TITLE_KEY,
+                    INDICATOR_LIST_TITLE_TOOLTIP_KEY);
             this.widgetFactory.labelSeparator(content);
 
             final EntityTable<Indicator> indicatorTable =
@@ -520,6 +536,11 @@ public class ExamForm implements TemplateComposer {
                                             .withParentEntityKey(entityKey)
                                             .create())
 
+                            .withSelectionListener(this.pageService.getSelectionPublisher(
+                                    pageContext,
+                                    ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST,
+                                    ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST))
+
                             .compose(pageContext.copyOf(content));
 
             actionBuilder
@@ -534,7 +555,7 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent())
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
 
                     .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
@@ -542,7 +563,7 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent());
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false);
         }
     }
 
@@ -560,7 +581,7 @@ public class ExamForm implements TemplateComposer {
                     processFormSave,
                     true,
                     this.restService,
-                    t -> log.error("Failed to intially restrict the course for SEB on LMS: {}", t.getMessage()));
+                    t -> log.error("Failed to initially restrict the course for SEB on LMS: {}", t.getMessage()));
         }
 
         return processFormSave;
@@ -589,7 +610,7 @@ public class ExamForm implements TemplateComposer {
         result
                 .stream()
                 .map(message -> this.consistencyMessageMapping.get(message.messageCode))
-                .filter(message -> message != null)
+                .filter(Objects::nonNull)
                 .forEach(message -> this.widgetFactory.labelLocalized(
                         warningPanel,
                         CustomVariant.MESSAGE,
@@ -699,7 +720,7 @@ public class ExamForm implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
-                .map(quizzData -> new Exam(quizzData))
+                .map(Exam::new)
                 .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error));
     }
 
@@ -735,7 +756,7 @@ public class ExamForm implements TemplateComposer {
                                 .append(")")
                                 .append("</span>")
                                 .append(" | "),
-                        (sb1, sb2) -> sb1.append(sb2));
+                        StringBuilder::append);
         builder.delete(builder.length() - 3, builder.length() - 1);
         return builder.toString();
     }

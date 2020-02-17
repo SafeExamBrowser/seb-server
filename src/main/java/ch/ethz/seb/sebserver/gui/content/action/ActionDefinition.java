@@ -183,6 +183,11 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.LMS_SETUP_VIEW,
             ActionCategory.FORM),
+    LMS_SETUP_SAVE_AND_ACTIVATE(
+            new LocTextKey("sebserver.form.action.save.activate"),
+            ImageIcon.ACTIVE,
+            PageStateDefinitionImpl.LMS_SETUP_VIEW,
+            ActionCategory.FORM),
     LMS_SETUP_ACTIVATE(
             new LocTextKey("sebserver.lmssetup.action.activate"),
             ImageIcon.TOGGLE_OFF,
@@ -193,6 +198,11 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.LMS_SETUP_VIEW,
             ActionCategory.FORM),
+    LMS_SETUP_TOGGLE_ACTIVITY(
+            new LocTextKey("sebserver.overall.action.toggle-activity"),
+            ImageIcon.SWITCH,
+            PageStateDefinitionImpl.LMS_SETUP_LIST,
+            ActionCategory.LMS_SETUP_LIST),
 
     QUIZ_DISCOVERY_VIEW_LIST(
             new LocTextKey("sebserver.quizdiscovery.action.list"),
@@ -593,7 +603,7 @@ public enum ActionDefinition {
             ImageIcon.SEND_QUIT,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.FORM),
-    MONITOR_EXAM_FROM_DETAILS(
+    MONITOR_EXAM_BACK_TO_OVERVIEW(
             new LocTextKey("sebserver.monitoring.exam.action.detail.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,

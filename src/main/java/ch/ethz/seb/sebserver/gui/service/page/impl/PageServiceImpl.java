@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpSession;
 
@@ -215,10 +214,10 @@ public class PageServiceImpl implements PageService {
             }
 
             try {
-                final int dependencies = entities.stream()
+                final int dependencies = (int) entities.stream()
                         .flatMap(entity -> {
                             final RestCall<Set<EntityKey>>.RestCallBuilder builder =
-                                    restService.<Set<EntityKey>> getBuilder(
+                                    restService.<Set<EntityKey>>getBuilder(
                                             entity.entityType(),
                                             CallType.GET_DEPENDENCIES);
 
@@ -227,9 +226,7 @@ public class PageServiceImpl implements PageService {
                                     .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
                                     .call()
                                     .getOrThrow().stream();
-                        })
-                        .collect(Collectors.toList())
-                        .size();
+                        }).count();
                 if (dependencies > 0) {
                     return new LocTextKey(CONFIRM_DEACTIVATION_KEY, String.valueOf(dependencies));
                 } else {
@@ -237,7 +234,7 @@ public class PageServiceImpl implements PageService {
                 }
 
             } catch (final Exception e) {
-                log.warn("Failed to get dependencyies. Error: {}", e.getMessage());
+                log.warn("Failed to get dependencies. Error: {}", e.getMessage());
                 return new LocTextKey(CONFIRM_DEACTIVATION_KEY, "");
             }
         };
@@ -246,7 +243,8 @@ public class PageServiceImpl implements PageService {
     @Override
     public <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
             final EntityTable<T> table,
-            final LocTextKey noSelectionText) {
+            final LocTextKey noSelectionText,
+            Function<PageAction, PageAction> testBeforeActivation) {
 
         return action -> {
             final Set<T> selectedROWData = table.getSelectedROWData();
@@ -259,13 +257,29 @@ public class PageServiceImpl implements PageService {
 
             final Collection<Exception> errors = new ArrayList<>();
             for (final T entity : selectedROWData) {
-                if (entity.isActive()) {
-                    restService.getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
-                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
-                            .call()
-                            .onError(errors::add);
+
+                if (!entity.isActive()) {
+                    RestCall<T>.RestCallBuilder restCallBuilder = restService.<T>getBuilder(
+                            entityType,
+                            CallType.ACTIVATION_ACTIVATE)
+                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId());
+                    if (testBeforeActivation != null) {
+                        try {
+                            action.withEntityKey(entity.getEntityKey());
+                            testBeforeActivation.apply(action);
+                            restCallBuilder
+                                    .call()
+                                    .onError(errors::add);
+                        } catch (Exception e) {
+                            errors.add(e);
+                        }
+                    } else {
+                        restCallBuilder
+                                .call()
+                                .onError(errors::add);
+                    }
                 } else {
-                    restService.getBuilder(entityType, CallType.ACTIVATION_ACTIVATE)
+                    restService.<T>getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
                             .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
                             .call()
                             .onError(errors::add);
@@ -375,9 +389,7 @@ public class PageServiceImpl implements PageService {
 
         @Override
         public int compare(final PageEventListener<?> o1, final PageEventListener<?> o2) {
-            final int x = o1.priority();
-            final int y = o2.priority();
-            return (x < y) ? -1 : ((x == y) ? 0 : 1);
+            return Integer.compare(o1.priority(), o2.priority());
         }
     }
 

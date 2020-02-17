@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import org.eclipse.swt.widgets.Composite;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -57,21 +58,14 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class QuizDiscoveryList implements TemplateComposer {
 
     // localized text keys
-    private static final LocTextKey QUIZ_DETAILS_URL_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.url");
-    private static final LocTextKey QUIZ_DETAILS_DESCRIPTION_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.description");
-    private static final LocTextKey QUIZ_DETAILS_START_TIME_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.starttime");
-    private static final LocTextKey QUIZ_DETAILS_END_TIME_TEXT_KEY =
-            new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
+
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.title");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.empty");
     private final static LocTextKey EMPTY_SELECTION_TEXT =
             new LocTextKey("sebserver.quizdiscovery.info.pleaseSelect");
-    private final static LocTextKey INSTITUION_TEXT_KEY =
+    private final static LocTextKey INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.column.institution");
     private final static LocTextKey LMS_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.column.lmssetup");
@@ -83,6 +77,20 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.list.column.endtime");
     private final static LocTextKey DETAILS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.quiz.details.title");
+    private static final LocTextKey QUIZ_DETAILS_URL_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.url");
+    private static final LocTextKey QUIZ_DETAILS_INSTITUTION_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.institution");
+    private static final LocTextKey QUIZ_DETAILS_LMS_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.lmssetup");
+    private static final LocTextKey QUIZ_DETAILS_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.name");
+    private static final LocTextKey QUIZ_DETAILS_DESCRIPTION_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.description");
+    private static final LocTextKey QUIZ_DETAILS_START_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.starttime");
+    private static final LocTextKey QUIZ_DETAILS_END_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
     private final static LocTextKey NO_IMPORT_OF_OUT_DATED_QUIZ =
             new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
 
@@ -151,8 +159,8 @@ public class QuizDiscoveryList implements TemplateComposer {
                         .withColumnIf(
                                 isSebAdmin,
                                 () -> new ColumnDefinition<QuizData>(
-                                        QuizData.QUIZ_ATTR_INSTITUION_ID,
-                                        INSTITUION_TEXT_KEY,
+                                        QuizData.QUIZ_ATTR_INSTITUTION_ID,
+                                        INSTITUTION_TEXT_KEY,
                                         quiz -> institutionNameFunction
                                                 .apply(String.valueOf(quiz.institutionId)))
                                                         .withFilter(this.institutionFilter))
@@ -202,16 +210,16 @@ public class QuizDiscoveryList implements TemplateComposer {
                                 .noEventPropagation()
                                 .create())
 
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS,
+                                ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT))
+
                         .compose(pageContext.copyOf(content));
 
         // propagate content actions to action-pane
         final GrantCheck examGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
-
-// Removed as discussed in SEBSERV-52
-//                .newAction(ActionDefinition.LMS_SETUP_NEW)
-//                .publishIf(lmsSetupGrant::iw)
-
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
@@ -221,14 +229,14 @@ public class QuizDiscoveryList implements TemplateComposer {
                                 institutionNameFunction),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent)
+                .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
                 .withSelect(
                         table::getSelection,
                         action -> this.importQuizData(action, table),
                         EMPTY_SELECTION_TEXT)
-                .publishIf(() -> examGrant.im() && table.hasAnyContent());
+                .publishIf(() -> examGrant.im() && table.hasAnyContent(), false);
     }
 
     private static Function<QuizData, String> quizDataLmsSetupNameFunction(final ResourceService resourceService) {
@@ -250,7 +258,7 @@ public class QuizDiscoveryList implements TemplateComposer {
         return action
                 .withEntityKey(action.getSingleSelection())
                 .withParentEntityKey(new EntityKey(selectedROWData.lmsSetupId, EntityType.LMS_SETUP))
-                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, "true");
+                .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, Constants.TRUE_STRING);
     }
 
     private PageAction showDetails(
@@ -291,17 +299,17 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .addFieldIf(
                         () -> this.resourceService.getCurrentUser().get().hasRole(UserRole.SEB_SERVER_ADMIN),
                         () -> FormBuilder.text(
-                                QuizData.QUIZ_ATTR_INSTITUION_ID,
-                                INSTITUION_TEXT_KEY,
+                                QuizData.QUIZ_ATTR_INSTITUTION_ID,
+                                QUIZ_DETAILS_INSTITUTION_TEXT_KEY,
                                 institutionNameFunction.apply(quizData.getModelId())))
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,
-                        LMS_TEXT_KEY,
+                        QUIZ_DETAILS_LMS_TEXT_KEY,
                         String.valueOf(quizData.lmsSetupId),
-                        () -> this.resourceService.lmsSetupResource()))
+                        this.resourceService::lmsSetupResource))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
-                        NAME_TEXT_KEY,
+                        QUIZ_DETAILS_NAME_TEXT_KEY,
                         quizData.name))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
@@ -323,19 +331,17 @@ public class QuizDiscoveryList implements TemplateComposer {
 
         if (!quizData.additionalAttributes.isEmpty()) {
             quizData.additionalAttributes
-                    .entrySet()
-                    .stream()
-                    .forEach(entry -> {
-                        LocTextKey titleKey = new LocTextKey(TEXT_KEY_ADDITIONAL_ATTR_PREFIX + entry.getKey());
+                    .forEach((key, value) -> {
+                        LocTextKey titleKey = new LocTextKey(TEXT_KEY_ADDITIONAL_ATTR_PREFIX + key);
                         if (!this.pageService.getI18nSupport().hasText(titleKey)) {
-                            titleKey = new LocTextKey(entry.getKey());
+                            titleKey = new LocTextKey(key);
                         }
                         formbuilder
                                 .addField(FormBuilder.text(
-                                        entry.getKey(),
+                                        key,
                                         titleKey,
-                                        toAdditionalValue(entry.getKey(), entry.getValue()))
-                                        .asHTML(ADDITIONAL_HTML_ATTRIBUTES.contains(entry.getKey())));
+                                        toAdditionalValue(key, value))
+                                        .asHTML(ADDITIONAL_HTML_ATTRIBUTES.contains(key)));
                     });
         }
 
@@ -343,7 +349,7 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private String toAdditionalValue(final String name, final String value) {
-        if ("timecreated".equals(name)) {
+        if (QuizData.ATTR_ADDITIONAL_CREATION_TIME.equals(name)) {
             try {
                 return this.pageService
                         .getI18nSupport()
@@ -351,7 +357,7 @@ public class QuizDiscoveryList implements TemplateComposer {
             } catch (final Exception e) {
                 return value;
             }
-        } else if ("timelimit".equals(name)) {
+        } else if (QuizData.ATTR_ADDITIONAL_TIME_LIMIT.equals(name)) {
             try {
                 return this.pageService
                         .getI18nSupport()

@@ -144,6 +144,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
 
         final ExamConfigurationMap requestModel = this.createNew(postMap);
         return this.checkCreateAccess(requestModel)
+                .flatMap(this::validForCreate)
                 .map(this::checkPasswordMatch)
                 .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
                         entity,
