@@ -174,7 +174,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final Long configurationNodeId) {
 
         final CharSequence passwordCipher = this.examConfigurationMapDAO
-                .getConfigPasswortCipher(examId, configurationNodeId)
+                .getConfigPasswordCipher(examId, configurationNodeId)
                 .getOr(null);
 
         if (StringUtils.isNotBlank(passwordCipher)) {

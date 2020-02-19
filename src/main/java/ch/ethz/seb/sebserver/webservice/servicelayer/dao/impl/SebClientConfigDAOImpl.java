@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig.ConfigPurpose;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -110,53 +113,47 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
             final FilterMap filterMap,
             final Predicate<SebClientConfig> predicate) {
 
-        return Result.tryCatch(() -> {
-
-            return this.sebClientConfigRecordMapper
-                    .selectByExample()
-                    .where(
-                            SebClientConfigRecordDynamicSqlSupport.institutionId,
-                            isEqualToWhenPresent(filterMap.getInstitutionId()))
-                    .and(
-                            SebClientConfigRecordDynamicSqlSupport.name,
-                            isLikeWhenPresent(filterMap.getName()))
-                    .and(
-                            SebClientConfigRecordDynamicSqlSupport.date,
-                            isGreaterThanOrEqualToWhenPresent(filterMap.getSebClientConfigFromTime()))
-                    .and(
-                            SebClientConfigRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .filter(predicate)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.sebClientConfigRecordMapper
+                .selectByExample()
+                .where(
+                        SebClientConfigRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        SebClientConfigRecordDynamicSqlSupport.name,
+                        isLikeWhenPresent(filterMap.getName()))
+                .and(
+                        SebClientConfigRecordDynamicSqlSupport.date,
+                        isGreaterThanOrEqualToWhenPresent(filterMap.getSebClientConfigFromTime()))
+                .and(
+                        SebClientConfigRecordDynamicSqlSupport.active,
+                        isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .filter(predicate)
+                .collect(Collectors.toList()));
     }
 
     @Override
     public Result<SebClientConfig> byClientName(final String clientName) {
-        return Result.tryCatch(() -> {
-
-            return this.sebClientConfigRecordMapper
-                    .selectByExample()
-                    .where(
-                            SebClientConfigRecordDynamicSqlSupport.clientName,
-                            isEqualTo(clientName))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Utils.toSingleton());
-        });
+        return Result.tryCatch(() -> this.sebClientConfigRecordMapper
+                .selectByExample()
+                .where(
+                        SebClientConfigRecordDynamicSqlSupport.clientName,
+                        isEqualTo(clientName))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Utils.toSingleton()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<CharSequence> getConfigPasswortCipherByClientName(final String clientName) {
+    public Result<CharSequence> getConfigPasswordCipherByClientName(final String clientName) {
         return Result.tryCatch(() -> {
 
             final SebClientConfigRecord record = this.sebClientConfigRecordMapper
@@ -187,8 +184,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                 .where(SebClientConfigRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
                 .and(SebClientConfigRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
                 .build()
-                .execute()
-                .longValue() > 0;
+                .execute() > 0;
     }
 
     @Override
@@ -234,11 +230,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                     this.sebClientConfigRecordMapper
                             .insert(newRecord);
 
-                    this.additionalAttributesDAO.saveAdditionalAttribute(
-                            EntityType.SEB_CLIENT_CONFIGURATION,
-                            newRecord.getId(),
-                            SebClientConfig.ATTR_FALLBACK_START_URL,
-                            sebClientConfig.fallbackStartURL);
+                    saveAdditionalAttributes(sebClientConfig, newRecord.getId());
 
                     return newRecord;
                 })
@@ -266,11 +258,7 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
             this.sebClientConfigRecordMapper
                     .updateByPrimaryKeySelective(newRecord);
 
-            this.additionalAttributesDAO.saveAdditionalAttribute(
-                    EntityType.SEB_CLIENT_CONFIGURATION,
-                    newRecord.getId(),
-                    SebClientConfig.ATTR_FALLBACK_START_URL,
-                    sebClientConfig.fallbackStartURL);
+            saveAdditionalAttributes(sebClientConfig, newRecord.getId());
 
             return this.sebClientConfigRecordMapper
                     .selectByPrimaryKey(sebClientConfig.id);
@@ -300,17 +288,14 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<SebClientConfig>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-
-            return this.sebClientConfigRecordMapper.selectByExample()
-                    .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.sebClientConfigRecordMapper.selectByExample()
+                .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -336,28 +321,24 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<CharSequence> getConfigPasswortCipher(final String modelId) {
+    public Result<CharSequence> getConfigPasswordCipher(final String modelId) {
         return recordByModelId(modelId)
-                .map(rec -> rec.getEncryptSecret());
+                .map(SebClientConfigRecord::getEncryptSecret);
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.sebClientConfigRecordMapper.selectIdsByExample()
-                    .where(SebClientConfigRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.sebClientConfigRecordMapper.selectIdsByExample()
+                .where(SebClientConfigRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
+                .collect(Collectors.toList()));
     }
 
     private Result<SebClientConfigRecord> recordByModelId(final String modelId) {
-        return Result.tryCatch(() -> {
-            return recordById(Long.parseLong(modelId)).getOrThrow();
-        });
+        return Result.tryCatch(() -> recordById(Long.parseLong(modelId)).getOrThrow());
     }
 
     private Result<SebClientConfigRecord> recordById(final Long id) {
@@ -375,30 +356,57 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
     }
 
     private Result<SebClientConfig> toDomainModel(final SebClientConfigRecord record) {
-        final String fallbackURL = this.additionalAttributesDAO.getAdditionalAttributes(
-                EntityType.SEB_CLIENT_CONFIGURATION,
-                record.getId())
+
+        Map<String, AdditionalAttributeRecord> additionalAttributes = this.additionalAttributesDAO
+                .getAdditionalAttributes(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    record.getId())
                 .getOrThrow()
                 .stream()
-                .filter(rec -> SebClientConfig.ATTR_FALLBACK_START_URL.equals(rec.getName()))
-                .findFirst()
-                .map(AdditionalAttributeRecord::getValue)
-                .orElse(null);
+                .collect(Collectors.toMap(
+                        AdditionalAttributeRecord::getName,
+                        Function.identity()));
+
+        additionalAttributes.get(SebClientConfig.ATTR_CONFIG_PURPOSE);
 
         return Result.tryCatch(() -> new SebClientConfig(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
-                fallbackURL,
-                record.getDate(),
+                additionalAttributes.containsKey(SebClientConfig.ATTR_CONFIG_PURPOSE)
+                        ? ConfigPurpose.valueOf(additionalAttributes.get(SebClientConfig.ATTR_CONFIG_PURPOSE).getValue())
+                        : ConfigPurpose.START_EXAM,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK) &&
+                        BooleanUtils.toBoolean(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK).getValue()),
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_START_URL)
+                        ? additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_START_URL).getValue()
+                        : null,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_TIMEOUT)
+                        ? Long.parseLong(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_TIMEOUT).getValue())
+                        : null,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_ATTEMPTS)
+                        ? Short.parseShort(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
+                        : null,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL)
+                        ? Short.parseShort(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL).getValue())
+                        : null,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_PASSWORD)
+                        ? additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_PASSWORD).getValue()
+                        : null,
                 null,
+                additionalAttributes.containsKey(SebClientConfig.ATTR_QUIT_PASSWORD)
+                        ? additionalAttributes.get(SebClientConfig.ATTR_QUIT_PASSWORD).getValue()
+                        : null,
+                null,
+                record.getDate(),
+                record.getEncryptSecret(),
                 null,
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 
     private String getEncryptionPassword(final SebClientConfig sebClientConfig) {
         if (sebClientConfig.hasEncryptionSecret() &&
-                !sebClientConfig.encryptSecret.equals(sebClientConfig.confirmEncryptSecret)) {
+                !sebClientConfig.encryptSecret.equals(sebClientConfig.encryptSecretConfirm)) {
             throw new APIMessageException(ErrorMessage.PASSWORD_MISMATCH);
         }
 
@@ -420,10 +428,98 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                 .build()
                 .execute();
 
-        if (otherWithSameName != null && otherWithSameName.longValue() > 0) {
+        if (otherWithSameName != null && otherWithSameName > 0) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
                     "clientconfig:name:name.notunique"));
+        }
+    }
+
+    private void saveAdditionalAttributes(SebClientConfig sebClientConfig, Long configId) {
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                configId,
+                SebClientConfig.ATTR_CONFIG_PURPOSE,
+                (sebClientConfig.configPurpose != null)
+                        ? sebClientConfig.configPurpose.name()
+                        : ConfigPurpose.START_EXAM.name());
+
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                configId,
+                SebClientConfig.ATTR_FALLBACK,
+                String.valueOf(BooleanUtils.isTrue(sebClientConfig.fallback)));
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_START_URL,
+                    sebClientConfig.fallbackStartURL);
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_START_URL);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_TIMEOUT,
+                    sebClientConfig.fallbackTimeout.toString());
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_TIMEOUT);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_ATTEMPTS,
+                    sebClientConfig.fallbackAttempts.toString());
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_ATTEMPTS);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+                    sebClientConfig.fallbackAttemptInterval.toString());
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback) && StringUtils.isNotBlank(sebClientConfig.fallbackPassword)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_PASSWORD,
+                    this.clientCredentialService.encrypt(sebClientConfig.fallbackPassword).toString());
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_FALLBACK_PASSWORD);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.fallback) && StringUtils.isNotBlank(sebClientConfig.quitPassword)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SebClientConfig.ATTR_QUIT_PASSWORD,
+                    this.clientCredentialService.encrypt(sebClientConfig.quitPassword).toString());
+        } else {
+            this.additionalAttributesDAO.delete(
+                    configId,
+                    SebClientConfig.ATTR_QUIT_PASSWORD);
         }
     }
 

@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -320,8 +321,9 @@ public class TableConverterTest {
     }
 
     private AttributeValueConverterService createAttributeValueConverterService() {
+        final ClientCredentialService clientCredentialServiceMock = Mockito.mock(ClientCredentialService.class);
         final List<AttributeValueConverter> converter = new ArrayList<>();
-        converter.add(new StringConverter());
+        converter.add(new StringConverter(clientCredentialServiceMock));
         return new AttributeValueConverterServiceImpl(converter);
     }
 

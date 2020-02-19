@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -40,11 +42,19 @@ public class StringConverter implements AttributeValueConverter {
                     AttributeType.DECIMAL,
                     AttributeType.COMBO_SELECTION)));
 
+
+
     private static final String XML_TEMPLATE = "<key>%s</key><string>%s</string>";
     private static final String XML_TEMPLATE_EMPTY = "<key>%s</key><string />";
 
     private static final String JSON_TEMPLATE = "\"%s\":\"%s\"";
     private static final String JSON_TEMPLATE_EMPTY = "\"%s\":\"\"";
+
+    private final ClientCredentialService clientCredentialService;
+
+    public StringConverter(final ClientCredentialService clientCredentialService) {
+        this.clientCredentialService = clientCredentialService;
+    }
 
     @Override
     public Set<AttributeType> types() {
@@ -85,15 +95,38 @@ public class StringConverter implements AttributeValueConverter {
             final String emptyTemplate) throws IOException {
 
         final String val = (value != null && value.value != null) ? value.value : attribute.getDefaultValue();
+        String realName = AttributeValueConverter.extractName(attribute);
         if (StringUtils.isNotBlank(val)) {
             out.write(Utils.toByteArray(String.format(
                     template,
-                    AttributeValueConverter.extractName(attribute),
-                    val)));
+                    realName,
+                    convertPassword(realName, val))));
         } else {
             out.write(Utils.toByteArray(String.format(
                     emptyTemplate,
-                    AttributeValueConverter.extractName(attribute))));
+                    realName)));
+        }
+    }
+
+    private CharSequence convertPassword(
+            final String attributeName,
+            final String value) {
+
+        if (StringUtils.isBlank(value)) {
+            return value;
+        }
+
+        if (!ExamConfigXMLParser.PASSWORD_ATTRIBUTES.contains(attributeName)) {
+            return value;
+        }
+
+        // decrypt internally encrypted password and hash it for export
+        // NOTE: see special case description in ExamConfigXMLParser.createConfigurationValue
+        String plainText = this.clientCredentialService.decrypt(value).toString();
+        if (plainText.endsWith(ExamConfigXMLParser.IMPORTED_PASSWORD_MARKER)) {
+            return plainText.replace(ExamConfigXMLParser.IMPORTED_PASSWORD_MARKER, StringUtils.EMPTY);
+        } else {
+            return Utils.hash_SHA_256_Base_16(plainText);
         }
     }
 

@@ -15,6 +15,7 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -85,6 +86,14 @@ public class ExamConfigXMLParser extends DefaultHandler {
     private static final Set<String> KNOWN_INLINE_TABLES = new HashSet<>(Arrays.asList(
             "arguments"));
 
+    public static final Set<String> PASSWORD_ATTRIBUTES = new HashSet<>(Arrays.asList(
+            "hashedQuitPassword",
+            "hashedAdminPassword"
+    ));
+
+    public static final String IMPORTED_PASSWORD_MARKER = "_IMPORTED_PASSWORD";
+
+    private final Cryptor cryptor;
     private final Consumer<ConfigurationValue> valueConsumer;
     private final Function<String, ConfigurationAttribute> attributeResolver;
     private final Long institutionId;
@@ -96,12 +105,14 @@ public class ExamConfigXMLParser extends DefaultHandler {
     private Boolean createNewDesktop = null;
 
     public ExamConfigXMLParser(
+            final Cryptor cryptor,
             final Long institutionId,
             final Long configId,
             final Consumer<ConfigurationValue> valueConsumer,
             final Function<String, ConfigurationAttribute> attributeResolver) {
 
         super();
+        this.cryptor = cryptor;
         this.valueConsumer = valueConsumer;
         this.attributeResolver = attributeResolver;
         this.institutionId = institutionId;
@@ -428,6 +439,21 @@ public class ExamConfigXMLParser extends DefaultHandler {
                 log.warn("Unknown attribute. name={} value={}", name, value);
             }
             return null;
+        }
+
+        if (PASSWORD_ATTRIBUTES.contains(name)) {
+            // NOTE this is a special case, if a hashed password is imported it is not possible to view this password
+            //      later in plain text to the administrator. Therefore this password hash is marked here as imported
+            //      and internally encrypted as usual. So the password will be decrypted while viewing and is recognizable
+            //      for the export so that the password can be decrypted with internal encryption and then, if import
+            //      marked, just send to the export by removing the marker and do not rehash the already hashed password.
+            return new ConfigurationValue(
+                    null,
+                    this.institutionId,
+                    this.configId,
+                    attribute.id,
+                    listIndex,
+                    StringUtils.isNotBlank(value) ? cryptor.encrypt(value + IMPORTED_PASSWORD_MARKER).toString() : value);
         }
 
         return new ConfigurationValue(

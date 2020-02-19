@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 
 import javax.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.eclipse.rap.rwt.RWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,7 @@ public class PageServiceImpl implements PageService {
     private static final String ATTR_PAGE_STATE = "PAGE_STATE";
     private static final ListenerComparator LIST_COMPARATOR = new ListenerComparator();
 
+    private final Cryptor cryptor;
     private final JSONMapper jsonMapper;
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
@@ -85,12 +87,14 @@ public class PageServiceImpl implements PageService {
     private final CurrentUser currentUser;
 
     public PageServiceImpl(
+            final Cryptor cryptor,
             final JSONMapper jsonMapper,
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final ResourceService resourceService,
             final CurrentUser currentUser) {
 
+        this.cryptor = cryptor;
         this.jsonMapper = jsonMapper;
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
@@ -337,7 +341,7 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public FormBuilder formBuilder(final PageContext pageContext, final int rows) {
-        return new FormBuilder(this, pageContext, rows);
+        return new FormBuilder(this, pageContext, cryptor, rows);
     }
 
     @Override

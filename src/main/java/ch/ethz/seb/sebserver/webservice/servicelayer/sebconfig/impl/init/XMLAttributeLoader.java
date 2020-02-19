@@ -17,6 +17,7 @@ import java.util.function.Function;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXM
 public class XMLAttributeLoader {
 
     private static final Logger log = LoggerFactory.getLogger(XMLAttributeLoader.class);
+
+    private final Cryptor cryptor;
+
+    public XMLAttributeLoader(Cryptor cryptor) {
+        this.cryptor = cryptor;
+    }
 
     public Collection<ConfigurationValue> loadFromXML(
             final Long institutionId,
@@ -57,6 +64,7 @@ public class XMLAttributeLoader {
             final Collection<ConfigurationValue> values = new ArrayList<>();
 
             final ExamConfigXMLParser examConfigImportHandler = new ExamConfigXMLParser(
+                    cryptor,
                     institutionId,
                     configurationId,
                     values::add,

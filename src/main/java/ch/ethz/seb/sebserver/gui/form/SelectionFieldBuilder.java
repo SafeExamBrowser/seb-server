@@ -55,7 +55,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
 
         if (builder.readonly || this.readonly) {
             buildReadOnly(builder, titleLabel);
@@ -64,7 +64,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         }
     }
 
-    private void buildInput(final FormBuilder builder, final Label titleLabel) {
+    private void buildInput(final FormBuilder builder, final Control titleLabel) {
 
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final String actionKey = (this.label != null) ? this.label.name + ".action" : null;
@@ -93,7 +93,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     }
 
     /* Build the read-only representation of the selection field */
-    private void buildReadOnly(final FormBuilder builder, final Label titleLabel) {
+    private void buildReadOnly(final FormBuilder builder, final Control titleLabel) {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO || this.type == Type.MULTI_CHECKBOX) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);

@@ -12,8 +12,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -40,6 +42,7 @@ public class FormBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(FormBuilder.class);
 
+    final Cryptor cryptor;
     final I18nSupport i18nSupport;
     final PageService pageService;
     final WidgetFactory widgetFactory;
@@ -56,13 +59,15 @@ public class FormBuilder {
     public FormBuilder(
             final PageService pageService,
             final PageContext pageContext,
+            final Cryptor cryptor,
             final int rows) {
 
+        this.cryptor = cryptor;
         this.i18nSupport = pageService.getI18nSupport();
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
         this.pageContext = pageContext;
-        this.form = new Form(pageService.getJSONMapper());
+        this.form = new Form(pageService.getJSONMapper(), cryptor);
 
         this.formParent = this.widgetFactory.formGrid(
                 pageContext.getParent(),
@@ -214,9 +219,16 @@ public class FormBuilder {
         return new TextFieldBuilder(name, label, value);
     }
 
-    public static TextFieldBuilder text(final String name, final LocTextKey label,
+    public static TextFieldBuilder text(
+            final String name,
+            final LocTextKey label,
             final Supplier<String> valueSupplier) {
+
         return new TextFieldBuilder(name, label, valueSupplier.get());
+    }
+
+    public static PasswordFieldBuilder password(final String name, final LocTextKey label, final CharSequence value) {
+        return new PasswordFieldBuilder(name, label, value);
     }
 
     public static SelectionFieldBuilder singleSelection(

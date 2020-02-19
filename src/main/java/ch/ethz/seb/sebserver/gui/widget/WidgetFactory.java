@@ -115,7 +115,9 @@ public class WidgetFactory {
         HELP("help.png"),
         LOCK("lock.png"),
         UNLOCK("unlock.png"),
-        RESTRICTION("restriction.png");
+        RESTRICTION("restriction.png"),
+        VISIBILITY("visibility.png"),
+        VISIBILITY_OFF("visibility_off.png");
 
         public String fileName;
         private ImageData image = null;
@@ -189,7 +191,9 @@ public class WidgetFactory {
         LOGIN_BACK("login-back"),
         SCROLL("scroll"),
 
-        LIST_NAVIGATION("list-nav")
+        LIST_NAVIGATION("list-nav"),
+        PLAIN_PWD("pwdplain"),
+        COLOR_BOX("colorbox")
 
         ;
 
@@ -403,7 +407,7 @@ public class WidgetFactory {
 
     public Text numberInput(final Composite content, final Consumer<String> numberCheck, final boolean readonly) {
         if (readonly) {
-            return new Text(content, SWT.RIGHT | SWT.READ_ONLY);
+            return new Text(content, SWT.LEFT | SWT.READ_ONLY);
         }
 
         final Text numberInput = new Text(content, SWT.RIGHT | SWT.BORDER);

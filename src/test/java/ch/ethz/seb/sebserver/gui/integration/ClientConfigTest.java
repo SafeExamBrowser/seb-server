@@ -34,6 +34,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
 
         final Result<SebClientConfig> call = restService.getBuilder(NewClientConfig.class)
                 .withQueryParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
+                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(call);
@@ -50,6 +51,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
 
         final Result<SebClientConfig> call = restService.getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
+                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(call);
@@ -72,6 +74,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
         // create one
         final SebClientConfig config = restService.getBuilder(NewClientConfig.class)
                 .withQueryParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
+                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
                 .call()
                 .getOrThrow();
 
@@ -104,6 +107,15 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.id,
                         config.institutionId,
                         "new client config",
+                        SebClientConfig.ConfigPurpose.START_EXAM,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         null,
                         null,
                         "password",
@@ -122,6 +134,15 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.id,
                         config.institutionId,
                         "new client config",
+                        SebClientConfig.ConfigPurpose.START_EXAM,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         null,
                         null,
                         "password",
@@ -133,7 +154,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
         assertEquals(config.id, newConfig.id);
         assertEquals("new client config", newConfig.name);
         assertTrue(newConfig.active);
-        assertNull(newConfig.getEncryptSecret());
+        assertNotNull(newConfig.getEncryptSecret());
 
         // deactivate
         final EntityProcessingReport deactivationReport = restService.getBuilder(DeactivateClientConfig.class)

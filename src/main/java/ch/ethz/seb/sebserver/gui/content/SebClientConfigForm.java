@@ -8,8 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -42,6 +48,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 @Lazy
 @Component
 @GuiProfile
@@ -53,14 +63,50 @@ public class SebClientConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.form.title");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.name");
-    private static final LocTextKey FORM_FALLBACK_URL_TEXT_KEY =
-            new LocTextKey("sebserver.clientconfig.form.fallback-url");
+
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.date");
+
+    private static final LocTextKey CLIENT_PURPOSE_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebConfigPurpose");
+    private static final LocTextKey FALLBACK_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.fallback");
+    private static final LocTextKey FALLBACK_URL_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.fallback-url");
+    private static final LocTextKey FALLBACK_TIMEOUT_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackTimeout");
+    private static final LocTextKey FALLBACK_ATTEMPTS_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackAttempts");
+    private static final LocTextKey FALLBACK_ATTEMPT_INTERVAL_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackAttemptInterval");
+    private static final LocTextKey FALLBACK_PASSWORD_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackPasswordHash");
+    private static final LocTextKey FALLBACK_PASSWORD_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackPasswordHash");
+    private static final LocTextKey QUIT_PASSWORD_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.hashedQuitPassword");
+    private static final LocTextKey QUIT_PASSWORD_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.hashedQuitPassword.confirm");
+
     private static final LocTextKey FORM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret");
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret.confirm");
+
+    private static final Set<String> FALLBACK_ATTRIBUTES = new HashSet<>(Arrays.asList(
+            SebClientConfig.ATTR_FALLBACK_START_URL,
+            SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+            SebClientConfig.ATTR_FALLBACK_ATTEMPTS,
+            SebClientConfig.ATTR_FALLBACK_TIMEOUT,
+            SebClientConfig.ATTR_FALLBACK_PASSWORD,
+            SebClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
+            SebClientConfig.ATTR_QUIT_PASSWORD,
+            SebClientConfig.ATTR_QUIT_PASSWORD_CONFIRM
+    ));
+
+    private static final String FALLBACK_DEFAULT_TIME = String.valueOf(2 * Constants.MINUTE_IN_MILLIS);
+    private static final String FALLBACK_DEFAULT_ATTEMPTS = String.valueOf(5);
+    private static final String FALLBACK_DEFAULT_ATTEMPT_INTERVAL = String.valueOf(2 * Constants.SECOND_IN_MILLIS);
 
     private final PageService pageService;
     private final RestService restService;
@@ -131,31 +177,146 @@ public class SebClientConfigForm implements TemplateComposer {
                 .putStaticValue(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID,
                         String.valueOf(clientConfig.getInstitutionId()))
-                .addField(FormBuilder.text(
-                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        clientConfig.name))
-                .addField(FormBuilder.text(
-                        SebClientConfig.ATTR_FALLBACK_START_URL,
-                        FORM_FALLBACK_URL_TEXT_KEY,
-                        clientConfig.fallbackStartURL))
+
                 .addFieldIf(() -> !isNew,
                         () -> FormBuilder.text(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
                                 FORM_DATE_TEXT_KEY,
                                 i18nSupport.formatDisplayDateWithTimeZone(clientConfig.date))
                                 .readonly(true))
+
                 .addField(FormBuilder.text(
+                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
+                        FORM_NAME_TEXT_KEY,
+                        clientConfig.name)
+                        .mandatory(!isReadonly))
+
+                .addField(FormBuilder.singleSelection(
+                        SebClientConfig.ATTR_CONFIG_PURPOSE,
+                        CLIENT_PURPOSE_TEXT_KEY,
+                        clientConfig.configPurpose != null
+                                ? clientConfig.configPurpose.name()
+                                : SebClientConfig.ConfigPurpose.START_EXAM.name(),
+                        () -> pageService.getResourceService().sebClientConfigPurposeResources())
+                        .mandatory(!isReadonly))
+
+                .withDefaultSpanInput(3)
+                .addField(FormBuilder.password(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
-                        FORM_ENCRYPT_SECRET_TEXT_KEY)
-                        .asPasswordField())
+                        FORM_ENCRYPT_SECRET_TEXT_KEY,
+                        clientConfig.getEncryptSecret()))
+
+                .withDefaultSpanEmptyCell(3)
+                .addFieldIf(
+                        () -> !isReadonly,
+                        () -> FormBuilder.password(
+                                SebClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM,
+                                FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
+                                clientConfig.getEncryptSecret()))
+
+                .addField(FormBuilder.checkbox(
+                        SebClientConfig.ATTR_FALLBACK,
+                        FALLBACK_TEXT_KEY,
+                        clientConfig.fallback != null
+                                ? clientConfig.fallback.toString()
+                                : Constants.FALSE_STRING)
+                        )
+
+                .withDefaultSpanInput(5)
                 .addField(FormBuilder.text(
-                        SebClientConfig.ATTR_CONFIRM_ENCRYPT_SECRET,
-                        FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY)
-                        .asPasswordField())
+                        SebClientConfig.ATTR_FALLBACK_START_URL,
+                        FALLBACK_URL_TEXT_KEY,
+                        clientConfig.fallbackStartURL)
+                        .mandatory(!isReadonly))
+
+                .withDefaultSpanEmptyCell(1)
+                .withDefaultSpanInput(2)
+                .addField(FormBuilder.text(
+                        SebClientConfig.ATTR_FALLBACK_ATTEMPTS,
+                        FALLBACK_ATTEMPTS_TEXT_KEY,
+                        clientConfig.fallbackAttempts != null
+                                ? String.valueOf(clientConfig.fallbackAttempts)
+                                : FALLBACK_DEFAULT_ATTEMPTS)
+                        .asNumber(this::checkNaturalNumber)
+                        .mandatory(!isReadonly))
+
+                .withDefaultSpanEmptyCell(0)
+                .withEmptyCellSeparation(false)
+                .withDefaultSpanLabel(1)
+                .addField(FormBuilder.text(
+                        SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+                        FALLBACK_ATTEMPT_INTERVAL_TEXT_KEY,
+                        clientConfig.fallbackAttemptInterval != null
+                                ? String.valueOf(clientConfig.fallbackAttemptInterval)
+                                : FALLBACK_DEFAULT_ATTEMPT_INTERVAL)
+                        .asNumber(this::checkNaturalNumber)
+                        .mandatory(!isReadonly))
+
+                .withEmptyCellSeparation(true)
+                .withDefaultSpanEmptyCell(1)
+                .withDefaultSpanLabel(2)
+                .addField(FormBuilder.text(
+                        SebClientConfig.ATTR_FALLBACK_TIMEOUT,
+                        FALLBACK_TIMEOUT_TEXT_KEY,
+                        clientConfig.fallbackTimeout != null
+                                ? String.valueOf(clientConfig.fallbackTimeout)
+                                : FALLBACK_DEFAULT_TIME)
+                        .asNumber(this::checkNaturalNumber)
+                        .mandatory(!isReadonly))
+
+                .withEmptyCellSeparation(true)
+                .withDefaultSpanEmptyCell(4)
+                .withDefaultSpanInput(2)
+                .withDefaultSpanLabel(2)
+                .addField(FormBuilder.password(
+                        SebClientConfig.ATTR_FALLBACK_PASSWORD,
+                        FALLBACK_PASSWORD_TEXT_KEY,
+                        clientConfig.getFallbackPassword()))
+
+                .withEmptyCellSeparation(false)
+                .withDefaultSpanLabel(1)
+                .addField(FormBuilder.password(
+                        SebClientConfig.ATTR_QUIT_PASSWORD,
+                        QUIT_PASSWORD_TEXT_KEY,
+                        clientConfig.getQuitPassword()))
+
+                .withEmptyCellSeparation(true)
+                .withDefaultSpanEmptyCell(1)
+                .withDefaultSpanInput(2)
+                .withDefaultSpanLabel(2)
+                .addFieldIf(
+                        () -> !isReadonly,
+                        () -> FormBuilder.password(
+                                SebClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
+                                FALLBACK_PASSWORD_CONFIRM_TEXT_KEY,
+                                clientConfig.getFallbackPasswordConfirm()))
+
+                .withEmptyCellSeparation(false)
+                .withDefaultSpanLabel(1)
+                .addFieldIf(
+                        () -> !isReadonly,
+                        () -> FormBuilder.password(
+                                SebClientConfig.ATTR_QUIT_PASSWORD_CONFIRM,
+                                QUIT_PASSWORD_CONFIRM_TEXT_KEY,
+                                clientConfig.getQuitPasswordConfirm()))
+
+
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewClientConfig.class)
                         : this.restService.getRestCall(SaveClientConfig.class));
+
+        formHandle.process(
+                FALLBACK_ATTRIBUTES::contains,
+                ffa -> ffa.setVisible(BooleanUtils.isTrue(clientConfig.fallback))
+        );
+
+        formHandle.getForm().getFieldInput(SebClientConfig.ATTR_FALLBACK)
+                .addListener(SWT.Selection, event -> {
+                    formHandle.process(
+                            FALLBACK_ATTRIBUTES::contains,
+                            ffa -> ffa.setVisible(((Button) event.widget).getSelection())
+                    );
+                });
 
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
@@ -206,6 +367,16 @@ public class SebClientConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
+    }
+
+    private void checkNaturalNumber(String value) {
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
+        long num = Long.parseLong(value);
+        if (num < 0) {
+            throw new PageMessageException("Number must be positive");
+        }
     }
 
 }

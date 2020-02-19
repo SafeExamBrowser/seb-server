@@ -96,16 +96,14 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ExamConfigurationMap>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectByExample()
-                    .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
+                .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -155,7 +153,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<CharSequence> getConfigPasswortCipher(final Long examId, final Long configurationNodeId) {
+    public Result<CharSequence> getConfigPasswordCipher(final Long examId, final Long configurationNodeId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
                 .where(
@@ -185,7 +183,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(mapping -> mapping.getConfigurationNodeId())
+                .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                 .collect(Utils.toSingleton()));
     }
 
@@ -203,7 +201,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(mapping -> mapping.getConfigurationNodeId())
+                .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                 .collect(Utils.toSingleton()));
     }
 
@@ -218,7 +216,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(mapping -> mapping.getConfigurationNodeId())
+                .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                 .collect(Collectors.toList()));
     }
 
@@ -313,36 +311,32 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Long>> getExamIdsForConfigNodeId(final Long configurationNodeId) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configurationNodeId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(record -> record.getExamId())
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(configurationNodeId))
+                .build()
+                .execute()
+                .stream()
+                .map(ExamConfigurationMapRecord::getExamId)
+                .collect(Collectors.toList()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Long>> getExamIdsForConfigId(final Long configurationId) {
-        return Result.tryCatch(() -> {
-            return this.configurationNodeRecordMapper.selectIdsByExample()
-                    .leftJoin(ConfigurationRecordDynamicSqlSupport.configurationRecord)
-                    .on(
-                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            equalTo(ConfigurationNodeRecordDynamicSqlSupport.id))
-                    .where(
-                            ConfigurationRecordDynamicSqlSupport.id,
-                            isEqualTo(configurationId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
-        })
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectIdsByExample()
+                .leftJoin(ConfigurationRecordDynamicSqlSupport.configurationRecord)
+                .on(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        equalTo(ConfigurationNodeRecordDynamicSqlSupport.id))
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.id,
+                        isEqualTo(configurationId))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton()))
                 .flatMap(this::getExamIdsForConfigNodeId);
     }
 
@@ -379,7 +373,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     (exam != null) ? exam.type : ExamType.UNDEFINED,
                     record.getConfigurationNodeId(),
                     record.getUserNames(),
-                    null,
+                    record.getEncryptSecret(),
                     null,
                     config.getName(),
                     config.getDescription(),
@@ -419,64 +413,56 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectIdsByExample()
-                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
-                    .on(
-                            ExamRecordDynamicSqlSupport.id,
-                            equalTo(ExamConfigurationMapRecordDynamicSqlSupport.examId))
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(ExamConfigurationMapRecordDynamicSqlSupport.examId))
 
-                    .where(
-                            ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                    .collect(Collectors.toList());
-        });
+                .where(
+                        ExamRecordDynamicSqlSupport.lmsSetupId,
+                        isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.examId,
-                            isEqualTo(Long.valueOf(examKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        isEqualTo(Long.valueOf(examKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfConfig(final EntityKey configKey) {
-        return Result.tryCatch(() -> {
-            return this.examConfigurationMapRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(Long.valueOf(configKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(Long.valueOf(configKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                .collect(Collectors.toList()));
     }
 
     private String getEncryptionPassword(final ExamConfigurationMap examConfigurationMap) {

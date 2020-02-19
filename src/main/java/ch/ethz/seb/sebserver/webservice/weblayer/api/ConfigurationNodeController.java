@@ -270,13 +270,17 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         final Result<Configuration> doImport = doImport(password, request, followup);
         if (doImport.hasError()) {
 
-            // rollback of the new configuration
+            // rollback if the new configuration
             this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
                     followup.configurationNodeId,
                     EntityType.CONFIGURATION_NODE))));
         }
 
-        return doImport
+        Configuration config = doImport
+                .getOrThrow();
+
+        return this.configurationDAO
+                .saveToHistory(config.configurationNodeId)
                 .getOrThrow();
     }
 

@@ -25,31 +25,7 @@ public interface ClientConfigService {
 
     Logger log = LoggerFactory.getLogger(ClientConfigService.class);
 
-    public static final String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
-
-    static String SEB_CLIENT_CONFIG_EXAMPLE_XML =
-            "  <dict>\r\n" +
-                    "    <key>sebMode</key>\r\n" +
-                    "    <integer>1</integer>\r\n" +
-                    "    <key>sebConfigPurpose</key>\r\n" +
-                    "    <integer>1</integer>\r\n" +
-                    "    <key>sebServerFallback</key>\r\n" +
-                    "    <%s />\r\n" +
-                    "    %s" +
-                    "    <key>sebServerURL</key>\r\n" +
-                    "    <string>%s</string>\r\n" +
-                    "    <key>sebServerConfiguration</key>\r\n" +
-                    "    <dict>\r\n" +
-                    "        <key>institution</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>clientName</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>clientSecret</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>apiDiscovery</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "    </dict>\r\n" +
-                    "  </dict>\r\n";
+    String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
 
     /** Indicates if there is any SebClientConfiguration for a specified institution.
      *

@@ -43,7 +43,7 @@ public interface SebClientConfigDAO extends
      *
      * @param modelId the model
      * @return encrypted configuration password */
-    Result<CharSequence> getConfigPasswortCipher(String modelId);
+    Result<CharSequence> getConfigPasswordCipher(String modelId);
 
     /** Get the stored encrypted configuration password from a specified SEB client configuration.
      * The SEB client configuration password is used to encrypt a SEB Client Configuration.
@@ -52,7 +52,7 @@ public interface SebClientConfigDAO extends
      *
      * @param clientName the client name
      * @return encrypted configuration password */
-    Result<CharSequence> getConfigPasswortCipherByClientName(String clientName);
+    Result<CharSequence> getConfigPasswordCipherByClientName(String clientName);
 
     @Override
     @CacheEvict(

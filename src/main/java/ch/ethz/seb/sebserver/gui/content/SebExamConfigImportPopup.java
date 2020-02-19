@@ -89,7 +89,7 @@ final class SebExamConfigImportPopup {
         try {
             final Form form = formHandle.getForm();
             final EntityKey entityKey = formHandle.getContext().getEntityKey();
-            final Control fieldControl = form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
+            final Control fieldControl = form.getFieldInput(API.IMPORT_FILE_ATTR_NAME);
             final PageContext context = formHandle.getContext();
 
             // Ad-hoc field validation
@@ -270,7 +270,7 @@ final class SebExamConfigImportPopup {
 
         void cancelUpload() {
             if (this.form != null) {
-                final Control fieldControl = this.form.getFieldControl(API.IMPORT_FILE_ATTR_NAME);
+                final Control fieldControl = this.form.getFieldInput(API.IMPORT_FILE_ATTR_NAME);
                 if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
                     ((FileUploadSelection) fieldControl).close();
                 }

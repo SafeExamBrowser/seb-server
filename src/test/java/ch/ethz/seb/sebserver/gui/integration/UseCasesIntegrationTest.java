@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -853,7 +854,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Result<SebClientConfig> newConfigResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
                 .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(newConfigResponse);
@@ -886,9 +892,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Result<SebClientConfig> configWithPasswordResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "With Password Protection")
+                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
                 .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
                 .withFormParam(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET, "123")
-                .withFormParam(SebClientConfig.ATTR_CONFIRM_ENCRYPT_SECRET, "123")
+                .withFormParam(SebClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM, "123")
                 .call();
 
         assertNotNull(configWithPasswordResponse);
@@ -1091,7 +1102,10 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 restService);
 
         // update a value -- grab first
-        final ConfigurationValue value = values.get(0);
+        ConfigurationValue value = values.get(0);
+        if (value.attributeId == 1) {
+            value = values.get(1);
+        }
         ConfigurationValue newValue = new ConfigurationValue(
                 null, value.institutionId, value.configurationId,
                 value.attributeId, value.listIndex, "2");
@@ -1188,8 +1202,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(valuesResponse);
         assertFalse(valuesResponse.hasError());
         values = valuesResponse.get();
+        final ConfigurationValue _value = value;
         final ConfigurationValue currentValue =
-                values.stream().filter(v -> v.attributeId == value.attributeId).findFirst().orElse(null);
+                values.stream().filter(v -> v.attributeId == _value.attributeId).findFirst().orElse(null);
         assertNotNull(currentValue);
         assertEquals("2", currentValue.value);
     }
@@ -1336,12 +1351,10 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetFollowupConfiguration());
 
         // get all configuration attributes
-        final Collection<ConfigurationAttribute> attributes = restService
+        final Collection<ConfigurationAttribute> attributes = new ArrayList<>(restService
                 .getBuilder(GetConfigAttributes.class)
                 .call()
-                .getOrThrow()
-                .stream()
-                .collect(Collectors.toList());
+                .getOrThrow());
 
         // get configuration page
         final Result<Page<ConfigurationNode>> pageResponse = restService

@@ -27,6 +27,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,19 +73,22 @@ public class ExamConfigIO {
     private final ConfigurationDAO configurationDAO;
     private final AttributeValueConverterService attributeValueConverterService;
     private final ZipService zipService;
+    private final Cryptor cryptor;
 
     protected ExamConfigIO(
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ConfigurationDAO configurationDAO,
             final AttributeValueConverterService attributeValueConverterService,
-            final ZipService zipService) {
+            final ZipService zipService,
+            final Cryptor cryptor) {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.configurationDAO = configurationDAO;
         this.attributeValueConverterService = attributeValueConverterService;
         this.zipService = zipService;
+        this.cryptor = cryptor;
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
@@ -188,6 +192,7 @@ public class ExamConfigIO {
             // the SAX handler with a ConfigValue sink that saves the values to DB
             // and a attribute-name/id mapping function with pre-created mapping
             final ExamConfigXMLParser examConfigImportHandler = new ExamConfigXMLParser(
+                    cryptor,
                     institutionId,
                     configurationId,
                     value -> this.configurationValueDAO

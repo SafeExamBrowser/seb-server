@@ -99,16 +99,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ClientConnection>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.clientConnectionRecordMapper.selectByExample()
-                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ClientConnectionDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientConnectionDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override

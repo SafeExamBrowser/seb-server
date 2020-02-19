@@ -11,11 +11,15 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
@@ -107,14 +111,6 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
             outputStream.flush();
             outputStream.close();
         }
-
-//        final StreamingResponseBody stream = out -> {
-//            this.sebClientConfigService.exportSebClientConfiguration(
-//                    out,
-//                    modelId);
-//        };
-//
-//        return new ResponseEntity<>(stream, HttpStatus.OK);
     }
 
     @Override
@@ -152,12 +148,65 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
     }
 
     private SebClientConfig checkPasswordMatch(final SebClientConfig entity) {
-        if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.confirmEncryptSecret)) {
-            throw new APIMessageException(APIMessage.fieldValidationError(
+        Collection<APIMessage> errors = new ArrayList<>();
+        if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.encryptSecretConfirm)) {
+            errors.add(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
                             PasswordChange.ATTR_NAME_PASSWORD,
                             "clientConfig:confirm_encrypt_secret:password.mismatch")));
+        }
+
+        if (entity.hasFallbackPassword() && !entity.fallbackPassword.equals(entity.fallbackPasswordConfirm)) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
+                            "clientConfig:sebServerFallbackPasswordHashConfirm:password.mismatch")));
+        }
+
+        if (entity.hasQuitPassword() && !entity.quitPassword.equals(entity.quitPasswordConfirm)) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_QUIT_PASSWORD_CONFIRM,
+                            "clientConfig:hashedQuitPasswordConfirm:password.mismatch")));
+        }
+
+        if (BooleanUtils.isTrue(entity.fallback) && StringUtils.isBlank(entity.fallbackStartURL)) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_FALLBACK_START_URL,
+                            "clientConfig:startURL:notNull")));
+        }
+
+        if (BooleanUtils.isTrue(entity.fallback) && entity.fallbackTimeout == null) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_FALLBACK_TIMEOUT,
+                            "clientConfig:sebServerFallbackTimeout:notNull")));
+        }
+
+        if (BooleanUtils.isTrue(entity.fallback) && entity.fallbackAttempts == null) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_FALLBACK_ATTEMPTS,
+                            "clientConfig:sebServerFallbackAttempts:notNull")));
+        }
+
+        if (BooleanUtils.isTrue(entity.fallback) && entity.fallbackAttemptInterval == null) {
+            errors.add(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.SEB_CLIENT_CONFIGURATION.TYPE_NAME,
+                            SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+                            "clientConfig:sebServerFallbackAttemptInterval:notNull")));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new APIMessage.APIMessageException(errors);
         }
 
         return entity;

@@ -18,6 +18,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -48,6 +50,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class Form implements FormBinding {
 
+    private final Cryptor cryptor;
     private final JSONMapper jsonMapper;
     private final ObjectNode objectRoot;
 
@@ -55,8 +58,9 @@ public final class Form implements FormBinding {
     private final MultiValueMap<String, FormFieldAccessor> formFields = new LinkedMultiValueMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
 
-    Form(final JSONMapper jsonMapper) {
+    Form(final JSONMapper jsonMapper, final Cryptor cryptor) {
         this.jsonMapper = jsonMapper;
+        this.cryptor = cryptor;
         this.objectRoot = this.jsonMapper.createObjectNode();
     }
 
@@ -77,27 +81,23 @@ public final class Form implements FormBinding {
             appendFormUrlEncodedValue(buffer, entry.getKey(), entry.getValue());
         }
 
-        this.formFields.entrySet()
+        this.formFields.forEach((key, value) -> value
                 .stream()
-                .forEach(entry -> {
-                    entry.getValue()
-                            .stream()
-                            .filter(Form::valueApplicationFilter)
-                            .forEach(ffa -> {
-                                if (ffa.listValue) {
-                                    appendFormUrlEncodedValue(
-                                            buffer,
-                                            entry.getKey(),
-                                            ffa.getStringValue());
-                                } else {
-                                    appendFormUrlEncodedSingleValue(
-                                            buffer,
-                                            entry.getKey(),
-                                            ffa.getStringValue(),
-                                            false);
-                                }
-                            });
-                });
+                .filter(Form::valueApplicationFilter)
+                .forEach(ffa -> {
+                    if (ffa.listValue) {
+                        appendFormUrlEncodedValue(
+                                buffer,
+                                key,
+                                ffa.getStringValue());
+                    } else {
+                        appendFormUrlEncodedSingleValue(
+                                buffer,
+                                key,
+                                ffa.getStringValue(),
+                                false);
+                    }
+                }));
 
         return buffer.toString();
     }
@@ -123,45 +123,54 @@ public final class Form implements FormBinding {
         return this.formFields.containsKey(fieldName);
     }
 
-    Form putReadonlyField(final String name, final Label label, final Text field) {
+    Form putReadonlyField(final String name, final Control label, final Text field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
     }
 
-    Form putReadonlyField(final String name, final Label label, final Browser field) {
+    Form putReadonlyField(final String name, final Control label, final Browser field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
     }
 
-    Form putField(final String name, final Label label, final Text field, final Label errorLabel) {
+    Form putField(final String name, final Control label, final Text field, final Label errorLabel) {
         this.formFields.add(name, createAccessor(label, field, errorLabel));
         return this;
     }
 
-    Form putField(final String name, final Label label, final Button checkbox) {
+    Form putField(final String name, final Control label, final PasswordInput field, final Label errorLabel) {
+        this.formFields.add(name, createAccessor(label, field, errorLabel));
+        return this;
+    }
+
+    Form putField(final String name, final Control label, final Button checkbox) {
         this.formFields.add(name, createAccessor(label, checkbox, null));
         return this;
     }
 
-    void putField(final String name, final Label label, final Selection field, final Label errorLabel) {
+    Form putField(final String name, final Control label, final Selection field, final Label errorLabel) {
         this.formFields.add(name, createAccessor(label, field, errorLabel));
+        return this;
     }
 
-    void putField(final String name, final Label label, final ThresholdList field, final Label errorLabel) {
+    Form putField(final String name, final Control label, final ThresholdList field, final Label errorLabel) {
         this.formFields.add(name, createAccessor(label, field, errorLabel));
+        return this;
     }
 
-    void putField(final String name, final Label label, final ImageUploadSelection imageUpload,
+    Form putField(final String name, final Control label, final ImageUploadSelection imageUpload,
             final Label errorLabel) {
         final FormFieldAccessor createAccessor = createAccessor(label, imageUpload, errorLabel);
         imageUpload.setErrorHandler(createAccessor::setError);
         this.formFields.add(name, createAccessor);
+        return this;
     }
 
-    void putField(final String name, final Label label, final FileUploadSelection fileUpload, final Label errorLabel) {
+    Form putField(final String name, final Control label, final FileUploadSelection fileUpload, final Label errorLabel) {
         final FormFieldAccessor createAccessor = createAccessor(label, fileUpload, errorLabel);
         fileUpload.setErrorHandler(createAccessor::setError);
         this.formFields.add(name, createAccessor);
+        return this;
     }
 
     public String getFieldValue(final String attributeName) {
@@ -173,13 +182,13 @@ public final class Form implements FormBinding {
         return fieldAccessor.getStringValue();
     }
 
-    public Control getFieldControl(final String attributeName) {
+    public Control getFieldInput(final String attributeName) {
         final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
         if (fieldAccessor == null) {
             return null;
         }
 
-        return fieldAccessor.control;
+        return fieldAccessor.input;
     }
 
     public void setFieldValue(final String attributeName, final String attributeValue) {
@@ -222,14 +231,14 @@ public final class Form implements FormBinding {
 
         final Set<String> namesSet = this.groups.get(group);
         process(
-                name -> namesSet.contains(name),
+                namesSet::contains,
                 ffa -> ffa.setVisible(visible));
     }
 
     public void setFieldVisible(final boolean visible, final String fieldName) {
         final List<FormFieldAccessor> list = this.formFields.get(fieldName);
         if (list != null) {
-            list.stream().forEach(ffa -> ffa.setVisible(visible));
+            list.forEach(ffa -> ffa.setVisible(visible));
         }
     }
 
@@ -237,23 +246,19 @@ public final class Form implements FormBinding {
         return this.formFields.entrySet()
                 .stream()
                 .flatMap(entity -> entity.getValue().stream())
-                .filter(a -> a.hasError)
-                .findFirst()
-                .isPresent();
+                .anyMatch(a -> a.hasError);
     }
 
     public void clearErrors() {
         process(
                 Utils.truePredicate(),
-                ffa -> ffa.resetError());
+                FormFieldAccessor::resetError);
     }
 
     public void setFieldError(final String fieldName, final String errorMessage) {
         final List<FormFieldAccessor> list = this.formFields.get(fieldName);
         if (list != null) {
-            list
-                    .stream()
-                    .forEach(ffa -> ffa.setError(errorMessage));
+            list.forEach(ffa -> ffa.setError(errorMessage));
         }
     }
 
@@ -291,31 +296,43 @@ public final class Form implements FormBinding {
 
     // following are FormFieldAccessor implementations for all field types
     //@formatter:off
-    private FormFieldAccessor createReadonlyAccessor(final Label label, final Text field) {
+    private FormFieldAccessor createReadonlyAccessor(final Control label, final Text field) {
         return new FormFieldAccessor(label, field, null) {
             @Override public String getStringValue() { return null; }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
-    private FormFieldAccessor createReadonlyAccessor(final Label label, final Browser field) {
+    private FormFieldAccessor createReadonlyAccessor(final Control label, final Browser field) {
         return new FormFieldAccessor(label, field, null) {
             @Override public String getStringValue() { return null; }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final Text text, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final Text text, final Label errorLabel) {
         return new FormFieldAccessor(label, text, errorLabel) {
             @Override public String getStringValue() {return text.getText();}
             @Override public void setStringValue(final String value) {text.setText(value);}
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final Button checkbox, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final PasswordInput pwdInput, final Label errorLabel) {
+        return new FormFieldAccessor(label, pwdInput, errorLabel) {
+            @Override public String getStringValue() {return pwdInput.getValue() != null ? pwdInput.getValue().toString() : null;}
+            @Override public void setStringValue(final String value) {
+                if (StringUtils.isNotBlank(value)) {
+                    pwdInput.setValue(cryptor.decrypt(value));
+                } else {
+                    pwdInput.setValue(value);
+                }
+            }
+        };
+    }
+    private FormFieldAccessor createAccessor(final Control label, final Button checkbox, final Label errorLabel) {
         return new FormFieldAccessor(label, checkbox, errorLabel) {
             @Override public String getStringValue() {return BooleanUtils.toStringTrueFalse(checkbox.getSelection());}
             @Override public void setStringValue(final String value) {checkbox.setSelection(BooleanUtils.toBoolean(value));}
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final Selection selection, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final Selection selection, final Label errorLabel) {
         switch (selection.type()) {
             case MULTI:
             case MULTI_COMBO:
@@ -325,7 +342,7 @@ public final class Form implements FormBinding {
         }
     }
     private FormFieldAccessor createAccessor(
-            final Label label,
+            final Control label,
             final Selection selection,
             final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter,
             final Label errorLabel) {
@@ -340,7 +357,7 @@ public final class Form implements FormBinding {
             @Override public void setStringValue(final String value) { selection.select(value); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final ThresholdList thresholdList, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final ThresholdList thresholdList, final Label errorLabel) {
         return new FormFieldAccessor(label, thresholdList, null, true, errorLabel) {
             @Override public String getStringValue() {
                 return ThresholdListBuilder
@@ -358,12 +375,12 @@ public final class Form implements FormBinding {
             }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final ImageUploadSelection imageUpload, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final ImageUploadSelection imageUpload, final Label errorLabel) {
         return new FormFieldAccessor(label, imageUpload, errorLabel) {
             @Override public String getStringValue() { return imageUpload.getImageBase64(); }
         };
     }
-    private FormFieldAccessor createAccessor(final Label label, final FileUploadSelection fileUpload, final Label errorLabel) {
+    private FormFieldAccessor createAccessor(final Control label, final FileUploadSelection fileUpload, final Label errorLabel) {
         return new FormFieldAccessor(label, fileUpload, errorLabel) {
             @Override public String getStringValue() { return fileUpload.getFileName(); }
         };
@@ -418,7 +435,7 @@ public final class Form implements FormBinding {
         }
     }
 
-    private static final void adaptCommaSeparatedStringToJsonArray(
+    private static void adaptCommaSeparatedStringToJsonArray(
             final Tuple<String> tuple,
             final ObjectNode jsonNode) {
 
@@ -433,26 +450,26 @@ public final class Form implements FormBinding {
 
     public static abstract class FormFieldAccessor {
 
-        public final Label label;
-        public final Control control;
+        public final Control label;
+        public final Control input;
         private final Label errorLabel;
         private final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter;
         private boolean hasError;
         private final boolean listValue;
 
-        FormFieldAccessor(final Label label, final Control control, final Label errorLabel) {
+        FormFieldAccessor(final Control label, final Control control, final Label errorLabel) {
             this(label, control, null, false, errorLabel);
         }
 
         FormFieldAccessor(
-                final Label label,
-                final Control control,
+                final Control label,
+                final Control input,
                 final BiConsumer<Tuple<String>, ObjectNode> jsonValueAdapter,
                 final boolean listValue,
                 final Label errorLabel) {
 
             this.label = label;
-            this.control = control;
+            this.input = input;
             this.errorLabel = errorLabel;
             if (jsonValueAdapter != null) {
                 this.jsonValueAdapter = jsonValueAdapter;
@@ -473,14 +490,14 @@ public final class Form implements FormBinding {
         }
 
         public void setBackgroundColor(final Color color) {
-            if (this.control != null) {
-                this.control.setBackground(color);
+            if (this.input != null) {
+                this.input.setBackground(color);
             }
         }
 
         public void setTextColor(final Color color) {
-            if (this.control != null) {
-                this.control.setForeground(color);
+            if (this.input != null) {
+                this.input.setForeground(color);
             }
         }
 
@@ -488,7 +505,7 @@ public final class Form implements FormBinding {
             if (this.label != null) {
                 this.label.setVisible(visible);
             }
-            this.control.setVisible(visible);
+            this.input.setVisible(visible);
         }
 
         public void putJsonValue(final String key, final ObjectNode objectRoot) {
@@ -506,7 +523,7 @@ public final class Form implements FormBinding {
             }
 
             if (!this.hasError) {
-                this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
+                this.input.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);
                 this.errorLabel.setText("- " + errorMessage);
                 this.errorLabel.setVisible(true);
                 this.hasError = true;
@@ -519,7 +536,7 @@ public final class Form implements FormBinding {
             }
 
             if (this.hasError) {
-                this.control.setData(RWT.CUSTOM_VARIANT, null);
+                this.input.setData(RWT.CUSTOM_VARIANT, null);
                 this.errorLabel.setVisible(false);
                 this.errorLabel.setText(StringUtils.EMPTY);
                 this.hasError = false;

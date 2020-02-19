@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -39,7 +40,7 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         if (builder.readonly || this.readonly) {
             // No read-only view needed for this so far?
             return;

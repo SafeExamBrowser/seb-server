@@ -213,7 +213,7 @@ final class ExamToConfigBindingForm {
                             String.valueOf(examConfigurationMap.configurationNodeId),
                             resourceService::examConfigurationSelectionResources)
                             .withSelectionListener(form -> updateFormValuesFromConfigSelection(form, resourceService))
-                    .mandatory())
+                            .mandatory())
 
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
@@ -228,14 +228,15 @@ final class ExamToConfigBindingForm {
                             resourceService.localizedExamConfigStatusName(examConfigurationMap))
                             .readonly(true))
 
-                    .addField(FormBuilder.text(
+                    .addField(FormBuilder.password(
                             Domain.EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET,
-                            FORM_ENCRYPT_SECRET_TEXT_KEY)
-                            .asPasswordField())
-                    .addField(FormBuilder.text(
+                            FORM_ENCRYPT_SECRET_TEXT_KEY,
+                            examConfigurationMap.encryptSecret))
+
+                    .addField(FormBuilder.password(
                             ExamConfigurationMap.ATTR_CONFIRM_ENCRYPT_SECRET,
-                            FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY)
-                            .asPasswordField())
+                            FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
+                            examConfigurationMap.encryptSecret))
 
                     .build();
 

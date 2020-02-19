@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -88,7 +89,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
 
         if (readonly && this.isHTML) {
@@ -117,7 +118,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             gridData.minimumHeight = this.areaMinHeight;
         } else if (this.isColorBox) {
             gridData.minimumHeight = WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
-            textInput.setData(RWT.CUSTOM_VARIANT, "colorbox");
+            textInput.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.COLOR_BOX.key);
         }
         textInput.setLayoutData(gridData);
         if (StringUtils.isNoneBlank(this.value)) {

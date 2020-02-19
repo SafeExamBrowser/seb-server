@@ -8,22 +8,20 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.client;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.CharBuffer;
-import java.security.SecureRandom;
-
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
+import java.io.UnsupportedEncodingException;
+import java.nio.CharBuffer;
+import java.security.SecureRandom;
 
 @Lazy
 @Service
@@ -32,12 +30,15 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);
 
-    static final String SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY = "sebserver.webservice.internalSecret";
-
     private final Environment environment;
+    private final Cryptor cryptor;
 
-    protected ClientCredentialServiceImpl(final Environment environment) {
+    protected ClientCredentialServiceImpl(
+            final Environment environment,
+            final Cryptor cryptor) {
+
         this.environment = environment;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -63,15 +64,15 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             final CharSequence accessTokenPlaintext) {
 
         final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
         return new ClientCredentials(
                 clientIdPlaintext,
                 (StringUtils.isNoneBlank(secretPlaintext))
-                        ? encrypt(secretPlaintext, secret).toString()
+                        ? Cryptor.encrypt(secretPlaintext, secret).toString()
                         : null,
                 (StringUtils.isNoneBlank(accessTokenPlaintext))
-                        ? encrypt(accessTokenPlaintext, secret).toString()
+                        ? Cryptor.encrypt(accessTokenPlaintext, secret).toString()
                         : null);
     }
 
@@ -82,8 +83,8 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
 
         final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return this.decrypt(credentials.secret, secret);
+                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+        return Cryptor.decrypt(credentials.secret, secret);
     }
 
     @Override
@@ -93,100 +94,39 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         }
 
         final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
 
-        return this.decrypt(credentials.accessToken, secret);
+        return Cryptor.decrypt(credentials.accessToken, secret);
     }
 
     @Override
     public CharSequence encrypt(final CharSequence text) {
-
-        final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
-        return encrypt(text, secret);
+        return cryptor.encrypt(text);
     }
 
     @Override
     public CharSequence decrypt(final CharSequence text) {
-
-        final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
-        return decrypt(text, secret);
-    }
-
-    CharSequence encrypt(final CharSequence text, final CharSequence secret) {
-        if (text == null) {
-            throw new IllegalArgumentException("Text has null reference");
-        }
-
-        if (secret == null) {
-            log.warn("No internal secret supplied: skip encryption");
-            return text;
-        }
-
-        try {
-
-            final CharSequence salt = KeyGenerators.string().generateKey();
-            final CharSequence cipher = Encryptors
-                    .delux(secret, salt)
-                    .encrypt(text.toString());
-
-            return new StringBuilder(cipher)
-                    .append(salt);
-
-        } catch (final Exception e) {
-            log.error("Failed to encrypt text: ", e);
-            throw e;
-        }
-    }
-
-    CharSequence decrypt(final CharSequence cipher, final CharSequence secret) {
-        if (cipher == null) {
-            throw new IllegalArgumentException("Cipher has null reference");
-        }
-
-        if (secret == null) {
-            log.warn("No internal secret supplied: skip decryption");
-            return cipher;
-        }
-
-        try {
-
-            final int length = cipher.length();
-            final int cipherTextLength = length - 16;
-            final CharSequence salt = cipher.subSequence(cipherTextLength, length);
-            final CharSequence cipherText = cipher.subSequence(0, cipherTextLength);
-
-            return Encryptors
-                    .delux(secret, salt)
-                    .decrypt(cipherText.toString());
-
-        } catch (final Exception e) {
-            log.error("Failed to decrypt text: ", e);
-            throw e;
-        }
+        return cryptor.decrypt(text);
     }
 
     private final static char[] possibleCharacters =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"
                     .toCharArray();
 
-    public final static CharSequence generateClientId() {
+    public static CharSequence generateClientId() {
         return RandomStringUtils.random(
                 16, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());
     }
 
-    public final static CharSequence generateClientSecret() throws UnsupportedEncodingException {
-        // TODO fine a better way to generate a random char array instead of using RandomStringUtils.random which uses a String
+    public static CharSequence generateClientSecret() throws UnsupportedEncodingException {
+        // TODO find a better way to generate a random char array instead of using RandomStringUtils.random which uses a String
         return RandomStringUtils.random(
                 64, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());
     }
 
-    public final static void clearChars(final CharSequence sequence) {
+    public static void clearChars(final CharSequence sequence) {
         if (sequence == null) {
             return;
         }

@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Tuple3;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +108,7 @@ public class ResourceService {
     public static final String CONFIG_ATTRIBUTE_TYPE_PREFIX = "sebserver.configtemplate.attr.type.";
     public static final String SEB_RESTRICTION_WHITE_LIST_PREFIX = "sebserver.exam.form.sebrestriction.whiteListPaths.";
     public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
+    public static final String SEB_CLIENT_CONFIG_PURPOSE_PREFIX = "sebserver.clientconfig.config.purpose.";
 
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
@@ -654,6 +656,18 @@ public class ResourceService {
                         ConfigurationNode.FILTER_ATTR_STATUS,
                         ConfigurationStatus.READY_TO_USE.name())
                 .call();
+    }
+
+    public List<Tuple<String>> sebClientConfigPurposeResources() {
+        return Arrays.stream(SebClientConfig.ConfigPurpose.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(SEB_CLIENT_CONFIG_PURPOSE_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                SEB_CLIENT_CONFIG_PURPOSE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
     }
 
 }

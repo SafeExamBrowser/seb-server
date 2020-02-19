@@ -16,6 +16,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -113,7 +114,7 @@ public abstract class FieldBuilder<T> {
 
     abstract void build(FormBuilder builder);
 
-    protected static Label createTitleLabel(
+    protected static Control createTitleLabel(
             final Composite parent,
             final FormBuilder builder,
             final FieldBuilder<?> fieldBuilder) {
@@ -173,7 +174,7 @@ public abstract class FieldBuilder<T> {
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
-        return label;
+        return infoGrid;
     }
 
     public static Label labelLocalized(
@@ -186,7 +187,7 @@ public abstract class FieldBuilder<T> {
         return labelLocalized(widgetFactory, parent, locTextKey, defaultText, null, hspan, SWT.CENTER);
     }
 
-    public static final Label labelLocalized(
+    public static Label labelLocalized(
             final WidgetFactory widgetFactory,
             final Composite parent,
             final LocTextKey locTextKey,

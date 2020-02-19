@@ -30,7 +30,7 @@ public interface ExamConfigurationMapDAO extends
      * @param examId The Exam mapping identifier
      * @param configurationNodeId the ConfigurationNode mapping identifier
      * @return Result refer to the password cipher of specified mapping or to an exception if happened */
-    Result<CharSequence> getConfigPasswortCipher(Long examId, Long configurationNodeId);
+    Result<CharSequence> getConfigPasswordCipher(Long examId, Long configurationNodeId);
 
     /** Get the ConfigurationNode identifier of the default Exam Configuration of
      * the Exam with specified identifier.

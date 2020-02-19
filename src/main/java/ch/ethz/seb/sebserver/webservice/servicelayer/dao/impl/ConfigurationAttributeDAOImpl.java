@@ -75,16 +75,14 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ConfigurationAttribute>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.configurationAttributeRecordMapper.selectByExample()
-                    .where(ConfigurationAttributeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ConfigurationAttributeDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.configurationAttributeRecordMapper.selectByExample()
+                .where(ConfigurationAttributeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationAttributeDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override

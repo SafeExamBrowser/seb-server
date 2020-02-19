@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.form;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -37,7 +38,7 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final ImageUploadSelection imageUpload = builder.widgetFactory.imageUploadLocalized(
                 fieldGrid,

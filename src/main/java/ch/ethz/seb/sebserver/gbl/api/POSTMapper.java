@@ -67,6 +67,15 @@ public class POSTMapper {
         return Long.parseLong(value);
     }
 
+    public Short getShort(final String name) {
+        final String value = this.params.getFirst(name);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+
+        return Short.parseShort(value);
+    }
+
     public Integer getInteger(final String name) {
         final String value = this.params.getFirst(name);
         if (value == null) {

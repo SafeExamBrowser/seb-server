@@ -13,6 +13,7 @@ import java.util.Collection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -34,7 +35,7 @@ public class FileUploadFieldBuilder extends FieldBuilder<String> {
 
     @Override
     void build(final FormBuilder builder) {
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final FileUploadSelection fileUpload = builder.widgetFactory.fileUploadSelection(
                 fieldGrid,

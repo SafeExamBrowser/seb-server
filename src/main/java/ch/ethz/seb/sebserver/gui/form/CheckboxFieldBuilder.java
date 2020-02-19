@@ -13,20 +13,27 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
+import java.util.function.Consumer;
+
 public class CheckboxFieldBuilder extends FieldBuilder<String> {
 
-    protected CheckboxFieldBuilder(final String name, final LocTextKey label, final String value) {
+    protected CheckboxFieldBuilder(
+            final String name,
+            final LocTextKey label,
+            final String value) {
+
         super(name, label, value);
     }
 
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Label titleLabel = createTitleLabel(builder.formParent, builder, this);
+        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
         final Button checkbox = builder.widgetFactory.buttonLocalized(
                 fieldGrid,

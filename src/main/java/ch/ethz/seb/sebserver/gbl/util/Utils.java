@@ -14,6 +14,8 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +30,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.graphics.RGB;
@@ -476,6 +479,20 @@ public final class Utils {
 
     public static String toSQLWildcard(final String text) {
         return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
+    }
+
+    public static String hash_SHA_256_Base_16(final CharSequence chars) {
+        if (chars == null) {
+            return null;
+        }
+
+        try {
+            final MessageDigest digest = MessageDigest.getInstance(Constants.SHA_256);
+            final byte[] encodedHash = digest.digest(toByteArray(chars));
+            return Hex.encodeHexString(encodedHash);
+        } catch (NoSuchAlgorithmException nsae) {
+            throw new RuntimeException("Failed to hash text: ", nsae);
+        }
     }
 
     @SuppressWarnings("unchecked")

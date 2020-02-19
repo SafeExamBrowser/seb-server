@@ -120,6 +120,8 @@ public final class Constants {
     public static final int GZIP_ID2 = 0x8B;
     public static final int GZIP_CM = 8;
 
+    public static final String SHA_256 = "SHA-256";
+
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
 

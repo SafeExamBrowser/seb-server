@@ -30,10 +30,24 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 public final class SebClientConfig implements GrantEntity, Activatable {
 
-    public static final String ATTR_FALLBACK_START_URL = "fallback_start_url";
-    public static final String ATTR_CONFIRM_ENCRYPT_SECRET = "confirm_encrypt_secret";
+    public static final String ATTR_CONFIG_PURPOSE = "sebConfigPurpose";
+    public static final String ATTR_FALLBACK = "sebServerFallback ";
+    public static final String ATTR_FALLBACK_START_URL = "startURL";
+    public static final String ATTR_FALLBACK_TIMEOUT = "sebServerFallbackTimeout";
+    public static final String ATTR_FALLBACK_ATTEMPTS = "sebServerFallbackAttempts";
+    public static final String ATTR_FALLBACK_ATTEMPT_INTERVAL = "sebServerFallbackAttemptInterval";
+    public static final String ATTR_FALLBACK_PASSWORD = "sebServerFallbackPasswordHash";
+    public static final String ATTR_FALLBACK_PASSWORD_CONFIRM = "sebServerFallbackPasswordHashConfirm";
+    public static final String ATTR_QUIT_PASSWORD = "hashedQuitPassword";
+    public static final String ATTR_QUIT_PASSWORD_CONFIRM = "hashedQuitPasswordConfirm";
+    public static final String ATTR_ENCRYPT_SECRET_CONFIRM = "confirm_encrypt_secret";
 
     public static final String FILTER_ATTR_CREATION_DATE = "creation_date";
+
+    public enum ConfigPurpose {
+        START_EXAM,
+        CONFIGURE_CLIENT
+    }
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID)
     public final Long id;
@@ -47,9 +61,37 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_NAME)
     public final String name;
 
+    @NotNull(message = "clientconfig:sebConfigPurpose:notNull")
+    @JsonProperty(ATTR_CONFIG_PURPOSE)
+    public final ConfigPurpose configPurpose;
+
+    @JsonProperty(ATTR_FALLBACK)
+    public final Boolean fallback;
+
     @JsonProperty(ATTR_FALLBACK_START_URL)
-    @URL(message = "clientconfig:fallback_start_url:invalidURL")
+    @URL(message = "clientconfig:startURL:invalidURL")
     public final String fallbackStartURL;
+
+    @JsonProperty(ATTR_FALLBACK_TIMEOUT)
+    public final Long fallbackTimeout;
+
+    @JsonProperty(ATTR_FALLBACK_ATTEMPTS)
+    public final Short fallbackAttempts;
+
+    @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL)
+    public final Short fallbackAttemptInterval;
+
+    @JsonProperty(ATTR_FALLBACK_PASSWORD)
+    public final CharSequence fallbackPassword;
+
+    @JsonProperty(ATTR_FALLBACK_PASSWORD_CONFIRM)
+    public final CharSequence fallbackPasswordConfirm;
+
+    @JsonProperty(ATTR_QUIT_PASSWORD)
+    public final CharSequence quitPassword;
+
+    @JsonProperty(ATTR_QUIT_PASSWORD_CONFIRM)
+    public final CharSequence quitPasswordConfirm;
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE)
     public final DateTime date;
@@ -57,8 +99,8 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET)
     public final CharSequence encryptSecret;
 
-    @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET)
-    public final CharSequence confirmEncryptSecret;
+    @JsonProperty(ATTR_ENCRYPT_SECRET_CONFIRM)
+    public final CharSequence encryptSecretConfirm;
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE)
     public final Boolean active;
@@ -68,19 +110,37 @@ public final class SebClientConfig implements GrantEntity, Activatable {
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID) final Long id,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_NAME) final String name,
+            @JsonProperty(ATTR_CONFIG_PURPOSE) final ConfigPurpose configPurpose,
+            @JsonProperty(ATTR_FALLBACK) final Boolean fallback,
             @JsonProperty(ATTR_FALLBACK_START_URL) final String fallbackStartURL,
+            @JsonProperty(ATTR_FALLBACK_TIMEOUT) final Long fallbackTimeout,
+            @JsonProperty(ATTR_FALLBACK_ATTEMPTS) final Short fallbackAttempts,
+            @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL) final Short fallbackAttemptInterval,
+            @JsonProperty(ATTR_FALLBACK_PASSWORD) final CharSequence fallbackPassword,
+            @JsonProperty(ATTR_FALLBACK_PASSWORD_CONFIRM) final CharSequence fallbackPasswordConfirm,
+            @JsonProperty(ATTR_QUIT_PASSWORD) final CharSequence quitPassword,
+            @JsonProperty(ATTR_QUIT_PASSWORD_CONFIRM) final CharSequence quitPasswordConfirm,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE) final DateTime date,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET) final CharSequence encryptSecret,
-            @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET) final CharSequence confirmEncryptSecret,
+            @JsonProperty(ATTR_ENCRYPT_SECRET_CONFIRM) final CharSequence encryptSecretConfirm,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.institutionId = institutionId;
         this.name = name;
+        this.configPurpose = configPurpose;
+        this.fallback = fallback;
         this.fallbackStartURL = fallbackStartURL;
+        this.fallbackTimeout = fallbackTimeout;
+        this.fallbackAttempts = fallbackAttempts;
+        this.fallbackAttemptInterval = fallbackAttemptInterval;
+        this.fallbackPassword = fallbackPassword;
+        this.fallbackPasswordConfirm = fallbackPasswordConfirm;
+        this.quitPassword = quitPassword;
+        this.quitPasswordConfirm = quitPasswordConfirm;
         this.date = date;
         this.encryptSecret = encryptSecret;
-        this.confirmEncryptSecret = confirmEncryptSecret;
+        this.encryptSecretConfirm = encryptSecretConfirm;
         this.active = active;
     }
 
@@ -88,10 +148,19 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         this.id = null;
         this.institutionId = institutionId;
         this.name = postParams.getString(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME);
+        this.configPurpose = postParams.getEnum(ATTR_CONFIG_PURPOSE, ConfigPurpose.class);
+        this.fallback = postParams.getBoolean(ATTR_FALLBACK);
         this.fallbackStartURL = postParams.getString(ATTR_FALLBACK_START_URL);
+        this.fallbackTimeout = postParams.getLong(ATTR_FALLBACK_TIMEOUT);
+        this.fallbackAttempts = postParams.getShort(ATTR_FALLBACK_ATTEMPTS);
+        this.fallbackAttemptInterval = postParams.getShort(ATTR_FALLBACK_ATTEMPT_INTERVAL);
+        this.fallbackPassword = postParams.getCharSequence(ATTR_FALLBACK_PASSWORD);
+        this.fallbackPasswordConfirm = postParams.getCharSequence(ATTR_FALLBACK_PASSWORD_CONFIRM);
+        this.quitPassword = postParams.getCharSequence(ATTR_QUIT_PASSWORD);
+        this.quitPasswordConfirm = postParams.getCharSequence(ATTR_QUIT_PASSWORD_CONFIRM);
         this.date = postParams.getDateTime(Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE);
         this.encryptSecret = postParams.getCharSequence(Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET);
-        this.confirmEncryptSecret = postParams.getCharSequence(ATTR_CONFIRM_ENCRYPT_SECRET);
+        this.encryptSecretConfirm = postParams.getCharSequence(ATTR_ENCRYPT_SECRET_CONFIRM);
         this.active = false;
     }
 
@@ -130,18 +199,55 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         return this.id;
     }
 
+    public ConfigPurpose getConfigPurpose() {
+        return configPurpose;
+    }
+
+    public Boolean getFallback() {
+        return fallback;
+    }
+
+    public Long getFallbackTimeout() {
+        return fallbackTimeout;
+    }
+
+    public Short getFallbackAttempts() {
+        return fallbackAttempts;
+    }
+
+    public Short getFallbackAttemptInterval() {
+        return fallbackAttemptInterval;
+    }
+
+    public CharSequence getFallbackPassword() {
+        return fallbackPassword;
+    }
+
+    @JsonIgnore
+    public CharSequence getFallbackPasswordConfirm() {
+        return fallbackPasswordConfirm;
+    }
+
+    public CharSequence getQuitPassword() {
+        return quitPassword;
+    }
+
+    @JsonIgnore
+    public CharSequence getQuitPasswordConfirm() {
+        return quitPasswordConfirm;
+    }
+
     public DateTime getDate() {
         return this.date;
     }
 
-    @JsonIgnore
     public CharSequence getEncryptSecret() {
         return this.encryptSecret;
     }
 
     @JsonIgnore
-    public CharSequence getConfirmEncryptSecret() {
-        return this.confirmEncryptSecret;
+    public CharSequence getEncryptSecretConfirm() {
+        return this.encryptSecretConfirm;
     }
 
     @JsonIgnore
@@ -149,8 +255,40 @@ public final class SebClientConfig implements GrantEntity, Activatable {
         return this.encryptSecret != null && this.encryptSecret.length() > 0;
     }
 
+    @JsonIgnore
+    public boolean hasFallbackPassword() {
+        return this.fallbackPassword != null && this.fallbackPassword.length() > 0;
+    }
+
+    @JsonIgnore
+    public boolean hasQuitPassword() {
+        return this.quitPassword != null && this.quitPassword.length() > 0;
+    }
+
     public Boolean getActive() {
         return this.active;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("SebClientConfig{");
+        sb.append("id=").append(id);
+        sb.append(", institutionId=").append(institutionId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", configPurpose=").append(configPurpose);
+        sb.append(", fallback=").append(fallback);
+        sb.append(", fallbackStartURL='").append(fallbackStartURL).append('\'');
+        sb.append(", fallbackTimeout=").append(fallbackTimeout);
+        sb.append(", fallbackAttempts=").append(fallbackAttempts);
+        sb.append(", fallbackAttemptInterval=").append(fallbackAttemptInterval);
+        sb.append(", fallbackPassword=").append(fallbackPassword);
+        sb.append(", fallbackPasswordConfirm=").append(fallbackPasswordConfirm);
+        sb.append(", date=").append(date);
+        sb.append(", encryptSecret=").append(encryptSecret);
+        sb.append(", encryptSecretConfirm=").append(encryptSecretConfirm);
+        sb.append(", active=").append(active);
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override
@@ -159,36 +297,35 @@ public final class SebClientConfig implements GrantEntity, Activatable {
                 this.id,
                 this.institutionId,
                 this.name,
+                this.configPurpose,
+                this.fallback,
                 this.fallbackStartURL,
+                this.fallbackTimeout,
+                this.fallbackAttempts,
+                this.fallbackAttemptInterval,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
+                Constants.EMPTY_NOTE,
                 this.date,
                 Constants.EMPTY_NOTE,
                 Constants.EMPTY_NOTE,
                 this.active);
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("SebClientConfig [id=");
-        builder.append(this.id);
-        builder.append(", institutionId=");
-        builder.append(this.institutionId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", fallbackStartURL=");
-        builder.append(this.fallbackStartURL);
-        builder.append(", date=");
-        builder.append(this.date);
-        builder.append(", active=");
-        builder.append(this.active);
-        builder.append("]");
-        return builder.toString();
-    }
-
-    public static final SebClientConfig createNew(final Long institutionId) {
+    public static SebClientConfig createNew(final Long institutionId) {
         return new SebClientConfig(
                 null,
                 institutionId,
+                null,
+                ConfigPurpose.START_EXAM,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null,
                 null,
                 DateTime.now(DateTimeZone.UTC),

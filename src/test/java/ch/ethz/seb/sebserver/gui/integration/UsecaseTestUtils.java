@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.tomcat.util.buf.StringUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -24,6 +25,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationTableValues;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.init.XMLAttributeLoader;
+import org.mockito.Mockito;
 
 public abstract class UsecaseTestUtils {
 
@@ -52,7 +54,7 @@ public abstract class UsecaseTestUtils {
                 .stream()
                 .collect(Collectors.toMap(attr -> attr.name, Function.identity()));
 
-        final XMLAttributeLoader xmlAttributeLoader = new XMLAttributeLoader();
+        final XMLAttributeLoader xmlAttributeLoader = new XMLAttributeLoader(Mockito.mock(Cryptor.class));
         final String configuraedNames = StringUtils.join(xmlAttributeLoader.loadFromXML(
                 1L,
                 Long.parseLong(configId),
@@ -111,7 +113,7 @@ public abstract class UsecaseTestUtils {
                 .stream()
                 .collect(Collectors.toMap(attr -> attr.name, Function.identity()));
 
-        final XMLAttributeLoader xmlAttributeLoader = new XMLAttributeLoader();
+        final XMLAttributeLoader xmlAttributeLoader = new XMLAttributeLoader(Mockito.mock(Cryptor.class));
         final String configuraedNames = StringUtils.join(xmlAttributeLoader.loadFromXML(
                 1L,
                 Long.parseLong(configId),

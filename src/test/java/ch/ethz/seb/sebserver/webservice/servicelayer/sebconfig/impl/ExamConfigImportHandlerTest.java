@@ -15,11 +15,13 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import org.mockito.Mockito;
 
 public class ExamConfigImportHandlerTest {
 
@@ -41,6 +43,7 @@ public class ExamConfigImportHandlerTest {
     public void simpleStringValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,
@@ -73,6 +76,7 @@ public class ExamConfigImportHandlerTest {
     public void simpleIntegerValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,
@@ -105,6 +109,7 @@ public class ExamConfigImportHandlerTest {
     public void simpleBooleanValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,
@@ -136,6 +141,7 @@ public class ExamConfigImportHandlerTest {
     public void arrayOfStringValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,
@@ -187,6 +193,7 @@ public class ExamConfigImportHandlerTest {
             return attributeResolver.apply(attrName);
         };
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,
@@ -256,6 +263,7 @@ public class ExamConfigImportHandlerTest {
             return attributeResolver.apply(attrName);
         };
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
                 1L,
                 1L,
                 valueCollector,

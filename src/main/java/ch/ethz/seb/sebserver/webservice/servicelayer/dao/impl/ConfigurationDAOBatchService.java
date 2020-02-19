@@ -133,7 +133,7 @@ class ConfigurationDAOBatchService {
                     .build()
                     .execute();
 
-            if (count != null && count.longValue() > 0) {
+            if (count != null && count > 0) {
                 throw new FieldValidationException("name", "configurationNode:name:exists");
             }
 
@@ -231,7 +231,7 @@ class ConfigurationDAOBatchService {
                             oldValRec.getConfigurationAttributeId(),
                             oldValRec.getListIndex(),
                             oldValRec.getValue()))
-                    .forEach(newValRec -> this.batchConfigurationValueRecordMapper.insert(newValRec));
+                    .forEach(this.batchConfigurationValueRecordMapper::insert);
 
             return this.batchConfigurationRecordMapper
                     .selectByPrimaryKey(newFollowup.getId());
@@ -337,7 +337,7 @@ class ConfigurationDAOBatchService {
                             historicValRec.getConfigurationAttributeId(),
                             historicValRec.getListIndex(),
                             historicValRec.getValue()))
-                    .forEach(newValRec -> this.batchConfigurationValueRecordMapper.insert(newValRec));
+                    .forEach(this.batchConfigurationValueRecordMapper::insert);
 
             return followup;
         })
@@ -361,7 +361,7 @@ class ConfigurationDAOBatchService {
                     .build()
                     .execute();
 
-            if (count != null && count.longValue() > 0) {
+            if (count != null && count > 0) {
                 throw new FieldValidationException("name", "configurationNode:name:exists");
             }
 
@@ -405,9 +405,7 @@ class ConfigurationDAOBatchService {
                 .execute();
 
         if (BooleanUtils.toBoolean(copyInfo.withHistory)) {
-            configs
-                    .stream()
-                    .forEach(configRec -> this.copyConfiguration(
+            configs.forEach(configRec -> this.copyConfiguration(
                             configRec.getInstitutionId(),
                             configRec.getId(),
                             newNodeRec.getId()));
@@ -540,11 +538,11 @@ class ConfigurationDAOBatchService {
                         .build()
                         .execute()
                         .stream()
-                        .collect(Collectors.toMap(rec -> rec.getId(), Function.identity()));
+                        .collect(Collectors.toMap(ConfigurationAttributeRecord::getId, Function.identity()));
 
         final List<Long> columnAttributeIds = attributeMap.values()
                 .stream()
-                .map(a -> a.getId())
+                .map(ConfigurationAttributeRecord::getId)
                 .collect(Collectors.toList());
 
         // first delete all old values of this table
@@ -705,15 +703,13 @@ class ConfigurationDAOBatchService {
                     .stream()
                     // filter child attributes of tables. No default value for tables. Use templates for that
                     .filter(ConfigurationDAOBatchService::filterChildAttribute)
-                    .forEach(attrRec -> {
-                        this.batchConfigurationValueRecordMapper.insert(new ConfigurationValueRecord(
-                                null,
-                                configNode.institutionId,
-                                config.getId(),
-                                attrRec.getId(),
-                                0,
-                                attrRec.getDefaultValue()));
-                    });
+                    .forEach(attrRec -> this.batchConfigurationValueRecordMapper.insert(new ConfigurationValueRecord(
+                            null,
+                            configNode.institutionId,
+                            config.getId(),
+                            attrRec.getId(),
+                            0,
+                            attrRec.getDefaultValue())));
 
             // override with template values if available
             if (configNode.templateId == null || configNode.templateId.equals(ConfigurationNode.DEFAULT_TEMPLATE_ID)) {
@@ -747,7 +743,6 @@ class ConfigurationDAOBatchService {
                 configNode.institutionId,
                 config.getId(),
                 attributeMap::get)
-                .stream()
                 .forEach(value -> {
                     final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
                             null,
@@ -768,8 +763,7 @@ class ConfigurationDAOBatchService {
             final ConfigurationRecord config) {
 
         final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
-        templateValues.stream()
-                .forEach(templateValue -> {
+        templateValues.forEach(templateValue -> {
                     final Long existingId = this.batchConfigurationValueRecordMapper
                             .selectIdsByExample()
                             .where(
