@@ -76,7 +76,7 @@ public interface UserActivityLogDAO extends
 
     /** Creates a user activity log entry for the current user.
      *
-     * @param actionType the action type
+     * @param activityType the activity type
      * @param entity the Entity
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> log(UserLogActivityType activityType, E entity);
@@ -113,8 +113,7 @@ public interface UserActivityLogDAO extends
      *
      * @param user for specified SEBServerUser instance
      * @param activityType the activity type
-     * @param entityType the entity type
-     * @param entityId the entity id (primary key or UUID)
+     * @param entity the entity instance
      * @return Result of the Entity or referring to an Error if happened */
     default <E extends Entity> Result<E> log(
             final SEBServerUser user,

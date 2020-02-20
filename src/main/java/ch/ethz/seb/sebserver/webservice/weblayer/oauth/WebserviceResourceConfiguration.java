@@ -110,7 +110,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         }
 
         @Override
-        public void configure(final ResourceServerSecurityConfigurer resources) throws Exception {
+        public void configure(final ResourceServerSecurityConfigurer resources) {
             resources.resourceId(this.resourceId);
             final DefaultTokenServices tokenService = new DefaultTokenServices();
             tokenService.setTokenStore(this.tokenStore);

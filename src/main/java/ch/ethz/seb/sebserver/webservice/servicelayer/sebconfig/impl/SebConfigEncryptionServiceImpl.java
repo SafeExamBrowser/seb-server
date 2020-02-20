@@ -130,7 +130,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
                 }
             }
 
-            InputStream newIn = null;
+            InputStream newIn;
             if (strategy == null) {
                 strategy = Strategy.PLAIN_TEXT;
                 newIn = new SequenceInputStream(
@@ -224,7 +224,7 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
         }
 
         static SebConfigEncryptionContext contextOf(final Strategy strategy, final CharSequence password) {
-            checkPasswordbased(strategy);
+            checkPasswordBased(strategy);
             return new EncryptionContext(strategy, password, null);
         }
 
@@ -236,15 +236,15 @@ public final class SebConfigEncryptionServiceImpl implements SebConfigEncryption
             return new EncryptionContext(strategy, null, certificateStore);
         }
 
-        static void checkPasswordbased(final Strategy strategy) {
+        static void checkPasswordBased(final Strategy strategy) {
             if (strategy == null || strategy.type != Type.PASSWORD) {
-                throw new IllegalArgumentException("Strategy missmatch for password based encryption: " + strategy);
+                throw new IllegalArgumentException("Strategy mismatch for password based encryption: " + strategy);
             }
         }
 
         static void checkCertificateBased(final Strategy strategy) {
             if (strategy == null || strategy.type != Type.CERTIFICATE) {
-                throw new IllegalArgumentException("Strategy missmatch for certificate based encryption: " + strategy);
+                throw new IllegalArgumentException("Strategy mismatch for certificate based encryption: " + strategy);
             }
         }
 

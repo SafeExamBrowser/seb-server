@@ -94,12 +94,12 @@ class AdminUserInitializer {
                 if (generateAdminPassword != null) {
 
                     Long institutionId = this.institutionDAO.allMatching(new FilterMap())
-                            .getOrElse(() -> Collections.emptyList())
+                            .getOrElse(Collections::emptyList)
                             .stream()
                             .findFirst()
                             .filter(Institution::isActive)
                             .map(Institution::getInstitutionId)
-                            .orElseGet(() -> -1L);
+                            .orElse(-1L);
 
                     if (institutionId < 0) {
 

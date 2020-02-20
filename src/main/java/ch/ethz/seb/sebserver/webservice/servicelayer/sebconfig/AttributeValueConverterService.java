@@ -22,7 +22,7 @@ public interface AttributeValueConverterService {
 
     /** Use this to get a AttributeValueConverter for a given AttributeType.
      *
-     * @param attribute The ConfigurationAttribute instance
+     * @param attributeType The ConfigurationAttribute type
      * @return a AttributeValueConverter for a given AttributeType */
     AttributeValueConverter getAttributeValueConverter(final AttributeType attributeType);
 

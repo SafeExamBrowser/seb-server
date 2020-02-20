@@ -281,11 +281,9 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         // check if the configuration is attached to a running exams with active client connections
         final long activeConnections = involvedExams
                 .stream()
-                .flatMap(examId -> {
-                    return this.examSessionService.getConnectionData(examId, Objects::nonNull)
-                            .getOrThrow()
-                            .stream();
-                })
+                .flatMap(examId -> this.examSessionService.getConnectionData(examId, Objects::nonNull)
+                        .getOrThrow()
+                        .stream())
                 .filter(ExamSessionService::isActiveConnection)
                 .count();
 

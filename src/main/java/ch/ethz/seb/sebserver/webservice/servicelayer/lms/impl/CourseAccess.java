@@ -40,14 +40,12 @@ public abstract class CourseAccess {
     }
 
     public Result<QuizData> getQuizFromCache(final String id) {
-        return Result.tryCatch(() -> {
-            return this.allQuizzesSupplier
-                    .getChached()
-                    .stream()
-                    .filter(qd -> id.equals(qd.id))
-                    .findFirst()
-                    .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id));
-        });
+        return Result.tryCatch(() -> this.allQuizzesSupplier
+                .getChached()
+                .stream()
+                .filter(qd -> id.equals(qd.id))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id)));
     }
 
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {

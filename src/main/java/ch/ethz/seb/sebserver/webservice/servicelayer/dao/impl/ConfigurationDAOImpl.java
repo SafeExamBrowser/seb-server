@@ -8,22 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -39,6 +23,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 @Lazy
 @Component
@@ -74,16 +72,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Configuration>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.configurationRecordMapper.selectByExample()
-                    .where(ConfigurationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ConfigurationDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.configurationRecordMapper.selectByExample()
+                .where(ConfigurationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -118,19 +114,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Configuration> getFollowupConfiguration(final Long configNodeId) {
-        return Result.tryCatch(() -> {
-            return this.configurationRecordMapper.selectByExample()
-                    .where(
-                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
-                            isEqualTo(configNodeId))
-                    .and(
-                            ConfigurationRecordDynamicSqlSupport.followup,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
-        }).flatMap(ConfigurationDAOImpl::toDomainModel);
+        return Result.tryCatch(() -> this.configurationRecordMapper.selectByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(configNodeId))
+                .and(
+                        ConfigurationRecordDynamicSqlSupport.followup,
+                        isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton())).flatMap(ConfigurationDAOImpl::toDomainModel);
 
     }
 
@@ -147,11 +141,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             isEqualTo(BooleanUtils.toInteger(false)))
                     .build()
                     .execute();
-            Collections.sort(
-                    configs,
-                    (c1, c2) -> c1.getVersionDate().compareTo(c2.getVersionDate()) * -1);
-            final ConfigurationRecord configurationRecord = configs.get(0);
-            return configurationRecord;
+            configs.sort((c1, c2) -> c1.getVersionDate().compareTo(c2.getVersionDate()) * -1);
+            return configs.get(0);
         }).flatMap(ConfigurationDAOImpl::toDomainModel);
     }
 

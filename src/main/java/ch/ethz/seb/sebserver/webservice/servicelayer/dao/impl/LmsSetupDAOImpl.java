@@ -107,30 +107,27 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             final FilterMap filterMap,
             final Predicate<LmsSetup> predicate) {
 
-        return Result.tryCatch(() -> {
-
-            return this.lmsSetupRecordMapper
-                    .selectByExample()
-                    .where(
-                            LmsSetupRecordDynamicSqlSupport.institutionId,
-                            isEqualToWhenPresent(filterMap.getInstitutionId()))
-                    .and(
-                            LmsSetupRecordDynamicSqlSupport.name,
-                            isLikeWhenPresent(filterMap.getName()))
-                    .and(
-                            LmsSetupRecordDynamicSqlSupport.lmsType,
-                            isEqualToWhenPresent(filterMap.getLmsSetupType()))
-                    .and(
-                            LmsSetupRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .filter(predicate)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.lmsSetupRecordMapper
+                .selectByExample()
+                .where(
+                        LmsSetupRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        LmsSetupRecordDynamicSqlSupport.name,
+                        isLikeWhenPresent(filterMap.getName()))
+                .and(
+                        LmsSetupRecordDynamicSqlSupport.lmsType,
+                        isEqualToWhenPresent(filterMap.getLmsSetupType()))
+                .and(
+                        LmsSetupRecordDynamicSqlSupport.active,
+                        isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .filter(predicate)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -227,8 +224,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 .where(LmsSetupRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
                 .and(LmsSetupRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
                 .build()
-                .execute()
-                .longValue() > 0;
+                .execute() > 0;
     }
 
     @Override
@@ -263,16 +259,14 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.lmsSetupRecordMapper.selectByExample()
-                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectByExample()
+                .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -310,16 +304,14 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.lmsSetupRecordMapper.selectIdsByExample()
-                    .where(LmsSetupRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectIdsByExample()
+                .where(LmsSetupRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                .collect(Collectors.toList()));
     }
 
     private Result<LmsSetupRecord> recordById(final Long id) {
@@ -374,7 +366,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 .build()
                 .execute();
 
-        if (otherWithSameName != null && otherWithSameName.longValue() > 0) {
+        if (otherWithSameName != null && otherWithSameName > 0) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     Domain.LMS_SETUP.ATTR_NAME,
                     "lmsSetup:name:name.notunique"));
@@ -382,20 +374,18 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     }
 
     private ClientCredentials createProxyClientCredentials(final LmsSetup lmsSetup) {
-        final ClientCredentials proxyCredentials = (StringUtils.isBlank(lmsSetup.proxyAuthUsername))
+        return (StringUtils.isBlank(lmsSetup.proxyAuthUsername))
                 ? new ClientCredentials(null, null)
                 : this.clientCredentialService.encryptClientCredentials(
                         lmsSetup.proxyAuthUsername,
                         lmsSetup.proxyAuthSecret);
-        return proxyCredentials;
     }
 
     private ClientCredentials createAPIClientCredentials(final LmsSetup lmsSetup) {
-        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
+        return this.clientCredentialService.encryptClientCredentials(
                 lmsSetup.lmsAuthName,
                 lmsSetup.lmsAuthSecret,
                 lmsSetup.lmsRestApiToken);
-        return lmsCredentials;
     }
 
 }

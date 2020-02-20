@@ -11,15 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -123,16 +115,14 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ConfigurationValue>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.configurationValueRecordMapper.selectByExample()
-                    .where(ConfigurationValueRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ConfigurationValueDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.configurationValueRecordMapper.selectByExample()
+                .where(ConfigurationValueRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationValueDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -238,15 +228,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        return Result.tryCatch(() -> {
-            return extractPKsFromKeys(all)
-                    .stream()
-                    .map(pk -> {
-                        this.configurationValueRecordMapper.deleteByPrimaryKey(pk);
-                        return new EntityKey(pk, EntityType.CONFIGURATION_VALUE);
-                    })
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> extractPKsFromKeys(all)
+                .stream()
+                .map(pk -> {
+                    this.configurationValueRecordMapper.deleteByPrimaryKey(pk);
+                    return new EntityKey(pk, EntityType.CONFIGURATION_VALUE);
+                })
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -325,7 +313,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             SqlBuilder.isEqualTo(attributeId))
                     .build()
                     .execute()
-                    .stream()
                     .forEach(rec -> {
                         final Map<Long, ConfigurationValue> rowValues = indexMapping.computeIfAbsent(
                                 rec.getListIndex(),
@@ -339,10 +326,8 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
             final List<List<ConfigurationValue>> result = new ArrayList<>();
             final List<Integer> rows = new ArrayList<>(indexMapping.keySet());
-            rows.sort((i1, i2) -> i1.compareTo(i2));
-            rows
-                    .stream()
-                    .forEach(i -> {
+            rows.sort(Comparator.naturalOrder());
+            rows.forEach(i -> {
 
                         final Map<Long, ConfigurationValue> rowValuesMapping = indexMapping.get(i);
                         final List<ConfigurationValue> rowValues = attributes
@@ -497,7 +482,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
             return columnAttributes
                     .stream()
-                    .collect(Collectors.toMap(attr -> attr.getId(), Function.identity()));
+                    .collect(Collectors.toMap(ConfigurationAttributeRecord::getId, Function.identity()));
         });
     }
 
@@ -532,16 +517,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     }
 
     private static Result<ConfigurationValue> toDomainModel(final ConfigurationValueRecord record) {
-        return Result.tryCatch(() -> {
-
-            return new ConfigurationValue(
-                    record.getId(),
-                    record.getInstitutionId(),
-                    record.getConfigurationId(),
-                    record.getConfigurationAttributeId(),
-                    record.getListIndex(),
-                    record.getValue());
-        });
+        return Result.tryCatch(() -> new ConfigurationValue(
+                record.getId(),
+                record.getInstitutionId(),
+                record.getConfigurationId(),
+                record.getConfigurationAttributeId(),
+                record.getListIndex(),
+                record.getValue()));
     }
 
     private Result<ConfigurationValue> checkInstitutionalIntegrity(final ConfigurationValue data) {
@@ -583,7 +565,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .build()
                 .execute();
 
-        if (exists != null && exists.longValue() > 0) {
+        if (exists != null && exists > 0) {
             throw new IllegalArgumentException(
                     "The configuration value already exists");
         }

@@ -8,18 +8,20 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
+import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,21 +35,16 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 final class MoodleRestTemplateFactory {
 
@@ -137,7 +134,7 @@ final class MoodleRestTemplateFactory {
 
     private MoodleAPIRestTemplate createRestTemplate(
             final ClientCredentials credentials,
-            final String accessTokenRequestPath) throws URISyntaxException {
+            final String accessTokenRequestPath) {
 
         final CharSequence plainClientId = credentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
@@ -178,7 +175,7 @@ final class MoodleRestTemplateFactory {
         private final String serverURL;
         private final String tokenPath;
 
-        private CharSequence accessToken = null;
+        private CharSequence accessToken;
 
         private final Map<String, String> tokenReqURIVars;
         private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
@@ -229,8 +226,7 @@ final class MoodleRestTemplateFactory {
                     throw new RuntimeException("Ivalid WebserviceInfo: " + webserviceInfo);
                 }
 
-                final List<String> missingAPIFunctions = Arrays.asList(functions)
-                        .stream()
+                final List<String> missingAPIFunctions = Arrays.stream(functions)
                         .filter(f -> !webserviceInfo.functions.containsKey(f))
                         .collect(Collectors.toList());
 

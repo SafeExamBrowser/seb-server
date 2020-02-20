@@ -105,11 +105,9 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier() {
-        return () -> {
-            return getRestTemplate()
-                    .map(this::collectAllQuizzes)
-                    .getOrThrow();
-        };
+        return () -> getRestTemplate()
+                .map(this::collectAllQuizzes)
+                .getOrThrow();
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
@@ -119,7 +117,7 @@ final class OpenEdxCourseAccess extends CourseAccess {
                 restTemplate)
                         .stream()
                         .reduce(
-                                new ArrayList<QuizData>(),
+                                new ArrayList<>(),
                                 (list, courseData) -> {
                                     list.add(quizDataOf(this.lmsSetup, courseData, externalStartURI));
                                     return list;

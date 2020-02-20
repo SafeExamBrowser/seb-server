@@ -172,7 +172,7 @@ class ExamSessionControlTask implements DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         this.examRunUpdateActive = false;
         this.lostPingUpdateActive = false;
     }

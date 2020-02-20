@@ -15,7 +15,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface SebRestrictionService {
 
     /** Used as name prefix to store additional SEB restriction properties within AdditionalAttribute domain. */
-    public static final String SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX = "sebRestrictionProp_";
+    String SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX = "sebRestrictionProp_";
 
     /** Get the SebRestriction properties for specified Exam.
      *
@@ -26,7 +26,7 @@ public interface SebRestrictionService {
     /** Saves the given SebRestriction for the given Exam.
      *
      * The webservice saves the given browser Exam keys within the Exam record
-     * and given additional restriction properties within the AdditionalAttrtibutes linked
+     * and given additional restriction properties within the Additional attributes linked
      * to the given Exam.
      *
      * @param exam the Exam instance to save the SEB restrictions for

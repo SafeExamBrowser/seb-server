@@ -100,23 +100,22 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
             if (!StringUtils.isBlank(sort)) {
                 final String sortBy = PageSortOrder.decode(sort);
                 final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
-                if (sortBy.equals(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME)) {
-                    Collections.sort(
-                            attrs,
-                            TemplateAttribute.nameComparator(sortOrder == PageSortOrder.DESCENDING));
-                } else if (sortBy.equals(Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE)) {
-                    Collections.sort(
-                            attrs,
-                            TemplateAttribute.typeComparator(sortOrder == PageSortOrder.DESCENDING));
-                } else if (sortBy.equals(Domain.ORIENTATION.ATTR_VIEW_ID)) {
-                    Collections.sort(attrs, this.getViewComparator(
-                            institutionId,
-                            templateId,
-                            sortOrder == PageSortOrder.DESCENDING));
-                } else if (sortBy.equals(Domain.ORIENTATION.ATTR_GROUP_ID)) {
-                    Collections.sort(
-                            attrs,
-                            TemplateAttribute.groupComparator(sortOrder == PageSortOrder.DESCENDING));
+                switch (sortBy) {
+                    case Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME:
+                        attrs.sort(TemplateAttribute.nameComparator(sortOrder == PageSortOrder.DESCENDING));
+                        break;
+                    case Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE:
+                        attrs.sort(TemplateAttribute.typeComparator(sortOrder == PageSortOrder.DESCENDING));
+                        break;
+                    case Domain.ORIENTATION.ATTR_VIEW_ID:
+                        attrs.sort(this.getViewComparator(
+                                institutionId,
+                                templateId,
+                                sortOrder == PageSortOrder.DESCENDING));
+                        break;
+                    case Domain.ORIENTATION.ATTR_GROUP_ID:
+                        attrs.sort(TemplateAttribute.groupComparator(sortOrder == PageSortOrder.DESCENDING));
+                        break;
                 }
             }
             return attrs;
@@ -268,13 +267,9 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
                 .stream()
                 .collect(Collectors.toMap(v -> v.id, Function.identity()));
 
-        return (attr1, attr2) -> {
-
-            return getViewName(attr1, viewMap)
-                    .compareToIgnoreCase(getViewName(attr2, viewMap))
-                    * ((descending) ? -1 : 1);
-
-        };
+        return (attr1, attr2) -> getViewName(attr1, viewMap)
+                .compareToIgnoreCase(getViewName(attr2, viewMap))
+                * ((descending) ? -1 : 1);
     }
 
     private EnumSet<AttributeType> extractTypes(final FilterMap filterMap) {
@@ -294,7 +289,7 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
         return result;
     }
 
-    private static final String getViewName(
+    private static String getViewName(
             final TemplateAttribute attribute,
             final Map<Long, View> viewMap) {
 

@@ -85,7 +85,7 @@ class ExamUpdateHandler {
                 .flatMap(this.sebRestrictionService::applySebClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
-                        .onError(unlookError -> log.error("Failed to force unlook update look for exam: {}" + exam.id)))
+                        .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)))
                 .getOrThrow();
     }
 

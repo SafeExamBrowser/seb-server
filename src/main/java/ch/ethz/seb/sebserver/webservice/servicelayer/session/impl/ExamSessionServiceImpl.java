@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -214,13 +215,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.info("Exam {} is not currently running", examId);
 
             return Result.ofError(new NoSuchElementException(
-                    "No currenlty running exam found for id: " + examId));
+                    "No currently running exam found for id: " + examId));
         }
     }
 
     @Override
     public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
-        return this.examDAO.allIdsOfInstituion(institutionId)
+        return this.examDAO.allIdsOfInstitution(institutionId)
                 .map(col -> col.stream()
                         .map(this::getRunningExam)
                         .filter(Result::hasValue)
@@ -240,7 +241,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
                         .map(exam -> this.examSessionCacheService.getRunningExam(exam.id))
-                        .filter(exam -> exam != null)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
     }
 
@@ -265,8 +266,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         // exam integrity check
         if (connection.examId == null || !isExamRunning(connection.examId)) {
-            log.error("Missing exam identifer or requested exam is not running for connection: {}", connection);
-            throw new IllegalStateException("Missing exam identider or requested exam is not running");
+            log.error("Missing exam identifier or requested exam is not running for connection: {}", connection);
+            throw new IllegalStateException("Missing exam identifier or requested exam is not running");
         }
 
         if (log.isDebugEnabled()) {
@@ -314,15 +315,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Long examId,
             final Predicate<ClientConnectionData> filter) {
 
-        return Result.tryCatch(() -> {
-            return this.clientConnectionDAO
-                    .getConnectionTokens(examId)
-                    .getOrThrow()
-                    .stream()
-                    .map(this.examSessionCacheService::getActiveClientConnection)
-                    .filter(filter)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.clientConnectionDAO
+                .getConnectionTokens(examId)
+                .getOrThrow()
+                .stream()
+                .map(this.examSessionCacheService::getActiveClientConnection)
+                .filter(filter)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -346,7 +345,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             this.examSessionCacheService.evictDefaultSebConfig(exam);
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
-                    .getOrElse(() -> Collections.emptyList())
+                    .getOrElse(Collections::emptyList)
                     .forEach(token -> {
                         // evict client connection
                         this.examSessionCacheService.evictClientConnection(token);

@@ -15,7 +15,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 /** Defines a validator for validating ConfigurationValue model instances */
 public interface ConfigurationValueValidator {
 
-    public static final String MESSAGE_VALUE_OBJECT_NAME = "examConfigValue";
+    String MESSAGE_VALUE_OBJECT_NAME = "examConfigValue";
 
     /** The name of the validator.
      * Can be used within the validator field of an ConfigurationAttribute (SQL: configuration_attribute table)
@@ -28,7 +28,7 @@ public interface ConfigurationValueValidator {
      *
      * @param value ConfigurationValue instance
      * @param attribute ConfigurationAttribute instance
-     * @return */
+     * @return true if a ConfigurationValue is validated by this concrete validator. */
     boolean validate(
             ConfigurationValue value,
             ConfigurationAttribute attribute);

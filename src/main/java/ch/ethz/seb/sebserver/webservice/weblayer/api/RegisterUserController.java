@@ -42,7 +42,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.REGISTER_ENDPOINT)
 public class RegisterUserController {
 
-    private final InstitutionDAO institutionDAO;
     private final UserActivityLogDAO userActivityLogDAO;
     private final UserDAO userDAO;
     private final BeanValidationService beanValidationService;
@@ -54,7 +53,6 @@ public class RegisterUserController {
             final BeanValidationService beanValidationService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
-        this.institutionDAO = institutionDAO;
         this.userActivityLogDAO = userActivityLogDAO;
         this.userDAO = userDAO;
         this.beanValidationService = beanValidationService;

@@ -77,7 +77,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
         final Collection<APIMessage> valErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(field -> APIMessage.fieldValidationError(field))
+                .map(APIMessage::fieldValidationError)
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(
@@ -116,7 +116,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
         final Collection<APIMessage> valErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(field -> APIMessage.fieldValidationError(field))
+                .map(APIMessage::fieldValidationError)
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(

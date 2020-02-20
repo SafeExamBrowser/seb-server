@@ -158,7 +158,7 @@ public class ClientHttpRequestFactoryService {
         final String truststoreFilePath = this.environment
                 .getProperty("server.ssl.trust-store", "");
 
-        SSLContext sslContext = null;
+        SSLContext sslContext;
         if (StringUtils.isBlank(truststoreFilePath)) {
 
             if (log.isDebugEnabled()) {

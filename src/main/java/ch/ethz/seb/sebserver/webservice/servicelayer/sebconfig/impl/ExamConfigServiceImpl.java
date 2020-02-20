@@ -254,8 +254,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         }
 
         if (log.isTraceEnabled()) {
-            PipedOutputStream pout = null;
-            PipedInputStream pin = null;
+            PipedOutputStream pout;
+            PipedInputStream pin;
             try {
                 pout = new PipedOutputStream();
                 pin = new PipedInputStream(pout);

@@ -189,7 +189,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     !rolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
 
                 throw new APIConstraintViolationException(
-                        "The current user cannot edit a User-Account of heigher role pased rank: "
+                        "The current user cannot edit a User-Account of higher role passed rank: "
                                 + UserRole.SEB_SERVER_ADMIN);
             }
 

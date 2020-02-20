@@ -20,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientConnection> {
 
-    public static final String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
+    String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
 
     /** Get a list of all connection tokens of all connections (no matter what state)
      * of an exam.
@@ -60,7 +60,7 @@ public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientC
      *
      * TODO improvement: Use the examId to evict only the relevant cache entry
      *
-     * @param data ClientConnection instance
+     * @param all Set of EntityKey for entities to delete
      * @return Result refer to a collection of deleted entities or to an error if happened */
     @Override
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)

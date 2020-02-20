@@ -78,7 +78,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return;
         }
 
-        log.debug("LmsSetup changed. Update cache by removeing eventually used references");
+        log.debug("LmsSetup changed. Update cache by removing eventually used references");
 
         this.cache.remove(new CacheKey(lmsSetup.getModelId(), 0));
     }
@@ -105,11 +105,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
         log.debug("Get LmsAPITemplate for id: {}", lmsSetupId);
 
-        return Result.tryCatch(() -> {
-            return this.lmsSetupDAO
-                    .byModelId(lmsSetupId)
-                    .getOrThrow();
-        })
+        return Result.tryCatch(() -> this.lmsSetupDAO
+                .byModelId(lmsSetupId)
+                .getOrThrow())
                 .flatMap(this::getLmsAPITemplate);
     }
 
@@ -161,7 +159,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
             // case 2. get quizzes from all LmsSetups of specified institution
             final Long institutionId = filterMap.getInstitutionId();
-            return new ArrayList<>(this.lmsSetupDAO.all(institutionId, true)
+            return this.lmsSetupDAO.all(institutionId, true)
                     .getOrThrow()
                     .stream()
                     .map(this::getLmsAPITemplate)
@@ -169,7 +167,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                     .map(template -> template.getQuizzes(filterMap))
                     .flatMap(Result::onErrorLogAndSkip)
                     .flatMap(List::stream)
-                    .collect(Collectors.toSet()));
+                    .distinct()
+                    .collect(Collectors.toList());
         });
     }
 
@@ -177,15 +176,12 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         return Result.tryCatch(() -> {
             LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetup);
             if (lmsAPITemplate == null) {
-
                 lmsAPITemplate = createLmsSetupTemplate(lmsSetup);
                 this.cache.put(new CacheKey(lmsSetup.getModelId(), System.currentTimeMillis()), lmsAPITemplate);
-                return lmsAPITemplate;
-
             } else {
                 log.debug("Get cached LmsAPITemplate with id: {}", lmsSetup.getModelId());
-                return lmsAPITemplate;
             }
+            return lmsAPITemplate;
         });
     }
 
@@ -195,7 +191,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         new ArrayList<>(this.cache.keySet())
                 .stream()
                 .filter(key -> key.creationTimestamp - currentTimeMillis > Constants.DAY_IN_MILLIS)
-                .forEach(key -> this.cache.remove(key));
+                .forEach(this.cache::remove);
         // get from cache
         return this.cache.get(new CacheKey(lmsSetup.getModelId(), 0));
 

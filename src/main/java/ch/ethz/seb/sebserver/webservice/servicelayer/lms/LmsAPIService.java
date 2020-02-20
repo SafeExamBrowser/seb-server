@@ -42,13 +42,11 @@ public interface LmsAPIService {
 
     /** Get the specified LmsSetup model by modelId
      *
-     * @param id The identifier (PK) of the LmsSetup model
+     * @param modelId The identifier (PK) of the LmsSetup model
      * @return Result refer to the LmsSetup model for specified id or to an error if happened */
     default Result<LmsSetup> getLmsSetup(final String modelId) {
-        return Result.tryCatch(() -> {
-            return getLmsSetup(Long.parseLong(modelId))
-                    .getOrThrow();
-        });
+        return Result.tryCatch(() -> getLmsSetup(Long.parseLong(modelId))
+                .getOrThrow());
     }
 
     /** Used to get a specified page of QuizData from all active LMS Setup of the current users
@@ -80,7 +78,7 @@ public interface LmsAPIService {
     /** This can be used to test an LmsSetup connection parameter without saving or heaving
      * an already persistent version of an LmsSetup.
      *
-     * @param lmsSetup
+     * @param lmsSetup the LmsSetup instance
      * @return LmsSetupTestResult containing list of errors if happened */
     LmsSetupTestResult testAdHoc(LmsSetup lmsSetup);
 
@@ -100,7 +98,7 @@ public interface LmsAPIService {
      *
      * @param filterMap the FilterMap containing the filter criteria
      * @return true if the given QuizzData passes the filter */
-    public static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
+    static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         //final DateTime now = DateTime.now(DateTimeZone.UTC);
@@ -117,7 +115,7 @@ public interface LmsAPIService {
      *
      * @param filterMap the FilterMap containing the filter criteria
      * @return filtered list of QuizData */
-    public static Function<List<QuizData>, List<QuizData>> quizzesFilterFunction(final FilterMap filterMap) {
+    static Function<List<QuizData>, List<QuizData>> quizzesFilterFunction(final FilterMap filterMap) {
         return quizzes -> quizzes
                 .stream()
                 .filter(quizFilterPredicate(filterMap))
@@ -133,7 +131,7 @@ public interface LmsAPIService {
      * @param pageNumber the number of the Page to build
      * @param pageSize the size of the Page to build
      * @return A Page of QuizData extracted form a given list of QuizData */
-    public static Function<List<QuizData>, Page<QuizData>> quizzesToPageFunction(
+    static Function<List<QuizData>, Page<QuizData>> quizzesToPageFunction(
             final String sortAttribute,
             final int pageNumber,
             final int pageSize) {
@@ -163,7 +161,7 @@ public interface LmsAPIService {
      *
      * @param sort the sort criteria ( ['-']{attributeName} )
      * @return A Function to sort a List of QuizData by a certain sort criteria */
-    public static Function<List<QuizData>, List<QuizData>> quizzesSortFunction(final String sort) {
+    static Function<List<QuizData>, List<QuizData>> quizzesSortFunction(final String sort) {
         return quizzes -> {
             quizzes.sort(QuizData.getComparator(sort));
             return quizzes;

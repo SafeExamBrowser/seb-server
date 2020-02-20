@@ -8,17 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.mybatis.dynamic.sql.SqlTable;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
@@ -33,6 +22,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeD
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import org.apache.commons.lang3.StringUtils;
+import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServiceProfile
 @RestController
@@ -68,11 +67,9 @@ public class ConfigurationAttributeController extends EntityController<Configura
             return super.getForIds(modelIds);
         }
 
-        return this.entityDAO
+        return new ArrayList<>(this.entityDAO
                 .allMatching(new FilterMap())
-                .getOrThrow()
-                .stream()
-                .collect(Collectors.toList());
+                .getOrThrow());
     }
 
     @Override

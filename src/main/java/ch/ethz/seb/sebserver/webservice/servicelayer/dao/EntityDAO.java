@@ -60,9 +60,8 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      *         happened */
     @Transactional(readOnly = true)
     default Result<T> byModelId(final String id) {
-        return Result.tryCatch(() -> {
-            return Long.parseLong(id);
-        }).flatMap(this::byPK);
+        return Result.tryCatch(() -> Long.parseLong(id))
+                .flatMap(this::byPK);
     }
 
     /** Get a collection of all entities for the given Set of primary keys.
@@ -85,16 +84,14 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return Result referring the collection or an error if happened */
     @Transactional(readOnly = true)
     default Result<Collection<EntityName>> getEntityNames(final Set<EntityKey> keys) {
-        return Result.tryCatch(() -> {
-            return byEntityKeys(keys)
-                    .getOrThrow()
-                    .stream()
-                    .map(entity -> new EntityName(
-                            entity.getModelId(),
-                            entity.entityType(),
-                            entity.getName()))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> byEntityKeys(keys)
+                .getOrThrow()
+                .stream()
+                .map(entity -> new EntityName(
+                        entity.getModelId(),
+                        entity.entityType(),
+                        entity.getName()))
+                .collect(Collectors.toList()));
     }
 
     /** Create a new Entity from the given entity domain model data.

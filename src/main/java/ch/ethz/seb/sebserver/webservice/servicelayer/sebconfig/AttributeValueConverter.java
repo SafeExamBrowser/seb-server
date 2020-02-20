@@ -26,7 +26,7 @@ public interface AttributeValueConverter {
     /** This can be overwritten if a XMLValueConverter needs the XMLValueConverterService.
      * The XMLValueConverterService is then injected by its self on initialization.
      *
-     * @param xmlValueConverterService */
+     * @param xmlValueConverterService the AttributeValueConverterService instance */
     default void init(final AttributeValueConverterService xmlValueConverterService) {
     }
 
@@ -50,7 +50,7 @@ public interface AttributeValueConverter {
      * @param out The output stream to write the plain XML text block to
      * @param attribute The ConfigurationAttribute containing all attribute information
      * @param valueSupplier The ConfigurationValue supplier
-     * @throws IOException */
+     * @throws IOException on error */
     void convertToXML(
             OutputStream out,
             ConfigurationAttribute attribute,
@@ -61,7 +61,7 @@ public interface AttributeValueConverter {
      * @param out The output stream to write the plain JSON text block to
      * @param attribute The ConfigurationAttribute containing all attribute information
      * @param valueSupplier The ConfigurationValue supplier
-     * @throws IOException */
+     * @throws IOException on error */
     void convertToJSON(
             OutputStream out,
             ConfigurationAttribute attribute,
@@ -70,12 +70,12 @@ public interface AttributeValueConverter {
     /** Get the real name of the SEB configuration attribute
      * by cutting of the prefixed used for nested attributes
      *
-     * @param attribute
+     * @param attribute ConfigurationAttribute instance
      * @return the SEB configuration attribute name */
     static String extractName(final ConfigurationAttribute attribute) {
         final int lastIndexOf = attribute.name.lastIndexOf('.');
         if (lastIndexOf > 0) {
-            return attribute.name.substring(lastIndexOf + 1, attribute.name.length());
+            return attribute.name.substring(lastIndexOf + 1);
         } else {
             return attribute.name;
         }
@@ -83,8 +83,8 @@ public interface AttributeValueConverter {
 
     /** Used to expand a "compressed" attribute like kioskMode -> createNewDesktop + killExplorerShell
      *
-     * @param attr
-     * @return */
+     * @param attr ConfigurationAttribute instance
+     * @return  Stream of expanded attributes */
     default Stream<ConfigurationAttribute> convertAttribute(final ConfigurationAttribute attr) {
         return Stream.of(attr);
     }

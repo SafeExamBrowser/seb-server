@@ -215,7 +215,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
         return Result.tryCatch(() -> {
             String _message = message;
             if (message == null) {
-                _message = "Entity details: " + String.valueOf(entity);
+                _message = "Entity details: " + entity;
             }
 
             log(user, activityType, entity.entityType(), entity.getModelId(), _message);
@@ -276,17 +276,14 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> getAllForUser(final String userUuid) {
-        return Result.tryCatch(() -> {
-
-            return this.toDomainModel(
-                    this.userService.getCurrentUser().institutionId(),
-                    this.userLogRecordMapper.selectByExample()
-                            .where(
-                                    UserActivityLogRecordDynamicSqlSupport.userUuid,
-                                    SqlBuilder.isEqualTo(userUuid))
-                            .build()
-                            .execute());
-        });
+        return Result.tryCatch(() -> this.toDomainModel(
+                this.userService.getCurrentUser().institutionId(),
+                this.userLogRecordMapper.selectByExample()
+                        .where(
+                                UserActivityLogRecordDynamicSqlSupport.userUuid,
+                                SqlBuilder.isEqualTo(userUuid))
+                        .build()
+                        .execute()));
     }
 
     @Override
@@ -366,15 +363,12 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-
-            return this.toDomainModel(
-                    this.userService.getCurrentUser().institutionId(),
-                    this.userLogRecordMapper.selectByExample()
-                            .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                            .build()
-                            .execute());
-        });
+        return Result.tryCatch(() -> this.toDomainModel(
+                this.userService.getCurrentUser().institutionId(),
+                this.userLogRecordMapper.selectByExample()
+                        .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                        .build()
+                        .execute()));
     }
 
     @Override
@@ -408,9 +402,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 return 0;
             }
 
-            records
-                    .stream()
-                    .forEach(this::overwriteUser);
+            records.forEach(this::overwriteUser);
 
             return records.size();
         });
@@ -418,15 +410,13 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public Result<Integer> deleteUserEnities(final String userUuid) {
-        return Result.tryCatch(() -> {
-            return this.userLogRecordMapper.deleteByExample()
-                    .where(
-                            UserActivityLogRecordDynamicSqlSupport.userUuid,
-                            SqlBuilder.isEqualToWhenPresent(userUuid))
-                    .build()
-                    .execute();
-        });
+    public Result<Integer> deleteUserEntities(final String userUuid) {
+        return Result.tryCatch(() -> this.userLogRecordMapper.deleteByExample()
+                .where(
+                        UserActivityLogRecordDynamicSqlSupport.userUuid,
+                        SqlBuilder.isEqualToWhenPresent(userUuid))
+                .build()
+                .execute());
     }
 
     private void overwriteUser(final UserActivityLogRecord record) {
@@ -446,7 +436,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
             return Collections.emptyList();
         }
 
-        final Set<String> useruuids = records
+        final Set<String> user_uuids = records
                 .stream()
                 .map(UserActivityLogRecord::getUserUuid)
                 .collect(Collectors.toSet());
@@ -458,11 +448,11 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                         SqlBuilder.isEqualToWhenPresent(institutionId))
                 .and(
                         UserRecordDynamicSqlSupport.uuid,
-                        SqlBuilder.isIn(new ArrayList<>(useruuids)))
+                        SqlBuilder.isIn(new ArrayList<>(user_uuids)))
                 .build()
                 .execute()
                 .stream()
-                .collect(Collectors.toMap(ur -> ur.getUuid(), ur -> ur.getUsername()));
+                .collect(Collectors.toMap(UserRecord::getUuid, UserRecord::getUsername));
 
         return records
                 .stream()

@@ -85,9 +85,8 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Exam> byClientConnection(final Long connectionId) {
-        return Result.tryCatch(() -> {
-            return this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
-        })
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByPrimaryKey(connectionId))
                 .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
                 .flatMap(this::toDomainModelCached)
                 .onError(TransactionHandler::rollback);
@@ -96,22 +95,19 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
-        return Result.tryCatch(() -> {
-            return (active != null)
-                    ? this.examRecordMapper.selectByExample()
-                            .where(
-                                    ExamRecordDynamicSqlSupport.institutionId,
-                                    isEqualToWhenPresent(institutionId))
-                            .and(
-                                    ExamRecordDynamicSqlSupport.active,
-                                    isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
-                            .build()
-                            .execute()
-                    : this.examRecordMapper.selectByExample()
-                            .build()
-                            .execute();
-
-        }).flatMap(this::toDomainModel);
+        return Result.tryCatch(() -> (active != null)
+                ? this.examRecordMapper.selectByExample()
+                        .where(
+                                ExamRecordDynamicSqlSupport.institutionId,
+                                isEqualToWhenPresent(institutionId))
+                        .and(
+                                ExamRecordDynamicSqlSupport.active,
+                                isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
+                        .build()
+                        .execute()
+                : this.examRecordMapper.selectByExample()
+                        .build()
+                        .execute()).flatMap(this::toDomainModel);
     }
 
     @Override
@@ -336,8 +332,7 @@ public class ExamDAOImpl implements ExamDAO {
                 .where(ExamRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
                 .and(ExamRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
                 .build()
-                .execute()
-                .longValue() > 0;
+                .execute() > 0;
     }
 
     @Override
@@ -363,21 +358,19 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Long>> allRunningExamIds() {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualTo(ExamStatus.RUNNING.name()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.updating,
-                            isEqualTo(BooleanUtils.toInteger(false)))
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(
+                        ExamRecordDynamicSqlSupport.active,
+                        isEqualTo(BooleanUtils.toInteger(true)))
+                .and(
+                        ExamRecordDynamicSqlSupport.status,
+                        isEqualTo(ExamStatus.RUNNING.name()))
+                .and(
+                        ExamRecordDynamicSqlSupport.updating,
+                        isEqualTo(BooleanUtils.toInteger(false)))
 
-                    .build()
-                    .execute();
-        });
+                .build()
+                .execute());
     }
 
     @Override
@@ -398,10 +391,8 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
-            return this.toDomainModel(records)
-                    .getOrThrow()
-                    .stream()
-                    .collect(Collectors.toList());
+            return new ArrayList<>(this.toDomainModel(records)
+                    .getOrThrow());
         });
     }
 
@@ -423,10 +414,8 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
-            return this.toDomainModel(records)
-                    .getOrThrow()
-                    .stream()
-                    .collect(Collectors.toList());
+            return new ArrayList<>(this.toDomainModel(records)
+                    .getOrThrow());
         });
     }
 
@@ -597,55 +586,46 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectByExample()
-                    .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute();
-        }).flatMap(this::toDomainModel);
+        return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
+                .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()).flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Long>> allIdsOfInstituion(final Long institutionId) {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(institutionId))
-                    .and(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
-                    .build()
-                    .execute();
-
-        });
+    public Result<Collection<Long>> allIdsOfInstitution(final Long institutionId) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(
+                        ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(institutionId))
+                .and(
+                        ExamRecordDynamicSqlSupport.active,
+                        isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                .build()
+                .execute());
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
-                    .where(ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
-                    .where(ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(ExamRecordDynamicSqlSupport.lmsSetupId,
+                        isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
     private Result<ExamRecord> recordById(final Long id) {
@@ -661,13 +641,9 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     private Result<Exam> toDomainModelCached(final ExamRecord record) {
-        return Result.tryCatch(() -> {
-
-            return this.lmsAPIService
-                    .getLmsAPITemplate(record.getLmsSetupId())
-                    .getOrThrow();
-
-        })
+        return Result.tryCatch(() -> this.lmsAPIService
+                .getLmsAPITemplate(record.getLmsSetupId())
+                .getOrThrow())
                 .flatMap(template -> template.getQuizFromCache(record.getExternalId()))
                 .flatMap(quizData -> this.toDomainModel(record, quizData));
     }
@@ -691,9 +667,9 @@ public class ExamDAOImpl implements ExamDAO {
 
             final HashMap<Long, Collection<ExamRecord>> lmsSetupToRecordMapping = records
                     .stream()
-                    .reduce(new HashMap<Long, Collection<ExamRecord>>(),
+                    .reduce(new HashMap<>(),
                             (map, record) -> Utils.mapCollect(map, record.getLmsSetupId(), record),
-                            (map1, map2) -> Utils.mapPutAll(map1, map2));
+                            Utils::mapPutAll);
 
             return lmsSetupToRecordMapping
                     .entrySet()
@@ -722,7 +698,7 @@ public class ExamDAOImpl implements ExamDAO {
             // map records
             final Map<String, ExamRecord> recordMapping = records
                     .stream()
-                    .collect(Collectors.toMap(r -> r.getExternalId(), Function.identity()));
+                    .collect(Collectors.toMap(ExamRecord::getExternalId, Function.identity()));
 
             // get and map quizzes
             final Map<String, QuizData> quizzes = this.lmsAPIService

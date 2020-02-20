@@ -106,7 +106,7 @@ public class UserDAOImpl implements UserDAO {
     @Transactional(readOnly = true)
     public Result<Long> pkForModelId(final String modelId) {
         return recordByUUID(modelId)
-                .map(r -> r.getId());
+                .map(UserRecord::getId);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class UserDAOImpl implements UserDAO {
     @Transactional(readOnly = true)
     public Result<SEBServerUser> sebServerUserByUsername(final String username) {
         return recordByUsername(username)
-                .flatMap(rec -> sebServerUserFromRecord(rec));
+                .flatMap(this::sebServerUserFromRecord);
     }
 
     @Override
@@ -161,7 +161,7 @@ public class UserDAOImpl implements UserDAO {
                     ? predicate.and(ui -> ui.roles.contains(userRole))
                     : predicate;
 
-            final Collection<UserInfo> userInfo = this.userRecordMapper
+            return this.userRecordMapper
                     .selectByExample()
                     .where(
                             UserRecordDynamicSqlSupport.active,
@@ -188,8 +188,6 @@ public class UserDAOImpl implements UserDAO {
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(_predicate)
                     .collect(Collectors.toList());
-
-            return userInfo;
         });
     }
 
@@ -321,8 +319,7 @@ public class UserDAOImpl implements UserDAO {
                 .where(UserRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
                 .and(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
                 .build()
-                .execute()
-                .longValue() > 0;
+                .execute() > 0;
     }
 
     @Override
@@ -368,16 +365,14 @@ public class UserDAOImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.userRecordMapper.selectByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
+                .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -403,16 +398,14 @@ public class UserDAOImpl implements UserDAO {
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.userRecordMapper.selectByExample()
-                    .where(UserRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(rec -> new EntityKey(rec.getUuid(), EntityType.USER))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
+                .where(UserRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityKey(rec.getUuid(), EntityType.USER))
+                .collect(Collectors.toList()));
     }
 
     private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
@@ -428,7 +421,7 @@ public class UserDAOImpl implements UserDAO {
     private void insertRolesForUser(final Long userId, final Set<String> roles) {
         roles.stream()
                 .map(roleName -> new RoleRecord(null, userId, roleName))
-                .forEach(roleRecord -> this.roleRecordMapper.insert(roleRecord));
+                .forEach(this.roleRecordMapper::insert);
     }
 
     private Result<UserRecord> recordByUsername(final String username) {
@@ -454,11 +447,10 @@ public class UserDAOImpl implements UserDAO {
     }
 
     private List<RoleRecord> getRoles(final UserRecord record) {
-        final List<RoleRecord> roles = this.roleRecordMapper.selectByExample()
+        return this.roleRecordMapper.selectByExample()
                 .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(record.getId()))
                 .build()
                 .execute();
-        return roles;
     }
 
     private Result<UserInfo> toDomainModel(final UserRecord record) {
@@ -470,7 +462,7 @@ public class UserDAOImpl implements UserDAO {
             if (roles != null) {
                 userRoles = roles
                         .stream()
-                        .map(r -> r.getRoleName())
+                        .map(RoleRecord::getRoleName)
                         .collect(Collectors.toSet());
             }
 
@@ -506,7 +498,7 @@ public class UserDAOImpl implements UserDAO {
                 .build()
                 .execute();
 
-        if (otherUsersWithSameName != null && otherUsersWithSameName.longValue() > 0) {
+        if (otherUsersWithSameName != null && otherUsersWithSameName > 0) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     Domain.USER.ATTR_USERNAME,
                     "user:username:username.notunique"));

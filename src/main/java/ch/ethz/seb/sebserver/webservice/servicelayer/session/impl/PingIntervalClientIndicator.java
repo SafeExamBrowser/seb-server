@@ -55,8 +55,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             indicatorDefinition
                     .getThresholds()
                     .stream()
-                    .sorted(Comparator.reverseOrder())
-                    .findFirst()
+                    .max(Comparator.naturalOrder())
                     .ifPresent(t -> this.pingErrorThreshold = t.value.longValue());
         } catch (final Exception e) {
             log.error("Failed to initialize pingErrorThreshold: {}", e.getMessage());

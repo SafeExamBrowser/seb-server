@@ -65,16 +65,14 @@ public class ViewDAOImpl implements ViewDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<View>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.viewRecordMapper.selectByExample()
-                    .where(ViewRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ViewDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.viewRecordMapper.selectByExample()
+                .where(ViewRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ViewDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -130,15 +128,14 @@ public class ViewDAOImpl implements ViewDAO {
                     .execute();
             // get default view
             final ViewRecord defView = this.viewRecordMapper.selectByPrimaryKey(defaultViewId);
-            final ViewRecord result = templateViews
+
+            return templateViews
                     .stream()
                     .filter(view -> view.getName().equals(defView.getName()))
                     .findFirst()
                     .orElseThrow(() -> new ResourceNotFoundException(
                             EntityType.VIEW,
-                            String.valueOf(templateId) + ":" + defaultViewId));
-
-            return result;
+                            templateId + ":" + defaultViewId));
         })
                 .flatMap(ViewDAOImpl::toDomainModel);
     }

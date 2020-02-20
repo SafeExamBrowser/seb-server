@@ -75,7 +75,7 @@ public class SebInstructionServiceImpl implements SebInstructionService {
 
         loadInstruction()
                 .onError(
-                        error -> log.error("Failed  to initialze and load persistent storage SEB client instructions: ",
+                        error -> log.error("Failed  to initialize and load persistent storage SEB client instructions: ",
                                 error));
 
         if (this.instructions.size() > 0) {
@@ -98,7 +98,7 @@ public class SebInstructionServiceImpl implements SebInstructionService {
             final String attributesString = Utils.toJsonArrayValue(attributes);
             final Set<String> activeConnections = new HashSet<>(this.clientConnectionDAO
                     .getConnectionTokens(examId)
-                    .getOrElse(() -> Collections.emptyList()));
+                    .getOrElse(Collections::emptyList));
 
             connectionTokens
                     .stream()
@@ -172,12 +172,9 @@ public class SebInstructionServiceImpl implements SebInstructionService {
     }
 
     private Result<Void> loadInstruction() {
-        return Result.tryCatch(() -> {
-            this.clientInstructionDAO.getAllActive()
-                    .getOrThrow()
-                    .stream()
-                    .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst));
-        });
+        return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive()
+                .getOrThrow()
+                .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst)));
     }
 
 }

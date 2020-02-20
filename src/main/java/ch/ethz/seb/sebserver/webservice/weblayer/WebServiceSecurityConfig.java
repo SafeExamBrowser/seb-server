@@ -303,7 +303,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
         public void commence(
                 final HttpServletRequest request,
                 final HttpServletResponse response,
-                final AuthenticationException authenticationException) throws IOException, ServletException {
+                final AuthenticationException authenticationException) throws IOException {
 
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
                     request.getRequestURI());

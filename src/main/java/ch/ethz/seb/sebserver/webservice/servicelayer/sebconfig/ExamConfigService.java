@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 /** The base interface and service for all SEB Exam Configuration related functionality. */
 public interface ExamConfigService {
 
-    /** Validates a given ConfigurationValue by using registered ConfigurationValueValodator
+    /** Validates a given ConfigurationValue by using registered ConfigurationValueValidator
      * beans to find a proper validator for the specified ConfigurationValue
      *
      * @param value The ConfigurationValue to validate
@@ -113,7 +113,7 @@ public interface ExamConfigService {
      * First tries to read the file from the given input stream and detect the file format. A password
      * is needed if the file is in an encrypted format.
      *
-     * Then loads the ConfigurationNode on which the import should take place and performs a "save in histroy"
+     * Then loads the ConfigurationNode on which the import should take place and performs a "save in history"
      * action first to allow to make an easy rollback or even later an undo by the user.
      *
      * Then parses the XML and adds each attribute to the new Configuration.

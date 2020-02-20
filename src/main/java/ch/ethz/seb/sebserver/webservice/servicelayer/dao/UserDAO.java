@@ -24,7 +24,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
 
     /** Use this to get the user id (PK) from a given modelId (users UUID).
      *
-     * @param uuid The UUID of the user
+     * @param modelId The UUID of the user
      * @return the user id (PK) from a given UUID. */
     Result<Long> pkForModelId(String modelId);
 

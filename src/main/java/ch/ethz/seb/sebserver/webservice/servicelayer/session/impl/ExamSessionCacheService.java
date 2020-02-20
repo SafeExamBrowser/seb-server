@@ -116,9 +116,6 @@ public class ExamSessionCacheService {
         }
 
         switch (exam.status) {
-            case FINISHED: {
-                return false;
-            }
             case RUNNING: {
                 return true;
             }
@@ -140,7 +137,7 @@ public class ExamSessionCacheService {
     public ClientConnectionDataInternal getActiveClientConnection(final String connectionToken) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Verify ClientConnection for running exam for caching by connectionToken: ", connectionToken);
+            log.debug("Verify ClientConnection for running exam for caching by connectionToken: {}", connectionToken);
         }
 
         final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
@@ -199,7 +196,7 @@ public class ExamSessionCacheService {
     @Transactional
     public ClientEventRecord getPingRecord(final String connectionToken) {
         if (log.isDebugEnabled()) {
-            log.debug("Verify ClientConnection for ping record to cache by connectionToken: ", connectionToken);
+            log.debug("Verify ClientConnection for ping record to cache by connectionToken: {}", connectionToken);
         }
 
         final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);

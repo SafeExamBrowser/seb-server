@@ -145,13 +145,11 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 throw new IllegalArgumentException("Wrong clientId or secret");
             }
 
-            final List<QuizData> quizzes = this.mockups
+            return this.mockups
                     .stream()
                     .map(this::getExternalAddressAlias)
                     .filter(LmsAPIService.quizFilterPredicate(filterMap))
                     .collect(Collectors.toList());
-
-            return quizzes;
         });
     }
 
@@ -164,8 +162,8 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         return this.mockups
                 .stream()
                 .map(this::getExternalAddressAlias)
-                .filter(mockup -> ids.contains(mockup.id))
-                .map(mockup -> Result.of(mockup))
+                .filter(mock -> ids.contains(mock.id))
+                .map(Result::of)
                 .collect(Collectors.toList());
     }
 

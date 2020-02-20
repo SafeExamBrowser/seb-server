@@ -55,7 +55,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
     }
 
-    Collection<ClientIndicator> getindicatorMapping(final EventType eventType) {
+    Collection<ClientIndicator> getIndicatorMapping(final EventType eventType) {
         if (!this.indicatorMapping.containsKey(eventType)) {
             return Collections.emptyList();
         }

@@ -87,7 +87,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      *
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
-    public void initBinder(final WebDataBinder binder) throws Exception {
+    public void initBinder(final WebDataBinder binder) {
         this.authorization
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);
@@ -239,14 +239,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<T> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String modelIds) {
 
-        return Result.tryCatch(() -> {
-
-            return Arrays.asList(StringUtils.split(modelIds, Constants.LIST_SEPARATOR_CHAR))
-                    .stream()
-                    .map(modelId -> new EntityKey(modelId, this.entityDAO.entityType()))
-                    .collect(Collectors.toSet());
-
-        })
+        return Result.tryCatch(() -> Arrays.stream(StringUtils.split(modelIds, Constants.LIST_SEPARATOR_CHAR))
+                .map(modelId -> new EntityKey(modelId, this.entityDAO.entityType()))
+                .collect(Collectors.toSet()))
                 .flatMap(this.entityDAO::byEntityKeys)
                 .getOrThrow()
                 .stream()
@@ -347,10 +342,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
-        final Result<Collection<T>> allMatching = this.entityDAO.allMatching(
+        return this.entityDAO.allMatching(
                 filterMap,
                 this::hasReadAccess);
-        return allMatching;
     }
 
     protected Result<T> notifyCreated(final T entity) {
@@ -475,7 +469,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     /** Makes a CREATE user activity log for the specified entity.
      * This may be overwritten if the create user activity log should be skipped.
      *
-     * @param entity
+     * @param entity the Entity instance
      * @return Result of entity */
     protected Result<T> logCreate(final T entity) {
         return this.userActivityLogDAO.logCreate(entity);
@@ -484,8 +478,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     /** Makes a MODIFY user activity log for the specified entity.
      * This may be overwritten if the create user activity log should be skipped.
      *
-     * @param entity
-     * @return */
+     * @param entity the Entity instance
+     * @return Result refer to the logged Entity instance or to an error if happened */
     protected Result<T> logModify(final T entity) {
         return this.userActivityLogDAO.logModify(entity);
     }

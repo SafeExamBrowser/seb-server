@@ -45,7 +45,7 @@ public class AttributeValueConverterServiceImpl implements AttributeValueConvert
             for (final AttributeType aType : converter.types()) {
                 if (this.convertersByAttributeType.containsKey(aType)) {
                     log.warn(
-                            "Unexpected state in inititalization: A XMLValueConverter for AttributeType {} exists already: {}",
+                            "Unexpected state in initialization: A XMLValueConverter for AttributeType {} exists already: {}",
                             aType,
                             converter);
                 }

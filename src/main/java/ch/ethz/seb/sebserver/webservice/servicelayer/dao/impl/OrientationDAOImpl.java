@@ -68,16 +68,14 @@ public class OrientationDAOImpl implements OrientationDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Orientation>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.orientationRecordMapper.selectByExample()
-                    .where(OrientationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(OrientationDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.orientationRecordMapper.selectByExample()
+                .where(OrientationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(OrientationDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -171,7 +169,6 @@ public class OrientationDAOImpl implements OrientationDAO {
                             SqlBuilder.isEqualTo(ConfigurationNode.DEFAULT_TEMPLATE_ID))
                     .build()
                     .execute()
-                    .stream()
                     .forEach(record -> createNew(new Orientation(
                             null,
                             record.getConfigAttributeId(),

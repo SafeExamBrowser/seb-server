@@ -8,15 +8,23 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,24 +40,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
-import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @WebServiceProfile
 @RestController
@@ -91,8 +88,8 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
                 .map(this.userActivityLogDAO::logExport);
 
         final ServletOutputStream outputStream = response.getOutputStream();
-        PipedOutputStream pout = null;
-        PipedInputStream pin = null;
+        PipedOutputStream pout;
+        PipedInputStream pin;
         try {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);

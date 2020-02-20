@@ -110,7 +110,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             if (log.isDebugEnabled()) {
                 log.debug("SEB client connection attempt, create ClientConnection for "
-                        + "instituion {} "
+                        + "institution {} "
                         + "exam: {} "
                         + "client address: {}",
                         institutionId,
@@ -165,7 +165,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 log.debug(
                         "SEB client connection, update ClientConnection for "
                                 + "connectionToken {} "
-                                + "institutionId"
+                                + "institutionId: {}"
                                 + "exam: {} "
                                 + "client address: {} "
                                 + "userSessionId: {}",
@@ -199,10 +199,10 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     !userSessionId.equals(clientConnection.userSessionId)) {
 
                 log.error(
-                        "User session identifer integrity violation: another User session identifer is already set for the connection: {}",
+                        "User session identifier integrity violation: another User session identifier is already set for the connection: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
-                        "User session identifer integrity violation: another User session identifer is already set for the connection");
+                        "User session identifier integrity violation: another User session identifier is already set for the connection");
             }
 
             final String virtualClientAddress = getVirtualClientAddress(
@@ -224,7 +224,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     .getOrThrow();
 
             final ClientConnectionDataInternal activeClientConnection =
-                    realoadConnectionCache(connectionToken);
+                    reloadConnectionCache(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -251,7 +251,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 log.debug(
                         "SEB client connection, establish ClientConnection for "
                                 + "connectionToken {} "
-                                + "institutionId"
+                                + "institutionId: {}"
                                 + "exam: {} "
                                 + "client address: {} "
                                 + "userSessionId: {}",
@@ -317,7 +317,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             checkExamIntegrity(updatedClientConnection.examId);
 
             final ClientConnectionDataInternal activeClientConnection =
-                    realoadConnectionCache(connectionToken);
+                    reloadConnectionCache(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -345,7 +345,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             if (log.isDebugEnabled()) {
                 log.debug("SEB client connection: regular close attempt for "
-                        + "instituion {} "
+                        + "institution {} "
                         + "client address: {} "
                         + "connectionToken {} ",
                         institutionId,
@@ -372,7 +372,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            realoadConnectionCache(connectionToken);
+            reloadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
     }
@@ -400,7 +400,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
 
             if (log.isDebugEnabled()) {
                 log.debug("SEB client connection: SEB Server disable attempt for "
-                        + "instituion {} "
+                        + "institution {} "
                         + "connectionToken {} ",
                         institutionId,
                         connectionToken);
@@ -426,7 +426,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            realoadConnectionCache(connectionToken);
+            reloadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
     }
@@ -451,7 +451,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                             connection.clientConnection.status.establishedStatus)
                     .map(connection -> connection.pingIndicator.updateLogEvent())
                     .filter(Objects::nonNull)
-                    .forEach(this.eventHandlingStrategy::accept);
+                    .forEach(this.eventHandlingStrategy);
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);
@@ -484,8 +484,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                     activeClientConnection.getConnectionId()));
 
             // update indicators
-            activeClientConnection.getindicatorMapping(event.eventType)
-                    .stream()
+            activeClientConnection.getIndicatorMapping(event.eventType)
                     .forEach(indicator -> indicator.notifyValueChange(event));
         } else {
             log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
@@ -499,10 +498,9 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
     }
 
     private ClientConnection getClientConnection(final String connectionToken) {
-        final ClientConnection clientConnection = this.clientConnectionDAO
+        return this.clientConnectionDAO
                 .byConnectionToken(connectionToken)
                 .getOrThrow();
-        return clientConnection;
     }
 
     private void checkInstitutionalIntegrity(
@@ -510,10 +508,10 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
             final ClientConnection clientConnection) throws IllegalAccessError {
 
         if (!institutionId.equals(clientConnection.institutionId)) {
-            log.error("Instituion integrity violation with institution: {} on clientConnection: {}",
+            log.error("Institution integrity violation with institution: {} on clientConnection: {}",
                     institutionId,
                     clientConnection);
-            throw new IllegalAccessError("Instituion integrity violation");
+            throw new IllegalAccessError("Institution integrity violation");
         }
     }
 
@@ -625,7 +623,7 @@ public class SebClientConnectionServiceImpl implements SebClientConnectionServic
                 .getOrThrow();
     }
 
-    private ClientConnectionDataInternal realoadConnectionCache(final String connectionToken) {
+    private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
         // evict also cached ping record

@@ -23,7 +23,7 @@ public class WebServiceShutdown implements DisposableBean, ApplicationListener<C
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         log.info("SEB-Server Web-Service shutdown...");
 
     }

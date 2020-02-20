@@ -160,7 +160,7 @@ public interface ExamSessionService {
      *
      * @param connection ClientConnectionData instance
      * @return true if the given ClientConnectionData is an active SEB client connection */
-    public static boolean isActiveConnection(final ClientConnectionData connection) {
+    static boolean isActiveConnection(final ClientConnectionData connection) {
         if (connection.clientConnection.status.establishedStatus) {
             return true;
         }

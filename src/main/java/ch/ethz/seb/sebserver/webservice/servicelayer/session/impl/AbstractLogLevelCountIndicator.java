@@ -35,8 +35,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractClientIndic
 
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.observed = Collections.unmodifiableSet(EnumSet.of(eventTypes[0], eventTypes));
-        this.eventTypeIds = Utils.immutableListOf(Arrays.asList(eventTypes)
-                .stream()
+        this.eventTypeIds = Utils.immutableListOf(Arrays.stream(eventTypes)
                 .map(et -> et.id)
                 .collect(Collectors.toList()));
     }

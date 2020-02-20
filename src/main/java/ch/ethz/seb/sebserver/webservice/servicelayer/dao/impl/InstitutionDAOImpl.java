@@ -129,7 +129,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     .build()
                     .execute();
 
-            if (count != null && count.longValue() > 0) {
+            if (count != null && count > 0) {
                 throw new FieldValidationException("name", "institution:name:exists");
             }
 
@@ -158,7 +158,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                     .build()
                     .execute();
 
-            if (count != null && count.longValue() > 0) {
+            if (count != null && count > 0) {
                 throw new FieldValidationException("name", "institution:name:exists");
             }
 
@@ -208,8 +208,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 .where(InstitutionRecordDynamicSqlSupport.id, isEqualTo(Long.valueOf(modelId)))
                 .and(InstitutionRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toInteger(true)))
                 .build()
-                .execute()
-                .longValue() > 0;
+                .execute() > 0;
     }
 
     @Override
@@ -240,16 +239,14 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Institution>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.institutionRecordMapper.selectByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(InstitutionDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.institutionRecordMapper.selectByExample()
+                .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(InstitutionDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     private Result<InstitutionRecord> recordById(final Long id) {

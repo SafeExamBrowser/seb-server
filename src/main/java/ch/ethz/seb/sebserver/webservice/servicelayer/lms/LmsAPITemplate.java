@@ -72,10 +72,10 @@ public interface LmsAPITemplate {
      * @return Collection of all QuizData from the given id set */
     default Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
         return getQuizzes(new FilterMap())
-                .getOrElse(() -> Collections.emptyList())
+                .getOrElse(Collections::emptyList)
                 .stream()
                 .filter(quiz -> ids.contains(quiz.id))
-                .map(quiz -> Result.of(quiz))
+                .map(Result::of)
                 .collect(Collectors.toList());
     }
 

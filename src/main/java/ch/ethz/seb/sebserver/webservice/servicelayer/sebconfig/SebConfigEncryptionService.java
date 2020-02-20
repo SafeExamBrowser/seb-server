@@ -48,14 +48,13 @@ public interface SebConfigEncryptionService {
         public final Type type;
         public final byte[] header;
 
-        private Strategy(final Type type, final String headerKey) {
+        Strategy(final Type type, final String headerKey) {
             this.type = type;
             this.header = Utils.toByteArray(headerKey);
         }
 
         public static Strategy getStrategy(final byte[] header) {
-            return Arrays.asList(Strategy.values())
-                    .stream()
+            return Arrays.stream(Strategy.values())
                     .filter(strategy -> Arrays.equals(strategy.header, header))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(

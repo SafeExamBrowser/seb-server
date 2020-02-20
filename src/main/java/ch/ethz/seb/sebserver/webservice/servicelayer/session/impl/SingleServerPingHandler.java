@@ -33,7 +33,6 @@ public class SingleServerPingHandler implements PingHandlingStrategy {
 
         if (activeClientConnection != null) {
             activeClientConnection.pingMappings
-                    .stream()
                     .forEach(pingIndicator -> pingIndicator.notifyPing(timestamp, pingNumber));
         }
     }

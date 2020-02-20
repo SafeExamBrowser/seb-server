@@ -92,7 +92,7 @@ public class ExamAPI_V1_Controller {
             @RequestBody(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
-            final HttpServletResponse response) throws IOException {
+            final HttpServletResponse response) {
 
         final POSTMapper mapper = new POSTMapper(formParams);
 
@@ -129,7 +129,7 @@ public class ExamAPI_V1_Controller {
         }
 
         if (result.isEmpty()) {
-            log.warn("There are no currently running exams for institution: {}. SEB connection creation denied");
+            log.warn("There are no currently running exams for institution: {}. SEB connection creation denied", institutionId);
             throw new IllegalStateException("There are no currently running exams");
         }
 

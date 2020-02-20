@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.validation;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DirectFieldBindingResult;
 import org.springframework.validation.Validator;
@@ -42,8 +44,8 @@ public class BeanValidationService {
         this.activatableDAOs = activatableDAOs
                 .stream()
                 .collect(Collectors.toMap(
-                        dao -> dao.entityType(),
-                        dao -> dao));
+                        EntityDAO::entityType,
+                        Function.identity()));
     }
 
     /** Validates a given bean that is annotated with Java bean validation annotations

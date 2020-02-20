@@ -192,7 +192,7 @@ public class WebserviceInfo {
                 .stream()
                 .filter(entry -> internalAddress.contains(entry.getKey()))
                 .findFirst()
-                .map(entry -> entry.getValue())
+                .map(Map.Entry::getValue)
                 .orElse(null);
     }
 

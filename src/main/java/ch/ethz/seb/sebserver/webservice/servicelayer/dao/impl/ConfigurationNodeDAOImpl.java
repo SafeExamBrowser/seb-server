@@ -86,16 +86,14 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ConfigurationNode>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.configurationNodeRecordMapper.selectByExample()
-                    .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(ConfigurationNodeDAOImpl::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectByExample()
+                .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(ConfigurationNodeDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -171,7 +169,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .build()
                     .execute();
 
-            if (count != null && count.longValue() > 0) {
+            if (count != null && count > 0) {
                 throw new FieldValidationException("name", "configurationNode:name:exists");
             }
 
@@ -243,17 +241,15 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.configurationNodeRecordMapper.selectIdsByExample()
-                    .where(
-                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.valueOf(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectIdsByExample()
+                .where(
+                        ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
+                .collect(Collectors.toList()));
     }
 
     private Result<ConfigurationNodeRecord> recordById(final Long id) {

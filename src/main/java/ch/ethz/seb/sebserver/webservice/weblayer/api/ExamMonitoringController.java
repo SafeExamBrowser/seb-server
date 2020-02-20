@@ -84,7 +84,7 @@ public class ExamMonitoringController {
      *
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
-    public void initBinder(final WebDataBinder binder) throws Exception {
+    public void initBinder(final WebDataBinder binder) {
         this.authorization
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);

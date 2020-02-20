@@ -82,8 +82,8 @@ public class IntegerConverter implements AttributeValueConverter {
         final String val = (value != null && value.value != null)
                 ? value.value
                 : attribute.getDefaultValue();
-        int intVal = 0;
 
+        int intVal;
         try {
             intVal = Integer.parseInt(val);
         } catch (final NumberFormatException nfe) {

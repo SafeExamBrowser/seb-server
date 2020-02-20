@@ -40,6 +40,6 @@ public interface UserRelatedEntityDAO<T extends Entity> {
      *
      * @param userUuid the users identity
      * @return A Result with the number of deleted Entity instances or with an error if happen */
-    Result<Integer> deleteUserEnities(final String userUuid);
+    Result<Integer> deleteUserEntities(final String userUuid);
 
 }

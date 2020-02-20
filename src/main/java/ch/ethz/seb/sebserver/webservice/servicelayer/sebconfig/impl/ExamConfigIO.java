@@ -205,13 +205,7 @@ public class ExamConfigIO {
             final SAXParser parser = saxParserFactory.newSAXParser();
             parser.parse(in, examConfigImportHandler);
 
-        } catch (final ParserConfigurationException e) {
-            log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
-            throw new RuntimeException(e);
-        } catch (final SAXException e) {
-            log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
-            throw new RuntimeException(e);
-        } catch (final IOException e) {
+        } catch (final ParserConfigurationException | SAXException | IOException e) {
             log.error("Unexpected error while trying to parse imported SEB Config XML: ", e);
             throw new RuntimeException(e);
         } finally {

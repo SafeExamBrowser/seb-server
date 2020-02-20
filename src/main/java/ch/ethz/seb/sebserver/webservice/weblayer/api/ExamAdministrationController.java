@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -425,13 +426,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (!StringUtils.isBlank(sort)) {
             final String sortBy = PageSortOrder.decode(sort);
             if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.name.compareTo(exam2.name));
+                exams.sort(Comparator.comparing(exam -> exam.name));
             }
             if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.type.compareTo(exam2.type));
+                exams.sort(Comparator.comparing(exam -> exam.type));
             }
             if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
-                Collections.sort(exams, (exam1, exam2) -> exam1.startTime.compareTo(exam2.startTime));
+                exams.sort(Comparator.comparing(exam -> exam.startTime));
             }
         }
 

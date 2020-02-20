@@ -78,44 +78,40 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Indicator>> allMatching(final FilterMap filterMap, final Predicate<Indicator> predicate) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectByExample()
-                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
-                    .on(
-                            ExamRecordDynamicSqlSupport.id,
-                            SqlBuilder.equalTo(IndicatorRecordDynamicSqlSupport.examId))
-                    .where(
-                            ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualToWhenPresent(filterMap.getInstitutionId()))
-                    .and(
-                            IndicatorRecordDynamicSqlSupport.examId,
-                            isEqualToWhenPresent(filterMap.getIndicatorExamId()))
-                    .and(
-                            IndicatorRecordDynamicSqlSupport.name,
-                            isLikeWhenPresent(filterMap.getIndicatorName()))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .filter(predicate)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        SqlBuilder.equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        IndicatorRecordDynamicSqlSupport.examId,
+                        isEqualToWhenPresent(filterMap.getIndicatorExamId()))
+                .and(
+                        IndicatorRecordDynamicSqlSupport.name,
+                        isLikeWhenPresent(filterMap.getIndicatorName()))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .filter(predicate)
+                .collect(Collectors.toList()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Indicator>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectByExample()
-                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
+                .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -212,16 +208,14 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Indicator>> allForExam(final Long examId) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectByExample()
-                    .where(IndicatorRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
+                .where(IndicatorRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -252,53 +246,47 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     }
 
     private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectIdsByExample()
-                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
-                    .on(
-                            ExamRecordDynamicSqlSupport.id,
-                            equalTo(IndicatorRecordDynamicSqlSupport.examId))
-                    .where(
-                            ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualTo(Long.parseLong(institutionKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.parseLong(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectIdsByExample()
-                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
-                    .on(
-                            ExamRecordDynamicSqlSupport.id,
-                            equalTo(IndicatorRecordDynamicSqlSupport.examId))
-                    .where(
-                            ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualTo(Long.parseLong(lmsSetupKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.lmsSetupId,
+                        isEqualTo(Long.parseLong(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
     private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
-        return Result.tryCatch(() -> {
-            return this.indicatorRecordMapper.selectIdsByExample()
-                    .where(
-                            IndicatorRecordDynamicSqlSupport.examId,
-                            isEqualTo(Long.parseLong(examKey.modelId)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM))
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+                .where(
+                        IndicatorRecordDynamicSqlSupport.examId,
+                        isEqualTo(Long.parseLong(examKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
     private Result<IndicatorRecord> recordById(final Long id) {

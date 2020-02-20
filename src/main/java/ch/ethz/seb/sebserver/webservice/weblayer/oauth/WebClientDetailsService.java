@@ -64,13 +64,11 @@ public class WebClientDetailsService implements ClientDetailsService {
             return this.adminClientDetails;
         }
 
-        final ClientDetails clientDetails = getForExamClientAPI(clientId)
+        return getForExamClientAPI(clientId)
                 .get(t -> {
                     log.error("Active ClientConfig not found: ", t);
                     throw new AccessDeniedException(t.getMessage());
                 });
-
-        return clientDetails;
     }
 
     protected Result<ClientDetails> getForExamClientAPI(final String clientId) {

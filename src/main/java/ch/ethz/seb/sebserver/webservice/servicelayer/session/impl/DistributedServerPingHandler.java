@@ -60,7 +60,6 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
 
         if (activeClientConnection != null) {
             activeClientConnection.pingMappings
-                    .stream()
                     .forEach(pingIndicator -> pingIndicator.notifyPing(timestamp, pingNumber));
         }
     }
@@ -69,7 +68,7 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
     public void initForConnection(final Long connectionId, final String connectionToken) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Intitalize distributed ping handler for connection: {}", connectionId);
+            log.debug("Initialize distributed ping handler for connection: {}", connectionId);
         }
 
         final ClientEventRecord clientEventRecord = new ClientEventRecord();

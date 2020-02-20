@@ -29,10 +29,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 @WebServiceProfile
 public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
-    private final AdditionalAttributeRecordMapper additionalAttributeRecordMapperer;
+    private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
 
-    protected AdditionalAttributesDAOImpl(final AdditionalAttributeRecordMapper additionalAttributeRecordMapperer) {
-        this.additionalAttributeRecordMapperer = additionalAttributeRecordMapperer;
+    protected AdditionalAttributesDAOImpl(final AdditionalAttributeRecordMapper additionalAttributeRecordMapper) {
+        this.additionalAttributeRecordMapper = additionalAttributeRecordMapper;
     }
 
     @Override
@@ -41,20 +41,16 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
             final EntityType type,
             final Long entityId) {
 
-        return Result.tryCatch(() -> {
-
-            return this.additionalAttributeRecordMapperer
-                    .selectByExample()
-                    .where(
-                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
-                            SqlBuilder.isEqualTo(type.name()))
-                    .and(
-                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
-                            SqlBuilder.isEqualTo(entityId))
-                    .build()
-                    .execute();
-
-        });
+        return Result.tryCatch(() -> this.additionalAttributeRecordMapper
+                .selectByExample()
+                .where(
+                        AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                        SqlBuilder.isEqualTo(type.name()))
+                .and(
+                        AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                        SqlBuilder.isEqualTo(entityId))
+                .build()
+                .execute());
     }
 
     @Override
@@ -67,11 +63,11 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
         return Result.tryCatch(() -> {
             if (value == null) {
-                Result.ofError(new IllegalArgumentException(
-                        "value cannot be null. Use delete to delete an additional attribute"));
+                throw new IllegalArgumentException(
+                        "value cannot be null. Use delete to delete an additional attribute");
             }
 
-            final Optional<Long> id = this.additionalAttributeRecordMapperer
+            final Optional<Long> id = this.additionalAttributeRecordMapper
                     .selectIdsByExample()
                     .where(
                             AdditionalAttributeRecordDynamicSqlSupport.entityType,
@@ -94,10 +90,10 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                         entityId,
                         name,
                         value);
-                this.additionalAttributeRecordMapperer
+                this.additionalAttributeRecordMapper
                         .updateByPrimaryKeySelective(rec);
 
-                return this.additionalAttributeRecordMapperer
+                return this.additionalAttributeRecordMapper
                         .selectByPrimaryKey(rec.getId());
             } else {
                 final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
@@ -106,10 +102,10 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                         entityId,
                         name,
                         value);
-                this.additionalAttributeRecordMapperer
+                this.additionalAttributeRecordMapper
                         .insert(rec);
 
-                return this.additionalAttributeRecordMapperer
+                return this.additionalAttributeRecordMapper
                         .selectByPrimaryKey(rec.getId());
             }
         });
@@ -118,14 +114,14 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     @Override
     @Transactional
     public void delete(final Long id) {
-        this.additionalAttributeRecordMapperer
+        this.additionalAttributeRecordMapper
                 .deleteByPrimaryKey(id);
     }
 
     @Override
     @Transactional
     public void delete(final Long entityId, final String name) {
-        this.additionalAttributeRecordMapperer
+        this.additionalAttributeRecordMapper
                 .deleteByExample()
                 .where(
                         AdditionalAttributeRecordDynamicSqlSupport.entityId,
@@ -141,7 +137,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     @Override
     @Transactional
     public void deleteAll(final Long entityId) {
-        this.additionalAttributeRecordMapperer
+        this.additionalAttributeRecordMapper
                 .deleteByExample()
                 .where(
                         AdditionalAttributeRecordDynamicSqlSupport.entityId,
