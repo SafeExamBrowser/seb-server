@@ -10,8 +10,6 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -27,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -43,8 +42,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -173,12 +172,11 @@ public class MonitoringClientConnection implements TemplateComposer {
                 CustomVariant.TEXT_H3,
                 EVENT_LIST_TITLE_KEY);
 
-        PageService.PageActionBuilder actionBuilder = this.pageService
+        final PageService.PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(
                         pageContext
                                 .clearAttributes()
                                 .clearEntityKeys());
-
 
         // client event table for this connection
         this.pageService.entityTableBuilder(restService.getRestCall(GetExtendedClientEventPage.class))
@@ -229,12 +227,12 @@ public class MonitoringClientConnection implements TemplateComposer {
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
-                        .withExec(action -> sebClientLogDetailsPopup.showDetails(action, t.getSingleSelectedROWData()))
+                        .withExec(action -> this.sebClientLogDetailsPopup.showDetails(action,
+                                t.getSingleSelectedROWData()))
                         .noEventPropagation()
                         .create())
 
                 .compose(pageContext.copyOf(content));
-
 
         actionBuilder
                 .newAction(ActionDefinition.MONITOR_EXAM_BACK_TO_OVERVIEW)
