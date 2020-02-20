@@ -8,28 +8,26 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser.PListNode.Type;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser.PListNode.Type;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
 
 public class ExamConfigXMLParser extends DefaultHandler {
 
@@ -91,8 +89,6 @@ public class ExamConfigXMLParser extends DefaultHandler {
             "hashedAdminPassword"
     ));
 
-    public static final String IMPORTED_PASSWORD_MARKER = "_IMPORTED_PASSWORD";
-
     private final Cryptor cryptor;
     private final Consumer<ConfigurationValue> valueConsumer;
     private final Function<String, ConfigurationAttribute> attributeResolver;
@@ -120,14 +116,14 @@ public class ExamConfigXMLParser extends DefaultHandler {
     }
 
     @Override
-    public void startDocument() throws SAXException {
+    public void startDocument() {
         if (log.isDebugEnabled()) {
             log.debug("Start parsing document");
         }
     }
 
     @Override
-    public void endDocument() throws SAXException {
+    public void endDocument() {
         if (log.isDebugEnabled()) {
             log.debug("End parsing document");
         }
@@ -138,7 +134,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             final String uri,
             final String localName,
             final String qName,
-            final Attributes attributes) throws SAXException {
+            final Attributes attributes) {
 
         if (log.isDebugEnabled()) {
             log.debug("start element: {}", qName);
@@ -274,7 +270,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
     public void endElement(
             final String uri,
             final String localName,
-            final String qName) throws SAXException {
+            final String qName) {
 
         final PListNode top = this.stack.peek();
         if (VALUE_ELEMENTS.contains(qName)) {
@@ -386,7 +382,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
     public void characters(
             final char[] ch,
             final int start,
-            final int length) throws SAXException {
+            final int length) {
 
         final char[] valueChar = new char[length];
         System.arraycopy(ch, start, valueChar, 0, length);
@@ -453,7 +449,9 @@ public class ExamConfigXMLParser extends DefaultHandler {
                     this.configId,
                     attribute.id,
                     listIndex,
-                    StringUtils.isNotBlank(value) ? cryptor.encrypt(value + IMPORTED_PASSWORD_MARKER).toString() : value);
+                    StringUtils.isNotBlank(value)
+                            ? cryptor.encrypt(value + Constants.IMPORTED_PASSWORD_MARKER).toString()
+                            : value);
         }
 
         return new ConfigurationValue(
@@ -510,7 +508,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             private final boolean isValueType;
             private final String typeName;
 
-            private Type(final boolean isValueType, final String typeName) {
+            Type(final boolean isValueType, final String typeName) {
                 this.isValueType = isValueType;
                 this.typeName = typeName;
             }
@@ -520,7 +518,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             }
 
             public static Type getType(final String qName) {
-                return Arrays.asList(Type.values()).stream()
+                return Arrays.stream(Type.values())
                         .filter(type -> type.typeName.equals(qName))
                         .findFirst()
                         .orElse(null);

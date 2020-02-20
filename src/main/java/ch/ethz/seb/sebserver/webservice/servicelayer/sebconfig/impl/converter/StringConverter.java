@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser;
 import org.apache.commons.lang3.StringUtils;
@@ -123,8 +124,8 @@ public class StringConverter implements AttributeValueConverter {
         // decrypt internally encrypted password and hash it for export
         // NOTE: see special case description in ExamConfigXMLParser.createConfigurationValue
         String plainText = this.clientCredentialService.decrypt(value).toString();
-        if (plainText.endsWith(ExamConfigXMLParser.IMPORTED_PASSWORD_MARKER)) {
-            return plainText.replace(ExamConfigXMLParser.IMPORTED_PASSWORD_MARKER, StringUtils.EMPTY);
+        if (plainText.endsWith(Constants.IMPORTED_PASSWORD_MARKER)) {
+            return plainText.replace(Constants.IMPORTED_PASSWORD_MARKER, StringUtils.EMPTY);
         } else {
             return Utils.hash_SHA_256_Base_16(plainText);
         }

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -25,7 +27,6 @@ public class PasswordInput extends Composite {
             new LocTextKey("sebserver.overall.action.showPassword.tooltip");
 
 
-    private final WidgetFactory widgetFactory;
     private final Composite inputAnchor;
     private final Label visibilityButton;
 
@@ -35,7 +36,6 @@ public class PasswordInput extends Composite {
 
     public PasswordInput(final Composite parent, final WidgetFactory widgetFactory) {
         super(parent, SWT.NONE);
-        this.widgetFactory = widgetFactory;
 
         GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.horizontalSpacing = 0;
@@ -53,8 +53,6 @@ public class PasswordInput extends Composite {
         gridLayout.marginWidth = 0;
         inputAnchor.setLayout(gridLayout);
         inputAnchor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-
 
         visibilityButton = widgetFactory.imageButton(
                 WidgetFactory.ImageIcon.VISIBILITY,
@@ -95,8 +93,8 @@ public class PasswordInput extends Composite {
         }
 
         if (buildPassword) {
-            passwordInput.addListener(SWT.FocusOut, event -> super.notifyListeners(SWT.FocusOut, event));
-            passwordInput.addListener(SWT.Traverse, event -> super.notifyListeners(SWT.Traverse, event));
+            passwordInput.addListener(SWT.FocusOut, event -> changeEvent(SWT.FocusOut, event));
+            passwordInput.addListener(SWT.Traverse, event -> changeEvent(SWT.Traverse, event));
             this.visibilityButton.setImage(WidgetFactory.ImageIcon.VISIBILITY.getImage(getDisplay()));
         } else {
             passwordInput.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.PLAIN_PWD.key);
@@ -109,9 +107,22 @@ public class PasswordInput extends Composite {
         super.layout(true, true);
     }
 
+    private void changeEvent(int eventType, Event event) {
+        if (!this.visibilityButton.isEnabled() && !StringUtils.endsWith(
+                this.passwordInput.getText(),
+                Constants.IMPORTED_PASSWORD_MARKER)) {
+
+            visibilityButton.setEnabled(true);
+        }
+        super.notifyListeners(eventType, event);
+    }
+
     public void setValue(CharSequence value) {
         if (passwordInput != null) {
             passwordInput.setText(value != null ? value.toString() : StringUtils.EMPTY);
+            if (StringUtils.endsWith(value, Constants.IMPORTED_PASSWORD_MARKER)) {
+                this.visibilityButton.setEnabled(false);
+            }
         }
     }
 

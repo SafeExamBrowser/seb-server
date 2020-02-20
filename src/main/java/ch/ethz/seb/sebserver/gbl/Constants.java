@@ -125,6 +125,8 @@ public final class Constants {
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
 
+    public static final String IMPORTED_PASSWORD_MARKER = "_IMPORTED_PASSWORD";
+
     public static final TypeReference<Collection<APIMessage>> TYPE_REFERENCE_API_MESSAGE =
             new TypeReferenceAPIMessage();
     public static final ParameterizedTypeReference<Collection<Privilege>> TYPE_REFERENCE_PRIVILEGES =
