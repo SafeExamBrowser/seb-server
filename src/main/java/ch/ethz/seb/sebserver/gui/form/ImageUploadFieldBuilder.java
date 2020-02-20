@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -53,6 +54,11 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
         final Label errorLabel = createErrorLabel(fieldGrid);
         builder.form.putField(this.name, titleLabel, imageUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
+
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    imageUpload, this.tooltip);
+        }
     }
 
 }

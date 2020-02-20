@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.BooleanSupplier;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -27,8 +28,6 @@ public abstract class FieldBuilder<T> {
 
     public static final LocTextKey MANDATORY_TEXT_KEY = new LocTextKey("sebserver.form.mandatory");
     public static final String TOOLTIP_KEY_SUFFIX_LABEL = ".tooltip";
-    public static final String TOOLTIP_KEY_SUFFIX_LEFT = ".tooltip.left";
-    public static final String TOOLTIP_KEY_SUFFIX_RIGHT = ".tooltip.right";
 
     int spanLabel = -1;
     int spanInput = -1;
@@ -43,18 +42,14 @@ public abstract class FieldBuilder<T> {
 
     final String name;
     final LocTextKey label;
-    final LocTextKey tooltipLabel;
-    final LocTextKey tooltipKeyLeft;
-    final LocTextKey tooltipKeyRight;
+    final LocTextKey tooltip;
     final T value;
 
     protected FieldBuilder(final String name, final LocTextKey label, final T value) {
         this.name = name;
         this.label = label;
         this.value = value;
-        this.tooltipLabel = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LABEL) : null;
-        this.tooltipKeyLeft = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LEFT) : null;
-        this.tooltipKeyRight = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_RIGHT) : null;
+        this.tooltip = (label != null) ? new LocTextKey(label.name + TOOLTIP_KEY_SUFFIX_LABEL) : null;
     }
 
     public FieldBuilder<T> withDefaultLabel(final String defaultLabel) {
@@ -134,27 +129,35 @@ public abstract class FieldBuilder<T> {
         gridData.horizontalSpan = (fieldBuilder.spanLabel > 0) ? fieldBuilder.spanLabel : 1;
         infoGrid.setLayoutData(gridData);
 
-        if (fieldBuilder.tooltipKeyLeft != null &&
-                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyLeft, ""))) {
-
-            final Label info = builder.widgetFactory.imageButton(
-                    WidgetFactory.ImageIcon.HELP,
-                    infoGrid,
-                    fieldBuilder.tooltipKeyLeft);
-            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-        }
-
-        final boolean hasLabelTooltip = (fieldBuilder.tooltipLabel != null &&
-                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipLabel, "")));
+        final boolean hasTooltip = (fieldBuilder.tooltip != null &&
+                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltip, "")));
 
         final Label label = labelLocalized(
                 builder.widgetFactory,
                 infoGrid,
                 fieldBuilder.label,
                 fieldBuilder.defaultLabel,
-                (hasLabelTooltip) ? fieldBuilder.tooltipLabel : null,
+                (hasTooltip) ? fieldBuilder.tooltip : null,
                 1,
                 fieldBuilder.titleValign);
+
+        if (hasTooltip && builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.LEFT) {
+            final Label info = builder.widgetFactory.imageButton(
+                    WidgetFactory.ImageIcon.HELP,
+                    infoGrid,
+                    fieldBuilder.tooltip);
+            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        }
+
+//        if (fieldBuilder.tooltipKeyRight != null &&
+//                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
+//
+//            final Label info = builder.widgetFactory.imageButton(
+//                    WidgetFactory.ImageIcon.HELP,
+//                    infoGrid,
+//                    fieldBuilder.tooltipKeyRight);
+//            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+//        }
 
         if (fieldBuilder.isMandatory) {
             final Label mandatory = builder.widgetFactory.imageButton(
@@ -162,16 +165,6 @@ public abstract class FieldBuilder<T> {
                     infoGrid,
                     MANDATORY_TEXT_KEY);
             mandatory.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-        }
-
-        if (fieldBuilder.tooltipKeyRight != null &&
-                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
-
-            final Label info = builder.widgetFactory.imageButton(
-                    WidgetFactory.ImageIcon.HELP,
-                    infoGrid,
-                    fieldBuilder.tooltipKeyRight);
-            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
 
         return infoGrid;

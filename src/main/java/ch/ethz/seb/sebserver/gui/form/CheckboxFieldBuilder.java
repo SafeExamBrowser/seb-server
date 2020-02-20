@@ -8,17 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-
-import java.util.function.Consumer;
 
 public class CheckboxFieldBuilder extends FieldBuilder<String> {
 
@@ -46,6 +43,11 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
 
         if (readonly) {
             checkbox.setEnabled(false);
+        }
+
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    checkbox, this.tooltip);
         }
 
         builder.form.putField(this.name, titleLabel, checkbox);

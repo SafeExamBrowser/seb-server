@@ -512,6 +512,10 @@ public final class Form implements FormBinding {
             this.jsonValueAdapter.accept(new Tuple<>(key, getStringValue()), objectRoot);
         }
 
+        public boolean hasError() {
+            return this.hasError;
+        }
+
         public void setError(final String errorMessage) {
             if (this.errorLabel == null) {
                 return;

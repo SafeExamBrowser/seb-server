@@ -58,6 +58,12 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * with forms and tables as well as dealing with page actions */
 public interface PageService {
 
+    enum FormTooltipMode {
+        RIGHT,
+        INPUT,
+        LEFT,
+    }
+
     Logger log = LoggerFactory.getLogger(PageService.class);
 
     /** Get the WidgetFactory service
@@ -104,6 +110,11 @@ public interface PageService {
      *
      * @return PageState of the current user. */
     PageState getCurrentState();
+
+    /** Get the configured tooltip mode for input forms
+     *
+     * @return the configured tooltip mode for input forms */
+    FormTooltipMode getFormTooltipMode();
 
     /** Get a PageAction function to go back to the current state.
      *

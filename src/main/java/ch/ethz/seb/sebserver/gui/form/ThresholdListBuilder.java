@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.form;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -67,11 +68,16 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
             final Label errorLabel = createErrorLabel(fieldGrid);
             builder.form.putField(this.name, titleLabel, thresholdList, errorLabel);
             builder.setFieldVisible(this.visible, this.name);
+
+            if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+                builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                        thresholdList, this.tooltip);
+            }
         }
 
     }
 
-    public static final String thresholdsToFormURLEncodedStringValue(final Collection<Threshold> thresholds) {
+    public static String thresholdsToFormURLEncodedStringValue(final Collection<Threshold> thresholds) {
         if (thresholds == null || thresholds.isEmpty()) {
             return null;
         }
@@ -80,7 +86,7 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
         return StringUtils.join(thresholds.stream()
                 .map(t -> Domain.THRESHOLD.REFERENCE_NAME
                         + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR
-                        + String.valueOf(t.getValue())
+                        + t.getValue()
                         + Constants.EMBEDDED_LIST_SEPARATOR
                         + t.getColor())
                 .collect(Collectors.toList()),

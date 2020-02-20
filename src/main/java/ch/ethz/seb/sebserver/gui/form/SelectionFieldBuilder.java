@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -72,7 +73,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 this.type,
                 fieldGrid,
                 this.itemsSupplier,
-                null,
+                (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) ? tooltip : null,
                 null,
                 actionKey);
 
@@ -84,9 +85,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         builder.form.putField(this.name, titleLabel, selection, errorLabel);
 
         if (this.selectionListener != null) {
-            ((Control) selection).addListener(SWT.Selection, e -> {
-                this.selectionListener.accept(builder.form);
-            });
+            ((Control) selection).addListener(SWT.Selection, e -> this.selectionListener.accept(builder.form));
         }
 
         builder.setFieldVisible(this.visible, this.name);
@@ -97,7 +96,6 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO || this.type == Type.MULTI_CHECKBOX) {
             final Composite composite = new Composite(builder.formParent, SWT.NONE);
             final GridLayout gridLayout = new GridLayout(1, true);
-            //gridLayout.verticalSpacing = 5;
             gridLayout.marginBottom = 5;
             gridLayout.horizontalSpacing = 0;
             gridLayout.marginLeft = 0;
@@ -117,18 +115,23 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                         .stream()
                         .filter(tuple -> keys.contains(tuple._1))
                         .map(tuple -> tuple._1)
-                        .forEach(v -> buildReadonlyLabel(composite, v, 1));
+                        .forEach(v -> buildReadonlyLabel(builder, composite, v, 1));
             }
         } else {
             builder.form.putReadonlyField(
                     this.name,
                     titleLabel,
-                    buildReadonlyLabel(builder.formParent, this.value, this.spanInput));
+                    buildReadonlyLabel(builder, builder.formParent, this.value, this.spanInput));
             builder.setFieldVisible(this.visible, this.name);
         }
     }
 
-    private Text buildReadonlyLabel(final Composite composite, final String valueKey, final int hspan) {
+    private Text buildReadonlyLabel(
+            final FormBuilder builder,
+            final Composite composite,
+            final String valueKey,
+            final int hspan) {
+
         final Text label = new Text(composite, SWT.READ_ONLY);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true, hspan, 1);
         gridData.verticalIndent = 0;
@@ -144,6 +147,11 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
         label.setText(valueSupplier.get());
         label.setData(PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    label, this.tooltip);
+        }
+
         return label;
     }
 

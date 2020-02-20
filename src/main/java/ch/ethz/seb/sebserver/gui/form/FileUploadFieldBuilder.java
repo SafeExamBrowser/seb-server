@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -48,6 +49,11 @@ public class FileUploadFieldBuilder extends FieldBuilder<String> {
         final Label errorLabel = createErrorLabel(fieldGrid);
         builder.form.putField(this.name, titleLabel, fileUpload, errorLabel);
         builder.setFieldVisible(this.visible, this.name);
+
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    fileUpload, this.tooltip);
+        }
     }
 
 }

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.i18n;
 import java.util.Collection;
 import java.util.Locale;
 
+import org.eclipse.swt.widgets.Text;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;

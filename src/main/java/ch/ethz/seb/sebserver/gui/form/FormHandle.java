@@ -101,7 +101,7 @@ public class FormHandle<T extends Entity> {
         // reset all errors that may still be displayed
         this.form.process(
                 Utils.truePredicate(),
-                fieldAccessor -> fieldAccessor.resetError());
+                FormFieldAccessor::resetError);
 
         // post
         return this.post
@@ -165,10 +165,11 @@ public class FormHandle<T extends Entity> {
         return this.form.hasAnyError();
     }
 
-    private final void showValidationError(
+    private void showValidationError(
             final FormFieldAccessor fieldAccessor,
             final FieldValidationError valError) {
 
+        //noinspection RedundantCast
         fieldAccessor.setError(this.i18nSupport.getText(new LocTextKey(
                 FIELD_VALIDATION_LOCTEXT_PREFIX + valError.errorType,
                 (Object[]) valError.getAttributes())));

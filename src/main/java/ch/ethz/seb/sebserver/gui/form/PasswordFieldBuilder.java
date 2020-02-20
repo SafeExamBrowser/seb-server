@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.form;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -32,6 +33,11 @@ public class PasswordFieldBuilder extends FieldBuilder<CharSequence> {
         input.setValue((StringUtils.isNotBlank(this.value))
                 ? builder.cryptor.decrypt(this.value)
                 : this.value);
+
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    input, this.tooltip);
+        }
 
         final Label errorLabel = createErrorLabel(fieldGrid);
         builder.form.putField(this.name, titleLabel, input, errorLabel);

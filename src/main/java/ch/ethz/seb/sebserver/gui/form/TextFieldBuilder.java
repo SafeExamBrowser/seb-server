@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.Consumer;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -104,6 +105,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                 browser.setText(Constants.EMPTY_NOTE);
             }
             builder.form.putReadonlyField(this.name, titleLabel, browser);
+
+            if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+                builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                        browser, this.tooltip);
+            }
             return;
         }
 
@@ -112,6 +118,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                 : (this.isArea)
                         ? builder.widgetFactory.textAreaInput(fieldGrid, readonly)
                         : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly);
+
+        if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
+            builder.pageService.getPolyglotPageService().injectI18nTooltip(
+                    textInput, this.tooltip);
+        }
 
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         if (this.isArea) {

@@ -10,17 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.i18n;
 
 import java.util.Locale;
 
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.*;
 
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
@@ -74,6 +64,8 @@ public interface PolyglotPageService {
     void injectI18n(TableItem tableItem, LocTextKey... locTextKey);
 
     void injectI18n(TabItem tabItem, LocTextKey locTextKey, LocTextKey locTooltipKey);
+
+    void injectI18nTooltip(Control control, LocTextKey locTooltipKey);
 
     void createLanguageSelector(PageContext composerCtx);
 

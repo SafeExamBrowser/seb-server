@@ -189,6 +189,18 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     }
 
     @Override
+    public void injectI18nTooltip(Control control, LocTextKey locTooltipKey) {
+        if (locTooltipKey == null || control == null) {
+            return;
+        }
+
+        if (this.i18nSupport.hasText(locTooltipKey) && StringUtils.isNotBlank(this.i18nSupport.getText(locTooltipKey, ""))) {
+            control.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            control.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
+        }
+    }
+
+    @Override
     public void createLanguageSelector(final PageContext composerCtx) {
         for (final Locale locale : this.i18nSupport.supportedLanguages()) {
             final Label languageSelection = new Label(composerCtx.getParent(), SWT.NONE);

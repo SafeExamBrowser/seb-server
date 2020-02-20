@@ -82,7 +82,7 @@ public class SebClientConfigForm implements TemplateComposer {
     private static final LocTextKey FALLBACK_PASSWORD_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.sebServerFallbackPasswordHash");
     private static final LocTextKey FALLBACK_PASSWORD_CONFIRM_TEXT_KEY =
-            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackPasswordHash");
+            new LocTextKey("sebserver.clientconfig.form.sebServerFallbackPasswordHash.confirm");
     private static final LocTextKey QUIT_PASSWORD_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.hashedQuitPassword");
     private static final LocTextKey QUIT_PASSWORD_CONFIRM_TEXT_KEY =
@@ -314,7 +314,14 @@ public class SebClientConfigForm implements TemplateComposer {
                 .addListener(SWT.Selection, event -> {
                     formHandle.process(
                             FALLBACK_ATTRIBUTES::contains,
-                            ffa -> ffa.setVisible(((Button) event.widget).getSelection())
+                            ffa -> {
+                                boolean selected = ((Button) event.widget).getSelection();
+                                ffa.setVisible(selected);
+                                if (!selected && ffa.hasError()) {
+                                    ffa.resetError();
+                                    ffa.setStringValue(StringUtils.EMPTY);
+                                }
+                            }
                     );
                 });
 

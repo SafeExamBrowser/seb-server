@@ -163,6 +163,12 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
+    public FormTooltipMode getFormTooltipMode() {
+        // TODO make this configurable
+        return FormTooltipMode.INPUT;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends PageEvent> void firePageEvent(final T event, final PageContext pageContext) {
         final Class<? extends PageEvent> typeClass = event.getClass();
