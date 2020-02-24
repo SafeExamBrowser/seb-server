@@ -338,7 +338,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `creation_date` DATETIME NOT NULL,
-  `creation_time` DATETIME NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `surname` VARCHAR(255) NULL,
   `username` VARCHAR(255) NOT NULL,
