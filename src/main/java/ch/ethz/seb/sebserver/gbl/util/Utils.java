@@ -375,10 +375,7 @@ public final class Utils {
             return;
         }
 
-        for (int i = 0; i < array.length; i++) {
-            array[i] = 0;
-        }
-
+        Arrays.fill(array, (char) 0);
     }
 
     public static byte[] toByteArray(final ByteBuffer buffer) {
@@ -394,7 +391,7 @@ public final class Utils {
 
     /** Formats the given CharSequence to a UTF-8 and convert to byte array
      *
-     * @param chars
+     * @param chars CharSequence
      * @return UTF-8 formatted byte array of given CharSequence */
     public static byte[] toByteArray(final CharSequence chars) {
         return toByteArray(toByteBuffer(chars));
@@ -490,8 +487,8 @@ public final class Utils {
             final MessageDigest digest = MessageDigest.getInstance(Constants.SHA_256);
             final byte[] encodedHash = digest.digest(toByteArray(chars));
             return Hex.encodeHexString(encodedHash);
-        } catch (NoSuchAlgorithmException nsae) {
-            throw new RuntimeException("Failed to hash text: ", nsae);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to hash text: ", e);
         }
     }
 

@@ -41,7 +41,7 @@ public abstract class CourseAccess {
 
     public Result<QuizData> getQuizFromCache(final String id) {
         return Result.tryCatch(() -> this.allQuizzesSupplier
-                .getChached()
+                .getCached()
                 .stream()
                 .filter(qd -> id.equals(qd.id))
                 .findFirst()
@@ -50,7 +50,7 @@ public abstract class CourseAccess {
 
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
         return Result.tryCatch(() -> {
-            final List<QuizData> cached = this.allQuizzesSupplier.getChached();
+            final List<QuizData> cached = this.allQuizzesSupplier.getCached();
             if (cached == null) {
                 throw new RuntimeException("No cached quizzes");
             }

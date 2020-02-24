@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 
+/** An exception handler for Spring @Async functionality.
+ *  Catches uncaught Exception within parallel executions of Spring @Async annotated methods. */
 public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncExceptionHandler.class);

@@ -35,7 +35,7 @@ public interface UserService {
      * If there is certainly a internal user within the given Principal but no strategy that finds it, this method can
      * be extended with the needed strategy.
      *
-     * @param principal
+     * @param principal The users principal
      * @return internal User instance if it was found within the Principal and the existing strategies
      * @throws IllegalArgumentException if no internal User can be found */
     SEBServerUser extractFromPrincipal(final Principal principal);
@@ -48,7 +48,6 @@ public interface UserService {
 
     /** Binds the current users institution identifier as default value to a
      *
-     * @RequestParam of type API.PARAM_INSTITUTION_ID if needed. See EntityController class for example
      * @param binder Springs WebDataBinder is injected on controller side */
     void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder);
 

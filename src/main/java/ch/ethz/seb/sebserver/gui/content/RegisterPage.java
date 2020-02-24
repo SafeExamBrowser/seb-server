@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -118,32 +119,34 @@ public class RegisterPage implements TemplateComposer {
                 scrolledComposite -> {
                     final Composite result = new Composite(scrolledComposite, SWT.NONE);
                     result.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-                    final GridLayout contentOuterlayout = new GridLayout();
-                    contentOuterlayout.marginHeight = 0;
-                    contentOuterlayout.marginWidth = 0;
-                    result.setLayout(contentOuterlayout);
+                    final GridLayout contentOutlaying = new GridLayout();
+                    contentOutlaying.marginHeight = 0;
+                    contentOutlaying.marginWidth = 0;
+                    result.setLayout(contentOutlaying);
                     result.setData(RWT.CUSTOM_VARIANT, "register");
                     return result;
                 },
                 false);
 
-        final String institutionId = InstitutionalAuthenticationEntryPoint
+        final String institutionName = InstitutionalAuthenticationEntryPoint
                 .extractInstitutionalEndpoint();
 
         final List<EntityName> institutions = this.pageService
                 .getRestService()
                 .getBuilder(GetInstitutionInfo.class)
                 .withRestTemplate(this.restTemplate)
-                .withURIVariable(API.INFO_PARAM_INST_SUFFIX, institutionId)
+                .withURIVariable(API.INFO_PARAM_INST_SUFFIX, institutionName)
                 .call()
                 .getOrThrow();
 
         final boolean definedInstitution = institutions.size() == 1;
+        final String institutionId = (definedInstitution) ? institutions.get(0).modelId : null;
         final Supplier<List<Tuple<String>>> instResources = () -> institutions
                 .stream()
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .sorted(ResourceService.RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+
 
         this.widgetFactory.labelLocalizedTitle(parent, TITLE_TEXT_KEY);
 
@@ -154,22 +157,30 @@ public class RegisterPage implements TemplateComposer {
                 .putStaticValueIf(
                         () -> !this.multilingual,
                         Domain.USER.ATTR_LANGUAGE,
-                        "en")
+                        Locale.ENGLISH.getLanguage())
+                .putStaticValueIf(
+                        () -> definedInstitution,
+                        Domain.USER.ATTR_INSTITUTION_ID,
+                        institutionId)
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_INSTITUTION_ID,
                         FORM_INSTITUTION_TEXT_KEY,
-                        (definedInstitution) ? institutions.get(0).modelId : null,
+                        institutionId,
                         instResources)
-                        .readonly(definedInstitution))
+                        .readonly(definedInstitution)
+                        .mandatory(!definedInstitution))
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY))
+                        FORM_NAME_TEXT_KEY)
+                        .mandatory())
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_SURNAME,
-                        FORM_SURNAME_TEXT_KEY))
+                        FORM_SURNAME_TEXT_KEY)
+                        .mandatory())
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_USERNAME,
-                        FORM_USERNAME_TEXT_KEY))
+                        FORM_USERNAME_TEXT_KEY)
+                        .mandatory())
                 .addField(FormBuilder.text(
                         Domain.USER.ATTR_EMAIL,
                         FORM_MAIL_TEXT_KEY))
@@ -184,15 +195,18 @@ public class RegisterPage implements TemplateComposer {
                         Domain.USER.ATTR_TIMEZONE,
                         FORM_TIMEZONE_TEXT_KEY,
                         Constants.DEFAULT_TIME_ZONE_CODE,
-                        this.resourceService::timeZoneResources))
+                        this.resourceService::timeZoneResources)
+                        .mandatory())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_NEW_PASSWORD,
                         FORM_PASSWORD_TEXT_KEY)
-                        .asPasswordField())
+                        .asPasswordField()
+                        .mandatory())
                 .addField(FormBuilder.text(
                         PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                         FORM_PASSWORD_CONFIRM_TEXT_KEY)
-                        .asPasswordField())
+                        .asPasswordField()
+                        .mandatory())
 
                 .build();
 

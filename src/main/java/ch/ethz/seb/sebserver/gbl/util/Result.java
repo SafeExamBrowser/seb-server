@@ -83,7 +83,7 @@ public final class Result<T> {
      * (or throw some error instead)
      *
      * @param errorHandler the error handling function
-     * @return */
+     * @return the resulting value of processing with Result */
     public T get(final Function<Exception, T> errorHandler) {
         return this.error != null ? errorHandler.apply(this.error) : this.value;
     }
@@ -169,7 +169,7 @@ public final class Result<T> {
     }
 
     public Result<T> orElseTry(final Supplier<T> supplier) {
-        return this.value != null ? this : Result.tryCatch(() -> supplier.get());
+        return this.value != null ? this : Result.tryCatch(supplier::get);
     }
 
     /** @return the error if some was reporter or null if there was no error */
@@ -217,12 +217,12 @@ public final class Result<T> {
     /** Use this to map a given Result of type T to another Result of type U
      * within a given mapping function.
      *
-     * @param mapf the mapping function
+     * @param mapFunction the mapping function
      * @return mapped Result of type U */
-    public <U> Result<U> map(final Function<? super T, ? extends U> mapf) {
+    public <U> Result<U> map(final Function<? super T, ? extends U> mapFunction) {
         if (this.error == null) {
             try {
-                final U result = mapf.apply(this.value);
+                final U result = mapFunction.apply(this.value);
                 if (result instanceof Result) {
                     throw new IllegalArgumentException("Use flatMap instead!");
                 }
@@ -244,12 +244,12 @@ public final class Result<T> {
      * invoked, {@code flatMap} does not wrap it within an additional
      * {@code Result}.
      *
-     * @param mapf the mapping function
+     * @param mapFunction the mapping function
      * @return mapped Result of type U */
-    public <U> Result<U> flatMap(final Function<? super T, Result<U>> mapf) {
+    public <U> Result<U> flatMap(final Function<? super T, Result<U>> mapFunction) {
         if (this.error == null) {
             try {
-                return mapf.apply(this.value);
+                return mapFunction.apply(this.value);
             } catch (final Exception e) {
                 return Result.ofError(e);
             }
@@ -292,7 +292,7 @@ public final class Result<T> {
 
     /** Use this to create a Result with error
      *
-     * @param error the error that is wrapped within the created Result
+     * @param message the error message
      * @return Result of specified error */
     public static <T> Result<T> ofRuntimeError(final String message) {
         return ofError(new RuntimeException(message));
@@ -367,7 +367,7 @@ public final class Result<T> {
         return "Result [value=" + this.value + ", error=" + this.error + "]";
     }
 
-    public static interface TryCatchSupplier<T> {
+    public interface TryCatchSupplier<T> {
         T get() throws Exception;
     }
 

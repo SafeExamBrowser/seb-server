@@ -202,7 +202,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public Long getClientEventConnectionId() {
-        return getLong(ClientEvent.FILTER_ATTR_CONECTION_ID);
+        return getLong(ClientEvent.FILTER_ATTR_CONNECTION_ID);
     }
 
     public Integer getClientEventTypeId() {

@@ -19,13 +19,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** Data class that represents a entity processing report JSON of the SEB Server API.
+ * This report is many used on bulk-action and defines the entity-keys of processing, entity-keys of all entities that
+ * has dependencies to the given processing entities and a list of error entries that describes
+ * errors if happened. */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityProcessingReport {
 
+    /** A set of entity-keys that are or were processed by a bulk action- or other process with a EntityProcessingReport
+     * result. */
     @JsonProperty(value = "source", required = true)
     public final Set<EntityKey> source;
+    /** A set of entity-keys for all entities that has been detected as dependency to one or more of the source entities
+     *  during the process */
     @JsonProperty(value = "dependencies", required = true)
     public final Set<EntityKey> dependencies;
+    /** A set of error entries that defines an error if happened. */
     @JsonProperty(value = "errors", required = true)
     public final Set<ErrorEntry> errors;
 

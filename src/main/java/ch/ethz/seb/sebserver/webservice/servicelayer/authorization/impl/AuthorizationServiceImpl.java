@@ -206,15 +206,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return userRoles
                 .stream()
                 .map(role -> new RoleTypeKey(entityType, role))
-                .map(key -> this.privileges.get(key))
-                .filter(priv -> (priv != null) && priv.hasGrant(
+                .map(this.privileges::get)
+                .anyMatch(privilege -> (privilege != null) && privilege.hasGrant(
                         userId,
                         userInstitutionId,
                         privilegeType,
                         institutionId,
-                        ownerId))
-                .findFirst()
-                .isPresent();
+                        ownerId));
     }
 
     @Override
@@ -231,10 +229,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return currentUser.getUserRoles()
                 .stream()
                 .map(role -> new RoleTypeKey(entityType, role))
-                .map(key -> this.privileges.get(key))
-                .filter(priv -> (priv != null) && priv.hasOwnershipPrivilege(privilegeType))
-                .findFirst()
-                .isPresent();
+                .map(this.privileges::get)
+                .anyMatch(privilege -> (privilege != null) && privilege.hasOwnershipPrivilege(privilegeType));
 
     }
 

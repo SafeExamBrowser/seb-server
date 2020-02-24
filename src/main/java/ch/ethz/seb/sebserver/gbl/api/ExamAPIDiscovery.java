@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** Data object implementation to generate the SEB Server API discovery JSON. */
 public final class ExamAPIDiscovery {
 
     @JsonProperty("title")

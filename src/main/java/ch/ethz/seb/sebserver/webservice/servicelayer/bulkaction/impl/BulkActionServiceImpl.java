@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -83,10 +84,10 @@ public class BulkActionServiceImpl implements BulkActionService {
 
             if (!action.dependencies.isEmpty()) {
                 // process dependencies first...
-                final List<BulkActionSupportDAO<?>> dependancySupporter =
-                        getDependancySupporter(action);
+                final List<BulkActionSupportDAO<?>> dependencySupporter =
+                        getDependencySupporter(action);
 
-                for (final BulkActionSupportDAO<?> support : dependancySupporter) {
+                for (final BulkActionSupportDAO<?> support : dependencySupporter) {
                     action.result.addAll(support.processBulkAction(action));
                 }
             }
@@ -160,7 +161,7 @@ public class BulkActionServiceImpl implements BulkActionService {
         return entityAsString;
     }
 
-    private List<BulkActionSupportDAO<?>> getDependancySupporter(final BulkAction action) {
+    private List<BulkActionSupportDAO<?>> getDependencySupporter(final BulkAction action) {
         switch (action.type) {
             case ACTIVATE:
             case DEACTIVATE:
@@ -170,7 +171,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                 Collections.reverse(dependantSupporterInHierarchicalOrder);
                 return dependantSupporterInHierarchicalOrder
                         .stream()
-                        .filter(v -> v != null)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
             }
             default:

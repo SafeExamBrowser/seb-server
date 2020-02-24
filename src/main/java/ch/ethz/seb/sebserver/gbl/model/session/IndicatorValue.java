@@ -21,11 +21,11 @@ public interface IndicatorValue extends IndicatorValueHolder {
     IndicatorType getType();
 
     /** Use this to get the display value of the value of given IndicatorValue.
-     * Since the internal value is a double this gets the correct display value for the InticatorType
+     * Since the internal value is a double this gets the correct display value for the IndicatorType
      *
-     * @param indicatorValue
+     * @param indicatorValue The indicator value instance
      * @return the display value of the given IndicatorValue */
-    public static String getDisplayValue(final IndicatorValue indicatorValue) {
+    static String getDisplayValue(final IndicatorValue indicatorValue) {
         if (indicatorValue.getType().integerValue) {
             return String.valueOf((int) indicatorValue.getValue());
         } else {

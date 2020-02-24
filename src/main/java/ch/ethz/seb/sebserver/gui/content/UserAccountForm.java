@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Locale;
 import java.util.function.BooleanSupplier;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -164,7 +165,7 @@ public class UserAccountForm implements TemplateComposer {
                 .putStaticValueIf(
                         () -> !this.multilingual,
                         Domain.USER.ATTR_LANGUAGE,
-                        "en")
+                        Locale.ENGLISH.getLanguage())
                 .addFieldIf(
                         isSEBAdmin,
                         () -> FormBuilder.singleSelection(

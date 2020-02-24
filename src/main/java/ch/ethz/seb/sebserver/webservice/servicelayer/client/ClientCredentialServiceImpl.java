@@ -50,7 +50,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
                         generateClientId(),
                         generateClientSecret());
 
-            } catch (final UnsupportedEncodingException e) {
+            } catch (final Exception e) {
                 log.error("Error while trying to generate client credentials: ", e);
                 throw new RuntimeException("cause: ", e);
             }
@@ -119,7 +119,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
                 possibleCharacters, new SecureRandom());
     }
 
-    public static CharSequence generateClientSecret() throws UnsupportedEncodingException {
+    public static CharSequence generateClientSecret() {
         // TODO find a better way to generate a random char array instead of using RandomStringUtils.random which uses a String
         return RandomStringUtils.random(
                 64, 0, possibleCharacters.length - 1, false, false,

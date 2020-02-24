@@ -158,7 +158,7 @@ public final class QuizData implements GrantEntity {
             return null;
         }
 
-        return String.valueOf(this.id);
+        return this.id;
     }
 
     @Override

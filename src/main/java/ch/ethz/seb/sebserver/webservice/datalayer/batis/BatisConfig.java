@@ -53,9 +53,8 @@ public class BatisConfig {
     public SqlSessionFactory sqlSessionFactory(final DataSource dataSource) throws Exception {
         final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        final SqlSessionFactory factory = factoryBean.getObject();
 
-        return factory;
+        return factoryBean.getObject();
     }
 
     /** SQL session template bean of MyBatis */

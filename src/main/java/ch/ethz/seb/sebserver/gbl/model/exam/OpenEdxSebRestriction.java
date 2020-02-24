@@ -34,7 +34,7 @@ public class OpenEdxSebRestriction {
     public static final String ATTR_BROWSER_KEYS = "BROWSER_KEYS";
     public static final String ATTR_CONFIG_KEYS = "CONFIG_KEYS";
 
-    public static enum WhiteListPath {
+    public enum WhiteListPath {
         ABOUT("about"),
         COURSE_OUTLINE("course-outline"),
         COURSE_WARE("courseware"),
@@ -44,19 +44,19 @@ public class OpenEdxSebRestriction {
 
         public final String key;
 
-        private WhiteListPath(final String key) {
+        WhiteListPath(final String key) {
             this.key = key;
         }
     }
 
-    public static enum PermissionComponent {
+    public enum PermissionComponent {
         ALWAYS_ALLOW_STUFF("AlwaysAllowStaff"),
         CHECK_BROWSER_EXAM_KEY("CheckSEBHashBrowserExamKey"),
         CHECK_CONFIG_KEY("CheckSEBHashConfigKey"),
         CHECK_BROWSER_EXAM_OR_CONFIG_KEY("CheckSEBHashBrowserExamKeyOrConfigKey");
         public final String key;
 
-        private PermissionComponent(final String key) {
+        PermissionComponent(final String key) {
             this.key = key;
         }
     }
@@ -155,15 +155,14 @@ public class OpenEdxSebRestriction {
         return builder.toString();
     }
 
-    public static final OpenEdxSebRestriction from(final SebRestriction sebRestrictionData) {
+    public static OpenEdxSebRestriction from(final SebRestriction sebRestrictionData) {
 
         final String whiteListPathsString = sebRestrictionData.additionalProperties
                 .get(ATTR_WHITELIST_PATHS);
         Collection<String> whiteListPaths;
         if (StringUtils.isNotBlank(whiteListPathsString)) {
-            whiteListPaths = Utils.immutableCollectionOf(Arrays.asList(
+            whiteListPaths = Utils.immutableCollectionOf(Arrays.stream(
                     StringUtils.split(whiteListPathsString, Constants.LIST_SEPARATOR))
-                    .stream()
                     .filter(WHITE_LIST_PATHS::contains)
                     .collect(Collectors.toList()));
         } else {
@@ -184,9 +183,8 @@ public class OpenEdxSebRestriction {
                 .get(ATTR_PERMISSION_COMPONENTS);
         Collection<String> permissionComponents;
         if (StringUtils.isNotBlank(permissionComponentsString)) {
-            permissionComponents = Utils.immutableCollectionOf(Arrays.asList(
+            permissionComponents = Utils.immutableCollectionOf(Arrays.stream(
                     StringUtils.split(permissionComponentsString, Constants.LIST_SEPARATOR))
-                    .stream()
                     .filter(PERMISSION_COMPONENTS::contains)
                     .collect(Collectors.toList()));
         } else {

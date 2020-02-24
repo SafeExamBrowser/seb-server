@@ -8,18 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -32,6 +20,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialServ
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 
 @Component
 @WebServiceProfile
@@ -161,7 +159,7 @@ class AdminUserInitializer {
     private CharSequence generateAdminPassword() {
         try {
             return ClientCredentialServiceImpl.generateClientSecret();
-        } catch (final UnsupportedEncodingException e) {
+        } catch (final Exception e) {
             log.error("Unable to generate admin password: ", e);
             return null;
         }

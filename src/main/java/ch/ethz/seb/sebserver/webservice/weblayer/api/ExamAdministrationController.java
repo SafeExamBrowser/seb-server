@@ -387,7 +387,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
                 .getOrThrow();
 
-        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION)) {
+        if (!lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION)) {
             return Result.ofError(new UnsupportedOperationException(
                     "SEB Restriction feature not available for LMS type: " + lmsSetup.lmsType));
         }
@@ -395,7 +395,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (restrict) {
             if (!this.lmsAPIService
                     .getLmsSetup(exam.lmsSetupId)
-                    .getOrThrow().lmsType.features.contains(Features.SEB_RESTICTION)) {
+                    .getOrThrow().lmsType.features.contains(Features.SEA_RESTRICTION)) {
 
                 return Result.ofError(new APIMessageException(
                         APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT

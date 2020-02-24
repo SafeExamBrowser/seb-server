@@ -198,8 +198,8 @@ public final class Exam implements GrantEntity {
         this.lastUpdate = null;
     }
 
-    public Exam(final QuizData quizzData) {
-        this(null, quizzData, POSTMapper.EMPTY_MAP);
+    public Exam(final QuizData quizData) {
+        this(null, quizData, POSTMapper.EMPTY_MAP);
     }
 
     public Exam(final Long id, final ExamStatus status) {

@@ -21,7 +21,7 @@ import org.joda.time.DateTimeZone;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
@@ -29,15 +29,15 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    private final ClientEventExtentionMapper clientEventExtentionMapper;
+    private final ClientEventExtensionMapper clientEventExtensionMapper;
 
     protected long pingLatency;
     protected int pingCount = 0;
     protected int pingNumber = 0;
 
-    protected AbstractPingIndicator(final ClientEventExtentionMapper clientEventExtentionMapper) {
+    protected AbstractPingIndicator(final ClientEventExtensionMapper clientEventExtensionMapper) {
         super();
-        this.clientEventExtentionMapper = clientEventExtentionMapper;
+        this.clientEventExtensionMapper = clientEventExtensionMapper;
     }
 
     public final void notifyPing(final long timestamp, final int pingNumber) {
@@ -55,7 +55,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         } else {
 
             final Long lastPing =
-                    this.clientEventExtentionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
+                    this.clientEventExtensionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
                             .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                             .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
                             .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))

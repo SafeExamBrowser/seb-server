@@ -16,10 +16,10 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 /** Defines generic interface for all types of Entity. */
 public interface Entity extends ModelIdAware {
 
-    public static final String FILTER_ATTR_INSTITUTION = API.PARAM_INSTITUTION_ID;
-    public static final String FILTER_ATTR_ACTIVE = "active";
-    public static final String FILTER_ATTR_NAME = "name";
-    public static final String FILTER_ATTR_URL_SUFFIX = "urlsuffix";
+    String FILTER_ATTR_INSTITUTION = API.PARAM_INSTITUTION_ID;
+    String FILTER_ATTR_ACTIVE = "active";
+    String FILTER_ATTR_NAME = "name";
+    String FILTER_ATTR_URL_SUFFIX = "urlsuffix";
 
     /** Get the type of the entity.
      *

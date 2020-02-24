@@ -79,9 +79,7 @@ public final class LmsSetupTestResult {
     public boolean hasError(final ErrorType type) {
         return this.errors
                 .stream()
-                .filter(error -> error.errorType == type)
-                .findFirst()
-                .isPresent();
+                .anyMatch(error -> error.errorType == type);
     }
 
     @Override
@@ -95,28 +93,28 @@ public final class LmsSetupTestResult {
         return builder.toString();
     }
 
-    public static final LmsSetupTestResult ofOkay() {
+    public static LmsSetupTestResult ofOkay() {
         return new LmsSetupTestResult();
     }
 
-    public static final LmsSetupTestResult ofMissingAttributes(final Collection<APIMessage> attrs) {
+    public static LmsSetupTestResult ofMissingAttributes(final Collection<APIMessage> attrs) {
         return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
     }
 
-    public static final LmsSetupTestResult ofMissingAttributes(final APIMessage... attrs) {
+    public static LmsSetupTestResult ofMissingAttributes(final APIMessage... attrs) {
         return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
                 Arrays.asList(attrs));
     }
 
-    public static final LmsSetupTestResult ofTokenRequestError(final String message) {
+    public static LmsSetupTestResult ofTokenRequestError(final String message) {
         return new LmsSetupTestResult(new Error(ErrorType.TOKEN_REQUEST, message));
     }
 
-    public static final LmsSetupTestResult ofQuizAccessAPIError(final String message) {
+    public static LmsSetupTestResult ofQuizAccessAPIError(final String message) {
         return new LmsSetupTestResult(new Error(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
     }
 
-    public static final LmsSetupTestResult ofQuizRestrictionAPIError(final String message) {
+    public static LmsSetupTestResult ofQuizRestrictionAPIError(final String message) {
         return new LmsSetupTestResult(new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
     }
 

@@ -108,6 +108,11 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final AuthenticationException authException) throws IOException, ServletException {
 
         final String institutionalEndpoint = extractInstitutionalEndpoint(request);
+        request.getSession().setAttribute(
+                INST_SUFFIX_ATTRIBUTE,
+                StringUtils.isNotBlank(institutionalEndpoint)
+                        ? institutionalEndpoint
+                        : null);
 
         if (log.isDebugEnabled()) {
             log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
@@ -116,7 +121,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
         if (StringUtils.isNotBlank(logoImageBase64)) {
             request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
-            request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, institutionalEndpoint);
+
             forwardToEntryPoint(request, response, this.guiEntryPoint);
         } else {
             request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);

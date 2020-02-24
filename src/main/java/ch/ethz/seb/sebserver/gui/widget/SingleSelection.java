@@ -52,12 +52,12 @@ public final class SingleSelection extends Combo implements Selection {
 
     @Override
     public void select(final String key) {
-        final int selectionindex = this.keyMapping.indexOf(key);
-        if (selectionindex < 0) {
+        final int selectionIndex = this.keyMapping.indexOf(key);
+        if (selectionIndex < 0) {
             return;
         }
 
-        super.select(selectionindex);
+        super.select(selectionIndex);
     }
 
     @Override
@@ -66,22 +66,22 @@ public final class SingleSelection extends Combo implements Selection {
             return super.getText();
         }
 
-        final int selectionindex = super.getSelectionIndex();
-        if (selectionindex < 0) {
+        final int selectionIndex = super.getSelectionIndex();
+        if (selectionIndex < 0) {
             return null;
         }
 
-        return this.keyMapping.get(selectionindex);
+        return this.keyMapping.get(selectionIndex);
     }
 
     @Override
     public String getSelectionReadableValue() {
-        final int selectionindex = super.getSelectionIndex();
-        if (selectionindex < 0) {
+        final int selectionIndex = super.getSelectionIndex();
+        if (selectionIndex < 0) {
             return Constants.EMPTY_NOTE;
         }
 
-        return this.valueMapping.get(selectionindex);
+        return this.valueMapping.get(selectionIndex);
     }
 
     @Override

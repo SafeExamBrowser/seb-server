@@ -29,7 +29,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * hold for long time not released. What normally lead into some kind of no resource available error state.
  * For more information please visit: https://martinfowler.com/bliki/CircuitBreaker.html
  * <p>
- * This circuit breaker implementation has three states, CLODED, HALF_OPEN and OPEN. The normal and initial state of the
+ * This circuit breaker implementation has three states, CLOSED, HALF_OPEN and OPEN. The normal and initial state of the
  * circuit breaker is CLOSED. A call on the circuit breaker triggers a asynchronous call on the given supplier waiting
  * a given time-period for a response or on fail, trying a given number of times to call again.
  * If the time to wait went out or if the failing count is reached, the circuit breaker goes into the HALF-OPEN state
@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * cached and the circuit breaker respond on error cases with the cached result if available.
  *
  *
- * @param <T> The of the result of the suppling function */
+ * @param <T> The of the result of the supplying function */
 public final class CircuitBreaker<T> {
 
     private static final Logger log = LoggerFactory.getLogger(CircuitBreaker.class);
@@ -174,7 +174,7 @@ public final class CircuitBreaker<T> {
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
                 return Result.ofError(new RuntimeException(
-                        "Set CircuitBraker to half-open state. Cause: ",
+                        "Set CircuitBeaker to half-open state. Cause: ",
                         result.getError()));
             } else {
                 // try again
@@ -204,10 +204,10 @@ public final class CircuitBreaker<T> {
 
             this.state = State.OPEN;
             return Result.ofError(new RuntimeException(
-                    "Set CircuitBraker to open state. Cause: ",
+                    "Set CircuitBeaker to open state. Cause: ",
                     result.getError()));
         } else {
-            // on success go to CLODED state
+            // on success go to CLOSED state
             if (log.isDebugEnabled()) {
                 log.debug("Changing state from Half Open to Closed and return value");
             }

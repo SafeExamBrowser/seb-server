@@ -28,6 +28,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** A POST parameter mapper that wraps all parameter from a POST request given by a MultiValueMap<String, String> and
+ *  defines API specific convenience functions to access this parameter with given type and conversion of needed. */
 public class POSTMapper {
 
     public static final POSTMapper EMPTY_MAP = new POSTMapper(null);

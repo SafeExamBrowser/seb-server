@@ -15,7 +15,7 @@ public final class API {
     public enum BulkActionType {
         HARD_DELETE,
         DEACTIVATE,
-        ACTIVATE;
+        ACTIVATE
     }
 
     public static final String SEB_FILE_EXTENSION = "seb";
@@ -30,7 +30,6 @@ public final class API {
     public static final String PARAM_VIEW_ID = "viewId";
     public static final String PARAM_INSTRUCTION_TYPE = "instructionType";
     public static final String PARAM_INSTRUCTION_ATTRIBUTES = "instructionAttributes";
-    public static final String PARAM_INSTRUCTION_CONNECTION_TOKENS = "instructionConnectinTokens";
 
     public static final String DEFAULT_CONFIG_TEMPLATE_ID = String.valueOf(ConfigurationNode.DEFAULT_TEMPLATE_ID);
 
@@ -143,7 +142,7 @@ public final class API {
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";
     public static final String TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION = "remove-orientation";
-    public static final String TEMPLATE_ATTRIBUTE_ATTACH_DEFAUL_ORIENTATION = "attach-default-orientation";
+    public static final String TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION = "attach-default-orientation";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";

@@ -141,7 +141,7 @@ public final class SebRestriction implements Entity {
         return builder.toString();
     }
 
-    public static final SebRestriction from(final Long examId, final OpenEdxSebRestriction edxData) {
+    public static SebRestriction from(final Long examId, final OpenEdxSebRestriction edxData) {
         final Map<String, String> attrs = new HashMap<>();
 
         if (!CollectionUtils.isEmpty(edxData.whiteListPaths)) {

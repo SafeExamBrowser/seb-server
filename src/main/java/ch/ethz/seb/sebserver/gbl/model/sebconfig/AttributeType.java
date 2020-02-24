@@ -52,7 +52,7 @@ public enum AttributeType {
 
     public final AttributeValueType attributeValueType;
 
-    private AttributeType(final AttributeValueType attributeValueType) {
+    AttributeType(final AttributeValueType attributeValueType) {
         this.attributeValueType = attributeValueType;
     }
 }

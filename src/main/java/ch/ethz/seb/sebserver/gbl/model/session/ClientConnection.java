@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.function.Predicate;
 
@@ -32,7 +33,7 @@ public final class ClientConnection implements GrantEntity {
 
         public final boolean establishedStatus;
 
-        private ConnectionStatus(final boolean establishedStatus) {
+        ConnectionStatus(final boolean establishedStatus) {
             this.establishedStatus = establishedStatus;
         }
 
@@ -236,13 +237,11 @@ public final class ClientConnection implements GrantEntity {
     }
 
     public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus... status) {
-        final EnumSet<ConnectionStatus> stati = EnumSet.allOf(ConnectionStatus.class);
+        final EnumSet<ConnectionStatus> states = EnumSet.allOf(ConnectionStatus.class);
         if (status != null) {
-            for (int i = 0; i < status.length; i++) {
-                stati.add(status[i]);
-            }
+            Collections.addAll(states, status);
         }
-        return connection -> stati.contains(connection.status);
+        return connection -> states.contains(connection.status);
     }
 
 }

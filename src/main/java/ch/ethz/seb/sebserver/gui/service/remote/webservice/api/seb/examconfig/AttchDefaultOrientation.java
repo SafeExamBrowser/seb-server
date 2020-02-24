@@ -38,7 +38,7 @@ public class AttchDefaultOrientation extends RestCall<TemplateAttribute> {
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.TEMPLATE_ATTRIBUTE_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAUL_ORIENTATION);
+                        + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION);
     }
 
 }

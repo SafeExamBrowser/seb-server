@@ -207,7 +207,7 @@ public final class UserMod implements UserAccount {
     public EnumSet<UserRole> getUserRoles() {
         final List<UserRole> roles = getRoles()
                 .stream()
-                .map(r -> UserRole.valueOf(r))
+                .map(UserRole::valueOf)
                 .collect(Collectors.toList());
         if (roles.isEmpty()) {
             return EnumSet.noneOf(UserRole.class);

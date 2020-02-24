@@ -42,7 +42,7 @@ public final class Indicator implements Entity {
         public final boolean integerValue;
         public final boolean showOnlyInActiveState;
 
-        private IndicatorType(
+        IndicatorType(
                 final String name,
                 final boolean integerValue,
                 final boolean showOnlyInActiveState) {
@@ -58,9 +58,9 @@ public final class Indicator implements Entity {
         }
 
         public interface Names {
-            public static final String LAST_PING = "LAST_PING";
-            public static final String ERROR_COUNT = "ERROR_COUNT";
-            public static final String WARN_COUNT = "WARN_COUNT";
+            String LAST_PING = "LAST_PING";
+            String ERROR_COUNT = "ERROR_COUNT";
+            String WARN_COUNT = "WARN_COUNT";
         }
     }
 

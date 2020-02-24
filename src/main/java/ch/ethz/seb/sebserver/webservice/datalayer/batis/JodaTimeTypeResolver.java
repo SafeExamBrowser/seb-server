@@ -82,7 +82,7 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
         }
     }
 
-    public static final DateTime getDateTime(final String stringValue) {
+    public static DateTime getDateTime(final String stringValue) {
         String dateFormattedString = stringValue;
 
         if (dateFormattedString == null) {
@@ -101,9 +101,8 @@ public class JodaTimeTypeResolver extends BaseTypeHandler<DateTime> {
         final LocalDateTime localDateTime = LocalDateTime.parse(
                 dateFormattedString,
                 DATE_TIME_PATTERN_UTC_NO_MILLIS);
-        final DateTime dateTime = localDateTime.toDateTime(DateTimeZone.UTC);
 
-        return dateTime;
+        return localDateTime.toDateTime(DateTimeZone.UTC);
     }
 
     @FunctionalInterface

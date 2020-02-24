@@ -44,7 +44,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -185,7 +184,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                 .withPaging(this.pageSize)
                 .withRestCallAdapter(restCallBuilder -> restCallBuilder.withQueryParam(
-                        ClientEvent.FILTER_ATTR_CONECTION_ID,
+                        ClientEvent.FILTER_ATTR_CONNECTION_ID,
                         entityKey.modelId))
 
                 .withColumn(new ColumnDefinition<ExtendedClientEvent>(

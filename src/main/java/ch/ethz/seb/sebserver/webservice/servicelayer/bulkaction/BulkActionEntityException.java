@@ -19,11 +19,11 @@ public class BulkActionEntityException extends RuntimeException {
     public BulkActionEntityException(final EntityKey key) {
         super("Unexpected error during bulk action for entity: " + key);
         this.key = key;
-    };
+    }
 
     public BulkActionEntityException(final EntityKey key, final Throwable t) {
         super("Unexpected error during bulk action for entity: " + key, t);
         this.key = key;
-    };
+    }
 
 }

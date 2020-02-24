@@ -60,9 +60,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SEBServerUser extractFromPrincipal(final Principal principal) {
-        for (final ExtractUserFromAuthenticationStrategy extractStrategie : this.extractStrategies) {
+        for (final ExtractUserFromAuthenticationStrategy extractStrategy : this.extractStrategies) {
             try {
-                final SEBServerUser user = extractStrategie.extract(principal);
+                final SEBServerUser user = extractStrategy.extract(principal);
                 if (user != null) {
                     return user;
                 }
@@ -105,8 +105,7 @@ public class UserServiceImpl implements UserService {
             if (principal instanceof OAuth2Authentication) {
                 final Authentication userAuthentication = ((OAuth2Authentication) principal).getUserAuthentication();
                 if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
-                    final Object userPrincipal =
-                            ((UsernamePasswordAuthenticationToken) userAuthentication).getPrincipal();
+                    final Object userPrincipal = userAuthentication.getPrincipal();
                     if (userPrincipal instanceof SEBServerUser) {
                         return (SEBServerUser) userPrincipal;
                     }
@@ -122,9 +121,8 @@ public class UserServiceImpl implements UserService {
             new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null, false,
                     null,
                     null,
-                    Arrays.asList(UserRole.values())
-                            .stream()
-                            .map(ur -> ur.name())
+                    Arrays.stream(UserRole.values())
+                            .map(Enum::name)
                             .collect(Collectors.toSet())),
             null);
 

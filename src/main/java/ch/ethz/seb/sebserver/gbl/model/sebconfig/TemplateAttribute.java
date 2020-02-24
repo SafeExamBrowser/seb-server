@@ -160,17 +160,17 @@ public final class TemplateAttribute implements Entity {
         return builder.toString();
     }
 
-    public static final Comparator<TemplateAttribute> nameComparator(final boolean descending) {
+    public static Comparator<TemplateAttribute> nameComparator(final boolean descending) {
         return (attr1, attr2) -> attr1.configAttribute.name.compareToIgnoreCase(
                 attr2.configAttribute.name) * ((descending) ? -1 : 1);
     }
 
-    public static final Comparator<TemplateAttribute> typeComparator(final boolean descending) {
+    public static Comparator<TemplateAttribute> typeComparator(final boolean descending) {
         return (attr1, attr2) -> attr1.configAttribute.type.name().compareToIgnoreCase(
                 attr2.configAttribute.type.name()) * ((descending) ? -1 : 1);
     }
 
-    public static final Comparator<TemplateAttribute> groupComparator(final boolean descending) {
+    public static Comparator<TemplateAttribute> groupComparator(final boolean descending) {
         return (attr1, attr2) -> {
             final Orientation o1 = attr1.getOrientation();
             final Orientation o2 = attr2.getOrientation();

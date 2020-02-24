@@ -14,7 +14,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * other credentials to save within the persistent store.
  * <p>
  * There may be credentials needed for various purposes like connecting
- * to other REST API's or passwords for encrypted configurations text files.
+ * to other REST API or passwords for encrypted configurations text files.
  * <p>
  * This service offers functionality to encrypt this credentials with a
  * SEB Server internal password (from SEB Server configuration given on startup)

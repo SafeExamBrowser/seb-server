@@ -158,19 +158,19 @@ public final class Orientation implements Entity {
     }
 
     public int xpos() {
-        return this.xPosition != null ? this.xPosition.intValue() : 0;
+        return this.xPosition != null ? this.xPosition : 0;
     }
 
     public int ypos() {
-        return this.yPosition != null ? this.yPosition.intValue() : 0;
+        return this.yPosition != null ? this.yPosition : 0;
     }
 
     public int width() {
-        return this.width != null ? this.width.intValue() : 1;
+        return this.width != null ? this.width : 1;
     }
 
     public int height() {
-        return this.height != null ? this.height.intValue() : 1;
+        return this.height != null ? this.height : 1;
     }
 
     @Override

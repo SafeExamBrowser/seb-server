@@ -48,17 +48,17 @@ public class APIMessage implements Serializable {
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
         MISSING_PASSWORD("1301", HttpStatus.BAD_REQUEST, "Missing Password"),
 
-        EXAM_CONSISTANCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
-        EXAM_CONSISTANCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
-        EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION("1402", HttpStatus.OK,
-                "SEB restriciton API available but Exam not restricted on LMS side yet"),
-        EXAM_CONSISTANCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam");
+        EXAM_CONSISTENCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
+        EXAM_CONSISTENCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
+        EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION("1402", HttpStatus.OK,
+                "SEB restriction API available but Exam not restricted on LMS side yet"),
+        EXAM_CONSISTENCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam");
 
         public final String messageCode;
         public final HttpStatus httpStatus;
         public final String systemMessage;
 
-        private ErrorMessage(
+        ErrorMessage(
                 final String messageCode,
                 final HttpStatus httpStatus,
                 final String systemMessage) {
@@ -188,7 +188,7 @@ public class APIMessage implements Serializable {
      *
      * @param error FieldError instance
      * @return converted APIMessage of type field validation */
-    public static final APIMessage fieldValidationError(final FieldError error) {
+    public static APIMessage fieldValidationError(final FieldError error) {
         final String[] args = StringUtils.split(error.getDefaultMessage(), ":");
         return ErrorMessage.FIELD_VALIDATION.of(error.toString(), args);
     }
@@ -262,21 +262,18 @@ public class APIMessage implements Serializable {
     }
 
     private static String buildHTML(final Collection<APIMessage> messages, final StringBuilder builder) {
-        messages.stream()
-                .forEach(message -> {
-                    builder
-                            .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
-                            .append(message.messageCode)
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
-                            .append(HtmlUtils.htmlEscape(message.systemMessage))
-                            .append("<br/>")
-                            .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
-                            .append((message.details != null)
-                                    ? HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100))
-                                    : Constants.EMPTY_NOTE)
-                            .append("<br/><br/>");
-                });
+        messages.forEach(message -> builder
+                .append("&nbsp;&nbsp;code&nbsp;:&nbsp;")
+                .append(message.messageCode)
+                .append("<br/>")
+                .append("&nbsp;&nbsp;system message&nbsp;:&nbsp;")
+                .append(HtmlUtils.htmlEscape(message.systemMessage))
+                .append("<br/>")
+                .append("&nbsp;&nbsp;details&nbsp;:&nbsp;")
+                .append((message.details != null)
+                        ? HtmlUtils.htmlEscape(StringUtils.abbreviate(message.details, 100))
+                        : Constants.EMPTY_NOTE)
+                .append("<br/><br/>"));
         return builder.toString();
     }
 

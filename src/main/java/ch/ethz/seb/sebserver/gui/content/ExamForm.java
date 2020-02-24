@@ -180,16 +180,16 @@ public class ExamForm implements TemplateComposer {
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
-                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.messageCode,
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SUPPORTER.messageCode,
                 CONSISTENCY_MESSAGE_MISSING_SUPPORTER);
         this.consistencyMessageMapping.put(
-                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_INDICATOR.messageCode,
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INDICATOR.messageCode,
                 CONSISTENCY_MESSAGE_MISSING_INDICATOR);
         this.consistencyMessageMapping.put(
-                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.messageCode,
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_CONFIG.messageCode,
                 CONSISTENCY_MESSAGE_MISSING_CONFIG);
         this.consistencyMessageMapping.put(
-                APIMessage.ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION.messageCode,
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION.messageCode,
                 CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION);
     }
 
@@ -592,7 +592,7 @@ public class ExamForm implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                 .call()
                 .onError(t -> log.error("Failed to check SEB restriction API: ", t))
-                .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION))
+                .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION))
                 .getOr(false);
     }
 

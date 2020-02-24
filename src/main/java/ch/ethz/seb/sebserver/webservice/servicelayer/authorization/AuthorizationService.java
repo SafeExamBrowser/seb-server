@@ -203,51 +203,47 @@ public interface AuthorizationService {
     boolean hasOwnerPrivilege(final PrivilegeType privilegeType, final EntityType entityType, Long institutionId);
 
     /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
-     * on deny or return the given grantEntity within a Result on successful grant.
+     * on deny or return the given entity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
      *
      * @param privilegeType the privilege type to check
-     * @param entityType the type of the entity to check the given privilege type on
-     * @param institutionId the institution identifier for institutional privilege grant check */
-    default <E extends GrantEntity> Result<E> check(final PrivilegeType privilegeType, final E grantEntity) {
-        if (!hasGrant(privilegeType, grantEntity)) {
+     * @param entity The entity instance to check for privileges */
+    default <E extends GrantEntity> Result<E> check(final PrivilegeType privilegeType, final E entity) {
+        if (!hasGrant(privilegeType, entity)) {
             throw new PermissionDeniedException(
-                    grantEntity,
+                    entity,
                     privilegeType,
                     getUserService().getCurrentUser().getUserInfo().uuid);
         }
 
-        return Result.of(grantEntity);
+        return Result.of(entity);
     }
 
     /** Check read grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
      *
-     * @param entityType the type of the entity to check the given privilege type on
-     * @param institutionId the institution identifier for institutional privilege grant check */
-    default <E extends GrantEntity> Result<E> checkRead(final E grantEntity) {
-        return check(PrivilegeType.READ, grantEntity);
+     *  @param entity The entity instance to check overall read access */
+    default <E extends GrantEntity> Result<E> checkRead(final E entity) {
+        return check(PrivilegeType.READ, entity);
     }
 
     /** Check modify grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
      *
-     * @param entityType the type of the entity to check the given privilege type on
-     * @param institutionId the institution identifier for institutional privilege grant check */
-    default <E extends GrantEntity> Result<E> checkModify(final E grantEntity) {
-        return check(PrivilegeType.MODIFY, grantEntity);
+     * @param entity The entity instance to check overall modify access */
+    default <E extends GrantEntity> Result<E> checkModify(final E entity) {
+        return check(PrivilegeType.MODIFY, entity);
     }
 
     /** Check write grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
      * on deny or returns the given grantEntity within a Result on successful grant.
      * This is useful to use with a Result based functional chain.
      *
-     * @param entityType the type of the entity to check the given privilege type on
-     * @param institutionId the institution identifier for institutional privilege grant check */
-    default <E extends GrantEntity> Result<E> checkWrite(final E grantEntity) {
-        return check(PrivilegeType.WRITE, grantEntity);
+     * @param entity The entity instance to check overall write access */
+    default <E extends GrantEntity> Result<E> checkWrite(final E entity) {
+        return check(PrivilegeType.WRITE, entity);
     }
 
     /** Checks if the current user has a specified role.

@@ -156,7 +156,7 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
      *
      * @param user given SEBServerUser instance to make a copy of
      * @return return copied SEBServerUser instance */
-    public static final SEBServerUser of(final SEBServerUser user) {
+    public static SEBServerUser of(final SEBServerUser user) {
         return new SEBServerUser(user.id, UserInfo.of(user.userInfo), user.password);
     }
 

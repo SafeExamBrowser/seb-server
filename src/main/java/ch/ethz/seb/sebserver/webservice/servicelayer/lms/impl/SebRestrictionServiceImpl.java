@@ -157,7 +157,7 @@ public class SebRestrictionServiceImpl implements SebRestrictionService {
     public Result<Exam> applySebClientRestriction(final Exam exam) {
         if (!this.lmsAPIService
                 .getLmsSetup(exam.lmsSetupId)
-                .getOrThrow().lmsType.features.contains(Features.SEB_RESTICTION)) {
+                .getOrThrow().lmsType.features.contains(Features.SEA_RESTRICTION)) {
 
             return Result.of(exam);
         }

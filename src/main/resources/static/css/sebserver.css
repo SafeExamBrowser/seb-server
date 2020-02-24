@@ -314,7 +314,7 @@ Text[MULTI][BORDER]:read-only.inputreadonly {
     color: #aaaaaa;
     background-repeat: repeat;
     background-position: left top;
-    background-color: #ffffff;
+    background-color: transparent;
     background-image: none;
     text-shadow: none;
     box-shadow: none;
@@ -332,7 +332,7 @@ Text[BORDER]:read-only.pwdplain {
     color: #aaaaaa;
     background-repeat: repeat;
     background-position: left top;
-    background-color: #ffffff;
+    background-color: transparent;
     background-image: none;
     text-shadow: none;
     box-shadow: none;
@@ -345,7 +345,7 @@ Text:read-only,
 Text[MULTI]:disabled,
 Text[MULTI]:read-only {
     box-shadow: none;
-    background-color: #ffffff;
+    background-color: transparent;
     border: none;
     border-radius: 0;
     color: #4a4a4a;

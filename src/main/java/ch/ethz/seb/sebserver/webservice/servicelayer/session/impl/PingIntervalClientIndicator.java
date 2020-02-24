@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValueHolder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @Lazy
@@ -41,8 +41,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     boolean hidden = false;
 
-    public PingIntervalClientIndicator(final ClientEventExtentionMapper clientEventExtentionMapper) {
-        super(clientEventExtentionMapper);
+    public PingIntervalClientIndicator(final ClientEventExtensionMapper clientEventExtensionMapper) {
+        super(clientEventExtensionMapper);
         this.cachingEnabled = true;
         this.currentValue = computeValueAt(Utils.getMillisecondsNow());
     }

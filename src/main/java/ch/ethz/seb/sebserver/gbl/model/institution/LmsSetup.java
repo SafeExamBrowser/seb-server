@@ -39,18 +39,18 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     public enum Features {
         COURSE_API,
-        SEB_RESTICTION,
+        SEA_RESTRICTION,
         COURSE_STRUCTURE_API,
     }
 
     public enum LmsType {
         MOCKUP(Features.COURSE_API),
-        OPEN_EDX(Features.COURSE_API, Features.SEB_RESTICTION),
+        OPEN_EDX(Features.COURSE_API, Features.SEA_RESTRICTION),
         MOODLE(Features.COURSE_API);
 
         public final EnumSet<Features> features;
 
-        private LmsType(final Features... features) {
+        LmsType(final Features... features) {
             if (features != null && features.length >= 1) {
                 this.features = EnumSet.copyOf(Arrays.asList(features));
             } else {

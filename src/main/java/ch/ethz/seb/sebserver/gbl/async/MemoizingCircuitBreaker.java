@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * hold for long time not released. What normally lead into some kind of no resource available error state.
  * For more information please visit: https://martinfowler.com/bliki/CircuitBreaker.html
  * <p>
- * This circuit breaker implementation has three states, CLODED, HALF_OPEN and OPEN. The normal and initial state of the
+ * This circuit breaker implementation has three states, CLOSED, HALF_OPEN and OPEN. The normal and initial state of the
  * circuit breaker is CLOSED. A call on the circuit breaker triggers a asynchronous call on the given supplier waiting
  * a given time-period for a response or on fail, trying a given number of times to call again.
  * If the time to wait went out or if the failing count is reached, the circuit breaker goes into the HALF-OPEN state
@@ -43,7 +43,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * cached and the circuit breaker respond on error cases with the cached result if available.
  *
  *
- * @param <T> The of the result of the suppling function */
+ * @param <T> The of the result of the supplying function */
 public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
 
     // TODO considering invalidation time for memoizing
@@ -141,7 +141,6 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
                 return this.cached;
             }
 
-            return result;
         } else {
             if (this.memoizing) {
                 if (log.isDebugEnabled()) {
@@ -151,15 +150,15 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
                 this.cached = result;
                 this.lastMemoizingTime = System.currentTimeMillis();
             }
-            return result;
         }
+        return result;
     }
 
     public State getState() {
         return this.delegate.getState();
     }
 
-    public T getChached() {
+    public T getCached() {
         if (this.cached == null) {
             return null;
         }

@@ -159,9 +159,8 @@ public class ResourceService {
 
     public List<Tuple<String>> activityResources() {
         final List<Tuple<String>> result = new ArrayList<>();
-        result.add(new Tuple<>(Constants.TRUE_STRING, this.i18nSupport.getText("sebserver.overall.status.active")));
-        result.add(new Tuple<>(Constants.FALSE_STRING, this.i18nSupport.getText("sebserver.overall.status.inactive")));
-        result.add(new Tuple<>(StringUtils.EMPTY, this.i18nSupport.getText("sebserver.overall.status.all")));
+        result.add(new Tuple<>(Constants.TRUE_STRING, this.i18nSupport.getText(ACTIVE_TEXT_KEY)));
+        result.add(new Tuple<>(Constants.FALSE_STRING, this.i18nSupport.getText(INACTIVE_TEXT_KEY)));
         return result;
     }
 

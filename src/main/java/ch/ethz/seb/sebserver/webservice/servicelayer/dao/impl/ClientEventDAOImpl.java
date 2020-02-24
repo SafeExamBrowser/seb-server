@@ -31,8 +31,8 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtentionMapper.ConnectionEventJoinRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper.ConnectionEventJoinRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
@@ -49,14 +49,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class ClientEventDAOImpl implements ClientEventDAO {
 
     private final ClientEventRecordMapper clientEventRecordMapper;
-    private final ClientEventExtentionMapper clientEventExtentionMapper;
+    private final ClientEventExtensionMapper clientEventExtensionMapper;
 
     protected ClientEventDAOImpl(
             final ClientEventRecordMapper clientEventRecordMapper,
-            final ClientEventExtentionMapper clientEventExtentionMapper) {
+            final ClientEventExtensionMapper clientEventExtensionMapper) {
 
         this.clientEventRecordMapper = clientEventRecordMapper;
-        this.clientEventExtentionMapper = clientEventExtentionMapper;
+        this.clientEventExtensionMapper = clientEventExtensionMapper;
     }
 
     @Override
@@ -117,7 +117,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             final FilterMap filterMap,
             final Predicate<ExtendedClientEvent> predicate) {
 
-        return Result.tryCatch(() -> this.clientEventExtentionMapper.selectByExample()
+        return Result.tryCatch(() -> this.clientEventExtensionMapper.selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.institutionId,
                         isEqualToWhenPresent(filterMap.getInstitutionId()))
@@ -244,7 +244,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
         return Result.tryCatch(() -> new ExtendedClientEvent(
                 record.institution_id,
                 record.exam_id,
-                record.exam_user_session_identifer,
+                record.exam_user_session_identifier,
                 record.id,
                 record.connection_id,
                 (record.type != null) ? EventType.byId(record.type) : EventType.UNKNOWN,

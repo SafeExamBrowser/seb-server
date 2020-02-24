@@ -421,7 +421,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
                     + API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAUL_ORIENTATION,
+                    + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION,
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

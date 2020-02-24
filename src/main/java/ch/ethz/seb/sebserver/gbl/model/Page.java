@@ -17,6 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+/** Data class that defines a Page that corresponds with the SEB Server API page JSON object
+ *
+ * @param <T> The type of a page entry entity */
 public final class Page<T> {
 
     public static final String ATTR_NAMES_ONLY = "names_only";

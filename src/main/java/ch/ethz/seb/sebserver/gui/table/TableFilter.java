@@ -47,6 +47,7 @@ public class TableFilter<ROW extends Entity> {
 
     private static final LocTextKey DATE_FROM_TEXT = new LocTextKey("sebserver.overall.date.from");
     private static final LocTextKey DATE_TO_TEXT = new LocTextKey("sebserver.overall.date.to");
+    private static final LocTextKey ALL_TEXT = new LocTextKey("sebserver.overall.status.all");
 
     public static enum CriteriaType {
         TEXT,
@@ -368,6 +369,13 @@ public class TableFilter<ROW extends Entity> {
                 resourceSupplier = () -> this.attribute.resourceFunction.apply(TableFilter.this.entityTable);
             }
 
+            final Supplier<List<Tuple<String>>> _resourceSupplier = resourceSupplier;
+            resourceSupplier = () -> {
+                List<Tuple<String>> list = _resourceSupplier.get();
+                list.add(new Tuple<>(StringUtils.EMPTY, entityTable.i18nSupport.getText(ALL_TEXT)));
+                return list;
+            };
+
             this.selector = TableFilter.this.entityTable.widgetFactory
                     .selectionLocalized(
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
@@ -384,7 +392,7 @@ public class TableFilter<ROW extends Entity> {
         FilterComponent reset() {
             if (this.selector != null) {
                 this.selector.clear();
-                if (StringUtils.isNotBlank(this.attribute.initValue)) {
+                if (this.attribute.initValue != null) {
                     this.selector.select(this.attribute.initValue);
                 }
             }

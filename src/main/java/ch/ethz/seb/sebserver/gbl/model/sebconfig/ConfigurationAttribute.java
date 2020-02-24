@@ -48,7 +48,7 @@ public final class ConfigurationAttribute implements Entity, Comparable<Configur
      * resourceLocTextKey prefix to use. */
     public static final String DEPENDENCY_RESOURCE_LOC_TEXT_KEY = "resourceLocTextKey";
 
-    /** This configuration attribute dependency key indicates the group identifier for grouped COMOSITE_TYPE types */
+    /** This configuration attribute dependency key indicates the group identifier for grouped COMPOSITE_TYPE types */
     public static final String DEPENDENCY_GROUP_ID = "groupId";
 
     /** This configuration attribute dependency key indicates if a default value should be created even if the
@@ -236,13 +236,13 @@ public final class ConfigurationAttribute implements Entity, Comparable<Configur
 
     public static String getDependencyValue(
             final String dependencyName,
-            final String dependnciesString) {
+            final String dependenciesString) {
 
-        if (StringUtils.isBlank(dependnciesString)) {
+        if (StringUtils.isBlank(dependenciesString)) {
             return null;
         }
 
-        return getAttributeDependencyMap(dependnciesString).get(dependencyName);
+        return getAttributeDependencyMap(dependenciesString).get(dependencyName);
     }
 
     public static Map<String, String> getAttributeDependencyMap(final ConfigurationAttribute attribute) {
@@ -253,15 +253,14 @@ public final class ConfigurationAttribute implements Entity, Comparable<Configur
         return getAttributeDependencyMap(attribute.dependencies);
     }
 
-    public static Map<String, String> getAttributeDependencyMap(final String dependnciesString) {
+    public static Map<String, String> getAttributeDependencyMap(final String dependenciesString) {
         try {
-            return Arrays.asList(StringUtils.split(dependnciesString, Constants.LIST_SEPARATOR))
-                    .stream()
+            return Arrays.stream(StringUtils.split(dependenciesString, Constants.LIST_SEPARATOR))
                     .map(s -> StringUtils.split(s, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
                     .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));
         } catch (final Exception e) {
             log.error("Unexpected error while trying to parse dependency map of: {}",
-                    dependnciesString,
+                    dependenciesString,
                     e);
             return Collections.emptyMap();
         }

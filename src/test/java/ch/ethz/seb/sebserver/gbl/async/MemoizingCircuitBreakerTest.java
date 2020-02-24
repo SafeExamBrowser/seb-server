@@ -44,12 +44,12 @@ public class MemoizingCircuitBreakerTest {
         final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createMemoizingCircuitBreaker(
                 tester(100, 5, 10), 3, 500, 1000, true, 1000);
 
-        assertNull(circuitBreaker.getChached());
+        assertNull(circuitBreaker.getCached());
 
         Result<String> result = circuitBreaker.get(); // 1. call...
         assertFalse(result.hasError());
         assertEquals("Hello", result.get());
-        assertEquals("Hello", circuitBreaker.getChached());
+        assertEquals("Hello", circuitBreaker.getCached());
         assertEquals(State.CLOSED, circuitBreaker.getState());
 
         circuitBreaker.get(); // 2. call...
@@ -59,13 +59,13 @@ public class MemoizingCircuitBreakerTest {
         result = circuitBreaker.get(); // 5. call... still available
         assertFalse(result.hasError());
         assertEquals("Hello", result.get());
-        assertEquals("Hello", circuitBreaker.getChached());
+        assertEquals("Hello", circuitBreaker.getCached());
         assertEquals(State.CLOSED, circuitBreaker.getState());
 
         result = circuitBreaker.get(); // 6. call... after the 5. call the tester is unavailable until the 10. call...
         assertFalse(result.hasError());
         assertEquals("Hello", result.get());
-        assertEquals("Hello", circuitBreaker.getChached());
+        assertEquals("Hello", circuitBreaker.getCached());
         assertEquals(State.HALF_OPEN, circuitBreaker.getState());
 
         result = circuitBreaker.get(); // 9. call... after fail again, go to OPEN state
@@ -89,7 +89,7 @@ public class MemoizingCircuitBreakerTest {
         final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createMemoizingCircuitBreaker(
                 tester(50, 1, 10), 3, 100, 100, true, 1000);
 
-        assertNull(circuitBreaker.getChached());
+        assertNull(circuitBreaker.getCached());
 
         // fist call okay.. for memoizing
         Result<String> result = circuitBreaker.get(); // 1. call...

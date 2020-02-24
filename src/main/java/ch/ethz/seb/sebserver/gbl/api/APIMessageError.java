@@ -10,8 +10,12 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 import java.util.List;
 
+/** Defines an API message error holder that supplies a List of APIMessage if error happened */
 public interface APIMessageError {
 
+    /** Get a List of APIMessage errors if error happened
+     *
+     * @return a List of APIMessage errors if error happened or empty list of not*/
     List<APIMessage> getErrorMessages();
 
 }

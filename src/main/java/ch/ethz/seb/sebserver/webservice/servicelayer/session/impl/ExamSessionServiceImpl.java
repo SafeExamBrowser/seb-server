@@ -111,13 +111,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
                 // check exam supporter
                 if (exam.getSupporter().isEmpty()) {
-                    result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SUPPORTER.of(exam.getModelId()));
+                    result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SUPPORTER.of(exam.getModelId()));
                 }
 
                 // check SEB configuration
                 this.examConfigurationMapDAO.getDefaultConfigurationNode(examId)
                         .get(t -> {
-                            result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_CONFIG.of(exam.getModelId()));
+                            result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_CONFIG.of(exam.getModelId()));
                             return null;
                         });
 
@@ -125,7 +125,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 // if SEB restriction is not available no consistency violation message is added
                 final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
                         .getOr(null);
-                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTICTION)) {
+                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION)) {
                     this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
                             .map(t -> {
                                 if (t.testCourseRestrictionAPI().isOk()) {
@@ -138,7 +138,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             .onError(error -> {
                                 if (error instanceof NoSebRestrictionException) {
                                     result.add(
-                                            ErrorMessage.EXAM_CONSISTANCY_VALIDATION_SEB_RESTRICTION
+                                            ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
                                                     .of(exam.getModelId()));
                                 } else {
                                     throw new RuntimeException("Unexpected error: ", error);
@@ -151,7 +151,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .getOrThrow()
                         .isEmpty()) {
 
-                    result.add(ErrorMessage.EXAM_CONSISTANCY_VALIDATION_INDICATOR.of(exam.getModelId()));
+                    result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INDICATOR.of(exam.getModelId()));
                 }
             }
 
