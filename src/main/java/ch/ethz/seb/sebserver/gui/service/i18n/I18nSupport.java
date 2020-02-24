@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.service.i18n;
 import java.util.Collection;
 import java.util.Locale;
 
-import org.eclipse.swt.widgets.Text;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -180,8 +179,7 @@ public interface I18nSupport {
     /** Indicates if there is a localized text defined for a specified LocTextKey
      *
      * @param locTextKey the LocTextKey instance
-     * @return true if there is a localized text defined for a specified LocTextKey, false otherwise
-     */
+     * @return true if there is a localized text defined for a specified LocTextKey, false otherwise */
     boolean hasText(LocTextKey locTextKey);
 
 }

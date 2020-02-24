@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +18,6 @@ import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -209,7 +207,6 @@ public class SebExamConfigPropForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
 
-        final boolean settingsReadonly = examConfig.status == ConfigurationStatus.IN_USE;
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         final PageContext actionContext = formContext.clearEntityKeys();
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(actionContext);
@@ -350,7 +347,8 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelectionSupplier(() -> {
                     final ExamConfigurationMap selectedROWData = getSelectedExamMapping(table);
-                    return new HashSet<>(Collections.singletonList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
+                    return new HashSet<>(
+                            Collections.singletonList(new EntityKey(selectedROWData.examId, EntityType.EXAM)));
                 })
                 .withExec(PageAction::applySingleSelectionAsEntityKey)
                 .create();

@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.util.Tuple3;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -26,6 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Tuple3;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
@@ -72,7 +71,8 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
             });
             this.checkboxes.put(tuple._1, button);
 
-            Tuple3<String> tuple3 = tuple.adaptTo(Tuple3.class);
+            @SuppressWarnings("unchecked")
+            final Tuple3<String> tuple3 = tuple.adaptTo(Tuple3.class);
             if (tuple3 != null && StringUtils.isNotBlank(tuple3._3)) {
                 button.setToolTipText(tuple3._3);
             }

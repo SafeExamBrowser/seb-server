@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.BooleanSupplier;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -21,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -132,7 +132,7 @@ public abstract class FieldBuilder<T> {
         final boolean hasTooltip = (fieldBuilder.tooltip != null &&
                 StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltip, "")));
 
-        final Label label = labelLocalized(
+        labelLocalized(
                 builder.widgetFactory,
                 infoGrid,
                 fieldBuilder.label,
@@ -148,16 +148,6 @@ public abstract class FieldBuilder<T> {
                     fieldBuilder.tooltip);
             info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         }
-
-//        if (fieldBuilder.tooltipKeyRight != null &&
-//                StringUtils.isNotBlank(builder.i18nSupport.getText(fieldBuilder.tooltipKeyRight, ""))) {
-//
-//            final Label info = builder.widgetFactory.imageButton(
-//                    WidgetFactory.ImageIcon.HELP,
-//                    infoGrid,
-//                    fieldBuilder.tooltipKeyRight);
-//            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-//        }
 
         if (fieldBuilder.isMandatory) {
             final Label mandatory = builder.widgetFactory.imageButton(

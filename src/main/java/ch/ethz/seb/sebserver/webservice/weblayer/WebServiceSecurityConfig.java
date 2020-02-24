@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;

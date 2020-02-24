@@ -8,6 +8,16 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
@@ -20,24 +30,11 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 @Lazy
 @Component
 @GuiProfile
 public class PasswordFieldBuilder implements InputFieldBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(PasswordFieldBuilder.class);
 
     private static final LocTextKey VAL_CONFIRM_PWD_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.validation.password.confirm");
@@ -76,11 +73,11 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, attribute, orientation);
 
-        final PasswordInput passwordInput = new PasswordInput(innerGrid, widgetFactory);
+        final PasswordInput passwordInput = new PasswordInput(innerGrid, this.widgetFactory);
         final GridData passwordInputLD = new GridData(SWT.FILL, SWT.FILL, true, true);
         passwordInput.setLayoutData(passwordInputLD);
 
-        final PasswordInput confirmInput = new PasswordInput(innerGrid, widgetFactory);
+        final PasswordInput confirmInput = new PasswordInput(innerGrid, this.widgetFactory);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.verticalIndent = 14;
         confirmInput.setLayoutData(gridData);
@@ -92,7 +89,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
                 passwordInput,
                 confirmInput,
                 FieldBuilder.createErrorLabel(innerGrid),
-                cryptor);
+                this.cryptor);
 
         if (viewContext.readonly) {
             passwordInput.setEditable(false);
@@ -157,7 +154,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             if (StringUtils.isNotBlank(value)) {
-                CharSequence pwd = cryptor.decrypt(value);
+                final CharSequence pwd = this.cryptor.decrypt(value);
                 this.control.setValue(pwd.toString());
                 this.confirm.setValue(pwd.toString());
             } else {
@@ -170,7 +167,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         public String getValue() {
             final CharSequence pwd = this.control.getValue();
             if (StringUtils.isNotBlank(pwd)) {
-                return cryptor.encrypt(pwd).toString();
+                return this.cryptor.encrypt(pwd).toString();
             }
 
             return StringUtils.EMPTY;

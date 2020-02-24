@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.bcel.Const;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
@@ -160,11 +159,10 @@ public final class ClientConnectionTable {
                 CONNECTION_STATUS_TEXT_KEY,
                 CONNECTION_STATUS_TOOLTIP_TEXT_KEY);
         for (final Indicator indDef : indicators) {
-            TableColumn tableColumn = widgetFactory.tableColumnLocalized(
+            final TableColumn tableColumn = this.widgetFactory.tableColumnLocalized(
                     this.table,
                     new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name),
-                    new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.type.name)
-            );
+                    new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.type.name));
             tableColumn.setText(indDef.name);
         }
 
@@ -256,7 +254,7 @@ public final class ClientConnectionTable {
         }
     }
 
-    public ClientConnectionTable withSelectionListener(Consumer<Set<EntityKey>> selectionListener) {
+    public ClientConnectionTable withSelectionListener(final Consumer<Set<EntityKey>> selectionListener) {
         this.selectionListener = selectionListener;
         return this;
     }
