@@ -8,9 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.client;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.gbl.util.Result;
+import java.nio.CharBuffer;
+import java.security.SecureRandom;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,9 +19,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.CharBuffer;
-import java.security.SecureRandom;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @Lazy
 @Service
@@ -101,12 +101,12 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
     @Override
     public CharSequence encrypt(final CharSequence text) {
-        return cryptor.encrypt(text);
+        return this.cryptor.encrypt(text);
     }
 
     @Override
     public CharSequence decrypt(final CharSequence text) {
-        return cryptor.decrypt(text);
+        return this.cryptor.decrypt(text);
     }
 
     private final static char[] possibleCharacters =

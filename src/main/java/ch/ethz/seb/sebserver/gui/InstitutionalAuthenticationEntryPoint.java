@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpEntity;
@@ -41,6 +43,7 @@ import org.springframework.web.client.RestTemplate;
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
@@ -50,7 +53,7 @@ import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 @GuiProfile
 public final class InstitutionalAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private static final String INST_SUFFIX_ATTRIBUTE = "instSuffix";
+    private static final String INST_SUFFIX_ATTRIBUTE = "endpointInstId";
 
     private static final Logger log = LoggerFactory.getLogger(InstitutionalAuthenticationEntryPoint.class);
 
@@ -108,26 +111,57 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final AuthenticationException authException) throws IOException, ServletException {
 
         final String institutionalEndpoint = extractInstitutionalEndpoint(request);
-        request.getSession().setAttribute(
-                INST_SUFFIX_ATTRIBUTE,
-                StringUtils.isNotBlank(institutionalEndpoint)
-                        ? institutionalEndpoint
-                        : null);
 
-        if (log.isDebugEnabled()) {
+        if (StringUtils.isNoneBlank(institutionalEndpoint) && log.isDebugEnabled()) {
             log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
         }
 
-        final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
-        if (StringUtils.isNotBlank(logoImageBase64)) {
-            request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
+        try {
 
-            forwardToEntryPoint(request, response, this.guiEntryPoint);
-        } else {
-            request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            forwardToEntryPoint(request, response, this.guiEntryPoint);
+            final RestTemplate restTemplate = new RestTemplate();
+            final List<EntityName> institutions = restTemplate
+                    .exchange(
+                            this.webserviceURIService.getURIBuilder()
+                                    .path(API.INFO_ENDPOINT + API.INFO_INST_ENDPOINT)
+                                    .toUriString(),
+                            HttpMethod.GET,
+                            HttpEntity.EMPTY,
+                            new ParameterizedTypeReference<List<EntityName>>() {
+                            },
+                            institutionalEndpoint,
+                            API.INFO_PARAM_INST_SUFFIX,
+                            institutionalEndpoint)
+                    .getBody();
+
+            if (!institutions.isEmpty()) {
+                request.getSession().setAttribute(
+                        INST_SUFFIX_ATTRIBUTE,
+                        StringUtils.isNotBlank(institutionalEndpoint)
+                                ? institutionalEndpoint
+                                : null);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Known and active gui entrypoint requested:", institutions);
+                }
+
+                final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
+                if (StringUtils.isNotBlank(logoImageBase64)) {
+                    request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
+
+                }
+                forwardToEntryPoint(request, response, this.guiEntryPoint);
+                return;
+            }
+        } catch (final Exception e) {
+            log.error("Failed to extract and set institutional endpoint request: ", e);
+
         }
+
+        request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, null);
+        request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        forwardToEntryPoint(request, response, this.guiEntryPoint);
+
     }
 
     private void forwardToEntryPoint(
