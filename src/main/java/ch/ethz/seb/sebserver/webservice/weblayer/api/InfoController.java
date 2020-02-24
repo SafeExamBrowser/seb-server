@@ -84,8 +84,8 @@ public class InfoController {
                 .getOrThrow()
                 .stream()
                 .filter(inst -> BooleanUtils.isTrue(inst.active) &&
-                        (inst.urlSuffix == null ||
-                                urlSuffix.equals(inst.urlSuffix)))
+                        inst.urlSuffix != null &&
+                        urlSuffix.equals(inst.urlSuffix))
                 .map(inst -> new EntityName(inst.getEntityKey(), inst.name))
                 .collect(Collectors.toList());
     }
