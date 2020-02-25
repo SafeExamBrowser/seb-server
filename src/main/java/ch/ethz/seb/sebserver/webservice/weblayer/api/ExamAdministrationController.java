@@ -340,6 +340,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     @Override
+    protected Result<Exam> notifySaved(final Exam entity) {
+        return Result.tryCatch(() -> {
+            this.examSessionService.flushCache(entity);
+            return entity;
+        });
+    }
+
+    @Override
     protected Result<Exam> validForCreate(final Exam entity) {
         return super.validForCreate(entity)
                 .map(this::checkExamSupporterRole);

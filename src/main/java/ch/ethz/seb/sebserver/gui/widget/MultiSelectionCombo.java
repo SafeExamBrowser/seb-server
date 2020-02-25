@@ -134,20 +134,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
         Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR))
                 .stream()
-                .map(this::itemForName)
+                .map(this::itemForId)
                 .forEach(this::addSelection);
-    }
-
-    private Tuple<String> itemForName(final String name) {
-        final Optional<Tuple<String>> findFirst = this.availableValues
-                .stream()
-                .filter(it -> it._2 != null && it._2.equals(name))
-                .findFirst();
-        if (findFirst.isPresent()) {
-            return findFirst.get();
-        }
-
-        return null;
     }
 
     @Override
@@ -235,6 +223,30 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
         }
+    }
+
+    private Tuple<String> itemForName(final String name) {
+        final Optional<Tuple<String>> findFirst = this.availableValues
+                .stream()
+                .filter(it -> it._2 != null && it._2.equals(name))
+                .findFirst();
+        if (findFirst.isPresent()) {
+            return findFirst.get();
+        }
+
+        return null;
+    }
+
+    private Tuple<String> itemForId(final String id) {
+        final Optional<Tuple<String>> findFirst = this.availableValues
+                .stream()
+                .filter(it -> it._1 != null && it._1.equals(id))
+                .findFirst();
+        if (findFirst.isPresent()) {
+            return findFirst.get();
+        }
+
+        return null;
     }
 
 }

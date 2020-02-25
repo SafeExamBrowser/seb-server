@@ -75,7 +75,8 @@ public class SebInstructionServiceImpl implements SebInstructionService {
 
         loadInstruction()
                 .onError(
-                        error -> log.error("Failed  to initialize and load persistent storage SEB client instructions: ",
+                        error -> log.error(
+                                "Failed  to initialize and load persistent storage SEB client instructions: ",
                                 error));
 
         if (this.instructions.size() > 0) {
@@ -116,6 +117,9 @@ public class SebInstructionServiceImpl implements SebInstructionService {
     @Override
     public String getInstructionJSON(final String connectionToken) {
         refreshCache();
+        if (this.instructions.isEmpty()) {
+            return null;
+        }
 
         final ClientInstructionRecord clientInstruction = this.instructions.remove(connectionToken);
         if (clientInstruction != null) {

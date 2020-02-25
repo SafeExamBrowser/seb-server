@@ -13,7 +13,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -26,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -129,7 +129,8 @@ public class ExamAPI_V1_Controller {
         }
 
         if (result.isEmpty()) {
-            log.warn("There are no currently running exams for institution: {}. SEB connection creation denied", institutionId);
+            log.warn("There are no currently running exams for institution: {}. SEB connection creation denied",
+                    institutionId);
             throw new IllegalStateException("There are no currently running exams");
         }
 
@@ -306,21 +307,47 @@ public class ExamAPI_V1_Controller {
         }
     }
 
+    private static final ResponseEntity<String> EMPTY_PING_RESPONSE = ResponseEntity
+            .ok()
+            .build();
+
     @RequestMapping(
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public CompletableFuture<String> ping(
+    public ResponseEntity<String> ping(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
 
-        return CompletableFuture.supplyAsync(
-                () -> this.sebClientConnectionService
-                        .notifyPing(connectionToken, timestamp, pingNumber),
-                this.executor);
+        final String notifyPing = this.sebClientConnectionService
+                .notifyPing(connectionToken, timestamp, pingNumber);
+
+        if (notifyPing == null) {
+            return EMPTY_PING_RESPONSE;
+        }
+
+        return ResponseEntity
+                .ok()
+                .body(notifyPing);
     }
+
+//    @RequestMapping(
+//            path = API.EXAM_API_PING_ENDPOINT,
+//            method = RequestMethod.POST,
+//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+//            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+//    public CompletableFuture<String> ping(
+//            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+//            @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
+//            @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
+//
+//        return CompletableFuture.supplyAsync(
+//                () -> this.sebClientConnectionService
+//                        .notifyPing(connectionToken, timestamp, pingNumber),
+//                this.executor);
+//    }
 
     @RequestMapping(
             path = API.EXAM_API_EVENT_ENDPOINT,
