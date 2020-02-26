@@ -492,7 +492,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
 
         final MockHttpServletResponse sendPing = super.sendPing(accessToken, connectionToken, 1);
         // check correct response
-        assertTrue(HttpStatus.OK.value() == sendPing.getStatus());
+        assertTrue(HttpStatus.NO_CONTENT.value() == sendPing.getStatus());
     }
 
     @Test
@@ -536,7 +536,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 "testEvent1");
 
         // check correct response
-        assertTrue(HttpStatus.OK.value() == sendEvent.getStatus());
+        assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
         // check event stored on db
         List<ClientEventRecord> events = this.clientEventRecordMapper
@@ -563,7 +563,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 "testEvent2");
 
         // check correct response
-        assertTrue(HttpStatus.OK.value() == sendEvent.getStatus());
+        assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
         // check event stored on db
         events = this.clientEventRecordMapper
@@ -595,7 +595,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 100.0,
                 "testEvent1");
         // check correct response
-        assertTrue(HttpStatus.OK.value() == sendEvent.getStatus());
+        assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
         final List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
@@ -620,7 +620,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 100.0,
                 "testEvent1");
         // check correct response
-        assertTrue(HttpStatus.OK.value() == sendEvent.getStatus());
+        assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
         final List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()

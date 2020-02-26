@@ -26,13 +26,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -270,29 +270,30 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
-    private static final ResponseEntity<String> EMPTY_PING_RESPONSE = ResponseEntity
-            .ok()
-            .build();
-
     @RequestMapping(
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void ping(
-            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-            @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
-            @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber,
-            final HttpServletResponse response) {
+    public void ping(final HttpServletRequest request, final HttpServletResponse response) {
+
+        final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
+        final String timeStampString = request.getParameter(API.EXAM_API_PING_TIMESTAMP);
+        final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
 
         final String instruction = this.sebClientConnectionService
-                .notifyPing(connectionToken, timestamp, pingNumber);
+                .notifyPing(
+                        connectionToken,
+                        Long.parseLong(timeStampString),
+                        pingNumString != null ? Integer.parseInt(pingNumString) : -1);
 
         if (instruction == null) {
+            response.setStatus(HttpStatus.NO_CONTENT.value());
             return;
         }
 
         try {
+            response.setStatus(HttpStatus.OK.value());
             response.getOutputStream().write(instruction.getBytes());
         } catch (final IOException e) {
             log.error("Failed to send instruction as response: {}", connectionToken, e);
@@ -303,6 +304,7 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_EVENT_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void event(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestBody(required = true) final ClientEvent event) {
