@@ -16,9 +16,11 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -27,6 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -35,6 +38,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class IndicatorController extends EntityController<Indicator, Indicator> {
 
     private final ExamDAO examDao;
+    private final ExamSessionService examSessionService;
 
     protected IndicatorController(
             final AuthorizationService authorization,
@@ -43,7 +47,8 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
             final ExamDAO examDao,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final ExamSessionService examSessionService) {
 
         super(authorization,
                 bulkActionService,
@@ -53,6 +58,7 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
                 beanValidationService);
 
         this.examDao = examDao;
+        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -93,6 +99,33 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     @Override
     protected EntityType getGrantEntityType() {
         return EntityType.EXAM;
+    }
+
+    @Override
+    protected Result<Indicator> notifyCreated(final Indicator entity) {
+        flushExamSessionCaches(entity);
+        return super.notifyCreated(entity);
+    }
+
+    @Override
+    protected Result<Indicator> notifySaved(final Indicator entity) {
+        flushExamSessionCaches(entity);
+        return super.notifySaved(entity);
+    }
+
+    @Override
+    protected Result<Pair<Indicator, EntityProcessingReport>> notifyDeleted(
+            final Pair<Indicator, EntityProcessingReport> pair) {
+
+        flushExamSessionCaches(pair.a);
+        return super.notifyDeleted(pair);
+    }
+
+    private void flushExamSessionCaches(final Indicator entity) {
+        if (this.examSessionService.isExamRunning(entity.examId)) {
+            this.examSessionService.flushCache(this.examSessionService.getRunningExam(entity.examId).getOrThrow());
+        }
+
     }
 
 }

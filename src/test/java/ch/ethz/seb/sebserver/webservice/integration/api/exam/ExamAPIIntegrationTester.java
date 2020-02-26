@@ -259,12 +259,8 @@ public abstract class ExamAPIIntegrationTester {
                 + "&" + API.EXAM_API_PING_NUMBER + "=" + num;
         builder.content(body);
 
-        final MvcResult mvcResult = this.mockMvc
-                .perform(builder)
-                .andExpect(request().asyncStarted())
-                .andDo(MockMvcResultHandlers.log())
-                .andReturn();
-        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
+        final ResultActions result = this.mockMvc
+                .perform(builder);
         return result.andReturn().getResponse();
     }
 
@@ -284,12 +280,8 @@ public abstract class ExamAPIIntegrationTester {
 
         final String body = "{ \"type\": \"%s\", \"timestamp\": %s, \"numericValue\": %s, \"text\": \"%s\" }";
         builder.content(String.format(body, type, timestamp, value, text));
-        final MvcResult mvcResult = this.mockMvc
-                .perform(builder)
-                .andExpect(request().asyncStarted())
-                .andDo(MockMvcResultHandlers.log())
-                .andReturn();
-        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
+        final ResultActions result = this.mockMvc
+                .perform(builder);
         return result.andReturn().getResponse();
     }
 

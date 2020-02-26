@@ -59,8 +59,7 @@ public class DistributedServerPingHandler implements PingHandlingStrategy {
                 this.examSessionCacheService.getActiveClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
-            activeClientConnection.pingMappings
-                    .forEach(pingIndicator -> pingIndicator.notifyPing(timestamp, pingNumber));
+            activeClientConnection.notifyPing(timestamp, pingNumber);
         }
     }
 

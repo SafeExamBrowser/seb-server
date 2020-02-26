@@ -503,6 +503,9 @@ public final class ClientConnectionTable {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
+                if (indicatorData == null) {
+                    continue;
+                }
 
                 if (!this.connectionData.clientConnection.status.establishedStatus) {
                     final String value = (indicatorData.indicator.type.showOnlyInActiveState)

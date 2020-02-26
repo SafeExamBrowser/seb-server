@@ -14,6 +14,9 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -23,7 +26,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public class ClientConnectionDataInternal extends ClientConnectionData {
 
-    final Collection<AbstractPingIndicator> pingMappings;
+    private static final Logger log = LoggerFactory.getLogger(ClientConnectionDataInternal.class);
+
     final EnumMap<EventType, Collection<ClientIndicator>> indicatorMapping;
 
     PingIntervalClientIndicator pingIndicator = null;
@@ -35,23 +39,25 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         super(clientConnection, clientIndicators);
 
         this.indicatorMapping = new EnumMap<>(EventType.class);
-        this.pingMappings = new ArrayList<>();
         for (final ClientIndicator clientIndicator : clientIndicators) {
-            if (clientIndicator instanceof AbstractPingIndicator) {
-                if (clientIndicator instanceof PingIntervalClientIndicator) {
-                    this.pingIndicator = (PingIntervalClientIndicator) clientIndicator;
-                    if (!this.pingIndicator.hidden) {
-                        this.pingMappings.add((AbstractPingIndicator) clientIndicator);
-                    }
-                } else {
-                    this.pingMappings.add((AbstractPingIndicator) clientIndicator);
+            if (clientIndicator instanceof PingIntervalClientIndicator) {
+                if (this.pingIndicator != null) {
+                    log.error("Currently only one ping indicator is allowed: {}", clientIndicator);
+                    continue;
                 }
+                this.pingIndicator = (PingIntervalClientIndicator) clientIndicator;
             }
             for (final EventType eventType : clientIndicator.observedEvents()) {
                 this.indicatorMapping
                         .computeIfAbsent(eventType, key -> new ArrayList<>())
                         .add(clientIndicator);
             }
+        }
+    }
+
+    public final void notifyPing(final long timestamp, final int pingNumber) {
+        if (this.pingIndicator != null) {
+            this.pingIndicator.notifyPing(timestamp, pingNumber);
         }
     }
 
