@@ -274,52 +274,52 @@ public class ExamAPI_V1_Controller {
             .ok()
             .build();
 
-//    @RequestMapping(
-//            path = API.EXAM_API_PING_ENDPOINT,
-//            method = RequestMethod.POST,
-//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-//            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public CompletableFuture<ResponseEntity<String>> ping(
-//            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-//            @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
-//            @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
-//
-//        return CompletableFuture.supplyAsync(
-//                () -> {
-//                    final String notifyPing = this.sebClientConnectionService
-//                            .notifyPing(connectionToken, timestamp, pingNumber);
-//                    if (notifyPing == null) {
-//                        return EMPTY_PING_RESPONSE;
-//                    }
-//
-//                    return ResponseEntity
-//                            .ok()
-//                            .body(notifyPing);
-//                },
-//                this.executor);
-//    }
-
     @RequestMapping(
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> ping(
+    public CompletableFuture<ResponseEntity<String>> ping(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
             @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
 
-        final String instruction = this.sebClientConnectionService
-                .notifyPing(connectionToken, timestamp, pingNumber);
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    final String notifyPing = this.sebClientConnectionService
+                            .notifyPing(connectionToken, timestamp, pingNumber);
+                    if (notifyPing == null) {
+                        return EMPTY_PING_RESPONSE;
+                    }
 
-        if (instruction == null) {
-            return EMPTY_PING_RESPONSE;
-        }
-
-        return ResponseEntity
-                .ok()
-                .body(instruction);
+                    return ResponseEntity
+                            .ok()
+                            .body(notifyPing);
+                },
+                this.executor);
     }
+
+//    @RequestMapping(
+//            path = API.EXAM_API_PING_ENDPOINT,
+//            method = RequestMethod.POST,
+//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+//            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+//    public ResponseEntity<String> ping(
+//            @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
+//            @RequestParam(name = API.EXAM_API_PING_TIMESTAMP, required = true) final long timestamp,
+//            @RequestParam(name = API.EXAM_API_PING_NUMBER, required = false) final int pingNumber) {
+//
+//        final String instruction = this.sebClientConnectionService
+//                .notifyPing(connectionToken, timestamp, pingNumber);
+//
+//        if (instruction == null) {
+//            return EMPTY_PING_RESPONSE;
+//        }
+//
+//        return ResponseEntity
+//                .ok()
+//                .body(instruction);
+//    }
 
     @RequestMapping(
             path = API.EXAM_API_EVENT_ENDPOINT,
