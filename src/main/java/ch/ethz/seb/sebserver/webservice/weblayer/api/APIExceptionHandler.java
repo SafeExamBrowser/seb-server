@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -203,6 +204,26 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 Arrays.asList(ex.apiMessage),
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CompletionException.class)
+    public ResponseEntity<Object> handleCompletionException(
+            final CompletionException ex,
+            final WebRequest request) {
+
+        final Throwable cause = ex.getCause();
+        if (cause instanceof APIMessageException) {
+            return handleAPIMessageException((APIMessageException) cause, request);
+        } else if (cause instanceof APIConstraintViolationException) {
+            return handleIllegalAPIArgumentException((APIConstraintViolationException) cause, request);
+        } else if (cause instanceof ResourceNotFoundException) {
+            return APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.createErrorResponse(cause.getMessage());
+        } else if (cause instanceof RuntimeException) {
+            return APIMessage.ErrorMessage.UNEXPECTED.createErrorResponse(cause.getMessage());
+        }
+
+        return APIMessage.ErrorMessage.GENERIC.createErrorResponse(cause.getMessage());
+
     }
 
 }

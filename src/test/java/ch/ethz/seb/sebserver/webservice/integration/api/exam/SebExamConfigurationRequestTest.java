@@ -210,7 +210,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         // check error
         final String contentAsString = configResponse.getContentAsString();
         assertEquals(
-                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identider or requested exam is not running\",\"attributes\":[]}",
+                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identifier or requested exam is not running\",\"attributes\":[]}",
                 contentAsString);
 
         // check connection cache
@@ -253,7 +253,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         assertTrue(HttpStatus.OK.value() != configResponse.getStatus());
         final String contentAsString = configResponse.getContentAsString();
         assertEquals(
-                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identider or requested exam is not running\",\"attributes\":[]}",
+                "{\"messageCode\":\"0\",\"systemMessage\":\"Generic error message\",\"details\":\"Missing exam identifier or requested exam is not running\",\"attributes\":[]}",
                 contentAsString);
     }
 

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.integration.api.exam;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
@@ -39,8 +40,10 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -153,7 +156,12 @@ public abstract class ExamAPIIntegrationTester {
 
         builder.content(body);
 
-        final ResultActions result = this.mockMvc.perform(builder)
+        final MvcResult mvcResult = this.mockMvc.perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
 
         return result.andReturn().getResponse();
@@ -209,7 +217,13 @@ public abstract class ExamAPIIntegrationTester {
         }
         builder.content(body);
 
-        final ResultActions result = this.mockMvc.perform(builder);
+        final MvcResult mvcResult = this.mockMvc
+                .perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
 
         return result.andReturn().getResponse();
     }
@@ -221,7 +235,13 @@ public abstract class ExamAPIIntegrationTester {
                 .header("Authorization", "Bearer " + accessToken)
                 .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
                 .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
-        final ResultActions result = this.mockMvc.perform(builder);
+
+        final MvcResult mvcResult = this.mockMvc
+                .perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
         return result.andReturn().getResponse();
     }
 
@@ -239,7 +259,12 @@ public abstract class ExamAPIIntegrationTester {
                 + "&" + API.EXAM_API_PING_NUMBER + "=" + num;
         builder.content(body);
 
-        final ResultActions result = this.mockMvc.perform(builder);
+        final MvcResult mvcResult = this.mockMvc
+                .perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
         return result.andReturn().getResponse();
     }
 
@@ -259,7 +284,12 @@ public abstract class ExamAPIIntegrationTester {
 
         final String body = "{ \"type\": \"%s\", \"timestamp\": %s, \"numericValue\": %s, \"text\": \"%s\" }";
         builder.content(String.format(body, type, timestamp, value, text));
-        final ResultActions result = this.mockMvc.perform(builder);
+        final MvcResult mvcResult = this.mockMvc
+                .perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
         return result.andReturn().getResponse();
     }
 
@@ -278,8 +308,13 @@ public abstract class ExamAPIIntegrationTester {
             builder.content("examId=" + examId);
         }
 
-        final ResultActions result = this.mockMvc
-                .perform(builder);
+        final MvcResult mvcResult = this.mockMvc
+                .perform(builder)
+                .andExpect(request().asyncStarted())
+                .andDo(MockMvcResultHandlers.log())
+                .andReturn();
+
+        final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult));
 
         return result.andReturn().getResponse();
     }

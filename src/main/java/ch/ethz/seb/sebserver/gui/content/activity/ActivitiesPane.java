@@ -335,10 +335,14 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            monitoring.setExpanded(
-                    this.currentUser
-                            .get()
-                            .hasAnyRole(UserRole.EXAM_SUPPORTER));
+            if (monitoring.getItemCount() > 0) {
+                monitoring.setExpanded(
+                        this.currentUser
+                                .get()
+                                .hasAnyRole(UserRole.EXAM_SUPPORTER));
+            } else {
+                monitoring.dispose();
+            }
         }
 
         // ---- MONITORING ---------------------------------------------------------------------
