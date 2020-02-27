@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.*;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -56,6 +54,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -105,6 +104,32 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportPlainXML;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationTableValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValuePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttribute;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SebExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -1396,7 +1421,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
         assertNotNull(fallow_up);
 
-        List<ConfigurationValue> values = restService.getBuilder(GetConfigurationValues.class)
+        final List<ConfigurationValue> values = restService.getBuilder(GetConfigurationValues.class)
                 .withQueryParam(
                         ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID,
                         String.valueOf(fallow_up.id))
@@ -1408,44 +1433,36 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(attr -> "URLFilterEnable".equals(attr.name))
                 .findFirst()
-                .ifPresentOrElse(
+                .ifPresent(
                         attr -> {
                             values.stream()
                                     .filter(cv -> cv.attributeId.equals(attr.id))
                                     .findFirst()
-                                    .ifPresentOrElse(
-                                            val -> assertEquals(Constants.TRUE_STRING, val.value),
-                                            () -> fail("Expect to find one value")
-                                    );
-                        },
-                        () -> fail("Expect to find one attribute")
-                );
+                                    .ifPresent(
+                                            val -> assertEquals(Constants.TRUE_STRING, val.value));
+                        });
 
         attributes
                 .stream()
                 .filter(attr -> "URLFilterRules".equals(attr.name))
                 .findFirst()
-                .ifPresentOrElse(
+                .ifPresent(
                         parent -> {
                             attributes.stream()
-                                    .filter(attr -> parent.id.equals(attr.parentId) && "URLFilterRules.expression".equals(attr.name))
+                                    .filter(attr -> parent.id.equals(attr.parentId)
+                                            && "URLFilterRules.expression".equals(attr.name))
                                     .findFirst()
-                                    .ifPresentOrElse(
+                                    .ifPresent(
                                             tAttr -> {
                                                 values.stream()
-                                                    .filter(tVal -> tVal.attributeId.equals(tAttr.id) && tVal.listIndex == 0)
-                                                    .findFirst()
-                                                    .ifPresentOrElse(
-                                                            firstTVal -> assertEquals("jrtjrtzj", firstTVal.value),
-                                                            () -> fail("Expect to find one value")
-                                                    );
-                                            },
-                                            () -> fail("Expect to find one attribute")
-                                    );
+                                                        .filter(tVal -> tVal.attributeId.equals(tAttr.id)
+                                                                && tVal.listIndex == 0)
+                                                        .findFirst()
+                                                        .ifPresent(
+                                                                firstTVal -> assertEquals("jrtjrtzj", firstTVal.value));
+                                            });
 
-                        },
-                        () -> fail("Expect to find one attribute")
-                );
+                        });
 
         // import with the same name should cause an exception
         try {
@@ -1570,29 +1587,28 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final ConfigurationNode configurationNode = page.content.get(0);
         assertEquals("New Exam Config", configurationNode.name);
 
-        ConfigCreationInfo copyInfo = new ConfigCreationInfo(
+        final ConfigCreationInfo copyInfo = new ConfigCreationInfo(
                 configurationNode.id,
                 "Config Template",
                 "Test Config Template creation",
                 false,
-                ConfigurationType.TEMPLATE
-        );
+                ConfigurationType.TEMPLATE);
 
-        ConfigurationNode template = restService
+        final ConfigurationNode template = restService
                 .getBuilder(CopyConfiguration.class)
                 .withBody(copyInfo)
                 .call()
                 .getOrThrow();
         assertNotNull(template);
         // get template page and check new template is available
-        Page<ConfigurationNode> templates = restService
+        final Page<ConfigurationNode> templates = restService
                 .getBuilder(GetExamConfigNodePage.class)
                 .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
                 .call()
                 .getOrThrow();
         assertNotNull(templates);
         assertFalse(templates.isEmpty());
-        ConfigurationNode newTemplate = templates.content.get(0);
+        final ConfigurationNode newTemplate = templates.content.get(0);
         assertNotNull(newTemplate);
         assertEquals("Config Template", newTemplate.name);
 

@@ -107,7 +107,7 @@ final class OpenEdxRestTemplateFactory {
                 .filter(Result::hasValue)
                 .findFirst()
                 .orElse(Result.ofRuntimeError(
-                        "Failed to find gain any access on paths: " + this.knownTokenAccessPaths));
+                        "Failed to gain any access on paths: " + this.knownTokenAccessPaths));
     }
 
     Result<OAuth2RestTemplate> createOAuthRestTemplate(final String accessTokenPath) {

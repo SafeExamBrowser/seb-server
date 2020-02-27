@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gui.form.Form;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -31,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -177,7 +177,7 @@ public class LmsSetupForm implements TemplateComposer {
                         Domain.LMS_SETUP.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         lmsSetup.getName())
-                    .mandatory(!readonly))
+                        .mandatory(!readonly))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
@@ -291,7 +291,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(action -> {
                     this.testAdHoc(action, formHandle);
-                    PageAction newAction = formHandle.saveAndActivate(action);
+                    final PageAction newAction = formHandle.saveAndActivate(action);
                     pageContext.publishInfo(LMS_SETUP_TEST_OK);
                     return newAction;
                 })
@@ -349,7 +349,10 @@ public class LmsSetupForm implements TemplateComposer {
             }
         }
 
-        return action;
+        return handleTestResult(
+                action,
+                Function.identity(),
+                result.getOrThrow());
     }
 
     /** LmsSetup test action implementation */
