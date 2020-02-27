@@ -263,7 +263,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
-            final HttpServletResponse response) throws IOException {
+            final HttpServletResponse response) {
 
         return CompletableFuture.runAsync(
                 () -> streamExamConfig(connectionToken, formParams, principal, response),

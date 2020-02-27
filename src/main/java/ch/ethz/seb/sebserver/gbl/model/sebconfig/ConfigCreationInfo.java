@@ -41,7 +41,7 @@ public final class ConfigCreationInfo implements Entity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE)
     public final ConfigurationType configurationType;
 
-    protected ConfigCreationInfo(
+    public ConfigCreationInfo(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long configurationNodeId,
             @JsonProperty(CONFIGURATION_NODE.ATTR_NAME) final String name,
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,

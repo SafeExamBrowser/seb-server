@@ -3,7 +3,7 @@
 <plist version="1.0">
   <dict>
     <key>URLFilterEnable</key>
-    <false />
+    <true />
     <key>URLFilterEnableContentFilter</key>
     <false />
     <key>URLFilterIgnoreList</key>
