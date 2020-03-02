@@ -460,7 +460,7 @@ public final class ClientConnectionTable {
         }
 
         void updateData(final TableItem tableItem) {
-            tableItem.setText(0, getConnectionIdentifer());
+            tableItem.setText(0, getConnectionIdentifier());
             tableItem.setText(1, getConnectionAddress());
             tableItem.setText(2, getStatusName());
         }
@@ -533,7 +533,7 @@ public final class ClientConnectionTable {
         public int compareTo(final UpdatableTableItem other) {
             return Comparator.comparingInt(UpdatableTableItem::statusWeight)
                     .thenComparingInt(UpdatableTableItem::thresholdsWeight)
-                    .thenComparing(UpdatableTableItem::getConnectionIdentifer)
+                    .thenComparing(UpdatableTableItem::getConnectionIdentifier)
                     .compare(this, other);
         }
 
@@ -580,7 +580,7 @@ public final class ClientConnectionTable {
             return Constants.EMPTY_NOTE;
         }
 
-        String getConnectionIdentifer() {
+        String getConnectionIdentifier() {
             if (this.connectionData != null && this.connectionData.clientConnection.userSessionId != null) {
                 return this.connectionData.clientConnection.userSessionId;
             }
@@ -608,10 +608,7 @@ public final class ClientConnectionTable {
                 final IndicatorData indicatorData =
                         ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
 
-                if (indicatorData == null) {
-                    log.error("No IndicatorData of type: {} found", indicatorValue.getType());
-                } else {
-
+                if (indicatorData != null) {
                     final double value = indicatorValue.getValue();
                     final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
                     if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {

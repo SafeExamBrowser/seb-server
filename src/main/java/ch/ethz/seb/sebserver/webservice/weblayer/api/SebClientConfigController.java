@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -142,6 +143,15 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
     protected Result<SebClientConfig> validForSave(final SebClientConfig entity) {
         return super.validForSave(entity)
                 .map(this::checkPasswordMatch);
+    }
+
+    @Override
+    protected Result<SebClientConfig> notifySaved(SebClientConfig entity) {
+        if (entity.isActive()) {
+            // try to get access token for SEB client
+            sebClientConfigService.checkAccess(entity);
+        }
+        return super.notifySaved(entity);
     }
 
     private SebClientConfig checkPasswordMatch(final SebClientConfig entity) {

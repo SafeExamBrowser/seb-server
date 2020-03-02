@@ -38,7 +38,6 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     long pingErrorThreshold;
     boolean missingPing = false;
-
     boolean hidden = false;
 
     public PingIntervalClientIndicator(final ClientEventExtensionMapper clientEventExtensionMapper) {
