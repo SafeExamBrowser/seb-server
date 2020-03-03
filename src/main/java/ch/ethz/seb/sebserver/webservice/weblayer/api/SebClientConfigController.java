@@ -8,6 +8,30 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -25,29 +49,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.mybatis.dynamic.sql.SqlTable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @WebServiceProfile
 @RestController
@@ -146,16 +147,16 @@ public class SebClientConfigController extends ActivatableEntityController<SebCl
     }
 
     @Override
-    protected Result<SebClientConfig> notifySaved(SebClientConfig entity) {
+    protected Result<SebClientConfig> notifySaved(final SebClientConfig entity) {
         if (entity.isActive()) {
             // try to get access token for SEB client
-            sebClientConfigService.checkAccess(entity);
+            this.sebClientConfigService.checkAccess(entity);
         }
         return super.notifySaved(entity);
     }
 
     private SebClientConfig checkPasswordMatch(final SebClientConfig entity) {
-        Collection<APIMessage> errors = new ArrayList<>();
+        final Collection<APIMessage> errors = new ArrayList<>();
         if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.encryptSecretConfirm)) {
             errors.add(APIMessage.fieldValidationError(
                     new FieldError(

@@ -12,14 +12,11 @@ import java.io.OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.oauth2.provider.ClientDetails;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkActionEvent;
 
 public interface ClientConfigService {
 
@@ -63,7 +60,6 @@ public interface ClientConfigService {
     /** Internally used to check OAuth2 access for a active SebClientConfig.
      *
      * @param config the SebClientConfig to check access
-     * @return true if the system was able to gain an access token for the client. False otherwise
-     */
+     * @return true if the system was able to gain an access token for the client. False otherwise */
     boolean checkAccess(SebClientConfig config);
 }
