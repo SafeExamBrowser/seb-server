@@ -1437,19 +1437,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(attr -> "URLFilterEnable".equals(attr.name))
                 .findFirst()
-                .or(() -> {
-                    fail("Expected one attribute");
-                    return null;
-                })
                 .ifPresent(
                         attr -> {
                             values.stream()
                                     .filter(cv -> cv.attributeId.equals(attr.id))
                                     .findFirst()
-                                    .or(() -> {
-                                        fail("Expected one attribute");
-                                        return null;
-                                    })
                                     .ifPresent(
                                             val -> assertEquals(Constants.TRUE_STRING, val.value));
                         });
@@ -1458,30 +1450,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(attr -> "URLFilterRules".equals(attr.name))
                 .findFirst()
-                .or(() -> {
-                    fail("Expected one attribute");
-                    return null;
-                })
                 .ifPresent(
                         parent -> {
                             attributes.stream()
                                     .filter(attr -> parent.id.equals(attr.parentId)
                                             && "URLFilterRules.expression".equals(attr.name))
                                     .findFirst()
-                                    .or(() -> {
-                                        fail("Expected one attribute");
-                                        return null;
-                                    })
                                     .ifPresent(
                                             tAttr -> {
                                                 values.stream()
                                                         .filter(tVal -> tVal.attributeId.equals(tAttr.id)
                                                                 && tVal.listIndex == 0)
                                                         .findFirst()
-                                                        .or(() -> {
-                                                            fail("Expected one value");
-                                                            return null;
-                                                        })
                                                         .ifPresent(
                                                                 firstTVal -> assertEquals("jrtjrtzj", firstTVal.value));
                                             });
