@@ -24,7 +24,7 @@ public class FieldValidationError {
     public FieldValidationError(final APIMessage apiMessage) {
         this(
                 apiMessage.messageCode,
-                apiMessage.attributes.toArray(new String[apiMessage.attributes.size()]));
+                apiMessage.attributes.toArray(new String[0]));
     }
 
     public FieldValidationError(
@@ -44,7 +44,7 @@ public class FieldValidationError {
             return new String[0];
         }
 
-        return this.attributes.toArray(new String[this.attributes.size()]);
+        return this.attributes.toArray(new String[0]);
     }
 
 }

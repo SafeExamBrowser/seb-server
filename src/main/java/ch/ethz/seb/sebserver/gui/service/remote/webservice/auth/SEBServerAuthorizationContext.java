@@ -34,7 +34,7 @@ public interface SEBServerAuthorizationContext {
      *
      * @param username the username for login
      * @param password the password for login
-     * @return */
+     * @return true if login was successful, false if no */
     boolean login(String username, CharSequence password);
 
     /** Requests a logout on SEB Server webservice if a user is currently logged in

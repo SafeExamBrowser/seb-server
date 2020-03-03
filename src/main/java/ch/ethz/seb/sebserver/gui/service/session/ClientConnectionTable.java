@@ -371,7 +371,7 @@ public final class ClientConnectionTable {
     private void sortTable() {
         this.tableMapping = this.tableMapping.entrySet()
                 .stream()
-                .sorted((e1, e2) -> e1.getValue().compareTo(e2.getValue()))
+                .sorted(Entry.comparingByValue())
                 .collect(Collectors.toMap(
                         Entry::getKey,
                         Entry::getValue,
@@ -398,13 +398,12 @@ public final class ClientConnectionTable {
             final String attribute = this.resourceService
                     .getCurrentUser()
                     .getAttribute(USER_SESSION_STATUS_FILTER_ATTRIBUTE);
+            this.statusFilter.clear();
             if (attribute != null) {
-                this.statusFilter.clear();
                 Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
                         .forEach(name -> this.statusFilter.add(ConnectionStatus.valueOf(name)));
 
             } else {
-                this.statusFilter.clear();
                 this.statusFilter.add(ConnectionStatus.DISABLED);
             }
         } catch (final Exception e) {

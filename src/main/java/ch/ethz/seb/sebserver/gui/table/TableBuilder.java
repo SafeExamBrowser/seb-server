@@ -100,7 +100,7 @@ public class TableBuilder<ROW extends Entity> {
         return this;
     }
 
-    public TableBuilder<ROW> withMultiselection() {
+    public TableBuilder<ROW> withMultiSelection() {
         this.type |= SWT.MULTI;
         return this;
     }

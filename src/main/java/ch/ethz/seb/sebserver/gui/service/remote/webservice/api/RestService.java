@@ -52,7 +52,7 @@ public interface RestService {
      * NOTE not all RestCall can be get within this method. Only the ones that have a defined CallType
      *
      * @param entityType The EntityType of the RestCall
-     * @param callType The CallType of the RestCall (not UNDEFINDED)
+     * @param callType The CallType of the RestCall (not UNDEFINED)
      * @return RestCall instance */
     <T> RestCall<T> getRestCall(EntityType entityType, CallType callType);
 
@@ -65,7 +65,7 @@ public interface RestService {
     /** Get a certain RestCallBuilder by EntityType and CallType.
      *
      * @param entityType The EntityType of the RestCall to get a builder for
-     * @param callType The CallType of the RestCall to get a builder for (not UNDEFINDED)
+     * @param callType The CallType of the RestCall to get a builder for (not UNDEFINED)
      * @return RestCallBuilder instance to build a dedicated call and execute it */
     <T> RestCall<T>.RestCallBuilder getBuilder(
             EntityType entityType,

@@ -157,7 +157,7 @@ public class GridTable extends Composite {
         return StringUtils.join(
                 this.rows
                         .stream()
-                        .map(row -> row.getValue())
+                        .map(Row::getValue)
                         .collect(Collectors.toList()),
                 Constants.LIST_SEPARATOR);
     }
@@ -209,10 +209,9 @@ public class GridTable extends Composite {
                     .stream()
                     .reduce(0,
                             (i, c2) -> i + c2.columnDef.widthFactor,
-                            (i1, i2) -> i1 + i2);
+                            Integer::sum);
 
             this.columns
-                    .stream()
                     .forEach(c -> c.header.widthHint = c.columnDef.widthFactor * widthUnit);
 
             super.layout(true, true);
@@ -273,7 +272,7 @@ public class GridTable extends Composite {
             this.defaultValue = defaultValue;
         }
 
-        public static final ColumnDef fromString(
+        public static ColumnDef fromString(
                 final String string,
                 final Map<String, String> defaultValueMap) {
 

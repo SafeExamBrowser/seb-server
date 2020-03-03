@@ -118,8 +118,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public PageContext withAttribute(final String key, final String value) {
-        final Map<String, String> attrs = new HashMap<>();
-        attrs.putAll(this.attributes);
+        final Map<String, String> attrs = new HashMap<>(this.attributes);
         attrs.put(key, value);
         return new PageContextImpl(
                 this.i18nSupport,
@@ -136,11 +135,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public String getAttribute(final String name, final String def) {
-        if (this.attributes.containsKey(name)) {
-            return this.attributes.get(name);
-        } else {
-            return def;
-        }
+        return this.attributes.getOrDefault(name, def);
     }
 
     @Override
@@ -203,8 +198,7 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public PageContext removeAttribute(final String name) {
-        final Map<String, String> attrs = new HashMap<>();
-        attrs.putAll(this.attributes);
+        final Map<String, String> attrs = new HashMap<>(this.attributes);
         attrs.remove(name);
         return new PageContextImpl(
                 this.i18nSupport,
@@ -333,7 +327,7 @@ public class PageContextImpl implements PageContext {
                     this.onOK.accept(true);
                 } catch (final Exception e) {
                     log.error(
-                            "Unexpected on confirm callback execution. This should not happen, plase secure the given onOK Runnable",
+                            "Unexpected on confirm callback execution. This should not happen, please secure the given onOK Runnable",
                             e);
                     this.onOK.accept(false);
                 }

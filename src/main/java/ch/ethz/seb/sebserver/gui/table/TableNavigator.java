@@ -68,7 +68,7 @@ public class TableNavigator {
 
         if (numberOfPages > 1) {
             createBackwardLabel(pageNumber > 1, pageNumber, numNav);
-            final int pageNavSize = (numberOfPages > PAGE_NAV_SIZE) ? PAGE_NAV_SIZE : numberOfPages;
+            final int pageNavSize = Math.min(numberOfPages, PAGE_NAV_SIZE);
             final int half = pageNavSize / 2;
             int start = pageNumber - half;
             if (start < 1) {
@@ -107,14 +107,12 @@ public class TableNavigator {
 
         final GridData rowData = new GridData(22, 16);
         final Label pageLabel = new Label(parent, SWT.NONE);
-        pageLabel.setText(" " + String.valueOf(page) + " ");
+        pageLabel.setText(" " + page + " ");
         pageLabel.setLayoutData(rowData);
         pageLabel.setAlignment(SWT.CENTER);
         if (selectable) {
             pageLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
-            pageLabel.addListener(SWT.MouseDown, event -> {
-                this.entityTable.selectPage(page);
-            });
+            pageLabel.addListener(SWT.MouseDown, event -> this.entityTable.selectPage(page));
         }
     }
 
@@ -131,9 +129,7 @@ public class TableNavigator {
         forward.setLayoutData(rowData);
         forward.setAlignment(SWT.CENTER);
         if (visible) {
-            forward.addListener(SWT.MouseDown, event -> {
-                this.entityTable.selectPage(pageNumber + 1);
-            });
+            forward.addListener(SWT.MouseDown, event -> this.entityTable.selectPage(pageNumber + 1));
         } else {
             forward.setVisible(false);
         }
@@ -144,9 +140,7 @@ public class TableNavigator {
         end.setLayoutData(rowData);
         end.setAlignment(SWT.CENTER);
         if (visible) {
-            end.addListener(SWT.MouseDown, event -> {
-                this.entityTable.selectPage(numberOfPages);
-            });
+            end.addListener(SWT.MouseDown, event -> this.entityTable.selectPage(numberOfPages));
         } else {
             end.setVisible(false);
         }
@@ -164,9 +158,7 @@ public class TableNavigator {
         start.setAlignment(SWT.CENTER);
         start.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
         if (visible) {
-            start.addListener(SWT.MouseDown, event -> {
-                this.entityTable.selectPage(1);
-            });
+            start.addListener(SWT.MouseDown, event -> this.entityTable.selectPage(1));
         } else {
             start.setVisible(false);
         }
@@ -177,9 +169,7 @@ public class TableNavigator {
         backward.setAlignment(SWT.CENTER);
         backward.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
         if (visible) {
-            backward.addListener(SWT.MouseDown, event -> {
-                this.entityTable.selectPage(pageNumber - 1);
-            });
+            backward.addListener(SWT.MouseDown, event -> this.entityTable.selectPage(pageNumber - 1));
         } else {
             backward.setVisible(false);
         }

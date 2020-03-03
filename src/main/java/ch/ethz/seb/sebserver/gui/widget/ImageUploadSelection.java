@@ -48,10 +48,7 @@ public final class ImageUploadSelection extends Composite {
     private static final long serialVersionUID = 368264811155804533L;
     private static final Logger log = LoggerFactory.getLogger(ImageUploadSelection.class);
 
-    public static final Set<String> SUPPORTED_IMAGE_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            ".png",
-            ".jpg",
-            ".jpeg")));
+    public static final Set<String> SUPPORTED_IMAGE_FILES = Set.of(".png", ".jpg", ".jpeg");
 
     private final ServerPushService serverPushService;
 
@@ -152,12 +149,12 @@ public final class ImageUploadSelection extends Composite {
         setImage(this, input);
     }
 
-    private static final boolean uploadInProgress(final ServerPushContext context) {
+    private static boolean uploadInProgress(final ServerPushContext context) {
         final ImageUploadSelection imageUpload = (ImageUploadSelection) context.getAnchor();
         return imageUpload.loadNewImage && !imageUpload.imageLoaded;
     }
 
-    private static final void update(final ServerPushContext context) {
+    private static void update(final ServerPushContext context) {
         final ImageUploadSelection imageUpload = (ImageUploadSelection) context.getAnchor();
         if (imageUpload.imageBase64 != null
                 && imageUpload.loadNewImage
@@ -181,12 +178,8 @@ public final class ImageUploadSelection extends Composite {
 
         final Image image = new Image(imageUpload.imageCanvas.getDisplay(), input);
         final Rectangle imageBounds = image.getBounds();
-        final int width = (imageBounds.width > imageUpload.maxWidth)
-                ? imageUpload.maxWidth
-                : imageBounds.width;
-        final int height = (imageBounds.height > imageUpload.maxHeight)
-                ? imageUpload.maxHeight
-                : imageBounds.height;
+        final int width = Math.min(imageBounds.width, imageUpload.maxWidth);
+        final int height = Math.min(imageBounds.height, imageUpload.maxHeight);
         final ImageData imageData = image.getImageData().scaledTo(width, height);
         imageUpload.imageCanvas.setBackgroundImage(new Image(imageUpload.imageCanvas.getDisplay(), imageData));
     }
@@ -194,10 +187,8 @@ public final class ImageUploadSelection extends Composite {
     private static boolean fileSupported(final String fileName) {
         return SUPPORTED_IMAGE_FILES
                 .stream()
-                .filter(fileType -> fileName.toUpperCase(Locale.ROOT)
-                        .endsWith(fileType.toUpperCase(Locale.ROOT)))
-                .findFirst()
-                .isPresent();
+                .anyMatch(fileType -> fileName.toUpperCase(Locale.ROOT)
+                        .endsWith(fileType.toUpperCase(Locale.ROOT)));
     }
 
     private final class ImageReceiver extends FileUploadReceiver {

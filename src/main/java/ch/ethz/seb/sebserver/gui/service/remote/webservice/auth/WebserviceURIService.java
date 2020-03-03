@@ -25,15 +25,15 @@ public class WebserviceURIService {
 
     public WebserviceURIService(
             @Value("${sebserver.gui.webservice.protocol}") final String webserviceProtocol,
-            @Value("${sebserver.gui.webservice.address}") final String webserviceServerAdress,
+            @Value("${sebserver.gui.webservice.address}") final String webserviceServerAddress,
             @Value("${sebserver.gui.webservice.port}") final String webserviceServerPort,
             @Value("${server.servlet.context-path}") final String servletContextPath,
             @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath) {
 
         this.servletContextPath = servletContextPath;
-        this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAdress + ":" + webserviceServerPort;
+        this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAddress + ":" + webserviceServerPort;
         this.webserviceURIBuilder = UriComponentsBuilder
-                .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAdress)
+                .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAddress)
                 .port(webserviceServerPort)
                 .path(servletContextPath)
                 .path(webserviceAPIPath);

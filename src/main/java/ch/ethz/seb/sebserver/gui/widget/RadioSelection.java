@@ -99,7 +99,7 @@ public final class RadioSelection extends Composite implements Selection {
         return this.radioButtons
                 .values()
                 .stream()
-                .filter(button -> button.getSelection())
+                .filter(Button::getSelection)
                 .findFirst()
                 .map(button -> (String) button.getData(OPTION_VALUE))
                 .orElse(null);
@@ -109,7 +109,6 @@ public final class RadioSelection extends Composite implements Selection {
     public void clear() {
         this.radioButtons
                 .values()
-                .stream()
                 .forEach(button -> button.setSelection(false));
 
     }

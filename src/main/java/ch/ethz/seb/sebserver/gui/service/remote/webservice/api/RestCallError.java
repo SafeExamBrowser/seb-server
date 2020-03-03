@@ -49,9 +49,7 @@ public class RestCallError extends RuntimeException implements APIMessageError {
     public boolean isFieldValidationError() {
         return this.errors
                 .stream()
-                .filter(error -> APIMessage.ErrorMessage.FIELD_VALIDATION.isOf(error))
-                .findFirst()
-                .isPresent();
+                .anyMatch(APIMessage.ErrorMessage.FIELD_VALIDATION::isOf);
     }
 
     @Override

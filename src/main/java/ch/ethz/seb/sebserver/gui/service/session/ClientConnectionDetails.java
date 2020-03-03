@@ -49,12 +49,10 @@ public class ClientConnectionDetails {
 
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
-    private final PageService pageService;
     private final ResourceService resourceService;
-    private final Exam exam;
     private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
-    private final FormHandle<?> formhandle;
+    private final FormHandle<?> formHandle;
     private final ColorData colorData;
 
     private ClientConnectionData connectionData = null;
@@ -69,9 +67,7 @@ public class ClientConnectionDetails {
 
         final Display display = pageContext.getRoot().getDisplay();
 
-        this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
-        this.exam = exam;
         this.restCallBuilder = restCallBuilder;
         this.colorData = new ColorData(display);
         this.indicatorMapping = IndicatorData.createFormIndicators(
@@ -80,12 +76,12 @@ public class ClientConnectionDetails {
                 this.colorData,
                 NUMBER_OF_NONE_INDICATOR_ROWS);
 
-        final FormBuilder formBuilder = this.pageService.formBuilder(pageContext)
+        final FormBuilder formBuilder = pageService.formBuilder(pageContext)
                 .readonly(true)
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
                         EXAM_NAME_TEXT_KEY,
-                        this.exam.getName()))
+                        exam.getName()))
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         CONNECTION_ID_TEXT_KEY,
@@ -112,7 +108,7 @@ public class ClientConnectionDetails {
                         .withDefaultLabel(indData.indicator.name))
                         .addEmptyCell());
 
-        this.formhandle = formBuilder.build();
+        this.formHandle = formBuilder.build();
     }
 
     public void updateData() {
@@ -136,7 +132,7 @@ public class ClientConnectionDetails {
             return;
         }
 
-        final Form form = this.formhandle.getForm();
+        final Form form = this.formHandle.getForm();
         form.setFieldValue(
                 Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                 this.connectionData.clientConnection.userSessionId);

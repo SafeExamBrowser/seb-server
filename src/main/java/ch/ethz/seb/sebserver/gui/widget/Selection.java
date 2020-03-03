@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 
 public interface Selection {
 
-    static final String OPTION_VALUE = "OPTION_VALUE";
+    String OPTION_VALUE = "OPTION_VALUE";
 
     enum Type {
         SINGLE,

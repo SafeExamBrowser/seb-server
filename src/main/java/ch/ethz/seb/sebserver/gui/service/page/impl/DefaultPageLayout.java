@@ -156,7 +156,7 @@ public class DefaultPageLayout implements TemplateComposer {
                 logoutSuccess.open(null);
 
                 // TODO Try to invalidate RWT's user session.
-                //      This seems to be more difficult then expected and just invalidate the HttpSession dosn't work
+                //      This seems to be more difficult then expected and just invalidate the HttpSession doesn't work
                 //      Try to send a redirect JSON to the client: https://bugs.eclipse.org/bugs/show_bug.cgi?id=388249
             });
         }
@@ -347,12 +347,8 @@ public class DefaultPageLayout implements TemplateComposer {
             final Display display = pageContext.getShell().getDisplay();
             final Image image = new Image(display, input);
             final Rectangle imageBounds = image.getBounds();
-            final int width = (imageBounds.width > LOGO_IMAGE_MAX_WIDTH)
-                    ? LOGO_IMAGE_MAX_WIDTH
-                    : imageBounds.width;
-            final int height = (imageBounds.height > LOGO_IMAGE_MAX_HEIGHT)
-                    ? LOGO_IMAGE_MAX_HEIGHT
-                    : imageBounds.height;
+            final int width = Math.min(imageBounds.width, LOGO_IMAGE_MAX_WIDTH);
+            final int height = Math.min(imageBounds.height, LOGO_IMAGE_MAX_HEIGHT);
             final ImageData imageData = image.getImageData().scaledTo(width, height);
 
             logo.setData(RWT.CUSTOM_VARIANT, "bgLogoNoImage");

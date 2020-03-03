@@ -49,7 +49,7 @@ public class SebExamConfigDownload extends AbstractDownloadServiceHandler {
             IOUtils.copyLarge(input, downloadOut);
         } catch (final IOException e) {
             log.error(
-                    "Unexpected error while streaming incomming config data from web-service to output-stream of download response: ",
+                    "Unexpected error while streaming incoming config data from web-service to output-stream of download response: ",
                     e);
         } finally {
             try {

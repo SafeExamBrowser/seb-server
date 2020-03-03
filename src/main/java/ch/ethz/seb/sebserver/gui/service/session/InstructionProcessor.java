@@ -92,13 +92,11 @@ public class InstructionProcessor {
                 StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR),
                 null);
 
-        processInstruction(() -> {
-            return this.restService.getBuilder(PropagateInstruction.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
-                    .withBody(clientInstruction)
-                    .call()
-                    .getOrThrow();
-        },
+        processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
+                .withBody(clientInstruction)
+                .call()
+                .getOrThrow(),
                 pageContext);
 
     }
@@ -116,7 +114,6 @@ public class InstructionProcessor {
                         ConnectionStatus.AUTHENTICATED));
 
         if (connectionTokens.isEmpty()) {
-            // TOOD message
             return;
         }
 
@@ -126,15 +123,13 @@ public class InstructionProcessor {
                     connectionTokens);
         }
 
-        processInstruction(() -> {
-            return this.restService.getBuilder(DisableClientConnection.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
-                    .withFormParam(
-                            Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
-                            StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR))
-                    .call()
-                    .getOrThrow();
-        },
+        processInstruction(() -> this.restService.getBuilder(DisableClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
+                .withFormParam(
+                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                        StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR))
+                .call()
+                .getOrThrow(),
                 pageContext);
 
     }
