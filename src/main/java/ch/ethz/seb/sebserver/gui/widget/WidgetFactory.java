@@ -123,7 +123,7 @@ public class WidgetFactory {
         private ImageData image = null;
         private ImageData greyedImage = null;
 
-        private ImageIcon(final String fileName) {
+        ImageIcon(final String fileName) {
             this.fileName = fileName;
         }
 
@@ -199,7 +199,7 @@ public class WidgetFactory {
 
         public final String key;
 
-        private CustomVariant(final String key) {
+        CustomVariant(final String key) {
             this.key = key;
         }
     }
@@ -268,7 +268,7 @@ public class WidgetFactory {
      * @param parent The parent Composite
      * @return the scrolled Composite to add the form content */
     public Composite createPopupScrollComposite(final Composite parent) {
-        final Composite grid = PageService.createManagedVScrolledComposite(
+        return PageService.createManagedVScrolledComposite(
                 parent,
                 scrolledComposite -> {
                     final Composite g = new Composite(scrolledComposite, SWT.NONE);
@@ -277,7 +277,6 @@ public class WidgetFactory {
                     return g;
                 },
                 false);
-        return grid;
     }
 
     public Composite createWarningPanel(final Composite parent) {
@@ -733,7 +732,7 @@ public class WidgetFactory {
                 new FileUploadSelection(parent, this.i18nSupport, readonly);
 
         if (supportedFiles != null) {
-            supportedFiles.forEach(ext -> fileUploadSelection.withSupportFor(ext));
+            supportedFiles.forEach(fileUploadSelection::withSupportFor);
         }
         return fileUploadSelection;
     }

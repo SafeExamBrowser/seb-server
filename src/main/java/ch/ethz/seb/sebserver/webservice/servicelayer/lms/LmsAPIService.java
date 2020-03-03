@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import org.joda.time.DateTimeZone;
 
 /** Defines the LMS API access service interface with all functionality needed to access
  * a LMS API within a given LmsSetup configuration.
@@ -101,12 +102,12 @@ public interface LmsAPIService {
     static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
-        //final DateTime now = DateTime.now(DateTimeZone.UTC);
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
             final boolean startTimeFilter =
                     (from == null) || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
-            return nameFilter && startTimeFilter /* && endTimeFilter */;
+            final boolean currentlyRunning = DateTime.now(DateTimeZone.UTC).isBefore(q.endTime);
+            return nameFilter && (startTimeFilter || currentlyRunning) ;
         };
     }
 

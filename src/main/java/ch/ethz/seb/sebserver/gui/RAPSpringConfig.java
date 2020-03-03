@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextListener;
-import javax.servlet.ServletException;
-
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
 import org.slf4j.Logger;
@@ -25,7 +22,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextListener;
 
 @Configuration
 @GuiProfile
@@ -73,7 +71,7 @@ public class RAPSpringConfig {
 
     private static class RAPServletContextInitializer implements ServletContextInitializer {
         @Override
-        public void onStartup(final ServletContext servletContext) throws ServletException {
+        public void onStartup(final ServletContext servletContext) {
             servletContext.setInitParameter(
                     "org.eclipse.rap.applicationConfiguration",
                     RAPConfiguration.class.getName());
