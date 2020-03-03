@@ -276,7 +276,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     EntityType.CONFIGURATION_NODE))));
         }
 
-        Configuration config = doImport
+        final Configuration config = doImport
                 .getOrThrow();
 
         return this.configurationDAO
@@ -353,15 +353,16 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                         filterMap)
                 .getOrThrow();
 
-        final int start = (pageNumber - 1) * pageSize;
-        int end = start + pageSize;
+        final int start = (this.paginationService.getPageNumber(pageNumber) - 1) *
+                this.paginationService.getPageSize(pageSize);
+        int end = start + this.paginationService.getPageSize(pageSize);
         if (attrs.size() < end) {
             end = attrs.size();
         }
 
         return new Page<>(
-                attrs.size() / pageSize,
-                pageNumber,
+                attrs.size() / this.paginationService.getPageSize(pageSize),
+                this.paginationService.getPageNumber(pageNumber),
                 sort,
                 attrs.subList(start, end));
     }

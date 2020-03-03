@@ -10,9 +10,6 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-
 import javax.servlet.http.HttpSession;
 
 import org.junit.Before;
@@ -22,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -79,18 +76,7 @@ public abstract class GuiIntegrationTest {
         final ClientHttpRequestFactoryService clientHttpRequestFactoryService = Mockito
                 .mock(ClientHttpRequestFactoryService.class);
         Mockito.when(clientHttpRequestFactoryService.getClientHttpRequestFactory()).thenReturn(
-                Result.of(
-                        new SimpleClientHttpRequestFactory() {
-
-                            @Override
-                            protected void prepareConnection(
-                                    final HttpURLConnection connection,
-                                    final String httpMethod) throws IOException {
-
-                                super.prepareConnection(connection, httpMethod);
-                                connection.setInstanceFollowRedirects(false);
-                            }
-                        }));
+                Result.of(new HttpComponentsClientHttpRequestFactory()));
 
         return new OAuth2AuthorizationContextHolder(
                 this.clientId,

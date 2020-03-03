@@ -65,6 +65,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableV
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -104,6 +105,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportPlainXML;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
@@ -125,6 +127,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
@@ -1433,11 +1437,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(attr -> "URLFilterEnable".equals(attr.name))
                 .findFirst()
+                .or(() -> {
+                    fail("Expected one attribute");
+                    return null;
+                })
                 .ifPresent(
                         attr -> {
                             values.stream()
                                     .filter(cv -> cv.attributeId.equals(attr.id))
                                     .findFirst()
+                                    .or(() -> {
+                                        fail("Expected one attribute");
+                                        return null;
+                                    })
                                     .ifPresent(
                                             val -> assertEquals(Constants.TRUE_STRING, val.value));
                         });
@@ -1446,18 +1458,30 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(attr -> "URLFilterRules".equals(attr.name))
                 .findFirst()
+                .or(() -> {
+                    fail("Expected one attribute");
+                    return null;
+                })
                 .ifPresent(
                         parent -> {
                             attributes.stream()
                                     .filter(attr -> parent.id.equals(attr.parentId)
                                             && "URLFilterRules.expression".equals(attr.name))
                                     .findFirst()
+                                    .or(() -> {
+                                        fail("Expected one attribute");
+                                        return null;
+                                    })
                                     .ifPresent(
                                             tAttr -> {
                                                 values.stream()
                                                         .filter(tVal -> tVal.attributeId.equals(tAttr.id)
                                                                 && tVal.listIndex == 0)
                                                         .findFirst()
+                                                        .or(() -> {
+                                                            fail("Expected one value");
+                                                            return null;
+                                                        })
                                                         .ifPresent(
                                                                 firstTVal -> assertEquals("jrtjrtzj", firstTVal.value));
                                             });
@@ -1544,8 +1568,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Order(15)
     // *************************************
     // Use Case 15: Login as examAdmin2 and get views and orientations
-    // - test Views API
-    // - create configuration template form existing configuration
+    // - Test Views API
+    // - Create configuration template form existing configuration
+    // - Check views and orientation created for template
+    // - Remove one template attribute from orientation
+    // - Change one template attribute value
+    // - Reset template values
     public void testUsecase15() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
@@ -1557,7 +1585,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new CopyConfiguration(),
                 new GetTemplateAttributePage(),
                 new GetExamConfigNodePage(),
-                new GetTemplateAttribute());
+                new GetTemplateAttribute(),
+                new GetConfigurationValues(),
+                new GetConfigurationValuePage(),
+                new SaveExamConfigValue(),
+                new GetFollowupConfiguration(),
+                new RemoveOrientation(),
+                new AttachDefaultOrientation(),
+                new ResetTemplateValues());
 
         final List<View> views = restService
                 .getBuilder(GetViews.class)
@@ -1572,6 +1607,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetOrientations.class)
                 .call()
                 .getOrThrow();
+        assertNotNull(orientations);
         orientations.forEach(o -> assertEquals(o.templateId, ConfigurationNode.DEFAULT_TEMPLATE_ID));
 
         // get configuration page and first config from the page to copy as template
@@ -1612,7 +1648,95 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(newTemplate);
         assertEquals("Config Template", newTemplate.name);
 
-        assertNotNull(orientations);
+        // check views for template where created
+        final List<View> templateViews = restService
+                .getBuilder(GetViews.class)
+                .withQueryParam(View.FILTER_ATTR_TEMPLATE, String.valueOf(template.id))
+                .call()
+                .getOrThrow();
+
+        assertNotNull(templateViews);
+        assertFalse(templateViews.isEmpty());
+        assertEquals(11, templateViews.size());
+
+        // check orientations for template where created
+        final List<Orientation> templateTrientations = restService
+                .getBuilder(GetOrientations.class)
+                .withQueryParam(Orientation.FILTER_ATTR_TEMPLATE_ID, String.valueOf(template.id))
+                .call()
+                .getOrThrow();
+        assertNotNull(templateTrientations);
+        assertFalse(templateTrientations.isEmpty());
+        assertEquals(192, templateTrientations.size());
+
+        // get template attributes page
+        final Page<TemplateAttribute> templateAttributes = restService
+                .getBuilder(GetTemplateAttributePage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
+                .call()
+                .getOrThrow();
+
+        assertNotNull(templateAttributes);
+        assertFalse(templateAttributes.isEmpty());
+        final TemplateAttribute templateAttr = templateAttributes.content.get(0);
+        assertEquals(template.id, templateAttr.templateId);
+        final Orientation orientation = templateAttr.getOrientation();
+        assertNotNull(orientation);
+
+        TemplateAttribute savedTAttribute = restService
+                .getBuilder(RemoveOrientation.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
+                .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTAttribute);
+        assertNull(savedTAttribute.getOrientation());
+
+        // Re-attach default orientation
+        savedTAttribute = restService
+                .getBuilder(AttachDefaultOrientation.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
+                .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTAttribute);
+        assertNotNull(savedTAttribute.getOrientation());
+        assertEquals(orientation.viewId, savedTAttribute.getOrientation().viewId);
+        assertEquals(orientation.templateId, savedTAttribute.getOrientation().templateId);
+        assertEquals(orientation.attributeId, savedTAttribute.getOrientation().attributeId);
+
+        // get first value and change it
+        final Configuration fallow_up = restService.getBuilder(GetFollowupConfiguration.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(template.id))
+                .call()
+                .getOrThrow();
+        assertNotNull(fallow_up);
+
+        final List<ConfigurationValue> values = restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID, String.valueOf(fallow_up.id))
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ATTRIBUTE_ID, savedTAttribute.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(values);
+        assertTrue(values.size() == 1);
+        final ConfigurationValue templateValue = values.get(0);
+        assertNull(templateValue.value);
+
+        final ConfigurationValue newValue = new ConfigurationValue(
+                templateValue.id, templateValue.institutionId, savedTAttribute.getTemplateId(),
+                templateValue.attributeId, 0, "123");
+        final ConfigurationValue newTemplValue = restService
+                .getBuilder(SaveExamConfigValue.class)
+                .withBody(newValue)
+                .call()
+                .getOrThrow();
+        assertNotNull(newTemplValue);
+        assertEquals("123", newTemplValue.value);
+
     }
 
 }

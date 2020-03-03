@@ -52,7 +52,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttchDefaultOrientation;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
@@ -297,14 +297,14 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         if (selection != null && !selection.isEmpty()) {
             selection.stream().forEach(entityKey -> {
                 callTemplateAction(
-                        AttchDefaultOrientation.class,
+                        AttachDefaultOrientation.class,
                         parentEntityKey.modelId,
                         entityKey.modelId);
             });
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
-                    AttchDefaultOrientation.class,
+                    AttachDefaultOrientation.class,
                     parentEntityKey.modelId,
                     entityKey.modelId);
         }

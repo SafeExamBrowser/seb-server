@@ -141,8 +141,8 @@ public final class API {
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";
-    public static final String TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION = "remove-orientation";
-    public static final String TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION = "attach-default-orientation";
+    public static final String TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION = "/remove-orientation";
+    public static final String TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION = "/attach-default-orientation";
 
     public static final String ORIENTATION_ENDPOINT = "/orientation";
     public static final String VIEW_ENDPOINT = ORIENTATION_ENDPOINT + "/view";
