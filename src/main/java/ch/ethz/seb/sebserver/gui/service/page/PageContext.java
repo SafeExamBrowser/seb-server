@@ -27,34 +27,34 @@ public interface PageContext {
     Logger log = LoggerFactory.getLogger(PageContext.class);
 
     /** Defines attribute keys that can be used to store attribute values within the page context state */
-    public interface AttributeKeys {
+    interface AttributeKeys {
 
-        public static final String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
+        String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
-        public static final String READ_ONLY = "READ_ONLY";
-        public static final String READ_ONLY_FROM = "READ_ONLY_FROM";
+        String READ_ONLY = "READ_ONLY";
+        String READ_ONLY_FROM = "READ_ONLY_FROM";
 
-        public static final String ENTITY_ID = "ENTITY_ID";
-        public static final String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
-        public static final String ENTITY_TYPE = "ENTITY_TYPE";
-        public static final String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
+        String ENTITY_ID = "ENTITY_ID";
+        String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
+        String ENTITY_TYPE = "ENTITY_TYPE";
+        String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
 
-        public static final String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
+        String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
 
-        public static final String COPY_AS_TEMPLATE = "COPY_AS_TEMPLATE";
-        public static final String CREATE_FROM_TEMPLATE = "CREATE_FROM_TEMPLATE";
+        String COPY_AS_TEMPLATE = "COPY_AS_TEMPLATE";
+        String CREATE_FROM_TEMPLATE = "CREATE_FROM_TEMPLATE";
 
     }
 
     /** The resource-bundle key of the generic load entity error message. */
-    public static final String GENERIC_LOAD_ERROR_TEXT_KEY = "sebserver.error.get.entity";
-    public static final String GENERIC_REMOVE_ERROR_TEXT_KEY = "sebserver.error.remove.entity";
-    public static final String GENERIC_SAVE_ERROR_TEXT_KEY = "sebserver.error.save.entity";
-    public static final String GENERIC_ACTIVATE_ERROR_TEXT_KEY = "sebserver.error.activate.entity";
-    public static final String GENERIC_IMPORT_ERROR_TEXT_KEY = "sebserver.error.import";
-    public static final LocTextKey SUCCESS_MSG_TITLE =
+    String GENERIC_LOAD_ERROR_TEXT_KEY = "sebserver.error.get.entity";
+    String GENERIC_REMOVE_ERROR_TEXT_KEY = "sebserver.error.remove.entity";
+    String GENERIC_SAVE_ERROR_TEXT_KEY = "sebserver.error.save.entity";
+    String GENERIC_ACTIVATE_ERROR_TEXT_KEY = "sebserver.error.activate.entity";
+    String GENERIC_IMPORT_ERROR_TEXT_KEY = "sebserver.error.import";
+    LocTextKey SUCCESS_MSG_TITLE =
             new LocTextKey("sebserver.page.message");
-    public static final LocTextKey UNEXPECTED_ERROR_KEY =
+    LocTextKey UNEXPECTED_ERROR_KEY =
             new LocTextKey("sebserver.error.action.unexpected.message");
 
     /** Get the I18nSupport service
@@ -84,11 +84,11 @@ public interface PageContext {
 
     /** Get a copy of this PageContext.
      *
-     * @return */
+     * @return a deep copy of this PageContext */
     PageContext copy();
 
     /** Create a copy of this PageContext with a new parent Composite.
-     * The implementation should take care of the imutability of PageContext and return a copy with the new parent
+     * The implementation should take care of the immutability of PageContext and return a copy with the new parent
      * by leave this PageContext as is.
      *
      * @param parent the new parent Composite
@@ -97,15 +97,15 @@ public interface PageContext {
 
     /** Create a copy of this PageContext with and additionally page context attributes.
      * The additionally page context attributes will get merged with them already defined
-     * The implementation should take care of the imutability of PageContext and return a copy with the merge
+     * The implementation should take care of the immutability of PageContext and return a copy with the merge
      * by leave this and the given PageContext as is.
      *
-     * @param attributes additionally page context attributes.
+     * @param otherContext the other PageContext to copy the attributes from
      * @return a copy of this PageContext with with and additionally page context attributes. */
     PageContext copyOfAttributes(PageContext otherContext);
 
     /** Adds the specified attribute to the existing page context attributes.
-     * The implementation should take care of the imutability of PageContext and return a copy
+     * The implementation should take care of the immutability of PageContext and return a copy
      * by leave this PageContext as is.
      *
      * @param key the key of the attribute
@@ -162,7 +162,7 @@ public interface PageContext {
 
     /** Create a copy of this PageContext and resets both entity keys attributes, the base and the parent EntityKey
      *
-     * @return copy of this PageContext with reseted EntityKey attributes (base and parent) */
+     * @return copy of this PageContext with reset EntityKey attributes (base and parent) */
     PageContext clearEntityKeys();
 
     /** Indicates if an attribute with the specified name exists within this PageContext
@@ -181,7 +181,7 @@ public interface PageContext {
      * block that will be executed on users OK selection.
      *
      * @param confirmMessage the localized confirm message key
-     * @param onOK callback code block that will be called on users selection */
+     * @param callback callback code block that will be called on users selection */
     void applyConfirmDialog(LocTextKey confirmMessage, final Consumer<Boolean> callback);
 
     /** This can be used to forward to a defined page.

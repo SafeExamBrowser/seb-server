@@ -10,8 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
@@ -19,8 +18,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkActionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
@@ -38,12 +35,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +57,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
@@ -316,19 +323,48 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public void flushClientConfigData(final BulkActionEvent event) {
+    public boolean checkAccess(SebClientConfig config) {
+        if(!config.isActive()) {
+            return false;
+        }
+
         try {
-            final BulkAction bulkAction = event.getBulkAction();
+            RestTemplate restTemplate = new RestTemplate();
+            String externalServerURL = webserviceInfo.getExternalServerURL() +
+                    API.OAUTH_TOKEN_ENDPOINT;
 
-            if (bulkAction.type == BulkActionType.DEACTIVATE ||
-                    bulkAction.type == BulkActionType.HARD_DELETE) {
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+            ClientCredentials credentials = sebClientConfigDAO
+                    .getSebClientCredentials(config.getModelId())
+                    .getOrThrow();
+            CharSequence plainClientSecret = clientCredentialService.getPlainClientSecret(credentials);
+            String basicAuth = credentials.clientId +
+                    String.valueOf(Constants.COLON) +
+                    plainClientSecret;
+            String encoded = Base64.getEncoder()
+                    .encodeToString(basicAuth.getBytes());
 
-                bulkAction.extractKeys(EntityType.SEB_CLIENT_CONFIGURATION)
-                        .forEach(this::flushClientConfigData);
+            headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
+            HttpEntity<String> entity = new HttpEntity<>(
+                    "grant_type=client_credentials&scope=read write",
+                    headers);
+
+            ResponseEntity<String> exchange = restTemplate.exchange(
+                    externalServerURL,
+                    HttpMethod.POST,
+                    entity,
+                    String.class);
+
+            if (exchange.getStatusCode().value() == HttpStatus.OK.value()) {
+                return true;
+            } else {
+                log.warn("Failed to check access SebClientConfig {} response: {}", config, exchange.getStatusCode());
+                return false;
             }
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to flush ClientConfig data ", e);
+        } catch (Exception e) {
+            log.warn("Failed to check access for SebClientConfig: {} cause: {}", config, e.getMessage());
+            return false;
         }
     }
 

@@ -119,17 +119,15 @@ public class CurrentUser {
                 return userInfo
                         .getRoles()
                         .stream()
-                        .map(roleName -> UserRole.valueOf(roleName))
+                        .map(UserRole::valueOf)
                         .map(role -> new RoleTypeKey(entityType, role))
                         .map(key -> this.privileges.get(key))
-                        .filter(priv -> (priv != null) && priv.hasGrant(
+                        .anyMatch(privilege -> (privilege != null) && privilege.hasGrant(
                                 userInfo.uuid,
                                 userInfo.institutionId,
                                 privilegeType,
                                 institutionId,
-                                ownerId))
-                        .findFirst()
-                        .isPresent();
+                                ownerId));
             } catch (final Exception e) {
                 log.error("Failed to verify privilege: PrivilegeType {} EntityType {}",
                         privilegeType, entityType, e);
@@ -149,17 +147,15 @@ public class CurrentUser {
                 final UserInfo userInfo = get();
                 return userInfo.getRoles()
                         .stream()
-                        .map(roleName -> UserRole.valueOf(roleName))
+                        .map(UserRole::valueOf)
                         .map(role -> new RoleTypeKey(entityType, role))
                         .map(key -> this.privileges.get(key))
-                        .filter(priv -> (priv != null) && priv.hasGrant(
+                        .anyMatch(privilege -> (privilege != null) && privilege.hasGrant(
                                 userInfo.uuid,
                                 userInfo.institutionId,
                                 privilegeType,
                                 grantEntity.getInstitutionId(),
-                                grantEntity.getOwnerId()))
-                        .findFirst()
-                        .isPresent();
+                                grantEntity.getOwnerId()));
             } catch (final Exception e) {
                 log.error("Failed to verify privilege: PrivilegeType {} EntityType {}",
                         privilegeType, entityType, e);
@@ -234,9 +230,9 @@ public class CurrentUser {
                     if (privileges != null) {
                         this.privileges = privileges
                                 .stream()
-                                .reduce(new HashMap<RoleTypeKey, Privilege>(),
-                                        (map, priv) -> {
-                                            map.put(priv.roleTypeKey, priv);
+                                .reduce(new HashMap<>(),
+                                        (map, privilege) -> {
+                                            map.put(privilege.roleTypeKey, privilege);
                                             return map;
                                         },
                                         (map1, map2) -> {

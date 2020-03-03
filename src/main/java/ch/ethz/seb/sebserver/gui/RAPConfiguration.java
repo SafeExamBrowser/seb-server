@@ -63,7 +63,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
         }
     }
 
-    public static interface EntryPointService {
+    public interface EntryPointService {
 
         void loadLoginPage(final Composite parent);
 
@@ -160,5 +160,5 @@ public class RAPConfiguration implements ApplicationConfiguration {
             }
         }
 
-    };
+    }
 }

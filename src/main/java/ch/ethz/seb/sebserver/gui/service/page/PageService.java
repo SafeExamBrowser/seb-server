@@ -363,7 +363,7 @@ public interface PageService {
         return content;
     }
 
-    /** Used to update the crolledComposite when some if its content has dynamically changed
+    /** Used to update the scrolledComposite when some if its content has dynamically changed
      * its dimensions.
      *
      * @param composite The Component that changed its dimensions */

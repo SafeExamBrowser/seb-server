@@ -227,7 +227,7 @@ public class PageServiceImpl implements PageService {
                 final int dependencies = (int) entities.stream()
                         .flatMap(entity -> {
                             final RestCall<Set<EntityKey>>.RestCallBuilder builder =
-                                    restService.<Set<EntityKey>>getBuilder(
+                                    restService.getBuilder(
                                             entity.entityType(),
                                             CallType.GET_DEPENDENCIES);
 
@@ -366,7 +366,7 @@ public class PageServiceImpl implements PageService {
             final boolean logoutSuccessful = this.currentUser.logout();
 
             if (!logoutSuccessful) {
-                log.warn("Failed to logout. See logfiles for more information");
+                log.warn("Failed to logout. See log-files for more information");
             }
 
         } catch (final Exception e) {

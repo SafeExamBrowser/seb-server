@@ -95,13 +95,19 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
-        return this.paginationService.getPage(
-                pageNumber,
-                pageSize,
-                sort,
-                getSQLTableOfEntity().name(),
-                () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
-                .getOrThrow();
+        try {
+
+            return this.paginationService.getPage(
+                    pageNumber,
+                    pageSize,
+                    sort,
+                    getSQLTableOfEntity().name(),
+                    () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
+                    .getOrThrow();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
@@ -118,7 +124,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     protected GrantEntity toGrantEntity(final ClientEvent entity) {
         return this.examDAO
                 .byClientConnection(entity.connectionId)
-                .getOrThrow();
+                .get();
     }
 
     @Override

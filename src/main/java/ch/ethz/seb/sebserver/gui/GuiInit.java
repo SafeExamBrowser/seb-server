@@ -34,7 +34,7 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
         SEBServerInit.INIT_LOGGER.info("---->  **** GUI Service starting up... ****");
 
         SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("---->  GUI Service sucessfully successfully started up!");
+        SEBServerInit.INIT_LOGGER.info("---->  GUI Service successfully successfully started up!");
         SEBServerInit.INIT_LOGGER.info("---->");
     }
 

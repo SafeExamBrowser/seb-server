@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +94,17 @@ public class ClientIndicatorFactory {
                 final PingIntervalClientIndicator pingIndicator = this.applicationContext
                         .getBean(PingIntervalClientIndicator.class);
                 pingIndicator.hidden = true;
+                final Indicator indicator = new Indicator(
+                        null,
+                        clientConnection.examId,
+                        "hidden_ping_indicator",
+                        IndicatorType.LAST_PING,
+                        "",
+                        Arrays.asList(new Indicator.Threshold(5000d, "")));
+                pingIndicator.init(
+                        indicator,
+                        clientConnection.id,
+                        this.enableCaching);
                 result.add(pingIndicator);
             }
 

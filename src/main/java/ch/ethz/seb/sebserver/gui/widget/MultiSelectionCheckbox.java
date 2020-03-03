@@ -8,12 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Tuple3;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -22,11 +21,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gbl.util.Tuple3;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class MultiSelectionCheckbox extends Composite implements Selection {
 
@@ -121,7 +119,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                         .stream()
                         .filter(Button::getSelection)
                         .map(button -> (String) button.getData(OPTION_VALUE))
-                        .collect(Collectors.toList()).toArray());
+                        .toArray());
     }
 
     @Override

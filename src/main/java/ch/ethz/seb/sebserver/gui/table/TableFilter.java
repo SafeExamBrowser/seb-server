@@ -49,7 +49,7 @@ public class TableFilter<ROW extends Entity> {
     private static final LocTextKey DATE_TO_TEXT = new LocTextKey("sebserver.overall.date.to");
     private static final LocTextKey ALL_TEXT = new LocTextKey("sebserver.overall.status.all");
 
-    public static enum CriteriaType {
+    public enum CriteriaType {
         TEXT,
         SINGLE_SELECTION,
         DATE,
@@ -82,7 +82,7 @@ public class TableFilter<ROW extends Entity> {
     public MultiValueMap<String, String> getFilterParameter() {
         return this.components
                 .stream()
-                .reduce(new LinkedMultiValueMap<String, String>(),
+                .reduce(new LinkedMultiValueMap<>(),
                         (map, comp) -> comp.putFilterParameter(map),
                         (map1, map2) -> {
                             map1.putAll(map2);
@@ -92,8 +92,7 @@ public class TableFilter<ROW extends Entity> {
 
     public void reset() {
         this.components
-                .stream()
-                .forEach(comp -> comp.reset());
+                .forEach(FilterComponent::reset);
     }
 
     private void buildComponents() {
@@ -158,7 +157,7 @@ public class TableFilter<ROW extends Entity> {
                                 .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
                                 .append(filter.getValue())
                                 .append(Constants.LIST_SEPARATOR),
-                        (sb1, sb2) -> sb1.append(sb2));
+                        StringBuilder::append);
         if (builder.length() > 0) {
             builder.deleteCharAt(builder.length() - 1);
         }
@@ -171,22 +170,19 @@ public class TableFilter<ROW extends Entity> {
         }
 
         try {
-            Arrays.asList(StringUtils.split(
+            Arrays.stream(StringUtils.split(
                     attribute,
                     Constants.LIST_SEPARATOR_CHAR))
-                    .stream()
                     .map(nameValue -> StringUtils.split(
                             nameValue,
                             Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
-                    .forEach(nameValue -> {
-                        this.components
-                                .stream()
-                                .filter(filter -> nameValue[0].equals(filter.attribute.columnName))
-                                .findFirst()
-                                .ifPresent(filter -> filter.setValue((nameValue.length > 1)
-                                        ? nameValue[1]
-                                        : StringUtils.EMPTY));
-                    });
+                    .forEach(nameValue -> this.components
+                            .stream()
+                            .filter(filter -> nameValue[0].equals(filter.attribute.columnName))
+                            .findFirst()
+                            .ifPresent(filter -> filter.setValue((nameValue.length > 1)
+                                    ? nameValue[1]
+                                    : StringUtils.EMPTY)));
         } catch (final Exception e) {
             log.error("Failed to set filter attributes: ", e);
         }
@@ -208,9 +204,7 @@ public class TableFilter<ROW extends Entity> {
                 ImageIcon.SEARCH,
                 inner,
                 new LocTextKey("sebserver.overall.action.filter"),
-                event -> {
-                    this.entityTable.applyFilter();
-                });
+                event -> this.entityTable.applyFilter());
         imageButton.setLayoutData(gridData);
         final Label imageButton2 = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.CANCEL,
@@ -276,7 +270,7 @@ public class TableFilter<ROW extends Entity> {
         }
     }
 
-    private class NullFilter extends FilterComponent {
+    private static class NullFilter extends FilterComponent {
 
         private Label label;
 
@@ -493,7 +487,6 @@ public class TableFilter<ROW extends Entity> {
     private class DateRange extends FilterComponent {
 
         private Composite innerComposite;
-        //private final GridData rw1 = new GridData(SWT.FILL, SWT.FILL, true, true);
         private DateTime fromDateSelector;
         private DateTime toDateSelector;
         private DateTime fromTimeSelector;

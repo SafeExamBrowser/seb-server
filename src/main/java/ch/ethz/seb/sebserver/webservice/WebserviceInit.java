@@ -58,13 +58,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("---->  **** Webservice starting up... ****");
 
         SEBServerInit.INIT_LOGGER.info("----> ");
-        SEBServerInit.INIT_LOGGER.info("----> Init Database with flyway...");
-        SEBServerInit.INIT_LOGGER.info("----> TODO ");
-
-        // TODO integration of Flyway for database initialization and migration:  https://flywaydb.org
-        //      see also https://flywaydb.org/getstarted/firststeps/api
-
-        SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Intitialize Services...");
         SEBServerInit.INIT_LOGGER.info("----> ");
 

@@ -8,16 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.download;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.service.ServiceHandler;
@@ -26,10 +19,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+/** Implements a eclipse RAP ServiceHandler to handle downloads */
 @Lazy
 @Service
 @GuiProfile
@@ -54,7 +51,7 @@ public class DownloadService implements ServiceHandler {
     @Override
     public void service(
             final HttpServletRequest request,
-            final HttpServletResponse response) throws IOException, ServletException {
+            final HttpServletResponse response) {
 
         log.debug("Received download service request: {}", request.getRequestURI());
 

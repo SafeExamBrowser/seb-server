@@ -89,7 +89,7 @@ public class ModalInputDialog<T> extends Dialog {
 
         open(
                 title,
-                (Predicate<T>) t -> true,
+                t -> true,
                 () -> {
                 }, contentComposer);
     }
@@ -130,7 +130,7 @@ public class ModalInputDialog<T> extends Dialog {
         gridData.widthHint = this.dialogWidth;
         main.setLayoutData(gridData);
 
-        final Supplier<T> valueSuppier = contentComposer.compose(main);
+        final Supplier<T> valueSupplier = contentComposer.compose(main);
         gridData.heightHint = calcDialogHeight(main);
 
         final Button ok = this.widgetFactory.buttonLocalized(shell, OK_TEXT_KEY);
@@ -138,8 +138,8 @@ public class ModalInputDialog<T> extends Dialog {
         data.widthHint = this.buttonWidth;
         ok.setLayoutData(data);
         ok.addListener(SWT.Selection, event -> {
-            if (valueSuppier != null) {
-                final T result = valueSuppier.get();
+            if (valueSupplier != null) {
+                final T result = valueSupplier.get();
                 if (callback.test(result)) {
                     shell.close();
                 }
@@ -192,9 +192,7 @@ public class ModalInputDialog<T> extends Dialog {
         final GridData data = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
         data.widthHint = this.buttonWidth;
         close.setLayoutData(data);
-        close.addListener(SWT.Selection, event -> {
-            shell.close();
-        });
+        close.addListener(SWT.Selection, event -> shell.close());
 
         finishUp(shell);
     }
@@ -216,10 +214,7 @@ public class ModalInputDialog<T> extends Dialog {
         final int availableHeight = (displayHeight < actualHeight + 100)
                 ? displayHeight - 100
                 : actualHeight;
-        final int height = (availableHeight > this.dialogHeight)
-                ? this.dialogHeight
-                : availableHeight;
-        return height;
+        return Math.min(availableHeight, this.dialogHeight);
     }
 
 }

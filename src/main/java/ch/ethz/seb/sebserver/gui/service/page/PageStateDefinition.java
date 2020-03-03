@@ -22,9 +22,9 @@ public interface PageStateDefinition {
 
     Type type();
 
-    public Class<? extends TemplateComposer> contentPaneComposer();
+    Class<? extends TemplateComposer> contentPaneComposer();
 
-    public Class<? extends TemplateComposer> actionPaneComposer();
+    Class<? extends TemplateComposer> actionPaneComposer();
 
     Activity activityAnchor();
 }

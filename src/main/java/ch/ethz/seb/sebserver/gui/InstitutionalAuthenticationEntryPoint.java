@@ -73,12 +73,12 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
-        String _defaultLogo = null;
+        String _defaultLogo;
         if (!Constants.NO_NAME.equals(defaultLogoFileName)) {
             try {
 
                 final String extension = ImageUploadSelection.SUPPORTED_IMAGE_FILES.stream()
-                        .filter(ext -> defaultLogoFileName.endsWith(ext))
+                        .filter(defaultLogoFileName::endsWith)
                         .findFirst()
                         .orElse(null);
 
@@ -141,7 +141,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                                 : null);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Known and active gui entrypoint requested:", institutions);
+                    log.debug("Known and active gui entrypoint requested: {}", institutions);
                 }
 
                 final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
@@ -184,9 +184,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         }
 
         try {
-            return requestURI.substring(
-                    requestURI.lastIndexOf(Constants.SLASH) + 1,
-                    requestURI.length());
+            return requestURI.substring(requestURI.lastIndexOf(Constants.SLASH) + 1);
         } catch (final Exception e) {
             log.error("Failed to extract institutional URL suffix: {}", e.getMessage());
             return null;
@@ -231,12 +229,12 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {
                 return exchange.getBody();
             } else {
-                log.warn("Failed to verify insitution from requested entrypoint url: {}, response: {}",
+                log.warn("Failed to verify institution from requested entrypoint url: {}, response: {}",
                         institutionalEndpoint,
                         exchange);
             }
         } catch (final Exception e) {
-            log.warn("Failed to verify insitution from requested entrypoint url: {}",
+            log.warn("Failed to verify institution from requested entrypoint url: {}",
                     institutionalEndpoint,
                     e);
         }
@@ -245,7 +243,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
     }
 
     /** TODO this seems not to work as expected. Different Theme is only possible in RAP on different
-     * entry-points and since entry-points are statically defined within the RAPConficuration
+     * entry-points and since entry-points are statically defined within the RAPConfiguration
      * there is no possibility to apply them dynamically within an institution so far.
      *
      * @param institutionalEndpoint

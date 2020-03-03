@@ -31,19 +31,15 @@ public abstract class AbstractExportCall extends RestCall<InputStream> {
     @Override
     protected Result<InputStream> exchange(final RestCallBuilder builder) {
 
-        return Result.tryCatch(() -> {
-
-            return builder
-                    .getRestTemplate()
-                    .execute(
-                            builder.buildURI(),
-                            this.httpMethod,
-                            (final ClientHttpRequest requestCallback) -> {
-                            },
-                            response -> IOUtils.toBufferedInputStream(response.getBody()),
-                            builder.getURIVariables());
-
-        });
+        return Result.tryCatch(() -> builder
+                .getRestTemplate()
+                .execute(
+                        builder.buildURI(),
+                        this.httpMethod,
+                        (final ClientHttpRequest requestCallback) -> {
+                        },
+                        response -> IOUtils.toBufferedInputStream(response.getBody()),
+                        builder.getURIVariables()));
     }
 
 }

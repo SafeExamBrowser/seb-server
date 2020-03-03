@@ -8,13 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.widgets.DropDown;
 import org.eclipse.swt.SWT;
@@ -29,9 +25,10 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public final class MultiSelectionCombo extends Composite implements Selection {
 
@@ -75,12 +72,8 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.textCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         this.textInput.setLayoutData(this.textCell);
         this.dropDown = new DropDown(this.textInput, SWT.NONE);
-        this.textInput.addListener(SWT.FocusIn, event -> {
-            openDropDown();
-        });
-        this.textInput.addListener(SWT.Modify, event -> {
-            openDropDown();
-        });
+        this.textInput.addListener(SWT.FocusIn, event -> openDropDown());
+        this.textInput.addListener(SWT.Modify, event -> openDropDown());
         this.dropDown.addListener(SWT.Selection, event -> {
             final int selectionIndex = this.dropDown.getSelectionIndex();
             if (selectionIndex >= 0) {
@@ -98,12 +91,10 @@ public final class MultiSelectionCombo extends Composite implements Selection {
             this.dropDown.setVisible(false);
             return;
         }
-        final Collection<String> items = this.availableValues
+        this.dropDown.setItems(this.availableValues
                 .stream()
                 .filter(it -> it._2 != null && it._2.startsWith(text))
-                .map(t -> t._2)
-                .collect(Collectors.toList());
-        this.dropDown.setItems(items.toArray(new String[items.size()]));
+                .map(t -> t._2).toArray(String[]::new));
         this.dropDown.setSelectionIndex(0);
         this.dropDown.setVisible(true);
     }
@@ -132,8 +123,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
             return;
         }
 
-        Arrays.asList(StringUtils.split(keys, Constants.LIST_SEPARATOR))
-                .stream()
+        Arrays.stream(StringUtils.split(keys, Constants.LIST_SEPARATOR))
                 .map(this::itemForId)
                 .forEach(this::addSelection);
     }
@@ -159,7 +149,6 @@ public final class MultiSelectionCombo extends Composite implements Selection {
     public void clear() {
         this.selectedValues.clear();
         this.selectionControls
-                .stream()
                 .forEach(Control::dispose);
         this.selectionControls.clear();
         this.availableValues.clear();
@@ -176,9 +165,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         label.setData(OPTION_VALUE, item._2);
         final GridData textCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         label.setLayoutData(textCell);
-        label.addListener(SWT.MouseDoubleClick, event -> {
-            removeComboSelection(event);
-        });
+        label.addListener(SWT.MouseDoubleClick, this::removeComboSelection);
         this.selectionControls.add(label);
 
         this.availableValues.remove(item);
@@ -217,8 +204,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
     private void adaptColumnWidth(final Event event) {
         try {
-            final int currentTableWidth = this.getClientArea().width;
-            this.textCell.widthHint = currentTableWidth;
+            this.textCell.widthHint = this.getClientArea().width;
             this.layout();
         } catch (final Exception e) {
             log.warn("Failed to adaptColumnWidth: ", e);
@@ -230,11 +216,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
                 .stream()
                 .filter(it -> it._2 != null && it._2.equals(name))
                 .findFirst();
-        if (findFirst.isPresent()) {
-            return findFirst.get();
-        }
-
-        return null;
+        return findFirst.orElse(null);
     }
 
     private Tuple<String> itemForId(final String id) {
@@ -242,11 +224,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
                 .stream()
                 .filter(it -> it._1 != null && it._1.equals(id))
                 .findFirst();
-        if (findFirst.isPresent()) {
-            return findFirst.get();
-        }
-
-        return null;
+        return findFirst.orElse(null);
     }
 
 }

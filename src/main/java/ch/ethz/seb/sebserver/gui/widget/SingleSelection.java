@@ -87,7 +87,7 @@ public final class SingleSelection extends Combo implements Selection {
     @Override
     public void clear() {
         super.clearSelection();
-        super.setItems(this.valueMapping.toArray(new String[this.valueMapping.size()]));
+        super.setItems(this.valueMapping.toArray(new String[0]));
     }
 
     @Override

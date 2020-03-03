@@ -14,29 +14,29 @@ public class WebserviceConnectionData {
 
     final String id;
     final String webserviceProtocol;
-    final String webserviceServerAdress;
+    final String webserviceServerAddress;
     final String webserviceServerPort;
     final String webserviceAPIPath;
-    final String webserviceServerAddress;
+    final String webserviceServerURL;
 
     private final UriComponentsBuilder webserviceURIBuilder;
 
     protected WebserviceConnectionData(
             final String id,
             final String webserviceProtocol,
-            final String webserviceServerAdress,
+            final String webserviceServerAddress,
             final String webserviceServerPort,
             final String webserviceAPIPath) {
 
         this.id = id;
         this.webserviceProtocol = webserviceProtocol;
-        this.webserviceServerAdress = webserviceServerAdress;
+        this.webserviceServerAddress = webserviceServerAddress;
         this.webserviceServerPort = webserviceServerPort;
         this.webserviceAPIPath = webserviceAPIPath;
 
-        this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAdress + ":" + webserviceServerPort;
+        this.webserviceServerURL = webserviceProtocol + "://" + webserviceServerAddress + ":" + webserviceServerPort;
         this.webserviceURIBuilder = UriComponentsBuilder
-                .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAdress)
+                .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAddress)
                 .port(webserviceServerPort)
                 .path(webserviceAPIPath);
     }
@@ -49,8 +49,8 @@ public class WebserviceConnectionData {
         return this.webserviceProtocol;
     }
 
-    public String getWebserviceServerAdress() {
-        return this.webserviceServerAdress;
+    public String getWebserviceServerAddress() {
+        return this.webserviceServerAddress;
     }
 
     public String getWebserviceServerPort() {
@@ -61,8 +61,8 @@ public class WebserviceConnectionData {
         return this.webserviceAPIPath;
     }
 
-    public String getWebserviceServerAddress() {
-        return this.webserviceServerAddress;
+    public String getWebserviceServerURL() {
+        return this.webserviceServerURL;
     }
 
     public UriComponentsBuilder getWebserviceURIBuilder() {
@@ -101,8 +101,8 @@ public class WebserviceConnectionData {
         builder.append(this.id);
         builder.append(", webserviceProtocol=");
         builder.append(this.webserviceProtocol);
-        builder.append(", webserviceServerAdress=");
-        builder.append(this.webserviceServerAdress);
+        builder.append(", webserviceServerAddress=");
+        builder.append(this.webserviceServerAddress);
         builder.append(", webserviceServerPort=");
         builder.append(this.webserviceServerPort);
         builder.append(", webserviceAPIPath=");

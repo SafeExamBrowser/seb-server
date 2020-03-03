@@ -8,15 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.servlet.http.HttpSession;
-
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +41,13 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Lazy
 @Component
@@ -171,7 +169,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             this.restTemplate.setErrorHandler(new ErrorHandler(this.resource));
             this.restTemplate
                     .getMessageConverters()
-                    .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+                    .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();

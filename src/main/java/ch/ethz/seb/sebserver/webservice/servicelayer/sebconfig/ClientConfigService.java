@@ -60,10 +60,10 @@ public interface ClientConfigService {
             unless = "#result.hasError()")
     Result<ClientDetails> getClientConfigDetails(String clientName);
 
-    @CacheEvict(
-            cacheNames = EXAM_CLIENT_DETAILS_CACHE,
-            allEntries = true)
-    @EventListener(BulkActionEvent.class)
-    void flushClientConfigData(BulkActionEvent event);
-
+    /** Internally used to check OAuth2 access for a active SebClientConfig.
+     *
+     * @param config the SebClientConfig to check access
+     * @return true if the system was able to gain an access token for the client. False otherwise
+     */
+    boolean checkAccess(SebClientConfig config);
 }

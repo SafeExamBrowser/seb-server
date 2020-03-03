@@ -96,12 +96,12 @@ public class EntityTable<ROW extends Entity> {
     private final BiConsumer<TableItem, ROW> rowDecorator;
     private final Consumer<Set<ROW>> selectionListener;
 
-    int pageNumber = 1;
+    int pageNumber;
     int pageSize;
     String sortColumn = null;
     PageSortOrder sortOrder = PageSortOrder.ASCENDING;
     boolean columnsWithSameWidth = true;
-    boolean hideNavigation = false;
+    boolean hideNavigation;
 
     EntityTable(
             final String name,
@@ -149,13 +149,10 @@ public class EntityTable<ROW extends Entity> {
         this.rowDecorator = rowDecorator;
         this.selectionListener = selectionListener;
         this.pageSize = pageSize;
-        this.filter =
-                columns
-                        .stream()
-                        .map(column -> column.getFilterAttribute())
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .isPresent() ? new TableFilter<>(this) : null;
+        this.filter = columns
+                .stream()
+                .map(ColumnDefinition::getFilterAttribute)
+                .anyMatch(Objects::nonNull) ? new TableFilter<>(this) : null;
 
         this.table = this.widgetFactory.tableLocalized(this.composite);
         final GridLayout gridLayout = new GridLayout(columns.size(), true);
@@ -207,17 +204,15 @@ public class EntityTable<ROW extends Entity> {
             }
 
             for (int i = 0; i < columns.size(); i++) {
-                final Rectangle itemBoundes = item.getBounds(i);
-                if (itemBoundes.contains(point)) {
+                final Rectangle itemBounds = item.getBounds(i);
+                if (itemBounds.contains(point)) {
                     handleCellSelection(item, i);
                     return;
                 }
             }
         });
 
-        this.table.addListener(SWT.Selection, event -> {
-            this.notifySelectionChange();
-        });
+        this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
 
         this.navigator = new TableNavigator(this);
 
@@ -375,8 +370,7 @@ public class EntityTable<ROW extends Entity> {
             return Collections.emptySet();
         }
 
-        return Arrays.asList(selection)
-                .stream()
+        return Arrays.stream(selection)
                 .map(this::getRowData)
                 .collect(Collectors.toSet());
     }
@@ -391,8 +385,7 @@ public class EntityTable<ROW extends Entity> {
             return Collections.emptySet();
         }
 
-        return Arrays.asList(selection)
-                .stream()
+        return Arrays.stream(selection)
                 .filter(item -> grantCheck == null || grantCheck.test(getRowData(item)))
                 .map(this::getRowDataId)
                 .collect(Collectors.toSet());
@@ -415,8 +408,7 @@ public class EntityTable<ROW extends Entity> {
     }
 
     private TableColumn getTableColumn(final String name) {
-        return Arrays.asList(this.table.getColumns())
-                .stream()
+        return Arrays.stream(this.table.getColumns())
                 .filter(col -> {
                     @SuppressWarnings("unchecked")
                     final ColumnDefinition<ROW> def = (ColumnDefinition<ROW>) col.getData(COLUMN_DEFINITION);
@@ -541,7 +533,7 @@ public class EntityTable<ROW extends Entity> {
                     .filter(c -> c.getWidthProportion() > 0)
                     .reduce(0,
                             (acc, c) -> acc + c.getWidthProportion(),
-                            (acc1, acc2) -> acc1 + acc2);
+                            Integer::sum);
 
             // The unit size either with proportion or for a entire column if all columns are equal in size
             final int columnUnitSize = (pSize > 0)

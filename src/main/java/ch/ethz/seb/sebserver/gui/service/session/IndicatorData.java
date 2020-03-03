@@ -8,18 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.service.session;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
-
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumMap;
 
 final class IndicatorData {
 
@@ -47,13 +46,13 @@ final class IndicatorData {
 
         this.thresholdColor = new ThresholdColor[indicator.thresholds.size()];
         final ArrayList<Threshold> sortedThresholds = new ArrayList<>(indicator.thresholds);
-        Collections.sort(sortedThresholds, (t1, t2) -> t1.value.compareTo(t2.value));
+        sortedThresholds.sort(Comparator.comparing(t -> t.value));
         for (int i = 0; i < indicator.thresholds.size(); i++) {
             this.thresholdColor[i] = new ThresholdColor(sortedThresholds.get(i), display, colorData);
         }
     }
 
-    static final EnumMap<IndicatorType, IndicatorData> createFormIndicators(
+    static EnumMap<IndicatorType, IndicatorData> createFormIndicators(
             final Collection<Indicator> indicators,
             final Display display,
             final ColorData colorData,
@@ -73,7 +72,7 @@ final class IndicatorData {
         return indicatorMapping;
     }
 
-    static final int getWeight(final IndicatorData indicatorData, final double value) {
+    static int getWeight(final IndicatorData indicatorData, final double value) {
         for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
             if (value < indicatorData.thresholdColor[j].value) {
                 return (j == 0) ? -1 : j - 1;

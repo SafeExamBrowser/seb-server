@@ -82,8 +82,8 @@ public class ResourceService {
 
     private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING";
 
-    public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = (t1, t2) -> t1._2.compareTo(t2._2);
-    public static final Comparator<Tuple3<String>> RESOURCE_COMPARATOR_TUPLE_3 = (t1, t2) -> t1._2.compareTo(t2._2);
+    public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = Comparator.comparing(t -> t._2);
+    public static final Comparator<Tuple3<String>> RESOURCE_COMPARATOR_TUPLE_3 = Comparator.comparing(t -> t._2);
 
     public static final EnumSet<EntityType> ENTITY_TYPE_EXCLUDE_MAP = EnumSet.of(
             EntityType.ADDITIONAL_ATTRIBUTES,

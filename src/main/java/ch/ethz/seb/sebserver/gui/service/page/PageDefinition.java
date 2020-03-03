@@ -8,8 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
+/** Defines a global SEB Server page */
 public interface PageDefinition {
 
+    /** Get the type class of the TemplateComposer that composes the page.
+     *
+     * @return the type class of the TemplateComposer that composes the page. */
     Class<? extends TemplateComposer> composer();
 
     PageContext applyPageContext(PageContext pageContext);
