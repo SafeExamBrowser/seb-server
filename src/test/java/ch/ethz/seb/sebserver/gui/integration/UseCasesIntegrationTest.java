@@ -291,7 +291,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertTrue(userNames.size() == 1);
-        assertEquals("TestInstAdmin", userNames.get(0).name);
+        assertEquals("TestInstAdmin (TestInstAdmin TestInstAdmin)", userNames.get(0).name);
 
         final String userId = userNames.get(0).modelId;
 
@@ -684,7 +684,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         final String userId = userNamesResult.get()
                 .stream()
-                .filter(userName -> "examSupport2".equals(userName.name))
+                .filter(userName -> userName.name != null && userName.name.startsWith("examSupport2"))
                 .findFirst()
                 .map(EntityName::getModelId)
                 .orElse(null);
@@ -1038,7 +1038,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow()
                 .stream()
-                .filter(userName -> "examAdmin2".equals(userName.name))
+                .filter(userName -> userName.name != null && userName.name.startsWith("examAdmin2"))
                 .map(EntityName::getModelId)
                 .findFirst()
                 .orElse(null);
