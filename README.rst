@@ -30,22 +30,12 @@ SEB Server provides a range of basic functionalities:
 - Automated SEB restriction on LMS side if the specified type of LMS supports the SEB restriction API
 - Monitoring and administration of SEB Client connections within a running exam
 
-What is the SEB Server Setup repository?
-----------------------------------------
-
-The SEB Server Setup repository contains predefined, docker-based installation directories for different installation proposes like demo, testing or production. The repository is completely separated from the SEB Server source repository and contains only files for setup-configuration and installation of a SEB Server infrastructure. The idea is that this repository can be cloned from a Server/VM on that the SEB Server has to be installed. One can then navigate to the directory with the needed setup and adapt the configuration files if needed. Then just use Docker to build up the SEB Server.
-
 Install SEB Server
 ------------------
 
 For a complete guide to install SEB Server please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
 
-Getting started with SEB Server
--------------------------------
-
-For a complete SEB Server user guide please go to `SEB Server User Guide <https://seb-server.readthedocs.io/en/latest/#>`_
-
 Project Background
 ------------------
 
-TODO
+The SEB Server is currently build and maintained by the `Swiss MOOC Service <https://www.swissmooc.ch/>`_ that is founded by leading Swiss universities EPFL, ETH, SUPSI, USI and HES-SO and is financially supported by the `Swissuniversities’ P5 program <https://www.swissuniversities.ch/themen/digitalisierung/p-5-wissenschaftliche-information>`_.
