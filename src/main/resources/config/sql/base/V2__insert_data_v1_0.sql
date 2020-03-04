@@ -175,7 +175,7 @@ INSERT INTO configuration_attribute VALUES
     (304, 'enablePrivateClipboard', 'CHECKBOX', null, null, null, null, 'true'),
     (305, 'enableLogging', 'CHECKBOX', null, null, null, null, 'false'),
     (306, 'logDirectoryWin', 'TEXT_FIELD', null, null, null, null, ''),
-    (307, 'logDirectoryOSX', 'TEXT_FIELD', null, null, null, null, 'F'),
+    (307, 'logDirectoryOSX', 'TEXT_FIELD', null, null, null, null, ''),
     (308, 'minMacOSVersion', 'SINGLE_SELECTION', null, '0,1,2,3,4,5,6,7', null, null, '0'),
     (309, 'enableAppSwitcherCheck', 'CHECKBOX', null, null, null, null, 'true'),
     (310, 'forceAppFolderInstall', 'CHECKBOX', null, null, null, null, 'true'),
