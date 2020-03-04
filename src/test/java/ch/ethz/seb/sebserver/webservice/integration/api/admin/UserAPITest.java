@@ -1153,9 +1153,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(names);
         assertTrue(names.size() == 3);
-        assertEquals("[EntityName [entityType=USER, modelId=user1, name=SEBAdmin], "
-                + "EntityName [entityType=USER, modelId=user2, name=Institutional1 Admin], "
-                + "EntityName [entityType=USER, modelId=user5, name=Exam Supporter]]", names.toString());
+        assertEquals("[EntityName [entityType=USER, modelId=user1, name=admin ( SEBAdmin)], " +
+                "EntityName [entityType=USER, modelId=user2, name=inst1Admin ( Institutional1 Admin)], " +
+                "EntityName [entityType=USER, modelId=user5, name=examSupporter ( Exam Supporter)]]", names.toString());
 
         // for an institutional admin 2
         final String instAdminToken = getAdminInstitution2Access();
@@ -1171,10 +1171,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(names);
         assertTrue(names.size() == 4);
-        assertEquals("[EntityName [entityType=USER, modelId=user3, name=Institutional2 Admin], "
-                + "EntityName [entityType=USER, modelId=user4, name=ExamAdmin1], "
-                + "EntityName [entityType=USER, modelId=user6, name=Deactivated], "
-                + "EntityName [entityType=USER, modelId=user7, name=User]]", names.toString());
+        assertEquals("[EntityName [entityType=USER, modelId=user3, name=inst2Admin ( Institutional2 Admin)], " +
+                "EntityName [entityType=USER, modelId=user4, name=examAdmin1 ( ExamAdmin1)], " +
+                "EntityName [entityType=USER, modelId=user6, name=deactivatedUser ( Deactivated)], " +
+                "EntityName [entityType=USER, modelId=user7, name=user1 ( User)]]", names.toString());
 
         // for an institutional admin 2 only active
         names = this.jsonMapper.readValue(
@@ -1190,9 +1190,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(names);
         assertTrue(names.size() == 3);
-        assertEquals("[EntityName [entityType=USER, modelId=user3, name=Institutional2 Admin], "
-                + "EntityName [entityType=USER, modelId=user4, name=ExamAdmin1], "
-                + "EntityName [entityType=USER, modelId=user7, name=User]]", names.toString());
+        assertEquals("[EntityName [entityType=USER, modelId=user3, name=inst2Admin ( Institutional2 Admin)], " +
+                "EntityName [entityType=USER, modelId=user4, name=examAdmin1 ( ExamAdmin1)], " +
+                "EntityName [entityType=USER, modelId=user7, name=user1 ( User)]]", names.toString());
     }
 
 //    @Test
