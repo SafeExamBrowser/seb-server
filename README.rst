@@ -20,9 +20,9 @@ While the interaction with SEB is well known in Learning Management Systems (LMS
 
 SEB Server is a modern webservice with a REST API and a GUI service on top of it. SEB Server is written in Java and uses Docker for installation and setup.
 
-SEB Server provides a range of basic functionalities:
+SEB Server provides a range of basic functionality:
 
-- Built-in institutional multitenancy 
+- Built-in institutional multi-tenancy
 - Linking of multiple Learning Management Systems (LMS). Currently supported: `Open edX <https://open.edx.org/>`_
 - Accessing the Course/Exam-API of a linked LMS to import a courses or exams for managing with SEB Server
 - Creation and administration of SEB Client Configurations that can be used to startup a SEB and that contains SEB Server connection information for a SEB Client

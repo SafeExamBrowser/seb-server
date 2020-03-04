@@ -58,7 +58,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("---->  **** Webservice starting up... ****");
 
         SEBServerInit.INIT_LOGGER.info("----> ");
-        SEBServerInit.INIT_LOGGER.info("----> Intitialize Services...");
+        SEBServerInit.INIT_LOGGER.info("----> Initialize Services...");
         SEBServerInit.INIT_LOGGER.info("----> ");
 
         this.applicationEventPublisher.publishEvent(new SEBServerInitEvent(this));
