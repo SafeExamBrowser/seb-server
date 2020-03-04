@@ -21,6 +21,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -241,6 +242,14 @@ public final class UserInfo implements UserAccount, Serializable {
             return null;
         }
         return new EntityKey(this.uuid, entityType());
+    }
+
+    @Override
+    public EntityName toName() {
+        return new EntityName(
+                this.getModelId(),
+                this.entityType(),
+                this.getUsername() + " (" + this.getSurname() + " " + this.getName() + ")");
     }
 
     @Override

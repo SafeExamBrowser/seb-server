@@ -89,51 +89,48 @@ class AdminUserInitializer {
                 }
             } else {
                 final CharSequence generateAdminPassword = this.generateAdminPassword();
-                if (generateAdminPassword != null) {
+                Long institutionId = this.institutionDAO.allMatching(new FilterMap())
+                        .getOrElse(Collections::emptyList)
+                        .stream()
+                        .findFirst()
+                        .filter(Institution::isActive)
+                        .map(Institution::getInstitutionId)
+                        .orElse(-1L);
 
-                    Long institutionId = this.institutionDAO.allMatching(new FilterMap())
-                            .getOrElse(Collections::emptyList)
-                            .stream()
-                            .findFirst()
-                            .filter(Institution::isActive)
+                if (institutionId < 0) {
+
+                    log.debug("Create new initial institution");
+                    institutionId = this.institutionDAO.createNew(new Institution(
+                            null,
+                            this.orgName,
+                            null,
+                            null,
+                            null,
+                            true))
+                            .map(inst -> this.institutionDAO.setActive(inst, true).getOrThrow())
                             .map(Institution::getInstitutionId)
-                            .orElse(-1L);
-
-                    if (institutionId < 0) {
-
-                        log.debug("Create new initial institution");
-                        institutionId = this.institutionDAO.createNew(new Institution(
-                                null,
-                                this.orgName,
-                                null,
-                                null,
-                                null,
-                                true))
-                                .map(inst -> this.institutionDAO.setActive(inst, true).getOrThrow())
-                                .map(Institution::getInstitutionId)
-                                .getOrThrow();
-                    }
-
-                    this.userDAO.createNew(new UserMod(
-                            this.adminName,
-                            institutionId,
-                            this.adminName,
-                            this.adminName,
-                            this.adminName,
-                            generateAdminPassword,
-                            generateAdminPassword,
-                            null,
-                            null,
-                            null,
-                            new HashSet<>(Arrays.asList(UserRole.SEB_SERVER_ADMIN.name()))))
-                            .flatMap(account -> this.userDAO.setActive(account, true))
-                            .map(account -> {
-                                writeAdminCredentials(this.adminName, generateAdminPassword);
-                                return account;
-                            })
                             .getOrThrow();
                 }
-            }
+
+                this.userDAO.createNew(new UserMod(
+                        this.adminName,
+                        institutionId,
+                        this.adminName,
+                        this.adminName,
+                        this.adminName,
+                        generateAdminPassword,
+                        generateAdminPassword,
+                        null,
+                        null,
+                        null,
+                        new HashSet<>(Arrays.asList(UserRole.SEB_SERVER_ADMIN.name()))))
+                        .flatMap(account -> this.userDAO.setActive(account, true))
+                        .map(account -> {
+                            writeAdminCredentials(this.adminName, generateAdminPassword);
+                            return account;
+                        })
+                        .getOrThrow();
+                }
         } catch (final Exception e) {
             SEBServerInit.INIT_LOGGER.error("---->");
             SEBServerInit.INIT_LOGGER.error("----> SEB Server initial admin-account creation failed: ", e);
@@ -161,7 +158,7 @@ class AdminUserInitializer {
             return ClientCredentialServiceImpl.generateClientSecret();
         } catch (final Exception e) {
             log.error("Unable to generate admin password: ", e);
-            return null;
+            throw e;
         }
     }
 

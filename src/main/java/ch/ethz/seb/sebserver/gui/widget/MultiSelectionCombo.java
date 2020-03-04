@@ -74,6 +74,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.dropDown = new DropDown(this.textInput, SWT.NONE);
         this.textInput.addListener(SWT.FocusIn, event -> openDropDown());
         this.textInput.addListener(SWT.Modify, event -> openDropDown());
+        this.textInput.addListener(SWT.MouseUp, event -> openDropDown());
         this.dropDown.addListener(SWT.Selection, event -> {
             final int selectionIndex = this.dropDown.getSelectionIndex();
             if (selectionIndex >= 0) {
@@ -171,7 +172,6 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         this.availableValues.remove(item);
         PageService.updateScrolledComposite(this);
         this.updateAnchor.layout(true, true);
-
     }
 
     private void removeComboSelection(final Event event) {
