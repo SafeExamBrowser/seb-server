@@ -42,6 +42,8 @@ A typical use-case for a institutional administrator is to give the appropriate 
 Exam Administrator
 ^^^^^^^^^^^^^^^^^^
 
+This role is about to prepare and maintain anything needed for an e-assessment with SEB. Import of a quiz or course from a learning management system as an exam. Creating and assigning an SEB exam configuration for this exam as well as assigning exam supporter that are able to support the running exam, to
+
 Exam Supporter
 ^^^^^^^^^^^^^^
 
@@ -52,15 +54,15 @@ Sign Up / Sign In
 
 What one probably see first when applying to a SEB server application is the login-screen
 
-.. image:: images/user/basic/login.png
+.. image:: images/overview/login.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/user/basic/login.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/login.png
 
 If you are already registered you can use your username and password to log in. Or use the "Register" button to go the the register page to create a new user-account. The newly created user account will only have the Exam Supporter role assigned. If one need another role or more privileges, this must be given and granted by an institutional administrator of the specified institution.
 
-.. image:: images/user/basic/register.png
+.. image:: image/overview/register.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/user/basic/register.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/register.png
 
 Fill in the register form and create a new account. After successfully creation, the application redirects to the login page for login.
 
