@@ -48,7 +48,10 @@ public final class ImageUploadSelection extends Composite {
     private static final long serialVersionUID = 368264811155804533L;
     private static final Logger log = LoggerFactory.getLogger(ImageUploadSelection.class);
 
-    public static final Set<String> SUPPORTED_IMAGE_FILES = Set.of(".png", ".jpg", ".jpeg");
+    public static final Set<String> SUPPORTED_IMAGE_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            ".png",
+            ".jpg",
+            ".jpeg")));
 
     private final ServerPushService serverPushService;
 

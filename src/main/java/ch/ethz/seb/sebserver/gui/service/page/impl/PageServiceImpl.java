@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 
 import javax.servlet.http.HttpSession;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.eclipse.rap.rwt.RWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -227,7 +227,7 @@ public class PageServiceImpl implements PageService {
                 final int dependencies = (int) entities.stream()
                         .flatMap(entity -> {
                             final RestCall<Set<EntityKey>>.RestCallBuilder builder =
-                                    restService.getBuilder(
+                                    restService.<Set<EntityKey>> getBuilder(
                                             entity.entityType(),
                                             CallType.GET_DEPENDENCIES);
 
@@ -254,7 +254,7 @@ public class PageServiceImpl implements PageService {
     public <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
             final EntityTable<T> table,
             final LocTextKey noSelectionText,
-            Function<PageAction, PageAction> testBeforeActivation) {
+            final Function<PageAction, PageAction> testBeforeActivation) {
 
         return action -> {
             final Set<T> selectedROWData = table.getSelectedROWData();
@@ -269,7 +269,7 @@ public class PageServiceImpl implements PageService {
             for (final T entity : selectedROWData) {
 
                 if (!entity.isActive()) {
-                    RestCall<T>.RestCallBuilder restCallBuilder = restService.<T>getBuilder(
+                    final RestCall<T>.RestCallBuilder restCallBuilder = restService.<T> getBuilder(
                             entityType,
                             CallType.ACTIVATION_ACTIVATE)
                             .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId());
@@ -280,7 +280,7 @@ public class PageServiceImpl implements PageService {
                             restCallBuilder
                                     .call()
                                     .onError(errors::add);
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             errors.add(e);
                         }
                     } else {
@@ -289,7 +289,7 @@ public class PageServiceImpl implements PageService {
                                 .onError(errors::add);
                     }
                 } else {
-                    restService.<T>getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
+                    restService.<T> getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
                             .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
                             .call()
                             .onError(errors::add);
@@ -347,7 +347,7 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public FormBuilder formBuilder(final PageContext pageContext, final int rows) {
-        return new FormBuilder(this, pageContext, cryptor, rows);
+        return new FormBuilder(this, pageContext, this.cryptor, rows);
     }
 
     @Override

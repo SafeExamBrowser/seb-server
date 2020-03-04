@@ -8,10 +8,41 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -28,39 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
 
 @Lazy
 @Service
@@ -71,35 +69,35 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
     private static final String SEB_CLIENT_CONFIG_TEMPLATE_XML =
             "  <dict>\r\n" +
-            "    <key>sebMode</key>\r\n" +
-            "    <integer>1</integer>\r\n" +
-            "    <key>sebConfigPurpose</key>\r\n" +
-            "    <integer>%s</integer>\r\n" +
-            "    <key>sebServerFallback</key>\r\n" +
-            "    <%s />\r\n" +
-            "%s" +
-            "    <key>sebServerURL</key>\r\n" +
-            "    <string>%s</string>\r\n" +
-            "    <key>sebServerConfiguration</key>\r\n" +
-            "    <dict>\r\n" +
-            "        <key>institution</key>\r\n" +
-            "        <string>%s</string>\r\n" +
-            "        <key>clientName</key>\r\n" +
-            "        <string>%s</string>\r\n" +
-            "        <key>clientSecret</key>\r\n" +
-            "        <string>%s</string>\r\n" +
-            "        <key>apiDiscovery</key>\r\n" +
-            "        <string>%s</string>\r\n" +
-            "    </dict>\r\n" +
-            "  </dict>\r\n";
+                    "    <key>sebMode</key>\r\n" +
+                    "    <integer>1</integer>\r\n" +
+                    "    <key>sebConfigPurpose</key>\r\n" +
+                    "    <integer>%s</integer>\r\n" +
+                    "    <key>sebServerFallback</key>\r\n" +
+                    "    <%s />\r\n" +
+                    "%s" +
+                    "    <key>sebServerURL</key>\r\n" +
+                    "    <string>%s</string>\r\n" +
+                    "    <key>sebServerConfiguration</key>\r\n" +
+                    "    <dict>\r\n" +
+                    "        <key>institution</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>clientName</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>clientSecret</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "        <key>apiDiscovery</key>\r\n" +
+                    "        <string>%s</string>\r\n" +
+                    "    </dict>\r\n" +
+                    "  </dict>\r\n";
 
     private final static String SEB_CLIENT_CONFIG_INTEGER_TEMPLATE =
             "    <key>%s</key>\r\n" +
-            "    <integer>%s</integer>\r\n";
+                    "    <integer>%s</integer>\r\n";
 
     private final static String SEB_CLIENT_CONFIG_STRING_TEMPLATE =
             "    <key>%s</key>\r\n" +
-            "    <string>%s</string>\r\n";
+                    "    <string>%s</string>\r\n";
 
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
@@ -107,7 +105,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final SebConfigEncryptionService sebConfigEncryptionService;
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
-    private final TokenStore tokenStore;
     private final WebserviceInfo webserviceInfo;
 
     protected ClientConfigServiceImpl(
@@ -116,7 +113,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final ClientCredentialService clientCredentialService,
             final SebConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
-            final TokenStore tokenStore,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             final WebserviceInfo webserviceInfo) {
 
@@ -126,7 +122,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         this.sebConfigEncryptionService = sebConfigEncryptionService;
         this.zipService = zipService;
         this.clientPasswordEncoder = clientPasswordEncoder;
-        this.tokenStore = tokenStore;
         this.webserviceInfo = webserviceInfo;
     }
 
@@ -279,7 +274,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                     config.fallbackAttemptInterval);
 
             if (StringUtils.isNotBlank(config.fallbackPassword)) {
-                CharSequence decrypt = clientCredentialService.decrypt(config.fallbackPassword);
+                final CharSequence decrypt = this.clientCredentialService.decrypt(config.fallbackPassword);
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
                         SebClientConfig.ATTR_FALLBACK_PASSWORD,
@@ -287,7 +282,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             }
 
             if (StringUtils.isNotBlank(config.quitPassword)) {
-                CharSequence decrypt = clientCredentialService.decrypt(config.quitPassword);
+                final CharSequence decrypt = this.clientCredentialService.decrypt(config.quitPassword);
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
                         SebClientConfig.ATTR_QUIT_PASSWORD,
@@ -323,34 +318,34 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public boolean checkAccess(SebClientConfig config) {
-        if(!config.isActive()) {
+    public boolean checkAccess(final SebClientConfig config) {
+        if (!config.isActive()) {
             return false;
         }
 
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String externalServerURL = webserviceInfo.getExternalServerURL() +
+            final RestTemplate restTemplate = new RestTemplate();
+            final String externalServerURL = this.webserviceInfo.getExternalServerURL() +
                     API.OAUTH_TOKEN_ENDPOINT;
 
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            ClientCredentials credentials = sebClientConfigDAO
+            final ClientCredentials credentials = this.sebClientConfigDAO
                     .getSebClientCredentials(config.getModelId())
                     .getOrThrow();
-            CharSequence plainClientSecret = clientCredentialService.getPlainClientSecret(credentials);
-            String basicAuth = credentials.clientId +
+            final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
+            final String basicAuth = credentials.clientId +
                     String.valueOf(Constants.COLON) +
                     plainClientSecret;
-            String encoded = Base64.getEncoder()
+            final String encoded = Base64.getEncoder()
                     .encodeToString(basicAuth.getBytes());
 
             headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
-            HttpEntity<String> entity = new HttpEntity<>(
+            final HttpEntity<String> entity = new HttpEntity<>(
                     "grant_type=client_credentials&scope=read write",
                     headers);
 
-            ResponseEntity<String> exchange = restTemplate.exchange(
+            final ResponseEntity<String> exchange = restTemplate.exchange(
                     externalServerURL,
                     HttpMethod.POST,
                     entity,
@@ -362,22 +357,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 log.warn("Failed to check access SebClientConfig {} response: {}", config, exchange.getStatusCode());
                 return false;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.warn("Failed to check access for SebClientConfig: {} cause: {}", config, e.getMessage());
             return false;
-        }
-    }
-
-    private void flushClientConfigData(final EntityKey key) {
-        try {
-            final String clientName = this.sebClientConfigDAO.getSebClientCredentials(key.modelId)
-                    .getOrThrow()
-                    .clientIdAsString();
-
-            final Collection<OAuth2AccessToken> tokensByClientId = this.tokenStore.findTokensByClientId(clientName);
-            tokensByClientId.forEach(this.tokenStore::removeAccessToken);
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to flush ClientConfig data for {}", key, e);
         }
     }
 

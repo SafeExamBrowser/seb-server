@@ -24,9 +24,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class AttchDefaultOrientation extends RestCall<TemplateAttribute> {
+public class AttachDefaultOrientation extends RestCall<TemplateAttribute> {
 
-    public AttchDefaultOrientation() {
+    public AttachDefaultOrientation() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.CONFIGURATION_NODE,
