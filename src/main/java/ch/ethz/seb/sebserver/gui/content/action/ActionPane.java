@@ -80,27 +80,24 @@ public class ActionPane implements TemplateComposer {
 
         label.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionPublishEventListener() {
-                    @Override
-                    public void notify(final ActionPublishEvent event) {
-                        final Composite parent = pageContext.getParent();
-                        final Tree treeForGroup = getTreeForGroup(parent, event.action.definition);
-                        final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
-                                treeForGroup,
-                                event.action.definition.title);
+                (ActionPublishEventListener) event -> {
+                    final Composite parent = pageContext.getParent();
+                    final Tree treeForGroup = getTreeForGroup(parent, event.action.definition);
+                    final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
+                            treeForGroup,
+                            event.action.definition.title);
 
-                        final Image image = event.active
-                                ? event.action.definition.icon.getImage(parent.getDisplay())
-                                : event.action.definition.icon.getGreyedImage(parent.getDisplay());
+                    final Image image = event.active
+                            ? event.action.definition.icon.getImage(parent.getDisplay())
+                            : event.action.definition.icon.getGreyedImage(parent.getDisplay());
 
-                        if (!event.active) {
-                            actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
-                        }
-
-                        actionItem.setImage(image);
-                        actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
-                        parent.layout();
+                    if (!event.active) {
+                        actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
                     }
+
+                    actionItem.setImage(image);
+                    actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
+                    parent.layout();
                 });
 
         final Composite composite = new Composite(pageContext.getParent(), SWT.NONE);
@@ -113,37 +110,34 @@ public class ActionPane implements TemplateComposer {
 
         composite.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
-                new ActionActivationEventListener() {
-                    @Override
-                    public void notify(final ActionActivationEvent event) {
-                        final Composite parent = pageContext.getParent();
-                        for (final ActionDefinition ad : event.actions) {
-                            final TreeItem actionItem = findAction(parent, ad);
-                            if (actionItem == null) {
-                                continue;
-                            }
-
-                            final Image image = event.activation
-                                    ? ad.icon.getImage(parent.getDisplay())
-                                    : ad.icon.getGreyedImage(parent.getDisplay());
-                            actionItem.setImage(image);
-                            if (event.activation) {
-                                actionItem.setForeground(null);
-                            } else {
-                                actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
-                                ActionPane.this.pageService.getPolyglotPageService().injectI18n(actionItem, ad.title);
-                            }
+                (ActionActivationEventListener) event -> {
+                    final Composite parent = pageContext.getParent();
+                    for (final ActionDefinition ad : event.actions) {
+                        final TreeItem actionItem = findAction(parent, ad);
+                        if (actionItem == null) {
+                            continue;
                         }
 
-                        if (event.decoration != null) {
-                            final TreeItem actionItemToDecorate = findAction(parent, event.decoration._1);
-                            if (actionItemToDecorate != null && event.decoration._2 != null) {
-                                actionItemToDecorate.setImage(0,
-                                        event.decoration._2.icon.getImage(parent.getDisplay()));
-                                ActionPane.this.pageService.getPolyglotPageService().injectI18n(
-                                        actionItemToDecorate,
-                                        event.decoration._2.title);
-                            }
+                        final Image image = event.activation
+                                ? ad.icon.getImage(parent.getDisplay())
+                                : ad.icon.getGreyedImage(parent.getDisplay());
+                        actionItem.setImage(image);
+                        if (event.activation) {
+                            actionItem.setForeground(null);
+                        } else {
+                            actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
+                            ActionPane.this.pageService.getPolyglotPageService().injectI18n(actionItem, ad.title);
+                        }
+                    }
+
+                    if (event.decoration != null) {
+                        final TreeItem actionItemToDecorate = findAction(parent, event.decoration._1);
+                        if (actionItemToDecorate != null && event.decoration._2 != null) {
+                            actionItemToDecorate.setImage(0,
+                                    event.decoration._2.icon.getImage(parent.getDisplay()));
+                            ActionPane.this.pageService.getPolyglotPageService().injectI18n(
+                                    actionItemToDecorate,
+                                    event.decoration._2.title);
                         }
                     }
                 });
@@ -264,7 +258,6 @@ public class ActionPane implements TemplateComposer {
 
     private void clearDisposedTrees() {
         new ArrayList<>(this.actionTrees.entrySet())
-                .stream()
                 .forEach(entry -> {
                     final Control c = entry.getValue();
                     // of tree is already disposed.. remove it

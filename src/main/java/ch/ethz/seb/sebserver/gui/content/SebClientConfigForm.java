@@ -311,19 +311,18 @@ public class SebClientConfigForm implements TemplateComposer {
         );
 
         formHandle.getForm().getFieldInput(SebClientConfig.ATTR_FALLBACK)
-                .addListener(SWT.Selection, event -> {
-                    formHandle.process(
-                            FALLBACK_ATTRIBUTES::contains,
-                            ffa -> {
-                                boolean selected = ((Button) event.widget).getSelection();
-                                ffa.setVisible(selected);
-                                if (!selected && ffa.hasError()) {
-                                    ffa.resetError();
-                                    ffa.setStringValue(StringUtils.EMPTY);
-                                }
+                .addListener(SWT.Selection, event -> formHandle.process(
+                        FALLBACK_ATTRIBUTES::contains,
+                        ffa -> {
+                            boolean selected = ((Button) event.widget).getSelection();
+                            ffa.setVisible(selected);
+                            if (!selected && ffa.hasError()) {
+                                ffa.resetError();
+                                ffa.setStringValue(StringUtils.EMPTY);
                             }
-                    );
-                });
+                        }
+                ));
+
 
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())

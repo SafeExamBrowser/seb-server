@@ -82,13 +82,35 @@ After successful login, one will see the main graphical user interface of the SE
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/overview.png
 
-The main content usually is a list or a form.
+In the header above on the right hand, we see the username of the currently logged in user and an action button the sign out and go back to the login page.
 
-Overview
-^^^^^^^^
+The main content usually consist of a list or a form.
 
 Lists
 ^^^^^^
 
+A list shows all the objects of a particular activity in a table page. If the list contains as for one page, a page navigation is shown at the bottom of the list with the information of the current page and the number of pages along with a page navigation that can be used to navigate forward and backward thought the list pages.
+Almost all lists have the ability to filter the content by certain column filter that are right above the corresponding columns. To filter a list one can use the column filter input to narrow down a specific collection of content. Accordingly to the value type of the column, there are different types of filter:
+
+- Selection, to select one instance of a defined collection of values (drop-down).
+- Text input, to write some text that a value must contain.
+- Date selection, To select a from-date from a date-picker. A date selection can also have an additional time selection within separate input field
+- Date range selection, To select a from- and a to-date within different inputs and a date-picker. A date range selection can also have an additional time range selection within separate input fields
+
+.. image:: images/overview/list.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list.png
+
+A list can also be sorted by a column by clicking in the column header and the order of sorting can be changed by clicking again on the same column header. Depending on the column type, not all columns has the sort functionality.
+Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment.
+
 Forms
 ^^^^^^
+
+.. image:: images/overview/form_readonly.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_readonly.png
+
+.. image:: images/overview/form_edit.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_edit.png
