@@ -62,11 +62,11 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @GuiProfile
 public class ExamList implements TemplateComposer {
 
-    static final String EXAM_LIST_COLUMN_STARTTIME =
+    static final String EXAM_LIST_COLUMN_START_TIME =
             "sebserver.exam.list.column.starttime";
     static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.exam.list.title");
-    static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+    static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
             new LocTextKey("sebserver.exam.list.action.no.modify.privilege");
     final static LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.info.pleaseSelect");
@@ -175,7 +175,7 @@ public class ExamList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_START_TIME,
                                 new LocTextKey(
-                                        EXAM_LIST_COLUMN_STARTTIME,
+                                        EXAM_LIST_COLUMN_START_TIME,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
                                         .withFilter(new TableFilterAttribute(
@@ -213,7 +213,7 @@ public class ExamList implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(
-                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);

@@ -44,7 +44,6 @@ public class ThresholdListBuilder extends FieldBuilder<Collection<Threshold>> {
         final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         if (builder.readonly || this.readonly) {
             // No read-only view needed for this so far?
-            return;
         } else {
 
             final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);

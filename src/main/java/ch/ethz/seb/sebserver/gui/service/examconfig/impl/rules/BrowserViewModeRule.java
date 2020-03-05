@@ -51,10 +51,6 @@ public class BrowserViewModeRule implements ValueChangeRule {
             context.enableGroup(KEY_MAIN_WINDOW_GROUP);
 
             switch (Integer.parseInt(value.value)) {
-                case 0: {
-                    context.disable(KEY_TOUCH_EXIT);
-                    break;
-                }
                 case 1: {
                     context.disable(KEY_TOUCH_EXIT);
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);

@@ -82,12 +82,11 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
     }
 
     protected TableContext createTableContext(final ConfigurationAttribute attribute, final ViewContext viewContext) {
-        final TableContext tableContext = new TableContext(
+        return new TableContext(
                 this.inputFieldBuilderSupplier,
                 this.widgetFactory,
                 attribute,
                 viewContext);
-        return tableContext;
     }
 
     protected void setSelectionListener(final Table table, final AbstractTableInputField tableField) {
@@ -115,7 +114,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
             final Integer div = orientations
                     .stream()
                     .map(o -> o.width)
-                    .reduce(0, (acc, val) -> acc + val);
+                    .reduce(0, Integer::sum);
             final int widthUnit = currentTableWidth / div;
             for (int i = 0; i < columns.length - ((readonly) ? 0 : 2); i++) {
                 columns[i].setWidth(widthUnit * orientations.get(i).width);
@@ -263,9 +262,8 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
 
             values.clear();
             final List<Integer> rows = new ArrayList<>(indexMapping.keySet());
-            rows.sort((i1, i2) -> i1.compareTo(i2));
+            rows.sort(Integer::compareTo);
             rows
-                    .stream()
                     .forEach(i -> {
                         final Map<Long, TableValue> rowValues = indexMapping.get(i);
                         values.add(rowValues);

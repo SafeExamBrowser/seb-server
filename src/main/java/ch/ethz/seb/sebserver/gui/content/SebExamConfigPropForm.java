@@ -265,7 +265,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
+                .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
                 .withEntityKey(entityKey)
                 .withExec(SebExamConfigCreationPopup.configCreationFunction(
                         this.pageService,
@@ -313,7 +313,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     QuizData.QUIZ_ATTR_START_TIME,
                                     new LocTextKey(
-                                            ExamList.EXAM_LIST_COLUMN_STARTTIME,
+                                            ExamList.EXAM_LIST_COLUMN_START_TIME,
                                             this.pageService.getI18nSupport().getUsersTimeZoneTitleSuffix()),
                                     ExamConfigurationMap::getExamStartTime))
 

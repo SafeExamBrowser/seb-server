@@ -43,7 +43,7 @@ public class LabelBuilder implements InputFieldBuilder {
         }
 
         return attribute.type == AttributeType.LABEL;
-    };
+    }
 
     @Override
     public InputField createInputField(

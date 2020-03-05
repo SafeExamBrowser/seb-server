@@ -48,19 +48,19 @@ public class LoginPage implements TemplateComposer {
     private final WidgetFactory widgetFactory;
     private final I18nSupport i18nSupport;
     private final DefaultRegisterPage defaultRegisterPage;
-    private final boolean registreringEnabled;
+    private final boolean registeringEnabled;
 
     public LoginPage(
             final PageService pageService,
             final DefaultRegisterPage defaultRegisterPage,
-            @Value("${sebserver.gui.self-registering:false}") final Boolean registreringEnabled) {
+            @Value("${sebserver.gui.self-registering:false}") final Boolean registeringEnabled) {
 
         this.pageService = pageService;
         this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
         this.widgetFactory = pageService.getWidgetFactory();
         this.i18nSupport = pageService.getI18nSupport();
         this.defaultRegisterPage = defaultRegisterPage;
-        this.registreringEnabled = BooleanUtils.toBoolean(registreringEnabled);
+        this.registeringEnabled = BooleanUtils.toBoolean(registeringEnabled);
     }
 
     @Override
@@ -100,13 +100,11 @@ public class LoginPage implements TemplateComposer {
         gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         loginButton.setLayoutData(gridData);
-        loginButton.addListener(SWT.Selection, event -> {
-            login(
-                    pageContext,
-                    loginName.getText(),
-                    loginPassword.getText(),
-                    authorizationContext);
-        });
+        loginButton.addListener(SWT.Selection, event -> login(
+                pageContext,
+                loginName.getText(),
+                loginPassword.getText(),
+                authorizationContext));
         loginName.addListener(SWT.KeyDown, event -> {
             if (event.character == '\n' || event.character == '\r') {
                 if (StringUtils.isNotBlank(loginPassword.getText())) {
@@ -134,14 +132,12 @@ public class LoginPage implements TemplateComposer {
             }
         });
 
-        if (this.registreringEnabled) {
+        if (this.registeringEnabled) {
             final Button registerButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.register");
             gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
             gridData.verticalIndent = 10;
             registerButton.setLayoutData(gridData);
-            registerButton.addListener(SWT.Selection, event -> {
-                pageContext.forwardToPage(this.defaultRegisterPage);
-            });
+            registerButton.addListener(SWT.Selection, event -> pageContext.forwardToPage(this.defaultRegisterPage));
         }
     }
 
@@ -151,11 +147,10 @@ public class LoginPage implements TemplateComposer {
             final CharSequence loginPassword,
             final SEBServerAuthorizationContext authorizationContext) {
 
-        final String username = loginName;
         try {
 
             final boolean loggedIn = authorizationContext.login(
-                    username,
+                    loginName,
                     loginPassword);
 
             if (loggedIn) {
@@ -179,7 +174,7 @@ public class LoginPage implements TemplateComposer {
                 loginError(pageContext, "sebserver.login.failed.message");
             }
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to login with user: {}", username, e);
+            log.error("Unexpected error while trying to login with user: {}", loginName, e);
             loginError(pageContext, "Unexpected Error. Please call an Administrator");
         }
     }

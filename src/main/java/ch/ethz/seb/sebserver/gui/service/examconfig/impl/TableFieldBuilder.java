@@ -102,9 +102,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
             column.setResizable(false);
             column.setMoveable(false);
 
-            column.addListener(SWT.Selection, event -> {
-                tableField.addRow();
-            });
+            column.addListener(SWT.Selection, event -> tableField.addRow());
 
             column = new TableColumn(table, SWT.NONE);
             column.setImage(ImageIcon.REMOVE_BOX_WHITE.getImage(parent.getDisplay()));
@@ -212,9 +210,9 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                                     ExamConfigurationService.getTablePopupTitleKey(
                                             this.attribute,
                                             this.tableContext.getViewContext().i18nSupport),
-                                    (Consumer<Map<Long, TableValue>>) rowVals -> applyFormValues(
+                                    (Consumer<Map<Long, TableValue>>) _rowValues -> applyFormValues(
                                             this.values,
-                                            rowVals,
+                                            _rowValues,
                                             selectionIndex),
                                     () -> this.tableContext.getValueChangeListener()
                                             .tableChanged(extractTableValue(this.values)),

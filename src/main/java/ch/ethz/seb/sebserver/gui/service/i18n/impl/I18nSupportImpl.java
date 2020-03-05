@@ -56,11 +56,11 @@ public class I18nSupportImpl implements I18nSupport {
         this.currentUser = currentUser;
         this.messageSource = messageSource;
 
-        final String defaultForamtLocaleString = environment.getProperty(
+        final String defaultFormatLocaleString = environment.getProperty(
                 FORMAL_LOCALE_KEY,
                 Constants.DEFAULT_LANG_CODE);
 
-        this.defaultFormatLocale = Locale.forLanguageTag(defaultForamtLocaleString);
+        this.defaultFormatLocale = Locale.forLanguageTag(defaultFormatLocaleString);
 
         final boolean multilingual = BooleanUtils.toBoolean(environment.getProperty(
                 MULTILINGUAL_KEY,
@@ -71,9 +71,8 @@ public class I18nSupportImpl implements I18nSupport {
                     Locale.ENGLISH.getLanguage());
 
             this.supportedLanguages = Utils.immutableCollectionOf(
-                    Arrays.asList(StringUtils.split(languagesString, Constants.LIST_SEPARATOR))
-                            .stream()
-                            .map(s -> Locale.forLanguageTag(s))
+                    Arrays.stream(StringUtils.split(languagesString, Constants.LIST_SEPARATOR))
+                            .map(Locale::forLanguageTag)
                             .collect(Collectors.toList()));
 
         } else {

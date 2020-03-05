@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -106,12 +107,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
     @Override
     public Result<AttributeMapping> getAttributes(final Long templateId) {
-        return Result.tryCatch(() -> {
-            return new AttributeMapping(
-                    templateId,
-                    getAttributes(),
-                    getOrientations(templateId));
-        });
+        return Result.tryCatch(() -> new AttributeMapping(
+                templateId,
+                getAttributes(),
+                getOrientations(templateId)));
     }
 
     @Override
@@ -124,12 +123,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             orientations.add(defaultOrientation);
         }
 
-        return Result.tryCatch(() -> {
-            return new AttributeMapping(
-                    attribute.templateId,
-                    getAttributes(),
-                    orientations);
-        });
+        return Result.tryCatch(() -> new AttributeMapping(
+                attribute.templateId,
+                getAttributes(),
+                orientations));
     }
 
     private List<Orientation> getOrientations(final Long templateId) {
@@ -168,7 +165,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 .call()
                 .getOrThrow()
                 .stream()
-                .sorted((v1, v2) -> v1.position.compareTo(v2.position))
+                .sorted(Comparator.comparing(v -> v.position))
                 .collect(Collectors.toList());
     }
 
@@ -251,12 +248,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
-            selection.stream().forEach(entityKey -> {
-                callTemplateAction(
-                        ResetTemplateValues.class,
-                        parentEntityKey.modelId,
-                        entityKey.modelId);
-            });
+            selection.forEach(entityKey -> callTemplateAction(
+                    ResetTemplateValues.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
@@ -273,12 +268,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
-            selection.stream().forEach(entityKey -> {
-                callTemplateAction(
-                        RemoveOrientation.class,
-                        parentEntityKey.modelId,
-                        entityKey.modelId);
-            });
+            selection.forEach(entityKey -> callTemplateAction(
+                    RemoveOrientation.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
@@ -295,12 +288,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final EntityKey parentEntityKey = action.pageContext().getParentEntityKey();
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
-            selection.stream().forEach(entityKey -> {
-                callTemplateAction(
-                        AttachDefaultOrientation.class,
-                        parentEntityKey.modelId,
-                        entityKey.modelId);
-            });
+            selection.forEach(entityKey -> callTemplateAction(
+                    AttachDefaultOrientation.class,
+                    parentEntityKey.modelId,
+                    entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(

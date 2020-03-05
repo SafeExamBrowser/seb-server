@@ -104,7 +104,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
                 final CharSequence pwd = passwordInput.getValue();
                 final CharSequence confirm = confirmInput.getValue();
 
-                if (passwordInputField.initValue != null && passwordInputField.initValue.equals(pwd)) {
+                if (passwordInputField.initValue != null && passwordInputField.initValue.contentEquals(pwd)) {
                     return;
                 }
 

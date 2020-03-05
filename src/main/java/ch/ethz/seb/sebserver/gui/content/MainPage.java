@@ -88,10 +88,10 @@ public class MainPage implements TemplateComposer {
                 scrolledComposite -> {
                     final Composite result = new Composite(scrolledComposite, SWT.NONE);
                     result.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-                    final GridLayout contentOuterlayout = new GridLayout();
-                    contentOuterlayout.marginHeight = 0;
-                    contentOuterlayout.marginWidth = 0;
-                    result.setLayout(contentOuterlayout);
+                    final GridLayout contentOuterLayout = new GridLayout();
+                    contentOuterLayout.marginHeight = 0;
+                    contentOuterLayout.marginWidth = 0;
+                    result.setLayout(contentOuterLayout);
                     return result;
                 },
                 false);
@@ -126,10 +126,10 @@ public class MainPage implements TemplateComposer {
 
         final Composite contentObjects = new Composite(content, SWT.NONE);
         contentObjects.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        final GridLayout contentObjectslayout = new GridLayout();
-        contentObjectslayout.marginHeight = 0;
-        contentObjectslayout.marginWidth = 0;
-        contentObjects.setLayout(contentObjectslayout);
+        final GridLayout contentObjectsLayout = new GridLayout();
+        contentObjectsLayout.marginHeight = 0;
+        contentObjectsLayout.marginWidth = 0;
+        contentObjects.setLayout(contentObjectsLayout);
         contentObjects.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 new ContentActionEventListener(event -> pageContext

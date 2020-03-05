@@ -226,7 +226,6 @@ public final class ViewContext {
     void setValuesToInputFields(final Collection<ConfigurationValue> values) {
         this.inputFieldMapping
                 .values()
-                .stream()
                 .forEach(field -> {
                     final ConfigurationValue initValue = field.initValue(values);
                     if (initValue != null) {
@@ -243,8 +242,7 @@ public final class ViewContext {
             return;
         }
 
-        values.stream()
-                .forEach(attrId -> this.inputFieldMapping.remove(attrId));
+        values.forEach(this.inputFieldMapping::remove);
     }
 
 }

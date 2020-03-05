@@ -29,7 +29,6 @@ public class InputFieldBuilderSupplier {
     protected InputFieldBuilderSupplier(final Collection<InputFieldBuilder> inputFieldBuilder) {
         this.inputFieldBuilder = inputFieldBuilder;
         inputFieldBuilder
-                .stream()
                 .forEach(builder -> builder.init(this));
     }
 

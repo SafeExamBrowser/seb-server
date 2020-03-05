@@ -8,10 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.template.ImageCell;
@@ -31,19 +38,9 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Lazy
 @Component

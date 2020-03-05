@@ -30,10 +30,10 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public interface ExamConfigurationService {
 
-    public static final String ATTRIBUTE_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.label.";
-    public static final String GROUP_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.group.";
-    public static final String TOOL_TIP_SUFFIX = ".tooltip";
-    public static final String TABLE_ROW_TITLE_SUFFIX = ".row.title";
+    String ATTRIBUTE_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.label.";
+    String GROUP_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.group.";
+    String TOOL_TIP_SUFFIX = ".tooltip";
+    String TABLE_ROW_TITLE_SUFFIX = ".row.title";
 
     WidgetFactory getWidgetFactory();
 

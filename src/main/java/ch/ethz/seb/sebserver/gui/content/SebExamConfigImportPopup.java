@@ -81,7 +81,7 @@ final class SebExamConfigImportPopup {
         };
     }
 
-    private static final boolean doImport(
+    private static boolean doImport(
             final PageService pageService,
             final FormHandle<ConfigurationNode> formHandle,
             final boolean newConfig) {
@@ -93,7 +93,7 @@ final class SebExamConfigImportPopup {
             final PageContext context = formHandle.getContext();
 
             // Ad-hoc field validation
-            formHandle.process(name -> true, field -> field.resetError());
+            formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
             final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
             if (StringUtils.isBlank(fieldValue)) {
                 form.setFieldError(
@@ -116,7 +116,7 @@ final class SebExamConfigImportPopup {
                 return false;
             }
 
-            if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
+            if (fieldControl instanceof FileUploadSelection) {
                 final FileUploadSelection fileUpload = (FileUploadSelection) fieldControl;
                 final InputStream inputStream = fileUpload.getInputStream();
                 if (inputStream != null) {
@@ -162,7 +162,6 @@ final class SebExamConfigImportPopup {
                                     new ActionEvent(action),
                                     action.pageContext());
                         }
-                        return true;
                     } else {
                         final Exception error = configuration.getError();
                         if (error instanceof RestCallError) {
@@ -188,12 +187,12 @@ final class SebExamConfigImportPopup {
                                 SebExamConfigPropForm.FORM_TITLE,
                                 configuration.getError());
 
-                        return true;
                     }
+                    return true;
                 } else {
                     formHandle.getContext().publishPageMessage(
                             new LocTextKey("sebserver.error.unexpected"),
-                            new LocTextKey("Please selecte a valid SEB Exam Configuration File"));
+                            new LocTextKey("Please select a valid SEB Exam Configuration File"));
                 }
             }
 
@@ -271,7 +270,7 @@ final class SebExamConfigImportPopup {
         void cancelUpload() {
             if (this.form != null) {
                 final Control fieldControl = this.form.getFieldInput(API.IMPORT_FILE_ATTR_NAME);
-                if (fieldControl != null && fieldControl instanceof FileUploadSelection) {
+                if (fieldControl instanceof FileUploadSelection) {
                     ((FileUploadSelection) fieldControl).close();
                 }
             }

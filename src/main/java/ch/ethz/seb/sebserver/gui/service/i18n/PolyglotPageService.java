@@ -39,34 +39,116 @@ public interface PolyglotPageService {
      * @param locale the Locale to set */
     void setPageLocale(Composite root, Locale locale);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param imageUpload the Control instance
+     * @param locTextKey the localized text key to inject
+     */
     void injectI18n(ImageUploadSelection imageUpload, LocTextKey locTextKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param label the Control instance
+     * @param locTextKey the localized text key to inject
+     */
     void injectI18n(Label label, LocTextKey locTextKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param label the Control instance
+     * @param locTextKey the localized text key to inject
+     * @param locToolTipKey the localized text key for the tooltip to inject
+     */
     void injectI18n(Label label, LocTextKey locTextKey, LocTextKey locToolTipKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param group the Control instance
+     * @param locTextKey the localized text key to inject
+     * @param locTooltipKey the localized text key for the tooltip to inject
+     */
     void injectI18n(Group group, LocTextKey locTextKey, LocTextKey locTooltipKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param button the Control instance
+     * @param locTextKey the localized text key to inject
+     */
     void injectI18n(Button button, LocTextKey locTextKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param button the Control instance
+     * @param locTextKey the localized text key to inject
+     * @param locToolTipKey the localized text key for the tooltip to inject
+     */
     void injectI18n(Button button, LocTextKey locTextKey, LocTextKey locToolTipKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param tree the Control instance
+     */
     void injectI18n(Tree tree);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param treeItem the Control instance
+     * @param locTextKey the localized text key to inject
+     */
     void injectI18n(TreeItem treeItem, LocTextKey locTextKey);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param table the Control instance
+     */
     void injectI18n(Table table);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param tabFolder the Control instance
+     */
     void injectI18n(TabFolder tabFolder);
 
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param tableColumn the Control instance
+     * @param locTextKey the localized text key to inject
+     * @param locTooltipKey the localized text key for the tooltip to inject
+     */
     void injectI18n(TableColumn tableColumn, LocTextKey locTextKey, LocTextKey locTooltipKey);
 
-    void injectI18n(TableItem tableItem, LocTextKey... locTextKey);
-
+    /** Used to inject a localised text within the given Control (Widget) that automatically gets changed on language
+     *  change.
+     *
+     * @param tabItem the Control instance
+     * @param locTextKey the localized text key to inject
+     * @param locTooltipKey the localized text key for the tooltip to inject
+     */
     void injectI18n(TabItem tabItem, LocTextKey locTextKey, LocTextKey locTooltipKey);
 
+    /** Used to inject a localised tooltip text within the given Control (Widget) that automatically gets changed on
+     * language change.
+     *
+     * @param control the Control instance
+     * @param locTooltipKey the localized text key for the tooltip to inject
+     */
     void injectI18nTooltip(Control control, LocTextKey locTooltipKey);
 
+    /** Used to create the page language selector if needed
+     *
+     * @param composerCtx the PageContext
+     */
     void createLanguageSelector(PageContext composerCtx);
 
 }

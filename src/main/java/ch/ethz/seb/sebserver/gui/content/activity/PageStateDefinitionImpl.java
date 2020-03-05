@@ -94,7 +94,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     public final Class<? extends TemplateComposer> actionPaneComposer;
     public final Activity activityAnchor;
 
-    private PageStateDefinitionImpl(
+    PageStateDefinitionImpl(
             final Type type,
             final Class<? extends TemplateComposer> contentPaneComposer,
             final Activity activityAnchor) {
@@ -102,7 +102,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
         this(type, contentPaneComposer, ActionPane.class, activityAnchor);
     }
 
-    private PageStateDefinitionImpl(
+    PageStateDefinitionImpl(
             final Type type,
             final Class<? extends TemplateComposer> contentPaneComposer,
             final Class<? extends TemplateComposer> actionPaneComposer,

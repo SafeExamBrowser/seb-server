@@ -467,7 +467,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,
             ActionCategory.FORM),
-    SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE(
+    SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE(
             new LocTextKey("sebserver.examconfig.action.copy-as-template"),
             ImageIcon.TEMPLATE,
             ActionCategory.FORM),

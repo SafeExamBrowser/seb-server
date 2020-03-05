@@ -214,9 +214,9 @@ public class CompositeTableFieldBuilder extends AbstractTableFieldBuilder {
             } else {
                 dialog.open(
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + row),
-                        (Consumer<Map<Long, TableValue>>) rowVals -> applyFormValues(
+                        (Consumer<Map<Long, TableValue>>) _rowValues -> applyFormValues(
                                 this.values,
-                                rowVals,
+                                _rowValues,
                                 selectionIndex),
                         () -> this.tableContext.getValueChangeListener()
                                 .tableChanged(extractTableValue(this.values)),

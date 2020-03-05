@@ -17,10 +17,10 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public interface I18nSupport {
 
-    public static final String SUPPORTED_LANGUAGES_KEY = "sebserver.gui.supported.languages";
-    public static final String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
-    public static final String FORMAL_LOCALE_KEY = "sebserver.gui.date.displayformat";
-    public static final String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
+    String SUPPORTED_LANGUAGES_KEY = "sebserver.gui.supported.languages";
+    String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
+    String FORMAL_LOCALE_KEY = "sebserver.gui.date.displayformat";
+    String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
 
     /** Get all supported languages as a collection of Locale
      *
@@ -40,7 +40,7 @@ public interface I18nSupport {
     Locale getUsersFormatLocale();
 
     /** Format a DateTime to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
      * Adds time-zone offset information if the currents user time-zone is different form UTC
@@ -50,7 +50,7 @@ public interface I18nSupport {
     String formatDisplayDate(DateTime date);
 
     /** Format a DateTime to a text format to display with additional time zone name at the end.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
      * Adds time-zone offset information if the currents user time-zone is different form UTC
@@ -62,19 +62,19 @@ public interface I18nSupport {
     }
 
     /** Format a time-stamp (milliseconds) to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.date.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
      * Adds time-zone information if the currents user time-zone is different form UTC
      *
-     * @param date the DateTime instance
+     * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted date String to display */
     default String formatDisplayDate(final Long timestamp) {
         return formatDisplayDate(Utils.toDateTimeUTC(timestamp));
     }
 
     /** Format a DateTime to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
      *
      * Adds time-zone information if the currents user time-zone is different form UTC
@@ -84,19 +84,19 @@ public interface I18nSupport {
     String formatDisplayDateTime(DateTime date);
 
     /** Format a time-stamp (milliseconds) to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
      *
      * Adds time-zone information if the currents user time-zone is different form UTC
      *
-     * @param date the DateTime instance
+     * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted date time String to display */
     default String formatDisplayDateTime(final Long timestamp) {
         return formatDisplayDateTime(Utils.toDateTimeUTC(timestamp));
     }
 
     /** Format a DateTime to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.time.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
      *
      * Adds time-zone information if the currents user time-zone is different form UTC
@@ -106,12 +106,12 @@ public interface I18nSupport {
     String formatDisplayTime(DateTime date);
 
     /** Format a time-stamp (milliseconds) to a text format to display.
-     * This uses the date-format defined by either the attribute 'sebserver.gui.time.displayformat'
+     * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
      *
      * Adds time-zone information if the currents user time-zone is different form UTC
      *
-     * @param date the DateTime instance
+     * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted time String to display */
     default String formatDisplayTime(final Long timestamp) {
         return formatDisplayTime(Utils.toDateTimeUTC(timestamp));

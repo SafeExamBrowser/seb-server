@@ -190,7 +190,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
                     .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPALTE)
+                    .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
                     .withEntityKey(entityKey)
                     .withExec(SebExamConfigCreationPopup.configCreationFunction(
                             this.pageService,

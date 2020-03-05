@@ -101,15 +101,15 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.status");
     private static final LocTextKey FORM_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.type");
-    private static final LocTextKey FORM_ENDTIME_TEXT_KEY =
+    private static final LocTextKey FORM_END_TIME_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.endtime");
-    private static final LocTextKey FORM_STARTTIME_TEXT_KEY =
+    private static final LocTextKey FORM_START_TIME_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.starttime");
     private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.description");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.name");
-    private static final LocTextKey FORM_QUIZID_TEXT_KEY =
+    private static final LocTextKey FORM_QUIZ_ID_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.quizid");
     private static final LocTextKey FORM_QUIZ_URL_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.quizurl");
@@ -285,14 +285,14 @@ public class ExamForm implements TemplateComposer {
 
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_TIME,
-                        FORM_STARTTIME_TEXT_KEY,
+                        FORM_START_TIME_TEXT_KEY,
                         i18nSupport.formatDisplayDateWithTimeZone(exam.startTime))
                         .readonly(true)
                         .withInputSpan(3)
                         .withEmptyCellSeparation(false))
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_END_TIME,
-                        FORM_ENDTIME_TEXT_KEY,
+                        FORM_END_TIME_TEXT_KEY,
                         i18nSupport.formatDisplayDateWithTimeZone(exam.endTime))
                         .readonly(true)
                         .withInputSpan(3)
@@ -300,7 +300,7 @@ public class ExamForm implements TemplateComposer {
 
                 .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_EXTERNAL_ID,
-                        FORM_QUIZID_TEXT_KEY,
+                        FORM_QUIZ_ID_TEXT_KEY,
                         exam.externalId)
                         .readonly(true)
                         .withEmptyCellSeparation(false))

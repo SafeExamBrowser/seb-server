@@ -54,10 +54,9 @@ public abstract class SelectionFieldBuilder {
                                         attribute) + "."
                                 : ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name + ".";
 
-        return Arrays.asList(StringUtils.split(
+        return Arrays.stream(StringUtils.split(
                 attribute.resources,
                 Constants.LIST_SEPARATOR))
-                .stream()
                 .map(value -> {
                     final String key = prefix + value + ((toolTipResources)
                             ? ExamConfigurationService.TOOL_TIP_SUFFIX

@@ -33,7 +33,7 @@ public enum ActionCategory {
     public final LocTextKey title;
     public final int slotPosition;
 
-    private ActionCategory(final LocTextKey title, final int slotPosition) {
+    ActionCategory(final LocTextKey title, final int slotPosition) {
         this.title = title;
         this.slotPosition = slotPosition;
     }

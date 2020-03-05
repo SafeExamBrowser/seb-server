@@ -43,7 +43,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class SebExamConfigList implements TemplateComposer {
 
-    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION =
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
             new LocTextKey("sebserver.examconfig.list.action.no.modify.privilege");
     private static final LocTextKey EMPTY_CONFIG_LIST_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.empty");
@@ -165,7 +165,7 @@ public class SebExamConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(
-                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUION),
+                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent(), false)
 

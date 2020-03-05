@@ -63,10 +63,9 @@ public class InlineTableFieldBuilder implements InputFieldBuilder {
 
         final Map<String, String> defaultValues = StringUtils.isBlank(attribute.defaultValue)
                 ? Collections.emptyMap()
-                : Arrays.asList(StringUtils.split(
+                : Arrays.stream(StringUtils.split(
                         attribute.defaultValue,
                         Constants.EMBEDDED_LIST_SEPARATOR))
-                        .stream()
                         .map(valueString -> StringUtils.split(
                                 valueString,
                                 Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR))
@@ -74,10 +73,9 @@ public class InlineTableFieldBuilder implements InputFieldBuilder {
                                 valueMap -> valueMap[0],
                                 valueMap -> (valueMap.length > 1) ? valueMap[1] : StringUtils.EMPTY));
 
-        final List<ColumnDef> columns = Arrays.asList(StringUtils.split(
+        final List<ColumnDef> columns = Arrays.stream(StringUtils.split(
                 attribute.getResources(),
                 Constants.EMBEDDED_LIST_SEPARATOR))
-                .stream()
                 .map(columnString -> ColumnDef.fromString(columnString, defaultValues))
                 .collect(Collectors.toList());
 

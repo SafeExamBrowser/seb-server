@@ -240,8 +240,8 @@ public class QuizDiscoveryList implements TemplateComposer {
     }
 
     private static Function<QuizData, String> quizDataLmsSetupNameFunction(final ResourceService resourceService) {
-        return quizzData -> resourceService.getLmsSetupNameFunction()
-                .apply(String.valueOf(quizzData.lmsSetupId));
+        return quizData -> resourceService.getLmsSetupNameFunction()
+                .apply(String.valueOf(quizData.lmsSetupId));
     }
 
     private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {

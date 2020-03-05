@@ -247,9 +247,7 @@ public class RegisterPage implements TemplateComposer {
         gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         cancelButton.setLayoutData(gridData);
-        cancelButton.addListener(SWT.Selection, event -> {
-            pageContext.forwardToLoginPage();
-        });
+        cancelButton.addListener(SWT.Selection, event -> pageContext.forwardToLoginPage());
 
     }
 

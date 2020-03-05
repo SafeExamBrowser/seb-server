@@ -30,7 +30,7 @@ public enum ActivityDefinition implements Activity {
 
     public final LocTextKey displayName;
 
-    private ActivityDefinition(final LocTextKey displayName) {
+    ActivityDefinition(final LocTextKey displayName) {
         this.displayName = displayName;
     }
 

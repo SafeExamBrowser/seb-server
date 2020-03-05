@@ -96,7 +96,7 @@ public class ActivitiesPane implements TemplateComposer {
                 .hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN);
 
         // SEB Server Administration
-        final TreeItem sebadmin = this.widgetFactory.treeItemLocalized(
+        final TreeItem sebAdmin = this.widgetFactory.treeItemLocalized(
                 navigation,
                 ActivityDefinition.SEB_ADMINISTRATION.displayName);
 
@@ -105,7 +105,7 @@ public class ActivitiesPane implements TemplateComposer {
         if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
             // institutions (list) as root
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    sebadmin,
+                    sebAdmin,
                     ActivityDefinition.INSTITUTION.displayName);
             injectActivitySelection(
                     institutions,
@@ -116,7 +116,7 @@ public class ActivitiesPane implements TemplateComposer {
         } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
             // otherwise show the form of the institution for current user
             final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    sebadmin,
+                    sebAdmin,
                     ActivityDefinition.INSTITUTION.displayName);
             injectActivitySelection(
                     institutions,
@@ -131,7 +131,7 @@ public class ActivitiesPane implements TemplateComposer {
         if (isServerOrInstAdmin) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                    sebadmin,
+                    sebAdmin,
                     ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(
                     userAccounts,
@@ -157,7 +157,7 @@ public class ActivitiesPane implements TemplateComposer {
                 EntityType.USER_ACTIVITY_LOG);
         if (viewUserActivityLogs) {
             final TreeItem activityLogs = this.widgetFactory.treeItemLocalized(
-                    sebadmin,
+                    sebAdmin,
                     ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
             injectActivitySelection(
                     activityLogs,
@@ -166,12 +166,12 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         }
 
-        if (sebadmin.getItemCount() > 0) {
-            sebadmin.setExpanded(this.currentUser.get().hasAnyRole(
+        if (sebAdmin.getItemCount() > 0) {
+            sebAdmin.setExpanded(this.currentUser.get().hasAnyRole(
                     UserRole.SEB_SERVER_ADMIN,
                     UserRole.INSTITUTIONAL_ADMIN));
         } else {
-            sebadmin.dispose();
+            sebAdmin.dispose();
         }
 
         // ---- SEB ADMIN ----------------------------------------------------------------------
@@ -244,7 +244,7 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean examWrite = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.EXAM);
 
         // Exam Administration
-        final TreeItem examadmin = this.widgetFactory.treeItemLocalized(
+        final TreeItem examAdmin = this.widgetFactory.treeItemLocalized(
                 navigation,
                 ActivityDefinition.EXAM_ADMINISTRATION.displayName);
 
@@ -252,7 +252,7 @@ public class ActivitiesPane implements TemplateComposer {
             // LMS Setup
             if (lmsRead && !isSupporterOnly) {
                 final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
-                        examadmin,
+                        examAdmin,
                         ActivityDefinition.LMS_SETUP.displayName);
                 injectActivitySelection(
                         lmsSetup,
@@ -266,7 +266,7 @@ public class ActivitiesPane implements TemplateComposer {
                 if (examWrite) {
                     // Quiz Discovery
                     final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
-                            examadmin,
+                            examAdmin,
                             ActivityDefinition.QUIZ_DISCOVERY.displayName);
                     injectActivitySelection(
                             quizDiscovery,
@@ -277,7 +277,7 @@ public class ActivitiesPane implements TemplateComposer {
 
                 // Exam
                 final TreeItem exam = this.widgetFactory.treeItemLocalized(
-                        examadmin,
+                        examAdmin,
                         ActivityDefinition.EXAM.displayName);
                 injectActivitySelection(
                         exam,
@@ -286,7 +286,7 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
-            examadmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
+            examAdmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
@@ -388,9 +388,7 @@ public class ActivitiesPane implements TemplateComposer {
                     state.activityAnchor());
             if (item != null) {
                 final PageAction action = getActivitySelection(item);
-                this.pageService.executePageAction(action, result -> {
-                    navigation.select(item);
-                });
+                this.pageService.executePageAction(action, result -> navigation.select(item));
             }
         }
     }
@@ -491,7 +489,7 @@ public class ActivitiesPane implements TemplateComposer {
         });
     }
 
-    private static final boolean isInSubTree(final TreeItem treeItem, final TreeItem currentSelection) {
+    private static boolean isInSubTree(final TreeItem treeItem, final TreeItem currentSelection) {
         if (treeItem == null) {
             return false;
         }
@@ -510,7 +508,7 @@ public class ActivitiesPane implements TemplateComposer {
         return false;
     }
 
-    private static final TreeItem findItemByActionDefinition(
+    private static TreeItem findItemByActionDefinition(
             final TreeItem[] items,
             final Activity activity) {
 
@@ -544,7 +542,7 @@ public class ActivitiesPane implements TemplateComposer {
         return null;
     }
 
-    private static final TreeItem getActionItem(final TreeItem item) {
+    private static TreeItem getActionItem(final TreeItem item) {
         final PageAction action = (PageAction) item.getData(ATTR_ACTIVITY_SELECTION);
         if (action == null && item.getItemCount() > 0) {
             final TreeItem firstChild = item.getItem(0);
@@ -556,11 +554,11 @@ public class ActivitiesPane implements TemplateComposer {
         return item;
     }
 
-    private static final PageAction getActivitySelection(final TreeItem item) {
+    private static PageAction getActivitySelection(final TreeItem item) {
         return (PageAction) item.getData(ATTR_ACTIVITY_SELECTION);
     }
 
-    private final static void injectActivitySelection(final TreeItem item, final PageAction action) {
+    private static void injectActivitySelection(final TreeItem item, final PageAction action) {
         item.setData(ATTR_ACTIVITY_SELECTION, action);
     }
 

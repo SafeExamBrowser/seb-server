@@ -200,7 +200,7 @@ public class ViewGridBuilder {
     }
 
     private String gridToString() {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < this.grid.length; i++) {
             if (sb.length() > 0) {
                 sb.append(",\n");

@@ -100,9 +100,7 @@ public class TableRowFormBuilder implements ModalInputDialogComposer<Map<Long, T
         }
 
         // when the pop-up gets closed we have to remove the input fields from the view context
-        grid.addDisposeListener(event -> {
-            this.tableContext.flushInputFields(this.rowValues.keySet());
-        });
+        grid.addDisposeListener(event -> this.tableContext.flushInputFields(this.rowValues.keySet()));
 
         return () -> inputFields.stream()
                 .map(field -> (field.hasError())

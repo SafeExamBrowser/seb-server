@@ -111,7 +111,7 @@ public class ComposerServiceImpl implements ComposerService {
         }
 
         if (!this.composer.containsKey(name)) {
-            log.error("No TemplateComposer with name: " + name + " found. Check Spring confiuration and beans");
+            log.error("No TemplateComposer with name: " + name + " found. Check Spring configuration and beans");
             return;
         }
 
@@ -126,7 +126,7 @@ public class ComposerServiceImpl implements ComposerService {
                 PageService.updateScrolledComposite(pageContext.getParent());
 
             } catch (final IllegalUserSessionStateException e) {
-                log.warn("Illegal user session state detected... ceanup user session and forward to login page.");
+                log.warn("Illegal user session state detected... cleanup user session and forward to login page.");
                 pageContext.forwardToLoginPage();
                 final MessageBox logoutSuccess = new Message(
                         pageContext.getShell(),

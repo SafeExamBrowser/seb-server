@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 interface CellFieldBuilderAdapter {
 
-    static CellFieldBuilderAdapter DUMMY_BUILDER_ADAPTER = new CellFieldBuilderAdapter() {
+    CellFieldBuilderAdapter DUMMY_BUILDER_ADAPTER = new CellFieldBuilderAdapter() {
         @Override
         public void createCell(final ViewGridBuilder builder) {
         }
@@ -163,7 +163,7 @@ interface CellFieldBuilderAdapter {
         };
     }
 
-    static class GroupCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
+    class GroupCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
 
         final Collection<Orientation> orientationsOfGroup;
 
@@ -177,11 +177,11 @@ interface CellFieldBuilderAdapter {
 
             for (final Orientation o : this.orientationsOfGroup) {
                 final int xpos = o.xPosition - ((o.title == TitleOrientation.LEFT) ? 1 : 0);
-                this.x = (xpos < this.x) ? xpos : this.x;
+                this.x = Math.min(xpos, this.x);
                 final int ypos = o.yPosition - ((o.title == TitleOrientation.TOP) ? 1 : 0);
-                this.y = (ypos < this.y) ? ypos : this.y;
-                this.width = (this.width < o.xpos() + o.width()) ? o.xpos() + o.width() : this.width;
-                this.height = (this.height < o.ypos() + o.height()) ? o.ypos() + o.height() : this.height;
+                this.y = Math.min(ypos, this.y);
+                this.width = Math.max(this.width, o.xpos() + o.width());
+                this.height = Math.max(this.height, o.ypos() + o.height());
             }
 
             this.width = this.width - this.x;
@@ -191,7 +191,7 @@ interface CellFieldBuilderAdapter {
         @Override
         public void createCell(final ViewGridBuilder builder) {
             final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
-            final Orientation o = this.orientationsOfGroup.stream().findFirst().get();
+            final Orientation o = this.orientationsOfGroup.stream().findFirst().orElse(null);
             final LocTextKey groupLabelKey = new LocTextKey(
                     ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX +
                             o.groupId,

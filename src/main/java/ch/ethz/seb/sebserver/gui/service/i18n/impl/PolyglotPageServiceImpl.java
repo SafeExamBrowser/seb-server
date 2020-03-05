@@ -166,18 +166,6 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     }
 
     @Override
-    public void injectI18n(final TableItem tableItem, final LocTextKey... locTextKey) {
-        if (locTextKey == null) {
-            return;
-        }
-
-        tableItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
-        for (int i = 0; i < locTextKey.length; i++) {
-            tableItem.setText(i, this.i18nSupport.getText(locTextKey[i]));
-        }
-    }
-
-    @Override
     public void injectI18n(final TabItem tabItem, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
         tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
         tabItem.setText(this.i18nSupport.getText(locTextKey));
