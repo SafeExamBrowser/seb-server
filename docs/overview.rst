@@ -64,7 +64,7 @@ What one probably see first when applying to a SEB server application is the log
 
 If you are already registered you can use your username and password to log in. Or use the "Register" button to go the the register page to create a new user-account. The newly created user account will only have the Exam Supporter role assigned. If one need another role or more privileges, this must be given and granted by an institutional administrator of the specified institution.
 
-.. image:: image/overview/register.png
+.. image:: images/overview/register.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/register.png
 
@@ -78,7 +78,7 @@ Graphical User Interface
 
 After successful login, one will see the main graphical user interface of the SEB Server application. On the left hand are the activities that can be done, categorized within some few main sections with its relating activities underneath. By selecting a activity, the main content section will show the activity content and the action that are possible for this activity on the right hand
 
-.. image:: image/overview/overview.png
+.. image:: images/overview/overview.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/overview.png
 

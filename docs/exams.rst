@@ -18,7 +18,7 @@ Thresholds
 
 TODO
 
-Automatic SEB Restriction
+SEB Restriction On LMS
 -------------------------
 
 
