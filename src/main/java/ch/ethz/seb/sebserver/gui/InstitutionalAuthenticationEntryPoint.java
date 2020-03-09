@@ -133,7 +133,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                             institutionalEndpoint)
                     .getBody();
 
-            if (!institutions.isEmpty()) {
+            if (institutions != null && !institutions.isEmpty()) {
                 request.getSession().setAttribute(
                         INST_SUFFIX_ATTRIBUTE,
                         StringUtils.isNotBlank(institutionalEndpoint)

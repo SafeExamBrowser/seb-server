@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.EnumMap;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -122,7 +123,8 @@ public class ClientConnectionDetails {
         if (this.connectionData != null && connectionData != null) {
             this.statusChanged =
                     this.connectionData.clientConnection.status != connectionData.clientConnection.status ||
-                            this.connectionData.missingPing != connectionData.missingPing;
+                            BooleanUtils.toBoolean(this.connectionData.missingPing) !=
+                                    BooleanUtils.toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
     }

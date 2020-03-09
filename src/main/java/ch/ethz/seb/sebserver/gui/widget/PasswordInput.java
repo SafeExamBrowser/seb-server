@@ -32,7 +32,7 @@ public class PasswordInput extends Composite {
     private final Composite inputAnchor;
     private final Label visibilityButton;
 
-    private Text passwordInput = null;
+    private Text passwordInputField = null;
     private boolean isPlainText = true;
     private boolean isEditable = true;
 
@@ -71,10 +71,10 @@ public class PasswordInput extends Composite {
     }
 
     private void changePasswordView() {
-        final String value = (this.passwordInput != null) ? this.passwordInput.getText() : null;
+        final String value = (this.passwordInputField != null) ? this.passwordInputField.getText() : null;
         final boolean buildPassword = this.isPlainText;
 
-        if (this.passwordInput != null) {
+        if (this.passwordInputField != null) {
             PageService.clearComposite(this.inputAnchor);
         }
 
@@ -103,7 +103,7 @@ public class PasswordInput extends Composite {
             this.visibilityButton.setImage(WidgetFactory.ImageIcon.VISIBILITY_OFF.getImage(getDisplay()));
         }
 
-        this.passwordInput = passwordInput;
+        this.passwordInputField = passwordInput;
         this.isPlainText = !this.isPlainText;
 
         super.layout(true, true);
@@ -111,7 +111,7 @@ public class PasswordInput extends Composite {
 
     private void changeEvent(final int eventType, final Event event) {
         if (!this.visibilityButton.isEnabled() && !StringUtils.endsWith(
-                this.passwordInput.getText(),
+                this.passwordInputField.getText(),
                 Constants.IMPORTED_PASSWORD_MARKER)) {
 
             this.visibilityButton.setEnabled(true);
@@ -120,8 +120,8 @@ public class PasswordInput extends Composite {
     }
 
     public void setValue(final CharSequence value) {
-        if (this.passwordInput != null) {
-            this.passwordInput.setText(value != null ? value.toString() : StringUtils.EMPTY);
+        if (this.passwordInputField != null) {
+            this.passwordInputField.setText(value != null ? value.toString() : StringUtils.EMPTY);
             if (StringUtils.endsWith(value, Constants.IMPORTED_PASSWORD_MARKER)) {
                 this.visibilityButton.setEnabled(false);
             }
@@ -129,8 +129,8 @@ public class PasswordInput extends Composite {
     }
 
     public CharSequence getValue() {
-        if (this.passwordInput != null) {
-            return this.passwordInput.getText();
+        if (this.passwordInputField != null) {
+            return this.passwordInputField.getText();
         }
 
         return null;

@@ -54,7 +54,7 @@ public class InfoController {
                 .all(null, true)
                 .getOrThrow()
                 .stream()
-                .filter(inst -> inst.urlSuffix != null && urlSuffix.equals(inst.urlSuffix))
+                .filter(inst -> urlSuffix.equals(inst.urlSuffix))
                 .findFirst()
                 .map(inst -> inst.logoImage)
                 .orElse(null);

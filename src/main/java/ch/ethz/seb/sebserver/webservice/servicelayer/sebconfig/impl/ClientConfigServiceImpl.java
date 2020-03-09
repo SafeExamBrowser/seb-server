@@ -68,36 +68,36 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private static final Logger log = LoggerFactory.getLogger(ClientConfigServiceImpl.class);
 
     private static final String SEB_CLIENT_CONFIG_TEMPLATE_XML =
-            "  <dict>\r\n" +
-                    "    <key>sebMode</key>\r\n" +
-                    "    <integer>1</integer>\r\n" +
-                    "    <key>sebConfigPurpose</key>\r\n" +
-                    "    <integer>%s</integer>\r\n" +
-                    "    <key>sebServerFallback</key>\r\n" +
-                    "    <%s />\r\n" +
+            "  <dict>%n" +
+                    "    <key>sebMode</key>%n" +
+                    "    <integer>1</integer>%n" +
+                    "    <key>sebConfigPurpose</key>%n" +
+                    "    <integer>%s</integer>%n" +
+                    "    <key>sebServerFallback</key>%n" +
+                    "    <%s />%n" +
                     "%s" +
-                    "    <key>sebServerURL</key>\r\n" +
-                    "    <string>%s</string>\r\n" +
-                    "    <key>sebServerConfiguration</key>\r\n" +
-                    "    <dict>\r\n" +
-                    "        <key>institution</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>clientName</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>clientSecret</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "        <key>apiDiscovery</key>\r\n" +
-                    "        <string>%s</string>\r\n" +
-                    "    </dict>\r\n" +
-                    "  </dict>\r\n";
+                    "    <key>sebServerURL</key>%n" +
+                    "    <string>%s</string>%n" +
+                    "    <key>sebServerConfiguration</key>%n" +
+                    "    <dict>%n" +
+                    "        <key>institution</key>%n" +
+                    "        <string>%s</string>%n" +
+                    "        <key>clientName</key>%n" +
+                    "        <string>%s</string>%n" +
+                    "        <key>clientSecret</key>%n" +
+                    "        <string>%s</string>%n" +
+                    "        <key>apiDiscovery</key>%n" +
+                    "        <string>%s</string>%n" +
+                    "    </dict>%n" +
+                    "  </dict>%n";
 
     private final static String SEB_CLIENT_CONFIG_INTEGER_TEMPLATE =
-            "    <key>%s</key>\r\n" +
-                    "    <integer>%s</integer>\r\n";
+            "    <key>%s</key>%n" +
+                    "    <integer>%s</integer>%n";
 
     private final static String SEB_CLIENT_CONFIG_STRING_TEMPLATE =
-            "    <key>%s</key>\r\n" +
-                    "    <string>%s</string>\r\n";
+            "    <key>%s</key>%n" +
+                    "    <string>%s</string>%n";
 
     private final InstitutionDAO institutionDAO;
     private final SebClientConfigDAO sebClientConfigDAO;
@@ -338,7 +338,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                     String.valueOf(Constants.COLON) +
                     plainClientSecret;
             final String encoded = Base64.getEncoder()
-                    .encodeToString(basicAuth.getBytes());
+                    .encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8));
 
             headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
             final HttpEntity<String> entity = new HttpEntity<>(

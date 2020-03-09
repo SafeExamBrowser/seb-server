@@ -89,7 +89,7 @@ The main content usually consist of a list or a form.
 Lists
 ^^^^^^
 
-A list shows all the objects of a particular activity in a table page. If the list contains as for one page, a page navigation is shown at the bottom of the list with the information of the current page and the number of pages along with a page navigation that can be used to navigate forward and backward thought the list pages.
+A list shows all the objects of a particular activity in a table page. A list has paging and if a list has more objects than it fit on one page, a page navigation is shown at the bottom of the list with the information of the current page and the number of pages along with a page navigation that can be used to navigate forward and backward thought the list pages.
 Almost all lists have the ability to filter the content by certain column filter that are right above the corresponding columns. To filter a list one can use the column filter input to narrow down a specific collection of content. Accordingly to the value type of the column, there are different types of filter:
 
 - Selection, to select one instance of a defined collection of values (drop-down).
@@ -101,16 +101,29 @@ Almost all lists have the ability to filter the content by certain column filter
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list.png
 
-A list can also be sorted by a column by clicking in the column header and the order of sorting can be changed by clicking again on the same column header. Depending on the column type, not all columns has the sort functionality.
-Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment.
+A list can be sorted within a column by clicking in the column header. The order of sorting can be changed by clicking again on the same column header of the sorted column. If sorting functionality is available for a column depends on the column type. There are a few columns that do not have a sort functionality yet.
+Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment. A column tool-tip usually also explains how to use the column-related filter
 
 Forms
 ^^^^^^
 
+Forms are used for object specific data input or presentation, like HTML Forms usually do. Forms appear in three different ways within the SEB Server GUI:
+
+- When a object is first created in edit mode
+- When an object is modified also in edit mode
+- And when an object is just shown, in read-only mode
+
+The following images shows the same form, once in read-only mode and once edit mode
+
 .. image:: images/overview/form_readonly.png
+    :align: Form in read-only mode
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_readonly.png
 
 .. image:: images/overview/form_edit.png
+    :align: Form in edit mode
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_edit.png
+
+There usually there is a tool-tip on a form field element that is activated either by going over and stay on the form field label or the input section. If a form field is mandatory to either create or save an object, this is marked within a little red arrow just to the right of the form field label. There may be more validation take place on saving the object. If a input needs a special form that is not given by the current input, the form-field will be marked with a red border and a thin red explanation text is shown right below the input field. After correct the missing or wrong input and save again, the SEB Server will accept and process the changes.
+If the user navigates away from a form in edit mode, the GUI will inform about possible data loss and asks for proceed or abort.
