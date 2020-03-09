@@ -116,12 +116,12 @@ Forms are used for object specific data input or presentation, like HTML Forms u
 The following images shows the same form, once in read-only mode and once edit mode
 
 .. image:: images/overview/form_readonly.png
-    :align: Form in read-only mode
+    :alt: Form in read-only mode
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_readonly.png
 
 .. image:: images/overview/form_edit.png
-    :align: Form in edit mode
+    :alt: Form in edit mode
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_edit.png
 
