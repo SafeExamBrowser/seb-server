@@ -454,7 +454,6 @@ public final class ClientConnectionTable {
                 updateConnectionStatusColor(tableItem);
                 updateIndicatorValues(tableItem);
                 updateDuplicateColor(tableItem);
-
             }
         }
 
@@ -472,6 +471,10 @@ public final class ClientConnectionTable {
         }
 
         void updateDuplicateColor(final TableItem tableItem) {
+
+            tableItem.setBackground(0, null);
+            tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
+
             if (!this.duplicateChecked) {
                 return;
             }
@@ -487,9 +490,6 @@ public final class ClientConnectionTable {
                     tableItem.setBackground(0, null);
                     tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
                 }
-            } else {
-                tableItem.setBackground(0, null);
-                tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
             }
         }
 
