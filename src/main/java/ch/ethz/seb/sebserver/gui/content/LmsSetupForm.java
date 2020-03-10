@@ -8,10 +8,16 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -79,14 +85,25 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.institution");
     private static final LocTextKey FORM_PROXY_KEY =
             new LocTextKey("sebserver.lmssetup.form.proxy");
+    private static final LocTextKey FORM_PROXY_CHECK_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.check");
     private static final LocTextKey FORM_PROXY_HOST_KEY =
             new LocTextKey("sebserver.lmssetup.form.proxy.host");
     private static final LocTextKey FORM_PROXY_PORT_KEY =
             new LocTextKey("sebserver.lmssetup.form.proxy.port");
-    private static final LocTextKey FORM_PROXY_AUTH_CREDENTIALS_KEY =
-            new LocTextKey("sebserver.lmssetup.form.proxy.auth-credentials");
+    private static final LocTextKey FORM_PROXY_NAME_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.name");
+    private static final LocTextKey FORM_PROXY_PWD_KEY =
+            new LocTextKey("sebserver.lmssetup.form.proxy.password");
     public static final LocTextKey LMS_SETUP_TEST_OK =
             new LocTextKey("sebserver.lmssetup.action.test.ok");
+
+    private static final Set<String> PROXY_ATTRIBUTES = new HashSet<>(Arrays.asList(
+            Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
+            Domain.LMS_SETUP.ATTR_LMS_PROXY_PORT,
+            Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
+            Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET
+    ));
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -145,6 +162,9 @@ public class LmsSetupForm implements TemplateComposer {
                 .call()
                 .map(inst -> inst.active)
                 .getOr(false);
+        final boolean withProxy = StringUtils.isNotBlank(lmsSetup.proxyHost) ||
+                StringUtils.isNotBlank(lmsSetup.proxyAuthUsername) ||
+                lmsSetup.proxyPort != null;
 
         // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
@@ -207,17 +227,18 @@ public class LmsSetupForm implements TemplateComposer {
                                 .asPasswordField()
                                 .mandatory(!readonly))
 
-                .addFieldIf(
-                        () -> readonly,
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
-                                FORM_PROXY_KEY,
-                                (StringUtils.isNotBlank(lmsSetup.getProxyHost()))
-                                        ? lmsSetup.getProxyHost() + Constants.URL_PORT_SEPARATOR + lmsSetup.proxyPort
-                                        : null))
 
                 .addFieldIf(
                         isEdit,
+                        () -> FormBuilder.checkbox(
+                                "FORM_PROXY_CHECK",
+                                FORM_PROXY_CHECK_KEY,
+                                withProxy
+                                        ? Constants.TRUE_STRING
+                                        : Constants.FALSE_STRING))
+
+                .addFieldIf(
+                        () -> !readonly || withProxy,
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
                                 FORM_PROXY_HOST_KEY,
@@ -225,7 +246,7 @@ public class LmsSetupForm implements TemplateComposer {
                                 .withInputSpan(3)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
-                        isEdit,
+                        () -> !readonly || withProxy,
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_PORT,
                                 FORM_PROXY_PORT_KEY,
@@ -240,25 +261,46 @@ public class LmsSetupForm implements TemplateComposer {
                                 .withEmptyCellSeparation(false)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
-                        isEdit,
+                        () -> !readonly || withProxy,
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
-                                FORM_PROXY_AUTH_CREDENTIALS_KEY,
+                                FORM_PROXY_NAME_KEY,
                                 lmsSetup.getProxyAuthUsername())
                                 .withInputSpan(3)
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
-                        isEdit,
-                        () -> FormBuilder.text(Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET)
+                        () -> !readonly,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
+                                FORM_PROXY_PWD_KEY)
                                 .asPasswordField()
-                                .withInputSpan(2)
-                                .withLabelSpan(0)
-                                .withEmptyCellSeparation(false)
-                                .withEmptyCellSpan(0))
+                                .withInputSpan(3)
+                                .withLabelSpan(2)
+                                .withEmptyCellSeparation(true)
+                                .withEmptyCellSpan(3))
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)
                         : restService.getRestCall(SaveLmsSetup.class));
+
+        if (!readonly) {
+            formHandle.process(
+                    PROXY_ATTRIBUTES::contains,
+                    ffa -> ffa.setVisible(withProxy)
+            );
+            formHandle.getForm().getFieldInput("FORM_PROXY_CHECK")
+                    .addListener(SWT.Selection, event -> formHandle.process(
+                            PROXY_ATTRIBUTES::contains,
+                            ffa -> {
+                                boolean selected = ((Button) event.widget).getSelection();
+                                ffa.setVisible(selected);
+                                if (!selected) {
+                                    ffa.resetError();
+                                    ffa.setStringValue("");
+                                }
+                            }
+                    ));
+        }
 
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())

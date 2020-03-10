@@ -21,7 +21,7 @@ public enum ActivityDefinition implements Activity {
     EXAM_ADMINISTRATION(new LocTextKey("sebserver.overall.activity.title.examadmin")),
     EXAM(new LocTextKey("sebserver.exam.action.list")),
     SEB_CONFIGURATION(new LocTextKey("sebserver.overall.activity.title.sebconfig")),
-    SEB_CLIENT_CONFIG(new LocTextKey("sebserver.clientconfig.action.list")),
+    SEB_CLIENT_CONFIG(new LocTextKey("sebserver.clientconfig.list.title")),
     SEB_EXAM_CONFIG(new LocTextKey("sebserver.examconfig.action.list")),
     SEB_EXAM_CONFIG_TEMPLATE(new LocTextKey("sebserver.configtemplate.action.list")),
     MONITORING(new LocTextKey("sebserver.overall.activity.title.monitoring")),

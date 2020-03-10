@@ -214,7 +214,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
             throw e;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
-            pageContext.notifyError(SebExamConfigPropForm.FORM_TITLE, e);
+            pageContext.notifyError(SebExamConfigForm.FORM_TITLE, e);
         }
     }
 

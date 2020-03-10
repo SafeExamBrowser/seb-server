@@ -84,9 +84,11 @@ public class InstitutionList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
-                pageContext.getParent(),
-                TITLE_TEXT_KEY);
+        final Composite content = this.pageService
+                .getWidgetFactory()
+                .defaultPageLayout(
+                    pageContext.getParent(),
+                    TITLE_TEXT_KEY);
 
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());

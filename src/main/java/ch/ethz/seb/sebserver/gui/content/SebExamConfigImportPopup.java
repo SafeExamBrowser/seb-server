@@ -69,7 +69,7 @@ final class SebExamConfigImportPopup {
                     newConfig);
 
             dialog.open(
-                    SebExamConfigPropForm.FORM_IMPORT_TEXT_KEY,
+                    SebExamConfigForm.FORM_IMPORT_TEXT_KEY,
                     (Predicate<FormHandle<ConfigurationNode>>) formHandle -> doImport(
                             pageService,
                             formHandle,
@@ -151,7 +151,7 @@ final class SebExamConfigImportPopup {
                             .call();
 
                     if (!configuration.hasError()) {
-                        context.publishInfo(SebExamConfigPropForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
+                        context.publishInfo(SebExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
                         if (newConfig) {
 
                             final PageAction action = pageService.pageActionBuilder(context)
@@ -184,7 +184,7 @@ final class SebExamConfigImportPopup {
                         }
 
                         formHandle.getContext().notifyError(
-                                SebExamConfigPropForm.FORM_TITLE,
+                                SebExamConfigForm.FORM_TITLE,
                                 configuration.getError());
 
                     }
@@ -198,7 +198,7 @@ final class SebExamConfigImportPopup {
 
             return false;
         } catch (final Exception e) {
-            formHandle.getContext().notifyError(SebExamConfigPropForm.FORM_TITLE, e);
+            formHandle.getContext().notifyError(SebExamConfigForm.FORM_TITLE, e);
             return true;
         }
     }
@@ -234,7 +234,7 @@ final class SebExamConfigImportPopup {
                     .readonly(false)
                     .addField(FormBuilder.fileUpload(
                             API.IMPORT_FILE_ATTR_NAME,
-                            SebExamConfigPropForm.FORM_IMPORT_SELECT_TEXT_KEY,
+                            SebExamConfigForm.FORM_IMPORT_SELECT_TEXT_KEY,
                             null,
                             API.SEB_FILE_EXTENSION))
 
@@ -242,24 +242,24 @@ final class SebExamConfigImportPopup {
                             () -> this.newConfig,
                             () -> FormBuilder.text(
                                     Domain.CONFIGURATION_NODE.ATTR_NAME,
-                                    SebExamConfigPropForm.FORM_NAME_TEXT_KEY))
+                                    SebExamConfigForm.FORM_NAME_TEXT_KEY))
                     .addFieldIf(
                             () -> this.newConfig,
                             () -> FormBuilder.text(
                                     Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                                    SebExamConfigPropForm.FORM_DESCRIPTION_TEXT_KEY)
+                                    SebExamConfigForm.FORM_DESCRIPTION_TEXT_KEY)
                                     .asArea())
                     .addFieldIf(
                             () -> this.newConfig && !examConfigTemplateResources.isEmpty(),
                             () -> FormBuilder.singleSelection(
                                     Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
-                                    SebExamConfigPropForm.FORM_TEMPLATE_TEXT_KEY,
+                                    SebExamConfigForm.FORM_TEMPLATE_TEXT_KEY,
                                     null,
                                     resourceService::getExamConfigTemplateResources))
 
                     .addField(FormBuilder.text(
                             API.IMPORT_PASSWORD_ATTR_NAME,
-                            SebExamConfigPropForm.FORM_IMPORT_PASSWORD_TEXT_KEY,
+                            SebExamConfigForm.FORM_IMPORT_PASSWORD_TEXT_KEY,
                             "").asPasswordField())
                     .build();
 

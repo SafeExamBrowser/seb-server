@@ -79,7 +79,7 @@ public class ActionPane implements TemplateComposer {
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 (ActionPublishEventListener) event -> {
                     final Composite parent = pageContext.getParent();
-                    final Tree treeForGroup = getTreeForGroup(parent, event.action.definition);
+                    final Tree treeForGroup = getTreeForGroup(parent, event.action.definition, true);
                     final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                             treeForGroup,
                             event.action.definition.title);
@@ -141,7 +141,7 @@ public class ActionPane implements TemplateComposer {
     }
 
     private TreeItem findAction(final Composite parent, final ActionDefinition actionDefinition) {
-        final Tree treeForGroup = getTreeForGroup(parent, actionDefinition);
+        final Tree treeForGroup = getTreeForGroup(parent, actionDefinition, false);
         if (treeForGroup == null) {
             return null;
         }
@@ -165,11 +165,15 @@ public class ActionPane implements TemplateComposer {
         return null;
     }
 
-    private Tree getTreeForGroup(final Composite parent, final ActionDefinition actionDefinition) {
+    private Tree getTreeForGroup(
+            final Composite parent,
+            final ActionDefinition actionDefinition,
+            boolean create) {
+
         clearDisposedTrees();
 
         final ActionCategory category = actionDefinition.category;
-        if (!this.actionTrees.containsKey(category.name())) {
+        if (!this.actionTrees.containsKey(category.name()) && create) {
             final Tree actionTree = createActionTree(parent, actionDefinition.category);
             this.actionTrees.put(category.name(), actionTree);
         }
@@ -210,7 +214,7 @@ public class ActionPane implements TemplateComposer {
         // action tree
         final Tree actions = this.widgetFactory.treeLocalized(
                 composite,
-                SWT.SINGLE | SWT.FULL_SELECTION);
+                SWT.SINGLE | SWT.FULL_SELECTION | SWT.NO_SCROLL);
         actions.setData(RWT.CUSTOM_VARIANT, "actions");
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         actions.setLayoutData(gridData);
@@ -225,7 +229,7 @@ public class ActionPane implements TemplateComposer {
         imageCell.setBindingIndex(0);
         final TextCell textCell = new TextCell(template);
         textCell.setLeft(0, 30)
-                .setWidth(150)
+                .setWidth(SWT.DEFAULT)
                 .setTop(7)
                 .setBottom(0, 0)
                 .setHorizontalAlignment(SWT.LEFT);

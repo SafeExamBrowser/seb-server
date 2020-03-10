@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
@@ -68,7 +67,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Lazy
 @Component
 @GuiProfile
-public class SebExamConfigPropForm implements TemplateComposer {
+public class SebExamConfigForm implements TemplateComposer {
 
     static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
@@ -108,7 +107,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
     private final DownloadService downloadService;
     private final String downloadFileName;
 
-    protected SebExamConfigPropForm(
+    protected SebExamConfigForm(
             final PageService pageService,
             final CurrentUser currentUser,
             final DownloadService downloadService,
@@ -225,24 +224,7 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
-                .withEntityKey(entityKey)
-                .withExec(action -> {
-                    final String downloadURL = this.downloadService.createDownloadURL(
-                            entityKey.modelId,
-                            SebExamConfigPlaintextDownload.class,
-                            this.downloadFileName);
-                    urlLauncher.openURL(downloadURL);
-                    return action;
-                })
-                .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
-                .withEntityKey(entityKey)
-                .withExec(SebExamConfigPropForm.getConfigKeyFunction(this.pageService))
-                .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                 .withEntityKey(entityKey)
@@ -275,6 +257,25 @@ public class SebExamConfigPropForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
+                .withEntityKey(entityKey)
+                .withExec(action -> {
+                    final String downloadURL = this.downloadService.createDownloadURL(
+                            entityKey.modelId,
+                            SebExamConfigPlaintextDownload.class,
+                            this.downloadFileName);
+                    urlLauncher.openURL(downloadURL);
+                    return action;
+                })
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigForm.getConfigKeyFunction(this.pageService))
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant && isReadonly)
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
@@ -289,13 +290,10 @@ public class SebExamConfigPropForm implements TemplateComposer {
 
         if (isAttachedToExam && isReadonly) {
 
-            widgetFactory.label(content, StringUtils.EMPTY);
-            widgetFactory.labelLocalized(
+            widgetFactory.addFormSubContextHeader(
                     content,
-                    CustomVariant.TEXT_H3,
                     FORM_ATTACHED_EXAMS_TITLE_TEXT_KEY,
                     FORM_ATTACHED_EXAMS_TITLE_TOOLTIP_TEXT_KEY);
-            widgetFactory.labelSeparator(content);
 
             final EntityTable<ExamConfigurationMap> table =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))

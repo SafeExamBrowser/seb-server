@@ -177,13 +177,10 @@ public class ConfigTemplateForm implements TemplateComposer {
 
         if (isReadonly) {
 
-            widgetFactory.label(content, StringUtils.EMPTY);
-            widgetFactory.labelLocalized(
+            widgetFactory.addFormSubContextHeader(
                     content,
-                    WidgetFactory.CustomVariant.TEXT_H3,
                     ATTRIBUTES_LIST_TITLE_TEXT_KEY,
                     ATTRIBUTES_LIST_TITLE_TOOLTIP_TEXT_KEY);
-            widgetFactory.labelSeparator(content);
 
             final TableFilterAttribute viewFilter = new TableFilterAttribute(
                     CriteriaType.SINGLE_SELECTION,

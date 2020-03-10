@@ -63,18 +63,28 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.list.column.user");
     private static final LocTextKey DATE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.dateTime");
-    private static final LocTextKey DETAILS_DATE_TEXT_KEY =
-            new LocTextKey("sebserver.seblogs.details.dateTime");
     private static final LocTextKey ACTIVITY_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.activityType");
     private static final LocTextKey ENTITY_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.list.column.entityType");
-    private static final LocTextKey ENTITY_ID_TEXT_KEY =
-            new LocTextKey("sebserver.userlogs.list.column.entityId");
-    private static final LocTextKey MESSAGE_TEXT_KEY =
-            new LocTextKey("sebserver.userlogs.list.column.message");
     private final static LocTextKey EMPTY_SELECTION_TEXT =
             new LocTextKey("sebserver.userlogs.info.pleaseSelect");
+
+    private static final LocTextKey FORM_USER_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.user");
+    private static final LocTextKey FORM_DATE_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.dateTime");
+    private static final LocTextKey FORM_DETAILS_DATE_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.dateTime");
+    private static final LocTextKey FORM_ACTIVITY_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.activityType");
+    private static final LocTextKey FORM_ENTITY_TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.entityType");
+    private static final LocTextKey FORM_ENTITY_ID_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.entityId");
+    private static final LocTextKey FORM_MESSAGE_TEXT_KEY =
+            new LocTextKey("sebserver.userlogs.form.message");
+
 
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute userNameFilter =
@@ -248,29 +258,29 @@ public class UserActivityLogs implements TemplateComposer {
                 .readonly(true)
                 .addField(FormBuilder.text(
                         UserActivityLog.ATTR_USER_NAME,
-                        USER_TEXT_KEY,
+                        FORM_USER_TEXT_KEY,
                         String.valueOf(userActivityLog.getUsername())))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE,
-                        ACTIVITY_TEXT_KEY,
+                        FORM_ACTIVITY_TEXT_KEY,
                         this.resourceService.getUserActivityTypeName(userActivityLog)))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_TYPE,
-                        ENTITY_TYPE_TEXT_KEY,
+                        FORM_ENTITY_TYPE_TEXT_KEY,
                         this.resourceService.getEntityTypeName(userActivityLog)))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_ENTITY_ID,
-                        ENTITY_ID_TEXT_KEY,
+                        FORM_ENTITY_ID_TEXT_KEY,
                         userActivityLog.entityId))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
-                        DETAILS_DATE_TEXT_KEY,
+                        FORM_DETAILS_DATE_TEXT_KEY,
                         this.widgetFactory.getI18nSupport()
                                 .formatDisplayDateTime(Utils.toDateTimeUTC(userActivityLog.timestamp)) + " " +
                                 this.i18nSupport.getUsersTimeZoneTitleSuffix()))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_MESSAGE,
-                        MESSAGE_TEXT_KEY,
+                        FORM_MESSAGE_TEXT_KEY,
                         String.valueOf(userActivityLog.message))
                         .asArea())
                 .build();

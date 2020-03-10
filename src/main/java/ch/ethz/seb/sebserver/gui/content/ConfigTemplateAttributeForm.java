@@ -167,13 +167,10 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             valSpace.setLayout(new GridLayout());
             valSpace.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-            widgetFactory.label(content, StringUtils.EMPTY);
-            widgetFactory.labelLocalized(
+            widgetFactory.addFormSubContextHeader(
                     valSpace,
-                    CustomVariant.TEXT_H3,
                     FORM_VALUE_TEXT_KEY,
-                    FORM_VALUE_TOOLTIP_TEXT_KEY);
-            widgetFactory.labelSeparator(valSpace);
+                    FORM_VALUE_TOOLTIP_TEXT_KEY );
 
             final Composite grid = new Composite(valSpace, SWT.NONE);
             grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));

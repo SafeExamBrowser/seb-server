@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -140,6 +142,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
+import org.springframework.web.servlet.DispatcherServlet;
 
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
@@ -656,6 +659,57 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
                 .call();
+    }
+
+    @Test
+    @Order(6)
+    // *************************************
+    // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
+    //  - login as TestInstAdmin : 987654321
+    public void testUsecase5_5() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new NewLmsSetup(),
+                new TestLmsSetup(),
+                new GetLmsSetupNames(),
+                new GetLmsSetup(),
+                new SaveLmsSetup(),
+                new ActivateLmsSetup(),
+                new DeactivateLmsSetup(),
+                new GetQuizPage());
+
+        // create new LMS Setup Mockup
+        Result<LmsSetup> newLMSCall = restService
+                .getBuilder(NewLmsSetup.class)
+                .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8080/openedxtest")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        LmsSetup lmsSetup = newLMSCall.get();
+        assertEquals("Test Open edx", lmsSetup.name);
+        assertFalse(lmsSetup.isActive());
+
+        // activate lms setup
+        LmsSetupTestResult testResult = restService
+                .getBuilder(TestLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call()
+                .getOrThrow();
+
+        DispatcherServlet dispatcherServlet = mockMvc.getDispatcherServlet();
+
+        assertNotNull(testResult);
+        assertFalse(testResult.isOk());
+        assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
+                " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
+
+        // TODO how to mockup a Open edX response
     }
 
     @Test
@@ -1717,6 +1771,27 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(newTemplValue);
         assertEquals("123", newTemplValue.value);
 
+        // reset template values
+        TemplateAttribute attribute = restService
+                .getBuilder(ResetTemplateValues.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
+                .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(attribute);
+        assertEquals("hashedAdminPassword", attribute.getConfigAttribute().name);
+
+        restService
+                .getBuilder(GetConfigurationValues.class)
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID, String.valueOf(fallow_up.id))
+                .withQueryParam(ConfigurationValue.FILTER_ATTR_CONFIGURATION_ATTRIBUTE_ID, savedTAttribute.getModelId())
+                .call()
+                .getOrThrow()
+                .stream()
+                .filter(cValue -> cValue.attributeId.equals(attribute.getConfigAttribute().id))
+                .findFirst()
+                .ifPresent(cValue -> assertNull(cValue.value));
     }
 
 }

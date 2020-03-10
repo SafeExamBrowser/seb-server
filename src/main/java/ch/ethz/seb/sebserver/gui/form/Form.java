@@ -483,7 +483,7 @@ public final class Form implements FormBinding {
             this.listValue = listValue;
         }
 
-        abstract String getStringValue();
+        public abstract String getStringValue();
 
         public void setStringValue(final String value) {
             throw new UnsupportedOperationException();

@@ -26,7 +26,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.institution.action.new"),
             ImageIcon.INSTITUTION,
             PageStateDefinitionImpl.INSTITUTION_EDIT,
-            ActionCategory.FORM),
+            ActionCategory.LIST_VARIA),
     INSTITUTION_VIEW_FROM_LIST(
             new LocTextKey("sebserver.institution.action.list.view"),
             ImageIcon.SHOW,
@@ -54,7 +54,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
     INSTITUTION_SAVE_AND_ACTIVATE(
-            new LocTextKey("sebserver.form.action.save.activate"),
+            new LocTextKey("sebserver.institution.action.activate"),
             ImageIcon.ACTIVE,
             PageStateDefinitionImpl.INSTITUTION_VIEW,
             ActionCategory.FORM),
@@ -83,7 +83,8 @@ public enum ActionDefinition {
     USER_ACCOUNT_NEW(
             new LocTextKey("sebserver.useraccount.action.new"),
             ImageIcon.USER,
-            PageStateDefinitionImpl.USER_ACCOUNT_EDIT),
+            PageStateDefinitionImpl.USER_ACCOUNT_EDIT,
+            ActionCategory.FORM.LIST_VARIA),
     USER_ACCOUNT_VIEW_FROM_LIST(
             new LocTextKey("sebserver.useraccount.action.view"),
             ImageIcon.SHOW,
@@ -110,7 +111,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
     USER_ACCOUNT_SAVE_AND_ACTIVATE(
-            new LocTextKey("sebserver.form.action.save.activate"),
+            new LocTextKey("sebserver.useraccount.action.activate"),
             ImageIcon.ACTIVE,
             PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
             ActionCategory.FORM),
@@ -147,7 +148,8 @@ public enum ActionDefinition {
     LMS_SETUP_NEW(
             new LocTextKey("sebserver.lmssetup.action.new"),
             ImageIcon.LMS_SETUP,
-            PageStateDefinitionImpl.LMS_SETUP_EDIT),
+            PageStateDefinitionImpl.LMS_SETUP_EDIT,
+            ActionCategory.LIST_VARIA),
     LMS_SETUP_VIEW_FROM_LIST(
             new LocTextKey("sebserver.lmssetup.action.list.view"),
             ImageIcon.SHOW,
@@ -224,6 +226,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.exam.action.import"),
             ImageIcon.IMPORT,
             PageStateDefinitionImpl.QUIZ_LIST),
+    EXAM_VIEW_FROM_CONFIG(
+            new LocTextKey("sebserver.exam.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_VIEW,
+            ActionCategory.LIST_VARIA),
     EXAM_VIEW_FROM_LIST(
             new LocTextKey("sebserver.exam.action.list.view"),
             ImageIcon.SHOW,
@@ -343,12 +350,13 @@ public enum ActionDefinition {
             ActionCategory.FORM),
 
     SEB_CLIENT_CONFIG_LIST(
-            new LocTextKey("sebserver.clientconfig.action.list"),
+            new LocTextKey("sebserver.clientconfig.list.title"),
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST),
     SEB_CLIENT_CONFIG_NEW(
             new LocTextKey("sebserver.clientconfig.action.list.new"),
             ImageIcon.NEW,
-            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_EDIT),
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_EDIT,
+            ActionCategory.LIST_VARIA),
     SEB_CLIENT_CONFIG_VIEW_FROM_LIST(
             new LocTextKey("sebserver.clientconfig.action.list.view"),
             ImageIcon.SHOW,
@@ -375,7 +383,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
     SEB_CLIENT_CONFIG_SAVE_AND_ACTIVATE(
-            new LocTextKey("sebserver.form.action.save.activate"),
+            new LocTextKey("sebserver.clientconfig.action.activate"),
             ImageIcon.ACTIVE,
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
@@ -406,7 +414,8 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_NEW(
             new LocTextKey("sebserver.examconfig.action.list.new"),
             ImageIcon.NEW,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_EDIT),
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_EDIT,
+            ActionCategory.LIST_VARIA),
     SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.view"),
             ImageIcon.SHOW,
@@ -421,7 +430,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.import-config"),
             ImageIcon.IMPORT,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
-            ActionCategory.VARIA),
+            ActionCategory.LIST_VARIA),
 
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
@@ -496,7 +505,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.configtemplate.action.list.new"),
             ImageIcon.TEMPLATE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_EDIT,
-            ActionCategory.VARIA),
+            ActionCategory.LIST_VARIA),
     SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST(
             new LocTextKey("sebserver.configtemplate.action.list.view"),
             ImageIcon.SHOW,

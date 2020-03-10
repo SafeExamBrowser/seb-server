@@ -68,8 +68,7 @@ Label.list-nav {
 
 Label.h1 {
     font: 25px Arial, Helvetica, sans-serif;
-    height: 28px;
-    padding: 0px 12px 6px 12px;
+    padding: 0px 0px 0px 5px;
     color: #1f407a;
 }
 
@@ -85,6 +84,12 @@ Label.h3 {
     height: 20px;
     padding: 0;
     color: #1f407a;
+}
+
+Label.subtitle {
+    font: 14px Arial, Helvetica, sans-serif;
+    padding: 0px 0px 0px 5px;
+    color: #4a4a4a;
 }
 
 Label.error {
@@ -628,7 +633,11 @@ Tree[BORDER] {
     border: 1px solid #eceeef;
 }
 
-TreeItem, TreeItem.treesection, Tree-RowOverlay:hover.treesection, Tree-RowOverlay:selected.treesection, Tree-RowOverlay:selected:hover.treesection {
+TreeItem,
+TreeItem.treesection,
+Tree-RowOverlay:hover.treesection,
+Tree-RowOverlay:selected.treesection,
+Tree-RowOverlay:selected:hover.treesection {
     font: bold 14px Arial, Helvetica, sans-serif;
     color: #1f407a;
     background-color: transparent;
@@ -657,18 +666,18 @@ Tree-RowOverlay:hover {
 
 
 Tree-RowOverlay:selected {
-    background-color: #82be1e;
-    color: #1F407A;
+    background-color: #b5b5b5;
+    color: #303030;
 }
 
 Tree-RowOverlay:selected:unfocused {
-    background-color: #82be1e;
-    color: #1f407a;
+    background-color: #b5b5b5;
+    color: #303030;
 }
 
 Tree-RowOverlay:selected:hover {
     background-color: #82be1e;
-    color: #000000;
+    color: #1f407a;
 }
 
 Tree.actions {

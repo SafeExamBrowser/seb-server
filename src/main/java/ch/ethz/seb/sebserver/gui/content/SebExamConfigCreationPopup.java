@@ -174,16 +174,16 @@ final class SebExamConfigCreationPopup {
                             entityKey.getModelId())
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_NODE.ATTR_NAME,
-                            SebExamConfigPropForm.FORM_NAME_TEXT_KEY))
+                            SebExamConfigForm.FORM_NAME_TEXT_KEY))
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                            SebExamConfigPropForm.FORM_DESCRIPTION_TEXT_KEY)
+                            SebExamConfigForm.FORM_DESCRIPTION_TEXT_KEY)
                             .asArea())
                     .addFieldIf(
                             () -> !this.copyAsTemplate && !this.createFromTemplate,
                             () -> FormBuilder.checkbox(
                                     ConfigCreationInfo.ATTR_COPY_WITH_HISTORY,
-                                    SebExamConfigPropForm.FORM_HISTORY_TEXT_KEY))
+                                    SebExamConfigForm.FORM_HISTORY_TEXT_KEY))
                     .build();
 
             return () -> formHandle;

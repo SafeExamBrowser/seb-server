@@ -688,7 +688,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey examConfigMappingKey = action.getSingleSelection();
         if (examConfigMappingKey != null) {
             action.withEntityKey(examConfigMappingKey);
-            return SebExamConfigPropForm
+            return SebExamConfigForm
                     .getConfigKeyFunction(this.pageService)
                     .apply(action);
         }

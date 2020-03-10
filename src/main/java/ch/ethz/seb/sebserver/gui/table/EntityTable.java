@@ -144,6 +144,7 @@ public class EntityTable<ROW extends Entity> {
         layout.marginHeight = 0;
         this.composite.setLayout(layout);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.horizontalIndent = 2;
         this.composite.setLayoutData(gridData);
         this.staticQueryParams = staticQueryParams;
         this.rowDecorator = rowDecorator;

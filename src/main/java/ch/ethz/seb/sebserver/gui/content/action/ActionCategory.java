@@ -12,6 +12,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
 public enum ActionCategory {
     FORM(null, 0),
+    LIST_VARIA(null, 10),
     INSTITUTION_LIST(new LocTextKey("sebserver.institution.list.actions"), 1),
     USER_ACCOUNT_LIST(new LocTextKey("sebserver.useraccount.list.actions"), 1),
     LMS_SETUP_LIST(new LocTextKey("sebserver.lmssetup.list.actions"), 1),

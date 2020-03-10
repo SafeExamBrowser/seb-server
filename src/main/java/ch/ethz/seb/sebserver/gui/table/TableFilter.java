@@ -66,7 +66,7 @@ public class TableFilter<ROW extends Entity> {
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         this.composite.setLayoutData(gridData);
         final RowLayout layout = new RowLayout(SWT.HORIZONTAL);
-        layout.spacing = 5;
+        layout.marginLeft = 0;
         layout.wrap = false;
         layout.center = false;
         layout.fill = true;
@@ -137,7 +137,7 @@ public class TableFilter<ROW extends Entity> {
 
     boolean adaptColumnWidth(final int columnIndex, final int width) {
         if (columnIndex < this.components.size()) {
-            final boolean adaptWidth = this.components.get(columnIndex).adaptWidth(width);
+            final boolean adaptWidth = this.components.get(columnIndex).adaptWidth(width + 2);
             if (adaptWidth) {
                 this.composite.layout();
             }
