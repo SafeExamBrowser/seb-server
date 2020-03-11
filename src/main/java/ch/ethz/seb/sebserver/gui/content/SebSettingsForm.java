@@ -55,9 +55,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SebExamConfigSettingsForm implements TemplateComposer {
+public class SebSettingsForm implements TemplateComposer {
 
-    private static final Logger log = LoggerFactory.getLogger(SebExamConfigSettingsForm.class);
+    private static final Logger log = LoggerFactory.getLogger(SebSettingsForm.class);
 
     private static final String VIEW_TEXT_KEY_PREFIX =
             "sebserver.examconfig.props.form.views.";
@@ -76,7 +76,7 @@ public class SebExamConfigSettingsForm implements TemplateComposer {
     private final CurrentUser currentUser;
     private final ExamConfigurationService examConfigurationService;
 
-    protected SebExamConfigSettingsForm(
+    protected SebSettingsForm(
             final PageService pageService,
             final RestService restService,
             final CurrentUser currentUser,

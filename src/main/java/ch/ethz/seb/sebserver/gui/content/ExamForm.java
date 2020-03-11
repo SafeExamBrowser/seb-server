@@ -24,6 +24,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,11 +215,15 @@ public class ExamForm implements TemplateComposer {
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
 
         // check exam consistency and inform the user if needed
+        Collection<APIMessage> warnings = null;
         if (readonly) {
-            this.restService.getBuilder(CheckExamConsistency.class)
+            warnings = this.restService.getBuilder(CheckExamConsistency.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
-                    .ifPresent(result -> showConsistencyChecks(result, formContext.getParent()));
+                    .getOr(Collections.emptyList());
+            if (warnings != null && !warnings.isEmpty()) {
+                    showConsistencyChecks(warnings, formContext.getParent());
+            }
         }
 
         // the default page layout with title
@@ -228,6 +233,10 @@ public class ExamForm implements TemplateComposer {
         final Composite content = this.widgetFactory.defaultPageLayout(
                 formContext.getParent(),
                 titleKey);
+        if (warnings != null && !warnings.isEmpty()) {
+            GridData gridData = (GridData) content.getLayoutData();
+            gridData.verticalIndent = 10;
+        }
 
         final BooleanSupplier isNew = () -> importFromQuizData;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
@@ -401,13 +410,11 @@ public class ExamForm implements TemplateComposer {
         if (readonly && !importFromQuizData) {
 
             // List of SEB Configuration
-            this.widgetFactory.label(content, StringUtils.EMPTY);
-            this.widgetFactory.labelLocalized(
+            this.widgetFactory.addFormSubContextHeader(
                     content,
-                    CustomVariant.TEXT_H3,
                     CONFIG_LIST_TITLE_KEY,
-                    CONFIG_LIST_TITLE_TOOLTIP_KEY);
-            this.widgetFactory.labelSeparator(content);
+                    CONFIG_LIST_TITLE_TOOLTIP_KEY
+            );
 
             final EntityTable<ExamConfigurationMap> configurationTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
@@ -496,13 +503,11 @@ public class ExamForm implements TemplateComposer {
                     .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent(), false);
 
             // List of Indicators
-            this.widgetFactory.label(content, StringUtils.EMPTY);
-            this.widgetFactory.labelLocalized(
+            this.widgetFactory.addFormSubContextHeader(
                     content,
-                    CustomVariant.TEXT_H3,
                     INDICATOR_LIST_TITLE_KEY,
-                    INDICATOR_LIST_TITLE_TOOLTIP_KEY);
-            this.widgetFactory.labelSeparator(content);
+                    INDICATOR_LIST_TITLE_TOOLTIP_KEY
+            );
 
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetIndicatorPage.class))
@@ -545,10 +550,6 @@ public class ExamForm implements TemplateComposer {
 
             actionBuilder
 
-                    .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
-                    .withParentEntityKey(entityKey)
-                    .publishIf(() -> modifyGrant)
-
                     .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(
@@ -563,7 +564,11 @@ public class ExamForm implements TemplateComposer {
                             indicatorTable::getSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false);
+                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
+
+                    .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
+                    .withParentEntityKey(entityKey)
+                    .publishIf(() -> modifyGrant);
         }
     }
 

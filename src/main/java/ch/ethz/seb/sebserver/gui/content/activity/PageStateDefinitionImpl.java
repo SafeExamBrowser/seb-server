@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gui.content.SebClientConfigList;
 import ch.ethz.seb.sebserver.gui.content.SebClientLogs;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigList;
 import ch.ethz.seb.sebserver.gui.content.SebExamConfigForm;
-import ch.ethz.seb.sebserver.gui.content.SebExamConfigSettingsForm;
+import ch.ethz.seb.sebserver.gui.content.SebSettingsForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountChangePasswordForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
 import ch.ethz.seb.sebserver.gui.content.UserAccountList;
@@ -66,8 +66,8 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     SEB_EXAM_CONFIG_LIST(Type.LIST_VIEW, SebExamConfigList.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_PROP_VIEW(Type.FORM_VIEW, SebExamConfigForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
     SEB_EXAM_CONFIG_PROP_EDIT(Type.FORM_EDIT, SebExamConfigForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
-    SEB_EXAM_CONFIG_EDIT(Type.FORM_IN_TIME_EDIT, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
-    SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebExamConfigSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_EDIT(Type.FORM_IN_TIME_EDIT, SebSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
+    SEB_EXAM_CONFIG_VIEW(Type.FORM_VIEW, SebSettingsForm.class, ActivityDefinition.SEB_EXAM_CONFIG),
 
     SEB_EXAM_CONFIG_TEMPLATE_LIST(Type.LIST_VIEW, ConfigTemplateList.class,
             ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE),

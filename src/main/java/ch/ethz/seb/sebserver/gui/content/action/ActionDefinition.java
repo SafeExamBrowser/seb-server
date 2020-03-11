@@ -186,7 +186,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.LMS_SETUP_VIEW,
             ActionCategory.FORM),
     LMS_SETUP_SAVE_AND_ACTIVATE(
-            new LocTextKey("sebserver.form.action.save.activate"),
+            new LocTextKey("sebserver.lmssetup.action.activate"),
             ImageIcon.ACTIVE,
             PageStateDefinitionImpl.LMS_SETUP_VIEW,
             ActionCategory.FORM),
@@ -447,6 +447,11 @@ public enum ActionDefinition {
             ImageIcon.EDIT_SETTINGS,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_VIEW(
+            new LocTextKey("sebserver.examconfig.action.view"),
+            ImageIcon.EDIT_SETTINGS,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_VIEW,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY(
             new LocTextKey("sebserver.overall.action.modify.cancel"),
@@ -480,13 +485,6 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.copy-as-template"),
             ImageIcon.TEMPLATE,
             ActionCategory.FORM),
-
-    SEB_EXAM_CONFIG_MODIFY_FROM_LIST(
-            new LocTextKey("sebserver.examconfig.action.list.modify"),
-            ImageIcon.EDIT_SETTINGS,
-            PageStateDefinitionImpl.SEB_EXAM_CONFIG_EDIT,
-            ActionCategory.SEB_EXAM_CONFIG_LIST),
-
     SEB_EXAM_CONFIG_SAVE_TO_HISTORY(
             new LocTextKey("sebserver.examconfig.action.saveToHistory"),
             ImageIcon.SAVE,
@@ -603,7 +601,7 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
     MONITOR_EXAM_QUIT_SELECTED(
-            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit"),
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),
             ImageIcon.SEND_QUIT,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.CLIENT_EVENT_LIST),

@@ -218,7 +218,10 @@ public class WidgetFactory {
         return content;
     }
 
-    public Composite defaultPageLayout(final Composite parent, final LocTextKey title) {
+    public Composite defaultPageLayout(
+            final Composite parent,
+            final LocTextKey title) {
+
         final Composite defaultPageLayout = defaultPageLayout(parent);
         final Label labelLocalizedTitle = labelLocalizedTitle(defaultPageLayout, title);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -286,7 +289,8 @@ public class WidgetFactory {
 
     public Composite createWarningPanel(final Composite parent) {
         final Composite composite = new Composite(parent, SWT.NONE);
-        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        composite.setLayoutData(gridData);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.marginWidth = 20;
         gridLayout.marginHeight = 20;

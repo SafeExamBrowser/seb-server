@@ -219,18 +219,12 @@ public class SebExamConfigForm implements TemplateComposer {
 
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
+                .newAction( (!modifyGrant || examConfig.status == ConfigurationStatus.IN_USE)
+                        ? ActionDefinition.SEB_EXAM_CONFIG_VIEW
+                        : ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
                 .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
                 .publishIf(() -> modifyGrant && isReadonly)
-
-
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
-                .withEntityKey(entityKey)
-                .withExec(SebExamConfigImportPopup.importFunction(this.pageService, false))
-                .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
@@ -275,6 +269,12 @@ public class SebExamConfigForm implements TemplateComposer {
                 .withExec(SebExamConfigForm.getConfigKeyFunction(this.pageService))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
+                .withEntityKey(entityKey)
+                .withExec(SebExamConfigImportPopup.importFunction(this.pageService, false))
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_SAVE)
                 .withEntityKey(entityKey)

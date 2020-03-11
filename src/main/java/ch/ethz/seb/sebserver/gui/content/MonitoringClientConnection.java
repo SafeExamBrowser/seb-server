@@ -63,6 +63,8 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
+    private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title.tooltip");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.empty");
     private static final LocTextKey LIST_COLUMN_TYPE_KEY =
@@ -167,10 +169,11 @@ public class MonitoringClientConnection implements TemplateComposer {
                 context1 -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI());
 
-        widgetFactory.labelLocalized(
+        widgetFactory.addFormSubContextHeader(
                 content,
-                CustomVariant.TEXT_H3,
-                EVENT_LIST_TITLE_KEY);
+                EVENT_LIST_TITLE_KEY,
+                EVENT_LIST_TITLE_TOOLTIP_KEY
+        );
 
         final PageService.PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(
