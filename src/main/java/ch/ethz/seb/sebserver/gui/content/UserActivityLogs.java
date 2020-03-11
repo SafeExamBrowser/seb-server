@@ -74,8 +74,6 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.form.user");
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.form.dateTime");
-    private static final LocTextKey FORM_DETAILS_DATE_TEXT_KEY =
-            new LocTextKey("sebserver.userlogs.form.dateTime");
     private static final LocTextKey FORM_ACTIVITY_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.form.activityType");
     private static final LocTextKey FORM_ENTITY_TYPE_TEXT_KEY =
@@ -84,7 +82,6 @@ public class UserActivityLogs implements TemplateComposer {
             new LocTextKey("sebserver.userlogs.form.entityId");
     private static final LocTextKey FORM_MESSAGE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.form.message");
-
 
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute userNameFilter =
@@ -274,7 +271,7 @@ public class UserActivityLogs implements TemplateComposer {
                         userActivityLog.entityId))
                 .addField(FormBuilder.text(
                         Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
-                        FORM_DETAILS_DATE_TEXT_KEY,
+                        FORM_DATE_TEXT_KEY,
                         this.widgetFactory.getI18nSupport()
                                 .formatDisplayDateTime(Utils.toDateTimeUTC(userActivityLog.timestamp)) + " " +
                                 this.i18nSupport.getUsersTimeZoneTitleSuffix()))

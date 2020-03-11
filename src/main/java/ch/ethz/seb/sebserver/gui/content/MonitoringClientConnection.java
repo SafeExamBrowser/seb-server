@@ -51,7 +51,6 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -172,8 +171,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         widgetFactory.addFormSubContextHeader(
                 content,
                 EVENT_LIST_TITLE_KEY,
-                EVENT_LIST_TITLE_TOOLTIP_KEY
-        );
+                EVENT_LIST_TITLE_TOOLTIP_KEY);
 
         final PageService.PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(

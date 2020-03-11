@@ -84,7 +84,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.useraccount.action.new"),
             ImageIcon.USER,
             PageStateDefinitionImpl.USER_ACCOUNT_EDIT,
-            ActionCategory.FORM.LIST_VARIA),
+            ActionCategory.LIST_VARIA),
     USER_ACCOUNT_VIEW_FROM_LIST(
             new LocTextKey("sebserver.useraccount.action.view"),
             ImageIcon.SHOW,

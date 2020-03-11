@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -83,8 +82,6 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.name");
     private static final LocTextKey FORM_INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.institution");
-    private static final LocTextKey FORM_PROXY_KEY =
-            new LocTextKey("sebserver.lmssetup.form.proxy");
     private static final LocTextKey FORM_PROXY_CHECK_KEY =
             new LocTextKey("sebserver.lmssetup.form.proxy.check");
     private static final LocTextKey FORM_PROXY_HOST_KEY =
@@ -102,8 +99,7 @@ public class LmsSetupForm implements TemplateComposer {
             Domain.LMS_SETUP.ATTR_LMS_PROXY_HOST,
             Domain.LMS_SETUP.ATTR_LMS_PROXY_PORT,
             Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME,
-            Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET
-    ));
+            Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET));
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -227,7 +223,6 @@ public class LmsSetupForm implements TemplateComposer {
                                 .asPasswordField()
                                 .mandatory(!readonly))
 
-
                 .addFieldIf(
                         isEdit,
                         () -> FormBuilder.checkbox(
@@ -286,20 +281,18 @@ public class LmsSetupForm implements TemplateComposer {
         if (!readonly) {
             formHandle.process(
                     PROXY_ATTRIBUTES::contains,
-                    ffa -> ffa.setVisible(withProxy)
-            );
+                    ffa -> ffa.setVisible(withProxy));
             formHandle.getForm().getFieldInput("FORM_PROXY_CHECK")
                     .addListener(SWT.Selection, event -> formHandle.process(
                             PROXY_ATTRIBUTES::contains,
                             ffa -> {
-                                boolean selected = ((Button) event.widget).getSelection();
+                                final boolean selected = ((Button) event.widget).getSelection();
                                 ffa.setVisible(selected);
                                 if (!selected) {
                                     ffa.resetError();
                                     ffa.setStringValue("");
                                 }
-                            }
-                    ));
+                            }));
         }
 
         // propagate content actions to action-pane

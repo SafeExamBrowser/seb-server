@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collections;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -50,7 +49,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -170,7 +168,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             widgetFactory.addFormSubContextHeader(
                     valSpace,
                     FORM_VALUE_TEXT_KEY,
-                    FORM_VALUE_TOOLTIP_TEXT_KEY );
+                    FORM_VALUE_TOOLTIP_TEXT_KEY);
 
             final Composite grid = new Composite(valSpace, SWT.NONE);
             grid.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
