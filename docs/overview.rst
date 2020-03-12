@@ -4,7 +4,7 @@ Overview
 Safe Exam Browser Server (SEB Server) is a web-service application to help setting up and maintain e-assessments with 
 `Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) in a centralized manner. The SEB Server application can be used 
 by an institution or organization as a self-maintained, lightweight server application to organize and setup their e-assessments. 
-Furthermore SEB Server can be setup and run within a cloud infrastructure and be as a service by a general service provider.
+Furthermore SEB Server can be setup and run within a cloud infrastructure an be provides as centralized service from a general service provider.
 
 For an organization or institution that want to provides safe e-assessments with `Safe Exam Browser <https://safeexambrowser.org/>`_, 
 SEB Server can help to organize this e-assessments more effectively, safely and in one place.
@@ -31,45 +31,48 @@ The SEB Server supports a simple role based privilege system where a role has de
 The privileges for a role are defined and cannot be changed by a user. Roles can be combined within one user-account.
 
 Privileges for domain objects are categorized in read, modify and write where write includes creation and deletion grants in addition to the more 
-restrict modify right that only allows to modify already created objects. They are also categorized in overall, institutional and owner privileges where 
-overall means for all object, over all available institutions and institutional means only the object of the own institution and owner means the creator 
-or assigned owner of an object.
+restrict modify right that only allows to modify already created entities. They are also categorized in overall, institutional and owner privileges where 
+overall means for all entities, over all available institutions and institutional means only the entities that belongs to the own institution 
+and owner means the creator or assigned owner of an entity.
 
-Currently there are four roles that reflect a good separation of concerns within the SEB Server application administration itself and the setup and 
-maintain for e-assessments with SEB.
+Currently there are four different roles. This reflect a good separation of concerns within the SEB Server application administration itself and the setup and 
+maintaining work that has to be done for e-assessments with SEB.
+
+below are the names and a short description of each role.
 
 
-SEB Server Administrator
-^^^^^^^^^^^^^^^^^^^^^^^^
+**SEB Server Administrator**
 
 This role is primarily to administer the SEB Server application, create new and maintain institutions and user-accounts. In addition to that a 
 SEB Server administrator also has overall read privileges for the most parts to be able to analyze problems and help others to solve them.
 
 A typical use-case for a SEB Server administrator is to create a new institution and an institutional administrator for this institution.
+Another use-case would be to maintain registered user accounts, to give more privileges or the entirely deactivate a exisitng user account.
 
-Institutional Administrator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Institutional Administrator**
 
 An institutional administrator has overall read access for its institution and is able to modify the institution properties as well as 
-create new or maintain existing user-accounts for the institution. Furthermore an institutional administrator is able to create and maintain 
-learning management system bindings and SEB startup-configurations for the institution.
+create new or maintain existing user-accounts for the belonging institution. Furthermore an institutional administrator is able to create and maintain 
+learning management system setups and SEB client-configurations for the belonging institution.
 
-A typical use-case for a institutional administrator is to give the appropriate roles and privileges to newly registered users of the institution, 
-to create and maintain SEB startup configurations for the institutions and maintain learning management systems within the SEB Server and institution.
+A typical use-case for a institutional administrator is to give the appropriate roles and privileges to newly registered users of the institution.
+Or another use-case would be to create and maintain SEB client configurations for the institutions and setup and maintain learning management systems 
+within the SEB Server and the belonging institution.
 
-Exam Administrator
-^^^^^^^^^^^^^^^^^^
+**Exam Administrator**
 
-With this role a user is able to prepare an exam with SEB restriction and support from creating configuration to import exam and 
-prepare them for run and monitoring.
+With this role a user is able to prepare an exam for an a-assessment with SEB. A exam administrator is able to view all courses form all
+learning management systems that are setup for the belonging institution and find a particular course to import this course as an exam
+within SEB Server. This role is also able to create and maintain SEB exam configurations that can then be assigned to an imported exam.
+After setting importing an exam, the role is able to setup all aspects of an exam like automated restrictions, allowed supporter and 
+monitoring indicator, to name a few, and prepare the exam for an e-assessment.
 
 A typical use-case for an exam administrator is to create a SEB exam configuration within the templating and configuration section. 
 Then finding a specific course or quiz from the learning management systems that are defined within the institution. This course or quiz 
 can then be imported by the administrator as an exam. After that an exam administrator will prepare this exam for run and monitoring by attaching 
 a exam configuration to it, prepare monitoring indicators and specify the SEB restriction conditions.
 
-Exam Supporter
-^^^^^^^^^^^^^^
+**Exam Supporter**
 
 This role is to support a running exam within SEB Server. An exam administrator is able to see the running exams on that he/she has 
 an assignment and open them either for monitoring or editing some exam attributes or configuration during the exam.
@@ -115,8 +118,7 @@ In the header above on the right hand, we see the username of the currently logg
 
 The main content usually consist of a list or a form.
 
-Lists
-^^^^^^
+**Lists**
 
 A list shows all the objects of a particular activity in a table page. A list has paging and if a list has more objects than it fit on one page, 
 a page navigation is shown at the bottom of the list with the information of the current page and the number of pages along with a page navigation 
@@ -141,8 +143,7 @@ that do not have a sort functionality yet.
 Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment. 
 A column tool-tip usually also explains how to use the column-related filter
 
-Forms
-^^^^^^
+**Forms**
 
 Forms are used for object specific data input or presentation, like HTML Forms usually do. Forms appear in three 
 different ways within the SEB Server GUI:
