@@ -77,7 +77,7 @@ access the application with a web-browser and have the own logo.
   
 **Change the name/logo of an existing or own Institution**
 
-.. note:: This scenario differs a little bit in case of having a SEB Server administrator or institutional administrator role
+.. note:: This scenario differs in case of having a SEB Server administrator or institutional administrator role
 
 *As SEB Server administrator*
 
