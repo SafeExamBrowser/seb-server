@@ -5,7 +5,7 @@ The institution section within SEB Server is used to support built-in multi-tena
 light-weight stand-alone server but with the possibility to separate operation completely within different institutions.
 
 .. note:: 
-      If a quick use-case based reference suites you better, just forward to the user-case section of this chapter
+      If a quick use-case based reference suites you better, just forward to the "Use Cases" section of this chapter
 
 Only the role of SEB Server administrator and institutional administrator are able to see and use this section.
 A SEB Server administrator is able to see the whole list of all existing institutions and to create new and maintain every 
@@ -56,17 +56,34 @@ be completely separated from each other. It should also be possible for an insti
 access the application with a web-browser and have the own logo.
 
 - Login as a SEB Server administrator and select the "Institution" menu-item from the left hand side menu.
+
 - A list of all existing and available institutions will be shown.
+
 - Select "Add Institution" form the right hand side action pane to create a new institution.
+
 - The creation form will be shown and the user is able to define a name, url-suffix and or upload a logo for the new institution.
+
 - After giving all information, the new institution can either be saved and remains inactive until activation or can be saved and
   automatically be activated within the same step. Use the "Save Institution" action on the right side to just save the institution
   or the "Activate Institution" action the save and activate within the same step.
+  
 - In either case the form input will first be verified and if there is missing something or has wrong input, the save action will
   be postponed and the edit form will present the missing input within a red box and some inform text right below the input field
   for correction.
+  
 - If successfully saved, the application will show the form of the newly created institution in read only mode and if already activated
   other user, that are allowed to, can see the institution now.
   
   
-**Change the logo of an existing Institution**
+**Change the name/logo of an existing or own Institution**
+
+.. note:: This scenario differs a little bit in case of having a SEB Server administrator or institutional administrator role
+
+*As SEB Server administrator*
+
+- Login as a SEB Server administrator and select the "Institution" menu-item from the left hand side menu.
+
+- A list of all existing and available institutions will be shown. Use the filter above to find the institution to change
+- Select the institution and use the "Edit Institution" action on the right side action pane to open the institution in edit mode
+- Apply the changes and save the institution. If all given information is correct and nothing is missing, the application will
+  show the changed institution form in read only mode
