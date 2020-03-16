@@ -25,7 +25,7 @@ A user account always belongs to one institution and has some basic attributes;
 .. note:: 
       The role selection is only displayed for user-accounts that has user-account modification privileges like
       SEB Server administrator and institutional administrator. Roles can be combined by selecting more then one role.
-      For more information about roles and each role see the section [Roles and Use-Cases](#Roles and Use-Cases)
+      For more information about roles and each role see the section :ref:`roles_and_usecases`
 
 By selecting the "User Account" section on the left side menu, a SEB Server administrator will see a list of all user-accounts 
 of all institution within a SEB Server instance. The filter above the list can be used to search a certain user account.

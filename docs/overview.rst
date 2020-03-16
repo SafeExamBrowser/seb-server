@@ -23,6 +23,7 @@ please go to `SEB Server Installation Guide <https://seb-server-setup.readthedoc
 
 We will have a quick overview of the functionality and the roles on SEB Server in the next chapter.
 
+.. _roles_and_usecases:
 
 Roles and Use-Cases
 -----------------------
