@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -37,6 +35,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -56,6 +55,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
@@ -97,6 +97,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
@@ -142,7 +143,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
-import org.springframework.web.servlet.DispatcherServlet;
 
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
@@ -427,12 +427,30 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(activation);
         assertFalse(activation.hasError());
 
+        // no unique email
         result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
                 .withFormParam(Domain.USER.ATTR_NAME, "examSupport2")
                 .withFormParam(Domain.USER.ATTR_USERNAME, "examSupport2")
                 .withFormParam(Domain.USER.ATTR_SURNAME, "examSupport2")
                 .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name())
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examSupport2")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
+
+        assertNotNull(result);
+        assertTrue(result.hasError());
+
+        // no unique email
+        result = restService.getBuilder(NewUserAccount.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
+                .withFormParam(Domain.USER.ATTR_NAME, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_SURNAME, "examSupport2")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test1.ch")
                 .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name())
                 .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examSupport2")
                 .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examSupport2")
@@ -454,7 +472,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.USER.ATTR_NAME, "examSupport1")
                 .withFormParam(Domain.USER.ATTR_USERNAME, "examSupport1")
                 .withFormParam(Domain.USER.ATTR_SURNAME, "examSupport1")
-                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test.ch")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test6.ch")
                 .withFormParam(Domain.USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name())
                 .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "examSupport1")
                 .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "examSupport1")
@@ -680,7 +698,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetQuizPage());
 
         // create new LMS Setup Mockup
-        Result<LmsSetup> newLMSCall = restService
+        final Result<LmsSetup> newLMSCall = restService
                 .getBuilder(NewLmsSetup.class)
                 .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
@@ -691,18 +709,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(newLMSCall);
         assertFalse(newLMSCall.hasError());
-        LmsSetup lmsSetup = newLMSCall.get();
+        final LmsSetup lmsSetup = newLMSCall.get();
         assertEquals("Test Open edx", lmsSetup.name);
         assertFalse(lmsSetup.isActive());
 
         // activate lms setup
-        LmsSetupTestResult testResult = restService
+        final LmsSetupTestResult testResult = restService
                 .getBuilder(TestLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
                 .call()
                 .getOrThrow();
 
-        DispatcherServlet dispatcherServlet = mockMvc.getDispatcherServlet();
+        final DispatcherServlet dispatcherServlet = this.mockMvc.getDispatcherServlet();
 
         assertNotNull(testResult);
         assertFalse(testResult.isOk());
@@ -1772,7 +1790,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("123", newTemplValue.value);
 
         // reset template values
-        TemplateAttribute attribute = restService
+        final TemplateAttribute attribute = restService
                 .getBuilder(ResetTemplateValues.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
                 .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())

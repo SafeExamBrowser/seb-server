@@ -66,7 +66,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"name\":\"SEBAdmin\","
                         + "\"surname\":\"\","
                         + "\"username\":\"admin\","
-                        + "\"email\":\"admin@nomail.nomail\","
+                        + "\"email\":\"admin1@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
@@ -86,7 +86,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"name\":\"Institutional1 Admin\","
                         + "\"surname\":\"\","
                         + "\"username\":\"inst1Admin\","
-                        + "\"email\":\"admin@nomail.nomail\","
+                        + "\"email\":\"admin2@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
@@ -111,7 +111,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"name\":\"Institutional1 Admin\","
                         + "\"surname\":\"\","
                         + "\"username\":\"inst1Admin\","
-                        + "\"email\":\"admin@nomail.nomail\","
+                        + "\"email\":\"admin2@nomail.nomail\","
                         + "\"active\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
@@ -582,7 +582,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(user);
         assertEquals("User", user.name);
         assertEquals("user1", user.username);
-        assertEquals("user@nomail.nomail", user.email);
+        assertEquals("user2@nomail.nomail", user.email);
         assertEquals("[EXAM_SUPPORTER]", String.valueOf(user.roles));
 
         // change userName, email and roles

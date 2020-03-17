@@ -512,7 +512,7 @@ public class UserDAOImpl implements UserDAO {
             return;
         }
 
-        // check same username already exists
+        // check same email already exists
         final Long otherUsersWithSameName = this.userRecordMapper
                 .countByExample()
                 .where(UserRecordDynamicSqlSupport.email, isEqualTo(userAccount.getEmail()))
