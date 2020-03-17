@@ -201,6 +201,7 @@ public class UserDAOImpl implements UserDAO {
             }
 
             checkUniqueUsername(userMod);
+            checkUniqueMailAddress(userMod);
 
             final UserRecord recordToSave = new UserRecord(
                     null,
@@ -260,6 +261,7 @@ public class UserDAOImpl implements UserDAO {
                 .map(record -> {
 
                     checkUniqueUsername(userInfo);
+                    checkUniqueMailAddress(userInfo);
 
                     final UserRecord newRecord = new UserRecord(
                             record.getId(),
@@ -502,6 +504,26 @@ public class UserDAOImpl implements UserDAO {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     Domain.USER.ATTR_USERNAME,
                     "user:username:username.notunique"));
+        }
+    }
+
+    private void checkUniqueMailAddress(final UserAccount userAccount) {
+        if (StringUtils.isBlank(userAccount.getEmail())) {
+            return;
+        }
+
+        // check same username already exists
+        final Long otherUsersWithSameName = this.userRecordMapper
+                .countByExample()
+                .where(UserRecordDynamicSqlSupport.email, isEqualTo(userAccount.getEmail()))
+                .and(UserRecordDynamicSqlSupport.uuid, isNotEqualToWhenPresent(userAccount.getModelId()))
+                .build()
+                .execute();
+
+        if (otherUsersWithSameName != null && otherUsersWithSameName > 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    Domain.USER.ATTR_EMAIL,
+                    "user:email:email.notunique"));
         }
     }
 

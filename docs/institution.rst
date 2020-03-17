@@ -5,7 +5,7 @@ The institution section within SEB Server is used to support built-in multi-tena
 light-weight stand-alone server but with the possibility to separate operation completely within different institutions.
 
 .. note:: 
-      If a quick use-case based reference suites you better, just forward to the "Use Cases" section of this chapter
+      If a quick use-case based reference suites you better, just forward to the "Use Cases" section of this chapter below
 
 Only the role of SEB Server administrator and institutional administrator are able to see and use this section.
 A SEB Server administrator is able to see the whole list of all existing institutions and to create new and maintain every 
