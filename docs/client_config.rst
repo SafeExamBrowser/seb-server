@@ -1,3 +1,11 @@
-Client Configuration
---------------------
+.. _client-configuration-label:
 
+Client Configuration
+====================
+
+Overview
+--------
+
+
+Use Cases
+---------
