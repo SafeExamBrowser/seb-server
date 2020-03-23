@@ -21,7 +21,7 @@ This feature is currently in an experimental state and may be changed and / or e
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    client_config
    exam_config
