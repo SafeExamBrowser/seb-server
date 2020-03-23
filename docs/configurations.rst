@@ -3,15 +3,14 @@ SEB Configurations
 
 TODO
 
-Client Configuration
----------------------
+.. include:: client_config.rst
 
 TODO
 
 Exam Configuration
--------------------
+------------------
 
 TODO
 
 Configuration Templates
-------------------------
+-----------------------
