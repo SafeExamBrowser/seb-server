@@ -22,9 +22,6 @@ Table of Content
    useraccount
    lmssetup
    configurations
-      client_config
-      exam_config
-      config_template
    exams
    monitoring
    troubleshooting
