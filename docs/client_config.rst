@@ -1,5 +1,3 @@
-\newpage
-
 Client Configuration
 --------------------
 

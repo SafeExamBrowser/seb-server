@@ -1,6 +1,9 @@
 Institution
 ===========
 
+Overview
+---------
+
 The institution section within SEB Server is used to support built-in multi-tenancy functionality to allow using SEB server as a 
 light-weight stand-alone server but with the possibility to separate operation completely within different institutions.
 

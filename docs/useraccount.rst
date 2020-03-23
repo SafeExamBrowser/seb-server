@@ -1,6 +1,9 @@
 User Accounts
 =============
 
+Overview
+---------
+
 The user-account section within SEB Server can be used to create new or modify user-accounts for other user or to modify the own
 user account and changing the password. This section differs most for the different roles in SEB Server.
 
