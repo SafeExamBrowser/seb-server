@@ -1,4 +1,4 @@
-Leraning Management System (LMS) Binding
-========================================
+Leraning Management System Setup
+================================
 
 TODO
