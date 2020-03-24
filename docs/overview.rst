@@ -103,6 +103,7 @@ On the current version, e-mail confirmation is not a feature of the SEB Server a
 
 With the "Time Zone" one can choose a specific time zone for an user-account. All dates and times will then be showed within this specific time zone to the user.
 
+.. _gui-label:
 
 Graphical User Interface
 ------------------------
