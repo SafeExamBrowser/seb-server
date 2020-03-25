@@ -14,6 +14,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
@@ -119,14 +120,15 @@ public class ExamMonitoringController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
                 UserRole.EXAM_SUPPORTER);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance

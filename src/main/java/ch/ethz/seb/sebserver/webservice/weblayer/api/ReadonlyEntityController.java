@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.util.MultiValueMap;
@@ -52,7 +53,8 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     }
 
     @Override
-    public T create(final MultiValueMap<String, String> allRequestParams, final Long institutionId) {
+    public T create(final MultiValueMap<String, String> allRequestParams, final Long institutionId,
+            final HttpServletRequest request) {
         throw new UnsupportedOperationException(ONLY_READ_ACCESS);
     }
 

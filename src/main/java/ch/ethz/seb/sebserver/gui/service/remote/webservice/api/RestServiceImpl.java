@@ -110,24 +110,4 @@ public class RestServiceImpl implements RestService {
         return restCall.newBuilder();
     }
 
-//    @Override
-//    public <T> PageAction activation(final PageAction action) {
-//        if (action.restCallType() == null) {
-//            throw new IllegalArgumentException("ActionDefinition needs to define a restCallType to use this action");
-//        }
-//
-//        @SuppressWarnings("unchecked")
-//        final Class<? extends RestCall<T>> restCallType =
-//                (Class<? extends RestCall<T>>) action.restCallType();
-//
-//        this.getBuilder(restCallType)
-//                .withURIVariable(
-//                        API.PARAM_MODEL_ID,
-//                        action.pageContext().getAttribute(AttributeKeys.ENTITY_ID))
-//                .call()
-//                .onErrorDo(t -> action.pageContext().notifyError(t));
-//
-//        return action;
-//    }
-
 }

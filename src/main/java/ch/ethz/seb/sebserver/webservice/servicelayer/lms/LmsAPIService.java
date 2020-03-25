@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -23,7 +24,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import org.joda.time.DateTimeZone;
 
 /** Defines the LMS API access service interface with all functionality needed to access
  * a LMS API within a given LmsSetup configuration.
@@ -107,7 +107,7 @@ public interface LmsAPIService {
             final boolean startTimeFilter =
                     (from == null) || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
             final boolean currentlyRunning = DateTime.now(DateTimeZone.UTC).isBefore(q.endTime);
-            return nameFilter && (startTimeFilter || currentlyRunning) ;
+            return nameFilter && (startTimeFilter || currentlyRunning);
         };
     }
 
@@ -149,7 +149,7 @@ public interface LmsAPIService {
             }
 
             return new Page<>(
-                    (quizzes.size() / pageSize),
+                    quizzes.size() / pageSize + 1,
                     pageNumber,
                     sortAttribute,
                     quizzes.subList(start, end));

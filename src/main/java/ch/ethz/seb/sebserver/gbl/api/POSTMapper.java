@@ -29,22 +29,58 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** A POST parameter mapper that wraps all parameter from a POST request given by a MultiValueMap<String, String> and
- *  defines API specific convenience functions to access this parameter with given type and conversion of needed. */
+ * defines API specific convenience functions to access this parameter with given type and conversion of needed. */
 public class POSTMapper {
 
-    public static final POSTMapper EMPTY_MAP = new POSTMapper(null);
+    public static final POSTMapper EMPTY_MAP = new POSTMapper(null, null);
 
     protected final MultiValueMap<String, String> params;
 
-    public POSTMapper(final MultiValueMap<String, String> params) {
+    public POSTMapper(final MultiValueMap<String, String> params, final String uriQueryString) {
         super();
         this.params = params != null
                 ? new LinkedMultiValueMap<>(params)
                 : new LinkedMultiValueMap<>();
+
+        if (uriQueryString != null) {
+            handleEncodedURIParams(uriQueryString);
+        }
+    }
+
+    // NOTE: this is a workaround since URI parameter are not automatically decoded in the HTTPServletRequest
+    //       while parameter from form-urlencoded body part are.
+    //       I also tried to set application property: server.tomcat.uri-encoding=UTF-8 bit with no effect.
+    // TODO  Didn't found a better solution for now but if there is some time, we should find a better solution
+    private void handleEncodedURIParams(final String uriQueryString) {
+        final MultiValueMap<String, String> override = new LinkedMultiValueMap<>();
+        this.params
+                .entrySet()
+                .stream()
+                .forEach(entry -> {
+                    if (uriQueryString.contains(entry.getKey())) {
+                        override.put(
+                                entry.getKey(),
+                                entry.getValue().stream()
+                                        .map(val -> decode(val))
+                                        .collect(Collectors.toList()));
+                    }
+                });
+
+        if (!override.isEmpty()) {
+            this.params.putAll(override);
+        }
+    }
+
+    private String decode(final String val) {
+        try {
+            return Utils.decodeFormURL_UTF_8(val);
+        } catch (final Exception e) {
+            return val;
+        }
     }
 
     public String getString(final String name) {
-        return Utils.decodeFormURL_UTF_8(this.params.getFirst(name));
+        return this.params.getFirst(name);
     }
 
     public char[] getCharArray(final String name) {

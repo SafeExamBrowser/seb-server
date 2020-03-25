@@ -34,6 +34,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
 
         final Result<SebClientConfig> call = restService.getBuilder(NewClientConfig.class)
                 .withQueryParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
+                .withFormParam("Test", "new client config")
                 .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 

@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,9 +64,11 @@ public class RegisterUserController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public UserInfo registerNewUser(@RequestParam final MultiValueMap<String, String> allRequestParams) {
+    public UserInfo registerNewUser(
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
-        final POSTMapper postMap = new POSTMapper(allRequestParams)
+        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name());
         final UserMod userMod = new UserMod(null, postMap);
 

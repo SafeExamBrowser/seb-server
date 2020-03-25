@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
@@ -127,12 +128,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
@@ -163,12 +165,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution then its own institution,
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
@@ -262,12 +265,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletRequest request) {
 
         // check modify privilege for requested institution and concrete entityType
         this.checkModifyPrivilege(institutionId);
 
-        final POSTMapper postMap = new POSTMapper(allRequestParams)
+        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final M requestModel = this.createNew(postMap);

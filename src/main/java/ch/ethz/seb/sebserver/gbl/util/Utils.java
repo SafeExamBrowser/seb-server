@@ -475,7 +475,7 @@ public final class Utils {
     }
 
     public static String toSQLWildcard(final String text) {
-        return (text == null) ? null : Constants.PERCENTAGE + text + Constants.PERCENTAGE;
+        return (text == null) ? null : Constants.PERCENTAGE + text.replace("%", "\\%") + Constants.PERCENTAGE;
     }
 
     public static String hash_SHA_256_Base_16(final CharSequence chars) {
@@ -487,7 +487,7 @@ public final class Utils {
             final MessageDigest digest = MessageDigest.getInstance(Constants.SHA_256);
             final byte[] encodedHash = digest.digest(toByteArray(chars));
             return Hex.encodeHexString(encodedHash);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             throw new RuntimeException("Failed to hash text: ", e);
         }
     }

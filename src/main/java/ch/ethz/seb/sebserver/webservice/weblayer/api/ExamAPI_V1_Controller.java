@@ -98,7 +98,7 @@ public class ExamAPI_V1_Controller {
         return CompletableFuture.supplyAsync(
                 () -> {
 
-                    final POSTMapper mapper = new POSTMapper(formParams);
+                    final POSTMapper mapper = new POSTMapper(formParams, request.getQueryString());
 
                     final String remoteAddr = request.getRemoteAddr();
                     final Long institutionId = (instIdRequestParam != null)

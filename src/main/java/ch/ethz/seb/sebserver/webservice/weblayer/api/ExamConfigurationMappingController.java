@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -135,11 +137,12 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletRequest request) {
 
         // check modify privilege for requested institution and concrete entityType
         this.checkModifyPrivilege(institutionId);
-        final POSTMapper postMap = new POSTMapper(allRequestParams)
+        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final ExamConfigurationMap requestModel = this.createNew(postMap);

@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -82,12 +84,13 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         // at least current user must have base read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
@@ -104,7 +107,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                     getSQLTableOfEntity().name(),
                     () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
                     .getOrThrow();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             throw e;
         }

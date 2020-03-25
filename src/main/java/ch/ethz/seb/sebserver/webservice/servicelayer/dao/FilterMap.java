@@ -46,11 +46,11 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public class FilterMap extends POSTMapper {
 
     public FilterMap() {
-        super(new LinkedMultiValueMap<>());
+        super(new LinkedMultiValueMap<>(), null);
     }
 
-    public FilterMap(final MultiValueMap<String, String> params) {
-        super(params);
+    public FilterMap(final MultiValueMap<String, String> params, final String uriQueryString) {
+        super(params, uriQueryString);
     }
 
     public Integer getActiveAsInt() {
@@ -309,7 +309,7 @@ public class FilterMap extends POSTMapper {
         }
 
         public FilterMap create() {
-            return new FilterMap(this.filterMap.params);
+            return new FilterMap(this.filterMap.params, null);
         }
     }
 

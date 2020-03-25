@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -135,7 +136,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         checkReadPrivilege(institutionId);
 
@@ -145,7 +147,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (StringUtils.isBlank(sort) ||
                 this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort)) {
 
-            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams);
+            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
 
         } else {
 
@@ -156,7 +158,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
             final List<Exam> exams = new ArrayList<>(
                     this.examDAO
-                            .allMatching(new FilterMap(allRequestParams), this::hasReadAccess)
+                            .allMatching(new FilterMap(allRequestParams, request.getQueryString()), this::hasReadAccess)
                             .getOrThrow());
 
             return buildSortedExamPage(

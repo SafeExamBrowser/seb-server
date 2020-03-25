@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -78,14 +80,15 @@ public class QuizController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams) {
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
 
         this.authorization.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams);
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         // if current user has no read access for specified entity type within other institution
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
         if (!this.authorization.hasGrant(PrivilegeType.READ, EntityType.EXAM)) {
