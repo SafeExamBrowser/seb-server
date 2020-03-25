@@ -21,8 +21,6 @@ party account and single sign on.
 SEB Server is written in Java and uses Docker for installation and setup. For more information about the architecture and installation, 
 please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
 
-Next chapter has a quick overview of the functionality and the roles on SEB Server.
-
 .. _roles_and_usecases:
 
 Roles and Use-Cases
