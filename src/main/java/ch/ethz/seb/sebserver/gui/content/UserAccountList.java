@@ -8,6 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.eclipse.swt.widgets.Composite;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -36,14 +45,6 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.swt.widgets.Composite;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 
 @Lazy
 @Component
@@ -67,6 +68,8 @@ public class UserAccountList implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.list.column.username");
     private static final LocTextKey NAME_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.list.column.name");
+    private static final LocTextKey SURNAME_TEXT_KEY =
+            new LocTextKey("sebserver.useraccount.list.column.surname");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.list.title");
     private static final LocTextKey NO_EDIT_RIGHT_MESSAGE =
@@ -76,6 +79,8 @@ public class UserAccountList implements TemplateComposer {
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute surnameFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_SURNAME);
     private final TableFilterAttribute usernameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_USER_NAME);
     private final TableFilterAttribute mailFilter =
@@ -149,6 +154,14 @@ public class UserAccountList implements TemplateComposer {
                         NAME_TEXT_KEY,
                         UserInfo::getName)
                                 .withFilter(this.nameFilter)
+                                .sortable()
+                                .widthProportion(2))
+
+                .withColumn(new ColumnDefinition<>(
+                        Domain.USER.ATTR_SURNAME,
+                        SURNAME_TEXT_KEY,
+                        UserInfo::getSurname)
+                                .withFilter(this.surnameFilter)
                                 .sortable()
                                 .widthProportion(2))
 

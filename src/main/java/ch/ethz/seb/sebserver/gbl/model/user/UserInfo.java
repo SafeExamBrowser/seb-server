@@ -21,7 +21,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -37,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** The user info domain model contains primary user information
@@ -50,6 +50,7 @@ public final class UserInfo implements UserAccount, Serializable {
 
     private static final long serialVersionUID = 2526446136264377808L;
 
+    public static final String FILTER_ATTR_SURNAME = "surname";
     public static final String FILTER_ATTR_USER_NAME = "username";
     public static final String FILTER_ATTR_EMAIL = "email";
     public static final String FILTER_ATTR_LANGUAGE = "language";

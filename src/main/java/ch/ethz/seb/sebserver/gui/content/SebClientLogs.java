@@ -8,6 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import org.eclipse.swt.widgets.Composite;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -30,13 +38,6 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import org.eclipse.swt.widgets.Composite;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.function.Function;
 
 @Lazy
 @Component
@@ -134,7 +135,7 @@ public class SebClientLogs implements TemplateComposer {
                                 .widthProportion(2))
 
                 .withColumn(new ColumnDefinition<ExtendedClientEvent>(
-                        Domain.CLIENT_EVENT.TYPE_NAME,
+                        Domain.CLIENT_EVENT.ATTR_TYPE,
                         TYPE_TEXT_KEY,
                         this.resourceService::getEventTypeName)
                                 .withFilter(this.eventTypeFilter)
@@ -166,7 +167,8 @@ public class SebClientLogs implements TemplateComposer {
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
-                        .withExec(action -> sebClientLogDetailsPopup.showDetails(action, t.getSingleSelectedROWData()))
+                        .withExec(action -> this.sebClientLogDetailsPopup.showDetails(action,
+                                t.getSingleSelectedROWData()))
                         .noEventPropagation()
                         .create())
 
@@ -180,13 +182,11 @@ public class SebClientLogs implements TemplateComposer {
                 .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
-                        action -> sebClientLogDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
+                        action -> this.sebClientLogDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
                 .publishIf(table::hasAnyContent, false);
     }
-
-
 
     private Function<ExtendedClientEvent, String> examNameFunction() {
         final Map<Long, String> examNameMapping = this.resourceService.getExamNameMapping();

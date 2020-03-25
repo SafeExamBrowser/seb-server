@@ -173,6 +173,9 @@ public class UserDAOImpl implements UserDAO {
                             UserRecordDynamicSqlSupport.name,
                             isLikeWhenPresent(filterMap.getName()))
                     .and(
+                            UserRecordDynamicSqlSupport.surname,
+                            isLikeWhenPresent(filterMap.getSurname()))
+                    .and(
                             UserRecordDynamicSqlSupport.username,
                             isLikeWhenPresent(filterMap.getUserUsername()))
                     .and(

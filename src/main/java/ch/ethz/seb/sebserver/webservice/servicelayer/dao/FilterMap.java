@@ -65,6 +65,10 @@ public class FilterMap extends POSTMapper {
         return getSQLWildcard(Entity.FILTER_ATTR_NAME);
     }
 
+    public String getSurname() {
+        return getSQLWildcard(UserInfo.FILTER_ATTR_SURNAME);
+    }
+
     public String getQuizName() {
         return getString(Entity.FILTER_ATTR_NAME);
     }

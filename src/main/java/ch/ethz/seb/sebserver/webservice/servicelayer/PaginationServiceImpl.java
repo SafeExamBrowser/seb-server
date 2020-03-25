@@ -217,6 +217,7 @@ public class PaginationServiceImpl implements PaginationService {
         // User Table
         final Map<String, String> userTableMap = new HashMap<>();
         userTableMap.put(Domain.USER.ATTR_NAME, UserRecordDynamicSqlSupport.name.name());
+        userTableMap.put(Domain.USER.ATTR_SURNAME, UserRecordDynamicSqlSupport.surname.name());
         userTableMap.put(Domain.USER.ATTR_USERNAME, UserRecordDynamicSqlSupport.username.name());
         userTableMap.put(Domain.USER.ATTR_EMAIL, UserRecordDynamicSqlSupport.email.name());
         userTableMap.put(Domain.USER.ATTR_LANGUAGE, UserRecordDynamicSqlSupport.language.name());
