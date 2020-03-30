@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class SingleSelection extends Combo implements Selection {
 
@@ -41,7 +42,7 @@ public final class SingleSelection extends Combo implements Selection {
         this.valueMapping.clear();
         this.keyMapping.clear();
         this.valueMapping.addAll(mapping.stream()
-                .map(t -> t._2)
+                .map(t -> Utils.truncateText(t._2, 100))
                 .collect(Collectors.toList()));
         this.keyMapping.addAll(mapping.stream()
                 .map(t -> t._1)

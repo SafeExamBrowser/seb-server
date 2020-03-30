@@ -636,4 +636,16 @@ public final class Utils {
                 .toString();
     }
 
+    public static String truncateText(final String text, final int toChars) {
+        if (text == null || toChars < 3) {
+            return text;
+        }
+
+        if (text.length() <= toChars) {
+            return text;
+        }
+
+        return StringUtils.truncate(text, toChars - 3) + "...";
+    }
+
 }

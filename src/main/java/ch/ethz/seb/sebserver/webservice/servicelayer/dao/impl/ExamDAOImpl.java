@@ -107,7 +107,8 @@ public class ExamDAOImpl implements ExamDAO {
                         .execute()
                 : this.examRecordMapper.selectByExample()
                         .build()
-                        .execute()).flatMap(this::toDomainModel);
+                        .execute())
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -210,9 +211,7 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.status != null)
                             ? exam.status.name()
                             : null,
-                    (exam.lmsSebRestriction != null)
-                            ? BooleanUtils.toIntegerObject(exam.lmsSebRestriction)
-                            : null,
+                    1, // seb restriction (deprecated)
                     null, // updating
                     null, // lastUpdate
                     null // active
@@ -259,6 +258,10 @@ public class ExamDAOImpl implements ExamDAO {
             // used to save instead of create a new one
             if (records != null && records.size() > 0) {
                 final ExamRecord examRecord = records.get(0);
+                // if another institution tries to import an exam that already exists
+                if (!exam.institutionId.equals(examRecord.getInstitutionId())) {
+                    throw new IllegalStateException("Exam cannot be imported twice from different institutions");
+                }
                 final ExamRecord newRecord = new ExamRecord(
                         examRecord.getId(),
                         null, null, null, null, null,
@@ -266,7 +269,7 @@ public class ExamDAOImpl implements ExamDAO {
                         null, // quitPassword
                         null, // browser keys
                         null, // status
-                        null, // lmsSebRestriction
+                        null, // lmsSebRestriction (deprecated)
                         null, // updating
                         null, // lastUpdate
                         BooleanUtils.toIntegerObject(exam.active));
@@ -288,7 +291,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, // quitPassword
                     null, // browser keys
                     (exam.status != null) ? exam.status.name() : ExamStatus.UP_COMING.name(),
-                    BooleanUtils.toInteger(exam.lmsSebRestriction),
+                    1, // seb restriction (deprecated)
                     BooleanUtils.toInteger(false),
                     null, // lastUpdate
                     BooleanUtils.toInteger(true));
@@ -752,7 +755,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     status,
-                    BooleanUtils.toBooleanObject((quizData != null) ? record.getLmsSebRestriction() : null),
+//                    BooleanUtils.toBooleanObject((quizData != null) ? record.getLmsSebRestriction() : null),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate());

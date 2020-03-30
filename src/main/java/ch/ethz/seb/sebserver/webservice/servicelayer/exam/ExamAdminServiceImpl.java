@@ -127,4 +127,15 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         });
     }
 
+    @Override
+    public Result<Boolean> isRestricted(final Exam exam) {
+        if (exam == null) {
+            return Result.of(false);
+        }
+
+        return this.lmsAPIService
+                .getLmsAPITemplate(exam.lmsSetupId)
+                .map(lmsAPI -> !lmsAPI.getSebClientRestriction(exam).hasError());
+    }
+
 }

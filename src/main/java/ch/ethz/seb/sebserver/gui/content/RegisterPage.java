@@ -114,11 +114,18 @@ public class RegisterPage implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
+        final Composite outer = new Composite(pageContext.getParent(), SWT.NONE);
+        final GridLayout outerLayout = new GridLayout();
+        outerLayout.marginLeft = 50;
+        outerLayout.marginRight = 50;
+        outer.setLayout(outerLayout);
+        outer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
         final Composite parent = PageService.createManagedVScrolledComposite(
-                pageContext.getParent(),
+                outer,
                 scrolledComposite -> {
                     final Composite result = new Composite(scrolledComposite, SWT.NONE);
-                    result.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+                    result.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, true));
                     final GridLayout contentOutlaying = new GridLayout();
                     contentOutlaying.marginHeight = 0;
                     contentOutlaying.marginWidth = 0;
@@ -146,7 +153,6 @@ public class RegisterPage implements TemplateComposer {
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .sorted(ResourceService.RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
-
 
         this.widgetFactory.labelLocalizedTitle(parent, TITLE_TEXT_KEY);
 

@@ -8,6 +8,44 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
+import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY;
+
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
+import org.eclipse.rap.rwt.widgets.WidgetUtil;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ColorDialog;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -19,29 +57,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
-import org.eclipse.rap.rwt.widgets.WidgetUtil;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY;
 
 @Lazy
 @Service
@@ -151,7 +166,7 @@ public class WidgetFactory {
         TEXT_H1("h1"),
         TEXT_H2("h2"),
         TEXT_H3("h3"),
-        SUBTITLE( "subtitle"),
+        SUBTITLE("subtitle"),
         IMAGE_BUTTON("imageButton"),
         TEXT_ACTION("action"),
         TEXT_READONLY("readonlyText"),
@@ -179,7 +194,9 @@ public class WidgetFactory {
 
         LIST_NAVIGATION("list-nav"),
         PLAIN_PWD("pwdplain"),
-        COLOR_BOX("colorbox")
+        COLOR_BOX("colorbox"),
+
+        REGISTER_FORM("register")
 
         ;
 
@@ -228,8 +245,8 @@ public class WidgetFactory {
         labelLocalizedTitle.setLayoutData(gridData);
 
         // sub title if defined in language properties
-        LocTextKey subTitleTextKey = new LocTextKey(title.name + SUB_TITLE_TExT_SUFFIX);
-        if (i18nSupport.hasText(subTitleTextKey)) {
+        final LocTextKey subTitleTextKey = new LocTextKey(title.name + SUB_TITLE_TExT_SUFFIX);
+        if (this.i18nSupport.hasText(subTitleTextKey)) {
             final GridData gridDataSub = new GridData(SWT.FILL, SWT.FILL, true, false);
             final Label labelLocalizedSubTitle = labelLocalized(
                     defaultPageLayout,
@@ -241,20 +258,21 @@ public class WidgetFactory {
         return defaultPageLayout;
     }
 
-    public void addFormSubContextHeader(final Composite parent, final LocTextKey titleTextKey, final LocTextKey tooltipTextKey) {
-        GridData gridData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
+    public void addFormSubContextHeader(final Composite parent, final LocTextKey titleTextKey,
+            final LocTextKey tooltipTextKey) {
+        final GridData gridData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
         gridData.horizontalIndent = 8;
         gridData.verticalIndent = 10;
-        Label subContextLabel = labelLocalized(
+        final Label subContextLabel = labelLocalized(
                 parent,
                 CustomVariant.TEXT_H3,
                 titleTextKey,
                 tooltipTextKey);
         subContextLabel.setLayoutData(gridData);
-        GridData gridData1 = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
+        final GridData gridData1 = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
         gridData1.heightHint = 5;
         gridData1.horizontalIndent = 8;
-        Label subContextSeparator = labelSeparator(parent);
+        final Label subContextSeparator = labelSeparator(parent);
         subContextSeparator.setLayoutData(gridData1);
     }
 
@@ -289,7 +307,7 @@ public class WidgetFactory {
 
     public Composite createWarningPanel(final Composite parent) {
         final Composite composite = new Composite(parent, SWT.NONE);
-        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         composite.setLayoutData(gridData);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.marginWidth = 20;
@@ -379,7 +397,7 @@ public class WidgetFactory {
 
     public Label labelLocalizedTitle(final Composite content, final LocTextKey locTextKey) {
         final Label labelLocalized = labelLocalized(content, CustomVariant.TEXT_H1, locTextKey);
-        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         labelLocalized.setLayoutData(gridData);
         return labelLocalized;
     }

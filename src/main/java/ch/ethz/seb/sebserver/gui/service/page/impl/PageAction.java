@@ -198,6 +198,9 @@ public final class PageAction {
                     PageAction.this.getName(),
                     e.getMessage(),
                     Utils.getErrorCauseMessage(e));
+            PageAction.this.pageContext.notifyError(
+                    PageContext.UNEXPECTED_ERROR_KEY,
+                    e);
             return Result.ofError(e);
         } catch (final Exception e) {
             log.error("Failed to execute action: {} | error: {} | cause: {}",

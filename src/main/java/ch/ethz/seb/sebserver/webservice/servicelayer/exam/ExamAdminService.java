@@ -17,13 +17,15 @@ public interface ExamAdminService {
      *
      * @param exam The Exam to add the default indicator
      * @return the Exam with added default indicator */
-    Result<Exam> addDefaultIndicator(final Exam exam);
+    Result<Exam> addDefaultIndicator(Exam exam);
 
     /** Applies all additional SEB restriction attributes that are defined by the
      * type of the LMS of a given Exam to this given Exam.
-     * 
+     *
      * @param exam the Exam to apply all additional SEB restriction attributes
      * @return the Exam */
-    Result<Exam> applyAdditionalSEBRestrictions(final Exam exam);
+    Result<Exam> applyAdditionalSEBRestrictions(Exam exam);
+
+    Result<Boolean> isRestricted(Exam exam);
 
 }

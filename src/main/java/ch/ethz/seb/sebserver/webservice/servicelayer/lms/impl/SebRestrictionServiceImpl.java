@@ -121,7 +121,6 @@ public class SebRestrictionServiceImpl implements SebRestrictionService {
                     null, null, null, null, null, null, null, null, null, null, null,
                     exam.supporter,
                     exam.status,
-                    exam.lmsSebRestriction,
                     (browserExamKeys != null && !browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)
                             : StringUtils.EMPTY,
@@ -157,7 +156,7 @@ public class SebRestrictionServiceImpl implements SebRestrictionService {
     public Result<Exam> applySebClientRestriction(final Exam exam) {
         if (!this.lmsAPIService
                 .getLmsSetup(exam.lmsSetupId)
-                .getOrThrow().lmsType.features.contains(Features.SEA_RESTRICTION)) {
+                .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
 
             return Result.of(exam);
         }

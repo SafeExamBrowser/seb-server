@@ -809,7 +809,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 null, null,
                 Utils.immutableCollectionOf(userId),
                 ExamStatus.RUNNING,
-                true,
                 null,
                 true,
                 null);

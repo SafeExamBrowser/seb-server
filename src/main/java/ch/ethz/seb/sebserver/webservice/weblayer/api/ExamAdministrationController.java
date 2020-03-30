@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -227,6 +226,24 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Boolean checkSebRestriction(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkReadPrivilege(institutionId);
+        return this.examDAO.byPK(modelId)
+                .flatMap(this.examAdminService::isRestricted)
+                .getOrThrow();
+    }
+
     // ****************************************************************************
     // **** SEB Restriction
 
@@ -266,7 +283,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(exam -> this.sebRestrictionService.saveSebRestrictionToExam(exam, sebRestriction))
-                .flatMap(exam -> BooleanUtils.isTrue(exam.lmsSebRestriction)
+                .flatMap(exam -> this.examAdminService.isRestricted(exam).getOrThrow()
                         ? this.applySebRestriction(exam, true)
                         : Result.of(exam))
                 .getOrThrow();
@@ -397,7 +414,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
                 .getOrThrow();
 
-        if (!lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION)) {
+        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
             return Result.ofError(new UnsupportedOperationException(
                     "SEB Restriction feature not available for LMS type: " + lmsSetup.lmsType));
         }
@@ -405,7 +422,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (restrict) {
             if (!this.lmsAPIService
                     .getLmsSetup(exam.lmsSetupId)
-                    .getOrThrow().lmsType.features.contains(Features.SEA_RESTRICTION)) {
+                    .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
 
                 return Result.ofError(new APIMessageException(
                         APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT

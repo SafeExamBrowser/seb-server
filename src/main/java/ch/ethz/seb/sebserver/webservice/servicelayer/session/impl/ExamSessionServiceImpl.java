@@ -125,7 +125,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 // if SEB restriction is not available no consistency violation message is added
                 final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
                         .getOr(null);
-                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION)) {
+                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
                     this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
                             .map(t -> {
                                 if (t.testCourseRestrictionAPI().isOk()) {

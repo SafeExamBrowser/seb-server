@@ -65,6 +65,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSebRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
@@ -222,7 +223,7 @@ public class ExamForm implements TemplateComposer {
                     .call()
                     .getOr(Collections.emptyList());
             if (warnings != null && !warnings.isEmpty()) {
-                    showConsistencyChecks(warnings, formContext.getParent());
+                showConsistencyChecks(warnings, formContext.getParent());
             }
         }
 
@@ -234,7 +235,7 @@ public class ExamForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
         if (warnings != null && !warnings.isEmpty()) {
-            GridData gridData = (GridData) content.getLayoutData();
+            final GridData gridData = (GridData) content.getLayoutData();
             gridData.verticalIndent = 10;
         }
 
@@ -248,6 +249,12 @@ public class ExamForm implements TemplateComposer {
                 || examStatus == ExamStatus.RUNNING
                         && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
         final boolean sebRestrictionAvailable = testSebRestrictionAPI(exam);
+        final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
+                .getBuilder(CheckSebRestriction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .onError(e -> log.error("Unexpected error while trying to verify seb restriction settings: ", e))
+                .getOr(false);
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
@@ -399,12 +406,14 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
                 .withExec(action -> ExamSebRestrictionSettings.setSebRestriction(action, true, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && BooleanUtils.isFalse(exam.lmsSebRestriction))
+                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
+                        && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
                 .withExec(action -> ExamSebRestrictionSettings.setSebRestriction(action, false, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && BooleanUtils.isTrue(exam.lmsSebRestriction));
+                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
+                        && BooleanUtils.isTrue(isRestricted));
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
@@ -413,8 +422,7 @@ public class ExamForm implements TemplateComposer {
             this.widgetFactory.addFormSubContextHeader(
                     content,
                     CONFIG_LIST_TITLE_KEY,
-                    CONFIG_LIST_TITLE_TOOLTIP_KEY
-            );
+                    CONFIG_LIST_TITLE_TOOLTIP_KEY);
 
             final EntityTable<ExamConfigurationMap> configurationTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
@@ -506,8 +514,7 @@ public class ExamForm implements TemplateComposer {
             this.widgetFactory.addFormSubContextHeader(
                     content,
                     INDICATOR_LIST_TITLE_KEY,
-                    INDICATOR_LIST_TITLE_TOOLTIP_KEY
-            );
+                    INDICATOR_LIST_TITLE_TOOLTIP_KEY);
 
             final EntityTable<Indicator> indicatorTable =
                     this.pageService.entityTableBuilder(this.restService.getRestCall(GetIndicatorPage.class))
@@ -597,7 +604,7 @@ public class ExamForm implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                 .call()
                 .onError(t -> log.error("Failed to check SEB restriction API: ", t))
-                .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEA_RESTRICTION))
+                .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION))
                 .getOr(false);
     }
 
