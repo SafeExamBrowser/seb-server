@@ -112,6 +112,24 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public Result<Collection<Long>> allByQuizId(final String quizId) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.externalId,
+                            isEqualToWhenPresent(quizId))
+                    .and(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(rec -> rec.getId())
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> allMatching(final FilterMap filterMap, final Predicate<Exam> predicate) {
 
@@ -258,24 +276,24 @@ public class ExamDAOImpl implements ExamDAO {
             // used to save instead of create a new one
             if (records != null && records.size() > 0) {
                 final ExamRecord examRecord = records.get(0);
-                // if another institution tries to import an exam that already exists
-                if (!exam.institutionId.equals(examRecord.getInstitutionId())) {
-                    throw new IllegalStateException("Exam cannot be imported twice from different institutions");
-                }
-                final ExamRecord newRecord = new ExamRecord(
-                        examRecord.getId(),
-                        null, null, null, null, null,
-                        (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                        null, // quitPassword
-                        null, // browser keys
-                        null, // status
-                        null, // lmsSebRestriction (deprecated)
-                        null, // updating
-                        null, // lastUpdate
-                        BooleanUtils.toIntegerObject(exam.active));
+                // if the same institution tries to import an exam that already exists
+                // open the existing. otherwise create new one if requested
+                if (exam.institutionId.equals(examRecord.getInstitutionId())) {
+                    final ExamRecord newRecord = new ExamRecord(
+                            examRecord.getId(),
+                            null, null, null, null, null,
+                            (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
+                            null, // quitPassword
+                            null, // browser keys
+                            null, // status
+                            null, // lmsSebRestriction (deprecated)
+                            null, // updating
+                            null, // lastUpdate
+                            BooleanUtils.toIntegerObject(exam.active));
 
-                this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
-                return this.examRecordMapper.selectByPrimaryKey(examRecord.getId());
+                    this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    return this.examRecordMapper.selectByPrimaryKey(examRecord.getId());
+                }
             }
 
             final ExamRecord examRecord = new ExamRecord(

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -28,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 
@@ -73,7 +73,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 this.type,
                 fieldGrid,
                 this.itemsSupplier,
-                (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) ? tooltip : null,
+                (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) ? this.tooltip : null,
                 null,
                 actionKey);
 
@@ -108,7 +108,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
 
                 label.setLayoutData(gridData);
-                label.setText(this.value);
+                label.setText((this.value != null) ? this.value : Constants.EMPTY_NOTE);
             } else {
                 final Collection<String> keys = Arrays.asList(StringUtils.split(this.value, Constants.LIST_SEPARATOR));
                 this.itemsSupplier.get()

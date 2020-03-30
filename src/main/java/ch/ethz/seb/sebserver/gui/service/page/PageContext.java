@@ -32,6 +32,7 @@ public interface PageContext {
         String PAGE_TEMPLATE_COMPOSER_NAME = "ATTR_PAGE_TEMPLATE_COMPOSER_NAME";
 
         String READ_ONLY = "READ_ONLY";
+        String FORCE_READ_ONLY = "FORCE_READ_ONLY";
         String READ_ONLY_FROM = "READ_ONLY_FROM";
 
         String ENTITY_ID = "ENTITY_ID";

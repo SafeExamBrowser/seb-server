@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import org.eclipse.swt.widgets.Composite;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -21,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -43,6 +44,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -55,7 +57,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class QuizDiscoveryList implements TemplateComposer {
+public class QuizLookupList implements TemplateComposer {
 
     // localized text keys
 
@@ -93,6 +95,8 @@ public class QuizDiscoveryList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.details.endtime");
     private final static LocTextKey NO_IMPORT_OF_OUT_DATED_QUIZ =
             new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
+    private final static LocTextKey TEXT_KEY_CONFIRM_EXISTING =
+            new LocTextKey("sebserver.quizdiscovery.quiz.import.existing.confirm");
 
     private final static String TEXT_KEY_ADDITIONAL_ATTR_PREFIX =
             "sebserver.quizdiscovery.quiz.details.additional.";
@@ -109,7 +113,7 @@ public class QuizDiscoveryList implements TemplateComposer {
     private final PageService pageService;
     private final int pageSize;
 
-    protected QuizDiscoveryList(
+    protected QuizLookupList(
             final PageService pageService,
             final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
@@ -232,6 +236,7 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .publishIf(table::hasAnyContent, false)
 
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
+                .withConfirm(importQuizConfirm(table, restService))
                 .withSelect(
                         table::getSelection,
                         action -> this.importQuizData(action, table),
@@ -244,7 +249,31 @@ public class QuizDiscoveryList implements TemplateComposer {
                 .apply(String.valueOf(quizData.lmsSetupId));
     }
 
-    private PageAction importQuizData(final PageAction action, final EntityTable<QuizData> table) {
+    private Function<PageAction, LocTextKey> importQuizConfirm(
+            final EntityTable<QuizData> table,
+            final RestService restService) {
+
+        return action -> {
+            action.getSingleSelection();
+            final QuizData selectedROWData = table.getSingleSelectedROWData();
+
+            final Collection<EntityKey> existingImports = restService.getBuilder(CheckExamImported.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, selectedROWData.id)
+                    .call()
+                    .getOrThrow();
+
+            if (existingImports != null && !existingImports.isEmpty()) {
+                return TEXT_KEY_CONFIRM_EXISTING;
+            } else {
+                return null;
+            }
+        };
+    }
+
+    private PageAction importQuizData(
+            final PageAction action,
+            final EntityTable<QuizData> table) {
+
         action.getSingleSelection();
         final QuizData selectedROWData = table.getSingleSelectedROWData();
 

@@ -35,7 +35,7 @@ public final class PageAction {
     private static final Logger log = LoggerFactory.getLogger(PageAction.class);
 
     public final ActionDefinition definition;
-    private final Supplier<LocTextKey> confirm;
+    private final Function<PageAction, LocTextKey> confirm;
     private final Supplier<Set<EntityKey>> selectionSupplier;
     private final LocTextKey noSelectionMessage;
     private PageContext pageContext;
@@ -48,7 +48,7 @@ public final class PageAction {
 
     public PageAction(
             final ActionDefinition definition,
-            final Supplier<LocTextKey> confirm,
+            final Function<PageAction, LocTextKey> confirm,
             final LocTextKey successMessage,
             final Supplier<Set<EntityKey>> selectionSupplier,
             final LocTextKey noSelectionMessage,
@@ -154,7 +154,7 @@ public final class PageAction {
                 }
             }
 
-            final LocTextKey confirmMessage = this.confirm.get();
+            final LocTextKey confirmMessage = this.confirm.apply(this);
             if (confirmMessage != null) {
                 this.pageContext.applyConfirmDialog(confirmMessage,
                         confirm -> callback.accept((confirm)
@@ -198,9 +198,6 @@ public final class PageAction {
                     PageAction.this.getName(),
                     e.getMessage(),
                     Utils.getErrorCauseMessage(e));
-            PageAction.this.pageContext.notifyError(
-                    PageContext.UNEXPECTED_ERROR_KEY,
-                    e);
             return Result.ofError(e);
         } catch (final Exception e) {
             log.error("Failed to execute action: {} | error: {} | cause: {}",

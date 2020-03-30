@@ -28,6 +28,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *         happened */
     Result<Collection<Long>> allIdsOfInstitution(Long institutionId);
 
+    Result<Collection<Long>> allByQuizId(String quizId);
+
     /** Updates the exam status for specified exam
      *
      * @param examId The exam identifier

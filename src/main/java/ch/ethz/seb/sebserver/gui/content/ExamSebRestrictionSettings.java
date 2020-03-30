@@ -16,6 +16,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 
@@ -104,6 +105,12 @@ public class ExamSebRestrictionSettings {
             final PageContext pageContext,
             final FormHandle<?> formHandle) {
 
+        final boolean isReadonly = BooleanUtils.toBoolean(
+                pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
+        if (isReadonly) {
+            return true;
+        }
+
         final EntityKey entityKey = pageContext.getEntityKey();
         final LmsType lmsType = getLmsType(pageContext);
         SebRestriction bodyValue = null;
@@ -170,6 +177,8 @@ public class ExamSebRestrictionSettings {
             final ResourceService resourceService = this.pageService.getResourceService();
             final EntityKey entityKey = this.pageContext.getEntityKey();
             final LmsType lmsType = getLmsType(this.pageContext);
+            final boolean isReadonly = BooleanUtils.toBoolean(
+                    this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
 
             final Composite content = this.pageService
                     .getWidgetFactory()
@@ -189,12 +198,12 @@ public class ExamSebRestrictionSettings {
                     formContext)
                     .withDefaultSpanInput(6)
                     .withEmptyCellSeparation(false)
-                    .readonly(false)
+                    .readonly(isReadonly)
 
                     .addField(FormBuilder.text(
                             "Info",
                             SEB_RESTRICTION_FORM_INFO,
-                            pageService.getI18nSupport().getText(SEB_RESTRICTION_FORM_INFO_TEXT))
+                            this.pageService.getI18nSupport().getText(SEB_RESTRICTION_FORM_INFO_TEXT))
                             .asArea(50)
                             .asHTML()
                             .readonly(true))
@@ -254,6 +263,7 @@ public class ExamSebRestrictionSettings {
 
             return () -> formHandle;
         }
+
     }
 
     private static LmsType getLmsType(final PageContext pageContext) {

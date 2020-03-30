@@ -400,6 +400,7 @@ public class ExamForm implements TemplateComposer {
                                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                                 .call()
                                 .getOrThrow().lmsType.name())
+                .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant))
                 .noEventPropagation()
                 .publishIf(() -> sebRestrictionAvailable && readonly)
 

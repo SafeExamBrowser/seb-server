@@ -45,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -210,6 +211,27 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<EntityKey> checkImported(
+            @PathVariable final String modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkReadPrivilege(institutionId);
+        return this.examDAO.allByQuizId(modelId)
+                .map(ids -> ids
+                        .stream()
+                        .map(id -> new EntityKey(id, EntityType.EXAM))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -225,6 +247,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .checkRunningExamConsistency(modelId)
                 .getOrThrow();
     }
+
+    // ****************************************************************************
+    // **** SEB Restriction
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
@@ -243,9 +268,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.examAdminService::isRestricted)
                 .getOrThrow();
     }
-
-    // ****************************************************************************
-    // **** SEB Restriction
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT

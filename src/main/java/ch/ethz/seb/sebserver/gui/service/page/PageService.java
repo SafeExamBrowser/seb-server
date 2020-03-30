@@ -129,8 +129,9 @@ public interface PageService {
      *
      * @param table the entity table
      * @param noSelectionText LocTextKey for missing selection message
-     * @param testBeforeActivation a function to test before activation. This function shall throw an error if test fails.
-     *                             My be null if no specific test is needed before activation
+     * @param testBeforeActivation a function to test before activation. This function shall throw an error if test
+     *            fails.
+     *            My be null if no specific test is needed before activation
      * @return page action execution function for switching the activity */
     <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
             EntityTable<T> table,
@@ -144,8 +145,8 @@ public interface PageService {
      * @param noSelectionText LocTextKey for missing selection message
      * @return page action execution function for switching the activity */
     default <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
-            EntityTable<T> table,
-            LocTextKey noSelectionText) {
+            final EntityTable<T> table,
+            final LocTextKey noSelectionText) {
         return this.activationToggleActionFunction(table, noSelectionText, null);
     }
 
@@ -399,7 +400,7 @@ public interface PageService {
 
         private PageContext pageContext;
         private ActionDefinition definition;
-        private Supplier<LocTextKey> confirm;
+        private Function<PageAction, LocTextKey> confirm;
         private LocTextKey successMessage;
         private Supplier<Set<EntityKey>> selectionSupplier;
         private LocTextKey noSelectionMessage;
@@ -508,6 +509,11 @@ public interface PageService {
         }
 
         public PageActionBuilder withConfirm(final Supplier<LocTextKey> confirm) {
+            this.confirm = action -> confirm.get();
+            return this;
+        }
+
+        public PageActionBuilder withConfirm(final Function<PageAction, LocTextKey> confirm) {
             this.confirm = confirm;
             return this;
         }

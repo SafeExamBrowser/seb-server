@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gui.content.LmsSetupList;
 import ch.ethz.seb.sebserver.gui.content.MonitoringClientConnection;
 import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExam;
 import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
-import ch.ethz.seb.sebserver.gui.content.QuizDiscoveryList;
+import ch.ethz.seb.sebserver.gui.content.QuizLookupList;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigForm;
 import ch.ethz.seb.sebserver.gui.content.SebClientConfigList;
 import ch.ethz.seb.sebserver.gui.content.SebClientLogs;
@@ -52,7 +52,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     LMS_SETUP_VIEW(Type.FORM_VIEW, LmsSetupForm.class, ActivityDefinition.LMS_SETUP),
     LMS_SETUP_EDIT(Type.FORM_EDIT, LmsSetupForm.class, ActivityDefinition.LMS_SETUP),
 
-    QUIZ_LIST(Type.LIST_VIEW, QuizDiscoveryList.class, ActivityDefinition.QUIZ_DISCOVERY),
+    QUIZ_LIST(Type.LIST_VIEW, QuizLookupList.class, ActivityDefinition.QUIZ_DISCOVERY),
 
     EXAM_LIST(Type.LIST_VIEW, ExamList.class, ActivityDefinition.EXAM),
     EXAM_VIEW(Type.FORM_VIEW, ExamForm.class, ActivityDefinition.EXAM),
