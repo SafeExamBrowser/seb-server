@@ -26,6 +26,12 @@ public class ActionActivationEvent implements PageEvent {
         this.decoration = null;
     }
 
+    public ActionActivationEvent(final boolean activation, final Collection<ActionDefinition> actions) {
+        this.activation = activation;
+        this.actions = Utils.immutableCollectionOf(actions);
+        this.decoration = null;
+    }
+
     public ActionActivationEvent(
             final boolean activation,
             final Tuple<ActionDefinition> decoration,

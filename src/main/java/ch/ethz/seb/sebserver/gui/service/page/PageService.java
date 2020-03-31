@@ -172,7 +172,7 @@ public interface PageService {
         return () -> confirmDeactivation(table
                 .getSelectedROWData()
                 .stream()
-                .filter(Activatable::isActive) // NOTE: Activatable::isActive leads to an error here!?
+                .filter(entity -> entity.isActive()) // NOTE: Activatable::isActive leads to an error here!?
                 .collect(Collectors.toSet()))
                         .get();
     }

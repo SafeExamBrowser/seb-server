@@ -146,7 +146,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                                     (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
                                     entityType,
                                     new EntityName(modelId, entityType, entity.getName())));
-                    this.notifySaved(entity);
+                    this.notifySaved(this.entityDAO.byModelId(entity.getModelId()).getOrThrow());
                     return createReport;
                 });
     }

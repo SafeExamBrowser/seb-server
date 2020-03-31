@@ -219,7 +219,7 @@ public class SebExamConfigForm implements TemplateComposer {
 
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction( (!modifyGrant || examConfig.status == ConfigurationStatus.IN_USE)
+                .newAction((!modifyGrant || examConfig.status == ConfigurationStatus.IN_USE)
                         ? ActionDefinition.SEB_EXAM_CONFIG_VIEW
                         : ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)

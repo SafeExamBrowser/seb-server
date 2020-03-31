@@ -181,11 +181,12 @@ public class SebClientConfigList implements TemplateComposer {
                 .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY)
-                .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
+                .withSelect(
+                        table.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
+                        this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY),
+                        EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false);
-
-
 
     }
 

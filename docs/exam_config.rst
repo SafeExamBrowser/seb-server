@@ -6,9 +6,13 @@ Exam Configuration
 Overview
 --------
 
-An exam configuration defines all the SEB settings for an exam and can be applied to an exam. A SEB client that is connecting to SEB Server
+An exam configuration defines all the SEB settings for an exam. A SEB client that is connecting to SEB Server
 and an exam defined by the SEB Server is downloading this exam configuration from SEB Server and reconfigure itself before accessing the
 exam on the learning management system (LMS) and present it to the user.
+
+.. note::
+    For more information and detailed description of the SEB exam settings, see `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_.
+    Currently not all settings are available and some has different uses. For details about differences see :ref:`setting-dif-label` 
 
 An exam administrator is able to create, modify and maintain exam configurations while the SEB Server administrator and the institutional administrator 
 role have only read access either for all exam configurations or for the exam configurations of the institution. 
@@ -75,6 +79,17 @@ Use Cases
 ---------
 
 **Create new Exam Configuration**
+
+For the upcoming semester you have to create several new exam configurations for the different kind of exams your institution is going to provide
+during the semester.
+
+- Sign into SEB Server with your exam administrator role account
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- You see a list of all available exam configuration.
+- Use the "Add Exam Configuration" action on the action pane on the right hand side to create a new exam configuration
+- The creation form at least needs a unique name for the exam configuration. You can also add a description or hint to recognize and find this configuration more easily later on.
+- In the "Status" field you are able to choose if the configuration is still under construction and cannot be added to exams yet, or if it is ready to use.
+- Save the form with the "Save Exam Configuration" action at the right action pane to create the configuration.
 
 **Edit SEB Settings and prepare for Use**
 

@@ -178,10 +178,13 @@ public class LmsSetupList implements TemplateComposer {
                 .publishIf(() -> userGrant.im() && table.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY)
-                .withExec(this.pageService.activationToggleActionFunction(
-                        table,
-                        EMPTY_SELECTION_TEXT_KEY,
-                        action -> LmsSetupForm.testLmsSetup(action, null, restService)))
+                .withSelect(
+                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
+                        this.pageService.activationToggleActionFunction(
+                                table,
+                                EMPTY_SELECTION_TEXT_KEY,
+                                action -> LmsSetupForm.testLmsSetup(action, null, restService)),
+                        EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);
 

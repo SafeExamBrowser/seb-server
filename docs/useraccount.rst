@@ -38,6 +38,7 @@ of all institution within a SEB Server instance. The filter above the list can b
 
 - "Institution" filter to select a certain institution and show only the user-accounts that belongs to this institution.
 - "First Name" filter to search for user-accounts with the given occurrence of text in the First Name.
+- "Surname" filter to search for user-accounts with the given occurrence of text in the Surname.
 - "User Name" filter to search for user-accounts with the given occurrence of text in the Username.
 - "Mail" filter to find an user-account by e-mail address
 - "Status" filter to select the either and see either only active, only inactive or all user-accounts
