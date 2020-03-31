@@ -37,9 +37,9 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         return executor;
     }
 
-    public static final String EXAM_AIP_EXECUTOR_BEAN_NAME = "ExamAPIAsyncServiceExecutorBean";
+    public static final String EXAM_API_EXECUTOR_BEAN_NAME = "ExamAPIAsyncServiceExecutorBean";
 
-    @Bean(name = EXAM_AIP_EXECUTOR_BEAN_NAME)
+    @Bean(name = EXAM_API_EXECUTOR_BEAN_NAME)
     public Executor examAPIThreadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(200);

@@ -13,8 +13,10 @@ import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.oauth2.provider.ClientDetails;
 
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -62,4 +64,7 @@ public interface ClientConfigService {
      * @param config the SebClientConfig to check access
      * @return true if the system was able to gain an access token for the client. False otherwise */
     boolean checkAccess(SebClientConfig config);
+
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void initalCheckAccess(SebClientConfig config);
 }

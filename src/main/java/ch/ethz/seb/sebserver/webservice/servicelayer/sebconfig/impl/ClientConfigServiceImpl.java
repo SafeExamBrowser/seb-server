@@ -325,8 +325,13 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         try {
             final RestTemplate restTemplate = new RestTemplate();
-            final String externalServerURL = this.webserviceInfo.getExternalServerURL() +
+            String externalServerURL = this.webserviceInfo.getExternalServerURL() +
                     API.OAUTH_TOKEN_ENDPOINT;
+
+            final String lmsExternalAddressAlias = this.webserviceInfo.getLmsExternalAddressAlias(externalServerURL);
+            if (StringUtils.isNotBlank(lmsExternalAddressAlias)) {
+                externalServerURL = lmsExternalAddressAlias;
+            }
 
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
@@ -361,6 +366,11 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             log.warn("Failed to check access for SebClientConfig: {} cause: {}", config, e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public void initalCheckAccess(final SebClientConfig config) {
+        checkAccess(config);
     }
 
     private void passwordEncryption(

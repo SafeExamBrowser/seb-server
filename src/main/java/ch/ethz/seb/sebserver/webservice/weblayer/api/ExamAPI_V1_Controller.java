@@ -72,7 +72,7 @@ public class ExamAPI_V1_Controller {
             final SebClientConnectionService sebClientConnectionService,
             final SebClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper,
-            @Qualifier(AsyncServiceSpringConfig.EXAM_AIP_EXECUTOR_BEAN_NAME) final Executor executor) {
+            @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
