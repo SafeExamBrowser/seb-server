@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpSession;
 
@@ -231,11 +232,15 @@ public class PageServiceImpl implements PageService {
                                             entity.entityType(),
                                             CallType.GET_DEPENDENCIES);
 
-                            return builder
-                                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
-                                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
-                                    .call()
-                                    .getOrThrow().stream();
+                            if (builder != null) {
+                                return builder
+                                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
+                                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
+                                        .call()
+                                        .getOrThrow().stream();
+                            } else {
+                                return Stream.empty();
+                            }
                         }).count();
                 if (dependencies > 0) {
                     return new LocTextKey(CONFIRM_DEACTIVATION_KEY, String.valueOf(dependencies));
