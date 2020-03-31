@@ -161,7 +161,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         examConfig.name)
-                    .mandatory(!isReadonly))
+                        .mandatory(!isReadonly))
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
@@ -227,10 +227,12 @@ public class ConfigTemplateForm implements TemplateComposer {
                                             .withFilter(this.groupFilter)
                                             .sortable()
                                             .widthProportion(1))
-                            .withDefaultAction(pageActionBuilder
-                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
-                                    .withParentEntityKey(entityKey)
-                                    .create())
+                            .withDefaultActionIf(
+                                    () -> modifyGrant,
+                                    () -> pageActionBuilder
+                                            .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT)
+                                            .withParentEntityKey(entityKey)
+                                            .create())
 
                             .withSelectionListener(this.pageService.getSelectionPublisher(
                                     pageContext,
@@ -249,7 +251,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             attrTable::getSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
-                    .publishIf(attrTable::hasAnyContent, false)
+                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT)
                     .withParentEntityKey(entityKey)
@@ -258,7 +260,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.resetToDefaults(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(attrTable::hasAnyContent, false)
+                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW)
                     .withParentEntityKey(entityKey)
@@ -267,7 +269,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.removeFormView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(attrTable::hasAnyContent, false)
+                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_ATTACH_DEFAULT_VIEW)
                     .withParentEntityKey(entityKey)
@@ -276,7 +278,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.attachView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(attrTable::hasAnyContent, false);
+                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false);
         }
 
         pageActionBuilder
