@@ -61,6 +61,8 @@ public class QuizLookupList implements TemplateComposer {
 
     // localized text keys
 
+    private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
+            new LocTextKey("sebserver.quizdiscovery.list.action.no.modify.privilege");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.quizdiscovery.list.title");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
@@ -238,7 +240,7 @@ public class QuizLookupList implements TemplateComposer {
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
                 .withConfirm(importQuizConfirm(table, restService))
                 .withSelect(
-                        table::getSelection,
+                        table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> this.importQuizData(action, table),
                         EMPTY_SELECTION_TEXT)
                 .publishIf(() -> examGrant.im() && table.hasAnyContent(), false);

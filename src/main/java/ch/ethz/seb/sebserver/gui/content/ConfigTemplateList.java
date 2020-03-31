@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class ConfigTemplateList implements TemplateComposer {
 
     private static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
-            new LocTextKey("sebserver.examconfig.list.action.no.modify.privilege");
+            new LocTextKey("sebserver.configtemplate.list.action.no.modify.privilege");
     private static final LocTextKey TITLE_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.list.title");
     private static final LocTextKey EMPTY_TEMPLATE_LIST_TEXT_KEY =
