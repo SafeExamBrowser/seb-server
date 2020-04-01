@@ -89,25 +89,139 @@ during the semester.
 - Use the "Add Exam Configuration" action on the action pane on the right hand side to create a new exam configuration
 - The creation form at least needs a unique name for the exam configuration. You can also add a description or hint to recognize and find this configuration more easily later on.
 - In the "Status" field you are able to choose if the configuration is still under construction and cannot be added to exams yet, or if it is ready to use.
-- Save the form with the "Save Exam Configuration" action at the right action pane to create the configuration.
+- Save the form with the "Save Exam Configuration" action on the right action pane to create the configuration.
+- After successfully saved the new exam configuration use "Edit SEB Settings" to open all the SEB settings that can be defined for a exam.
+- For more information about the individual SEB settings see `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_.
+- In the SEB settings view use the "Save / Publish Settings" action to save your settings. 
 
-**Edit SEB Settings and prepare for Use**
+.. note:: 
+    Changes in SEB settings are automatically sent to the server and stored within the open working revision of the settings.
+    To make a open working revision active and available for export, exams and other uses, you need to save / publish this settings exclusively
+    by using the "Save / Publish Settings" action. After using this action all the changes are saved in a historical revision and 
+    available for use. A new working revision will be created and all the changes until then will go into the new working revision.
+    To revert all the changes done since last save / publish use the "Undo" action.
 
 **Export an Exam Configuration**
 
+You want to test an exam configuration manually with a SEB client. Therefore you need to export a existing exam configuration and load
+it with a SEB client or the SEB configuration tool.
+
+- Sign into SEB Server with your exam administrator role account
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- You see a list of all available exam configuration.
+- Use the Filter above the list to narrow down the number of entries and to find a specific exam configuration.
+- Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
+- In the view mode of the exam configuration use the "Export Exam Configuration" action to start the export download.
+- Save the file or open it directly with SEB
+
 **Import an Exam Configuration**
+
+There is an existing SEB configuration file once created with the SEB config tool that must be imported to use with SEB Server. 
+The SEB configuration files where created with the SEB configuration tool and are all saved with the purpose to start an exam (attribute).
+
+- Sign into SEB Server with your exam administrator role account
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- Use the "Import Exam Configuration" action from the right action pane to start an upload dialog.
+- Within the upload dialog use the file selector to select the SEB configuration file for importing.
+- Give a unique name for the imported exam configuration and a description (optional).
+- If the original SEB configuration is password protected, give the password that is needed to decrypt the configuration file.
+- Use the OK action on the upload dialog to start the import.
+- If the import was successful a new exam configuration with the given name exists.
 
 **Copy an Exam Configuration**
 
-**Save an Exam Configuration as Template**
+Since an exam configuration can only be used by one exam you have  periodically to create a copy of an existing exam configuration
+that is already attached to an exam. The copy can then be used to either make first some changes to the settings or add it directly
+to another exam that has to be configured for SEB.
+
+- Sign into SEB Server with your exam administrator role account
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- You see a list of all available exam configuration.
+- Use the Filter above the list to narrow down the number of entries and to find a specific exam configuration.
+- Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
+- Use the "Copy Exam Configuration" action from the right action pane to open up the copy dialog.
+- Within the copy dialog give a new unique name for the new exam configuration and a description if needed.
+- Use "With History" apply the whole history of the original exam configuration to be copied or let it unchecked to just copy the last saved / published revision of the original.
+- If all information is correct, use the "OK" button of the copy dialog to create the copy.
+
+.. note:: If there where changes in the working revision of the exam configuration to copy, they will not be included in the copy.
+    Only saved / published changes are included in the copy.
 
 **Generate and Export the Config-Key of an Exam Configuration**
 
-**Edit SEB Settings of an Exam Configuration in Use**
+Usually the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ that is used to validate the SEB configuration
+on the LMS is propagated automatically to a LMS by the SEB Server with the automated SEB restriction feature. But For testing purposes you need to generate and export the 
+`SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ and set it manually on the LMS. 
+
+- Sign into SEB Server with your exam administrator role account
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- You see a list of all available exam configuration.
+- Use the Filter above the list to narrow down the number of entries and to find a specific exam configuration.
+- Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
+- Use the "Export Config-Key" action from the right action pane to generate the Config-Key and open a dialog that presents this generated Config-Key.
+- Mark the Config-Key hash in the dialog with double-click and copy it (ctrl+c) to the clip-board.
+
+.. note:: If there where changes in the working revision of the exam configuration to create the Config-Key from, they will not be included in the generation of the Config-Key.
+    Only saved / published changes are included in the Config-Key generation.
+
+**Changing SEB Settings of an Exam Configuration in Use**
+
+There is an already fully configured exam within SEB Server that is currently running with a prepared exam configuration. You have now realized that
+some SEB settings are missing or wrong and has to be changed for the exam. This is possible but under some restrictions. See the note below.
+
+.. note:: When a exam configuration is applied to a currently running exam, the exam configuration is in "Used" state and the SEB settings of the exam configuration 
+are in read only mode. Changing the SEB settings of a exam configuration during a running exam that has already connected clients can lead to unexpected 
+behavior. SEB clients that has already been connected and are in a running session will work with the old configuration while SEB clients that are connecting
+after a SEB settings change will work with the new configuration. Also the automated SEB restriction with the changed `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_
+will be updated immediately after saving / publishing the configuration changes. This may also lead to unexpected behavior and eventually blocking of already connected SEB clients.
+Therefore SEB Server restricts the change of SEB settings for configurations that are attached to an exam that is currently running to be only possible if there are no
+active SEB client connections for this exam at the moment when save / publish the SEB setting changes. 
+
+- Sign into SEB Server with your exam administrator role account
+- To change the SEB Settings of an exam configuration that is attached to an currently running exam, make sure that there are no active SEB client connections.
+  Go to the "Monitoring" section and find and view the concerned exam to make sure there are currently no active SEB client connections.
+- Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left hand side.
+- You see a list of all available exam configuration.
+- Use the Filter above the list to narrow down the number of entries and to find a specific exam configuration.
+- Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
+- See that you currently are not able to edit the SEB settings. There is only a "View SEB Settings" action that opens the SEB settings in read-only mode.
+- Use the "Edit Exam Configuration" action from the right action pane to open the edit mode of the exam configuration.
+- Change the status from "Used" to "Under Construction" to be able to edit the SEB settings again. There will be a message that tells you the implication with
+changing SEB settings within a exam configuration that is already used by a running exam.
+- After saving the exam configuration in "Under Construction" it is now possible to edit the SEB settings for this exam configuration.
+- Use the "Edit SEB Settings" action from the right action pane to open the SEB settings form in the edit mode.
+- Apply your changes to the settings and use "Save / Publish Settings" to make the settings take affect and trigger a configuration change to the exam.
+This will check first if there are currently no active SEB clients connected within the running exam that uses this exam configuration. 
+If there is one or more active SEB client connected, the action will deny and inform you about the the active SEB clients.
 
 
 .. _setting-dif-label:
 
 SEB Setting Differences
 -----------------------
+
+In the current version (1.0) of SEB Server, there are some differences to some SEB settings and also some SEB settings that are currently not 
+available on the SEB Server.
+
+**SEB settings currently not supported by the SEB Server**
+
+- Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the 
+exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
+- Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
+- Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
+- Additional Resources: Additional resources are currently not available in the current SEB Server version.$
+- Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
+- Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key
+may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
+
+
+
+**SEB settings that has a slightly different form or handling in SEB Server comparing to the SEB configuration tool** 
+
+- Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text
+input where one has to give the full-path to the directory on the client device in text form.
+- Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text
+input where one has to give the full-path to the directory on the client device in text form.
+- Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
+
 
