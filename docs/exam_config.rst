@@ -11,7 +11,7 @@ and an exam defined by the SEB Server is downloading this exam configuration fro
 exam on the learning management system (LMS) and present it to the user.
 
 .. note::
-    For more information and detailed description of the SEB exam settings, see `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_.
+    For more information and detailed description of the SEB settings, see `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_.
     Currently not all settings are available and some has different uses. For details about differences see :ref:`setting-dif-label` 
 
 An exam administrator is able to create, modify and maintain exam configurations while the SEB Server administrator and the institutional administrator 
@@ -67,12 +67,33 @@ while also publish them to exams that uses this exam configuration.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docsexam_config/settings.png
 
 .. note:: 
-    Changes in SEB settings must be published to be available on exams they use this exam configuration. Before publishing they are not
+    Changes in SEB settings must be published to be available on exports, exams or other uses. Before publishing they are not
     available for exams and SEB clients that connect to the SEB Server will still receive the last published version of the SEB settings.
+    To publish SEB setting changes use the "Save / Publish Settings" action from the right action pane.
     
 .. note:: 
     Currently there is an "Undo" function to revert the changed made to the last published state. But there is no possibility yet to 
     maintain the publishing history of a Exam Configuration but may be available in a future release of the SEB Server.
+    
+Since an exam configuration can only be used by one exam it may be convenient to quickly copy an existing exam configuration that is in use
+and use the copy of this exam configuration for another exam or to just change the settings to make a slightly different exam configuration.
+The "Copy Exam Configuration" action can always be used no matter in what state the exam configuration may be at the moment. By using this
+feature there will be a copy dialog shown as pop-up window where one has to give at least a new unique name for the copy. See :ref:`copy-config-label` 
+for detailed step by step guide.
+
+A plain XML text export of the exam configuration may be needed for testing. This is always possible by using the "Export Exam Configuration" 
+action from the right action pane. This will start a usual browser download dialog handled by your browser to save or load the file. The default name
+of the file of a exam configuration is "SEBExamSettings.seb".
+
+SEB Server supports also the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ that is used to validate the SEB configuration
+on the LMS adds a higher security level to the exam. This supported if the specific type of LMS supports the automated SEB restriction feature. Anyways
+sometimes it may be needed to manually extract the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ for a exam configuration.
+Therefore one can use the "Export Client-Key" action from the right action pane to generate the Config-Key form the actual saved SEB settings revision
+of the exam configuration. The key will be presented by a pop-up dialog where it can be copied for further use.
+
+.. image:: images/exam_config/settings.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docsexam_config/config_key.png
 
 
 Use Cases
@@ -128,6 +149,7 @@ The SEB configuration files where created with the SEB configuration tool and ar
 - Use the OK action on the upload dialog to start the import.
 - If the import was successful a new exam configuration with the given name exists.
 
+.. _copy-config-label:
 **Copy an Exam Configuration**
 
 Since an exam configuration can only be used by one exam you have  periodically to create a copy of an existing exam configuration
