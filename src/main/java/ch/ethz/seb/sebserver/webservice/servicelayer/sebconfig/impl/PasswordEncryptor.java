@@ -65,13 +65,21 @@ public class PasswordEncryptor implements SebConfigCryptor {
             log.debug("*** Start streaming asynchronous encryption");
         }
 
-        AES256JNCryptorOutputStream encryptOutput = null;
+        OutputStream encryptOutput = null;
         try {
 
-            encryptOutput = new AES256JNCryptorOutputStream(
-                    output,
-                    Utils.toCharArray(context.getPassword()),
-                    Constants.JN_CRYPTOR_ITERATIONS);
+            final CharSequence password = context.getPassword();
+            if (password.length() == 0) {
+                encryptOutput = new AES256JNCryptorOutputStreamEmptyPwdSupport(
+                        output,
+                        Utils.toCharArray(password),
+                        Constants.JN_CRYPTOR_ITERATIONS);
+            } else {
+                encryptOutput = new AES256JNCryptorOutputStream(
+                        output,
+                        Utils.toCharArray(password),
+                        Constants.JN_CRYPTOR_ITERATIONS);
+            }
 
             IOUtils.copyLarge(input, encryptOutput);
 

@@ -1000,7 +1000,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         List<String> readLines = IOUtils.readLines(exportResponse.get(), "UTF-8");
         assertNotNull(readLines);
         assertFalse(readLines.isEmpty());
-        assertTrue(readLines.get(0).startsWith("plnd"));
 
         // export client config With Password Protection
         exportResponse = restService
@@ -1014,7 +1013,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         readLines = IOUtils.readLines(exportResponse.get(), "UTF-8");
         assertNotNull(readLines);
         assertFalse(readLines.isEmpty());
-        assertTrue(readLines.get(0).startsWith("pswd"));
 
         // get page
         final Result<Page<SebClientConfig>> pageResponse = restService

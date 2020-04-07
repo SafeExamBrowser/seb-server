@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -194,16 +193,17 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         final CharSequence encryptionPassword = this.sebClientConfigDAO
                 .getConfigPasswordCipher(config.getModelId())
-                .getOr(null);
+                .getOr(StringUtils.EMPTY);
 
         final String plainTextXMLContent = extractXMLContent(config);
 
         PipedOutputStream pOut = null;
         PipedInputStream pIn = null;
+        PipedOutputStream zipOut = null;
+        PipedInputStream zipIn = null;
 
         try {
 
-            // zip the plain text
             final InputStream plainIn = IOUtils.toInputStream(
                     Constants.XML_VERSION_HEADER +
                             Constants.XML_DOCTYPE_HEADER +
@@ -215,16 +215,25 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             pOut = new PipedOutputStream();
             pIn = new PipedInputStream(pOut);
 
+            zipOut = new PipedOutputStream();
+            zipIn = new PipedInputStream(zipOut);
+
+            // ZIP plain text
             this.zipService.write(pOut, plainIn);
 
             if (encryptionPassword != null) {
-                passwordEncryption(output, encryptionPassword, pIn);
+                // encrypt zipped plain text and add header
+                passwordEncryption(zipOut, encryptionPassword, pIn);
             } else {
+                // just add plain text header
                 this.sebConfigEncryptionService.streamEncrypted(
-                        output,
+                        zipOut,
                         pIn,
                         EncryptionContext.contextOfPlainText());
             }
+
+            // ZIP again to finish up
+            this.zipService.write(output, zipIn);
 
             if (log.isDebugEnabled()) {
                 log.debug("*** Finished Seb client configuration download streaming composition");
@@ -232,20 +241,10 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         } catch (final Exception e) {
             log.error("Error while zip and encrypt seb client config stream: ", e);
-            try {
-                if (pIn != null) {
-                    pIn.close();
-                }
-            } catch (final IOException e1) {
-                log.error("Failed to close PipedInputStream: ", e1);
-            }
-            try {
-                if (pOut != null) {
-                    pOut.close();
-                }
-            } catch (final IOException e1) {
-                log.error("Failed to close PipedOutputStream: ", e1);
-            }
+            IOUtils.closeQuietly(pIn);
+            IOUtils.closeQuietly(pOut);
+            IOUtils.closeQuietly(zipIn);
+            IOUtils.closeQuietly(zipOut);
         }
     }
 
@@ -382,14 +381,15 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             log.debug("*** Seb client configuration with password based encryption");
         }
 
-        final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
-                .decrypt(encryptionPassword);
+        final CharSequence encryptionPasswordPlaintext = (encryptionPassword == StringUtils.EMPTY)
+                ? StringUtils.EMPTY
+                : this.clientCredentialService.decrypt(encryptionPassword);
 
         this.sebConfigEncryptionService.streamEncrypted(
                 output,
                 input,
                 EncryptionContext.contextOf(
-                        Strategy.PASSWORD_PSWD,
+                        (encryptionPassword == StringUtils.EMPTY) ? Strategy.PASSWORD_PWCC : Strategy.PASSWORD_PSWD,
                         encryptionPasswordPlaintext));
     }
 
