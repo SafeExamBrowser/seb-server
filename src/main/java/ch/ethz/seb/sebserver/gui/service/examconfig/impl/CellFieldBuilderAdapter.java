@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Group;
@@ -83,6 +84,7 @@ interface CellFieldBuilderAdapter {
                         builder.parent,
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name,
                                 attribute.name));
+                label.setData(RWT.MARKUP_ENABLED, true);
 
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
                 switch (orientation.title) {

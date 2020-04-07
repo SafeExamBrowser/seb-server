@@ -17,6 +17,8 @@ public interface SebRestrictionService {
     /** Used as name prefix to store additional SEB restriction properties within AdditionalAttribute domain. */
     String SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX = "sebRestrictionProp_";
 
+    String SEB_RESTRICTION_ADDITIONAL_PROPERTY_CONFIG_KEY = "config_key";
+
     /** Get the SebRestriction properties for specified Exam.
      *
      * @param exam the Exam

@@ -11,8 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,13 +63,23 @@ public class SebRestrictionServiceImpl implements SebRestrictionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Result<SebRestriction> getSebRestrictionFromExam(final Exam exam) {
         return Result.tryCatch(() -> {
-            // generate the config keys from applied exam configurations
-            final Collection<String> configKeys = this.examConfigService
+            // load the config keys from restriction and merge with new generated config keys
+            final Set<String> configKeys = new HashSet<>();
+            final Collection<String> generatedKeys = this.examConfigService
                     .generateConfigKeys(exam.institutionId, exam.id)
                     .getOrThrow();
+
+            configKeys.addAll(generatedKeys);
+            if (generatedKeys != null && !generatedKeys.isEmpty()) {
+                configKeys.addAll(this.lmsAPIService
+                        .getLmsAPITemplate(exam.lmsSetupId)
+                        .flatMap(lmsTemplate -> lmsTemplate.getSebClientRestriction(exam))
+                        .map(r -> r.configKeys)
+                        .getOr(Collections.emptyList()));
+            }
 
             // get the browser exam keys from exam record
             final Collection<String> browserExamKeys = new ArrayList<>();
@@ -137,7 +150,7 @@ public class SebRestrictionServiceImpl implements SebRestrictionService {
                     .stream()
                     .filter(attr -> attr.getName().startsWith(SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX))
                     .forEach(attr -> this.additionalAttributesDAO.delete(attr.getId()));
-            // create new once if needed
+            // create new ones if needed
             sebRestriction.additionalProperties
                     .entrySet()
                     .stream()

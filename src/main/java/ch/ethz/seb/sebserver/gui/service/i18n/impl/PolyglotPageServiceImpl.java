@@ -114,9 +114,9 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     public void injectI18n(final Button button, final LocTextKey locTextKey, final LocTextKey locToolTipKey) {
         final Consumer<Button> buttonFunction = b -> {
             if (locTextKey != null) {
-                b.setText(this.i18nSupport.getText(locTextKey));
+                b.setText(Utils.formatLineBreaks(this.i18nSupport.getText(locTextKey)));
             }
-            if (i18nSupport.hasText(locToolTipKey)) {
+            if (this.i18nSupport.hasText(locToolTipKey)) {
                 b.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locToolTipKey)));
             }
         };
@@ -177,12 +177,13 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     }
 
     @Override
-    public void injectI18nTooltip(Control control, LocTextKey locTooltipKey) {
+    public void injectI18nTooltip(final Control control, final LocTextKey locTooltipKey) {
         if (locTooltipKey == null || control == null) {
             return;
         }
 
-        if (this.i18nSupport.hasText(locTooltipKey) && StringUtils.isNotBlank(this.i18nSupport.getText(locTooltipKey, ""))) {
+        if (this.i18nSupport.hasText(locTooltipKey)
+                && StringUtils.isNotBlank(this.i18nSupport.getText(locTooltipKey, ""))) {
             control.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
             control.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
         }

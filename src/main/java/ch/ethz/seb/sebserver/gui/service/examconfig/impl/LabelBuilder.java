@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.springframework.context.annotation.Lazy;
@@ -54,6 +55,7 @@ public class LabelBuilder implements InputFieldBuilder {
         final Label label = this.widgetFactory.labelLocalized(
                 parent,
                 ExamConfigurationService.attributeNameLocKey(attribute));
+        label.setData(RWT.MARKUP_ENABLED, true);
 
         return new LabelField(
                 attribute,
