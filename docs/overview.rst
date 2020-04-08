@@ -60,7 +60,7 @@ within the SEB Server and the belonging institution.
 
 **Exam Administrator**
 
-With this role a user is able to prepare an exam for an a-assessment with SEB. A exam administrator is able to view all courses form all
+With this role a user is able to prepare an exam for an e-assessment with SEB. A exam administrator is able to view all courses form all
 learning management systems that are setup for the belonging institution and find a particular course to import this course as an exam
 within SEB Server. This role is also able to create and maintain SEB exam configurations that can then be assigned to an imported exam.
 After setting importing an exam, the role is able to setup all aspects of an exam like automated restrictions, allowed supporter and 
