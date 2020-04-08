@@ -227,19 +227,19 @@ available on the SEB Server.
 
 **SEB settings currently not supported by the SEB Server**
 
-- Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
-- Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
-- Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
-- Additional Resources: Additional resources are currently not available in the current SEB Server version.$
-- Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
-- Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
+    - Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
+    - Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
+    - Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
+    - Additional Resources: Additional resources are currently not available in the current SEB Server version.
+    - Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
+    - Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
 
 
 
 **SEB settings that has a slightly different form or handling in SEB Server comparing to the SEB configuration tool** 
 
-- Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
-- Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
-- Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
+    - Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
+    - Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
+    - Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
 
 
