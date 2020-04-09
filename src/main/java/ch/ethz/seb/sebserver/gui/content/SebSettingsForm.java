@@ -94,17 +94,17 @@ public class SebSettingsForm implements TemplateComposer {
 
         final EntityKey entityKey = pageContext.getEntityKey();
 
+        final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
+                .getOrThrow();
+
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
-                TITLE_TEXT_KEY);
+                new LocTextKey(TITLE_TEXT_KEY.name, Utils.truncateText(configNode.name, 30)));
 
         try {
-
-            final ConfigurationNode configNode = this.restService.getBuilder(GetExamConfigNode.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
-                    .getOrThrow();
 
             final Configuration configuration = this.restService.getBuilder(GetConfigurations.class)
                     .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, configNode.getModelId())
