@@ -98,7 +98,6 @@ INSERT INTO configuration_attribute VALUES
     (77, 'permittedProcesses.description', 'TEXT_FIELD', 73, null, null, null, ''),
     (78, 'permittedProcesses.executable', 'TEXT_FIELD', 73, null, null, null, ''),
     (79, 'permittedProcesses.originalName', 'TEXT_FIELD', 73, null, null, null, ''),
-    (80, 'permittedProcesses.allowedExecutables', 'TEXT_FIELD', 73, null, null, null, ''),
     (81, 'permittedProcesses.path', 'TEXT_FIELD', 73, null, null, null, ''),
     (82, 'permittedProcesses.arguments', 'INLINE_TABLE', 73, '1:active:CHECKBOX|4:argument:TEXT_FIELD', null, null, null),
     (85, 'permittedProcesses.identifier', 'TEXT_FIELD', 73, null, null, null, ''),
@@ -364,7 +363,6 @@ INSERT INTO orientation VALUES
     (77, 77, 0, 6, null, 0, 3, 1, 1, 'LEFT'),
     (78, 78, 0, 6, null, 3, 4, 4, 1, 'LEFT'),
     (79, 79, 0, 6, null, 0, 5, 1, 1, 'LEFT'),
-    (80, 80, 0, 6, null, 0, 6, 1, 1, 'LEFT'),
     (81, 81, 0, 6, null, 0, 7, 1, 1, 'LEFT'),
     
     (82, 82, 0, 6, null, 0, 8, 1, 3, 'LEFT'),

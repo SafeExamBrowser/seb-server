@@ -1052,7 +1052,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(attributes);
         assertFalse(attributes.hasError());
         final AttributeMapping attributeMapping = attributes.get();
-        assertEquals(195, attributeMapping.attributeIdMapping.size());
+        assertEquals(194, attributeMapping.attributeIdMapping.size());
         assertEquals(
                 "[active, audio, backToStart, browserSecurity, browserViewMode, exitSequence, functionKeys, kioskMode, logging, "
                         + "macSettings, newBrowserWindow, newwinsize, proxies, quitLink, registry, servicePolicy, sessionHandling, "
@@ -1716,7 +1716,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
         assertNotNull(templateTrientations);
         assertFalse(templateTrientations.isEmpty());
-        assertEquals(195, templateTrientations.size());
+        assertEquals(194, templateTrientations.size());
 
         // get template attributes page
         final Page<TemplateAttribute> templateAttributes = restService

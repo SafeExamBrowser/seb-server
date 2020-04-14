@@ -9,8 +9,6 @@
         <true />
         <key>allowUserToChooseApp</key>
         <false />
-        <key>allowedExecutables</key>
-        <string />
         <key>arguments</key>
         <array></array>
         <key>autostart</key>
@@ -33,8 +31,6 @@
         <true />
         <key>title</key>
         <string>SEB</string>
-        <key>windowHandlingProcess</key>
-        <string />
         <key>originalName</key>
         <string>firefox.exe</string>
       </dict>

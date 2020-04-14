@@ -8,6 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
@@ -15,19 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser.PListNode.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.DefaultHandler;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ExamConfigXMLParser extends DefaultHandler {
 
@@ -86,8 +88,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
     public static final Set<String> PASSWORD_ATTRIBUTES = new HashSet<>(Arrays.asList(
             "hashedQuitPassword",
-            "hashedAdminPassword"
-    ));
+            "hashedAdminPassword"));
 
     private final Cryptor cryptor;
     private final Consumer<ConfigurationValue> valueConsumer;
@@ -330,7 +331,8 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
             // check if we have a simple values array
             if (attribute != null && (attribute.type == AttributeType.MULTI_CHECKBOX_SELECTION
-                    || attribute.type == AttributeType.MULTI_SELECTION)) {
+                    || attribute.type == AttributeType.MULTI_SELECTION
+                    || attribute.type == AttributeType.TEXT_AREA)) {
 
                 saveValue(attrName, attribute, top.listIndex, (top.value == null) ? "" : top.value);
             }
@@ -389,7 +391,11 @@ public class ExamConfigXMLParser extends DefaultHandler {
         final String value = String.valueOf(valueChar);
         final PListNode top = this.stack.peek();
         if (top.type == Type.VALUE_STRING) {
-            top.value = value;
+            if (top.value == null) {
+                top.value = StringEscapeUtils.unescapeXml(value);
+            } else {
+                top.value += StringEscapeUtils.unescapeXml(value);
+            }
         } else if (top.type == Type.VALUE_INTEGER) {
             top.value = value;
         } else if (top.type == Type.KEY) {
@@ -450,7 +456,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
                     attribute.id,
                     listIndex,
                     StringUtils.isNotBlank(value)
-                            ? cryptor.encrypt(value + Constants.IMPORTED_PASSWORD_MARKER).toString()
+                            ? this.cryptor.encrypt(value + Constants.IMPORTED_PASSWORD_MARKER).toString()
                             : value);
         }
 

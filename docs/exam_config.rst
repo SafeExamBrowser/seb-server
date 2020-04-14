@@ -225,6 +225,8 @@ SEB Setting Differences
 In the current version (1.0) of SEB Server, there are some differences to some SEB settings and also some SEB settings that are currently not 
 available on the SEB Server.
 
+
+
 **SEB settings currently not supported by the SEB Server**
 
     - Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
@@ -235,11 +237,12 @@ available on the SEB Server.
     - Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
 
 
-
 **SEB settings that has a slightly different form or handling in SEB Server comparing to the SEB configuration tool** 
 
     - Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
     - Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
     - Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
 
-
+**SEB settings from versions before 3.0 that are not supported anymore**
+    - Permitted Processes / Window Handling Process
+    
