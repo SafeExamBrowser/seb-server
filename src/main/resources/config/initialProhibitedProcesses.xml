@@ -14,6 +14,138 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
+        <string>Riot</string>
+        <key>originalName</key>
+        <string>Riot</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>seamonkey</string>
+        <key>originalName</key>
+        <string>seamonkey</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Discord</string>
+        <key>originalName</key>
+        <string>Discord</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Slack</string>
+        <key>originalName</key>
+        <string>Slack</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Teams</string>
+        <key>originalName</key>
+        <string>Teams</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>CamRecorder</string>
+        <key>originalName</key>
+        <string>CamRecorder</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
         <string>join.me</string>
         <key>originalName</key>
         <string>join.me</string>
