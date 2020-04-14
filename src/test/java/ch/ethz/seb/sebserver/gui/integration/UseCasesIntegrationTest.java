@@ -1052,12 +1052,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(attributes);
         assertFalse(attributes.hasError());
         final AttributeMapping attributeMapping = attributes.get();
-        assertEquals(192, attributeMapping.attributeIdMapping.size());
-        assertEquals("[active, audio, backToStart, browserSecurity, browserViewMode, "
-                + "exitSequence, functionKeys, kioskMode, logging, macSettings, "
-                + "newBrowserWindow, newwinsize, proxies, quitLink, registry, "
-                + "servicePolicy, specialKeys, spellcheck, taskbar, urlFilter, "
-                + "userAgentDesktop, userAgentMac, userAgentTouch, winsize, wintoolbar, zoom, zoomMode]",
+        assertEquals(195, attributeMapping.attributeIdMapping.size());
+        assertEquals(
+                "[active, audio, backToStart, browserSecurity, browserViewMode, exitSequence, functionKeys, kioskMode, logging, "
+                        + "macSettings, newBrowserWindow, newwinsize, proxies, quitLink, registry, servicePolicy, sessionHandling, "
+                        + "specialKeys, spellcheck, taskbar, urlFilter, userAgentDesktop, userAgentMac, userAgentTouch, winsize, wintoolbar, "
+                        + "zoom, zoomMode]",
                 attributeMapping.attributeGroupMapping.keySet()
                         .stream()
                         .sorted()
@@ -1716,7 +1716,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
         assertNotNull(templateTrientations);
         assertFalse(templateTrientations.isEmpty());
-        assertEquals(192, templateTrientations.size());
+        assertEquals(195, templateTrientations.size());
 
         // get template attributes page
         final Page<TemplateAttribute> templateAttributes = restService
