@@ -53,6 +53,10 @@ public final class SingleSelection extends Combo implements Selection {
 
     @Override
     public void select(final String key) {
+        if (this.isEditable) {
+            super.setText(key);
+            return;
+        }
         final int selectionIndex = this.keyMapping.indexOf(key);
         if (selectionIndex < 0) {
             return;
