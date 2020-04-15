@@ -92,12 +92,16 @@ public class KioskModeConverter implements AttributeValueConverter {
             final String template) throws IOException {
 
         final String val = (ATTR_NAME_CREATE_NEW_DESKTOP.equals(name))
-                ? value == null || value.getValue() == null || "0".equals(value.getValue())
+                ? (value == null || value.getValue() == null)
                         ? Constants.TRUE_STRING
-                        : Constants.FALSE_STRING
-                : value == null || value.getValue() == null || "0".equals(value.getValue())
+                        : "0".equals(value.getValue())
+                                ? Constants.TRUE_STRING
+                                : Constants.FALSE_STRING
+                : (value == null || value.getValue() == null)
                         ? Constants.FALSE_STRING
-                        : Constants.TRUE_STRING;
+                        : "1".equals(value.getValue())
+                                ? Constants.TRUE_STRING
+                                : Constants.FALSE_STRING;
 
         out.write(Utils.toByteArray(String.format(template, name, val)));
     }
