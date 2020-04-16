@@ -223,6 +223,24 @@ public final class ViewContext {
                 inputField);
     }
 
+    public void setValue(final String name, final String value) {
+        try {
+            final ConfigurationAttribute attributeByName = getAttributeByName(name);
+            final InputField inputField = this.inputFieldMapping.get(attributeByName.id);
+            inputField.initValue(value, 0);
+            if (this.valueChangeListener != null) {
+                this.valueChangeListener.valueChanged(
+                        this,
+                        attributeByName,
+                        value,
+                        0);
+            }
+        } catch (final Exception e) {
+            log.error("Failed to set attribute value: {} : {}, cause {}", name, value, e.getMessage());
+        }
+
+    }
+
     void setValuesToInputFields(final Collection<ConfigurationValue> values) {
         this.inputFieldMapping
                 .values()

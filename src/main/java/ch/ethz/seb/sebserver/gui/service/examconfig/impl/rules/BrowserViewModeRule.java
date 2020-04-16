@@ -8,12 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl.rules;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -30,10 +32,11 @@ public class BrowserViewModeRule implements ValueChangeRule {
     public static final String KEY_BROWSER_VIEW_MODE = "browserViewMode";
     public static final String KEY_TOUCH_EXIT = "enableTouchExit";
     public static final String KEY_MAIN_WINDOW_GROUP = "mainBrowserWindowWidth";
+    public static final String KEY_TOUCH_OPTIMIZED = "touchOptimized";
 
     @Override
     public boolean observesAttribute(final ConfigurationAttribute attribute) {
-        return KEY_BROWSER_VIEW_MODE.equals(attribute.name);
+        return KEY_BROWSER_VIEW_MODE.equals(attribute.name) || KEY_TOUCH_OPTIMIZED.equals(attribute.name);
     }
 
     @Override
@@ -50,19 +53,35 @@ public class BrowserViewModeRule implements ValueChangeRule {
             context.enable(KEY_TOUCH_EXIT);
             context.enableGroup(KEY_MAIN_WINDOW_GROUP);
 
-            switch (Integer.parseInt(value.value)) {
-                case 1: {
-                    context.disable(KEY_TOUCH_EXIT);
+            if (KEY_TOUCH_OPTIMIZED.equals(attribute.name)) {
+                if (BooleanUtils.toBoolean(value.value)) {
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                    break;
-                }
-                case 2: {
-                    context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                    break;
-                }
-                default: {
+                    context.setValue(KEY_BROWSER_VIEW_MODE, "2");
+                } else {
+                    context.setValue(KEY_TOUCH_EXIT, Constants.FALSE_STRING);
                     context.disable(KEY_TOUCH_EXIT);
-                    break;
+                }
+
+                return;
+            }
+
+            if (KEY_BROWSER_VIEW_MODE.equals(attribute.name)) {
+                switch (Integer.parseInt(value.value)) {
+                    case 1: {
+                        context.disable(KEY_TOUCH_EXIT);
+                        context.disableGroup(KEY_MAIN_WINDOW_GROUP);
+                        context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        break;
+                    }
+                    case 2: {
+                        context.disableGroup(KEY_MAIN_WINDOW_GROUP);
+                        break;
+                    }
+                    default: {
+                        context.disable(KEY_TOUCH_EXIT);
+                        context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        break;
+                    }
                 }
             }
         } catch (final Exception e) {

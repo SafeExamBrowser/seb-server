@@ -42,7 +42,7 @@ public interface InputField {
     void initValue(final String value, final Integer listIndex);
 
     /** Get the current field value.
-     * 
+     *
      * @return the current field value. */
     String getValue();
 
@@ -53,7 +53,7 @@ public interface InputField {
 
     /** Use this to show an error message below the input field.
      * This is only possible if the concrete input field has an error label, otherwise ignored
-     * 
+     *
      * @param errorMessage the error message to display below the input field */
     void showError(String errorMessage);
 

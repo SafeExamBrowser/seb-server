@@ -20,7 +20,7 @@ INSERT INTO configuration_attribute VALUES
     (6, 'exitKey2', 'SINGLE_SELECTION', null, '0,1,2,3,4,5,6,7,8,9,10,11', 'ExitKeySequenceValidator', 'resourceLocTextKey=sebserver.examconfig.props.label.exitKey', '10'),
     (7, 'exitKey3', 'SINGLE_SELECTION', null, '0,1,2,3,4,5,6,7,8,9,10,11', 'ExitKeySequenceValidator', 'resourceLocTextKey=sebserver.examconfig.props.label.exitKey', '5'),
     
-    (8, 'browserViewMode', 'RADIO_SELECTION', null, '0,1,2', null, null, '0'),
+    (8, 'browserViewMode', 'RADIO_SELECTION', null, '0,1', null, null, '0'),
     (9, 'enableTouchExit', 'CHECKBOX', null, null, null, null, 'false'),
     (10, 'mainBrowserWindowWidth', 'COMBO_SELECTION', null, '50%,100%,800,1000', 'WindowsSizeValidator', null, '100%'),
     (11, 'mainBrowserWindowHeight', 'COMBO_SELECTION', null, '80%,100%,600,800', 'WindowsSizeValidator', null, '100%'),
@@ -281,7 +281,8 @@ INSERT INTO orientation VALUES
     (6, 6, 0, 1, 'exitSequence', 2, 2, 1, 1, 'NONE'),
     (7, 7, 0, 1, 'exitSequence', 2, 3, 1, 1, 'NONE'),
 
-    (8, 8, 0, 2, 'browserViewMode', 0, 0, 3, 3, 'NONE'),
+    (8, 8, 0, 2, 'browserViewMode', 0, 0, 3, 2, 'NONE'),
+    (804, 804, 0, 2, 'browserViewMode', 0, 2, 3, 1, 'NONE'),
     (9, 9, 0, 2, 'browserViewMode', 3, 2, 4, 1, 'NONE'),
     (10, 10, 0, 2, 'winsize', 1, 4, 2, 1, 'LEFT'),
     (11, 11, 0, 2, 'winsize', 1, 5, 2, 1, 'LEFT'),
