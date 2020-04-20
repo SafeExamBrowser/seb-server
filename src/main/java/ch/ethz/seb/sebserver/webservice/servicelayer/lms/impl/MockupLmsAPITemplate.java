@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
@@ -175,6 +176,11 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return getQuizzes(ids);
+    }
+
+    @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.ofError(new UnsupportedOperationException());
     }
 
     @Override

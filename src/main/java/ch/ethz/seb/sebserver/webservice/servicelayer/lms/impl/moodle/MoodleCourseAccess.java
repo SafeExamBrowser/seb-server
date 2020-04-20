@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -102,6 +103,11 @@ public class MoodleCourseAccess extends CourseAccess {
                 .getOrThrow();
     }
 
+    @Override
+    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
+        throw new UnsupportedOperationException("not available yet");
+    }
+
     private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
         final String urlPrefix = this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH;
         return collectAllCourses(
@@ -165,6 +171,7 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     static Map<String, String> additionalAttrs = new HashMap<>();
+
     private static List<QuizData> quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
@@ -219,8 +226,8 @@ public class MoodleCourseAccess extends CourseAccess {
         final String full_name;
         final String display_name;
         final String summary;
-        final Long start_date;   // unix-time milliseconds UTC
-        final Long end_date;     // unix-time milliseconds UTC
+        final Long start_date; // unix-time milliseconds UTC
+        final Long end_date; // unix-time milliseconds UTC
         final Long time_created; // unix-time milliseconds UTC
         final Collection<CourseQuiz> quizzes = new ArrayList<>();
 

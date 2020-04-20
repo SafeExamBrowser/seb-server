@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
@@ -67,8 +68,15 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.tryCatch(() -> this.moodleCourseAccess
+                .getCourseChaptersSupplier(courseId)
+                .get());
+    }
+
+    @Override
     public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
-        throw new UnsupportedOperationException("SEB Restriction API not available yet");
+        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 
     @Override
@@ -76,12 +84,12 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
             final String externalExamId,
             final SebRestriction sebRestrictionData) {
 
-        throw new UnsupportedOperationException("SEB Restriction API not available yet");
+        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 
     @Override
     public Result<Exam> releaseSebClientRestriction(final Exam exam) {
-        throw new UnsupportedOperationException("SEB Restriction API not available yet");
+        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 
 }

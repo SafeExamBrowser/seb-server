@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -49,6 +51,8 @@ final class OpenEdxCourseAccess extends CourseAccess {
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseAccess.class);
 
     private static final String OPEN_EDX_DEFAULT_COURSE_ENDPOINT = "/api/courses/v1/courses/";
+    private static final String OPEN_EDX_DEFAULT_BLOCKS_ENDPOINT =
+            "/api/courses/v1/blocks/?depth=1&all_blocks=true&course_id=";
     private static final String OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX = "/courses/";
 
     private final LmsSetup lmsSetup;
@@ -108,6 +112,11 @@ final class OpenEdxCourseAccess extends CourseAccess {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
                 .getOrThrow();
+    }
+
+    @Override
+    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
+        throw new UnsupportedOperationException("not available yet");
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
@@ -216,6 +225,18 @@ final class OpenEdxCourseAccess extends CourseAccess {
         public String blocks_url;
         public String start;
         public String end;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class Blocks {
+        public String root;
+        public Collection<Block> blocks;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class Block {
+        public String block_id;
+        public String display_name;
     }
 
     private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {

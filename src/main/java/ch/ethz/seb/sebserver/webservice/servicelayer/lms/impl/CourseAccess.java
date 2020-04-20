@@ -19,7 +19,9 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -27,20 +29,26 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 public abstract class CourseAccess {
 
-    protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesSupplier;
+    protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
+    protected final CircuitBreaker<Chapters> chaptersRequest;
 
     protected CourseAccess(final AsyncService asyncService) {
-        this.allQuizzesSupplier = asyncService.createMemoizingCircuitBreaker(
+        this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
                 allQuizzesSupplier(),
                 3,
                 Constants.MINUTE_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS,
                 true,
                 Constants.HOUR_IN_MILLIS);
+
+        this.chaptersRequest = asyncService.createCircuitBreaker(
+                3,
+                Constants.MINUTE_IN_MILLIS,
+                Constants.MINUTE_IN_MILLIS);
     }
 
     public Result<QuizData> getQuizFromCache(final String id) {
-        return Result.tryCatch(() -> this.allQuizzesSupplier
+        return Result.tryCatch(() -> this.allQuizzesRequest
                 .getCached()
                 .stream()
                 .filter(qd -> id.equals(qd.id))
@@ -50,7 +58,7 @@ public abstract class CourseAccess {
 
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
         return Result.tryCatch(() -> {
-            final List<QuizData> cached = this.allQuizzesSupplier.getCached();
+            final List<QuizData> cached = this.allQuizzesRequest.getCached();
             if (cached == null) {
                 throw new RuntimeException("No cached quizzes");
             }
@@ -76,10 +84,16 @@ public abstract class CourseAccess {
     }
 
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.allQuizzesSupplier.get()
+        return this.allQuizzesRequest.get()
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
     }
 
+    protected Result<Chapters> getCourseChapters(final String courseId) {
+        return null;
+    }
+
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier();
+
+    protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 
 }

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
@@ -107,6 +108,8 @@ public interface LmsAPITemplate {
     // TODO this can be used in a future release to resolve examinee's account detail information by an
     //      examinee identifier received by on SEB-Client connection.
     //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+
+    Result<Chapters> getCourseChapters(String courseId);
 
     /** Get SEB restriction data form LMS within a SebRestrictionData instance if available
      * or a ResourceNotFoundException if not yet available or restricted

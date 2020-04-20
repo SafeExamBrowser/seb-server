@@ -17,6 +17,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -76,6 +77,13 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return this.openEdxCourseAccess.getQuizzesFromCache(ids)
                 .getOrElse(() -> getQuizzes(ids));
+    }
+
+    @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.tryCatch(() -> this.openEdxCourseAccess
+                .getCourseChaptersSupplier(courseId)
+                .get());
     }
 
     @Override
