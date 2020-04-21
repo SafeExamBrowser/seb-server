@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,9 +24,11 @@ import org.eclipse.swt.widgets.Composite;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -40,6 +43,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSebRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSebRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSebRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSebRestriction;
 
@@ -190,6 +194,13 @@ public class ExamSebRestrictionSettings {
                     .call()
                     .getOrThrow();
 
+            final Chapters chapters = restService
+                    .getBuilder(GetCourseChapters.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .onError(t -> t.printStackTrace())
+                    .getOr(null);
+
             final PageContext formContext = this.pageContext
                     .copyOf(content)
                     .clearEntityKeys();
@@ -231,16 +242,7 @@ public class ExamSebRestrictionSettings {
                                     resourceService::sebRestrictionWhiteListResources))
 
                     .addFieldIf(
-                            () -> lmsType == LmsType.OPEN_EDX,
-                            () -> FormBuilder.multiCheckboxSelection(
-                                    OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
-                                    SEB_RESTRICTION_FORM_EDX_PERMISSIONS,
-                                    sebRestriction.getAdditionalProperties()
-                                            .get(OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS),
-                                    resourceService::sebRestrictionPermissionResources))
-
-                    .addFieldIf(
-                            () -> lmsType == LmsType.OPEN_EDX,
+                            () -> chapters == null && lmsType == LmsType.OPEN_EDX,
                             () -> FormBuilder.text(
                                     OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS,
                                     SEB_RESTRICTION_FORM_EDX_BLACKLIST_CHAPTERS,
@@ -249,6 +251,28 @@ public class ExamSebRestrictionSettings {
                                                     .getAdditionalProperties()
                                                     .get(OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS)))
                                     .asArea())
+
+                    .addFieldIf(
+                            () -> chapters != null && lmsType == LmsType.OPEN_EDX,
+                            () -> FormBuilder.multiCheckboxSelection(
+                                    OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS,
+                                    SEB_RESTRICTION_FORM_EDX_BLACKLIST_CHAPTERS,
+                                    sebRestriction
+                                            .getAdditionalProperties()
+                                            .get(OpenEdxSebRestriction.ATTR_BLACKLIST_CHAPTERS),
+                                    () -> chapters.chapters
+                                            .stream()
+                                            .map(chapter -> new Tuple<>(chapter.id, chapter.name))
+                                            .collect(Collectors.toList())))
+
+                    .addFieldIf(
+                            () -> lmsType == LmsType.OPEN_EDX,
+                            () -> FormBuilder.multiCheckboxSelection(
+                                    OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
+                                    SEB_RESTRICTION_FORM_EDX_PERMISSIONS,
+                                    sebRestriction.getAdditionalProperties()
+                                            .get(OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS),
+                                    resourceService::sebRestrictionPermissionResources))
 
                     .addFieldIf(
                             () -> lmsType == LmsType.OPEN_EDX,

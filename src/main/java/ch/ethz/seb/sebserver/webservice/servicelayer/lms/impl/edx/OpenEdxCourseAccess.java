@@ -10,11 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,6 +30,8 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.http.AccessTokenRequiredException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -40,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 
@@ -53,6 +56,7 @@ final class OpenEdxCourseAccess extends CourseAccess {
     private static final String OPEN_EDX_DEFAULT_COURSE_ENDPOINT = "/api/courses/v1/courses/";
     private static final String OPEN_EDX_DEFAULT_BLOCKS_ENDPOINT =
             "/api/courses/v1/blocks/?depth=1&all_blocks=true&course_id=";
+    private static final String OPEN_EDX_DEFAULT_BLOCKS_TYPE_CHAPTER = "chapter";
     private static final String OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX = "/courses/";
 
     private final LmsSetup lmsSetup;
@@ -116,7 +120,18 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
     @Override
     protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-        throw new UnsupportedOperationException("not available yet");
+        return () -> {
+            final String uri =
+                    this.lmsSetup.lmsApiUrl +
+                            OPEN_EDX_DEFAULT_BLOCKS_ENDPOINT +
+                            Utils.encodeFormURL_UTF_8(courseId);
+            return new Chapters(getCourseBlocks(uri)
+                    .getBody().blocks.values()
+                            .stream()
+                            .filter(block -> OPEN_EDX_DEFAULT_BLOCKS_TYPE_CHAPTER.equals(block.type))
+                            .map(block -> new Chapters.Chapter(block.display_name, block.block_id))
+                            .collect(Collectors.toList()));
+        };
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
@@ -186,6 +201,17 @@ final class OpenEdxCourseAccess extends CourseAccess {
                 EdXPage.class);
     }
 
+    private ResponseEntity<Blocks> getCourseBlocks(final String uri) {
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        return getRestTemplateNoEncoding()
+                .getOrThrow()
+                .exchange(
+                        uri,
+                        HttpMethod.GET,
+                        new HttpEntity<>(httpHeaders),
+                        Blocks.class);
+    }
+
     private static QuizData quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
@@ -230,13 +256,14 @@ final class OpenEdxCourseAccess extends CourseAccess {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class Blocks {
         public String root;
-        public Collection<Block> blocks;
+        public Map<String, Block> blocks;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class Block {
         public String block_id;
         public String display_name;
+        public String type;
     }
 
     private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
@@ -255,6 +282,17 @@ final class OpenEdxCourseAccess extends CourseAccess {
             request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
         }
 
+    }
+
+    private Result<OAuth2RestTemplate> getRestTemplateNoEncoding() {
+        return this.openEdxRestTemplateFactory
+                .createOAuthRestTemplate()
+                .map(tempalte -> {
+                    final DefaultUriBuilderFactory builderFactory = new DefaultUriBuilderFactory();
+                    builderFactory.setEncodingMode(EncodingMode.NONE);
+                    tempalte.setUriTemplateHandler(builderFactory);
+                    return tempalte;
+                });
     }
 
     private Result<OAuth2RestTemplate> getRestTemplate() {

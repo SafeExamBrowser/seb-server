@@ -109,6 +109,15 @@ public interface LmsAPITemplate {
     //      examinee identifier received by on SEB-Client connection.
     //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
 
+    /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
+     * apply chapter-based SEB restriction for a specified course.
+     * 
+     * The availability of this depends on the type of LMS and on installed plugins that supports this feature.
+     * If this is not supported by the underling LMS a UnsupportedOperationException will be presented
+     * within the Result.
+     * 
+     * @param courseId The course identifier
+     * @return Result referencing to the Chapters model for the given course or to an error when happened. */
     Result<Chapters> getCourseChapters(String courseId);
 
     /** Get SEB restriction data form LMS within a SebRestrictionData instance if available

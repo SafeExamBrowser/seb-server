@@ -89,7 +89,7 @@ public abstract class CourseAccess {
     }
 
     protected Result<Chapters> getCourseChapters(final String courseId) {
-        return null;
+        return this.chaptersRequest.protectedRun(getCourseChaptersSupplier(courseId));
     }
 
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier();

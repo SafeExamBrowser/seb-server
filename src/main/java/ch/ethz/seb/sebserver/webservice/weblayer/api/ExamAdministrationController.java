@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
@@ -348,6 +349,28 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.authorization::checkModify)
                 .flatMap(exam -> this.applySebRestriction(exam, false))
                 .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Chapters getChapters(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
+
+        checkReadPrivilege(institutionId);
+        return this.entityDAO.byPK(examlId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(exam -> this.lmsAPIService
+                        .getLmsAPITemplate(exam.lmsSetupId)
+                        .getOrThrow()
+                        .getCourseChapters(exam.externalId))
                 .getOrThrow();
     }
 

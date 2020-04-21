@@ -49,7 +49,7 @@ public final class Chapters {
         public final String id;
 
         @JsonCreator
-        protected Chapter(
+        public Chapter(
                 @JsonProperty(ATTR_NAME) final String name,
                 @JsonProperty(ATTR_ID) final String id) {
 
