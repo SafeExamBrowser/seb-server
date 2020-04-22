@@ -93,27 +93,29 @@ final class SebExamConfigImportPopup {
             final PageContext context = formHandle.getContext();
 
             // Ad-hoc field validation
-            formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
-            final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
-            if (StringUtils.isBlank(fieldValue)) {
-                form.setFieldError(
-                        Domain.CONFIGURATION_NODE.ATTR_NAME,
-                        pageService
-                                .getI18nSupport()
-                                .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
-                return false;
-            } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
-                form.setFieldError(
-                        Domain.CONFIGURATION_NODE.ATTR_NAME,
-                        pageService
-                                .getI18nSupport()
-                                .getText(new LocTextKey("sebserver.form.validation.fieldError.size",
-                                        null,
-                                        null,
-                                        null,
-                                        3,
-                                        255)));
-                return false;
+            if (newConfig) {
+                formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
+                final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
+                if (StringUtils.isBlank(fieldValue)) {
+                    form.setFieldError(
+                            Domain.CONFIGURATION_NODE.ATTR_NAME,
+                            pageService
+                                    .getI18nSupport()
+                                    .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
+                    return false;
+                } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
+                    form.setFieldError(
+                            Domain.CONFIGURATION_NODE.ATTR_NAME,
+                            pageService
+                                    .getI18nSupport()
+                                    .getText(new LocTextKey("sebserver.form.validation.fieldError.size",
+                                            null,
+                                            null,
+                                            null,
+                                            3,
+                                            255)));
+                    return false;
+                }
             }
 
             if (fieldControl instanceof FileUploadSelection) {
