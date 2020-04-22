@@ -200,41 +200,41 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     }
 
     public ConfigPurpose getConfigPurpose() {
-        return configPurpose;
+        return this.configPurpose;
     }
 
     public Boolean getFallback() {
-        return fallback;
+        return this.fallback;
     }
 
     public Long getFallbackTimeout() {
-        return fallbackTimeout;
+        return this.fallbackTimeout;
     }
 
     public Short getFallbackAttempts() {
-        return fallbackAttempts;
+        return this.fallbackAttempts;
     }
 
     public Short getFallbackAttemptInterval() {
-        return fallbackAttemptInterval;
+        return this.fallbackAttemptInterval;
     }
 
     public CharSequence getFallbackPassword() {
-        return fallbackPassword;
+        return this.fallbackPassword;
     }
 
     @JsonIgnore
     public CharSequence getFallbackPasswordConfirm() {
-        return fallbackPasswordConfirm;
+        return this.fallbackPasswordConfirm;
     }
 
     public CharSequence getQuitPassword() {
-        return quitPassword;
+        return this.quitPassword;
     }
 
     @JsonIgnore
     public CharSequence getQuitPasswordConfirm() {
-        return quitPasswordConfirm;
+        return this.quitPasswordConfirm;
     }
 
     public DateTime getDate() {
@@ -272,21 +272,21 @@ public final class SebClientConfig implements GrantEntity, Activatable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("SebClientConfig{");
-        sb.append("id=").append(id);
-        sb.append(", institutionId=").append(institutionId);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", configPurpose=").append(configPurpose);
-        sb.append(", fallback=").append(fallback);
-        sb.append(", fallbackStartURL='").append(fallbackStartURL).append('\'');
-        sb.append(", fallbackTimeout=").append(fallbackTimeout);
-        sb.append(", fallbackAttempts=").append(fallbackAttempts);
-        sb.append(", fallbackAttemptInterval=").append(fallbackAttemptInterval);
-        sb.append(", fallbackPassword=").append(fallbackPassword);
-        sb.append(", fallbackPasswordConfirm=").append(fallbackPasswordConfirm);
-        sb.append(", date=").append(date);
-        sb.append(", encryptSecret=").append(encryptSecret);
-        sb.append(", encryptSecretConfirm=").append(encryptSecretConfirm);
-        sb.append(", active=").append(active);
+        sb.append("id=").append(this.id);
+        sb.append(", institutionId=").append(this.institutionId);
+        sb.append(", name='").append(this.name).append('\'');
+        sb.append(", configPurpose=").append(this.configPurpose);
+        sb.append(", fallback=").append(this.fallback);
+        sb.append(", fallbackStartURL='").append(this.fallbackStartURL).append('\'');
+        sb.append(", fallbackTimeout=").append(this.fallbackTimeout);
+        sb.append(", fallbackAttempts=").append(this.fallbackAttempts);
+        sb.append(", fallbackAttemptInterval=").append(this.fallbackAttemptInterval);
+        sb.append(", fallbackPassword=").append(this.fallbackPassword);
+        sb.append(", fallbackPasswordConfirm=").append(this.fallbackPasswordConfirm);
+        sb.append(", date=").append(this.date);
+        sb.append(", encryptSecret=").append(this.encryptSecret);
+        sb.append(", encryptSecretConfirm=").append(this.encryptSecretConfirm);
+        sb.append(", active=").append(this.active);
         sb.append('}');
         return sb.toString();
     }
@@ -318,7 +318,7 @@ public final class SebClientConfig implements GrantEntity, Activatable {
                 null,
                 institutionId,
                 null,
-                ConfigPurpose.START_EXAM,
+                ConfigPurpose.CONFIGURE_CLIENT,
                 false,
                 null,
                 null,

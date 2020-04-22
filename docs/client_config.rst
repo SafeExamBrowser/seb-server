@@ -121,7 +121,7 @@ Now we want to activate this client configuration and export it to make it acces
   specific Client configuration.
 - Then either on the list or in the view mode of the form, use the "Activate Client Configuration" action on the right action pane to activate the client configuration
 - Now there is a "Export Client Configuration" action in the detail view of the client configuration. Use the "Export Client Configuration" action
-  to start a download dialog. Choose "Save As" and download the file with the name "SEBClientSettings.seb".
+  to start a download dialog. Choose "Save As" and download the file with the name "SEBServerSettings.seb".
 - This file can now be published as download-link within a public server where SEB user can click and start the download and startup of the SEB client automatically. 
 
 **Deactivate a Client Configuration**

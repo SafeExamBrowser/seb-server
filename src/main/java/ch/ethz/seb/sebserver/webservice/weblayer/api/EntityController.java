@@ -95,17 +95,27 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     // ******************
-    // * GET (getAll)
+    // * GET (getPage)
     // ******************
 
-    /** The get-all or get-page rest endpoint for all types of Entity and returns a Page of
-     * entities of specific type.
-     *
-     * GET /{api}/{entity-type-endpoint-name}
-     *
+    /** The generic endpoint to get a Page of domain-entities of a specific type.
+     * </p>
+     * GET /{api}/{domain-entity-name}
+     * </p>
+     * For example for the "exam" domain-entity
      * GET /admin-api/v1/exam
      * GET /admin-api/v1/exam?page_number=2&page_size=10&sort=-name
      * GET /admin-api/v1/exam?name=seb&active=true
+     * </p>
+     * Sorting: the sort parameter to sort the list of entities before paging
+     * the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     * descending sort order. Note that not all entity-model attribute are suited for sorting while the most
+     * are.
+     * </p>
+     * Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
+     * and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
+     * filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
+     * a given text-snippet.
      *
      * @param institutionId The institution identifier of the request.
      *            Default is the institution identifier of the institution of the current user
@@ -113,8 +123,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @param pageSize the size of the page that is requested
      * @param sort the sort parameter to sort the list of entities before paging
      *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
-     *            descending sort order
-     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
+     *            descending sort order.
+     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,

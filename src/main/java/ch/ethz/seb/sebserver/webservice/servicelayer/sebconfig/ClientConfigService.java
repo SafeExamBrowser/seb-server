@@ -24,6 +24,7 @@ public interface ClientConfigService {
 
     Logger log = LoggerFactory.getLogger(ClientConfigService.class);
 
+    /** The cache name of ClientDetails */
     String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
 
     /** Indicates if there is any SebClientConfiguration for a specified institution.

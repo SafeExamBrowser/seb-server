@@ -357,10 +357,10 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
 
     private Result<SebClientConfig> toDomainModel(final SebClientConfigRecord record) {
 
-        Map<String, AdditionalAttributeRecord> additionalAttributes = this.additionalAttributesDAO
+        final Map<String, AdditionalAttributeRecord> additionalAttributes = this.additionalAttributesDAO
                 .getAdditionalAttributes(
-                    EntityType.SEB_CLIENT_CONFIGURATION,
-                    record.getId())
+                        EntityType.SEB_CLIENT_CONFIGURATION,
+                        record.getId())
                 .getOrThrow()
                 .stream()
                 .collect(Collectors.toMap(
@@ -374,7 +374,8 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                 record.getInstitutionId(),
                 record.getName(),
                 additionalAttributes.containsKey(SebClientConfig.ATTR_CONFIG_PURPOSE)
-                        ? ConfigPurpose.valueOf(additionalAttributes.get(SebClientConfig.ATTR_CONFIG_PURPOSE).getValue())
+                        ? ConfigPurpose
+                                .valueOf(additionalAttributes.get(SebClientConfig.ATTR_CONFIG_PURPOSE).getValue())
                         : ConfigPurpose.START_EXAM,
                 additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK) &&
                         BooleanUtils.toBoolean(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK).getValue()),
@@ -388,7 +389,8 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
                         ? Short.parseShort(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
                         : null,
                 additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL)
-                        ? Short.parseShort(additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL).getValue())
+                        ? Short.parseShort(
+                                additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL).getValue())
                         : null,
                 additionalAttributes.containsKey(SebClientConfig.ATTR_FALLBACK_PASSWORD)
                         ? additionalAttributes.get(SebClientConfig.ATTR_FALLBACK_PASSWORD).getValue()
@@ -435,14 +437,14 @@ public class SebClientConfigDAOImpl implements SebClientConfigDAO {
         }
     }
 
-    private void saveAdditionalAttributes(SebClientConfig sebClientConfig, Long configId) {
+    private void saveAdditionalAttributes(final SebClientConfig sebClientConfig, final Long configId) {
         this.additionalAttributesDAO.saveAdditionalAttribute(
                 EntityType.SEB_CLIENT_CONFIGURATION,
                 configId,
                 SebClientConfig.ATTR_CONFIG_PURPOSE,
                 (sebClientConfig.configPurpose != null)
                         ? sebClientConfig.configPurpose.name()
-                        : ConfigPurpose.START_EXAM.name());
+                        : ConfigPurpose.CONFIGURE_CLIENT.name());
 
         this.additionalAttributesDAO.saveAdditionalAttribute(
                 EntityType.SEB_CLIENT_CONFIGURATION,

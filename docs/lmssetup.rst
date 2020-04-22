@@ -6,10 +6,11 @@ Leraning Management System Setup
 Overview
 --------
 
-To be able to connect to a learning management system (LMS) and view and manage the courses provided by a LMS is an essential feature of the SEB Server.
-To create an exam or e-assessment, based on a course existing on a LMS, to use with SEB we need some data of this course from the LMS like, 
-start- end-time, name and others. If we furthermore want to be able to automatically restrict the course for SEB access only we need to have proper
-integration API's in place on both sides, the LMS and the SEB Server. This integration is separated into two main features so far. This are:
+To be able to connect to a learning management system (LMS), to view and manage the courses provided by a LMS is an essential feature of the SEB Server.
+To setup an exam or e-assessment for SEB on SEB Server that is based on a course from a LMS, we have to make a binding to the course on the LMS.
+This allows as to always get the actual course data from LMS like, start- end-time, name and others. If we furthermore want to be able to automatically 
+restrict the course for SEB access only we also need to have proper integration API's in place on both sides, the LMS and the SEB Server. 
+This integration is separated into two main features so far. This are:
 
 **Course API** 
 
