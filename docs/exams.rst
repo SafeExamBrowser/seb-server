@@ -9,7 +9,9 @@ on the exam management of SEB Server.
 
 We will go through all the steps to setting up an exam for Safe Exam Browser with SEB Server one by one.
 
-
-  
-
-
+.. toctree::
+   :maxdepth: 1
+   
+   exam_import
+   exam
+   exam_indicator
