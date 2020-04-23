@@ -253,7 +253,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             log.debug("Start to stream plain JSON SEB Configuration data for Config-Key generation");
         }
 
-        if (log.isTraceEnabled()) {
+        if (true) {
             PipedOutputStream pout;
             PipedInputStream pin;
             try {

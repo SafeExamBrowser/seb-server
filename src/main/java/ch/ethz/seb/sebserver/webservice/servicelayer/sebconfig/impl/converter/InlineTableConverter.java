@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -100,7 +101,7 @@ public class InlineTableConverter implements AttributeValueConverter {
         out.write((xml) ? XML_ARRAY_START : JSON_ARRAY_START);
 
         final String[] rows = StringUtils.split(value.value, Constants.LIST_SEPARATOR);
-        final String[] columns = StringUtils.split(attribute.getResources(), Constants.EMBEDDED_LIST_SEPARATOR);
+        final String[] columns = getSortedColumns(attribute.getResources());
 
         StringUtils.split(attribute.resources, Constants.LIST_SEPARATOR);
         for (int i = 0; i < rows.length; i++) {
@@ -143,15 +144,35 @@ public class InlineTableConverter implements AttributeValueConverter {
                             out,
                             configurationAttribute,
                             a -> configurationValue);
+                    if (j < columns.length - 1) {
+                        out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
+                    }
                 }
 
             }
 
             out.write((xml) ? XML_DICT_END : JSON_DICT_END);
+            if (!xml && i < rows.length - 1) {
+                out.write(Utils.toByteArray(Constants.LIST_SEPARATOR));
+            }
         }
 
         out.write((xml) ? XML_ARRAY_END : JSON_ARRAY_END);
 
+    }
+
+    private String[] getSortedColumns(final String resources) {
+        final String[] columns = StringUtils.split(resources, Constants.EMBEDDED_LIST_SEPARATOR);
+        final List<String> list = Arrays.asList(columns);
+        Collections.sort(list, (s1, s2) -> {
+            final String name1 = StringUtils.split(s1, Constants.COMPLEX_VALUE_SEPARATOR)[1];
+            final String name2 = StringUtils.split(s2, Constants.COMPLEX_VALUE_SEPARATOR)[1];
+            return ConfigurationAttribute.CULTURE_INVARIANT_COLLATOR.compare(
+                    name1,
+                    name2);
+        });
+
+        return list.toArray(new String[columns.length]);
     }
 
 }

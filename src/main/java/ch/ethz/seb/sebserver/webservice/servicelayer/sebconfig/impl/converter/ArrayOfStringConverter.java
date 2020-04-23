@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -93,7 +94,12 @@ public class ArrayOfStringConverter implements AttributeValueConverter {
                     (xml) ? XML_TEMPLATE : JSON_TEMPLATE,
                     AttributeValueConverter.extractName(attribute)));
 
-            for (final String v : values) {
+            for (final String singleValue : values) {
+                // NOTE: Don't escape JSON characters on the value strings here,
+                //       otherwise the Config-Key will be different then in SEB and SEB Config Tool
+                final String v = (xml)
+                        ? StringEscapeUtils.escapeXml10(singleValue)
+                        : singleValue;
                 sb.append(String.format(
                         (xml) ? XML_TEMPLATE_ENTRY : JSON_TEMPLATE_ENTRY,
                         v));

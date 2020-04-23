@@ -67,10 +67,15 @@ public class StringConverter implements AttributeValueConverter {
             final ConfigurationAttribute attribute,
             final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
 
+        final ConfigurationValue cValue = valueSupplier.apply(attribute);
+        final String val = StringEscapeUtils.escapeXml10((cValue != null && cValue.value != null)
+                ? cValue.value
+                : attribute.getDefaultValue());
+
         convert(
                 out,
                 attribute,
-                valueSupplier.apply(attribute),
+                val,
                 XML_TEMPLATE, XML_TEMPLATE_EMPTY);
     }
 
@@ -80,29 +85,33 @@ public class StringConverter implements AttributeValueConverter {
             final ConfigurationAttribute attribute,
             final Function<ConfigurationAttribute, ConfigurationValue> valueSupplier) throws IOException {
 
+        // NOTE: Don't escape JSON characters on the value strings here,
+        //       otherwise the Config-Key will be different then in SEB and SEB Config Tool
+        final ConfigurationValue cValue = valueSupplier.apply(attribute);
+        final String val = (cValue != null && cValue.value != null)
+                ? cValue.value
+                : attribute.getDefaultValue();
+
         convert(
                 out,
                 attribute,
-                valueSupplier.apply(attribute),
+                val,
                 JSON_TEMPLATE, JSON_TEMPLATE_EMPTY);
     }
 
     private void convert(
             final OutputStream out,
             final ConfigurationAttribute attribute,
-            final ConfigurationValue value,
+            final String value,
             final String template,
             final String emptyTemplate) throws IOException {
 
-        final String val = StringEscapeUtils.escapeXml10((value != null && value.value != null)
-                ? value.value
-                : attribute.getDefaultValue());
         final String realName = AttributeValueConverter.extractName(attribute);
-        if (StringUtils.isNotBlank(val)) {
+        if (StringUtils.isNotBlank(value)) {
             out.write(Utils.toByteArray(String.format(
                     template,
                     realName,
-                    convertPassword(realName, val))));
+                    convertPassword(realName, value))));
         } else {
             out.write(Utils.toByteArray(String.format(
                     emptyTemplate,

@@ -40,7 +40,7 @@ public final class ConfigurationAttribute implements Entity, Comparable<Configur
 
     /** This is used to compare the attribute names for sorting used to generate the Config-Key
      * See: https://www.safeexambrowser.org/developer/seb-config-key.html */
-    private static final Collator CULTURE_INVARIANT_COLLATOR = Collator.getInstance(Locale.ROOT);
+    public static final Collator CULTURE_INVARIANT_COLLATOR = Collator.getInstance(Locale.ROOT);
 
     /** This configuration attribute dependency key can be used to set a specific localized text key prefix for
      * resources. This is usually convenient if two different attributes use the same resources and to avoid
