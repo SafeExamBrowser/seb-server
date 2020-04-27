@@ -17,31 +17,10 @@
 
   <springProfile name="dev">
 
-    <root level="INFO" additivity="true">
+    <root level="DEBUG" additivity="true">
       <appender-ref ref="STDOUT" />
       <appender-ref ref="FILE" />
     </root>
-
-    <Logger name="ch.ethz.seb.sebserver.gui" level="INFO" additivity="true" />
-    <Logger name="ch.ethz.seb.sebserver.webservice" level="INFO" additivity="true" />
-    <Logger name="org.apache.ibatis.datasource" level="INFO" additivity="true" />
-    <Logger name="org.mybatis" level="INFO" additivity="true" />
-    <Logger name="org.mybatis.generator" level="INFO" additivity="true" />
-    <Logger name="org.springframework.boot" level="INFO" additivity="true" />
-    <Logger name="org.springframework.security" level="INFO" additivity="true" />
-    
-    <Logger name="org.springframework.security.oauth2.client.OAuth2RestTemplate" level="DEBUG" additivity="true" />
-    
-    <Logger name="org.springframework.context.support.ResourceBundleMessageSource" level="DEBUG" additivity="true" />
-
-    <Logger name="org.springframework.web" level="INFO" additivity="true" />
-    <Logger name="org.springframework.security.oauth2" level="INFO" additivity="true" />
-    
-    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig" level="INFO" additivity="true" />
-    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.session" level="DEBUG" additivity="true" />
-    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx" level="DEBUG" additivity="true" />
-    
-    <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebExamConfigServiceImpl" level="TRACE" additivity="true" />
     
   </springProfile>
   
@@ -66,7 +45,6 @@
   <springProfile name="prod">
 
     <root level="INFO" additivity="true">
-      <appender-ref ref="STDOUT" />
       <appender-ref ref="FILE" />
     </root>
     
