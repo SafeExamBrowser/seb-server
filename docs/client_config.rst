@@ -7,23 +7,29 @@ Overview
 --------
 
 A client configuration is needed to configure a SEB client to securely connect to the SEB Server and present a list of available exams
-for selection. At least one client configuration is needed for an institution that then can exported and be deployed with a SEB within a managed device setup or can be made available within a download link
-on a internal or trusted server. Since the client configuration is security relevant because it contains sensitive data to connect to SEB Server,
+for selection. At least one client configuration is needed for an institution that can be exported and deployed with a SEB on a managed device setup 
+or can be made available within a download link on a internal or trusted server. Another scenario would be to send the client configuration to
+individual students per mail with instructions on how to install SEB and start it with the configuration to automatically connect to the SEB Server. 
+However, since the client configuration is security relevant because it contains sensitive data to connect to SEB Server,
 there are different security level one can choose to apply within a internal safe e-assessment strategy.
 
-The lowest level of security is to just have one not encrypted client configuration for the whole institution and for all e-assessments.
-In this case the sensitive data is more exposed to be compromised and misused by others because of the missing encryption and also it takes 
-more effort to deal with such an issue while there is only one client configuration used by all e-assessments of the institution.
+The lowest level of security is to just have one not encrypted client configuration for the whole institution and for all e-assessments provided
+at this institution with SEB Server.
+In this case the sensitive data is more exposed to be compromised and misused by others because of the missing password protection and it also takes 
+more effort to deal with such an issue while there is only one client configuration used by all e-assessments of the institution. If the one client
+configuration has been compromised and a misuse has been detected the concerned client configuration can be deactivated to prevent further misuse. A
+new one can be created and delivered or updated but since it is only one configuration used for the institution all actual download links have to 
+be updated and all students awaiting a prepared exam has to be informed and supported with the new configuration (link) 
 
-The currently highest level of security is to have encrypted and different client configuration for different e-assessment or semester-wise.
-In this case the client configuration is encrypted with a password that can be defines by a institutional- or exam-administrator while
+The currently highest level of security is to have encrypted and different client configuration for different e-assessment.
+In this case the client configuration is encrypted with a password that can be defined by a institutional- or exam-administrator while
 creating the client configuration. Once the SEB loads such a client configuration it will fist prompt the user about the password that must be
-given to proceed and connect to the SEB Server.
+given by the student to proceed and connect to the SEB Server.
 
-Usually a client configuration is created or maintained by an institutional administrator or by an exam administrator. Exam supporter role has
+Usually a client configuration can be created or maintained by an institutional administrator or by an exam administrator. Exam supporter role has
 no access to client configurations and a SEB administrator is able to see client configurations of other institutions but not to create or modify them.
 
-To see the list of all available client configuration for an institution and the specific user-role, go to the sub-section "Client Configuration"
+You can see a list of all available client configuration for an institution by going to the sub-section "Client Configuration"
 of the "Configuration" section on the menu on the left hand side.
 
 .. image:: images/client_config/list.png
@@ -90,7 +96,7 @@ Use Cases
 
 **Create Client Configuration**
 
-As an Institutional Administrator one should create a new secure client configuration for the upcoming semester. The setup shall operate with
+As an Institutional Administrator you should create a new secure client configuration for the upcoming semester. The setup shall operate with
 secure configurations because the configuration file may be exposed to the public Internet. And the setup shall also have a proper fallback
 strategy where SEB clients uses the a given start URL in fallback case.
 

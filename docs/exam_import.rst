@@ -12,6 +12,11 @@ You will find the list of available courses provided form all LMS that are bound
 section on the left hand side and choosing "LMS Exam Lookup". The SEB Server will present you the list of all available courses and you
 are able to filter and sort the list as usual to find to right course for import.
 
+.. note::
+    The "Start-Time" filter is usually set to the date one year before now or to some other default date in the past. The list shows only 
+    the courses that has a start-time after that time. If you have long running courses and it may possible that a course has been stated
+    a year or two ago, you habe to adapt this "Start-Time" filter to view those courses that has been started before. 
+
 .. image:: images/exam/lmsExamLookup.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookup.png
