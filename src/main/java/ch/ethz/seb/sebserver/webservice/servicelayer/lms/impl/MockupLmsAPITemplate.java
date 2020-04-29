@@ -212,8 +212,9 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
                 final String _externalStartURI =
                         this.webserviceInfo.getHttpScheme() +
                                 "://" + externalAddressAlias + "/api/";
-                if (log.isDebugEnabled()) {
-                    log.debug("Use external address for course access: {}", _externalStartURI);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("Use external address for course access: {}", _externalStartURI);
                 }
 
                 return new QuizData(

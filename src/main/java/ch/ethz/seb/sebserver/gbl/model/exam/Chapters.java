@@ -8,22 +8,31 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang3.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Chapters {
 
     public static final String ATTR_CHAPTERS = "chapters";
 
-    public final Collection<Chapter> chapters;
+    public final List<Chapter> chapters;
 
     @JsonCreator
     public Chapters(@JsonProperty(ATTR_CHAPTERS) final Collection<Chapter> chapters) {
-        this.chapters = chapters;
+        final List<Chapter> c = (chapters != null) ? new ArrayList<>(chapters) : new ArrayList<>();
+        Collections.sort(c);
+        this.chapters = Utils.immutableListOf(c);
     }
 
     public Collection<Chapter> getChapters() {
@@ -40,7 +49,7 @@ public final class Chapters {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static final class Chapter {
+    public static final class Chapter implements Comparable<Chapter> {
 
         public static final String ATTR_NAME = "name";
         public static final String ATTR_ID = "id";
@@ -76,6 +85,14 @@ public final class Chapters {
             return builder.toString();
         }
 
+        @Override
+        public int compareTo(final Chapter o) {
+            if (o == null) {
+                return -1;
+            }
+
+            return ObjectUtils.compare(this.name, o.name);
+        }
     }
 
 }

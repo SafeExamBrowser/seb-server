@@ -332,7 +332,7 @@ public class QuizLookupList implements TemplateComposer {
                         () -> FormBuilder.text(
                                 QuizData.QUIZ_ATTR_INSTITUTION_ID,
                                 QUIZ_DETAILS_INSTITUTION_TEXT_KEY,
-                                institutionNameFunction.apply(quizData.getModelId())))
+                                institutionNameFunction.apply(String.valueOf(quizData.institutionId))))
                 .addField(FormBuilder.singleSelection(
                         QuizData.QUIZ_ATTR_LMS_SETUP_ID,
                         QUIZ_DETAILS_LMS_TEXT_KEY,
