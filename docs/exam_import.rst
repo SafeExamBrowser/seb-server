@@ -19,5 +19,50 @@ are able to filter and sort the list as usual to find to right course for import
 You can view more details of a course by double-click on the specific list entry or by selecting the list entry and click the "Show LMS Exam Details" 
 action form the action pain on the right hand side. The application will open a pop-up with available detail information of the course.
 
-To import a specific course as an exam find the specific course on the list by using the filter and select the list entry. Use the "Import As Exam"
+To import a course as an exam find the specific course on the list by using the filter and select the list entry. Use the "Import As Exam" action 
+from the action pane on the right hand side. 
+
+.. note::
+    If a course has already ended (End-Time passed) it is not possible to import this course and an appropriate message is shown.
+    
+On import, the application is creating an exam on SEB Server with a reference to the imported course on the LMS. All course specific data
+like name, description, start-, end-time and course-identifier will not be stored on the SEB Server but always be referenced by the underling course.
+This means, that the course data has to be modified on the LMS side as usual and the SEB Server always takes the actual data from the LMS for the 
+course. This has the advantages of the principle of single responsibility and prevents synchronization issues. 
+
+You will see the creation page of the new exam with additional information: 
+    - Name: Is the name of the course, defines on the LMS
+    - LMS Setup: Is the name of the LMS Setup on the SEB Server from which the course was imported
+    - Start-Time: Is the date and time when the exam is starting. This is defined on the LMS
+    - End-Time: Is the date and time when the exam ends. This is defined on the LMS
+    - LMS Exam Identifier: Is the identity of the course on the LMS (external identifier/primary key)
+    - LMS Exam URL: Is the start URL of the course/exam
+
+ and are able to initially choose a type for the exam - "Exam Type" - that is currently only used 
+for informational purpose and has no further restrictions or consequences on handling on in SEB Server.
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/importExam.png
+    
+Furthermore you can select and apply all exam supporter that shall be able to see and support this exam while running. To do so, click in the
+input field of the attribute "Exam Supporter" to see a drop down list of all available users for selection. To filter the drop down list, start
+typing characters of the name of the user you want to apply to automatically filter the list. Click on the drop-down list entry to select the
+specified user that will be added to the list below the input field. To add another user to the selection just click again into the input field
+and select another user. To remove a selected user from the selection-list, double-click on the specified entry of the selection-list.
+
+.. note::
+    At least one user account must be selected for the attribute "Exam Supporter". You are able to change this also later on by editing the exam.
+    
+To confirm the import use the "Save Exam" action of the action pane on the right hand side or use "Cancel" if you want to abort the import of the
+exam and go back to the course list. If you have confirmed and successfully imported the exam, you will see the exam overview page where you are able
+to edit the details of the exam, apply SEB restrictions of supported by the LMS, apply a SEB exam configuration for the exam and define indicators
+for monitoring the exam later on.
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examReady.png
+
+How all this different aspects of the exam are defined and prepared is part of the next chapter.
+    
 
