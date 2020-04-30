@@ -52,7 +52,7 @@ for informational purpose and has no further restrictions or consequences on han
     
 Furthermore you can select and apply all exam supporter that shall be able to see and support this exam while running. To do so, click in the
 input field of the attribute "Exam Supporter" to see a drop down list of all available users for selection. To filter the drop down list, start
-typing characters of the name of the user you want to apply to automatically filter the list. Click on the drop-down list entry to select the
+typing characters of the name of the user-account you want to apply to automatically filter the list. Click on the drop-down list entry to select the
 specified user that will be added to the list below the input field. To add another user to the selection just click again into the input field
 and select another user. To remove a selected user from the selection-list, double-click on the specified entry of the selection-list.
 
