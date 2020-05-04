@@ -43,10 +43,135 @@ typing characters of the name of the user-account you want to apply to automatic
 specified user that will be added to the list below the input field. To add another user to the selection just click again into the input field
 and select another user. To remove a selected user from the selection-list, double-click on the specified entry of the selection-list.
 
+
+Apply SEB Exam Configuration
+----------------------------
+
 Just below the exam details you will find the list of applied SEB exam configurations. Currently the number of SEB exam configurations that can be applied
-to an exam is restricted to one since it is not possible to apply a SEB exam configuration not just to the exam but also to a specific user or a 
+to an exam is restricted to one since it is not yet possible to apply a SEB exam configuration not just to the exam but also to a specific user or a 
 specific group of users. This feature may come with a future release of seb server. But for now you are able to apply just one SEB exam configuration 
-the the exam and this gets delivered to all the SEB clients that connect to the SEB server and participate to the specified exam.
+to the exam and this configuration gets delivered to all the SEB clients that connect to the SEB server and participate to the exam.
+
+To apply a SEB exam configuration to an exam use the "Add Exam Configuration" action on the right action pane. A pop-up will prompt you to select an
+SEB exam configuration by a drop-down selection. The drop-down box will present you all SEB exam configurations that are in state "Ready To Use" and
+that are not already used by another exam. If there are more SEB exam configurations in the selection as fitting into the drop-down box, you can either
+scroll the content of the drop-down box or start typing the name of SEB exam configuration to filter the list. After selecting a SEB exam configuration, 
+the pop-up shows the description and the status of the selected configuration. 
+
+.. note::
+    If there are no SEB exam configurations available for applying, the application will note this within a pop-up message.
+    In this case you can create a new one for this exam as described in :ref:`seb_restriction-label`
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/addExamConfig.png
+    
+There is also the possibility to encrypt the SEB exam configuration by a password. This is done before the SEB configuration is send to a connecting 
+SEB client. Since in the moste cases the SEB client connections are over HTTPS / TSL there is alrady a good protection in place and an 
+additional encryption of the SEB exam configuration is not recommended. Anyways, if you decide the use the additional password encryption, the SEB 
+client that receives the encrypted SEB exam configuration will prompt the user for the password to proceed and connect to the LMS.
+
+.. note::
+    If you need to use the same SEB exam configuration for different exams, you can just make a copy of a SEB exam configuration that is already used
+    by another exam. To do so go the the "Exam Configuration" section and find the specified SEB exam configuration by using the filter. If you have
+    found the SEB exam configuration double-click on the table entry to open the SEB exam configuration. Then use the "Copy Exam Configuration" action
+    from the right action pane. A pop-up will prompt you the give a new name and optionally description for the copy. Click "OK" and the system will
+    generate a copy of the original SEB exam configuration with the new name and description and will lead you to the details page of the copy configuration.
+
+Click the "OK" button on the pop-up to apply the selected SEB exam configuration. You will see the applied SEB exam configuration in the list.
+If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
+the SEB restriction details with the generated Config-Key. See :ref:`seb_restriction-label` for more information.
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithConfig.png
+    
+When a SEB exam configuration is applied to the exam you are able to export the SEB exam configuration XML in plain text or the generated Config-Key for
+testing purposes. Just select the SEB exam configuration in the list to activate the action on the action pain on the right side and use the
+appropriate action. The SEB exam configuration export action will instruct the browser to open a download dialog. How the download is applied is up the 
+the browser of use. Usually you are able to either save the file or open it up with a application. If you have already installed the Safe Exam Browser on
+your device, the browser probably associates the download file already with the SEB client application.
+
+To just generate the Config-Key for testing purposes or to manually apply it on an LMS without the automated SEB restriction feature you can
+use the "Export Config-Key" action to generate the key. The Config-Key is presented by a pop-up and can be selected and copied to the clip-board.
+For more information about the Config-Key its purpose and use, please visit the `SEB documentation <https://www.safeexambrowser.org/developer/seb-config-key.html>`_.
+
+To remove an already applied SEB exam configuration from the exam, select the SEB exam configuration in the table and use the "Delete Exam Configuration"
+action form the right action pane. If the automated SEB restriction feature is supported by the LMS of the exam, the removal of a SEB exam configuration will 
+automatically update the SEB restriction details and remove the Config-Key form the restriction details. See :ref:`seb_restriction-label` for more information.
+Once you have removed a SEB exam configuration from the exam you are able to apply another one to the exam.
+
+You can navigate directly to the SEB exam configuration details page by double-click on the table entry of the SEB exam configuration. You will then 
+see the details of the SEB exam configuration as well as a table of exams where this SEB exam configuration is used. Since for now it is only possible
+to apply one SEB exam configuration to one exam, there is only one entry and you can quickly navigate back to the exam be also double-click on the
+table entry of the exam.
+
+
+Apply Indicators
+-----------------
+
+For monitoring connected SEB clients, SEB server supports some indicators that can be defines within an exam and that are shown and measured during an
+exam. When you import, the application automatically creates a default ping-indicator for the exam. You are able to modify this default indicator and also
+add some other indicators to the exam to be able to get notified while monitoring a exam session.
+
+The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
+indicators are supported:
+
+ - Last Ping Time: | This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
+                   | This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
+                   | time or when a SEB client connection that has been list is back again.
+                   | This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
+                   | and also delete it but we recommend to have this basic indicator in place for every exam.
+                   
+ - Errors: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
+ - Warnings: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
+ 
+You can define thresholds for each indicator. A threshold is defined by an indication-color and by a threshold-value. On the monitoring side, the 
+indicator for each SEB client connection with change to the threshold color when the measured indicator value has reached the threshold-value.
+
+To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you can give the
+new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
+indicator. Then you can choose an "Type" that specified the type of indicator. Choose this from a drop-down selection of supported indicators.
+If you have selected one indicator type, a discription of this indicate will be shown just below the "Type" attribute. You can also define a default
+color for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this color on the SEB client
+connection table of the monitoring section.
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
+    
+
+
+.. _seb_restriction-label:
+
+
+Automated SEB restriction
+--------------------------
+
+TODO 
+
+Use Cases
+---------
+
+**Apply or remove exam supporter**
+
+**Change the type of exam**
+
+**Apply a SEB exam configuration**
+
+**Remove a SEB exam configuration**
+
+**Add an indicator**
+
+**Modify indicators**
+
+**Apply automated SEB restriction**
+
+
+
+
+
+
 
 
 

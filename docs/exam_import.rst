@@ -71,3 +71,9 @@ for monitoring the exam later on.
 How all this different aspects of the exam are defined and prepared is part of the next chapter.
     
 
+Use Cases
+---------
+
+** Import a course as exam**
+
+
