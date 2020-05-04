@@ -109,7 +109,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
             if (lmsSetup.lmsType == LmsType.OPEN_EDX) {
                 final List<String> permissions = Arrays.asList(
-                        OpenEdxSebRestriction.PermissionComponent.ALWAYS_ALLOW_STUFF.key,
+                        OpenEdxSebRestriction.PermissionComponent.ALWAYS_ALLOW_STAFF.key,
                         OpenEdxSebRestriction.PermissionComponent.CHECK_CONFIG_KEY.key);
 
                 this.additionalAttributesDAO.saveAdditionalAttribute(

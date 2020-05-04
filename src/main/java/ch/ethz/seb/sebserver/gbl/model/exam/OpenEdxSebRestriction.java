@@ -50,7 +50,7 @@ public class OpenEdxSebRestriction {
     }
 
     public enum PermissionComponent {
-        ALWAYS_ALLOW_STUFF("AlwaysAllowStaff"),
+        ALWAYS_ALLOW_STAFF("AlwaysAllowStaff"),
         CHECK_BROWSER_EXAM_KEY("CheckSEBHashBrowserExamKey"),
         CHECK_CONFIG_KEY("CheckSEBHashConfigKey"),
         CHECK_BROWSER_EXAM_OR_CONFIG_KEY("CheckSEBHashBrowserExamKeyOrConfigKey");
@@ -189,7 +189,7 @@ public class OpenEdxSebRestriction {
                     .collect(Collectors.toList()));
         } else {
             final Collection<String> defaultPermissions = new ArrayList<>();
-            defaultPermissions.add(PermissionComponent.ALWAYS_ALLOW_STUFF.key);
+            defaultPermissions.add(PermissionComponent.ALWAYS_ALLOW_STAFF.key);
             if (!sebRestrictionData.configKeys.isEmpty()) {
                 defaultPermissions.add(PermissionComponent.CHECK_CONFIG_KEY.key);
             }
