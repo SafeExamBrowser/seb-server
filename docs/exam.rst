@@ -25,7 +25,9 @@ indicators for monitoring as well as defining details of the SEB restriction if 
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examNotReady.png
     
+
 At the beginning of the page - if there is no note - you see all the details of the exam. 
+
     - Name: Is the name of the course, defines on the LMS
     - LMS Setup: Is the name of the LMS Setup on the SEB Server from which the course was imported
     - Start-Time: Is the date and time when the exam is starting. This is defined on the LMS
@@ -73,7 +75,8 @@ client that receives the encrypted SEB exam configuration will prompt the user f
 
 .. note::
     If you need to use the same SEB exam configuration for different exams, you can just make a copy of a SEB exam configuration that is already used
-    by another exam. To do so go the the "Exam Configuration" section and find the specified SEB exam configuration by using the filter. If you have
+    by another exam. 
+    - To do so go the the "Exam Configuration" section and find the specified SEB exam configuration by using the filter. If you have
     found the SEB exam configuration double-click on the table entry to open the SEB exam configuration. Then use the "Copy Exam Configuration" action
     from the right action pane. A pop-up will prompt you the give a new name and optionally description for the copy. Click "OK" and the system will
     generate a copy of the original SEB exam configuration with the new name and description and will lead you to the details page of the copy configuration.
@@ -117,11 +120,11 @@ add some other indicators to the exam to be able to get notified while monitorin
 The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
 indicators are supported:
 
- - Last Ping Time: | This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
-                   | This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
-                   | time or when a SEB client connection that has been list is back again.
-                   | This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
-                   | and also delete it but we recommend to have this basic indicator in place for every exam.
+ - Last Ping Time: This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
+   This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
+   time or when a SEB client connection that has been list is back again.
+   This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
+   and also delete it but we recommend to have this basic indicator in place for every exam.
                    
  - Errors: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
  - Warnings: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
