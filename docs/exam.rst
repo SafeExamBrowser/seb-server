@@ -132,14 +132,19 @@ indicator for each SEB client connection with change to the threshold color when
 To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you can give the
 new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
 indicator. Then you can choose an "Type" that specified the type of indicator. Choose this from a drop-down selection of supported indicators.
-If you have selected one indicator type, a discription of this indicate will be shown just below the "Type" attribute. You can also define a default
-color for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this color on the SEB client
+If you have selected one indicator type, a discription of this indicate will be shown just below the "Type" attribute. You can also define a "Default Color"
+for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this color on the SEB client
 connection table of the monitoring section.
+
+.. note::
+    To select a color click on the brush-palette icon of the color input field to open up a color chooser pop-up window. Within the color chooser
+    you can select one of the basic colors provided by the chooser or by defining the red, green and blue part of the color.
 
 .. image:: images/exam/lmsExamLookup.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
     
+
 
 
 .. _seb_restriction-label:
