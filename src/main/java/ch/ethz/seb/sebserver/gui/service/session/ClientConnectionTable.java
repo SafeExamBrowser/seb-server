@@ -554,7 +554,7 @@ public final class ClientConnectionTable {
             if (getClass() != obj.getClass())
                 return false;
             final UpdatableTableItem other = (UpdatableTableItem) obj;
-            if (!getOuterType().equals(other.getOuterType()))
+            if (getOuterType() != other.getOuterType())
                 return false;
             return compareTo(other) == 0;
         }
