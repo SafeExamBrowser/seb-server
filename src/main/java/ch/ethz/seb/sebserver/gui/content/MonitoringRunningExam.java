@@ -324,6 +324,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 action.pageContext());
 
         clientTable.removeSelection();
+        clientTable.forceUpdateAll();
         return action;
     }
 
@@ -340,6 +341,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 action.pageContext());
 
         clientTable.removeSelection();
+        clientTable.forceUpdateAll();
         return action;
     }
 
