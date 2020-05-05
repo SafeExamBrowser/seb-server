@@ -191,8 +191,8 @@ public abstract class RestCall<T> {
         }
 
         log.debug(
-                "Webservice answered with well defined error- or validation-failure-response: ",
-                restCallError);
+                "Webservice answered with well defined error- or validation-failure-response: {}",
+                restCallError.toString());
 
         return Result.ofError(restCallError);
     }
