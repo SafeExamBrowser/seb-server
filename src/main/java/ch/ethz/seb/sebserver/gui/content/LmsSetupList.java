@@ -186,7 +186,7 @@ public class LmsSetupList implements TemplateComposer {
                                 action -> LmsSetupForm.testLmsSetup(action, null, restService)),
                         EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);
+                .publishIf(() -> userGrant.iw() && table.hasAnyContent(), false);
 
     }
 
