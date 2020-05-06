@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,9 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @Configuration
 @WebServiceProfile
 public class WebserviceConfig {
+
+    @Value("${sebserver.webservice.clean-db-on-startup:false}")
+    boolean cleanDBOnStartup;
 
     @Lazy
     @Bean
@@ -42,7 +46,9 @@ public class WebserviceConfig {
         final FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
             @Override
             public void migrate(final Flyway flyway) {
-                flyway.clean();
+                if (WebserviceConfig.this.cleanDBOnStartup) {
+                    flyway.clean();
+                }
                 flyway.migrate();
             }
         };

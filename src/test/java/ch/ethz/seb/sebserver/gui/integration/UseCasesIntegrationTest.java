@@ -806,7 +806,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newExam.endTime,
                 newExam.startURL,
                 ExamType.MANAGED,
-                null, null,
+                null,
                 Utils.immutableCollectionOf(userId),
                 ExamStatus.RUNNING,
                 null,

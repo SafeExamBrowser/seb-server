@@ -46,7 +46,6 @@ public final class Exam implements GrantEntity {
             ExamType.UNDEFINED,
             null,
             null,
-            null,
             ExamStatus.FINISHED,
 //            Boolean.FALSE,
             null,
@@ -104,9 +103,6 @@ public final class Exam implements GrantEntity {
     @NotNull
     public final ExamType type;
 
-    @JsonProperty(EXAM.ATTR_QUIT_PASSWORD)
-    public final String quitPassword;
-
     @JsonProperty(EXAM.ATTR_OWNER)
     public final String owner;
 
@@ -138,7 +134,6 @@ public final class Exam implements GrantEntity {
             @JsonProperty(QuizData.QUIZ_ATTR_END_TIME) final DateTime endTime,
             @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType type,
-            @JsonProperty(EXAM.ATTR_QUIT_PASSWORD) final String quitPassword,
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
@@ -156,7 +151,6 @@ public final class Exam implements GrantEntity {
         this.endTime = endTime;
         this.startURL = startURL;
         this.type = type;
-        this.quitPassword = quitPassword;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
         this.browserExamKeys = browserExamKeys;
@@ -180,7 +174,6 @@ public final class Exam implements GrantEntity {
         this.endTime = quizData.endTime;
         this.startURL = quizData.startURL;
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
-        this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
         this.status = mapper.getEnum(
                 EXAM.ATTR_STATUS,
@@ -208,7 +201,6 @@ public final class Exam implements GrantEntity {
         this.endTime = null;
         this.startURL = null;
         this.type = null;
-        this.quitPassword = null;
         this.owner = null;
         this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
         this.browserExamKeys = null;
@@ -300,10 +292,6 @@ public final class Exam implements GrantEntity {
         return this.startURL;
     }
 
-    public String getQuitPassword() {
-        return this.quitPassword;
-    }
-
     public ExamStatus getStatus() {
         return this.status;
     }
@@ -339,8 +327,6 @@ public final class Exam implements GrantEntity {
         builder.append(this.startURL);
         builder.append(", type=");
         builder.append(this.type);
-        builder.append(", quitPassword=");
-        builder.append(this.quitPassword);
         builder.append(", owner=");
         builder.append(this.owner);
         builder.append(", supporter=");

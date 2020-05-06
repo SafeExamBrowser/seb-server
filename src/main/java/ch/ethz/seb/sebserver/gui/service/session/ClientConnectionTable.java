@@ -106,6 +106,8 @@ public final class ClientConnectionTable {
     private final Color darkFontColor;
     private final Color lightFontColor;
 
+    private boolean forceUpdateAll = false;
+
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
@@ -289,13 +291,17 @@ public final class ClientConnectionTable {
                 updatableTableItem.connectionData.clientConnection.connectionToken);
     }
 
+    public void forceUpdateAll() {
+        this.forceUpdateAll = true;
+    }
+
     public void updateValues() {
         if (this.statusFilterChanged) {
             this.toDelete.clear();
             this.toDelete.addAll(this.tableMapping.keySet());
         }
         this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
+                .withHeader(API.EXAM_MONITORING_STATE_FILTER, (this.forceUpdateAll) ? "" : this.statusFilterParam)
                 .call()
                 .get(error -> {
                     log.error("Error poll connection data: ", error);
@@ -321,6 +327,8 @@ public final class ClientConnectionTable {
             });
             this.statusFilterChanged = false;
         }
+
+        this.forceUpdateAll = false;
     }
 
     public void updateGUI() {
@@ -554,7 +562,7 @@ public final class ClientConnectionTable {
             if (getClass() != obj.getClass())
                 return false;
             final UpdatableTableItem other = (UpdatableTableItem) obj;
-            if (!getOuterType().equals(other.getOuterType()))
+            if (getOuterType() != other.getOuterType())
                 return false;
             return compareTo(other) == 0;
         }

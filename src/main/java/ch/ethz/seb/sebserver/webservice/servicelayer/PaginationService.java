@@ -53,7 +53,15 @@ public interface PaginationService {
 
     /** Get a Page of specified domain models from given pagination attributes within collection supplier delegate.
      *
-     *
+     * NOTE: Paging always depends on SQL level. It depends on the collection given by the SQL select statement
+     * that is executed within MyBatis by using the MyBatis page service.
+     * Be aware that if the delegate that is given here applies an additional filter to the filtering done
+     * on SQL level, this will lead to paging with not fully filled pages or even to empty pages if the filter
+     * filters a lot of the entries given by the SQL statement away.
+     * So we recommend to apply as much of the filtering as possible on the SQL level and only if necessary and
+     * not avoidable, apply a additional filter on software-level that eventually filter one or two entities
+     * for a page.
+     * 
      * @param pageNumber the current page number
      * @param pageSize the (full) size of the page
      * @param sort the name of the sort column with a leading '-' for descending sort order

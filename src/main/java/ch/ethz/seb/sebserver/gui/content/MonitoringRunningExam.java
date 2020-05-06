@@ -137,11 +137,11 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         clientTable
                 .withDefaultAction(
-                    actionBuilder
-                            .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
-                            .withParentEntityKey(entityKey)
-                            .create(),
-                    this.pageService)
+                        actionBuilder
+                                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                                .withParentEntityKey(entityKey)
+                                .create(),
+                        this.pageService)
                 .withSelectionListener(this.pageService.getSelectionPublisher(
                         pageContext,
                         ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
@@ -324,6 +324,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 action.pageContext());
 
         clientTable.removeSelection();
+        clientTable.forceUpdateAll();
         return action;
     }
 
@@ -340,6 +341,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 action.pageContext());
 
         clientTable.removeSelection();
+        clientTable.forceUpdateAll();
         return action;
     }
 

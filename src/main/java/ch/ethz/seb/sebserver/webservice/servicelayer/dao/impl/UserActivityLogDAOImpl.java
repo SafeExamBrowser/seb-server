@@ -294,7 +294,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         return all(
                 filterMap.getInstitutionId(),
-                filterMap.getString(UserActivityLog.FILTER_ATTR_USER_NAME),
+                filterMap.getSQLWildcard(UserActivityLog.FILTER_ATTR_USER_NAME),
                 filterMap.getUserLogFrom(),
                 filterMap.getUserLofTo(),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES),
@@ -321,14 +321,6 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     ? Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))
                     : null;
 
-            Predicate<UserActivityLog> _predicate = (predicate != null)
-                    ? predicate
-                    : model -> true;
-
-            if (StringUtils.isNotBlank(userName)) {
-                _predicate = _predicate.and(model -> model.getUsername().contains(userName));
-            }
-
             final List<UserActivityLogRecord> records = this.userLogRecordMapper
                     .selectByExample()
                     .leftJoin(UserRecordDynamicSqlSupport.userRecord)
@@ -338,6 +330,9 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .where(
                             UserRecordDynamicSqlSupport.institutionId,
                             SqlBuilder.isEqualToWhenPresent(institutionId))
+                    .and(
+                            UserRecordDynamicSqlSupport.username,
+                            SqlBuilder.isLikeWhenPresent(userName))
                     .and(
                             UserActivityLogRecordDynamicSqlSupport.timestamp,
                             SqlBuilder.isGreaterThanOrEqualToWhenPresent(from))
@@ -355,7 +350,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
             return this.toDomainModel(institutionId, records)
                     .stream()
-                    .filter(_predicate)
+                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }

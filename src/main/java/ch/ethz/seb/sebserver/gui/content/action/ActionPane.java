@@ -8,17 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
-import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.template.ImageCell;
@@ -38,9 +31,17 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -52,8 +53,6 @@ public class ActionPane implements TemplateComposer {
     private final PageService pageService;
     private final WidgetFactory widgetFactory;
 
-    private final Map<String, Tree> actionTrees = new HashMap<>();
-
     protected ActionPane(final PageService pageService) {
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
@@ -61,7 +60,7 @@ public class ActionPane implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
+        final Map<String, Tree> actionTrees = new HashMap<>();
         final Label label = this.widgetFactory.labelLocalized(
                 pageContext.getParent(),
                 CustomVariant.TEXT_H2,
@@ -79,7 +78,7 @@ public class ActionPane implements TemplateComposer {
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 (ActionPublishEventListener) event -> {
                     final Composite parent = pageContext.getParent();
-                    final Tree treeForGroup = getTreeForGroup(parent, event.action.definition, true);
+                    final Tree treeForGroup = getTreeForGroup(actionTrees, parent, event.action.definition, true);
                     final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                             treeForGroup,
                             event.action.definition.title);
@@ -110,7 +109,7 @@ public class ActionPane implements TemplateComposer {
                 (ActionActivationEventListener) event -> {
                     final Composite parent = pageContext.getParent();
                     for (final ActionDefinition ad : event.actions) {
-                        final TreeItem actionItem = findAction(parent, ad);
+                        final TreeItem actionItem = findAction(actionTrees, parent, ad);
                         if (actionItem == null) {
                             continue;
                         }
@@ -128,7 +127,7 @@ public class ActionPane implements TemplateComposer {
                     }
 
                     if (event.decoration != null) {
-                        final TreeItem actionItemToDecorate = findAction(parent, event.decoration._1);
+                        final TreeItem actionItemToDecorate = findAction(actionTrees, parent, event.decoration._1);
                         if (actionItemToDecorate != null && event.decoration._2 != null) {
                             actionItemToDecorate.setImage(0,
                                     event.decoration._2.icon.getImage(parent.getDisplay()));
@@ -140,8 +139,11 @@ public class ActionPane implements TemplateComposer {
                 });
     }
 
-    private TreeItem findAction(final Composite parent, final ActionDefinition actionDefinition) {
-        final Tree treeForGroup = getTreeForGroup(parent, actionDefinition, false);
+    private TreeItem findAction(
+            final Map<String, Tree> actionTrees,
+            final Composite parent,
+            final ActionDefinition actionDefinition) {
+        final Tree treeForGroup = getTreeForGroup(actionTrees, parent, actionDefinition, false);
         if (treeForGroup == null) {
             return null;
         }
@@ -166,19 +168,20 @@ public class ActionPane implements TemplateComposer {
     }
 
     private Tree getTreeForGroup(
+            final Map<String, Tree> actionTrees,
             final Composite parent,
             final ActionDefinition actionDefinition,
-            boolean create) {
+            final boolean create) {
 
-        clearDisposedTrees();
+        clearDisposedTrees(actionTrees);
 
         final ActionCategory category = actionDefinition.category;
-        if (!this.actionTrees.containsKey(category.name()) && create) {
+        if (!actionTrees.containsKey(category.name()) && create) {
             final Tree actionTree = createActionTree(parent, actionDefinition.category);
-            this.actionTrees.put(category.name(), actionTree);
+            actionTrees.put(category.name(), actionTree);
         }
 
-        return this.actionTrees.get(category.name());
+        return actionTrees.get(category.name());
     }
 
     private Tree createActionTree(final Composite parent, final ActionCategory category) {
@@ -257,19 +260,19 @@ public class ActionPane implements TemplateComposer {
         return actions;
     }
 
-    private void clearDisposedTrees() {
-        new ArrayList<>(this.actionTrees.entrySet())
+    private void clearDisposedTrees(final Map<String, Tree> actionTrees) {
+        new ArrayList<>(actionTrees.entrySet())
                 .forEach(entry -> {
                     final Control c = entry.getValue();
                     // of tree is already disposed.. remove it
                     if (c.isDisposed()) {
-                        this.actionTrees.remove(entry.getKey());
+                        actionTrees.remove(entry.getKey());
                     }
                     // check access from current thread
                     try {
                         c.getBounds();
                     } catch (final Exception e) {
-                        this.actionTrees.remove(entry.getKey());
+                        actionTrees.remove(entry.getKey());
                     }
                 });
     }

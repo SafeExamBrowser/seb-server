@@ -224,7 +224,7 @@ public class ExamDAOImpl implements ExamDAO {
                     (exam.type != null)
                             ? exam.type.name()
                             : null,
-                    exam.quitPassword,
+                    null,
                     exam.browserExamKeys,
                     (exam.status != null)
                             ? exam.status.name()
@@ -769,11 +769,9 @@ public class ExamDAOImpl implements ExamDAO {
                     (quizData != null) ? quizData.endTime : null,
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
-                    record.getQuitPassword(),
                     record.getOwner(),
                     supporter,
                     status,
-//                    BooleanUtils.toBooleanObject((quizData != null) ? record.getLmsSebRestriction() : null),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate());
