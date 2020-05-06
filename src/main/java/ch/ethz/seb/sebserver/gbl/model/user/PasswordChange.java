@@ -32,23 +32,23 @@ public class PasswordChange implements Entity {
 
     @NotEmpty(message = "user:password:notNull")
     @JsonProperty(ATTR_NAME_PASSWORD)
-    private final String password;
+    private final CharSequence password;
 
     @NotEmpty(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
-    private final String newPassword;
+    private final CharSequence newPassword;
 
     @NotEmpty(message = "user:confirmNewPassword:notNull")
     @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD)
-    private final String confirmNewPassword;
+    private final CharSequence confirmNewPassword;
 
     @JsonCreator
     public PasswordChange(
             @JsonProperty(USER.ATTR_UUID) final String userId,
-            @JsonProperty(ATTR_NAME_PASSWORD) final String password,
-            @JsonProperty(ATTR_NAME_NEW_PASSWORD) final String newPassword,
-            @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD) final String confirmNewPassword) {
+            @JsonProperty(ATTR_NAME_PASSWORD) final CharSequence password,
+            @JsonProperty(ATTR_NAME_NEW_PASSWORD) final CharSequence newPassword,
+            @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD) final CharSequence confirmNewPassword) {
 
         this.userId = userId;
         this.password = password;
@@ -56,15 +56,15 @@ public class PasswordChange implements Entity {
         this.confirmNewPassword = confirmNewPassword;
     }
 
-    public String getPassword() {
+    public CharSequence getPassword() {
         return this.password;
     }
 
-    public String getNewPassword() {
+    public CharSequence getNewPassword() {
         return this.newPassword;
     }
 
-    public String getConfirmNewPassword() {
+    public CharSequence getConfirmNewPassword() {
         return this.confirmNewPassword;
     }
 

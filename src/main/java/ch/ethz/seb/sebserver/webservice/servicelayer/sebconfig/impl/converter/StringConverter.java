@@ -111,7 +111,7 @@ public class StringConverter implements AttributeValueConverter {
             out.write(Utils.toByteArray(String.format(
                     template,
                     realName,
-                    convertPassword(realName, value))));
+                    convertSecret(realName, value))));
         } else {
             out.write(Utils.toByteArray(String.format(
                     emptyTemplate,
@@ -119,7 +119,7 @@ public class StringConverter implements AttributeValueConverter {
         }
     }
 
-    private CharSequence convertPassword(
+    private CharSequence convertSecret(
             final String attributeName,
             final String value) {
 
@@ -127,7 +127,7 @@ public class StringConverter implements AttributeValueConverter {
             return value;
         }
 
-        if (!ExamConfigXMLParser.PASSWORD_ATTRIBUTES.contains(attributeName)) {
+        if (!ExamConfigXMLParser.SECRET_ATTRIBUTES.contains(attributeName)) {
             return value;
         }
 
