@@ -86,7 +86,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
     private static final Set<String> KNOWN_INLINE_TABLES = new HashSet<>(Arrays.asList(
             "arguments"));
 
-    public static final Set<String> PASSWORD_ATTRIBUTES = new HashSet<>(Arrays.asList(
+    public static final Set<String> SECRET_ATTRIBUTES = new HashSet<>(Arrays.asList(
             "hashedQuitPassword",
             "hashedAdminPassword"));
 
@@ -443,7 +443,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             return null;
         }
 
-        if (PASSWORD_ATTRIBUTES.contains(name)) {
+        if (SECRET_ATTRIBUTES.contains(name)) {
             // NOTE this is a special case, if a hashed password is imported it is not possible to view this password
             //      later in plain text to the administrator. Therefore this password hash is marked here as imported
             //      and internally encrypted as usual. So the password will be decrypted while viewing and is recognizable

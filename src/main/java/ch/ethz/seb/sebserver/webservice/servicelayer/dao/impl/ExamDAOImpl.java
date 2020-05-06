@@ -187,7 +187,7 @@ public class ExamDAOImpl implements ExamDAO {
                 .map(examRecord -> {
                     if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRecord.getUpdating()))) {
                         if (!updateId.equals(examRecord.getLastupdate())) {
-                            throw new IllegalStateException("Exam is currently locked: " + examRecord);
+                            throw new IllegalStateException("Exam is currently locked: " + examRecord.getExternalId());
                         }
                     }
 
@@ -212,7 +212,7 @@ public class ExamDAOImpl implements ExamDAO {
             // check internal persistent write-lock
             final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(exam.id);
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
-                throw new IllegalStateException("Exam is currently locked: " + exam);
+                throw new IllegalStateException("Exam is currently locked: " + exam.externalId);
             }
 
             final ExamRecord examRecord = new ExamRecord(
@@ -450,7 +450,8 @@ public class ExamDAOImpl implements ExamDAO {
 
             // consistency check
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRec.getUpdating()))) {
-                throw new IllegalStateException("Exam to end update is not in expected state: " + examRec);
+                throw new IllegalStateException(
+                        "Exam to end update is not in expected state: " + examRec.getExternalId());
             }
 
             final ExamRecord newRecord = new ExamRecord(
@@ -480,7 +481,8 @@ public class ExamDAOImpl implements ExamDAO {
             if (BooleanUtils.isFalse(BooleanUtils.toBooleanObject(examRec.getUpdating()))
                     || !updateId.equals(examRec.getLastupdate())) {
 
-                throw new IllegalStateException("Exam to end update is not in expected state: " + examRec);
+                throw new IllegalStateException(
+                        "Exam to end update is not in expected state: " + examRec.getExternalId());
             }
 
             final ExamRecord newRecord = new ExamRecord(
