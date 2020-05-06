@@ -19,6 +19,7 @@
 
   <properties>
     <sebserver-version>1.0.0</sebserver-version>
+    <build-version>${sebserver-version}</build-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -42,6 +43,13 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <release>${java.version}</release>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <finalName>${project.artifactId}-${build-version}</finalName>
             </configuration>
           </plugin>
         </plugins>
