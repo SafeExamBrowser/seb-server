@@ -36,7 +36,7 @@ public class WebserviceInfo {
     private static final String VERSION_KEY = "sebserver.version";
     private static final String WEB_SERVICE_TEST_PROPERTY = "sebserver.test.property";
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.external.servername";
-    private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.scheme";
+    private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.external.scheme";
     private static final String WEB_SERVICE_HTTP_PORT = "sebserver.webservice.http.external.port";
     private static final String WEB_SERVICE_HOST_ADDRESS_KEY = "server.address";
     private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";

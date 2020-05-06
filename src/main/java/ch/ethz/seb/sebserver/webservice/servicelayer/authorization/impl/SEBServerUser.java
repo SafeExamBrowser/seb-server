@@ -43,7 +43,7 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
         this.authorities = Collections.unmodifiableList(
                 userInfo.roles
                         .stream()
-                        .map(SimpleGrantedAuthority::new)
+                        .map(role -> new SimpleGrantedAuthority(role))
                         .collect(Collectors.toList()));
 
         if (CollectionUtils.isEmpty(userInfo.roles)) {
