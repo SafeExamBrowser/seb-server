@@ -5,7 +5,7 @@
 
   <groupId>ch.ethz.seb</groupId>
   <artifactId>seb-server</artifactId>
-  <version>${sebserver-version}-SNAPSHOT</version>
+  <version>${sebserver-version}</version>
   <name>seb-server</name>
   <description>web-service for SEB maintenance and monitoring active SEB sessions</description>
 
@@ -18,7 +18,8 @@
   <packaging>jar</packaging>
 
   <properties>
-    <sebserver-version>0.6.6</sebserver-version>
+    <sebserver-version>1.0.1-SNAPSHOT</sebserver-version>
+    <build-version>${sebserver-version}</build-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -36,6 +37,7 @@
         <java.version>11</java.version>
       </properties>
       <build>
+        <finalName>${project.artifactId}-${build-version}</finalName>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>

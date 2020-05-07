@@ -51,7 +51,7 @@
     <Logger name="ch.ethz.seb" level="WARN" additivity="true">
         <appender-ref ref="STDOUT" />
     </Logger>
-    <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="true">
+    <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
     
