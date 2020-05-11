@@ -30,6 +30,18 @@ SEB Server provides a range of basic functionality:
 - Automated SEB restriction on LMS side if the specified type of LMS supports the SEB restriction API
 - Monitoring and administration of SEB Client connections within a running exam
 
+SEB - SEB Server Compatibility
+------------------------------
+
+.. csv-table:: Compatible SEB Client Versions
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+   :widths: 15, 10, 30
+
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2020 - Version 2.2"
+   "SEB Client for Mac", "Q2 2020 - Version 2.2", "Q2 2020 - Version 2.2"
+   "SEB Client for iOS", "Q2 2020 - Version 3.1", "Q3 2020 - Version 3.1"
+
+
 Install SEB Server
 ------------------
 

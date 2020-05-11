@@ -132,12 +132,13 @@ indicators are supported:
 You can define thresholds for each indicator. A threshold is defined by an indication-color and by a threshold-value. On the monitoring side, the 
 indicator for each SEB client connection with change to the threshold color when the measured indicator value has reached the threshold-value.
 
-To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you can give the
+To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you are able to give the
 new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
-indicator. Then you can choose an "Type" that specified the type of indicator. Choose this from a drop-down selection of supported indicators.
-If you have selected one indicator type, a discription of this indicate will be shown just below the "Type" attribute. You can also define a "Default Color"
-for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this color on the SEB client
-connection table of the monitoring section.
+indicator. Then you are able to choose a "Type" that specifies the type of indicator. Choose this from a drop-down selection of supported indicators.
+If you have selected one indicator type, a description will be shown just below the "Type" attribute. 
+
+You can define a "Default Color" for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this 
+color on the SEB client connection table of the monitoring section.
 
 .. note::
     To select a color click on the brush-palette icon of the color input field to open up a color chooser pop-up window. Within the color chooser
@@ -148,15 +149,23 @@ connection table of the monitoring section.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
     
 
+Below the default color you see a list of thresholds. Use the plus sign icon to add a new threshold to the list and on an existing threshold use
+the minus sign icon to remove a particular threshold form the list. A threshold has a threshold-value and a threshold-color. The threshold value
+must be set in the format of the measured indicator value that is described within the type description. This is usually an integer or floating-point
+number. The color for each threshold can be set using the color chooser tool by clicking on the brush-palette icon on the right side of each threshold.
+The color chooser pop-up is the same as for the default color.
+
+.. note::
+    In the monitoring section when the exam is running, an indicator will be shown within a column with given name of the indicator in the SEB connection 
+    table. For each connection the measured indicator value will be displayed in the cell of the individual SEB client connection rows. If the measured 
+    indicator value for a particular SEB client reaches a defined threshold, the cell will be displayed in the defined color of the threshold.
 
 
 .. _seb_restriction-label:
-
-
 Automated SEB restriction
 --------------------------
 
-TODO 
+If the LMS and the LMS integration of an exam supports the automated SEB restriction feature, the SEB restriction 
 
 Use Cases
 ---------
