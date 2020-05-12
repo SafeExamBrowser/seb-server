@@ -109,87 +109,65 @@ see the details of the SEB exam configuration as well as a table of exams where 
 to apply one SEB exam configuration to one exam, there is only one entry and you can quickly navigate back to the exam be also double-click on the
 table entry of the exam.
 
+Other Features
+--------------
 
-Apply Indicators
------------------
+Currently there are two other features that can be managed within the exam administration.
 
-For monitoring connected SEB clients, SEB server supports some indicators that can be defines within an exam and that are shown and measured during an
-exam. When you import, the application automatically creates a default ping-indicator for the exam. You are able to modify this default indicator and also
-add some other indicators to the exam to be able to get notified while monitoring a exam session.
+- **:ref:`exam-indicators-label`** : Define indicators to measure values for each connected SEB client when an exam is running. And 
+define thresholds for the indicators to show incidences.
 
-The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
-indicators are supported:
-
- - Last Ping Time: This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
-   This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
-   time or when a SEB client connection that has been list is back again.
-   This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
-   and also delete it but we recommend to have this basic indicator in place for every exam.
-                   
- - Errors: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
- - Warnings: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
- 
-You can define thresholds for each indicator. A threshold is defined by an indication-color and by a threshold-value. On the monitoring side, the 
-indicator for each SEB client connection with change to the threshold color when the measured indicator value has reached the threshold-value.
-
-To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you are able to give the
-new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
-indicator. Then you are able to choose a "Type" that specifies the type of indicator. Choose this from a drop-down selection of supported indicators.
-If you have selected one indicator type, a description will be shown just below the "Type" attribute. 
-
-You can define a "Default Color" for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this 
-color on the SEB client connection table of the monitoring section.
-
-.. note::
-    To select a color click on the brush-palette icon of the color input field to open up a color chooser pop-up window. Within the color chooser
-    you can select one of the basic colors provided by the chooser or by defining the red, green and blue part of the color.
-
-.. image:: images/exam/lmsExamLookup.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
-    
-
-Below the default color you see a list of thresholds. Use the plus sign icon to add a new threshold to the list and on an existing threshold use
-the minus sign icon to remove a particular threshold form the list. A threshold has a threshold-value and a threshold-color. The threshold value
-must be set in the format of the measured indicator value that is described within the type description. This is usually an integer or floating-point
-number. The color for each threshold can be set using the color chooser tool by clicking on the brush-palette icon on the right side of each threshold.
-The color chooser pop-up is the same as for the default color.
-
-.. note::
-    In the monitoring section when the exam is running, an indicator will be shown within a column with given name of the indicator in the SEB connection 
-    table. For each connection the measured indicator value will be displayed in the cell of the individual SEB client connection rows. If the measured 
-    indicator value for a particular SEB client reaches a defined threshold, the cell will be displayed in the defined color of the threshold.
+- **:ref:`seb_restriction-label`** : If this feature is supported within the underling LMS of the exam, you are able to automatically 
+restrict the course or quiz on the LMS for SEB only access and may also be able to set the conditions and attributes for the restriction
+as defined by the LMS.
 
 
-.. _seb_restriction-label:
-Automated SEB restriction
---------------------------
-
-If the LMS and the LMS integration of an exam supports the automated SEB restriction feature, the SEB restriction 
 
 Use Cases
 ---------
 
 **Apply or remove exam supporter**
 
+Exam supporter "Eric" was planed to support the upcoming exam but he cancelled for reasons of illness and exam supporter "Anie" will take over.
+Therefore you have to remove Eric from the exams supporter list while also adding Anie to the list. So she will be able to support the running exam.
+
+- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
+- Use the filter to find the exam on that you have to change the supporter assignments. 
+- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
+- Use the "Edit Exam" action form the right action pane to go into the exam edit page.
+- Find Eric's user account on the list of selected exam supporter and use the minus sign icon on the entry to remove Eric from the list of exam supporter
+- Click into the input field of the exam supporter selector and start typing the name of Anie's account. The drop down will present you all matching entries.
+select Anie's account to add it to the list of selected exam supporter.
+- Use the "Save Exam" action on the right action pane to save and confirm the task. This will lead you also back to the exam details page.
+- Check again if all exam supporter are correctly assigned for the exam.
+
 **Change the type of exam**
+
+Although the exam type has just informative character for now and did not affect the exam in any other way, you have to change the type because
+your institution use the type information of the exam to set them into context.
+
+- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
+- Use the filter to find the exam on that you have to change the supporter assignments. 
+- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
+- Use the "Edit Exam" action form the right action pane to go into the exam edit page.
+- Use the drop down selection to change the type of the exam.
+- Use the "Save Exam" action on the right action pane to save and confirm the task. This will lead you also back to the exam details page.
 
 **Apply a SEB exam configuration**
 
-**Remove a SEB exam configuration**
-
-**Add an indicator**
-
-**Modify indicators**
-
-**Apply automated SEB restriction**
-
-
-
-
-
-
-
-
+- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
+- Use the filter to find the exam on that you have to change the supporter assignments. 
+- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
+- If the exam has already one exam configuration attached you have first to delete this attachment before being able to attach another exam configuration.
+Use the "Delete Configuration" action from the right action pane to remove the attached exam configuration.
+- Use the "Add Exam Configuration" action form the right action pane to open up the attachment dialog.
+- If there is currently no exam configuration that can be attached to the exam, an information dialog will be shown instead of the attachment dialog.
+- On the attachment dialog use the drop down selection to select the exam configuration you want to apply to the exam. 
+The drop down selection shows the names of the available exam configurations and you can filter this names by start typing the name of the exam configuration you
+want to find in the input field of the selection.
+- When you have selected a exam configuration the dialog shows you some additional information about the exam configuration. 
+- If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog.
+Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an 
+encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
 
 

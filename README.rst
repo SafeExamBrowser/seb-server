@@ -33,13 +33,18 @@ SEB Server provides a range of basic functionality:
 SEB - SEB Server Compatibility
 ------------------------------
 
-.. csv-table:: Compatible SEB Client Versions
+The table below shows available and upcomming SEB client versions that has SEB Server integration support and are compatible with particular 
+SEB Server version. There is an entry for each platform with a beta or testing release date and a oficial release date.
+
+**SEB Server Version 1.0.X**
+
+.. csv-table::
    :header: "Platform / OS", "Beta/RC Version", "Release Version"
-   :widths: 15, 10, 30
 
    "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2020 - Version 2.2"
    "SEB Client for Mac", "Q2 2020 - Version 2.2", "Q2 2020 - Version 2.2"
    "SEB Client for iOS", "Q2 2020 - Version 3.1", "Q3 2020 - Version 3.1"
+
 
 
 Install SEB Server
