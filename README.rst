@@ -16,13 +16,16 @@ What is Safe Exam Browser (SEB)?
 What is Safe Exam Browser Server (SEB Server)?
 ----------------------------------------------
 
-While the interaction with SEB is well known in Learning Management Systems (LMS) like `Open edX <https://open.edx.org/>`_, `Moodle <https://moodle.org/>`_ etc. the SEB Server is an entirely new component to set up secured online exams. It interacts with the assessments system/LMS as well as with SEB on exam clients.It supports exam scenarios on student owned devices (BYOD) and on managed devices.
+While the interaction with SEB is well known in Learning Management Systems (LMS) like `Open edX <https://open.edx.org/>`_, 
+`Moodle <https://moodle.org/>`_ etc. the SEB Server is an entirely new component to set up secured online exams. 
+It interacts with the assessments system/LMS as well as with SEB on exam clients.It supports exam scenarios on student owned devices (BYOD) 
+and on managed devices.
 
 SEB Server is a modern webservice with a REST API and a GUI service on top of it. SEB Server is written in Java and uses Docker for installation and setup.
 
-SEB Server provides a range of basic functionality:
+SEB Server provides a range of basic functionalities:
 
-- Built-in institutional multi-tenancy
+- Built-in institutional multitenancy 
 - Linking of multiple Learning Management Systems (LMS). Currently supported: `Open edX <https://open.edx.org/>`_
 - Accessing the Course/Exam-API of a linked LMS to import a courses or exams for managing with SEB Server
 - Creation and administration of SEB Client Configurations that can be used to startup a SEB and that contains SEB Server connection information for a SEB Client
@@ -30,10 +33,35 @@ SEB Server provides a range of basic functionality:
 - Automated SEB restriction on LMS side if the specified type of LMS supports the SEB restriction API
 - Monitoring and administration of SEB Client connections within a running exam
 
+The image below shows a very simplified diagram that locates the SEB Server in a setup with a Learning Management System (LMS) and the 
+Safe Exam Browser (SEB). The SEB Server communicates with the LMS for managing and prepare exams as well as with the SEB Client to ensure 
+a more automated and secure setup for high-stake exams.
+
+SEB - SEB Server Compatibility
+------------------------------
+
+The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
+SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
+
+**SEB Server Version 1.0.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2020 - Version 2.2"
+   "SEB Client for Mac", "Q2 2020 - Version 2.2", "Q2 2020 - Version 2.2"
+   "SEB Client for iOS", "Q2 2020 - Version 3.1", "Q3 2020 - Version 3.1"
+
+
 Install SEB Server
 ------------------
 
 For a complete guide to install SEB Server please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
+
+Getting started with SEB Server
+-------------------------------
+
+For a complete SEB Server user guide please go to `SEB Server User Guide <https://seb-server.readthedocs.io/en/latest/#>`_
 
 Project Background
 ------------------

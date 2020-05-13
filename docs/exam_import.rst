@@ -76,4 +76,17 @@ Use Cases
 
 ** Import a course as exam**
 
+To start setting up a course or quiz form an existing LMS as e-assessment with SEB and SEB Server you have to find this course or quiz on the 
+SEB Server and import it as exam. Define a type and apply exam supporter.
+
+- Login as an exam administrator and go to the "LMS Exam Lookup" page under the "Exam Administration" section. 
+- If you are not sure if the LMS that runs your course has already been setup within the SEB server, go first to the "LMS Setup" page and try to find the particular LMS in the list. 
+If you can't find it, please contact an institutional administrator or setup the LMS by yourself as described in :ref:`lms-setup-label`.
+- Find your course or quiz by using the filter of the list and the list navigation as usual.
+- Double click on the list entries to get all information about a particular course or quiz.
+- Once you have found the course or quiz, select it on the list and use the "Import Exam" action on the right action pane.
+- The system will lead you to the exam import page where you see all the details of the course or quiz and where you can set a type and apply exam supporter before importing. 
+- Choose a type for the imported exam in the "Exam Type" selection. The type of an exam is currently just informative hand will cause no restriction for the imported exam.
+- Select as many exam supporter as you want to be able to support the running exam. Read above, how to find and select exam supporter with the drop down multi selection.
+- When all is properly set, use the "Save Exam" action on the right action pane to save the exam and complete the task.
 

@@ -1,6 +1,6 @@
 .. _lms-setup-label:
 
-Leraning Management System Setup
+Learning Management System Setup
 ================================
 
 Overview
