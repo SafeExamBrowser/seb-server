@@ -36,17 +36,18 @@ This means, that the course data has to be modified on the LMS side as usual and
 course. This has the advantages of the principle of single responsibility and prevents synchronization issues. 
 
 You will see the creation page of the new exam with additional information: 
-    - Name: Is the name of the course, defines on the LMS
-    - LMS Setup: Is the name of the LMS Setup on the SEB Server from which the course was imported
-    - Start-Time: Is the date and time when the exam is starting. This is defined on the LMS
-    - End-Time: Is the date and time when the exam ends. This is defined on the LMS
-    - LMS Exam Identifier: Is the identity of the course on the LMS (external identifier/primary key)
-    - LMS Exam URL: Is the start URL of the course/exam
 
- and are able to initially choose a type for the exam - "Exam Type" - that is currently only used 
+- **Name**: Is the name of the course, defines on the LMS
+- **LMS Setup**: Is the name of the LMS Setup on the SEB Server from which the course was imported
+- **Start-Time**: Is the date and time when the exam is starting. This is defined on the LMS
+- **End-Time**: Is the date and time when the exam ends. This is defined on the LMS
+- **LMS Exam Identifier**: Is the identity of the course on the LMS (external identifier/primary key)
+- **LMS Exam URL**: Is the start URL of the course/exam
+
+You are now able to initially choose a type for the exam - "Exam Type" - that is currently only used 
 for informational purpose and has no further restrictions or consequences on handling on in SEB Server.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/importExam.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/importExam.png
     
@@ -64,7 +65,7 @@ exam and go back to the course list. If you have confirmed and successfully impo
 to edit the details of the exam, apply SEB restrictions of supported by the LMS, apply a SEB exam configuration for the exam and define indicators
 for monitoring the exam later on.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examReady.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examReady.png
 
@@ -74,14 +75,13 @@ How all this different aspects of the exam are defined and prepared is part of t
 Use Cases
 ---------
 
-** Import a course as exam**
+**Import a course as exam**
 
 To start setting up a course or quiz form an existing LMS as e-assessment with SEB and SEB Server you have to find this course or quiz on the 
 SEB Server and import it as exam. Define a type and apply exam supporter.
 
 - Login as an exam administrator and go to the "LMS Exam Lookup" page under the "Exam Administration" section. 
-- If you are not sure if the LMS that runs your course has already been setup within the SEB server, go first to the "LMS Setup" page and try to find the particular LMS in the list. 
-If you can't find it, please contact an institutional administrator or setup the LMS by yourself as described in :ref:`lms-setup-label`.
+- If you are not sure if the LMS that runs your course has already been setup within the SEB server, go first to the "LMS Setup" page and try to find the particular LMS in the list. If you can't find it, please contact an institutional administrator or setup the LMS by yourself as described in :ref:`lms-setup-label`.
 - Find your course or quiz by using the filter of the list and the list navigation as usual.
 - Double click on the list entries to get all information about a particular course or quiz.
 - Once you have found the course or quiz, select it on the list and use the "Import Exam" action on the right action pane.

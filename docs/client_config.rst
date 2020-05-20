@@ -107,12 +107,8 @@ strategy where SEB clients uses the a given start URL in fallback case.
 - Give a password to ensure security and to encrypt the client configuration on export. A SEB client will prompt for the password while loading this configuration.
 - Check "With Fallback" to show all the fallback related attributes.
 - Define a fallback URL that will be used by a SEB client as start URL in the fallback case.
-- Define also fallback case, how many connection attempts on what interval a SEB client shall try before going into fallback mode. 
-  You can also define a overall "Connection Timeout" if lapsed a SEB client will also go into the fallback mode.
-  A SEB client will fall-back on either the attempt or the timeout trigger. 
-- When a SEB client goes to fallback mode it will prompt the user as described in the case list above. To prevent further fallback options
-  with a password prompt, give a "Fallback Password" and / or a "Quit Password" that a SEB client will prompt on either the fallback- or the
-  quit-option.
+- Define also fallback case, how many connection attempts on what interval a SEB client shall try before going into fallback mode. You can also define a overall "Connection Timeout" if lapsed a SEB client will also go into the fallback mode. A SEB client will fall-back on either the attempt or the timeout trigger. 
+- When a SEB client goes to fallback mode it will prompt the user as described in the case list above. To prevent further fallback options with a password prompt, give a "Fallback Password" and / or a "Quit Password" that a SEB client will prompt on either the fallback- or the quit-option.
 - After all details are correctly been entered, use the "Save Client Configuration" action on the right action pane to save the new client configuration.
 - Now the new client configuration is created but not active for now and therefore cannot be exported yet. 
 
@@ -123,11 +119,9 @@ Now we want to activate this client configuration and export it to make it acces
 
 - Sign in as an Institutional Administrator and select the "Client Configuration" sub-menu of the "SEB Configuration" main-menu on the left.
 - Use the list filter and / or the list navigation to find the needed client configuration.
-- Double-click on the list entry or use the "View Client Configuration" action on the right for a selected list row, to show the details of a 
-  specific Client configuration.
+- Double-click on the list entry or use the "View Client Configuration" action on the right for a selected list row, to show the details of a specific Client configuration.
 - Then either on the list or in the view mode of the form, use the "Activate Client Configuration" action on the right action pane to activate the client configuration
-- Now there is a "Export Client Configuration" action in the detail view of the client configuration. Use the "Export Client Configuration" action
-  to start a download dialog. Choose "Save As" and download the file with the name "SEBServerSettings.seb".
+- Now there is a "Export Client Configuration" action in the detail view of the client configuration. Use the "Export Client Configuration" action to start a download dialog. Choose "Save As" and download the file with the name "SEBServerSettings.seb".
 - This file can now be published as download-link within a public server where SEB user can click and start the download and startup of the SEB client automatically. 
 
 **Deactivate a Client Configuration**

@@ -21,19 +21,19 @@ indicators for monitoring as well as defining details of the SEB restriction if 
     displays a red framed message on the top of the page that points out the missing configuration parts. A running exam with missing 
     setup is also marked red in the lists to indicate that they are not ready to go and need some missing setup or preparation.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examNotReady.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examNotReady.png
     
 
 At the beginning of the page - if there is no note - you see all the details of the exam. 
 
-    - Name: Is the name of the course, defines on the LMS
-    - LMS Setup: Is the name of the LMS Setup on the SEB Server from which the course was imported
-    - Start-Time: Is the date and time when the exam is starting. This is defined on the LMS
-    - End-Time: Is the date and time when the exam ends. This is defined on the LMS
-    - LMS Exam Identifier: Is the identity of the course on the LMS (external identifier/primary key)
-    - LMS Exam URL: Is the start URL of the course/exam
+- **Name**: Is the name of the course, defines on the LMS
+- **LMS Setup**: Is the name of the LMS Setup on the SEB Server from which the course was imported
+- **Start-Time**: Is the date and time when the exam is starting. This is defined on the LMS
+- **End-Time**: Is the date and time when the exam ends. This is defined on the LMS
+- **LMS Exam Identifier**: Is the identity of the course on the LMS (external identifier/primary key)
+- **LMS Exam URL**: Is the start URL of the course/exam
 
 To edit the SEB Server relevant attributes you can use
 the "Edit Exam" action from the action pain on the right hand side to switch to the exam edit mode. In the exam edit mode you can modify
@@ -64,7 +64,7 @@ the pop-up shows the description and the status of the selected configuration.
     If there are no SEB exam configurations available for applying, the application will note this within a pop-up message.
     In this case you can create a new one for this exam as described in :ref:`seb_restriction-label`
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/addExamConfig.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/addExamConfig.png
     
@@ -85,7 +85,7 @@ Click the "OK" button on the pop-up to apply the selected SEB exam configuration
 If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
 the SEB restriction details with the generated Config-Key. See :ref:`seb_restriction-label` for more information.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examWithConfig.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithConfig.png
     
@@ -136,8 +136,7 @@ Therefore you have to remove Eric from the exams supporter list while also addin
 - Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
 - Use the "Edit Exam" action form the right action pane to go into the exam edit page.
 - Find Eric's user account on the list of selected exam supporter and use the minus sign icon on the entry to remove Eric from the list of exam supporter
-- Click into the input field of the exam supporter selector and start typing the name of Anie's account. The drop down will present you all matching entries.
-select Anie's account to add it to the list of selected exam supporter.
+- Click into the input field of the exam supporter selector and start typing the name of Anie's account. The drop down will present you all matching entries. Select Anie's account to add it to the list of selected exam supporter.
 - Use the "Save Exam" action on the right action pane to save and confirm the task. This will lead you also back to the exam details page.
 - Check again if all exam supporter are correctly assigned for the exam.
 
@@ -158,16 +157,9 @@ your institution use the type information of the exam to set them into context.
 - Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
 - Use the filter to find the exam on that you have to change the supporter assignments. 
 - Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
-- If the exam has already one exam configuration attached you have first to delete this attachment before being able to attach another exam configuration.
-Use the "Delete Configuration" action from the right action pane to remove the attached exam configuration.
+- If the exam has already one exam configuration attached you have first to delete this attachment before being able to attach another exam configuration. Use the "Delete Configuration" action from the right action pane to remove the attached exam configuration.
 - Use the "Add Exam Configuration" action form the right action pane to open up the attachment dialog.
 - If there is currently no exam configuration that can be attached to the exam, an information dialog will be shown instead of the attachment dialog.
-- On the attachment dialog use the drop down selection to select the exam configuration you want to apply to the exam. 
-The drop down selection shows the names of the available exam configurations and you can filter this names by start typing the name of the exam configuration you
-want to find in the input field of the selection.
+- On the attachment dialog use the drop down selection to select the exam configuration you want to apply to the exam. The drop down selection shows the names of the available exam configurations and you can filter this names by start typing the name of the exam configuration you want to find in the input field of the selection.
 - When you have selected a exam configuration the dialog shows you some additional information about the exam configuration. 
-- If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog.
-Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an 
-encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
-
-
+- If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog. Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
