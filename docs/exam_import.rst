@@ -47,7 +47,7 @@ You will see the creation page of the new exam with additional information:
 You are now able to initially choose a type for the exam - "Exam Type" - that is currently only used 
 for informational purpose and has no further restrictions or consequences on handling on in SEB Server.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/importExam.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/importExam.png
     
@@ -65,7 +65,7 @@ exam and go back to the course list. If you have confirmed and successfully impo
 to edit the details of the exam, apply SEB restrictions of supported by the LMS, apply a SEB exam configuration for the exam and define indicators
 for monitoring the exam later on.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examReady.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examReady.png
 
