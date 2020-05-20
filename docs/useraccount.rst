@@ -12,16 +12,15 @@ user account and changing the password. This section differs most for the differ
 
 A user account always belongs to one institution and has some basic attributes;
 
-- Institution: A combo- or single-selection to choose the institution the user account belongs to. This is mandatory 
-  and one user-account can only belong to one institution.
-- First Name: The first name of the user
-- Surname: The surname of the user
-- Username: The username within SEB Server. This name is used to login.
-- E-Mail: The E-Mail address for the user. This currently has only informational purpose and is neither used to confirm an account or to send automated mails.
-- Time Zone: The time zone the user belongs to and to which the dates and times are converted to for display it to the user in the GUI. See also the note about time zone below.
-- User Roles: A multi-selection input to define all roles a user account has. See also the note about roles below.
-- Password: This password input field appears only while creating a new user-account or while self-register a user-account.
-- Confirm Password: This password input field appears only while creating a new user-account or while self-register a user-account.
+- **Institution**: A combo- or single-selection to choose the institution the user account belongs to. This is mandatory and one user-account can only belong to one institution.
+- **First Name**: The first name of the user
+- **Surname**: The surname of the user
+- **Username**: The username within SEB Server. This name is used to login.
+- **E-Mail**: The E-Mail address for the user. This currently has only informational purpose and is neither used to confirm an account or to send automated mails.
+- **Time Zone**: The time zone the user belongs to and to which the dates and times are converted to for display it to the user in the GUI. See also the note about time zone below.
+- **User Roles**: A multi-selection input to define all roles a user account has. See also the note about roles below.
+- **Password**: This password input field appears only while creating a new user-account or while self-register a user-account.
+- **Confirm Password**: This password input field appears only while creating a new user-account or while self-register a user-account.
 
 .. note:: 
       The date and time values within the SEB Server are always stored in universal time (UTC) and converted
@@ -36,12 +35,12 @@ A user account always belongs to one institution and has some basic attributes;
 By selecting the "User Account" section on the left side menu, a SEB Server administrator will see a list of all user-accounts 
 of all institution within a SEB Server instance. The filter above the list can be used to search a certain user account. Use the:
 
-- "Institution" filter to select a certain institution and show only the user-accounts that belongs to this institution.
-- "First Name" filter to search for user-accounts with the given occurrence of text in the First Name.
-- "Surname" filter to search for user-accounts with the given occurrence of text in the Surname.
-- "User Name" filter to search for user-accounts with the given occurrence of text in the Username.
-- "Mail" filter to find an user-account by e-mail address
-- "Status" filter to select the either and see either only active, only inactive or all user-accounts
+- **Institution** filter to select a certain institution and show only the user-accounts that belongs to this institution.
+- **First Name** filter to search for user-accounts with the given occurrence of text in the First Name.
+- **Surname** filter to search for user-accounts with the given occurrence of text in the Surname.
+- **User Name** filter to search for user-accounts with the given occurrence of text in the Username.
+- **Mail** filter to find an user-account by e-mail address
+- **Status** filter to select the either and see either only active, only inactive or all user-accounts
 
 .. image:: images/account/list_serveradmin.png
     :align: center
@@ -103,11 +102,9 @@ As a user with user-account write privileges (SEB Server administrator and insti
 while all other users can only modify its own account settings.
 
 - Login to SEB Server application with your own account an click the "User Account" section on the left side menu.
-- As a user with user-account write privileges one will see the list of all available user-accounts. Find the user-account that must be modified
-  by using the filter above and double-click on the respective list entry to open the user-account form in view mode
+- As a user with user-account write privileges one will see the list of all available user-accounts. Find the user-account that must be modified by using the filter above and double-click on the respective list entry to open the user-account form in view mode
 - Without user-account write privileges, a user will just see its own user-account form in view mode.
-- Use the "Edit User Account" action from the action pain on the right to change to edit mode. Apply all needed modifications and 
-  save the user-account by using the "Save User Account" action from the action pane.
+- Use the "Edit User Account" action from the action pain on the right to change to edit mode. Apply all needed modifications and save the user-account by using the "Save User Account" action from the action pane.
 - If there is missing or wrong data, the registration form will highlight the concerned input fields with a red border and information text just below the field.
 - If everything is accepted the user-account is created and the application shows the user-account form in view mode.
 
@@ -124,8 +121,7 @@ while all other users can only modify change its own password. The current passw
 - No you must fist give the correct old password and the new password then with confirmation.
 - Use the "Save New Password action form the right action pane to save the new password settings.
 - If you are changing your own password and everything is correct, the application will automatically log you out and prompt you to sign in with the new password.
-- If you are changing the password of another user-account the application and everything is correct, the application 
-  direct you back to the user-account form in view mode and show a confirmation message.
+- If you are changing the password of another user-account the application and everything is correct, the application direct you back to the user-account form in view mode and show a confirmation message.
   
 .. image:: images/account/change_password.png
     :align: center
@@ -137,12 +133,8 @@ Users with user-account write privileges (SEB Server administrator and instituti
 user-accounts of others. A inactive user-account prevent a user to sign-in. There are several different ways or places where the status
 of a user-account can be changed
 
-- On the list view while one list entry is selected, by using the "Activate User Account" or "Deactivate User Account" action from
-  the action pain at the right side. There will be automatically appear the proper action in relation to the selected list entry and whether
-  it is already active or inactive.
-- In the user-account form in view mode by using the "Activate User Account" or "Deactivate User Account" action from
-  the action pain at the right side. There will be automatically appear the proper action in relation to the current user-account.
-- If one creates a new user-account there is the possibility to create and activate the user-account by using the "Activate User Account"
-  action from the action pain on the right side.
+- On the list view while one list entry is selected, by using the "Activate User Account" or "Deactivate User Account" action from the action pain at the right side. There will be automatically appear the proper action in relation to the selected list entry and whether it is already active or inactive.
+- In the user-account form in view mode by using the "Activate User Account" or "Deactivate User Account" action from the action pain at the right side. There will be automatically appear the proper action in relation to the current user-account.
+- If one creates a new user-account there is the possibility to create and activate the user-account by using the "Activate User Account" action from the action pain on the right side.
 - The same situation appears for inactive user-accounts in edit mode.
 

@@ -9,14 +9,13 @@ add some other indicators to the exam to be able to get notified while monitorin
 The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
 indicators are supported:
 
- - Last Ping Time: This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
+- **Last Ping Time**: This indicator measures the time that has passed since the last ping from a specified SEB client was received by the SEB Server in milliseconds.
    This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
    time or when a SEB client connection that has been list is back again.
    This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
-   and also delete it but we recommend to have this basic indicator in place for every exam.
-                   
- - Errors: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
- - Warnings: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
+   and also delete it but we recommend to have this basic indicator in place for every exam.              
+- **Errors**: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
+- **Warnings**: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
  
 You can define thresholds for each indicator. A threshold is defined by an indication-color and by a threshold-value. On the monitoring side, the 
 indicator for each SEB client connection with change to the threshold color when the measured indicator value has reached the threshold-value.
@@ -62,9 +61,7 @@ Use Cases
 - Set a name for the indicator and choose the type of indicator you want to use. Read the description above to learn more about indicators and supported types of indicators.
 - You can also define a default color for the indicator that is displayed on the monitoring page while the exam is running and a particular SEB client has no incidence as defined for this indicator.
 - To select a color use the brush-palette icon on the right side of the color input field to open up a color chooser dialog.
-- Now you can define some threshold for the indicator that will help you find incidents and get informed about on the monitoring while the exam is running.
-To do so you can use the plus icon on the threshold list to add a new empty threshold to the list. You can choose a value for the threshold and a color 
-that would indicate an overflow of the given value from the measured value of the indicator.
+- Now you can define some threshold for the indicator that will help you find incidents and get informed about on the monitoring while the exam is running. To do so you can use the plus icon on the threshold list to add a new empty threshold to the list. You can choose a value for the threshold and a color that would indicate an overflow of the given value from the measured value of the indicator.
 - To remove a already defined threshold from the list of threshold, use the minus icon on the right side of the particular threshold.
 - When everything is set up properly use the "Save Indicator" action to save the indicator and go back to the exam details page.
 - Back in the exam details page, you can check if your indicator is in the list and all thresholds are correctly set by going down to the indicators list of the exam.

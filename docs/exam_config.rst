@@ -191,13 +191,14 @@ on the LMS is propagated automatically to a LMS by the SEB Server with the autom
 There is an already fully configured exam within SEB Server that is currently running with a prepared exam configuration. You have now realized that
 some SEB settings are missing or wrong and has to be changed for the exam. This is possible but under some restrictions. See the note below.
 
-.. note:: When a exam configuration is applied to a currently running exam, the exam configuration is in "Used" state and the SEB settings of the exam configuration 
-are in read only mode. Changing the SEB settings of a exam configuration during a running exam that has already connected clients can lead to unexpected 
-behavior. SEB clients that has already been connected and are in a running session will work with the old configuration while SEB clients that are connecting
-after a SEB settings change will work with the new configuration. Also the automated SEB restriction with the changed `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_
-will be updated immediately after saving / publishing the configuration changes. This may also lead to unexpected behavior and eventually blocking of already connected SEB clients.
-Therefore SEB Server restricts the change of SEB settings for configurations that are attached to an exam that is currently running to be only possible if there are no
-active SEB client connections for this exam at the moment when save / publish the SEB setting changes. 
+.. note:: 
+    When a exam configuration is applied to a currently running exam, the exam configuration is in "Used" state and the SEB settings of the exam configuration 
+    are in read only mode. Changing the SEB settings of a exam configuration during a running exam that has already connected clients can lead to unexpected 
+    behavior. SEB clients that has already been connected and are in a running session will work with the old configuration while SEB clients that are connecting
+    after a SEB settings change will work with the new configuration. Also the automated SEB restriction with the changed `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_
+    will be updated immediately after saving / publishing the configuration changes. This may also lead to unexpected behavior and eventually blocking of already connected SEB clients.
+    Therefore SEB Server restricts the change of SEB settings for configurations that are attached to an exam that is currently running to be only possible if there are no
+    active SEB client connections for this exam at the moment when save / publish the SEB setting changes. 
 
 - Sign into SEB Server with your exam administrator role account
 - To change the SEB Settings of an exam configuration that is attached to an currently running exam, make sure that there are no active SEB client connections.
@@ -208,13 +209,10 @@ active SEB client connections for this exam at the moment when save / publish th
 - Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
 - See that you currently are not able to edit the SEB settings. There is only a "View SEB Settings" action that opens the SEB settings in read-only mode.
 - Use the "Edit Exam Configuration" action from the right action pane to open the edit mode of the exam configuration.
-- Change the status from "Used" to "Under Construction" to be able to edit the SEB settings again. There will be a message that tells you the implication with
-changing SEB settings within a exam configuration that is already used by a running exam.
+- Change the status from "Used" to "Under Construction" to be able to edit the SEB settings again. There will be a message that tells you the implication with changing SEB settings within a exam configuration that is already used by a running exam.
 - After saving the exam configuration in "Under Construction" it is now possible to edit the SEB settings for this exam configuration.
 - Use the "Edit SEB Settings" action from the right action pane to open the SEB settings form in the edit mode.
-- Apply your changes to the settings and use "Save / Publish Settings" to make the settings take affect and trigger a configuration change to the exam.
-This will check first if there are currently no active SEB clients connected within the running exam that uses this exam configuration. 
-If there is one or more active SEB client connected, the action will deny and inform you about the the active SEB clients.
+- Apply your changes to the settings and use "Save / Publish Settings" to make the settings take affect and trigger a configuration change to the exam. This will check first if there are currently no active SEB clients connected within the running exam that uses this exam configuration. If there is one or more active SEB client connected, the action will deny and inform you about the the active SEB clients.
 
 
 .. _setting-dif-label:
@@ -227,20 +225,21 @@ available on the SEB Server.
 
 **SEB settings currently not supported by the SEB Server**
 
-    - Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
-    - Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
-    - Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
-    - Additional Resources: Additional resources are currently not available in the current SEB Server version.
-    - Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
-    - Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
+- Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
+- Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
+- Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
+- Additional Resources: Additional resources are currently not available in the current SEB Server version.
+- Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
+- Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
 
 
 **SEB settings that has a slightly different form or handling in SEB Server comparing to the SEB configuration tool** 
 
-    - Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
-    - Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
-    - Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
+- Download Directory OSX: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
+- Log Directory OSX, Log Directory Win: Since it is not possible within a web-service to choose a local directory on a remote device this is just a text input where one has to give the full-path to the directory on the client device in text form.
+- Permitted Processes / Executable: This is also just a text input field where one can give the name of the process in text form.
 
 **SEB settings from versions before 3.0 that are not supported anymore**
-    - Permitted Processes / Window Handling Process
+
+- Permitted Processes / Window Handling Process
     

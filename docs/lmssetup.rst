@@ -50,14 +50,14 @@ A SEB Server administrator role will be able to see the institution to which the
 is only able to see and create LMS Setup for its own institution. The name of the LMS Setup should be unique and is to identify a LMS
 SEB Server internally. Use the "Type" selector to specify the type of the LMS to bind to the SEB Server within the LMS Setup. Currently supported are:
 
-- Testing: This is for testing purposes only and can be used to mock a LMS to test exam settings. This type provides some mock-up courses within the 
+- **Testing**: This is for testing purposes only and can be used to mock a LMS to test exam settings. This type provides some mock-up courses within the 
   LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configuraed
   as exams like they would exist. But note the a SEB client that is trying to connect to such a course would not be able to connect to the LMS since it
   is not existing. But a SEB client is able to download the defined exam configuration for testing.
-- Open edX: This type is to bind an existing `Open edX <https://open.edx.org/>`_ LMS system that is available on the Internet or intranet. The SEB
+- **Open edX**: This type is to bind an existing `Open edX <https://open.edx.org/>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Open edX system and if the automated SEB restriction feature wanted to be used the 
   :ref:`lms-setup-edx-plugin-label` must be installed properly within the LMS.
-- Moodle: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
+- **Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
   with SEB Server.
 
@@ -134,7 +134,7 @@ that has to be set on the existing LMS Setup on the SEB Server.
 A LMS system that was running on your campus to provide e-assessment with SEB and SEB Server has been shout-down and you need to also deactivate
 the setup and exams on the SEB Server for this LMS.
 
-Sign into SEB Server with your institutional administrator role account.
+- Sign into SEB Server with your institutional administrator role account.
 - Navigate to "Exam Administration" / "LMS Setup" within the navigation on the left hand side.
 - Use the Filter above the list to find the specified LMS Setup.
 - Select the specified LMS Setup from the list and use the "Deactivate LMS Setup" action from the right action pane.

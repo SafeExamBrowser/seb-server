@@ -32,8 +32,7 @@ you should see at least all active connections instantly.
 The list is automatically sorted in the way that SEB connections with incidents came to the top of the list and are then sorted by the 
 "User Name or Session" identifier criteria. The general SEB client connection attributes are:
 
-- **User Name or Session** The user account or user session identifier sent by the LMS to the SEB client and from SEB client to the SEB Server.
- This identifier may vary depending on the LMS that is involved. For Open edX it is the user account identifier (username). 
+- **User Name or Session** The user account or user session identifier sent by the LMS to the SEB client and from SEB client to the SEB Server. This identifier may vary depending on the LMS that is involved. For Open edX it is the user account identifier (username). 
 - **IP Address** The IP address of the device the connected SEB client is running.
 - **Status** The status of the SEB client connection. 
 
@@ -47,13 +46,8 @@ Instructions are actions applied to one or more SEB client connections that also
 instruct the SEB client to do a particular action on client side. In the monitoring view you can select one ore more list entries
 with usual list (multi)selection by holding Ctrl or Shift key plus right mouse click(s). Currently there are two instructions.
 
-- **Quit SEB Client** Sends a quit instruction to the SEB Client to quit the session. This can be applied to all active SEB client connection
- with the "Quit all SEB Clients" action from the right action pane or to all selected SEB client connections with the "Quit Selected SEB Clients"
- action. 
- 
-- **Mark As Canceled** Can be applied to all inactive SEB client connections to enforce the inactive SEB client connection to "Canceled" state.
- This can be used to mark and remove inactive SEB client connection you don't want to have on the main monitoring board anymore when the filter
- for canceled SEB client connections is set to hide.
+- **Quit SEB Client** Sends a quit instruction to the SEB Client to quit the session. This can be applied to all active SEB client connection with the "Quit all SEB Clients" action from the right action pane or to all selected SEB client connections with the "Quit Selected SEB Clients" action. 
+- **Mark As Canceled** Can be applied to all inactive SEB client connections to enforce the inactive SEB client connection to "Canceled" state. This can be used to mark and remove inactive SEB client connection you don't want to have on the main monitoring board anymore when the filter for canceled SEB client connections is set to hide.
 
 **Filter**
 

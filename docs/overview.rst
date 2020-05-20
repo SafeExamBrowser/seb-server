@@ -24,23 +24,13 @@ please go to `SEB Server Installation Guide <https://seb-server-setup.readthedoc
 The key features of SEB Server are: 
 
 - Built-in multi-tenancy capabilities. Create and manage institutions as separated clients.
-
-- Lightweight user-account management where users can register itself and get needed privileges assigned by already registered 
-administrator users that has the privileges to maintain user accounts.
-
+- Lightweight user-account management where users can register itself and get needed privileges assigned by already registered administrator users that has the privileges to maintain user accounts.
 - Track user activities within user-activity-logs for the whole SEB Server or the a client.
-
-- Create, export and maintain SEB client configurations. Those are needed to startup a Safe Exam Browser client with and contain all information 
-to connect securely to the SEB Server.
-
+- Create, export and maintain SEB client configurations. Those are needed to startup a Safe Exam Browser client with and contain all information to connect securely to the SEB Server.
 - Create and maintain SEB exam configurations. Those are sent to a SEB client on connection setup and contain all SEB settings for a particular e-assessment.
-
 - Setup and maintain Learning Management Systems (LMS) like Open edX or Moodle to be able to navigate and find courses or quizzes on the LMS and to push access-restrictions to the LMS if supported by the LMS
-
 - Import and maintain courses or quizzes form a LMS. Setup everything that is needed for an e-assessment that is based on a course or quiz form the LMS
-
 - Apply indicators to the exams to indicate incidences while monitoring running e-assessments.
-
 - Monitor running e-assessment and have an overview of all connected SEB clients. Manage SEB client connections and view logs sent by individual SEB clients.
 
 
