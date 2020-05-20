@@ -21,7 +21,7 @@ indicators for monitoring as well as defining details of the SEB restriction if 
     displays a red framed message on the top of the page that points out the missing configuration parts. A running exam with missing 
     setup is also marked red in the lists to indicate that they are not ready to go and need some missing setup or preparation.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examNotReady.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examNotReady.png
     
@@ -64,7 +64,7 @@ the pop-up shows the description and the status of the selected configuration.
     If there are no SEB exam configurations available for applying, the application will note this within a pop-up message.
     In this case you can create a new one for this exam as described in :ref:`seb_restriction-label`
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/addExamConfig.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/addExamConfig.png
     
@@ -85,7 +85,7 @@ Click the "OK" button on the pop-up to apply the selected SEB exam configuration
 If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
 the SEB restriction details with the generated Config-Key. See :ref:`seb_restriction-label` for more information.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/examWithConfig.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithConfig.png
     

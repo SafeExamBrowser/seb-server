@@ -32,7 +32,7 @@ color on the SEB client connection table of the monitoring section.
     To select a color click on the brush-palette icon of the color input field to open up a color chooser pop-up window. Within the color chooser
     you can select one of the basic colors provided by the chooser or by defining the red, green and blue part of the color.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/editIndicator.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
     
@@ -47,7 +47,6 @@ The color chooser pop-up is the same as for the default color.
     In the monitoring section when the exam is running, an indicator will be shown within a column with given name of the indicator in the SEB connection 
     table. For each connection the measured indicator value will be displayed in the cell of the individual SEB client connection rows. If the measured 
     indicator value for a particular SEB client reaches a defined threshold, the cell will be displayed in the defined color of the threshold.
-
 
 Use Cases
 ---------

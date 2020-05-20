@@ -75,7 +75,7 @@ How all this different aspects of the exam are defined and prepared is part of t
 Use Cases
 ---------
 
-** Import a course as exam**
+**Import a course as exam**
 
 To start setting up a course or quiz form an existing LMS as e-assessment with SEB and SEB Server you have to find this course or quiz on the 
 SEB Server and import it as exam. Define a type and apply exam supporter.
