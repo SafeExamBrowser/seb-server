@@ -86,4 +86,26 @@ overview temporary network latency or other irregularities, when this two time v
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
+All SEB Client Logs
+-------------------
 
+As an exam administrator as well as an exam supporter, you are able to search SEB client events for all exams that have been run on the SEB Server and that
+you have access to within your user-account privilege settings. As an exam supporter you will only see the SEB client logs of the exams you are assigned to.
+To search all SEB client log events, go the the "Monitoring" section and click on the "SEB Client Logs" menu on the left menu pane. The SEB Server will show
+you a list of all SEB client logs ever happen and you have access to. You can filter and sort the list as usual by using the filter above to find all logs
+of an exam for example.
+
+.. image:: images/monitoring/sebClientLogs.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/sebClientLogs.png
+
+To show a detailed view of a specific SEB client log, just double click on the list entry or select the specific list entry and use the "Show Details"
+action form the right action pane to open up a pop-up containing all related information about the SEB client log event.
+
+.. image:: images/monitoring/sebClientLogDetail.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/sebClientLogDetail.png
+
+Currently there is no export functionality to export all interessting SEB client logs to a CSV table for example. But such a feature will probably come
+with a next version of SEB Server.
+ 

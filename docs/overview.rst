@@ -175,9 +175,9 @@ A column tool-tip usually also explains how to use the column-related filter.
 Forms are used for domain entity specific data input or presentation, like HTML Forms usually do. Forms appear in three 
 different ways within the SEB Server GUI:
 
-- When a object is first created in edit mode
-- When an object is modified also in edit mode
-- And when an object is just shown, in read-only mode
+- When a domain entity is first created in edit mode
+- When a domain entity is modified also in edit mode
+- And when a domain entity is just shown, in read-only mode
 
 The following images shows the same form, once in read-only mode and once edit mode
 
@@ -191,8 +191,13 @@ The following images shows the same form, once in read-only mode and once edit m
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_edit.png
 
-There usually is a tool-tip on a form field element for almost all attributes that can be activated by either going over and stay on the form field label or the input section. 
-If a form field is mandatory to either create or save an object, this is marked with a little red arrow just to the right of the form field label. 
-There may be more field validations takes place on saving the object. If a input needs a special form that is not given by the current input, the form-field 
-will be marked with a red border and a thin red explanation text is shown right below the input field. After correct the missing or wrong input and save again, 
-the SEB Server will accept and process the changes. If the user navigates away from a form in edit mode, the GUI will inform about possible data loss and asks for proceed or abort.
+There usually is a tool-tip on a form field element for almost all attributes that can be activated by either going over and stay on the form 
+field label or the input section. 
+If a form field is mandatory to either create or save an entity, this is marked with a little red arrow just to the right of the form field label. 
+There may also be more field validation takes place on saving the object. If a input needs a special form that is not given by the current input, the form-field 
+will be marked with a red border around the input field and a thin red explanation text is shown right below the input field. 
+After correcting the missing or wrong input and saveing the form again, the SEB Server will accept and process the changes. 
+
+.. note::
+    If you navigate away from a form in edit mode, the GUI will inform you about possible data loss on this action and will prompt you to 
+    proceed or abort the action.
