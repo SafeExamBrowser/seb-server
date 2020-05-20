@@ -1,8 +1,8 @@
 Overview
 ========
 
-Safe Exam Browser Server (SEB Server) is a web-service application to help setting up and maintain e-assessments with 
-`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) in a centralized manner. The SEB Server application can be used 
+Safe Exam Browser Server (SEB Server) is a web-service application with the objective to help setting up and maintain e-assessments with 
+`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) in a centralized and more efficient manner. The SEB Server application can be used 
 by an institution or organization as a self-maintained, lightweight server application to organize and setup their e-assessments. 
 For an organization or institution that wants to provides safe e-assessments with `Safe Exam Browser <https://safeexambrowser.org/>`_, 
 SEB Server can help to organize this e-assessments more effectively, safely and in one place.
@@ -18,7 +18,7 @@ there is yet just a built-in and lightweight user-account management where users
 administrator users that has the privileges to maintain user accounts. Currently there is no possibility to register with a third 
 party account and/or single sign on.
 
-SEB Server is written in Java and uses Docker for installation and setup. For more information about the architecture and installation, 
+SEB Server is written mainly in Java and uses Docker for installation and setup. For more information about the architecture and installation, 
 please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
 
 The key features of SEB Server are: 
@@ -50,23 +50,23 @@ Roles and Use-Cases
 -----------------------
 
 The SEB Server supports a simple role based privilege system where a role has read, modify and write privileges on certain domain entities. 
-The privileges for a role are pre-defined and cannot be changed by a user. But roles can be combined within one user-account.
+The privileges for a role are pre-defined and cannot be changed by a user. But roles can be combined for a user-account. A user-account for
+example can have the "Exam Administrator" and the "Exam Supporter" role active to be able to setup and support an exam (e-assessment) within 
+one user-account.
 
-Privileges for domain objects are categorized in read, modify and write where write includes creation and deletion grants as well as activation grants in addition to the more 
-restrict modify right that only allows to modify already created entities. They are also categorized in overall, institutional and owner privileges where 
-overall means for all entities, over all available institutions and institutional means only the entities that belongs to the own institution 
-whereas owner-privilege means the creator or assigned owner of an entity.
+Privileges for domain objects are categorized in read, modify and write rights. Write right includes creation and deletion grants 
+as well as activation grants in addition to the more restrict modify right that only allows to modify already created entities. 
+They are also categorized in overall, institutional and owner privileges where overall means for all entities, over all available institutions 
+and institutional means only the entities that belongs to the own institution whereas owner-privilege means the creator or assigned owner of an entity.
 
-There are four different roles. This reflect a good separation of concerns within the SEB Server application administration itself and the setup and 
-maintaining work that has to be done for e-assessments with SEB.
-
-below are the names and a short description of each role.
+There currently exists four different roles. This reflect a good separation of concern within the SEB Server application administration itself and the setup and 
+maintaining work that has to be done for e-assessments with SEB. Below are the names and a short description of each role.
 
 
 **SEB Server Administrator**
 
-This role is primarily to administer the SEB Server application. Create new and maintain available institutions and user-accounts. In addition to that a 
-SEB Server administrator also has overall read privileges for the most domains to be able to analyze problems and help others to solve them.
+This role is primarily to administer the SEB Server application, to create new and maintain available institutions and user-accounts. 
+In addition to that a SEB Server administrator also has overall read privileges for the most domains to be able to analyze problems and help others to solve them.
 
 A typical use-case for a SEB Server administrator would be to create a new institution and an institutional administrator for this institution.
 Another use-case would be to maintain registered user accounts, to give more privileges. Or to entirely deactivate an existing user account.
@@ -175,9 +175,9 @@ A column tool-tip usually also explains how to use the column-related filter.
 Forms are used for domain entity specific data input or presentation, like HTML Forms usually do. Forms appear in three 
 different ways within the SEB Server GUI:
 
-- When a object is first created in edit mode
-- When an object is modified also in edit mode
-- And when an object is just shown, in read-only mode
+- When a domain entity is first created in edit mode
+- When a domain entity is modified also in edit mode
+- And when a domain entity is just shown, in read-only mode
 
 The following images shows the same form, once in read-only mode and once edit mode
 
@@ -191,8 +191,13 @@ The following images shows the same form, once in read-only mode and once edit m
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/form_edit.png
 
-There usually is a tool-tip on a form field element for almost all attributes that can be activated by either going over and stay on the form field label or the input section. 
-If a form field is mandatory to either create or save an object, this is marked with a little red arrow just to the right of the form field label. 
-There may be more field validations takes place on saving the object. If a input needs a special form that is not given by the current input, the form-field 
-will be marked with a red border and a thin red explanation text is shown right below the input field. After correct the missing or wrong input and save again, 
-the SEB Server will accept and process the changes. If the user navigates away from a form in edit mode, the GUI will inform about possible data loss and asks for proceed or abort.
+There usually is a tool-tip on a form field element for almost all attributes that can be activated by either going over and stay on the form 
+field label or the input section. 
+If a form field is mandatory to either create or save an entity, this is marked with a little red arrow just to the right of the form field label. 
+There may also be more field validation takes place on saving the object. If a input needs a special form that is not given by the current input, the form-field 
+will be marked with a red border around the input field and a thin red explanation text is shown right below the input field. 
+After correcting the missing or wrong input and saveing the form again, the SEB Server will accept and process the changes. 
+
+.. note::
+    If you navigate away from a form in edit mode, the GUI will inform you about possible data loss on this action and will prompt you to 
+    proceed or abort the action.
