@@ -1,8 +1,8 @@
 Overview
 ========
 
-Safe Exam Browser Server (SEB Server) is a web-service application to help setting up and maintain e-assessments with 
-`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) in a centralized manner. The SEB Server application can be used 
+Safe Exam Browser Server (SEB Server) is a web-service application with the objective to help setting up and maintain e-assessments with 
+`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) in a centralized and more efficient manner. The SEB Server application can be used 
 by an institution or organization as a self-maintained, lightweight server application to organize and setup their e-assessments. 
 For an organization or institution that wants to provides safe e-assessments with `Safe Exam Browser <https://safeexambrowser.org/>`_, 
 SEB Server can help to organize this e-assessments more effectively, safely and in one place.
@@ -18,7 +18,7 @@ there is yet just a built-in and lightweight user-account management where users
 administrator users that has the privileges to maintain user accounts. Currently there is no possibility to register with a third 
 party account and/or single sign on.
 
-SEB Server is written in Java and uses Docker for installation and setup. For more information about the architecture and installation, 
+SEB Server is written mainly in Java and uses Docker for installation and setup. For more information about the architecture and installation, 
 please go to `SEB Server Installation Guide <https://seb-server-setup.readthedocs.io/en/latest/overview.html>`_
 
 The key features of SEB Server are: 
@@ -50,23 +50,23 @@ Roles and Use-Cases
 -----------------------
 
 The SEB Server supports a simple role based privilege system where a role has read, modify and write privileges on certain domain entities. 
-The privileges for a role are pre-defined and cannot be changed by a user. But roles can be combined within one user-account.
+The privileges for a role are pre-defined and cannot be changed by a user. But roles can be combined for a user-account. A user-account for
+example can have the "Exam Administrator" and the "Exam Supporter" role active to be able to setup and support an exam (e-assessment) within 
+one user-account.
 
-Privileges for domain objects are categorized in read, modify and write where write includes creation and deletion grants as well as activation grants in addition to the more 
-restrict modify right that only allows to modify already created entities. They are also categorized in overall, institutional and owner privileges where 
-overall means for all entities, over all available institutions and institutional means only the entities that belongs to the own institution 
-whereas owner-privilege means the creator or assigned owner of an entity.
+Privileges for domain objects are categorized in read, modify and write rights. Write right includes creation and deletion grants 
+as well as activation grants in addition to the more restrict modify right that only allows to modify already created entities. 
+They are also categorized in overall, institutional and owner privileges where overall means for all entities, over all available institutions 
+and institutional means only the entities that belongs to the own institution whereas owner-privilege means the creator or assigned owner of an entity.
 
-There are four different roles. This reflect a good separation of concerns within the SEB Server application administration itself and the setup and 
-maintaining work that has to be done for e-assessments with SEB.
-
-below are the names and a short description of each role.
+There currently exists four different roles. This reflect a good separation of concern within the SEB Server application administration itself and the setup and 
+maintaining work that has to be done for e-assessments with SEB. Below are the names and a short description of each role.
 
 
 **SEB Server Administrator**
 
-This role is primarily to administer the SEB Server application. Create new and maintain available institutions and user-accounts. In addition to that a 
-SEB Server administrator also has overall read privileges for the most domains to be able to analyze problems and help others to solve them.
+This role is primarily to administer the SEB Server application, to create new and maintain available institutions and user-accounts. 
+In addition to that a SEB Server administrator also has overall read privileges for the most domains to be able to analyze problems and help others to solve them.
 
 A typical use-case for a SEB Server administrator would be to create a new institution and an institutional administrator for this institution.
 Another use-case would be to maintain registered user accounts, to give more privileges. Or to entirely deactivate an existing user account.
