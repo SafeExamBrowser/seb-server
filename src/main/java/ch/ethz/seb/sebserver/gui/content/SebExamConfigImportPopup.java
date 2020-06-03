@@ -17,6 +17,8 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -42,11 +44,14 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
 final class SebExamConfigImportPopup {
+
+    private static final Logger log = LoggerFactory.getLogger(SebExamConfigImportPopup.class);
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
@@ -115,6 +120,29 @@ final class SebExamConfigImportPopup {
                                             3,
                                             255)));
                     return false;
+                } else {
+                    // check if name already exists
+                    try {
+                        if (pageService.getRestService()
+                                .getBuilder(GetExamConfigNodeNames.class)
+                                .call()
+                                .getOrThrow()
+                                .stream()
+                                .filter(n -> n.name.equals(fieldValue))
+                                .findFirst()
+                                .isPresent()) {
+
+                            form.setFieldError(
+                                    Domain.CONFIGURATION_NODE.ATTR_NAME,
+                                    pageService
+                                            .getI18nSupport()
+                                            .getText(new LocTextKey(
+                                                    "sebserver.form.validation.fieldError.name.notunique")));
+                            return false;
+                        }
+                    } catch (final Exception e) {
+                        log.error("Failed to verify unique name: {}", e.getMessage());
+                    }
                 }
             }
 
