@@ -150,7 +150,7 @@ public class QuizLookupList implements TemplateComposer {
         final PageActionBuilder actionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
-        final BooleanSupplier isSebAdmin =
+        final BooleanSupplier isSEBAdmin =
                 () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
 
         final Function<String, String> institutionNameFunction =
@@ -163,7 +163,7 @@ public class QuizLookupList implements TemplateComposer {
                         .withPaging(this.pageSize)
 
                         .withColumnIf(
-                                isSebAdmin,
+                                isSEBAdmin,
                                 () -> new ColumnDefinition<QuizData>(
                                         QuizData.QUIZ_ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

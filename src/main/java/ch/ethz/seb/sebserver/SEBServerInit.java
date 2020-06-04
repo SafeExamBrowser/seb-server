@@ -43,7 +43,7 @@ public class SEBServerInit {
             INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
             INIT_LOGGER.info("---->");
             INIT_LOGGER.info("---->");
-            INIT_LOGGER.info("----> Version: {}", this.webserviceInfo.getSebServerVersion());
+            INIT_LOGGER.info("----> Version: {}", this.webserviceInfo.getSEBServerVersion());
             INIT_LOGGER.info("---->");
             INIT_LOGGER.info("----> Active profiles: {}", Arrays.toString(this.environment.getActiveProfiles()));
             INIT_LOGGER.info("---->");

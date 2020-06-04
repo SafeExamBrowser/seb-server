@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -111,37 +111,37 @@ public interface LmsAPITemplate {
 
     /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
      * apply chapter-based SEB restriction for a specified course.
-     * 
+     *
      * The availability of this depends on the type of LMS and on installed plugins that supports this feature.
      * If this is not supported by the underling LMS a UnsupportedOperationException will be presented
      * within the Result.
-     * 
+     *
      * @param courseId The course identifier
      * @return Result referencing to the Chapters model for the given course or to an error when happened. */
     Result<Chapters> getCourseChapters(String courseId);
 
-    /** Get SEB restriction data form LMS within a SebRestrictionData instance if available
+    /** Get SEB restriction data form LMS within a SEBRestrictionData instance if available
      * or a ResourceNotFoundException if not yet available or restricted
      *
      * @param exam the exam to get the SEB restriction data for
-     * @return Result refer to the SebRestrictionData instance or to an ResourceNotFoundException if restriction is
+     * @return Result refer to the SEBRestrictionData instance or to an ResourceNotFoundException if restriction is
      *         missing or to another exception on unexpected error case */
-    Result<SebRestriction> getSebClientRestriction(Exam exam);
+    Result<SEBRestriction> getSEBClientRestriction(Exam exam);
 
     /** Applies a SEB Client restriction within the LMS with the given attributes.
      *
      * @param externalExamId The exam identifier from LMS side (Exam.externalId)
      * @param sebRestrictionData containing all data for SEB Client restriction
-     * @return Result refer to the given SebRestrictionData if restriction was successful or to an error if not */
-    Result<SebRestriction> applySebClientRestriction(
+     * @return Result refer to the given SEBRestrictionData if restriction was successful or to an error if not */
+    Result<SEBRestriction> applySEBClientRestriction(
             String externalExamId,
-            SebRestriction sebRestrictionData);
+            SEBRestriction sebRestrictionData);
 
     /** Releases an already applied SEB Client restriction within the LMS for a given Exam.
      * This completely removes the SEB Client restriction on LMS side.
      *
      * @param exam the Exam to release the restriction for
      * @return Result refer to the given Exam if successful or to an error if not */
-    Result<Exam> releaseSebClientRestriction(Exam exam);
+    Result<Exam> releaseSEBClientRestriction(Exam exam);
 
 }

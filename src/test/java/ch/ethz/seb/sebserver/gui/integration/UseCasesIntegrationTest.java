@@ -66,7 +66,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
@@ -136,7 +136,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SebExamConfigUndo;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -930,20 +930,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new ExportClientConfig());
 
         // create SEB Client Config without password protection
-        final Result<SebClientConfig> newConfigResponse = restService
+        final Result<SEBClientConfig> newConfigResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(newConfigResponse);
         assertFalse(newConfigResponse.hasError());
-        final SebClientConfig sebClientConfig = newConfigResponse.get();
+        final SEBClientConfig sebClientConfig = newConfigResponse.get();
         assertEquals("No Password Protection", sebClientConfig.name);
         assertFalse(sebClientConfig.isActive());
         assertEquals("http://fallback.com/fallback", sebClientConfig.fallbackStartURL);
@@ -957,33 +957,33 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(activationResponse);
         assertFalse(activationResponse.hasError());
 
-        final Result<SebClientConfig> getConfigResponse = restService
+        final Result<SEBClientConfig> getConfigResponse = restService
                 .getBuilder(GetClientConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
                 .call();
 
         assertNotNull(getConfigResponse);
         assertFalse(getConfigResponse.hasError());
-        final SebClientConfig activeConfig = getConfigResponse.get();
+        final SEBClientConfig activeConfig = getConfigResponse.get();
         assertTrue(activeConfig.isActive());
 
         // create a config with password protection
-        final Result<SebClientConfig> configWithPasswordResponse = restService
+        final Result<SEBClientConfig> configWithPasswordResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "With Password Protection")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
-                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
                 .withFormParam(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET, "123")
-                .withFormParam(SebClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM, "123")
+                .withFormParam(SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM, "123")
                 .call();
 
         assertNotNull(configWithPasswordResponse);
         assertFalse(configWithPasswordResponse.hasError());
-        final SebClientConfig configWithPassword = configWithPasswordResponse.get();
+        final SEBClientConfig configWithPassword = configWithPasswordResponse.get();
         assertEquals("With Password Protection", configWithPassword.name);
         assertFalse(configWithPassword.isActive());
         assertEquals("http://fallback.com/fallback", configWithPassword.fallbackStartURL);
@@ -1015,13 +1015,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(readLines.isEmpty());
 
         // get page
-        final Result<Page<SebClientConfig>> pageResponse = restService
+        final Result<Page<SEBClientConfig>> pageResponse = restService
                 .getBuilder(GetClientConfigPage.class)
                 .call();
 
         assertNotNull(pageResponse);
         assertFalse(pageResponse.hasError());
-        final Page<SebClientConfig> page = pageResponse.get();
+        final Page<SEBClientConfig> page = pageResponse.get();
         assertFalse(page.content.isEmpty());
         assertTrue(page.content.size() == 2);
     }
@@ -1097,7 +1097,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetConfigurations(),
                 new SaveExamConfigHistory(),
                 new GetConfigurationTableValues(),
-                new SebExamConfigUndo(),
+                new SEBExamConfigUndo(),
                 new SaveExamConfigValue(),
                 new SaveExamConfigTableValues(),
                 new GetConfigurationValuePage(),
@@ -1261,7 +1261,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         // undo
         final Result<Configuration> undoResponse = restService
-                .getBuilder(SebExamConfigUndo.class)
+                .getBuilder(SEBExamConfigUndo.class)
                 .withURIVariable(API.PARAM_MODEL_ID, followup.getModelId())
                 .call();
 

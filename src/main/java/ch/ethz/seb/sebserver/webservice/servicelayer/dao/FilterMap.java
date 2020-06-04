@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -101,8 +101,8 @@ public class FilterMap extends POSTMapper {
         return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
     }
 
-    public DateTime getSebClientConfigFromTime() {
-        return Utils.toDateTime(getString(SebClientConfig.FILTER_ATTR_CREATION_DATE));
+    public DateTime getSEBClientConfigFromTime() {
+        return Utils.toDateTime(getString(SEBClientConfig.FILTER_ATTR_CREATION_DATE));
     }
 
     public Long getLmsSetupId() {

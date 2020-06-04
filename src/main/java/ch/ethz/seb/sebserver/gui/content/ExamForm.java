@@ -62,10 +62,10 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.download.SebExamConfigDownload;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSebRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
@@ -248,9 +248,9 @@ public class ExamForm implements TemplateComposer {
         final boolean editable = examStatus == ExamStatus.UP_COMING
                 || examStatus == ExamStatus.RUNNING
                         && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
-        final boolean sebRestrictionAvailable = testSebRestrictionAPI(exam);
+        final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
-                .getBuilder(CheckSebRestriction.class)
+                .getBuilder(CheckSEBRestriction.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call()
                 .onError(e -> log.error("Unexpected error while trying to verify seb restriction settings: ", e))
@@ -393,9 +393,9 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
-                .withExec(ExamSebRestrictionSettings.settingsFunction(this.pageService))
+                .withExec(ExamSEBRestrictionSettings.settingsFunction(this.pageService))
                 .withAttribute(
-                        ExamSebRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_TYPE,
+                        ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_TYPE,
                         this.restService.getBuilder(GetLmsSetup.class)
                                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                                 .call()
@@ -406,13 +406,13 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
-                .withExec(action -> ExamSebRestrictionSettings.setSebRestriction(action, true, this.restService))
+                .withExec(action -> ExamSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
-                .withExec(action -> ExamSebRestrictionSettings.setSebRestriction(action, false, this.restService))
+                .withExec(action -> ExamSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted));
 
@@ -583,14 +583,14 @@ public class ExamForm implements TemplateComposer {
     private PageAction importExam(
             final PageAction action,
             final FormHandle<Exam> formHandle,
-            final boolean applySebRestriction) {
+            final boolean applySEBRestriction) {
 
         // process normal save first
         final PageAction processFormSave = formHandle.processFormSave(action);
 
         // when okay and the exam sebRestriction is true
-        if (applySebRestriction) {
-            ExamSebRestrictionSettings.setSebRestriction(
+        if (applySEBRestriction) {
+            ExamSEBRestrictionSettings.setSEBRestriction(
                     processFormSave,
                     true,
                     this.restService,
@@ -600,7 +600,7 @@ public class ExamForm implements TemplateComposer {
         return processFormSave;
     }
 
-    private boolean testSebRestrictionAPI(final Exam exam) {
+    private boolean testSEBRestrictionAPI(final Exam exam) {
         return this.restService.getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                 .call()
@@ -656,7 +656,7 @@ public class ExamForm implements TemplateComposer {
             final String downloadURL = this.downloadService.createDownloadURL(
                     selection.modelId,
                     action.pageContext().getParentEntityKey().modelId,
-                    SebExamConfigDownload.class,
+                    SEBExamConfigDownload.class,
                     this.downloadFileName);
             urlLauncher.openURL(downloadURL);
         }
@@ -701,7 +701,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey examConfigMappingKey = action.getSingleSelection();
         if (examConfigMappingKey != null) {
             action.withEntityKey(examConfigMappingKey);
-            return SebExamConfigForm
+            return SEBExamConfigForm
                     .getConfigKeyFunction(this.pageService)
                     .apply(action);
         }

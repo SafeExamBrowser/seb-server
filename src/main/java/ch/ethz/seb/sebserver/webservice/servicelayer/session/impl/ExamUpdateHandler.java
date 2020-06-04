@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 
 @Lazy
 @Service
@@ -33,13 +33,13 @@ class ExamUpdateHandler {
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
     private final ExamDAO examDAO;
-    private final SebRestrictionService sebRestrictionService;
+    private final SEBRestrictionService sebRestrictionService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
-            final SebRestrictionService sebRestrictionService,
+            final SEBRestrictionService sebRestrictionService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
 
@@ -50,7 +50,7 @@ class ExamUpdateHandler {
         this.examTimeSuffix = examTimeSuffix;
     }
 
-    public SebRestrictionService getSebRestrictionService() {
+    public SEBRestrictionService getSEBRestrictionService() {
         return this.sebRestrictionService;
     }
 
@@ -82,7 +82,7 @@ class ExamUpdateHandler {
                         exam.id,
                         ExamStatus.RUNNING,
                         updateId))
-                .flatMap(this.sebRestrictionService::applySebClientRestriction)
+                .flatMap(this.sebRestrictionService::applySEBClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
                         .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)))
@@ -100,7 +100,7 @@ class ExamUpdateHandler {
                         exam.id,
                         ExamStatus.FINISHED,
                         updateId))
-                .flatMap(this.sebRestrictionService::releaseSebClientRestriction)
+                .flatMap(this.sebRestrictionService::releaseSEBClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id))
                 .getOrThrow();

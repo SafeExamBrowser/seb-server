@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.oauth2.provider.ClientDetails;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ClientConfigService {
@@ -27,32 +27,32 @@ public interface ClientConfigService {
     /** The cache name of ClientDetails */
     String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";
 
-    /** Indicates if there is any SebClientConfiguration for a specified institution.
+    /** Indicates if there is any SEBClientConfiguration for a specified institution.
      *
      * @param institutionId the institution identifier
-     * @return true if there is any SebClientConfiguration for a specified institution. False otherwise */
-    boolean hasSebClientConfigurationForInstitution(Long institutionId);
+     * @return true if there is any SEBClientConfiguration for a specified institution. False otherwise */
+    boolean hasSEBClientConfigurationForInstitution(Long institutionId);
 
-    /** Use this to auto-generate a SebClientConfiguration for a specified institution.
+    /** Use this to auto-generate a SEBClientConfiguration for a specified institution.
      * clientName and clientSecret are randomly generated.
      *
      * @param institutionId the institution identifier
-     * @return the created SebClientConfig */
-    Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(Long institutionId);
+     * @return the created SEBClientConfiguration */
+    Result<SEBClientConfig> autoCreateSEBClientConfigurationForInstitution(Long institutionId);
 
-    /** Use this to export a specified SebClientConfiguration within a given OutputStream.
+    /** Use this to export a specified SEBClientConfiguration within a given OutputStream.
      * The SEB Client Configuration is exported in the defined SEB Configuration format
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out OutputStream to write the export to
-     * @param modelId the model identifier of the SebClientConfiguration to export */
-    void exportSebClientConfiguration(
+     * @param modelId the model identifier of the SEBClientConfiguration to export */
+    void exportSEBClientConfiguration(
             OutputStream out,
             final String modelId);
 
-    /** Get the ClientDetails for given client name that identifies a SebClientConfig entry.
+    /** Get the ClientDetails for given client name that identifies a SEBClientConfiguration entry.
      *
-     * @param clientName the client name of a SebClientConfig entry
+     * @param clientName the client name of a SEBClientConfiguration entry
      * @return Result refer to the ClientDetails for the specified clientName or to an error if happened */
     @Cacheable(
             cacheNames = EXAM_CLIENT_DETAILS_CACHE,
@@ -60,12 +60,12 @@ public interface ClientConfigService {
             unless = "#result.hasError()")
     Result<ClientDetails> getClientConfigDetails(String clientName);
 
-    /** Internally used to check OAuth2 access for a active SebClientConfig.
+    /** Internally used to check OAuth2 access for a active SEBClientConfig.
      *
-     * @param config the SebClientConfig to check access
+     * @param config the SEBClientConfig to check access
      * @return true if the system was able to gain an access token for the client. False otherwise */
-    boolean checkAccess(SebClientConfig config);
+    boolean checkAccess(SEBClientConfig config);
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void initalCheckAccess(SebClientConfig config);
+    void initalCheckAccess(SEBClientConfig config);
 }

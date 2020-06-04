@@ -23,15 +23,15 @@ import org.cryptonode.jncryptor.JNCryptor;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 
 public class SebConfigEncryptionServiceImplTest {
 
     @Test
     public void testPlainText() throws IOException {
-        final SebConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl = sebConfigEncryptionServiceImpl();
+        final SEBConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl = sebConfigEncryptionServiceImpl();
 
         final String config = "<TestConfig></TestConfig>";
 
@@ -63,7 +63,7 @@ public class SebConfigEncryptionServiceImplTest {
 
     @Test
     public void testPasswordEncryption() throws IOException {
-        final SebConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl = sebConfigEncryptionServiceImpl();
+        final SEBConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl = sebConfigEncryptionServiceImpl();
 
         final String config = "<TestConfig></TestConfig>";
         final String pwd = "password";
@@ -96,12 +96,12 @@ public class SebConfigEncryptionServiceImplTest {
         assertEquals(config, decryptedConfig);
     }
 
-    private SebConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl() {
+    private SEBConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl() {
         final JNCryptor cryptor = new AES256JNCryptor();
-        final List<SebConfigCryptor> encryptors = Arrays.asList(
+        final List<SEBConfigCryptor> encryptors = Arrays.asList(
                 new PasswordEncryptor(cryptor),
                 new NoneEncryptor());
-        return new SebConfigEncryptionServiceImpl(encryptors);
+        return new SEBConfigEncryptionServiceImpl(encryptors);
     }
 
 }

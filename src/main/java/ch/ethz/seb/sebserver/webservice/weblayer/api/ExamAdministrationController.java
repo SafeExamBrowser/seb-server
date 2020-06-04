@@ -51,7 +51,7 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -69,7 +69,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -87,7 +87,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final LmsAPIService lmsAPIService;
     private final ExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
-    private final SebRestrictionService sebRestrictionService;
+    private final SEBRestrictionService sebRestrictionService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -101,7 +101,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamAdminService examAdminService,
             final ExamConfigService sebExamConfigService,
             final ExamSessionService examSessionService,
-            final SebRestrictionService sebRestrictionService) {
+            final SEBRestrictionService sebRestrictionService) {
 
         super(authorization,
                 bulkActionService,
@@ -257,7 +257,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Boolean checkSebRestriction(
+    public Boolean checkSEBRestriction(
             @PathVariable final Long modelId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -275,7 +275,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public SebRestriction getSebRestriction(
+    public SEBRestriction getSEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -285,7 +285,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.sebRestrictionService::getSebRestrictionFromExam)
+                .flatMap(this.sebRestrictionService::getSEBRestrictionFromExam)
                 .getOrThrow();
     }
 
@@ -294,20 +294,20 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Exam saveSebRestrictionData(
+    public Exam saveSEBRestrictionData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final SebRestriction sebRestriction) {
+            @Valid @RequestBody final SEBRestriction sebRestriction) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(exam -> this.sebRestrictionService.saveSebRestrictionToExam(exam, sebRestriction))
+                .flatMap(exam -> this.sebRestrictionService.saveSEBRestrictionToExam(exam, sebRestriction))
                 .flatMap(exam -> this.examAdminService.isRestricted(exam).getOrThrow()
-                        ? this.applySebRestriction(exam, true)
+                        ? this.applySEBRestriction(exam, true)
                         : Result.of(exam))
                 .getOrThrow();
     }
@@ -317,7 +317,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.PUT,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Exam applySebRestriction(
+    public Exam applySEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -327,7 +327,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examlId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(exam -> this.applySebRestriction(exam, true))
+                .flatMap(exam -> this.applySEBRestriction(exam, true))
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
@@ -337,7 +337,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Exam deleteSebRestriction(
+    public Exam deleteSEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -347,7 +347,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examlId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(exam -> this.applySebRestriction(exam, false))
+                .flatMap(exam -> this.applySEBRestriction(exam, false))
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
@@ -445,8 +445,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return exam;
     }
 
-    private Result<Exam> checkNoActiveSebClientConnections(final Exam exam) {
-        if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
+    private Result<Exam> checkNoActiveSEBClientConnections(final Exam exam) {
+        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
             return Result.ofError(new APIMessageException(
                     APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                             .of("Exam currently has active SEB Client connections.")));
@@ -455,7 +455,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.of(exam);
     }
 
-    private Result<Exam> applySebRestriction(final Exam exam, final boolean restrict) {
+    private Result<Exam> applySEBRestriction(final Exam exam, final boolean restrict) {
         final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
                 .getOrThrow();
 
@@ -474,18 +474,18 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                                 .of("The LMS for this Exam has no SEB restriction feature")));
             }
 
-            if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
+            if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
                 return Result.ofError(new APIMessageException(
                         APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                                 .of("Exam currently has active SEB Client connections.")));
             }
 
-            return this.checkNoActiveSebClientConnections(exam)
-                    .flatMap(this.sebRestrictionService::applySebClientRestriction)
-                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, restrict));
+            return this.checkNoActiveSEBClientConnections(exam)
+                    .flatMap(this.sebRestrictionService::applySEBClientRestriction)
+                    .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict));
         } else {
-            return this.sebRestrictionService.releaseSebClientRestriction(exam)
-                    .flatMap(e -> this.examDAO.setSebRestriction(exam.id, restrict));
+            return this.sebRestrictionService.releaseSEBClientRestriction(exam)
+                    .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict));
         }
     }
 

@@ -18,20 +18,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetClientConfigPage extends RestCall<Page<SebClientConfig>> {
+public class GetClientConfigPage extends RestCall<Page<SEBClientConfig>> {
 
     public GetClientConfigPage() {
         super(new TypeKey<>(
                 CallType.GET_PAGE,
                 EntityType.SEB_CLIENT_CONFIGURATION,
-                new TypeReference<Page<SebClientConfig>>() {
+                new TypeReference<Page<SEBClientConfig>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,

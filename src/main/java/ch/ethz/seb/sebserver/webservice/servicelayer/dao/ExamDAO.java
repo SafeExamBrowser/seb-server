@@ -126,6 +126,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param examId the exam identifier
      * @param sebRestriction the seb-restriction flag value
      * @return Result refer to the updated Exam or to an error if happened */
-    Result<Exam> setSebRestriction(Long examId, boolean sebRestriction);
+    Result<Exam> setSEBRestriction(Long examId, boolean sebRestriction);
 
 }

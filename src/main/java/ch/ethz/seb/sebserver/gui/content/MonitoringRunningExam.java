@@ -181,7 +181,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
-                .withExec(action -> this.quitSebClients(action, clientTable, true))
+                .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
                 .publishIf(privilege)
 
@@ -190,7 +190,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_QUIT_SELECTED)
                 .withSelect(
                         () -> this.selectionForQuitInstruction(clientTable),
-                        action -> this.quitSebClients(action, clientTable, false),
+                        action -> this.quitSEBClients(action, clientTable, false),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(privilege, false)
@@ -200,7 +200,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_DISABLE_SELECTED)
                 .withSelect(
                         clientTable::getSelection,
-                        action -> this.disableSebClients(action, clientTable, false),
+                        action -> this.disableSEBClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(privilege, false);
@@ -311,12 +311,12 @@ public class MonitoringRunningExam implements TemplateComposer {
         return clientTable.getSelection();
     }
 
-    private PageAction quitSebClients(
+    private PageAction quitSEBClients(
             final PageAction action,
             final ClientConnectionTable clientTable,
             final boolean all) {
 
-        this.instructionProcessor.propagateSebQuitInstruction(
+        this.instructionProcessor.propagateSEBQuitInstruction(
                 clientTable.getExam().id,
                 statesPredicate -> clientTable.getConnectionTokens(
                         statesPredicate,
@@ -328,7 +328,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         return action;
     }
 
-    private PageAction disableSebClients(
+    private PageAction disableSEBClients(
             final PageAction action,
             final ClientConnectionTable clientTable,
             final boolean all) {

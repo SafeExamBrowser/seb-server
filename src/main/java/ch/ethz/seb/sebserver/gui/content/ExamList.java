@@ -134,7 +134,7 @@ public class ExamList implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
-        final BooleanSupplier isSebAdmin =
+        final BooleanSupplier isSEBAdmin =
                 () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
 
         final Function<String, String> institutionNameFunction =
@@ -150,7 +150,7 @@ public class ExamList implements TemplateComposer {
                         .withStaticFilter(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
 
                         .withColumnIf(
-                                isSebAdmin,
+                                isSEBAdmin,
                                 () -> new ColumnDefinition<Exam>(
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

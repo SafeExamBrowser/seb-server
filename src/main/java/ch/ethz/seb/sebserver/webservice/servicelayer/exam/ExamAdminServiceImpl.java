@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -34,7 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SebRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 
 @Lazy
 @Service
@@ -109,14 +109,14 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
             if (lmsSetup.lmsType == LmsType.OPEN_EDX) {
                 final List<String> permissions = Arrays.asList(
-                        OpenEdxSebRestriction.PermissionComponent.ALWAYS_ALLOW_STAFF.key,
-                        OpenEdxSebRestriction.PermissionComponent.CHECK_CONFIG_KEY.key);
+                        OpenEdxSEBRestriction.PermissionComponent.ALWAYS_ALLOW_STAFF.key,
+                        OpenEdxSEBRestriction.PermissionComponent.CHECK_CONFIG_KEY.key);
 
                 this.additionalAttributesDAO.saveAdditionalAttribute(
                         EntityType.EXAM,
                         exam.id,
-                        SebRestrictionService.SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX +
-                                OpenEdxSebRestriction.ATTR_PERMISSION_COMPONENTS,
+                        SEBRestrictionService.SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX +
+                                OpenEdxSEBRestriction.ATTR_PERMISSION_COMPONENTS,
                         StringUtils.join(permissions, Constants.LIST_SEPARATOR_CHAR))
                         .getOrThrow();
             }
@@ -135,7 +135,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
-                .map(lmsAPI -> !lmsAPI.getSebClientRestriction(exam).hasError());
+                .map(lmsAPI -> !lmsAPI.getSEBClientRestriction(exam).hasError());
     }
 
 }

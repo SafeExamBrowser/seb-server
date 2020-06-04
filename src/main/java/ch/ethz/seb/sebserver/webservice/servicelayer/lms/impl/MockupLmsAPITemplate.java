@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -184,22 +184,22 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         log.info("Apply SEB Client restriction for Exam: {}", exam);
-        return Result.ofError(new NoSebRestrictionException());
+        return Result.ofError(new NoSEBRestrictionException());
     }
 
     @Override
-    public Result<SebRestriction> applySebClientRestriction(
+    public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
-            final SebRestriction sebRestrictionData) {
+            final SEBRestriction sebRestrictionData) {
 
         log.info("Apply SEB Client restriction: {}", sebRestrictionData);
         return Result.of(sebRestrictionData);
     }
 
     @Override
-    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
         log.info("Release SEB Client restriction for Exam: {}", exam);
         return Result.of(exam);
     }
