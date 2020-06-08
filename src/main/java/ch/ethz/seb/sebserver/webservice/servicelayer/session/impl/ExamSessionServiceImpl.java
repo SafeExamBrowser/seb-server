@@ -199,6 +199,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.trace("Running exam request for exam {}", examId);
         }
 
+        updateExamCache(examId);
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
 
         if (this.examSessionCacheService.isRunning(exam)) {
@@ -327,6 +328,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        if (exam == null) {
+            return Result.ofEmpty();
+        }
+
         final Boolean isUpToDate = this.examDAO.upToDate(examId, exam.lastUpdate)
                 .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
                 .getOr(false);
