@@ -10,13 +10,13 @@ package ch.ethz.seb.sebserver.webservice;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialServiceImpl;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialServiceImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;

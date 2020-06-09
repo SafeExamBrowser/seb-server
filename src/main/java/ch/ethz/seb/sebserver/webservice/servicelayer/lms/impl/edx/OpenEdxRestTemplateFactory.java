@@ -35,13 +35,13 @@ import org.springframework.util.MultiValueMap;
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 
 final class OpenEdxRestTemplateFactory {
 

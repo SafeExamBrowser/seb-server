@@ -26,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -38,9 +41,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDyn
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;

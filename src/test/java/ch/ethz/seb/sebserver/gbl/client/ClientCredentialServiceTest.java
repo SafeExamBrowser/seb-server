@@ -6,12 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.client;
+package ch.ethz.seb.sebserver.gbl.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialServiceImpl;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.junit.Test;
 import org.springframework.core.env.Environment;

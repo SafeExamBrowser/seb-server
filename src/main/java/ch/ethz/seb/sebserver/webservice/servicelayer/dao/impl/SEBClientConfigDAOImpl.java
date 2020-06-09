@@ -31,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -44,8 +46,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;

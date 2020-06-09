@@ -13,11 +13,11 @@ import java.util.Set;
 
 import org.springframework.cache.annotation.CacheEvict;
 
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 
 /** Concrete EntityDAO interface of SEBClientConfig entities */

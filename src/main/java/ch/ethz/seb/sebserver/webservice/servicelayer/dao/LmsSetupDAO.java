@@ -8,11 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ProxyData;
 
 /** Concrete EntityDAO interface of LmsSetup entities */
 public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, BulkActionSupportDAO<LmsSetup> {

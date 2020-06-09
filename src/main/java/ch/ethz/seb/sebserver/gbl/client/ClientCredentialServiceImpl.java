@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.client;
+package ch.ethz.seb.sebserver.gbl.client;
 
 import java.nio.CharBuffer;
 import java.security.SecureRandom;
@@ -19,13 +19,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ClientCredentialServiceImpl implements ClientCredentialService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);

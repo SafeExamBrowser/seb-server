@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.client;
+package ch.ethz.seb.sebserver.gbl.client;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
