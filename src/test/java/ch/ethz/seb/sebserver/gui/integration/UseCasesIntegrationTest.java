@@ -30,15 +30,17 @@ import org.apache.tomcat.util.buf.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
@@ -48,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
@@ -78,14 +81,19 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -118,6 +126,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
@@ -132,11 +141,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Im
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -144,6 +153,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Before
@@ -163,7 +173,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 1: SEB Administrator creates a new institution and activate this new institution
 
-    public void testUsecase1() {
+    public void testUsecase01() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
@@ -205,7 +215,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 2: SEB Administrator creates a new Institutional Administrator user for the
     // newly created institution and activate this user
-    public void testUsecase2() {
+    public void testUsecase02_CreateInstitutionalAdminUser() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
@@ -274,7 +284,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // check also that it is not possible to change to SEB Administrator role
     // check also this it is possible to change the password and after that a new login is needed
     // check also that property changes are possible. E.g: email
-    public void testUsecase3() {
+    public void testUsecase03_TestInstitutionalView() {
         RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "12345678",
@@ -387,7 +397,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - create a new user-account (examAdmin2) with Exam Administrator role
     // - create a new user-account (examSupport1) with Exam Supporter role
     // - create a new user-account (examSupport2) with Exam Administrator and Exam Supporter role
-    public void testUsecase4() {
+    public void testUsecase04_CreateUserAccount() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -504,7 +514,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     //  - change name of active LMS and check modification update
     //  - deactivate LMS Setup and check no quizzes are available
     //  - activate again for following tests
-    public void testUsecase5() {
+    public void testUsecase05_CreateLMSSetupMockup() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -684,7 +694,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
     //  - login as TestInstAdmin : 987654321
-    public void testUsecase5_5() {
+    public void testUsecase06_CreateOpenEdxLMSSetup() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -720,25 +730,23 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow();
 
-        final DispatcherServlet dispatcherServlet = this.mockMvc.getDispatcherServlet();
-
         assertNotNull(testResult);
         assertFalse(testResult.isOk());
         assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
                 " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
 
-        // TODO how to mockup a Open edX response
+        // TODO how to mockup an Open edX response
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     // *************************************
     // Use Case 6: Login as examAdmin2
-    // - Check if there are some quizzes form previous LMS Setup
+    // - Check if there are some quizzes from previous LMS Setup
     // - Import a quiz as Exam
     // - get exam page and check the exam is there
     // - edit exam property and save again
-    public void testUsecase6() {
+    public void testUsecase07_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -824,17 +832,31 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertEquals(ExamType.MANAGED, savedExam.type);
         assertFalse(savedExam.supporter.isEmpty());
+
+        // get exam list
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+        assertTrue(examPage.content
+                .stream()
+                .filter(exam -> exam.name.equals(newExam.name))
+                .findFirst().isPresent());
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     // *************************************
     // Use Case 7: Login as examAdmin2
     // - Get imported exam
     // - add new indicator for exam
     // - save exam with new indicator and test
     // - create some thresholds for the new indicator
-    public void testUsecase7() {
+    public void testUsecase08_CreateExamIndicator() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -911,13 +933,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     // *************************************
-    // Use Case 8: Login as TestInstAdmin and create a SEB Client Configuration
+    // Use Case 9: Login as TestInstAdmin and create a SEB Client Configuration
     // - create one with and one without password
     // - activate one config
     // - export both configurations
-    public void testUsecase8() throws IOException {
+    public void testUsecase09_CreateClientConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -1027,13 +1049,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     // *************************************
-    // Use Case 9: Login as examAdmin2 and test Exam Configuration data basis
+    // Use Case 10: Login as examAdmin2 and test Exam Configuration data basis
     // - get all Views for the default template
     // - get all Attributes and and Orientations for the default view
     @Sql(scripts = { "classpath:data-test-additional.sql" })
-    public void testUsecase9() throws IOException {
+    public void testUsecase10_TestExamConfigBaseData() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1079,14 +1101,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     // *************************************
-    // Use Case 10: Login as examAdmin2 and create a new SEB Exam Configuration
+    // Use Case 11: Login as examAdmin2 and create a new SEB Exam Configuration
     // - test creation
     // - save configuration in history
     // - change some attribute
     // - process an undo
-    public void testUsecase10() throws IOException {
+    public void testUsecase11_CreateExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1287,14 +1309,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     // *************************************
-    // Use Case 11: Login as examAdmin2 and get newly created exam configuration
+    // Use Case 12: Login as examAdmin2 and get newly created exam configuration
     // - get permitted processes table values
     // - modify permitted processes table values
     // - save permitted processes table values
     // - check save OK
-    public void testUsecase11() throws IOException {
+    public void testUsecase12_TestInitDataOfNewExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1408,13 +1430,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     // *************************************
-    // Use Case 12: Login as examAdmin2 and use newly created configuration
+    // Use Case 13: Login as examAdmin2 and use newly created configuration
     // - get follow-up configuration by API
     // - import
     // - export
-    public void testUsecase12() throws IOException {
+    public void testUsecase13_ExamConfigImportExport() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1574,11 +1596,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     // *************************************
-    // Use Case 13: Login as examAdmin2 and use newly created configuration
+    // Use Case 14: Login as examAdmin2 and use newly created configuration
     // - change configuration status to "Ready to Use"
-    public void testUsecase13() throws IOException {
+    public void testUsecase14_EditExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1623,7 +1645,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Remove one template attribute from orientation
     // - Change one template attribute value
     // - Reset template values
-    public void testUsecase15() throws IOException {
+    public void testUsecase15_CreateConfigurationTemplate() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1807,6 +1829,112 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .filter(cValue -> cValue.attributeId.equals(attribute.getConfigAttribute().id))
                 .findFirst()
                 .ifPresent(cValue -> assertNull(cValue.value));
+    }
+
+    @Test
+    @Order(16)
+    // *************************************
+    // Use Case 16: Login as examAdmin2 and map a Exam Config to an Exam
+    // - Get Exam
+    // - Get List of available Exam Config for mapping
+    // - Map a Exam Config to the Exam
+    public void testUsecase16_MapExamConfigToExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetExamPage(),
+                new GetExamConfigNodeNames(),
+                new GetExamConfigMappingNames(),
+                new GetExamConfigMappingsPage(),
+                new SaveExamConfigMapping(),
+                new NewExamConfigMapping(),
+                new CheckExamConsistency());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+        final Exam exam = examPage.content.get(0);
+        assertEquals("Demo Quiz 1 (MOCKUP)", exam.name);
+        // check that the exam is running
+        assertNull(exam.endTime);
+        // check that the exam is marked with missing configuration alert
+        final Collection<APIMessage> alerts = restService.getBuilder(CheckExamConsistency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOr(Collections.emptyList());
+        assertNotNull(alerts);
+        assertFalse(alerts.isEmpty());
+        final APIMessage message = alerts.iterator().next();
+        assertNotNull(message);
+        assertEquals("No SEB Exam Configuration defined for the Exam", message.systemMessage);
+
+        // get available exam configs for mapping
+        final Result<List<EntityName>> configs = restService.getBuilder(GetExamConfigNodeNames.class)
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_TYPE,
+                        ConfigurationType.EXAM_CONFIG.name())
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_STATUS,
+                        ConfigurationStatus.READY_TO_USE.name())
+                .call();
+
+        assertNotNull(configs);
+        assertFalse(configs.hasError());
+        final List<EntityName> list = configs.get();
+        assertFalse(list.isEmpty());
+        final EntityName configName = list.get(0);
+        assertEquals("New Exam Config", configName.name);
+
+        // get config mapping page and check there is no mapping yet
+        final Result<Page<ExamConfigurationMap>> mappings = restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .call();
+
+        assertNotNull(mappings);
+        assertFalse(mappings.hasError());
+        final Page<ExamConfigurationMap> mappingsPage = mappings.get();
+        assertTrue(mappingsPage.isEmpty());
+
+        // create new config node mapping
+        final Result<ExamConfigurationMap> newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID, String.valueOf(exam.institutionId))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID, String.valueOf(exam.id))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID, configName.modelId)
+                .call();
+
+        assertNotNull(newExamConfigMap);
+        assertFalse(newExamConfigMap.hasError());
+        final ExamConfigurationMap examConfigurationMap = newExamConfigMap.get();
+        assertNotNull(examConfigurationMap);
+        assertEquals("New Exam Config", examConfigurationMap.configName);
+        assertEquals(exam.name, examConfigurationMap.examName);
+
+        final Result<Page<ExamConfigurationMap>> newMappings = restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .call();
+
+        assertNotNull(newMappings);
+        assertFalse(newMappings.hasError());
+        final Page<ExamConfigurationMap> newMappingsPage = newMappings.get();
+        assertFalse(newMappingsPage.isEmpty());
+        final ExamConfigurationMap newMapping = newMappingsPage.content.get(0);
+        assertNotNull(newMapping);
+        assertEquals("New Exam Config", newMapping.configName);
+        assertEquals(exam.name, newMapping.examName);
+
+        // check that the exam is not marked with missing configuration alert anymore
+        final Collection<APIMessage> newAlerts = restService.getBuilder(CheckExamConsistency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOr(Collections.emptyList());
+        assertNotNull(newAlerts);
+        assertTrue(newAlerts.isEmpty());
     }
 
 }

@@ -61,7 +61,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
                 "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1 (MOCKUP)", "Demo Quiz Mockup",
-                "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
+                "2020-01-01T09:00:00Z", null, "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz2", institutionId, lmsSetupId, lmsType, "Demo Quiz 2 (MOCKUP)", "Demo Quiz Mockup",
                 "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
