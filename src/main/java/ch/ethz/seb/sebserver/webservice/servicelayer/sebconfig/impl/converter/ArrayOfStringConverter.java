@@ -85,7 +85,7 @@ public class ArrayOfStringConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final boolean xml) throws IOException {
 
-        final String val = (value.value != null) ? value.value : attribute.getDefaultValue();
+        final String val = (value != null && value.value != null) ? value.value : attribute.getDefaultValue();
         if (StringUtils.isNotBlank(val)) {
 
             final String[] values = StringUtils.split(val, Constants.LIST_SEPARATOR);

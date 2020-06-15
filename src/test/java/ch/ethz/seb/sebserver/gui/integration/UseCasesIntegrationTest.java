@@ -60,6 +60,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -82,6 +83,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServic
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
@@ -118,6 +120,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportPlainXML;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
@@ -1838,17 +1841,25 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Get Exam
     // - Get List of available Exam Config for mapping
     // - Map a Exam Config to the Exam
+    // - Remove Exam Config
+    // - Add config again
+    // - Export Config Key
+    // - Export Config as XML
     public void testUsecase16_MapExamConfigToExam() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
                 new GetExamPage(),
+                new GetExamConfigNode(),
                 new GetExamConfigNodeNames(),
                 new GetExamConfigMappingNames(),
                 new GetExamConfigMappingsPage(),
                 new SaveExamConfigMapping(),
                 new NewExamConfigMapping(),
-                new CheckExamConsistency());
+                new CheckExamConsistency(),
+                new DeleteExamConfigMapping(),
+                new ExportConfigKey(),
+                new ExportExamConfig());
 
         // get exam
         final Result<Page<Exam>> exams = restService
@@ -1902,7 +1913,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(mappingsPage.isEmpty());
 
         // create new config node mapping
-        final Result<ExamConfigurationMap> newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
+        Result<ExamConfigurationMap> newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
                 .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID, String.valueOf(exam.institutionId))
                 .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID, String.valueOf(exam.id))
                 .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID, configName.modelId)
@@ -1910,7 +1921,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(newExamConfigMap);
         assertFalse(newExamConfigMap.hasError());
-        final ExamConfigurationMap examConfigurationMap = newExamConfigMap.get();
+        ExamConfigurationMap examConfigurationMap = newExamConfigMap.get();
         assertNotNull(examConfigurationMap);
         assertEquals("New Exam Config", examConfigurationMap.configName);
         assertEquals(exam.name, examConfigurationMap.examName);
@@ -1935,6 +1946,75 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOr(Collections.emptyList());
         assertNotNull(newAlerts);
         assertTrue(newAlerts.isEmpty());
+
+        // check the state of exam config is now in "In Use"
+        Result<ConfigurationNode> examConfigCall = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall);
+        assertFalse(examConfigCall.hasError());
+        ConfigurationNode configurationNode = examConfigCall.get();
+        assertEquals(ConfigurationStatus.IN_USE, configurationNode.status);
+
+        // delete the configuration mapping
+        restService.getBuilder(DeleteExamConfigMapping.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examConfigurationMap.getModelId())
+                .call();
+
+        // check the state of exam config is now in "Ready To Use"
+        final Result<ConfigurationNode> examConfigCall2 = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall2);
+        assertFalse(examConfigCall2.hasError());
+        final ConfigurationNode configurationNode2 = examConfigCall2.get();
+        assertEquals(ConfigurationStatus.READY_TO_USE, configurationNode2.status);
+
+        // Re-Map the configuration to the exam and check again the state.
+        newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID, String.valueOf(exam.institutionId))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID, String.valueOf(exam.id))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID, configName.modelId)
+                .call();
+
+        assertNotNull(newExamConfigMap);
+        assertFalse(newExamConfigMap.hasError());
+        examConfigurationMap = newExamConfigMap.get();
+        assertNotNull(examConfigurationMap);
+        assertEquals("New Exam Config", examConfigurationMap.configName);
+        assertEquals(exam.name, examConfigurationMap.examName);
+
+        examConfigCall = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall);
+        assertFalse(examConfigCall.hasError());
+        configurationNode = examConfigCall.get();
+        assertEquals(ConfigurationStatus.IN_USE, configurationNode.status);
+
+        // export Config Key
+        final ConfigKey configKey = restService.getBuilder(ExportConfigKey.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examConfigurationMap.configurationNodeId))
+                .call()
+                .getOrThrow();
+        assertNotNull(configKey);
+        //assertEquals("e4af6cf8deb9434e69e8dc6c373418712546de35807d8bfbd6bb98790f8d0774", configKey.key);
+
+        // export config to XML
+        final InputStream input = restService.getBuilder(ExportExamConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examConfigurationMap.configurationNodeId))
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examConfigurationMap.examId))
+                .call()
+                .getOrThrow();
+
+        final String xmlString = StreamUtils.copyToString(input, Charsets.UTF_8);
+        assertNotNull(xmlString);
+//        assertEquals(
+//                "<?xml version=\"1.0\" encoding=\"utf-8\"?><!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>allowAudioCapture</key><false /><key>allowBrowsingBackForward</key><false /><key>allowDictation</key><false /><key>allowDictionaryLookup</key><false /><key>allowDisplayMirroring</key><false /><key>allowDownUploads</key><true /><key>allowedDisplayBuiltin</key><true /><key>allowedDisplaysMaxNumber</key><integer>1</integer><key>allowFlashFullscreen</key><false /><key>allowiOSBetaVersionNumber</key><integer>0</integer><key>allowiOSVersionNumberMajor</key><integer>9</integer><key>allowiOSVersionNumberMinor</key><integer>3</integer><key>allowiOSVersionNumberPatch</key><integer>5</integer><key>allowPDFPlugIn</key><true /><key>allowPreferencesWindow</key><true /><key>allowQuit</key><true /><key>allowScreenSharing</key><false /><key>allowSiri</key><false /><key>allowSpellCheck</key><false /><key>allowSpellCheckDictionary</key><array><string>da-DK</string><string>en-AU</string><string>en-GB</string><string>en-US</string><string>es-ES</string><string>fr-FR</string><string>pt-PT</string><string>sv-SE</string><string>sv-FI</string></array><key>allowSwitchToApplications</key><false /><key>allowUserAppFolderInstall</key><false /><key>allowUserSwitching</key><false /><key>allowVideoCapture</key><false /><key>allowVirtualMachine</key><false /><key>allowWlan</key><false /><key>audioControlEnabled</key><false /><key>audioMute</key><false /><key>audioSetVolumeLevel</key><false /><key>audioVolumeLevel</key><integer>25</integer><key>blacklistURLFilter</key><string /><key>blockPopUpWindows</key><false /><key>browserMessagingPingTime</key><integer>120000</integer><key>browserMessagingSocket</key><string>ws://localhost:8706</string><key>browserScreenKeyboard</key><false /><key>browserURLSalt</key><true /><key>browserUserAgent</key><string /><key>browserUserAgentiOS</key><integer>0</integer><key>browserUserAgentiOSCustom</key><string /><key>browserUserAgentMac</key><integer>0</integer><key>browserUserAgentMacCustom</key><string /><key>browserUserAgentWinDesktopMode</key><integer>0</integer><key>browserUserAgentWinDesktopModeCustom</key><string /><key>browserUserAgentWinTouchMode</key><integer>0</integer><key>browserUserAgentWinTouchModeCustom</key><string /><key>browserUserAgentWinTouchModeIPad</key><string>Mozilla/5.0 (iPad; CPU OS 12_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1</string><key>browserViewMode</key><integer>0</integer><key>browserWindowAllowReload</key><true /><key>browserWindowShowURL</key><integer>0</integer><key>browserWindowTitleSuffix</key><string /><key>chooseFileToUploadPolicy</key><integer>0</integer><key>createNewDesktop</key><true /><key>detectStoppedProcess</key><true /><key>downloadAndOpenSebConfig</key><true /><key>downloadDirectoryOSX</key><string /><key>downloadDirectoryWin</key><string /><key>downloadPDFFiles</key><true /><key>enableAltEsc</key><false /><key>enableAltF4</key><false /><key>enableAltMouseWheel</key><false /><key>enableAltTab</key><true /><key>enableAppSwitcherCheck</key><true /><key>enableBrowserWindowToolbar</key><false /><key>enableCtrlEsc</key><false /><key>enableDrawingEditor</key><false /><key>enableEsc</key><false /><key>enableF1</key><false /><key>enableF10</key><false /><key>enableF11</key><false /><key>enableF12</key><false /><key>enableF2</key><false /><key>enableF3</key><false /><key>enableF4</key><false /><key>enableF5</key><false /><key>enableF6</key><false /><key>enableF7</key><false /><key>enableF8</key><false /><key>enableF9</key><false /><key>enableJava</key><false /><key>enableJavaScript</key><true /><key>enableLogging</key><false /><key>enablePlugIns</key><true /><key>enablePrintScreen</key><false /><key>enablePrivateClipboard</key><true /><key>enableRightMouse</key><false /><key>enableSebBrowser</key><true /><key>enableStartMenu</key><false /><key>enableTouchExit</key><false /><key>enableZoomPage</key><true /><key>enableZoomText</key><true /><key>examSessionClearCookiesOnEnd</key><true /><key>examSessionClearCookiesOnStart</key><true /><key>exitKey1</key><integer>2</integer><key>exitKey2</key><integer>10</integer><key>exitKey3</key><integer>5</integer><key>forceAppFolderInstall</key><true /><key>hashedAdminPassword</key><string /><key>hashedQuitPassword</key><string /><key>hideBrowserWindowToolbar</key><false /><key>hookKeys</key><true /><key>ignoreExitKeys</key><false /><key>insideSebEnableChangeAPassword</key><false /><key>insideSebEnableEaseOfAccess</key><false /><key>insideSebEnableLockThisComputer</key><false /><key>insideSebEnableLogOff</key><false /><key>insideSebEnableNetworkConnectionSelector</key><false /><key>insideSebEnableShutDown</key><false /><key>insideSebEnableStartTaskManager</key><false /><key>insideSebEnableSwitchUser</key><false /><key>insideSebEnableVmWareClientShade</key><false /><key>killExplorerShell</key><false /><key>lockOnMessageSocketClose</key><false /><key>logDirectoryOSX</key><string /><key>logDirectoryWin</key><string /><key>logLevel</key><integer>1</integer><key>mainBrowserWindowHeight</key><string>100%</string><key>mainBrowserWindowPositioning</key><integer>1</integer><key>mainBrowserWindowWidth</key><string>100%</string><key>minMacOSVersion</key><integer>0</integer><key>mobileAllowPictureInPictureMediaPlayback</key><false /><key>mobileAllowQRCodeConfig</key><false /><key>mobileAllowSingleAppMode</key><false /><key>mobileEnableASAM</key><true /><key>mobileEnableGuidedAccessLinkTransform</key><false /><key>mobilePreventAutoLock</key><true /><key>mobileShowSettings</key><false /><key>mobileStatusBarAppearance</key><integer>1</integer><key>mobileStatusBarAppearanceExtended</key><integer>1</integer><key>monitorProcesses</key><false /><key>newBrowserWindowAllowReload</key><true /><key>newBrowserWindowByLinkBlockForeign</key><false /><key>newBrowserWindowByLinkHeight</key><string>100%</string><key>newBrowserWindowByLinkPolicy</key><integer>2</integer><key>newBrowserWindowByLinkPositioning</key><integer>2</integer><key>newBrowserWindowByLinkWidth</key><string>100%</string><key>newBrowserWindowByScriptBlockForeign</key><false /><key>newBrowserWindowByScriptPolicy</key><integer>2</integer><key>newBrowserWindowNavigation</key><true /><key>newBrowserWindowShowReloadWarning</key><false /><key>newBrowserWindowShowURL</key><integer>1</integer><key>openDownloads</key><false /><key>originatorVersion</key><string>SEB_Server_0.3.0</string><key>permittedProcesses</key><array><dict><key>active</key><true /><key>allowUserToChooseApp</key><false /><key>arguments</key><array /><key>autostart</key><true /><key>description</key><string /><key>executable</key><string>firefox.exe</string><key>iconInTaskbar</key><true /><key>identifier</key><string>Firefox</string><key>originalName</key><string>firefox.exe</string><key>os</key><integer>1</integer><key>path</key><string>../xulrunner/</string><key>runInBackground</key><false /><key>strongKill</key><true /><key>title</key><string>SEB</string></dict></array><key>pinEmbeddedCertificates</key><false /><key>prohibitedProcesses</key><array><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Riot</string><key>identifier</key><string /><key>originalName</key><string>Riot</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>seamonkey</string><key>identifier</key><string /><key>originalName</key><string>seamonkey</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Discord</string><key>identifier</key><string /><key>originalName</key><string>Discord</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Slack</string><key>identifier</key><string /><key>originalName</key><string>Slack</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Teams</string><key>identifier</key><string /><key>originalName</key><string>Teams</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>CamRecorder</string><key>identifier</key><string /><key>originalName</key><string>CamRecorder</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>join.me</string><key>identifier</key><string /><key>originalName</key><string>join.me</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCSuite</string><key>identifier</key><string /><key>originalName</key><string>RPCSuite</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCService</string><key>identifier</key><string /><key>originalName</key><string>RPCService</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RemotePCDesktop</string><key>identifier</key><string /><key>originalName</key><string>RemotePCDesktop</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>beamyourscreen-host</string><key>identifier</key><string /><key>originalName</key><string>beamyourscreen-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>AeroAdmin</string><key>identifier</key><string /><key>originalName</key><string>AeroAdmin</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Mikogo-host</string><key>identifier</key><string /><key>originalName</key><string>Mikogo-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>chromoting</string><key>identifier</key><string /><key>originalName</key><string>chromoting</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserverui</string><key>identifier</key><string /><key>originalName</key><string>vncserverui</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncviewer</string><key>identifier</key><string /><key>originalName</key><string>vncviewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserver</string><key>identifier</key><string /><key>originalName</key><string>vncserver</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>TeamViewer</string><key>identifier</key><string /><key>originalName</key><string>TeamViewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>GotoMeetingWinStore</string><key>identifier</key><string /><key>originalName</key><string>GotoMeetingWinStore</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>g2mcomm.exe</string><key>identifier</key><string /><key>originalName</key><string>g2mcomm.exe</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>SkypeHost</string><key>identifier</key><string /><key>originalName</key><string>SkypeHost</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Skype</string><key>identifier</key><string /><key>originalName</key><string>Skype</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict></array><key>proxies</key><dict><key>AutoConfigurationEnabled</key><false /><key>AutoConfigurationJavaScript</key><string /><key>AutoConfigurationURL</key><string /><key>AutoDiscoveryEnabled</key><false /><key>ExceptionsList</key><array></array><key>ExcludeSimpleHostnames</key><false /><key>FTPEnable</key><false /><key>FTPPassive</key><true /><key>FTPPassword</key><string /><key>FTPPort</key><integer>21</integer><key>FTPProxy</key><string /><key>FTPRequiresPassword</key><false /><key>FTPUsername</key><string /><key>HTTPEnable</key><false /><key>HTTPPassword</key><string /><key>HTTPPort</key><integer>80</integer><key>HTTPProxy</key><string /><key>HTTPRequiresPassword</key><false /><key>HTTPSEnable</key><false /><key>HTTPSPassword</key><string /><key>HTTPSPort</key><integer>443</integer><key>HTTPSProxy</key><string /><key>HTTPSRequiresPassword</key><false /><key>HTTPSUsername</key><string /><key>HTTPUsername</key><string /><key>RTSPEnable</key><false /><key>RTSPPassword</key><string /><key>RTSPPort</key><integer>554</integer><key>RTSPProxy</key><string /><key>RTSPRequiresPassword</key><false /><key>RTSPUsername</key><string /><key>SOCKSEnable</key><false /><key>SOCKSPassword</key><string /><key>SOCKSPort</key><integer>1080</integer><key>SOCKSProxy</key><string /><key>SOCKSRequiresPassword</key><false /><key>SOCKSUsername</key><string /></dict><key>proxySettingsPolicy</key><integer>0</integer><key>quitURL</key><string /><key>quitURLConfirm</key><true /><key>removeBrowserProfile</key><false /><key>removeLocalStorage</key><false /><key>restartExamPasswordProtected</key><true /><key>restartExamText</key><string /><key>restartExamURL</key><string /><key>restartExamUseStartURL</key><false /><key>sebConfigPurpose</key><integer>0</integer><key>sebServicePolicy</key><integer>2</integer><key>sendBrowserExamKey</key><true /><key>showBackToStartButton</key><true /><key>showInputLanguage</key><false /><key>showMenuBar</key><false /><key>showNavigationButtons</key><false /><key>showReloadButton</key><true /><key>showReloadWarning</key><true /><key>showScanQRCodeButton</key><false /><key>showSettingsInApp</key><false /><key>showTaskBar</key><true /><key>showTime</key><true /><key>startResource</key><string /><key>taskBarHeight</key><integer>40</integer><key>touchOptimized</key><false /><key>URLFilterEnable</key><false /><key>URLFilterEnableContentFilter</key><false /><key>URLFilterMessage</key><integer>0</integer><key>URLFilterRules</key><array /><key>useAsymmetricOnlyEncryption</key><false /><key>whitelistURLFilter</key><string /><key>zoomMode</key><integer>0</integer></dict></plist>",
+//                xmlString);
     }
 
 }
