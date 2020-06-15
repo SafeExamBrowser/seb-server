@@ -13,8 +13,8 @@ Development:
 
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
     :target: https://codecov.io/gh/SafeExamBrowser/seb-server
-.. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/tree/development?logo=github
-.. image:: https://img.shields.io/github/repo-size/SafeExamBrowser/seb-server/tree/development?logo=github
+.. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
+.. image:: https://img.shields.io/github/repo-size/SafeExamBrowser/seb-server/development?logo=github
 
 What is Safe Exam Browser (SEB)?
 --------------------------------
