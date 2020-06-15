@@ -8,11 +8,11 @@ Release:
     :target: https://codecov.io/gh/SafeExamBrowser/seb-server
 .. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
     :target: https://github.com/SafeExamBrowser/seb-server
-.. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
-    :target: https://github.com/SafeExamBrowser/seb-server
 
 Development:
 
+.. image:: https://travis-ci.com/SafeExamBrowser/seb-server.svg?branch=development
+    :target: https://travis-ci.com/SafeExamBrowser/seb-server
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
     :target: https://codecov.io/gh/SafeExamBrowser/seb-server
 .. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
