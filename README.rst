@@ -4,16 +4,17 @@ Release:
     :target: https://travis-ci.com/SafeExamBrowser/seb-server
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/SafeExamBrowser/seb-server
-
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+.. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
+    :target: https://github.com/SafeExamBrowser/seb-server
 
 Development:
 
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
     :target: https://codecov.io/gh/SafeExamBrowser/seb-server
 .. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
+    :target: https://github.com/SafeExamBrowser/seb-server/tree/development
 .. image:: https://img.shields.io/github/repo-size/SafeExamBrowser/seb-server/development?logo=github
 
 What is Safe Exam Browser (SEB)?
