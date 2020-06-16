@@ -76,6 +76,8 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
@@ -155,8 +157,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
@@ -2042,7 +2046,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "examSupport2",
                 new GetRunningExamPage(),
                 new GetClientConnectionDataList(),
-                new GetExtendedClientEventPage());
+                new GetExtendedClientEventPage(),
+                new DisableClientConnection(),
+                new PropagateInstruction());
 
         final RestServiceImpl adminRestService = createRestServiceForUser(
                 "TestInstAdmin",
@@ -2094,9 +2100,39 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // simulate a SEB connection
         try {
             new SEBClientBot(credentials, exam.getModelId(), String.valueOf(exam.institutionId));
-            Thread.sleep(2000);
+            Thread.sleep(1000);
+            // send quit instruction
+            connectionsCall =
+                    restService.getBuilder(GetClientConnectionDataList.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                            .call();
+
+            assertNotNull(connectionsCall);
+            assertFalse(connectionsCall.hasError());
+            connections = connectionsCall.get();
+            assertFalse(connections.isEmpty());
+            final Iterator<ClientConnectionData> iterator = connections.iterator();
+            iterator.next();
+            final ClientConnectionData con = iterator.next();
+
+            final ClientInstruction clientInstruction = new ClientInstruction(
+                    null,
+                    exam.id,
+                    InstructionType.SEB_QUIT,
+                    con.clientConnection.connectionToken,
+                    null);
+
+            final Result<String> instructionCall = restService.getBuilder(PropagateInstruction.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.id))
+                    .withBody(clientInstruction)
+                    .call();
+
+            assertNotNull(instructionCall);
+            assertFalse(instructionCall.hasError());
+
+            Thread.sleep(1000);
         } catch (final Exception e) {
-            fail(e.getCause().getMessage());
+            fail(e.getMessage());
         }
 
         connectionsCall =
@@ -2108,12 +2144,33 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(connectionsCall.hasError());
         connections = connectionsCall.get();
         assertFalse(connections.isEmpty());
-        final ClientConnectionData conData = connections.iterator().next();
+        ClientConnectionData conData = connections.iterator().next();
         assertNotNull(conData);
         assertEquals(exam.id, conData.clientConnection.examId);
         assertFalse(conData.indicatorValues.isEmpty());
         final IndicatorValue indicatorValue = conData.indicatorValues.get(0);
         assertEquals("LAST_PING", indicatorValue.getType().name);
+
+        // disable connection
+        final Result<String> disableCall = restService.getBuilder(DisableClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withFormParam(
+                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                        conData.clientConnection.connectionToken)
+                .call();
+        assertNotNull(disableCall);
+        assertFalse(disableCall.hasError());
+        connectionsCall =
+                restService.getBuilder(GetClientConnectionDataList.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .call();
+
+        assertNotNull(connectionsCall);
+        assertFalse(connectionsCall.hasError());
+        connections = connectionsCall.get();
+        assertFalse(connections.isEmpty());
+        conData = connections.iterator().next();
+        assertEquals("DISABLED", conData.clientConnection.status.name());
 
         // get client logs
         final Result<Page<ExtendedClientEvent>> clientLogPage = restService.getBuilder(GetExtendedClientEventPage.class)

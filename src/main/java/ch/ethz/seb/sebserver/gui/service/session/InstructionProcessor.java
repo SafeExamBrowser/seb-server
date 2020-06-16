@@ -75,7 +75,7 @@ public class InstructionProcessor {
                 .apply(ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE));
 
         if (connectionTokens.isEmpty()) {
-            // TODO message
+            log.warn("Empty selection");
             return;
         }
 
