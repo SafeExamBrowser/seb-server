@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
 @Service
 @WebServiceProfile
@@ -35,7 +35,7 @@ class ExamSessionControlTask implements DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
     private final ExamDAO examDAO;
-    private final SebClientConnectionService sebClientConnectionService;
+    private final SEBClientConnectionService sebClientConnectionService;
     private final ExamUpdateHandler examUpdateHandler;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
@@ -58,7 +58,7 @@ class ExamSessionControlTask implements DisposableBean {
 
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
-            final SebClientConnectionService sebClientConnectionService,
+            final SEBClientConnectionService sebClientConnectionService,
             final ExamUpdateHandler examUpdateHandler,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,

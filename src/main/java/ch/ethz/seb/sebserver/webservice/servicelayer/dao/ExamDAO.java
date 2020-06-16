@@ -114,7 +114,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to the lock-check-result or to an error if happened */
     Result<Boolean> isLocked(Long examId);
 
-    /** Use this to check of the exam with the specified identifier is up to date
+    /** Use this to check if the exam with the specified identifier is up to date
      *
      * @param examId the exam identifier
      * @param updateId the update identifier of the exam
@@ -126,6 +126,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param examId the exam identifier
      * @param sebRestriction the seb-restriction flag value
      * @return Result refer to the updated Exam or to an error if happened */
-    Result<Exam> setSebRestriction(Long examId, boolean sebRestriction);
+    Result<Exam> setSEBRestriction(Long examId, boolean sebRestriction);
 
 }

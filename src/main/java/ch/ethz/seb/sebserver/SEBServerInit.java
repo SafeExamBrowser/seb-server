@@ -12,11 +12,10 @@ import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 
 @Lazy
 @Component
@@ -25,13 +24,15 @@ public class SEBServerInit {
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_INIT");
 
     private final Environment environment;
-    private final WebserviceInfo webserviceInfo;
+    private final String version;
 
     private boolean initialized = false;
 
-    protected SEBServerInit(final Environment environment, final WebserviceInfo webserviceInfo) {
+    protected SEBServerInit(
+            final Environment environment,
+            @Value("${sebserver.version}") final String version) {
         this.environment = environment;
-        this.webserviceInfo = webserviceInfo;
+        this.version = version;
     }
 
     public void init() {
@@ -43,7 +44,7 @@ public class SEBServerInit {
             INIT_LOGGER.info("---->  |___/|___||___/ |___/\\___||_|   \\_/ \\___||_|  ");
             INIT_LOGGER.info("---->");
             INIT_LOGGER.info("---->");
-            INIT_LOGGER.info("----> Version: {}", this.webserviceInfo.getSebServerVersion());
+            INIT_LOGGER.info("----> Version: {}", this.version);
             INIT_LOGGER.info("---->");
             INIT_LOGGER.info("----> Active profiles: {}", Arrays.toString(this.environment.getActiveProfiles()));
             INIT_LOGGER.info("---->");
@@ -51,5 +52,4 @@ public class SEBServerInit {
             this.initialized = true;
         }
     }
-
 }

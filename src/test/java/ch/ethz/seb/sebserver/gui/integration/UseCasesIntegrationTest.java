@@ -30,16 +30,20 @@ import org.apache.tomcat.util.buf.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
@@ -48,6 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
@@ -57,6 +62,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -66,9 +72,14 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -78,14 +89,20 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -98,6 +115,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
@@ -110,6 +128,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportPlainXML;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
@@ -118,6 +137,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
@@ -132,18 +152,24 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Im
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SebExamConfigUndo;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Before
@@ -163,7 +189,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 1: SEB Administrator creates a new institution and activate this new institution
 
-    public void testUsecase1() {
+    public void testUsecase01() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
@@ -205,7 +231,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 2: SEB Administrator creates a new Institutional Administrator user for the
     // newly created institution and activate this user
-    public void testUsecase2() {
+    public void testUsecase02_CreateInstitutionalAdminUser() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
@@ -274,7 +300,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // check also that it is not possible to change to SEB Administrator role
     // check also this it is possible to change the password and after that a new login is needed
     // check also that property changes are possible. E.g: email
-    public void testUsecase3() {
+    public void testUsecase03_TestInstitutionalView() {
         RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "12345678",
@@ -387,7 +413,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - create a new user-account (examAdmin2) with Exam Administrator role
     // - create a new user-account (examSupport1) with Exam Supporter role
     // - create a new user-account (examSupport2) with Exam Administrator and Exam Supporter role
-    public void testUsecase4() {
+    public void testUsecase04_CreateUserAccount() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -504,7 +530,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     //  - change name of active LMS and check modification update
     //  - deactivate LMS Setup and check no quizzes are available
     //  - activate again for following tests
-    public void testUsecase5() {
+    public void testUsecase05_CreateLMSSetupMockup() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -684,7 +710,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // *************************************
     // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
     //  - login as TestInstAdmin : 987654321
-    public void testUsecase5_5() {
+    public void testUsecase06_CreateOpenEdxLMSSetup() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -720,25 +746,23 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow();
 
-        final DispatcherServlet dispatcherServlet = this.mockMvc.getDispatcherServlet();
-
         assertNotNull(testResult);
         assertFalse(testResult.isOk());
         assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
                 " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
 
-        // TODO how to mockup a Open edX response
+        // TODO how to mockup an Open edX response
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     // *************************************
     // Use Case 6: Login as examAdmin2
-    // - Check if there are some quizzes form previous LMS Setup
+    // - Check if there are some quizzes from previous LMS Setup
     // - Import a quiz as Exam
     // - get exam page and check the exam is there
     // - edit exam property and save again
-    public void testUsecase6() {
+    public void testUsecase07_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -824,17 +848,31 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertEquals(ExamType.MANAGED, savedExam.type);
         assertFalse(savedExam.supporter.isEmpty());
+
+        // get exam list
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+        assertTrue(examPage.content
+                .stream()
+                .filter(exam -> exam.name.equals(newExam.name))
+                .findFirst().isPresent());
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     // *************************************
     // Use Case 7: Login as examAdmin2
     // - Get imported exam
     // - add new indicator for exam
     // - save exam with new indicator and test
     // - create some thresholds for the new indicator
-    public void testUsecase7() {
+    public void testUsecase08_CreateExamIndicator() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -911,13 +949,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     // *************************************
-    // Use Case 8: Login as TestInstAdmin and create a SEB Client Configuration
+    // Use Case 9: Login as TestInstAdmin and create a SEB Client Configuration
     // - create one with and one without password
     // - activate one config
     // - export both configurations
-    public void testUsecase8() throws IOException {
+    public void testUsecase09_CreateClientConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
@@ -930,20 +968,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new ExportClientConfig());
 
         // create SEB Client Config without password protection
-        final Result<SebClientConfig> newConfigResponse = restService
+        final Result<SEBClientConfig> newConfigResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(newConfigResponse);
         assertFalse(newConfigResponse.hasError());
-        final SebClientConfig sebClientConfig = newConfigResponse.get();
+        final SEBClientConfig sebClientConfig = newConfigResponse.get();
         assertEquals("No Password Protection", sebClientConfig.name);
         assertFalse(sebClientConfig.isActive());
         assertEquals("http://fallback.com/fallback", sebClientConfig.fallbackStartURL);
@@ -957,33 +995,33 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(activationResponse);
         assertFalse(activationResponse.hasError());
 
-        final Result<SebClientConfig> getConfigResponse = restService
+        final Result<SEBClientConfig> getConfigResponse = restService
                 .getBuilder(GetClientConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
                 .call();
 
         assertNotNull(getConfigResponse);
         assertFalse(getConfigResponse.hasError());
-        final SebClientConfig activeConfig = getConfigResponse.get();
+        final SEBClientConfig activeConfig = getConfigResponse.get();
         assertTrue(activeConfig.isActive());
 
         // create a config with password protection
-        final Result<SebClientConfig> configWithPasswordResponse = restService
+        final Result<SEBClientConfig> configWithPasswordResponse = restService
                 .getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "With Password Protection")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
-                .withFormParam(SebClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
-                .withFormParam(SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
                 .withFormParam(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET, "123")
-                .withFormParam(SebClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM, "123")
+                .withFormParam(SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM, "123")
                 .call();
 
         assertNotNull(configWithPasswordResponse);
         assertFalse(configWithPasswordResponse.hasError());
-        final SebClientConfig configWithPassword = configWithPasswordResponse.get();
+        final SEBClientConfig configWithPassword = configWithPasswordResponse.get();
         assertEquals("With Password Protection", configWithPassword.name);
         assertFalse(configWithPassword.isActive());
         assertEquals("http://fallback.com/fallback", configWithPassword.fallbackStartURL);
@@ -1015,25 +1053,25 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(readLines.isEmpty());
 
         // get page
-        final Result<Page<SebClientConfig>> pageResponse = restService
+        final Result<Page<SEBClientConfig>> pageResponse = restService
                 .getBuilder(GetClientConfigPage.class)
                 .call();
 
         assertNotNull(pageResponse);
         assertFalse(pageResponse.hasError());
-        final Page<SebClientConfig> page = pageResponse.get();
+        final Page<SEBClientConfig> page = pageResponse.get();
         assertFalse(page.content.isEmpty());
         assertTrue(page.content.size() == 2);
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     // *************************************
-    // Use Case 9: Login as examAdmin2 and test Exam Configuration data basis
+    // Use Case 10: Login as examAdmin2 and test Exam Configuration data basis
     // - get all Views for the default template
     // - get all Attributes and and Orientations for the default view
     @Sql(scripts = { "classpath:data-test-additional.sql" })
-    public void testUsecase9() throws IOException {
+    public void testUsecase10_TestExamConfigBaseData() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1079,14 +1117,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     // *************************************
-    // Use Case 10: Login as examAdmin2 and create a new SEB Exam Configuration
+    // Use Case 11: Login as examAdmin2 and create a new SEB Exam Configuration
     // - test creation
     // - save configuration in history
     // - change some attribute
     // - process an undo
-    public void testUsecase10() throws IOException {
+    public void testUsecase11_CreateExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1097,7 +1135,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetConfigurations(),
                 new SaveExamConfigHistory(),
                 new GetConfigurationTableValues(),
-                new SebExamConfigUndo(),
+                new SEBExamConfigUndo(),
                 new SaveExamConfigValue(),
                 new SaveExamConfigTableValues(),
                 new GetConfigurationValuePage(),
@@ -1261,7 +1299,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         // undo
         final Result<Configuration> undoResponse = restService
-                .getBuilder(SebExamConfigUndo.class)
+                .getBuilder(SEBExamConfigUndo.class)
                 .withURIVariable(API.PARAM_MODEL_ID, followup.getModelId())
                 .call();
 
@@ -1287,14 +1325,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     // *************************************
-    // Use Case 11: Login as examAdmin2 and get newly created exam configuration
+    // Use Case 12: Login as examAdmin2 and get newly created exam configuration
     // - get permitted processes table values
     // - modify permitted processes table values
     // - save permitted processes table values
     // - check save OK
-    public void testUsecase11() throws IOException {
+    public void testUsecase12_TestInitDataOfNewExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1408,13 +1446,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     // *************************************
-    // Use Case 12: Login as examAdmin2 and use newly created configuration
+    // Use Case 13: Login as examAdmin2 and use newly created configuration
     // - get follow-up configuration by API
     // - import
     // - export
-    public void testUsecase12() throws IOException {
+    public void testUsecase13_ExamConfigImportExport() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1574,11 +1612,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     // *************************************
-    // Use Case 13: Login as examAdmin2 and use newly created configuration
+    // Use Case 14: Login as examAdmin2 and use newly created configuration
     // - change configuration status to "Ready to Use"
-    public void testUsecase13() throws IOException {
+    public void testUsecase14_EditExamConfig() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1623,7 +1661,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Remove one template attribute from orientation
     // - Change one template attribute value
     // - Reset template values
-    public void testUsecase15() throws IOException {
+    public void testUsecase15_CreateConfigurationTemplate() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1807,6 +1845,343 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .filter(cValue -> cValue.attributeId.equals(attribute.getConfigAttribute().id))
                 .findFirst()
                 .ifPresent(cValue -> assertNull(cValue.value));
+    }
+
+    @Test
+    @Order(16)
+    // *************************************
+    // Use Case 16: Login as examAdmin2 and map a Exam Config to an Exam
+    // - Get Exam
+    // - Get List of available Exam Config for mapping
+    // - Map a Exam Config to the Exam
+    // - Remove Exam Config
+    // - Add config again
+    // - Export Config Key
+    // - Export Config as XML
+    public void testUsecase16_MapExamConfigToExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetExamPage(),
+                new GetExamConfigNode(),
+                new GetExamConfigNodeNames(),
+                new GetExamConfigMappingNames(),
+                new GetExamConfigMappingsPage(),
+                new SaveExamConfigMapping(),
+                new NewExamConfigMapping(),
+                new CheckExamConsistency(),
+                new DeleteExamConfigMapping(),
+                new ExportConfigKey(),
+                new ExportExamConfig());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+        final Exam exam = examPage.content.get(0);
+        assertEquals("Demo Quiz 1 (MOCKUP)", exam.name);
+        // check that the exam is running
+        assertNull(exam.endTime);
+        // check that the exam is marked with missing configuration alert
+        final Collection<APIMessage> alerts = restService.getBuilder(CheckExamConsistency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOr(Collections.emptyList());
+        assertNotNull(alerts);
+        assertFalse(alerts.isEmpty());
+        final APIMessage message = alerts.iterator().next();
+        assertNotNull(message);
+        assertEquals("No SEB Exam Configuration defined for the Exam", message.systemMessage);
+
+        // get available exam configs for mapping
+        final Result<List<EntityName>> configs = restService.getBuilder(GetExamConfigNodeNames.class)
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_TYPE,
+                        ConfigurationType.EXAM_CONFIG.name())
+                .withQueryParam(
+                        ConfigurationNode.FILTER_ATTR_STATUS,
+                        ConfigurationStatus.READY_TO_USE.name())
+                .call();
+
+        assertNotNull(configs);
+        assertFalse(configs.hasError());
+        final List<EntityName> list = configs.get();
+        assertFalse(list.isEmpty());
+        final EntityName configName = list.get(0);
+        assertEquals("New Exam Config", configName.name);
+
+        // get config mapping page and check there is no mapping yet
+        final Result<Page<ExamConfigurationMap>> mappings = restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .call();
+
+        assertNotNull(mappings);
+        assertFalse(mappings.hasError());
+        final Page<ExamConfigurationMap> mappingsPage = mappings.get();
+        assertTrue(mappingsPage.isEmpty());
+
+        // create new config node mapping
+        Result<ExamConfigurationMap> newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID, String.valueOf(exam.institutionId))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID, String.valueOf(exam.id))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID, configName.modelId)
+                .call();
+
+        assertNotNull(newExamConfigMap);
+        assertFalse(newExamConfigMap.hasError());
+        ExamConfigurationMap examConfigurationMap = newExamConfigMap.get();
+        assertNotNull(examConfigurationMap);
+        assertEquals("New Exam Config", examConfigurationMap.configName);
+        assertEquals(exam.name, examConfigurationMap.examName);
+
+        final Result<Page<ExamConfigurationMap>> newMappings = restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .call();
+
+        assertNotNull(newMappings);
+        assertFalse(newMappings.hasError());
+        final Page<ExamConfigurationMap> newMappingsPage = newMappings.get();
+        assertFalse(newMappingsPage.isEmpty());
+        final ExamConfigurationMap newMapping = newMappingsPage.content.get(0);
+        assertNotNull(newMapping);
+        assertEquals("New Exam Config", newMapping.configName);
+        assertEquals(exam.name, newMapping.examName);
+
+        // check that the exam is not marked with missing configuration alert anymore
+        final Collection<APIMessage> newAlerts = restService.getBuilder(CheckExamConsistency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOr(Collections.emptyList());
+        assertNotNull(newAlerts);
+        assertTrue(newAlerts.isEmpty());
+
+        // check the state of exam config is now in "In Use"
+        Result<ConfigurationNode> examConfigCall = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall);
+        assertFalse(examConfigCall.hasError());
+        ConfigurationNode configurationNode = examConfigCall.get();
+        assertEquals(ConfigurationStatus.IN_USE, configurationNode.status);
+
+        // delete the configuration mapping
+        restService.getBuilder(DeleteExamConfigMapping.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examConfigurationMap.getModelId())
+                .call();
+
+        // check the state of exam config is now in "Ready To Use"
+        final Result<ConfigurationNode> examConfigCall2 = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall2);
+        assertFalse(examConfigCall2.hasError());
+        final ConfigurationNode configurationNode2 = examConfigCall2.get();
+        assertEquals(ConfigurationStatus.READY_TO_USE, configurationNode2.status);
+
+        // Re-Map the configuration to the exam and check again the state.
+        newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID, String.valueOf(exam.institutionId))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID, String.valueOf(exam.id))
+                .withFormParam(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID, configName.modelId)
+                .call();
+
+        assertNotNull(newExamConfigMap);
+        assertFalse(newExamConfigMap.hasError());
+        examConfigurationMap = newExamConfigMap.get();
+        assertNotNull(examConfigurationMap);
+        assertEquals("New Exam Config", examConfigurationMap.configName);
+        assertEquals(exam.name, examConfigurationMap.examName);
+
+        examConfigCall = restService.getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configName.modelId)
+                .call();
+
+        assertNotNull(examConfigCall);
+        assertFalse(examConfigCall.hasError());
+        configurationNode = examConfigCall.get();
+        assertEquals(ConfigurationStatus.IN_USE, configurationNode.status);
+
+        // export Config Key
+        final ConfigKey configKey = restService.getBuilder(ExportConfigKey.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examConfigurationMap.configurationNodeId))
+                .call()
+                .getOrThrow();
+        assertNotNull(configKey);
+        //assertEquals("e4af6cf8deb9434e69e8dc6c373418712546de35807d8bfbd6bb98790f8d0774", configKey.key);
+
+        // export config to XML
+        final InputStream input = restService.getBuilder(ExportExamConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examConfigurationMap.configurationNodeId))
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examConfigurationMap.examId))
+                .call()
+                .getOrThrow();
+
+        final String xmlString = StreamUtils.copyToString(input, Charsets.UTF_8);
+        assertNotNull(xmlString);
+//        assertEquals(
+//                "<?xml version=\"1.0\" encoding=\"utf-8\"?><!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>allowAudioCapture</key><false /><key>allowBrowsingBackForward</key><false /><key>allowDictation</key><false /><key>allowDictionaryLookup</key><false /><key>allowDisplayMirroring</key><false /><key>allowDownUploads</key><true /><key>allowedDisplayBuiltin</key><true /><key>allowedDisplaysMaxNumber</key><integer>1</integer><key>allowFlashFullscreen</key><false /><key>allowiOSBetaVersionNumber</key><integer>0</integer><key>allowiOSVersionNumberMajor</key><integer>9</integer><key>allowiOSVersionNumberMinor</key><integer>3</integer><key>allowiOSVersionNumberPatch</key><integer>5</integer><key>allowPDFPlugIn</key><true /><key>allowPreferencesWindow</key><true /><key>allowQuit</key><true /><key>allowScreenSharing</key><false /><key>allowSiri</key><false /><key>allowSpellCheck</key><false /><key>allowSpellCheckDictionary</key><array><string>da-DK</string><string>en-AU</string><string>en-GB</string><string>en-US</string><string>es-ES</string><string>fr-FR</string><string>pt-PT</string><string>sv-SE</string><string>sv-FI</string></array><key>allowSwitchToApplications</key><false /><key>allowUserAppFolderInstall</key><false /><key>allowUserSwitching</key><false /><key>allowVideoCapture</key><false /><key>allowVirtualMachine</key><false /><key>allowWlan</key><false /><key>audioControlEnabled</key><false /><key>audioMute</key><false /><key>audioSetVolumeLevel</key><false /><key>audioVolumeLevel</key><integer>25</integer><key>blacklistURLFilter</key><string /><key>blockPopUpWindows</key><false /><key>browserMessagingPingTime</key><integer>120000</integer><key>browserMessagingSocket</key><string>ws://localhost:8706</string><key>browserScreenKeyboard</key><false /><key>browserURLSalt</key><true /><key>browserUserAgent</key><string /><key>browserUserAgentiOS</key><integer>0</integer><key>browserUserAgentiOSCustom</key><string /><key>browserUserAgentMac</key><integer>0</integer><key>browserUserAgentMacCustom</key><string /><key>browserUserAgentWinDesktopMode</key><integer>0</integer><key>browserUserAgentWinDesktopModeCustom</key><string /><key>browserUserAgentWinTouchMode</key><integer>0</integer><key>browserUserAgentWinTouchModeCustom</key><string /><key>browserUserAgentWinTouchModeIPad</key><string>Mozilla/5.0 (iPad; CPU OS 12_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1</string><key>browserViewMode</key><integer>0</integer><key>browserWindowAllowReload</key><true /><key>browserWindowShowURL</key><integer>0</integer><key>browserWindowTitleSuffix</key><string /><key>chooseFileToUploadPolicy</key><integer>0</integer><key>createNewDesktop</key><true /><key>detectStoppedProcess</key><true /><key>downloadAndOpenSebConfig</key><true /><key>downloadDirectoryOSX</key><string /><key>downloadDirectoryWin</key><string /><key>downloadPDFFiles</key><true /><key>enableAltEsc</key><false /><key>enableAltF4</key><false /><key>enableAltMouseWheel</key><false /><key>enableAltTab</key><true /><key>enableAppSwitcherCheck</key><true /><key>enableBrowserWindowToolbar</key><false /><key>enableCtrlEsc</key><false /><key>enableDrawingEditor</key><false /><key>enableEsc</key><false /><key>enableF1</key><false /><key>enableF10</key><false /><key>enableF11</key><false /><key>enableF12</key><false /><key>enableF2</key><false /><key>enableF3</key><false /><key>enableF4</key><false /><key>enableF5</key><false /><key>enableF6</key><false /><key>enableF7</key><false /><key>enableF8</key><false /><key>enableF9</key><false /><key>enableJava</key><false /><key>enableJavaScript</key><true /><key>enableLogging</key><false /><key>enablePlugIns</key><true /><key>enablePrintScreen</key><false /><key>enablePrivateClipboard</key><true /><key>enableRightMouse</key><false /><key>enableSebBrowser</key><true /><key>enableStartMenu</key><false /><key>enableTouchExit</key><false /><key>enableZoomPage</key><true /><key>enableZoomText</key><true /><key>examSessionClearCookiesOnEnd</key><true /><key>examSessionClearCookiesOnStart</key><true /><key>exitKey1</key><integer>2</integer><key>exitKey2</key><integer>10</integer><key>exitKey3</key><integer>5</integer><key>forceAppFolderInstall</key><true /><key>hashedAdminPassword</key><string /><key>hashedQuitPassword</key><string /><key>hideBrowserWindowToolbar</key><false /><key>hookKeys</key><true /><key>ignoreExitKeys</key><false /><key>insideSebEnableChangeAPassword</key><false /><key>insideSebEnableEaseOfAccess</key><false /><key>insideSebEnableLockThisComputer</key><false /><key>insideSebEnableLogOff</key><false /><key>insideSebEnableNetworkConnectionSelector</key><false /><key>insideSebEnableShutDown</key><false /><key>insideSebEnableStartTaskManager</key><false /><key>insideSebEnableSwitchUser</key><false /><key>insideSebEnableVmWareClientShade</key><false /><key>killExplorerShell</key><false /><key>lockOnMessageSocketClose</key><false /><key>logDirectoryOSX</key><string /><key>logDirectoryWin</key><string /><key>logLevel</key><integer>1</integer><key>mainBrowserWindowHeight</key><string>100%</string><key>mainBrowserWindowPositioning</key><integer>1</integer><key>mainBrowserWindowWidth</key><string>100%</string><key>minMacOSVersion</key><integer>0</integer><key>mobileAllowPictureInPictureMediaPlayback</key><false /><key>mobileAllowQRCodeConfig</key><false /><key>mobileAllowSingleAppMode</key><false /><key>mobileEnableASAM</key><true /><key>mobileEnableGuidedAccessLinkTransform</key><false /><key>mobilePreventAutoLock</key><true /><key>mobileShowSettings</key><false /><key>mobileStatusBarAppearance</key><integer>1</integer><key>mobileStatusBarAppearanceExtended</key><integer>1</integer><key>monitorProcesses</key><false /><key>newBrowserWindowAllowReload</key><true /><key>newBrowserWindowByLinkBlockForeign</key><false /><key>newBrowserWindowByLinkHeight</key><string>100%</string><key>newBrowserWindowByLinkPolicy</key><integer>2</integer><key>newBrowserWindowByLinkPositioning</key><integer>2</integer><key>newBrowserWindowByLinkWidth</key><string>100%</string><key>newBrowserWindowByScriptBlockForeign</key><false /><key>newBrowserWindowByScriptPolicy</key><integer>2</integer><key>newBrowserWindowNavigation</key><true /><key>newBrowserWindowShowReloadWarning</key><false /><key>newBrowserWindowShowURL</key><integer>1</integer><key>openDownloads</key><false /><key>originatorVersion</key><string>SEB_Server_0.3.0</string><key>permittedProcesses</key><array><dict><key>active</key><true /><key>allowUserToChooseApp</key><false /><key>arguments</key><array /><key>autostart</key><true /><key>description</key><string /><key>executable</key><string>firefox.exe</string><key>iconInTaskbar</key><true /><key>identifier</key><string>Firefox</string><key>originalName</key><string>firefox.exe</string><key>os</key><integer>1</integer><key>path</key><string>../xulrunner/</string><key>runInBackground</key><false /><key>strongKill</key><true /><key>title</key><string>SEB</string></dict></array><key>pinEmbeddedCertificates</key><false /><key>prohibitedProcesses</key><array><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Riot</string><key>identifier</key><string /><key>originalName</key><string>Riot</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>seamonkey</string><key>identifier</key><string /><key>originalName</key><string>seamonkey</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Discord</string><key>identifier</key><string /><key>originalName</key><string>Discord</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Slack</string><key>identifier</key><string /><key>originalName</key><string>Slack</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Teams</string><key>identifier</key><string /><key>originalName</key><string>Teams</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>CamRecorder</string><key>identifier</key><string /><key>originalName</key><string>CamRecorder</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>join.me</string><key>identifier</key><string /><key>originalName</key><string>join.me</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCSuite</string><key>identifier</key><string /><key>originalName</key><string>RPCSuite</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCService</string><key>identifier</key><string /><key>originalName</key><string>RPCService</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RemotePCDesktop</string><key>identifier</key><string /><key>originalName</key><string>RemotePCDesktop</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>beamyourscreen-host</string><key>identifier</key><string /><key>originalName</key><string>beamyourscreen-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>AeroAdmin</string><key>identifier</key><string /><key>originalName</key><string>AeroAdmin</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Mikogo-host</string><key>identifier</key><string /><key>originalName</key><string>Mikogo-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>chromoting</string><key>identifier</key><string /><key>originalName</key><string>chromoting</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserverui</string><key>identifier</key><string /><key>originalName</key><string>vncserverui</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncviewer</string><key>identifier</key><string /><key>originalName</key><string>vncviewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserver</string><key>identifier</key><string /><key>originalName</key><string>vncserver</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>TeamViewer</string><key>identifier</key><string /><key>originalName</key><string>TeamViewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>GotoMeetingWinStore</string><key>identifier</key><string /><key>originalName</key><string>GotoMeetingWinStore</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>g2mcomm.exe</string><key>identifier</key><string /><key>originalName</key><string>g2mcomm.exe</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>SkypeHost</string><key>identifier</key><string /><key>originalName</key><string>SkypeHost</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Skype</string><key>identifier</key><string /><key>originalName</key><string>Skype</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict></array><key>proxies</key><dict><key>AutoConfigurationEnabled</key><false /><key>AutoConfigurationJavaScript</key><string /><key>AutoConfigurationURL</key><string /><key>AutoDiscoveryEnabled</key><false /><key>ExceptionsList</key><array></array><key>ExcludeSimpleHostnames</key><false /><key>FTPEnable</key><false /><key>FTPPassive</key><true /><key>FTPPassword</key><string /><key>FTPPort</key><integer>21</integer><key>FTPProxy</key><string /><key>FTPRequiresPassword</key><false /><key>FTPUsername</key><string /><key>HTTPEnable</key><false /><key>HTTPPassword</key><string /><key>HTTPPort</key><integer>80</integer><key>HTTPProxy</key><string /><key>HTTPRequiresPassword</key><false /><key>HTTPSEnable</key><false /><key>HTTPSPassword</key><string /><key>HTTPSPort</key><integer>443</integer><key>HTTPSProxy</key><string /><key>HTTPSRequiresPassword</key><false /><key>HTTPSUsername</key><string /><key>HTTPUsername</key><string /><key>RTSPEnable</key><false /><key>RTSPPassword</key><string /><key>RTSPPort</key><integer>554</integer><key>RTSPProxy</key><string /><key>RTSPRequiresPassword</key><false /><key>RTSPUsername</key><string /><key>SOCKSEnable</key><false /><key>SOCKSPassword</key><string /><key>SOCKSPort</key><integer>1080</integer><key>SOCKSProxy</key><string /><key>SOCKSRequiresPassword</key><false /><key>SOCKSUsername</key><string /></dict><key>proxySettingsPolicy</key><integer>0</integer><key>quitURL</key><string /><key>quitURLConfirm</key><true /><key>removeBrowserProfile</key><false /><key>removeLocalStorage</key><false /><key>restartExamPasswordProtected</key><true /><key>restartExamText</key><string /><key>restartExamURL</key><string /><key>restartExamUseStartURL</key><false /><key>sebConfigPurpose</key><integer>0</integer><key>sebServicePolicy</key><integer>2</integer><key>sendBrowserExamKey</key><true /><key>showBackToStartButton</key><true /><key>showInputLanguage</key><false /><key>showMenuBar</key><false /><key>showNavigationButtons</key><false /><key>showReloadButton</key><true /><key>showReloadWarning</key><true /><key>showScanQRCodeButton</key><false /><key>showSettingsInApp</key><false /><key>showTaskBar</key><true /><key>showTime</key><true /><key>startResource</key><string /><key>taskBarHeight</key><integer>40</integer><key>touchOptimized</key><false /><key>URLFilterEnable</key><false /><key>URLFilterEnableContentFilter</key><false /><key>URLFilterMessage</key><integer>0</integer><key>URLFilterRules</key><array /><key>useAsymmetricOnlyEncryption</key><false /><key>whitelistURLFilter</key><string /><key>zoomMode</key><integer>0</integer></dict></plist>",
+//                xmlString);
+    }
+
+    @Autowired
+    private SEBClientConfigDAO sebClientConfigDAO;
+
+    @Test
+    @Order(17)
+    // *************************************
+    // Use Case 16: Login as examSupport2 and get running exam with data
+    // - Get list of running exams
+    // - Simulate a SEB connection
+    // - Join running exam by get the data for all SEB connections and for a single SEB connection.
+    public void testUsecase17_RunningExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examSupport2",
+                "examSupport2",
+                new GetRunningExamPage(),
+                new GetClientConnectionDataList(),
+                new GetExtendedClientEventPage(),
+                new DisableClientConnection(),
+                new PropagateInstruction());
+
+        final RestServiceImpl adminRestService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new NewClientConfig(),
+                new ActivateClientConfig(),
+                new GetClientConfigPage());
+
+        // get running exams
+        final Result<Page<Exam>> runningExamsCall = restService.getBuilder(GetRunningExamPage.class)
+                .call();
+
+        assertNotNull(runningExamsCall);
+        assertFalse(runningExamsCall.hasError());
+        final Page<Exam> page = runningExamsCall.get();
+        assertFalse(page.content.isEmpty());
+        final Exam exam = page.content.get(0);
+        assertEquals("Demo Quiz 1 (MOCKUP)", exam.name);
+
+        // get SEB connections
+        Result<Collection<ClientConnectionData>> connectionsCall =
+                restService.getBuilder(GetClientConnectionDataList.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .call();
+
+        assertNotNull(connectionsCall);
+        assertFalse(connectionsCall.hasError());
+        Collection<ClientConnectionData> connections = connectionsCall.get();
+        // no SEB connections available yet
+        assertTrue(connections.isEmpty());
+
+        // get active client config's credentials
+        final Result<Page<SEBClientConfig>> cconfigs = adminRestService.getBuilder(GetClientConfigPage.class)
+                .call();
+        assertNotNull(cconfigs);
+        assertFalse(cconfigs.hasError());
+        final Page<SEBClientConfig> ccPage = cconfigs.get();
+        assertFalse(ccPage.content.isEmpty());
+
+        final SEBClientConfig clientConfig = ccPage.content.get(0);
+        assertTrue(clientConfig.isActive());
+        final ClientCredentials credentials = this.sebClientConfigDAO.getSEBClientCredentials(clientConfig.getModelId())
+                .getOrThrow();
+
+        adminRestService.getBuilder(ActivateClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, clientConfig.getModelId())
+                .call();
+
+        // simulate a SEB connection
+        try {
+            new SEBClientBot(credentials, exam.getModelId(), String.valueOf(exam.institutionId));
+            Thread.sleep(1000);
+            // send quit instruction
+            connectionsCall =
+                    restService.getBuilder(GetClientConnectionDataList.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                            .call();
+
+            assertNotNull(connectionsCall);
+            assertFalse(connectionsCall.hasError());
+            connections = connectionsCall.get();
+            assertFalse(connections.isEmpty());
+            final Iterator<ClientConnectionData> iterator = connections.iterator();
+            iterator.next();
+            final ClientConnectionData con = iterator.next();
+
+            final ClientInstruction clientInstruction = new ClientInstruction(
+                    null,
+                    exam.id,
+                    InstructionType.SEB_QUIT,
+                    con.clientConnection.connectionToken,
+                    null);
+
+            final Result<String> instructionCall = restService.getBuilder(PropagateInstruction.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.id))
+                    .withBody(clientInstruction)
+                    .call();
+
+            assertNotNull(instructionCall);
+            assertFalse(instructionCall.hasError());
+
+            Thread.sleep(1000);
+        } catch (final Exception e) {
+            fail(e.getMessage());
+        }
+
+        connectionsCall =
+                restService.getBuilder(GetClientConnectionDataList.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .call();
+
+        assertNotNull(connectionsCall);
+        assertFalse(connectionsCall.hasError());
+        connections = connectionsCall.get();
+        assertFalse(connections.isEmpty());
+        ClientConnectionData conData = connections.iterator().next();
+        assertNotNull(conData);
+        assertEquals(exam.id, conData.clientConnection.examId);
+        assertFalse(conData.indicatorValues.isEmpty());
+        final IndicatorValue indicatorValue = conData.indicatorValues.get(0);
+        assertEquals("LAST_PING", indicatorValue.getType().name);
+
+        // disable connection
+        final Result<String> disableCall = restService.getBuilder(DisableClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withFormParam(
+                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                        conData.clientConnection.connectionToken)
+                .call();
+        assertNotNull(disableCall);
+        assertFalse(disableCall.hasError());
+        connectionsCall =
+                restService.getBuilder(GetClientConnectionDataList.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .call();
+
+        assertNotNull(connectionsCall);
+        assertFalse(connectionsCall.hasError());
+        connections = connectionsCall.get();
+        assertFalse(connections.isEmpty());
+        conData = connections.iterator().next();
+        assertEquals("DISABLED", conData.clientConnection.status.name());
+
+        // get client logs
+        final Result<Page<ExtendedClientEvent>> clientLogPage = restService.getBuilder(GetExtendedClientEventPage.class)
+                .call();
+
+        assertNotNull(clientLogPage);
+        assertFalse(clientLogPage.hasError());
+        final Page<ExtendedClientEvent> clientLogs = clientLogPage.get();
+        assertFalse(clientLogs.isEmpty());
+        final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
+        assertNotNull(extendedClientEvent);
     }
 
 }

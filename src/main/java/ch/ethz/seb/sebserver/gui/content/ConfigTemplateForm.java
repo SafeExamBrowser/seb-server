@@ -141,7 +141,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
-        // The SebClientConfig form
+        // The SEBClientConfig form
         final FormHandle<ConfigurationNode> formHandle = this.pageService.formBuilder(
                 formContext.copyOf(content))
                 .readonly(isReadonly)
@@ -292,7 +292,7 @@ public class ConfigTemplateForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SebExamConfigCreationPopup.configCreationFunction(
+                .withExec(SEBExamConfigCreationPopup.configCreationFunction(
                         this.pageService,
                         pageContext
                                 .withAttribute(

@@ -68,7 +68,7 @@ public interface ExamSessionService {
      *
      * @param examId The Exam identifier
      * @return true if the given Exam has currently no active client connection, false otherwise. */
-    boolean hasActiveSebClientConnections(final Long examId);
+    boolean hasActiveSEBClientConnections(final Long examId);
 
     /** Checks if a specified Exam has at least a default SEB Exam configuration attached.
      *

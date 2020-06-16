@@ -16,7 +16,7 @@ import org.springframework.test.context.jdbc.Sql;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
@@ -32,15 +32,15 @@ public class ClientConfigTest extends GuiIntegrationTest {
     public void testNewClientConfigWithQueryParam() {
         final RestServiceImpl restService = createRestServiceForUser("admin", "admin", new NewClientConfig());
 
-        final Result<SebClientConfig> call = restService.getBuilder(NewClientConfig.class)
+        final Result<SEBClientConfig> call = restService.getBuilder(NewClientConfig.class)
                 .withQueryParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
                 .withFormParam("Test", "new client config")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(call);
         assertFalse(call.hasError());
-        final SebClientConfig createdConfig = call.get();
+        final SEBClientConfig createdConfig = call.get();
         assertEquals(Long.valueOf(1), createdConfig.id);
         assertEquals("new client config", createdConfig.name);
         assertFalse(createdConfig.active);
@@ -50,14 +50,14 @@ public class ClientConfigTest extends GuiIntegrationTest {
     public void testNewClientConfigWithURLEncodedForm() {
         final RestServiceImpl restService = createRestServiceForUser("admin", "admin", new NewClientConfig());
 
-        final Result<SebClientConfig> call = restService.getBuilder(NewClientConfig.class)
+        final Result<SEBClientConfig> call = restService.getBuilder(NewClientConfig.class)
                 .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
                 .call();
 
         assertNotNull(call);
         assertFalse(call.hasError());
-        final SebClientConfig createdConfig = call.get();
+        final SEBClientConfig createdConfig = call.get();
         assertEquals(Long.valueOf(1), createdConfig.id);
         assertEquals("new client config", createdConfig.name);
         assertFalse(createdConfig.active);
@@ -73,20 +73,20 @@ public class ClientConfigTest extends GuiIntegrationTest {
                 new DeactivateClientConfig());
 
         // create one
-        final SebClientConfig config = restService.getBuilder(NewClientConfig.class)
+        final SEBClientConfig config = restService.getBuilder(NewClientConfig.class)
                 .withQueryParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "new client config")
-                .withFormParam(SebClientConfig.ATTR_CONFIG_PURPOSE, SebClientConfig.ConfigPurpose.START_EXAM.name())
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
                 .call()
                 .getOrThrow();
 
         // get
-        final Result<SebClientConfig> call = restService.getBuilder(GetClientConfig.class)
+        final Result<SEBClientConfig> call = restService.getBuilder(GetClientConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, config.getModelId())
                 .call();
 
         assertNotNull(call);
         assertFalse(call.hasError());
-        final SebClientConfig createdConfig = call.get();
+        final SEBClientConfig createdConfig = call.get();
         assertEquals(config.id, createdConfig.id);
         assertEquals("new client config", createdConfig.name);
         assertFalse(createdConfig.active);
@@ -104,11 +104,11 @@ public class ClientConfigTest extends GuiIntegrationTest {
 
         // save with password (no confirm) expecting validation error
         final Result<?> valError = restService.getBuilder(SaveClientConfig.class)
-                .withBody(new SebClientConfig(
+                .withBody(new SEBClientConfig(
                         config.id,
                         config.institutionId,
                         "new client config",
-                        SebClientConfig.ConfigPurpose.START_EXAM,
+                        SEBClientConfig.ConfigPurpose.START_EXAM,
                         null,
                         null,
                         null,
@@ -130,12 +130,12 @@ public class ClientConfigTest extends GuiIntegrationTest {
         assertTrue(error.getMessage().contains("password.mismatch"));
 
         // save with new password
-        final SebClientConfig newConfig = restService.getBuilder(SaveClientConfig.class)
-                .withBody(new SebClientConfig(
+        final SEBClientConfig newConfig = restService.getBuilder(SaveClientConfig.class)
+                .withBody(new SEBClientConfig(
                         config.id,
                         config.institutionId,
                         "new client config",
-                        SebClientConfig.ConfigPurpose.START_EXAM,
+                        SEBClientConfig.ConfigPurpose.START_EXAM,
                         null,
                         null,
                         null,

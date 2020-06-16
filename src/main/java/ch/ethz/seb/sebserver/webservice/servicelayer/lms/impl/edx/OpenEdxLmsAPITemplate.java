@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -87,40 +87,40 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         if (log.isDebugEnabled()) {
             log.debug("Get SEB Client restriction for Exam: {}", exam);
         }
 
         return this.openEdxCourseRestriction
-                .getSebRestriction(exam.externalId)
-                .map(restriction -> SebRestriction.from(exam.id, restriction));
+                .getSEBRestriction(exam.externalId)
+                .map(restriction -> SEBRestriction.from(exam.id, restriction));
     }
 
     @Override
-    public Result<SebRestriction> applySebClientRestriction(
+    public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
-            final SebRestriction sebRestrictionData) {
+            final SEBRestriction sebRestrictionData) {
 
         if (log.isDebugEnabled()) {
             log.debug("Apply SEB Client restriction: {}", sebRestrictionData);
         }
 
         return this.openEdxCourseRestriction
-                .putSebRestriction(
+                .putSEBRestriction(
                         externalExamId,
-                        OpenEdxSebRestriction.from(sebRestrictionData))
+                        OpenEdxSEBRestriction.from(sebRestrictionData))
                 .map(result -> sebRestrictionData);
     }
 
     @Override
-    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
 
         if (log.isDebugEnabled()) {
             log.debug("Release SEB Client restriction for Exam: {}", exam);
         }
 
-        return this.openEdxCourseRestriction.deleteSebRestriction(exam.externalId)
+        return this.openEdxCourseRestriction.deleteSEBRestriction(exam.externalId)
                 .map(result -> exam);
 
     }

@@ -17,10 +17,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;

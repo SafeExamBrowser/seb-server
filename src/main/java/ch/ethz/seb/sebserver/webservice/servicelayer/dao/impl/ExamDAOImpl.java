@@ -244,7 +244,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional
-    public Result<Exam> setSebRestriction(final Long examId, final boolean sebRestriction) {
+    public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return Result.tryCatch(() -> {
 
             final ExamRecord examRecord = new ExamRecord(

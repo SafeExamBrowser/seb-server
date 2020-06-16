@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSebRestrictionException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -131,12 +131,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                                 if (t.testCourseRestrictionAPI().isOk()) {
                                     return t;
                                 } else {
-                                    throw new NoSebRestrictionException();
+                                    throw new NoSEBRestrictionException();
                                 }
                             })
-                            .flatMap(t -> t.getSebClientRestriction(exam))
+                            .flatMap(t -> t.getSEBClientRestriction(exam))
                             .onError(error -> {
-                                if (error instanceof NoSebRestrictionException) {
+                                if (error instanceof NoSEBRestrictionException) {
                                     result.add(
                                             ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
                                                     .of(exam.getModelId()));
@@ -160,7 +160,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public boolean hasActiveSebClientConnections(final Long examId) {
+    public boolean hasActiveSEBClientConnections(final Long examId) {
         if (examId == null || !this.isExamRunning(examId)) {
             return false;
         }
@@ -199,6 +199,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.trace("Running exam request for exam {}", examId);
         }
 
+        updateExamCache(examId);
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
 
         if (this.examSessionCacheService.isRunning(exam)) {
@@ -271,17 +272,17 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Trying to get exam from InMemorySebConfig");
+            log.debug("Trying to get exam from InMemorySEBConfig");
         }
 
         final Exam exam = this.getRunningExam(connection.examId)
                 .getOrThrow();
 
-        final InMemorySebConfig sebConfigForExam = this.examSessionCacheService
-                .getDefaultSebConfigForExam(exam);
+        final InMemorySEBConfig sebConfigForExam = this.examSessionCacheService
+                .getDefaultSEBConfigForExam(exam);
 
         if (sebConfigForExam == null) {
-            log.error("Failed to get and cache InMemorySebConfig for connection: {}", connection);
+            log.error("Failed to get and cache InMemorySEBConfig for connection: {}", connection);
             return;
         }
 
@@ -327,6 +328,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        if (exam == null) {
+            return Result.ofEmpty();
+        }
+
         final Boolean isUpToDate = this.examDAO.upToDate(examId, exam.lastUpdate)
                 .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
                 .getOr(false);
@@ -342,7 +347,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Exam> flushCache(final Exam exam) {
         return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
-            this.examSessionCacheService.evictDefaultSebConfig(exam);
+            this.examSessionCacheService.evictDefaultSEBConfig(exam);
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
                     .getOrElse(Collections::emptyList)

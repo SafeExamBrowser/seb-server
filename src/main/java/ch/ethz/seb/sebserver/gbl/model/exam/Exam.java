@@ -179,7 +179,6 @@ public final class Exam implements GrantEntity {
                 EXAM.ATTR_STATUS,
                 ExamStatus.class,
                 getStatusFromDate(this.startTime, this.endTime));
-//        this.lmsSebRestriction = mapper.getBoolean(EXAM.ATTR_LMS_SEB_RESTRICTION);
         this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);

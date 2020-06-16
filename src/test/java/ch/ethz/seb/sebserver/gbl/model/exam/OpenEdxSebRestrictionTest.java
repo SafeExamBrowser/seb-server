@@ -22,7 +22,7 @@ public class OpenEdxSebRestrictionTest {
     public void testEmpty1() throws JsonProcessingException {
         final JSONMapper mapper = new JSONMapper();
 
-        final OpenEdxSebRestriction data = new OpenEdxSebRestriction(null, null, null, null, null, false);
+        final OpenEdxSEBRestriction data = new OpenEdxSEBRestriction(null, null, null, null, null, false);
         final String json = mapper.writeValueAsString(data);
         assertEquals(
                 "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[],\"USER_BANNING_ENABLED\":false}",
@@ -33,8 +33,8 @@ public class OpenEdxSebRestrictionTest {
     public void testEmpty2() throws JsonProcessingException {
         final JSONMapper mapper = new JSONMapper();
 
-        final OpenEdxSebRestriction data =
-                OpenEdxSebRestriction.from(new SebRestriction(null, null, null, null));
+        final OpenEdxSEBRestriction data =
+                OpenEdxSEBRestriction.from(new SEBRestriction(null, null, null, null));
         final String json = mapper.writeValueAsString(data);
         assertEquals(
                 "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[\"AlwaysAllowStaff\"],\"USER_BANNING_ENABLED\":false}",

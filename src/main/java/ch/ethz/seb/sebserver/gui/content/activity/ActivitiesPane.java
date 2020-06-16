@@ -296,12 +296,12 @@ public class ActivitiesPane implements TemplateComposer {
         // ---- MONITORING ---------------------------------------------------------------------
 
         final boolean isSupporter = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER);
-        final boolean viewSebClientLogs = this.currentUser.hasInstitutionalPrivilege(
+        final boolean viewSEBClientLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
                 EntityType.EXAM) ||
                 this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
 
-        if (isSupporter || viewSebClientLogs) {
+        if (isSupporter || viewSEBClientLogs) {
             // Monitoring
             final TreeItem monitoring = this.widgetFactory.treeItemLocalized(
                     navigation,
@@ -320,7 +320,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // SEB Client Logs
-            if (viewSebClientLogs) {
+            if (viewSEBClientLogs) {
                 final TreeItem sebLogs = (isSupporter)
                         ? this.widgetFactory.treeItemLocalized(
                                 monitoring,

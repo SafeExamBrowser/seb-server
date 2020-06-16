@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Tuple3;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +40,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction.PermissionComponent;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSebRestriction.WhiteListPath;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.PermissionComponent;
+import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -658,7 +658,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> sebClientConfigPurposeResources() {
-        return Arrays.stream(SebClientConfig.ConfigPurpose.values())
+        return Arrays.stream(SEBClientConfig.ConfigPurpose.values())
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(SEB_CLIENT_CONFIG_PURPOSE_PREFIX + type.name()),

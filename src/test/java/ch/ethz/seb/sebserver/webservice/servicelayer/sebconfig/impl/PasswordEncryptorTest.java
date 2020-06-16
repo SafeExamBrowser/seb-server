@@ -23,9 +23,9 @@ import org.cryptonode.jncryptor.JNCryptor;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionContext;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 
 public class PasswordEncryptorTest {
 
@@ -71,7 +71,7 @@ public class PasswordEncryptorTest {
         final String pwd = "password";
         final ByteArrayOutputStream out = new ByteArrayOutputStream(512);
 
-        final SebConfigEncryptionContext context = EncryptionContext.contextOf(
+        final SEBConfigEncryptionContext context = EncryptionContext.contextOf(
                 Strategy.PASSWORD_PWCC,
                 pwd);
 

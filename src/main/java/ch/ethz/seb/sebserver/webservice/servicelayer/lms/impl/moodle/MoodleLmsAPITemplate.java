@@ -15,7 +15,7 @@ import java.util.Set;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -75,20 +75,20 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 
     @Override
-    public Result<SebRestriction> applySebClientRestriction(
+    public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
-            final SebRestriction sebRestrictionData) {
+            final SEBRestriction sebRestrictionData) {
 
         return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 
     @Override
-    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
         return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
     }
 

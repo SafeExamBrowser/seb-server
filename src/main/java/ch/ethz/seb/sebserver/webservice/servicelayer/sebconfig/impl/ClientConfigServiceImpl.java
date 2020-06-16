@@ -42,21 +42,21 @@ import org.springframework.web.client.RestTemplate;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SebClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 @Lazy
@@ -99,18 +99,18 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                     "    <string>%s</string>%n";
 
     private final InstitutionDAO institutionDAO;
-    private final SebClientConfigDAO sebClientConfigDAO;
+    private final SEBClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
-    private final SebConfigEncryptionService sebConfigEncryptionService;
+    private final SEBConfigEncryptionService sebConfigEncryptionService;
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
     private final WebserviceInfo webserviceInfo;
 
     protected ClientConfigServiceImpl(
             final InstitutionDAO institutionDAO,
-            final SebClientConfigDAO sebClientConfigDAO,
+            final SEBClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
-            final SebConfigEncryptionService sebConfigEncryptionService,
+            final SEBConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             final WebserviceInfo webserviceInfo) {
@@ -125,19 +125,19 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public boolean hasSebClientConfigurationForInstitution(final Long institutionId) {
-        final Result<Collection<SebClientConfig>> all = this.sebClientConfigDAO.all(institutionId, true);
+    public boolean hasSEBClientConfigurationForInstitution(final Long institutionId) {
+        final Result<Collection<SEBClientConfig>> all = this.sebClientConfigDAO.all(institutionId, true);
         return all != null && !all.hasError() && !all.getOrThrow().isEmpty();
     }
 
     @Override
-    public Result<SebClientConfig> autoCreateSebClientConfigurationForInstitution(final Long institutionId) {
+    public Result<SEBClientConfig> autoCreateSEBClientConfigurationForInstitution(final Long institutionId) {
         return Result.tryCatch(() -> {
             final Institution institution = this.institutionDAO
                     .byPK(institutionId)
                     .getOrThrow();
 
-            return new SebClientConfig(
+            return new SEBClientConfig(
                     null,
                     institutionId,
                     institution.name + "_" + UUID.randomUUID(),
@@ -184,11 +184,11 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public void exportSebClientConfiguration(
+    public void exportSEBClientConfiguration(
             final OutputStream output,
             final String modelId) {
 
-        final SebClientConfig config = this.sebClientConfigDAO
+        final SEBClientConfig config = this.sebClientConfigDAO
                 .byModelId(modelId).getOrThrow();
 
         final CharSequence encryptionPassword = this.sebClientConfigDAO
@@ -236,7 +236,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             this.zipService.write(output, zipIn);
 
             if (log.isDebugEnabled()) {
-                log.debug("*** Finished Seb client configuration download streaming composition");
+                log.debug("*** Finished SEB client configuration download streaming composition");
             }
 
         } catch (final Exception e) {
@@ -248,35 +248,35 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         }
     }
 
-    private String extractXMLContent(final SebClientConfig config) {
+    private String extractXMLContent(final SEBClientConfig config) {
 
         String fallbackAddition = "";
         if (BooleanUtils.isTrue(config.fallback)) {
             fallbackAddition += String.format(
                     SEB_CLIENT_CONFIG_STRING_TEMPLATE,
-                    SebClientConfig.ATTR_FALLBACK_START_URL,
+                    SEBClientConfig.ATTR_FALLBACK_START_URL,
                     config.fallbackStartURL);
 
             fallbackAddition += String.format(
                     SEB_CLIENT_CONFIG_INTEGER_TEMPLATE,
-                    SebClientConfig.ATTR_FALLBACK_TIMEOUT,
+                    SEBClientConfig.ATTR_FALLBACK_TIMEOUT,
                     config.fallbackTimeout);
 
             fallbackAddition += String.format(
                     SEB_CLIENT_CONFIG_INTEGER_TEMPLATE,
-                    SebClientConfig.ATTR_FALLBACK_ATTEMPTS,
+                    SEBClientConfig.ATTR_FALLBACK_ATTEMPTS,
                     config.fallbackAttempts);
 
             fallbackAddition += String.format(
                     SEB_CLIENT_CONFIG_INTEGER_TEMPLATE,
-                    SebClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+                    SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
                     config.fallbackAttemptInterval);
 
             if (StringUtils.isNotBlank(config.fallbackPassword)) {
                 final CharSequence decrypt = this.clientCredentialService.decrypt(config.fallbackPassword);
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
-                        SebClientConfig.ATTR_FALLBACK_PASSWORD,
+                        SEBClientConfig.ATTR_FALLBACK_PASSWORD,
                         Utils.hash_SHA_256_Base_16(decrypt));
             }
 
@@ -284,13 +284,13 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 final CharSequence decrypt = this.clientCredentialService.decrypt(config.quitPassword);
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
-                        SebClientConfig.ATTR_QUIT_PASSWORD,
+                        SEBClientConfig.ATTR_QUIT_PASSWORD,
                         Utils.hash_SHA_256_Base_16(decrypt));
             }
         }
 
         final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
-                .getSebClientCredentials(config.getModelId())
+                .getSEBClientCredentials(config.getModelId())
                 .getOrThrow();
         final CharSequence plainClientId = sebClientCredentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService
@@ -317,7 +317,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public boolean checkAccess(final SebClientConfig config) {
+    public boolean checkAccess(final SEBClientConfig config) {
         if (!config.isActive()) {
             return false;
         }
@@ -335,7 +335,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             final ClientCredentials credentials = this.sebClientConfigDAO
-                    .getSebClientCredentials(config.getModelId())
+                    .getSEBClientCredentials(config.getModelId())
                     .getOrThrow();
             final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
             final String basicAuth = credentials.clientId +
@@ -358,17 +358,17 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             if (exchange.getStatusCode().value() == HttpStatus.OK.value()) {
                 return true;
             } else {
-                log.warn("Failed to check access SebClientConfig {} response: {}", config, exchange.getStatusCode());
+                log.warn("Failed to check access SEBClientConfig {} response: {}", config, exchange.getStatusCode());
                 return false;
             }
         } catch (final Exception e) {
-            log.warn("Failed to check access for SebClientConfig: {} cause: {}", config, e.getMessage());
+            log.warn("Failed to check access for SEBClientConfig: {} cause: {}", config, e.getMessage());
             return false;
         }
     }
 
     @Override
-    public void initalCheckAccess(final SebClientConfig config) {
+    public void initalCheckAccess(final SEBClientConfig config) {
         checkAccess(config);
     }
 
@@ -378,7 +378,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final InputStream input) {
 
         if (log.isDebugEnabled()) {
-            log.debug("*** Seb client configuration with password based encryption");
+            log.debug("*** SEB client configuration with password based encryption");
         }
 
         final CharSequence encryptionPasswordPlaintext = (encryptionPassword == StringUtils.EMPTY)
@@ -393,10 +393,10 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                         encryptionPasswordPlaintext));
     }
 
-    /** Get a encoded clientSecret for the SebClientConfiguration with specified clientId/clientName.
+    /** Get a encoded clientSecret for the SEBClientConfiguration with specified clientId/clientName.
      *
      * @param clientId the clientId/clientName
-     * @return encoded clientSecret for that SebClientConfiguration with clientId or null of not existing */
+     * @return encoded clientSecret for that SEBClientConfiguration with clientId or null of not existing */
     private Result<CharSequence> getEncodedClientConfigSecret(final String clientId) {
         return this.sebClientConfigDAO.getConfigPasswordCipherByClientName(clientId)
                 .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));

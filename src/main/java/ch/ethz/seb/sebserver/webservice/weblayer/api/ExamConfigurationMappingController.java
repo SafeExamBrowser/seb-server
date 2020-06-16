@@ -237,7 +237,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     private ExamConfigurationMap checkNoActiveClientConnections(final ExamConfigurationMap entity) {
-        if (this.examSessionService.hasActiveSebClientConnections(entity.examId)) {
+        if (this.examSessionService.hasActiveSEBClientConnections(entity.examId)) {
             throw new APIMessageException(ErrorMessage.INTEGRITY_VALIDATION.of(
                     "The Exam is currently running and has active SEB Client connections"));
         }

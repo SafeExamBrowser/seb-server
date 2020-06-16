@@ -48,9 +48,9 @@ import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SebClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
 @WebServiceProfile
 @RestController
@@ -61,16 +61,16 @@ public class ExamAPI_V1_Controller {
 
     private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
-    private final SebClientConnectionService sebClientConnectionService;
-    private final SebClientConfigDAO sebClientConfigDAO;
+    private final SEBClientConnectionService sebClientConnectionService;
+    private final SEBClientConfigDAO sebClientConfigDAO;
     private final JSONMapper jsonMapper;
     private final Executor executor;
 
     protected ExamAPI_V1_Controller(
             final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
-            final SebClientConnectionService sebClientConnectionService,
-            final SebClientConfigDAO sebClientConfigDAO,
+            final SEBClientConnectionService sebClientConnectionService,
+            final SEBClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 

@@ -133,8 +133,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                 if (exam.getStatus() == ExamStatus.RUNNING || this.examAdminService.isRestricted(exam).getOr(false)) {
 
                     this.examUpdateHandler
-                            .getSebRestrictionService()
-                            .applySebClientRestriction(exam)
+                            .getSEBRestrictionService()
+                            .applySEBClientRestriction(exam)
                             .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
                 }
             }
@@ -203,8 +203,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     // update seb client restriction if the feature is activated for the exam
                     if (this.examAdminService.isRestricted(exam).getOr(false)) {
                         this.examUpdateHandler
-                                .getSebRestrictionService()
-                                .applySebClientRestriction(exam)
+                                .getSEBRestrictionService()
+                                .applySEBClientRestriction(exam)
                                 .onError(t -> log.error(
                                         "Failed to update SEB Client restriction for Exam: {}",
                                         exam,
@@ -229,7 +229,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     }
 
     private void checkActiveClientConnections(final Exam exam) {
-        if (this.examSessionService.hasActiveSebClientConnections(exam.id)) {
+        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
             throw new APIMessage.APIMessageException(
                     ErrorMessage.INTEGRITY_VALIDATION,
                     "Integrity violation: There are currently active SEB Client connection.");

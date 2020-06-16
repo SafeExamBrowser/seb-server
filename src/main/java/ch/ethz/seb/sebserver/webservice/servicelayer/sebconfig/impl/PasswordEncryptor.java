@@ -29,14 +29,14 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigCryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionContext;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class PasswordEncryptor implements SebConfigCryptor {
+public class PasswordEncryptor implements SEBConfigCryptor {
 
     private static final Logger log = LoggerFactory.getLogger(PasswordEncryptor.class);
 
@@ -59,7 +59,7 @@ public class PasswordEncryptor implements SebConfigCryptor {
     public void encrypt(
             final OutputStream output,
             final InputStream input,
-            final SebConfigEncryptionContext context) {
+            final SEBConfigEncryptionContext context) {
 
         if (log.isDebugEnabled()) {
             log.debug("*** Start streaming asynchronous encryption");
@@ -108,7 +108,7 @@ public class PasswordEncryptor implements SebConfigCryptor {
     public void decrypt(
             final OutputStream output,
             final InputStream input,
-            final SebConfigEncryptionContext context) {
+            final SEBConfigEncryptionContext context) {
 
         final CharSequence password = context.getPassword();
 

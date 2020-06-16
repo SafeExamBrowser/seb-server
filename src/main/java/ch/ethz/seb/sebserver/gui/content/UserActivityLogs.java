@@ -136,7 +136,7 @@ public class UserActivityLogs implements TemplateComposer {
                         .clearEntityKeys()
                         .clearAttributes());
 
-        final BooleanSupplier isSebAdmin =
+        final BooleanSupplier isSEBAdmin =
                 () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
 
         final Function<UserActivityLog, String> institutionNameFunction =
@@ -159,7 +159,7 @@ public class UserActivityLogs implements TemplateComposer {
                 .withPaging(this.pageSize)
 
                 .withColumnIf(
-                        isSebAdmin,
+                        isSEBAdmin,
                         () -> new ColumnDefinition<>(
                                 UserActivityLog.FILTER_ATTR_INSTITUTION,
                                 INSTITUTION_TEXT_KEY,

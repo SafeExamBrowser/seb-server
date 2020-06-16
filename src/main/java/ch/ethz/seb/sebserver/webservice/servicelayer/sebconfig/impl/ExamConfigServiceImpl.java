@@ -30,22 +30,22 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SebConfigEncryptionService.Strategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 
 @Lazy
 @Service
@@ -60,7 +60,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     private final Collection<ConfigurationValueValidator> validators;
     private final ClientCredentialService clientCredentialService;
     private final ZipService zipService;
-    private final SebConfigEncryptionService sebConfigEncryptionService;
+    private final SEBConfigEncryptionService sebConfigEncryptionService;
 
     protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
@@ -69,7 +69,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final Collection<ConfigurationValueValidator> validators,
             final ClientCredentialService clientCredentialService,
             final ZipService zipService,
-            final SebConfigEncryptionService sebConfigEncryptionService) {
+            final SEBConfigEncryptionService sebConfigEncryptionService) {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
@@ -180,7 +180,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         if (StringUtils.isNotBlank(passwordCipher)) {
 
             if (log.isDebugEnabled()) {
-                log.debug("*** Seb exam configuration with password based encryption");
+                log.debug("*** SEB exam configuration with password based encryption");
             }
 
             final CharSequence encryptionPasswordPlaintext = this.clientCredentialService

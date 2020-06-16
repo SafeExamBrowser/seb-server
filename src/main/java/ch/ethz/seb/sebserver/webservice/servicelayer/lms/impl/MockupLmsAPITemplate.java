@@ -22,17 +22,17 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SebRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.client.ClientCredentials;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -61,7 +61,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
         this.mockups = new ArrayList<>();
         this.mockups.add(new QuizData(
                 "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1 (MOCKUP)", "Demo Quiz Mockup",
-                "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
+                "2020-01-01T09:00:00Z", null, "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz2", institutionId, lmsSetupId, lmsType, "Demo Quiz 2 (MOCKUP)", "Demo Quiz Mockup",
                 "2020-01-01T09:00:00Z", "2021-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
@@ -184,22 +184,22 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<SebRestriction> getSebClientRestriction(final Exam exam) {
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         log.info("Apply SEB Client restriction for Exam: {}", exam);
-        return Result.ofError(new NoSebRestrictionException());
+        return Result.ofError(new NoSEBRestrictionException());
     }
 
     @Override
-    public Result<SebRestriction> applySebClientRestriction(
+    public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
-            final SebRestriction sebRestrictionData) {
+            final SEBRestriction sebRestrictionData) {
 
         log.info("Apply SEB Client restriction: {}", sebRestrictionData);
         return Result.of(sebRestrictionData);
     }
 
     @Override
-    public Result<Exam> releaseSebClientRestriction(final Exam exam) {
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
         log.info("Release SEB Client restriction for Exam: {}", exam);
         return Result.of(exam);
     }

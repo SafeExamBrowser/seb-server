@@ -54,19 +54,19 @@ public class InstructionProcessor {
         this.jsonMapper = pageService.getJSONMapper();
     }
 
-    public void propagateSebQuitInstruction(
+    public void propagateSEBQuitInstruction(
             final Long examId,
             final String connectionToken,
             final PageContext pageContext) {
 
-        propagateSebQuitInstruction(
+        propagateSEBQuitInstruction(
                 examId,
                 p -> Stream.of(connectionToken).collect(Collectors.toSet()),
                 pageContext);
 
     }
 
-    public void propagateSebQuitInstruction(
+    public void propagateSEBQuitInstruction(
             final Long examId,
             final Function<Predicate<ClientConnection>, Set<String>> selectionFunction,
             final PageContext pageContext) {
@@ -75,7 +75,7 @@ public class InstructionProcessor {
                 .apply(ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE));
 
         if (connectionTokens.isEmpty()) {
-            // TODO message
+            log.warn("Empty selection");
             return;
         }
 

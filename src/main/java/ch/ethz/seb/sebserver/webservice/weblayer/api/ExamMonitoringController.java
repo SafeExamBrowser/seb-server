@@ -50,8 +50,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDen
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SebInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
 
 @WebServiceProfile
 @RestController
@@ -60,15 +60,15 @@ public class ExamMonitoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringController.class);
 
-    private final SebClientConnectionService sebClientConnectionService;
+    private final SEBClientConnectionService sebClientConnectionService;
     private final ExamSessionService examSessionService;
-    private final SebInstructionService sebInstructionService;
+    private final SEBInstructionService sebInstructionService;
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
 
     public ExamMonitoringController(
-            final SebClientConnectionService sebClientConnectionService,
-            final SebInstructionService sebInstructionService,
+            final SEBClientConnectionService sebClientConnectionService,
+            final SEBInstructionService sebInstructionService,
             final AuthorizationService authorization,
             final PaginationService paginationService) {
 

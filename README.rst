@@ -1,11 +1,22 @@
+Master: 
 
 .. image:: https://travis-ci.com/SafeExamBrowser/seb-server.svg?branch=master
     :target: https://travis-ci.com/SafeExamBrowser/seb-server
-.. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/SafeExamBrowser/seb-server
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+.. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/SafeExamBrowser/seb-server
+.. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
+    :target: https://github.com/SafeExamBrowser/seb-server
+
+Development:
+
+.. image:: https://travis-ci.com/SafeExamBrowser/seb-server.svg?branch=development
+    :target: https://github.com/SafeExamBrowser/seb-server/tree/development
+.. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
+    :target: https://codecov.io/gh/SafeExamBrowser/seb-server
+.. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
+    :target: https://github.com/SafeExamBrowser/seb-server/tree/development
 
 What is Safe Exam Browser (SEB)?
 --------------------------------

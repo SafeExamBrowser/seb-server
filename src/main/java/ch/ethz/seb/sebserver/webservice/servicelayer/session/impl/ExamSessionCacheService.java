@@ -36,7 +36,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService
 /** Handles caching for exam session and defines caching for following object:
  *
  * - Running exams (examId -> Exam)
- * - in-memory exam configuration (examId -> InMemorySebConfig)
+ * - in-memory exam configuration (examId -> InMemorySEBConfig)
  * - active client connections (connectionToken -> ClientConnectionDataInternal)
  * - client event records for last ping store (connectionToken -> ReusableClientEventRecord) */
 @Lazy
@@ -163,7 +163,7 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#exam.id",
             sync = true)
-    public InMemorySebConfig getDefaultSebConfigForExam(final Exam exam) {
+    public InMemorySEBConfig getDefaultSEBConfigForExam(final Exam exam) {
         try {
 
             final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
@@ -172,7 +172,7 @@ public class ExamSessionCacheService {
                     exam.institutionId,
                     exam.id);
 
-            return new InMemorySebConfig(configId, exam.id, byteOut.toByteArray());
+            return new InMemorySEBConfig(configId, exam.id, byteOut.toByteArray());
 
         } catch (final Exception e) {
             log.error("Unexpected error while getting default exam configuration for running exam; {}", exam, e);
@@ -183,7 +183,7 @@ public class ExamSessionCacheService {
     @CacheEvict(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#exam.id")
-    public void evictDefaultSebConfig(final Exam exam) {
+    public void evictDefaultSEBConfig(final Exam exam) {
         if (log.isDebugEnabled()) {
             log.debug("Eviction of default SEB Configuration from cache for exam: {}", exam.id);
         }

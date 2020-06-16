@@ -92,7 +92,7 @@ public class InlineTableConverter implements AttributeValueConverter {
                 (xml) ? XML_KEY_TEMPLATE : JSON_KEY_TEMPLATE,
                 AttributeValueConverter.extractName(attribute))));
 
-        if (StringUtils.isBlank(value.value)) {
+        if (value == null || StringUtils.isBlank(value.value)) {
             out.write((xml) ? XML_EMPTY_ARRAY : JSON_EMPTY_ARRAY);
             out.flush();
             return;

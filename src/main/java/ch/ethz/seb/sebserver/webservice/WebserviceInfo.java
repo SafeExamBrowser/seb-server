@@ -108,7 +108,7 @@ public class WebserviceInfo {
         }
     }
 
-    public String getSebServerVersion() {
+    public String getSEBServerVersion() {
         return this.sebServerVersion;
     }
 

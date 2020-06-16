@@ -270,7 +270,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         final Result<Configuration> doImport = doImport(password, request, followup);
         if (doImport.hasError()) {
 
-            // rollback if the new configuration
+            // rollback of the new configuration
             this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
                     followup.configurationNodeId,
                     EntityType.CONFIGURATION_NODE))));
@@ -510,6 +510,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final String password,
             final HttpServletRequest request,
             final Configuration configuration) throws IOException {
+
         final InputStream inputStream = new BufferedInputStream(request.getInputStream());
         try {
 
