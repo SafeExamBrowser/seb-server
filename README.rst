@@ -61,7 +61,7 @@ SEB Server version. There is an entry for each platform with a beta or testing r
 
    "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2020 - Version 2.2"
    "SEB Client for Mac", "Q2 2020 - Version 2.2", "Q2 2020 - Version 2.2"
-   "SEB Client for iOS", "Q2 2020 - Version 3.1", "Q3 2020 - Version 3.1"
+   "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q3 2020 - Version 3.1"
 
 
 Install SEB Server
