@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
+/** Service offers functionality to compose and update SEB exam configuration properties page */
 public interface ExamConfigurationService {
 
     String ATTRIBUTE_LABEL_LOC_TEXT_PREFIX = "sebserver.examconfig.props.label.";
@@ -35,20 +36,48 @@ public interface ExamConfigurationService {
     String TOOL_TIP_SUFFIX = ".tooltip";
     String TABLE_ROW_TITLE_SUFFIX = ".row.title";
 
+    /** Get the WidgetFactory service
+     *
+     * @return the WidgetFactory service */
     WidgetFactory getWidgetFactory();
 
     InputFieldBuilder getInputFieldBuilder(
             ConfigurationAttribute attribute,
             Orientation orientation);
 
+    /** Get the attribute mapping of a specified template.
+     *
+     * @param templateId The template identifier
+     * @return Result refer to the attribute mapping or to an error if happened. */
     Result<AttributeMapping> getAttributes(Long templateId);
 
+    /** Get the attribute mapping for a specific template attribute with default orientation
+     * for fallback.
+     *
+     * @param attribute The template attribute instance.
+     * @param defaultOrientation the default orientation.
+     * @return Result refer to the attribute mapping or to an error if happened. */
     Result<AttributeMapping> getAttributes(
             final TemplateAttribute attribute,
             final Orientation defaultOrientation);
 
+    /** Get the list of defined views for a AttributeMapping.
+     *
+     * @param allAttributes AttributeMapping with all attributes
+     * @return list of defined views for a AttributeMapping */
     List<View> getViews(AttributeMapping allAttributes);
 
+    /** Create to ViewContext to compose a exam configuration property page,
+     * The ViewContext is the internal state of a exam configuration property page
+     * and is passed through all composers while composing the page.
+     * 
+     * @param pageContext The original PageContext that holds the state of the overall page.
+     * @param configuration The configuration on which the exam configuration property page is based on.
+     * @param view The View of the context
+     * @param attributeMapping The attribute mapping if the properties page
+     * @param rows Number of rows supported for the view.
+     * @param readonly Indicates if the view shall be composed in read-only mode.
+     * @return ViewContext instance. */
     ViewContext createViewContext(
             PageContext pageContext,
             Configuration configuration,

@@ -26,6 +26,10 @@ public interface ExamAdminService {
      * @return the Exam */
     Result<Exam> applyAdditionalSEBRestrictions(Exam exam);
 
+    /** Indicates wether a specific exam is been restricted with SEB restriction feature on the LMS or not.
+     *
+     * @param exam The exam instance
+     * @return Result refer to the restriction flag or to an error when happened */
     Result<Boolean> isRestricted(Exam exam);
 
 }
