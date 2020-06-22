@@ -126,7 +126,7 @@ public final class LmsSetupTestResult {
         public final String message;
 
         @JsonCreator
-        protected Error(
+        public Error(
                 @JsonProperty(ATTR_ERROR_TYPE) final ErrorType errorType,
                 @JsonProperty(ATTR_ERROR_MESSAGE) final String message) {
 
