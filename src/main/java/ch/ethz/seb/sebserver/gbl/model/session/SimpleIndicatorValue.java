@@ -24,7 +24,7 @@ public final class SimpleIndicatorValue implements IndicatorValue {
     public final double value;
 
     @JsonCreator
-    protected SimpleIndicatorValue(
+    public SimpleIndicatorValue(
             @JsonProperty(ATTR_INDICATOR_TYPE) final IndicatorType type,
             @JsonProperty(ATTR_INDICATOR_VALUE) final double value) {
 

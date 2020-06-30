@@ -96,7 +96,7 @@ public class OpenEdxSEBRestriction {
     public final Boolean banningEnabled;
 
     @JsonCreator
-    OpenEdxSEBRestriction(
+    public OpenEdxSEBRestriction(
             @JsonProperty(ATTR_CONFIG_KEYS) final Collection<String> configKeys,
             @JsonProperty(ATTR_BROWSER_KEYS) final Collection<String> browserExamKeys,
             @JsonProperty(ATTR_WHITELIST_PATHS) final Collection<String> whiteListPaths,
