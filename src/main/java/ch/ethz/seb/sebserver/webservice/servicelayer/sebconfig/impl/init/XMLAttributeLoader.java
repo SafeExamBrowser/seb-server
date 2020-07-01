@@ -17,8 +17,7 @@ import java.util.function.Function;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -28,6 +27,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser;
 
@@ -40,7 +40,7 @@ public class XMLAttributeLoader {
 
     private final Cryptor cryptor;
 
-    public XMLAttributeLoader(Cryptor cryptor) {
+    public XMLAttributeLoader(final Cryptor cryptor) {
         this.cryptor = cryptor;
     }
 
@@ -64,7 +64,7 @@ public class XMLAttributeLoader {
             final Collection<ConfigurationValue> values = new ArrayList<>();
 
             final ExamConfigXMLParser examConfigImportHandler = new ExamConfigXMLParser(
-                    cryptor,
+                    this.cryptor,
                     institutionId,
                     configurationId,
                     values::add,

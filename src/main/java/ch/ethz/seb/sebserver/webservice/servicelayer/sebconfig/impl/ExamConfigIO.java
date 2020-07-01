@@ -27,8 +27,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -41,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
@@ -192,7 +192,7 @@ public class ExamConfigIO {
             // the SAX handler with a ConfigValue sink that saves the values to DB
             // and a attribute-name/id mapping function with pre-created mapping
             final ExamConfigXMLParser examConfigImportHandler = new ExamConfigXMLParser(
-                    cryptor,
+                    this.cryptor,
                     institutionId,
                     configurationId,
                     value -> this.configurationValueDAO

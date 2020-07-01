@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.Set;
 
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.cryptonode.jncryptor.AES256JNCryptorInputStream;
 import org.cryptonode.jncryptor.AES256JNCryptorOutputStream;
 import org.cryptonode.jncryptor.CryptorException;
