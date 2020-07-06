@@ -31,7 +31,8 @@ public class WebserviceURIService {
             @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath) {
 
         this.servletContextPath = servletContextPath;
-        this.webserviceServerAddress = webserviceProtocol + "://" + webserviceServerAddress + ":" + webserviceServerPort;
+        this.webserviceServerAddress =
+                webserviceProtocol + "://" + webserviceServerAddress + ":" + webserviceServerPort;
         this.webserviceURIBuilder = UriComponentsBuilder
                 .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAddress)
                 .port(webserviceServerPort)
@@ -64,6 +65,18 @@ public class WebserviceURIService {
     public String getCurrentUserRequestURI() {
         return getURIBuilder()
                 .path(API.CURRENT_USER_ENDPOINT)
+                .toUriString();
+    }
+
+    public String getLoginLogPostURI() {
+        return getURIBuilder()
+                .path(API.USER_ACCOUNT_ENDPOINT + API.LOGIN_PATH_SEGMENT)
+                .toUriString();
+    }
+
+    public String getLogoutLogPostURI() {
+        return getURIBuilder()
+                .path(API.USER_ACCOUNT_ENDPOINT + API.LOGOUT_PATH_SEGMENT)
                 .toUriString();
     }
 }

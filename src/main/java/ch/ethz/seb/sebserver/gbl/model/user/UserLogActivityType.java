@@ -18,5 +18,7 @@ public enum UserLogActivityType {
     PASSWORD_CHANGE,
     DEACTIVATE,
     ACTIVATE,
-    DELETE
+    DELETE,
+    LOGIN,
+    LOGOUT
 }

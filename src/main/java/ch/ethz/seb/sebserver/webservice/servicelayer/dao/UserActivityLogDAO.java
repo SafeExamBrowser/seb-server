@@ -15,6 +15,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
@@ -23,6 +24,18 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 public interface UserActivityLogDAO extends
         EntityDAO<UserActivityLog, UserActivityLog>,
         UserRelatedEntityDAO<UserActivityLog> {
+
+    /** Create a user activity log entry for the current users login action
+     *
+     * @param user the UserInfo
+     * @return Result of the Entity or referring to an Error if happened */
+    Result<UserInfo> logLogin(UserInfo user);
+
+    /** Create a user activity log entry for the current user logut action
+     *
+     * @param user the UserInfo
+     * @return Result of the Entity or referring to an Error if happened */
+    Result<UserInfo> logLogout(UserInfo user);
 
     /** Create a user activity log entry for the current user of activity type CREATE
      *
