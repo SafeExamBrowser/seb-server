@@ -15,20 +15,21 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import org.mockito.Mockito;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ExamConfigImportHandlerTest {
 
     private static final Function<String, ConfigurationAttribute> attributeResolver =
             name -> new ConfigurationAttribute(
                     getId(name),
-                    null, name, (name.contains("array")) ? AttributeType.MULTI_SELECTION : null, null, null, null,
+                    null, name, (name.contains("array")) ? AttributeType.MULTI_SELECTION : AttributeType.TEXT_FIELD,
+                    null, null, null,
                     null);
 
     private static final Long getId(final String name) {

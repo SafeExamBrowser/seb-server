@@ -413,7 +413,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
                 name,
                 attribute,
                 listIndex,
-                value);
+                checkValueType(value, attribute));
 
         if (configurationValue != null) {
             if (log.isDebugEnabled()) {
@@ -421,6 +421,67 @@ public class ExamConfigXMLParser extends DefaultHandler {
             }
 
             this.valueConsumer.accept(configurationValue);
+        }
+    }
+
+    private String checkValueType(final String value, final ConfigurationAttribute attribute) {
+        if (attribute == null) {
+            return value;
+        }
+
+        if (attribute.type == null) {
+            log.warn(
+                    "Invalid attribute type detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                    attribute.name,
+                    attribute.type,
+                    value);
+            return attribute.defaultValue;
+        }
+
+        switch (attribute.type) {
+            case CHECKBOX: {
+                try {
+                    Boolean.parseBoolean(value);
+                    return value;
+                } catch (final Exception e) {
+                    log.warn(
+                            "Invalid attribute value detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                            attribute.name,
+                            attribute.type,
+                            value);
+                    return attribute.defaultValue;
+                }
+            }
+            case INTEGER:
+            case RADIO_SELECTION:
+            case SINGLE_SELECTION: {
+                try {
+                    Integer.parseInt(value);
+                    return value;
+                } catch (final Exception e) {
+                    log.warn(
+                            "Invalid attribute value detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                            attribute.name,
+                            attribute.type,
+                            value);
+                    return attribute.defaultValue;
+                }
+            }
+            case DECIMAL: {
+                try {
+                    Double.parseDouble(value);
+                    return value;
+                } catch (final Exception e) {
+                    log.warn(
+                            "Invalid attribute value detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                            attribute.name,
+                            attribute.type,
+                            value);
+                    return attribute.defaultValue;
+                }
+            }
+            default:
+                return value;
         }
     }
 
