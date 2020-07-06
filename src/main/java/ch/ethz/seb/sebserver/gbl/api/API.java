@@ -41,8 +41,11 @@ public final class API {
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
 
-    public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + "/me";
+    public static final String CURRENT_USER_PATH_SEGMENT = "/me";
+    public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + CURRENT_USER_PATH_SEGMENT;
     public static final String SELF_PATH_SEGMENT = "/self";
+    public static final String LOGIN_PATH_SEGMENT = "/loglogin";
+    public static final String LOGOUT_PATH_SEGMENT = "/loglogout";
 
     public static final String INFO_ENDPOINT = "/info";
     public static final String INFO_PARAM_INST_SUFFIX = "urlSuffix";

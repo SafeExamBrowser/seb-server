@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -80,6 +81,16 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     public EntityType entityType() {
         return EntityType.USER_ACTIVITY_LOG;
+    }
+
+    @Override
+    public Result<UserInfo> logLogin(final UserInfo user) {
+        return log(UserLogActivityType.LOGIN, user);
+    }
+
+    @Override
+    public Result<UserInfo> logLogout(final UserInfo user) {
+        return log(UserLogActivityType.LOGOUT, user);
     }
 
     @Override

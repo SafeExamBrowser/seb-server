@@ -8,12 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +44,12 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @Lazy
 @Component
@@ -148,6 +150,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         private final DisposableOAuth2RestTemplate restTemplate;
         private final String revokeTokenURI;
         private final String currentUserURI;
+        private final String loginLogURI;
+        private final String logoutLogURI;
 
         private Result<UserInfo> loggedInUser = null;
 
@@ -173,6 +177,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
+            this.loginLogURI = webserviceURIService.getLoginLogPostURI();
+            this.logoutLogURI = webserviceURIService.getLogoutLogPostURI();
         }
 
         @Override
@@ -216,6 +222,19 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 this.restTemplate.getAccessToken();
                 log.debug("Got token for user: {}", username);
                 this.loggedInUser = getLoggedInUser();
+                // call log login on webservice API
+                try {
+                    final ResponseEntity<Void> response = this.restTemplate.postForEntity(
+                            this.loginLogURI,
+                            null,
+                            Void.class);
+                    if (response.getStatusCode() != HttpStatus.OK) {
+                        log.error("Failed to log login: {}", response.getStatusCode());
+                    }
+                } catch (final Exception e) {
+                    log.error("Failed to log login: {}", e.getMessage());
+                }
+
                 return true;
             } catch (final OAuth2AccessDeniedException | AccessDeniedException e) {
                 log.info("Access Denied for user: {}", username);
@@ -225,6 +244,19 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean logout() {
+            // call log logout on webservice API
+            try {
+                final ResponseEntity<Void> response = this.restTemplate.postForEntity(
+                        this.logoutLogURI,
+                        null,
+                        Void.class);
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    log.error("Failed to log logout: {}", response.getStatusCode());
+                }
+            } catch (final Exception e) {
+                log.error("Failed to log logout: {}", e.getMessage());
+            }
+
             // set this context invalid to force creation of a new context on next request
             this.valid = false;
             this.loggedInUser = null;

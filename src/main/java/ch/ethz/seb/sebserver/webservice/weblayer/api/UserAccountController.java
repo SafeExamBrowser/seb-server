@@ -83,12 +83,28 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.userPasswordEncoder = userPasswordEncoder;
     }
 
-    @RequestMapping(path = "/me", method = RequestMethod.GET)
+    @RequestMapping(path = API.CURRENT_USER_PATH_SEGMENT, method = RequestMethod.GET)
     public UserInfo loggedInUser() {
         return this.authorization
                 .getUserService()
                 .getCurrentUser()
                 .getUserInfo();
+    }
+
+    @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)
+    public void logLogin() {
+        this.userActivityLogDAO.logLogin(this.authorization
+                .getUserService()
+                .getCurrentUser()
+                .getUserInfo());
+    }
+
+    @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
+    public void logLogout() {
+        this.userActivityLogDAO.logLogout(this.authorization
+                .getUserService()
+                .getCurrentUser()
+                .getUserInfo());
     }
 
     @Override
