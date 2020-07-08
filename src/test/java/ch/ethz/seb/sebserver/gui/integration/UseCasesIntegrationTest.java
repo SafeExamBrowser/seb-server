@@ -41,11 +41,14 @@ import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.Page;
@@ -165,6 +168,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.Activ
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -2036,7 +2040,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Test
     @Order(17)
     // *************************************
-    // Use Case 16: Login as examSupport2 and get running exam with data
+    // Use Case 17: Login as examSupport2 and get running exam with data
     // - Get list of running exams
     // - Simulate a SEB connection
     // - Join running exam by get the data for all SEB connections and for a single SEB connection.
@@ -2182,6 +2186,174 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(clientLogs.isEmpty());
         final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
         assertNotNull(extendedClientEvent);
+    }
+
+    @Test
+    @Order(18)
+    // *************************************
+    // Use Case 18: Login as examAdmin2 and get dependencies of examAdmin2
+    // - Get all dependencies and check correctnes.
+    // - Get all dependencies including only Exam Configuration and check correctnes.
+    // - Get all dependencies including only ClientConnection and check correctnes.
+    public void testUsecase18_UserDependencies() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetUserAccountNames(),
+                new GetUserDependency(),
+                new GetExam(),
+                new GetExamConfigNode());
+
+        final EntityName user = restService.getBuilder(GetUserAccountNames.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .filter(name -> name.name.startsWith("examAdmin2"))
+                .findFirst()
+                .orElseThrow();
+
+        List<EntityKey> dependencies = restService.getBuilder(GetUserDependency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                .call()
+                .getOrThrow()
+                .stream()
+                .sorted((key1, key2) -> {
+                    final int compareTo = key1.entityType.compareTo(key2.entityType);
+                    if (compareTo == 0) {
+                        return key1.modelId.compareTo(key2.modelId);
+                    } else {
+                        return compareTo;
+                    }
+                })
+                .collect(Collectors.toList());
+
+        assertEquals(
+                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=1, entityType=INDICATOR], "
+                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
+                dependencies.toString());
+
+        // check that the user is owner of all depending exams and configurations
+        dependencies.stream()
+                .filter(key -> key.entityType == EntityType.EXAM)
+                .forEach(key -> {
+                    assertEquals(
+                            user.modelId,
+                            restService.getBuilder(GetExam.class)
+                                    .withURIVariable(API.PARAM_MODEL_ID, key.getModelId())
+                                    .call()
+                                    .getOrThrow().owner);
+                });
+
+        dependencies.stream()
+                .filter(key -> key.entityType == EntityType.CONFIGURATION_NODE)
+                .forEach(key -> {
+                    assertEquals(
+                            user.modelId,
+                            restService.getBuilder(GetExamConfigNode.class)
+                                    .withURIVariable(API.PARAM_MODEL_ID, key.getModelId())
+                                    .call()
+                                    .getOrThrow().owner);
+                });
+
+        // only with exam dependencies
+        dependencies = restService.getBuilder(GetUserDependency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM.name())
+                .call()
+                .getOrThrow()
+                .stream()
+                .sorted((key1, key2) -> {
+                    final int compareTo = key1.entityType.compareTo(key2.entityType);
+                    if (compareTo == 0) {
+                        return key1.modelId.compareTo(key2.modelId);
+                    } else {
+                        return compareTo;
+                    }
+                })
+                .collect(Collectors.toList());
+
+        assertEquals(
+                "[EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=1, entityType=INDICATOR], "
+                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
+                dependencies.toString());
+
+        // only with configuration dependencies
+        dependencies = restService.getBuilder(GetUserDependency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
+                .call()
+                .getOrThrow()
+                .stream()
+                .sorted((key1, key2) -> {
+                    final int compareTo = key1.entityType.compareTo(key2.entityType);
+                    if (compareTo == 0) {
+                        return key1.modelId.compareTo(key2.modelId);
+                    } else {
+                        return compareTo;
+                    }
+                })
+                .collect(Collectors.toList());
+
+        assertEquals(
+                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE]]",
+                dependencies.toString());
+
+        // only with exam and configuration dependencies
+        dependencies = restService.getBuilder(GetUserDependency.class)
+                .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM.name())
+                .call()
+                .getOrThrow()
+                .stream()
+                .sorted((key1, key2) -> {
+                    final int compareTo = key1.entityType.compareTo(key2.entityType);
+                    if (compareTo == 0) {
+                        return key1.modelId.compareTo(key2.modelId);
+                    } else {
+                        return compareTo;
+                    }
+                })
+                .collect(Collectors.toList());
+
+        assertEquals(
+                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=1, entityType=INDICATOR], "
+                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
+                dependencies.toString());
+
     }
 
 }

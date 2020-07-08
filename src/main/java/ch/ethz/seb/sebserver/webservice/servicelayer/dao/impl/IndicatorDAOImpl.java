@@ -264,7 +264,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.INDICATOR))
                 .collect(Collectors.toList()));
     }
 
@@ -280,7 +280,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.INDICATOR))
                 .collect(Collectors.toList()));
     }
 
@@ -296,7 +296,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.INDICATOR))
                 .collect(Collectors.toList()));
     }
 
@@ -308,7 +308,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.INDICATOR))
                 .collect(Collectors.toList()));
     }
 

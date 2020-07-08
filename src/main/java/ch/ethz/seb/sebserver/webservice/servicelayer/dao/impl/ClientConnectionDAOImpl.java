@@ -325,7 +325,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                 .collect(Collectors.toList()));
     }
 
@@ -341,7 +341,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                 .collect(Collectors.toList()));
     }
 
@@ -357,7 +357,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                 .collect(Collectors.toList()));
     }
 
@@ -369,7 +369,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                 .collect(Collectors.toList()));
     }
 
