@@ -2210,7 +2210,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(name -> name.name.startsWith("examAdmin2"))
                 .findFirst()
-                .orElseThrow();
+                .get();
 
         List<EntityKey> dependencies = restService.getBuilder(GetUserDependency.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
