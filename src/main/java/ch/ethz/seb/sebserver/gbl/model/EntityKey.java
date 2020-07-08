@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 /** An EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
  * An EntityKey consists of the model identifier of a domain entity and the type of the entity. */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityKey implements ModelIdAware, Serializable {
+public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityKey> {
 
     private static final long serialVersionUID = -2368065921846821061L;
 
@@ -118,6 +118,20 @@ public class EntityKey implements ModelIdAware, Serializable {
         builder.append(this.entityType);
         builder.append("]");
         return builder.toString();
+    }
+
+    @Override
+    public int compareTo(final EntityKey other) {
+        if (other == null) {
+            return -1;
+        }
+
+        final int compareTo = this.entityType.name().compareTo(other.entityType.name());
+        if (compareTo == 0) {
+            return this.modelId.compareTo(other.modelId);
+        } else {
+            return compareTo;
+        }
     }
 
 }

@@ -2218,27 +2218,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow()
                 .stream()
-                .sorted((key1, key2) -> {
-                    final int compareTo = key1.entityType.compareTo(key2.entityType);
-                    if (compareTo == 0) {
-                        return key1.modelId.compareTo(key2.modelId);
-                    } else {
-                        return compareTo;
-                    }
-                })
+                .sorted()
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
                         + "EntityKey [modelId=1, entityType=INDICATOR], "
                         + "EntityKey [modelId=2, entityType=INDICATOR]]",
                 dependencies.toString());
@@ -2274,23 +2267,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow()
                 .stream()
-                .sorted((key1, key2) -> {
-                    final int compareTo = key1.entityType.compareTo(key2.entityType);
-                    if (compareTo == 0) {
-                        return key1.modelId.compareTo(key2.modelId);
-                    } else {
-                        return compareTo;
-                    }
-                })
+                .sorted()
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
                         + "EntityKey [modelId=1, entityType=INDICATOR], "
                         + "EntityKey [modelId=2, entityType=INDICATOR]]",
                 dependencies.toString());
@@ -2303,14 +2289,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow()
                 .stream()
-                .sorted((key1, key2) -> {
-                    final int compareTo = key1.entityType.compareTo(key2.entityType);
-                    if (compareTo == 0) {
-                        return key1.modelId.compareTo(key2.modelId);
-                    } else {
-                        return compareTo;
-                    }
-                })
+                .sorted()
                 .collect(Collectors.toList());
 
         assertEquals(
@@ -2329,27 +2308,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow()
                 .stream()
-                .sorted((key1, key2) -> {
-                    final int compareTo = key1.entityType.compareTo(key2.entityType);
-                    if (compareTo == 0) {
-                        return key1.modelId.compareTo(key2.modelId);
-                    } else {
-                        return compareTo;
-                    }
-                })
+                .sorted()
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
                         + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
                         + "EntityKey [modelId=1, entityType=INDICATOR], "
                         + "EntityKey [modelId=2, entityType=INDICATOR]]",
                 dependencies.toString());
