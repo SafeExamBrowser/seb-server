@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,7 +53,10 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     }
 
     @Override
-    public Collection<EntityKey> getDependencies(final String modelId, final BulkActionType bulkActionType) {
+    public Collection<EntityKey> getDependencies(
+            final String modelId,
+            final BulkActionType bulkActionType,
+            final List<String> includes) {
         throw new UnsupportedOperationException();
     }
 

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -87,7 +88,9 @@ public class ConfigurationValueController extends EntityController<Configuration
     }
 
     @Override
-    public EntityProcessingReport hardDelete(final String modelId) {
+    public EntityProcessingReport hardDelete(
+            final String modelId,
+            final List<String> includes) {
         throw new UnsupportedOperationException();
     }
 

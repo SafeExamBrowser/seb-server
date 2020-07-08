@@ -28,6 +28,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
  *                       /               |              \           \
  *                  LMS Setup            |          User-Account   Client Configuration
  *                      |                |
+ *                      |  ______________+______________/
+ *                      |/               |/
  *                    Exam       Exam Configuration
  *                      |\              /
  *                      | Exam Config Mapping

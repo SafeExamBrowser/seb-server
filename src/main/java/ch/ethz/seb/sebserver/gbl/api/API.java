@@ -27,6 +27,7 @@ public final class API {
     public static final String PARAM_PARENT_MODEL_ID = "parentModelId";
     public static final String PARAM_ENTITY_TYPE = "entityType";
     public static final String PARAM_BULK_ACTION_TYPE = "bulkActionType";
+    public static final String PARAM_BULK_ACTION_INCLUDES = "bulkActionIncludes";
     public static final String PARAM_VIEW_ID = "viewId";
     public static final String PARAM_INSTRUCTION_TYPE = "instructionType";
     public static final String PARAM_INSTRUCTION_ATTRIBUTES = "instructionAttributes";

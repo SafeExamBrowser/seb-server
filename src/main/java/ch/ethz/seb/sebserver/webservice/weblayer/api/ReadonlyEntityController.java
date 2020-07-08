@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -59,7 +61,9 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     }
 
     @Override
-    public EntityProcessingReport hardDelete(final String modelId) {
+    public EntityProcessingReport hardDelete(
+            final String modelId,
+            final List<String> includes) {
         throw new UnsupportedOperationException(ONLY_READ_ACCESS);
     }
 

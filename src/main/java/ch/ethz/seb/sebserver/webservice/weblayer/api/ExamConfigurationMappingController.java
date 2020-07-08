@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.mybatis.dynamic.sql.SqlTable;
@@ -162,13 +164,15 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
+    public EntityProcessingReport hardDelete(
+            @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
                         entity,
-                        this::bulkDelete))
+                        e -> bulkDelete(e, convertToEntityType(includes))))
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();

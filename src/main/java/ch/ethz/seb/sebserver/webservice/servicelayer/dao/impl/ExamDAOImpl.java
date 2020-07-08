@@ -588,6 +588,10 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // only if included
+        if (!bulkAction.includesDependencyType(EntityType.EXAM)) {
+            return Collections.emptySet();
+        }
 
         // define the select function in case of source type
         Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
@@ -597,6 +601,9 @@ public class ExamDAOImpl implements ExamDAO {
                 break;
             case LMS_SETUP:
                 selectionFunction = this::allIdsOfLmsSetup;
+                break;
+            case USER:
+                selectionFunction = this::allIdsOfUser;
                 break;
             default:
                 selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
@@ -644,6 +651,17 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
                 .where(ExamRecordDynamicSqlSupport.lmsSetupId,
                         isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(ExamRecordDynamicSqlSupport.owner,
+                        isEqualTo(userKey.modelId))
                 .build()
                 .execute()
                 .stream()

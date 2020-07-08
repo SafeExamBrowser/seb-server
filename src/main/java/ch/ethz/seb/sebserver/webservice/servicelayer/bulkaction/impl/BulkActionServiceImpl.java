@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 @WebServiceProfile
 public class BulkActionServiceImpl implements BulkActionService {
 
+    private final EnumMap<EntityType, EnumSet<EntityType>> directDependancyMap =
+            new EnumMap<>(EntityType.class);
+
     private final Map<EntityType, BulkActionSupportDAO<?>> supporter;
     private final UserActivityLogDAO userActivityLogDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -55,6 +60,20 @@ public class BulkActionServiceImpl implements BulkActionService {
         this.userActivityLogDAO = userActivityLogDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.jsonMapper = jsonMapper;
+
+        this.directDependancyMap.put(EntityType.INSTITUTION, EnumSet.of(
+                EntityType.LMS_SETUP,
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                EntityType.CONFIGURATION_NODE,
+                EntityType.USER));
+        this.directDependancyMap.put(EntityType.LMS_SETUP, EnumSet.of(
+                EntityType.EXAM));
+        this.directDependancyMap.put(EntityType.EXAM, EnumSet.of(
+                EntityType.EXAM_CONFIGURATION_MAP,
+                EntityType.INDICATOR,
+                EntityType.CLIENT_CONNECTION));
+        this.directDependancyMap.put(EntityType.CONFIGURATION_NODE,
+                EnumSet.noneOf(EntityType.class));
     }
 
     @Override
@@ -172,6 +191,8 @@ public class BulkActionServiceImpl implements BulkActionService {
                 return dependantSupporterInHierarchicalOrder
                         .stream()
                         .filter(Objects::nonNull)
+                        .filter(dao -> action.includeDependencies == null ||
+                                action.includeDependencies.contains(dao.entityType()))
                         .collect(Collectors.toList());
             }
             default:
@@ -191,13 +212,13 @@ public class BulkActionServiceImpl implements BulkActionService {
                         this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE));
-//            case USER:
-//                return Arrays.asList(
-//                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
-//                        this.supporter.get(EntityType.EXAM),
-//                        this.supporter.get(EntityType.INDICATOR),
-//                        this.supporter.get(EntityType.CLIENT_CONNECTION),
-//                        this.supporter.get(EntityType.CONFIGURATION_NODE));
+            case USER:
+                return Arrays.asList(
+                        this.supporter.get(EntityType.EXAM),
+                        this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.CLIENT_CONNECTION),
+                        this.supporter.get(EntityType.CONFIGURATION_NODE),
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP));
             case LMS_SETUP:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
@@ -218,6 +239,15 @@ public class BulkActionServiceImpl implements BulkActionService {
     }
 
     private void checkProcessing(final BulkAction action) {
+        // complete this.directDependancyMap if needed
+        if (action.includeDependencies != null) {
+            this.directDependancyMap.entrySet().stream()
+                    .forEach(entry -> {
+                        if (action.includeDependencies.contains(entry.getKey())) {
+                            action.includeDependencies.addAll(entry.getValue());
+                        }
+                    });
+        }
         if (action.alreadyProcessed) {
             throw new IllegalStateException("Given BulkAction has already been processed. Use a new one");
         }

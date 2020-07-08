@@ -221,7 +221,12 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // only for deletion
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
+            return Collections.emptySet();
+        }
+        // only if included
+        if (!bulkAction.includesDependencyType(EntityType.INDICATOR)) {
             return Collections.emptySet();
         }
 
@@ -233,6 +238,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 break;
             case LMS_SETUP:
                 selectionFunction = this::allIdsOfLmsSetup;
+            case USER:
+                selectionFunction = this::allIdsOfUser;
                 break;
             case EXAM:
                 selectionFunction = this::allIdsOfExam;
@@ -270,6 +277,22 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .where(
                         ExamRecordDynamicSqlSupport.lmsSetupId,
                         isEqualTo(Long.parseLong(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(IndicatorRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.owner,
+                        isEqualTo(userKey.modelId))
                 .build()
                 .execute()
                 .stream()

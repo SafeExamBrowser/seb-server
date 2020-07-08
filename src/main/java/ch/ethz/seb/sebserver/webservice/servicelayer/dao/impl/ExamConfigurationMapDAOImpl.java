@@ -28,8 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -281,7 +281,12 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // only deletion here
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
+            return Collections.emptySet();
+        }
+        // only if included
+        if (!bulkAction.includesDependencyType(EntityType.EXAM_CONFIGURATION_MAP)) {
             return Collections.emptySet();
         }
 
@@ -290,6 +295,9 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
+                break;
+            case USER:
+                selectionFunction = this::allIdsOfUser;
                 break;
             case LMS_SETUP:
                 selectionFunction = this::allIdsOfLmsSetup;
@@ -422,6 +430,30 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .stream()
                 .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
                 .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> {
+            final List<Long> examsIds = this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.owner,
+                            isEqualTo(userKey.modelId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(r -> r.getId())
+                    .collect(Collectors.toList());
+
+            return this.examConfigurationMapRecordMapper.selectIdsByExample()
+                    .where(
+                            ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                            isIn(examsIds))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {

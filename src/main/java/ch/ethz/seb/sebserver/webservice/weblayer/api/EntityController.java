@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -209,7 +211,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Collection<EntityKey> getDependencies(
             @PathVariable final String modelId,
-            @RequestParam(name = API.PARAM_BULK_ACTION_TYPE, required = true) final BulkActionType bulkActionType) {
+            @RequestParam(name = API.PARAM_BULK_ACTION_TYPE, required = true) final BulkActionType bulkActionType,
+            @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         this.entityDAO
                 .byModelId(modelId)
@@ -218,7 +221,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         final BulkAction bulkAction = new BulkAction(
                 bulkActionType,
                 this.entityDAO.entityType(),
-                Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())));
+                Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())),
+                convertToEntityType(includes));
 
         this.bulkActionService.collectDependencies(bulkAction);
         return bulkAction.getDependencies();
@@ -320,24 +324,48 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public EntityProcessingReport hardDelete(@PathVariable final String modelId) {
+    public EntityProcessingReport hardDelete(
+            @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this::validForDelete)
-                .flatMap(this::bulkDelete)
+                .flatMap(entity -> bulkDelete(entity, convertToEntityType(includes)))
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();
     }
 
-    protected Result<Pair<T, EntityProcessingReport>> bulkDelete(final T entity) {
+    protected EnumSet<EntityType> convertToEntityType(final List<String> includes) {
+        final EnumSet<EntityType> includeDependencies = (includes != null)
+                ? EnumSet.copyOf(includes.stream().map(name -> {
+                    try {
+                        return EntityType.valueOf(name);
+                    } catch (final Exception e) {
+                        return null;
+                    }
+                })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()))
+                : null;
+        return includeDependencies;
+    }
+
+    protected Result<Pair<T, EntityProcessingReport>> bulkDelete(
+            final T entity,
+            final EnumSet<EntityType> includeDependencies) {
+
+        final BulkAction bulkAction = new BulkAction(
+                BulkActionType.HARD_DELETE,
+                entity.entityType(),
+                Arrays.asList(new EntityName(entity.getModelId(), entity.entityType(), entity.getName())),
+                includeDependencies);
+
         return Result.tryCatch(() -> new Pair<>(
                 entity,
-                this.bulkActionService.createReport(new BulkAction(
-                        BulkActionType.HARD_DELETE,
-                        entity.entityType(),
-                        new EntityName(entity.getModelId(), entity.entityType(), entity.getName())))
+                this.bulkActionService
+                        .createReport(bulkAction)
                         .getOrThrow()));
     }
 

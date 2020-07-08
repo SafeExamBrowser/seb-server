@@ -8,13 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -34,7 +36,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -49,13 +55,16 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final ClientEventRecordMapper clientEventRecordMapper;
+    private final ClientInstructionRecordMapper clientInstructionRecordMapper;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
-            final ClientEventRecordMapper clientEventRecordMapper) {
+            final ClientEventRecordMapper clientEventRecordMapper,
+            final ClientInstructionRecordMapper clientInstructionRecordMapper) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
+        this.clientInstructionRecordMapper = clientInstructionRecordMapper;
     }
 
     @Override
@@ -172,6 +181,39 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // only for deletion
+        if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
+            return Collections.emptySet();
+        }
+        // only if included
+        if (!bulkAction.includesDependencyType(EntityType.CLIENT_CONNECTION)) {
+            return Collections.emptySet();
+        }
+
+        // define the select function in case of source type
+        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        switch (bulkAction.sourceType) {
+            case INSTITUTION:
+                selectionFunction = this::allIdsOfInstitution;
+                break;
+            case LMS_SETUP:
+                selectionFunction = this::allIdsOfLmsSetup;
+            case USER:
+                selectionFunction = this::allIdsOfUser;
+                break;
+            case EXAM:
+                selectionFunction = this::allIdsOfExam;
+                break;
+            default:
+                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
+                break;
+        }
+
+        return getDependencies(bulkAction, selectionFunction);
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -183,6 +225,23 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .where(
                             ClientEventRecordDynamicSqlSupport.clientConnectionId,
                             SqlBuilder.isIn(ids))
+                    .build()
+                    .execute();
+
+            // then delete all related client instructions
+            final List<String> connectionTokens = this.clientConnectionRecordMapper.selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.id,
+                            SqlBuilder.isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(r -> r.getConnectionToken())
+                    .collect(Collectors.toList());
+            this.clientInstructionRecordMapper.deleteByExample()
+                    .where(
+                            ClientInstructionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isIn(connectionTokens))
                     .build()
                     .execute();
 
@@ -256,7 +315,62 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getVirtualClientAddress(),
                     record.getCreationTime());
         });
+    }
 
+    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.parseLong(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(ClientConnectionRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.lmsSetupId,
+                        isEqualTo(Long.parseLong(lmsSetupKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                .on(
+                        ExamRecordDynamicSqlSupport.id,
+                        equalTo(ClientConnectionRecordDynamicSqlSupport.examId))
+                .where(
+                        ExamRecordDynamicSqlSupport.owner,
+                        isEqualTo(userKey.modelId))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        isEqualTo(Long.parseLong(examKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.EXAM))
+                .collect(Collectors.toList()));
     }
 
 }

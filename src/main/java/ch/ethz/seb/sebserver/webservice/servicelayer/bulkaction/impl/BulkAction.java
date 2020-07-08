@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,6 +36,9 @@ public final class BulkAction {
     public final EntityType sourceType;
     /** A Set of EntityKey defining all source-entities of the BulkAction */
     public final Set<EntityKey> sources;
+    /** A Set defining the types of dependencies to include into the bulk action
+     * Null means all dependencies are included (ignore) and empty means no dependencies are included */
+    public final EnumSet<EntityType> includeDependencies;
     /** A Set of EntityKey containing collected depending entities during dependency collection and processing phase */
     final Set<EntityKey> dependencies;
     /** A Set of EntityKey containing collected bulk action processing results during processing phase */
@@ -46,10 +50,19 @@ public final class BulkAction {
             final BulkActionType type,
             final EntityType sourceType,
             final Collection<EntityKey> sources) {
+        this(type, sourceType, sources, null);
+    }
+
+    public BulkAction(
+            final BulkActionType type,
+            final EntityType sourceType,
+            final Collection<EntityKey> sources,
+            final EnumSet<EntityType> includeDependencies) {
 
         this.type = type;
         this.sourceType = sourceType;
         this.sources = Utils.immutableSetOf(sources);
+        this.includeDependencies = includeDependencies;
         this.dependencies = new LinkedHashSet<>();
         this.result = new HashSet<>();
 
@@ -62,6 +75,10 @@ public final class BulkAction {
             final EntityKey... sources) {
 
         this(type, sourceType, (sources != null) ? Arrays.asList(sources) : Collections.emptyList());
+    }
+
+    public boolean includesDependencyType(final EntityType type) {
+        return this.includeDependencies == null || this.includeDependencies.contains(type);
     }
 
     public Set<EntityKey> getDependencies() {

@@ -17,8 +17,11 @@ import org.springframework.cache.annotation.Cacheable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface ClientConnectionDAO extends EntityDAO<ClientConnection, ClientConnection> {
+public interface ClientConnectionDAO extends
+        EntityDAO<ClientConnection, ClientConnection>,
+        BulkActionSupportDAO<ClientConnection> {
 
     String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
 

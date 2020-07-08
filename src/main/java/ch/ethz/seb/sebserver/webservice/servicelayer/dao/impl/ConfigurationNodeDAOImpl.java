@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -134,11 +135,24 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     @Transactional(readOnly = true)
     public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+        // only if included
+        if (!bulkAction.includesDependencyType(EntityType.CONFIGURATION_NODE)) {
+            return Collections.emptySet();
+        }
+
         // define the select function in case of source type
-        final Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction =
-                (bulkAction.sourceType == EntityType.INSTITUTION)
-                        ? this::allIdsOfInstitution
-                        : key -> Result.of(Collections.emptyList()); // else : empty select function
+        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction =
+                key -> Result.of(Collections.emptyList());
+
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            selectionFunction = this::allIdsOfInstitution;
+        }
+
+        // in case of user deletion with configuration dependency inclusion
+        if (bulkAction.sourceType == EntityType.USER &&
+                bulkAction.type == BulkActionType.HARD_DELETE) {
+            selectionFunction = this::allIdsOfUser;
+        }
 
         return getDependencies(bulkAction, selectionFunction);
     }
@@ -245,6 +259,18 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 .where(
                         ConfigurationNodeRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
+                .collect(Collectors.toList()));
+    }
+
+    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectIdsByExample()
+                .where(
+                        ConfigurationNodeRecordDynamicSqlSupport.owner,
+                        isEqualTo(userKey.modelId))
                 .build()
                 .execute()
                 .stream()
