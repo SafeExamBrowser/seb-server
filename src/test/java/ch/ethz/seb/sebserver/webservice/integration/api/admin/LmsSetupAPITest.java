@@ -103,7 +103,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(report.source);
         assertTrue(report.source.size() == 1);
         assertEquals(String.valueOf(lmsSetup.id), report.source.iterator().next().modelId);
-        assertEquals("[]", report.results.toString());
+        assertEquals("[EntityKey [modelId=1, entityType=LMS_SETUP]]", report.results.toString());
         assertEquals("[]", report.errors.toString());
 
         // get
@@ -133,7 +133,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(report.source);
         assertTrue(report.source.size() == 1);
         assertEquals(String.valueOf(lmsSetup.id), report.source.iterator().next().modelId);
-        assertEquals("[]", report.results.toString());
+        assertEquals("[EntityKey [modelId=1, entityType=LMS_SETUP]]", report.results.toString());
         assertEquals("[]", report.errors.toString());
 
         lmsSetup = new RestAPITestHelper()
@@ -162,7 +162,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(report.source);
         assertTrue(report.source.size() == 1);
         assertEquals(String.valueOf(lmsSetup.id), report.source.iterator().next().modelId);
-        assertEquals("[]", report.results.toString());
+        assertEquals("[EntityKey [modelId=1, entityType=LMS_SETUP]]", report.results.toString());
         assertEquals("[]", report.errors.toString());
 
         // get

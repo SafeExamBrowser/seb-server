@@ -2226,19 +2226,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=INDICATOR], "
-                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
-                dependencies.toString());
+                "[CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "EXAM, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "INDICATOR, "
+                        + "INDICATOR]",
+                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
 
         // check that the user is owner of all depending exams and configurations
         dependencies.stream()
@@ -2275,15 +2275,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=INDICATOR], "
-                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
-                dependencies.toString());
+                "[CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "EXAM, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "INDICATOR, "
+                        + "INDICATOR]",
+                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
 
         // only with configuration dependencies
         dependencies = restService.getBuilder(GetUserDependency.class)
@@ -2297,11 +2297,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE]]",
-                dependencies.toString());
+                "[CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE]",
+                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
         dependencies = restService.getBuilder(GetUserDependency.class)
@@ -2316,19 +2316,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=INDICATOR], "
-                        + "EntityKey [modelId=2, entityType=INDICATOR]]",
-                dependencies.toString());
+                "[CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "EXAM, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "INDICATOR, "
+                        + "INDICATOR]",
+                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
     }
 
     @Test
@@ -2392,20 +2392,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .sorted()
                 .collect(Collectors.toList());
         assertEquals(
-                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
-                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
-                        + "EntityKey [modelId=1, entityType=EXAM], "
-                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
-                        + "EntityKey [modelId=1, entityType=INDICATOR], "
-                        + "EntityKey [modelId=2, entityType=INDICATOR], "
-                        + "EntityKey [modelId=9, entityType=USER]]",
-                dependencies.toString());
+                "[CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "EXAM, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "INDICATOR, "
+                        + "INDICATOR, "
+                        + "USER]",
+                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
 
         final Set<ErrorEntry> errors = report.getErrors();
         assertNotNull(errors);
@@ -2425,7 +2425,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         }
         try {
             restServiceAdmin.getBuilder(GetExam.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, "1")
+                    .withURIVariable(API.PARAM_MODEL_ID,
+                            dependencies.stream().filter(key -> key.entityType == EntityType.EXAM).findFirst()
+                                    .get().modelId)
                     .call()
                     .getOrThrow();
             fail("no resource found exception expected here");

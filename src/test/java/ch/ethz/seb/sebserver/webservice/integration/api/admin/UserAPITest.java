@@ -930,7 +930,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(report);
         assertNotNull(report.source);
-        assertTrue(report.results.isEmpty()); // TODO
+        assertFalse(report.results.isEmpty());
         assertTrue(report.errors.isEmpty());
         assertTrue(report.source.size() == 1);
 
@@ -993,7 +993,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(report);
         assertNotNull(report.source);
-        assertTrue(report.results.isEmpty()); // TODO
+        assertFalse(report.results.isEmpty());
         assertTrue(report.errors.isEmpty());
         assertTrue(report.source.size() == 1);
 

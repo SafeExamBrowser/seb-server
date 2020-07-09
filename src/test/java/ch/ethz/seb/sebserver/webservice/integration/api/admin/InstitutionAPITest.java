@@ -265,7 +265,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(report);
         assertEquals(
-                "EntityProcessingReport [source=[EntityKey [modelId=4, entityType=INSTITUTION]], dependencies=[], errors=[]]",
+                "EntityProcessingReport [source=[EntityKey [modelId=4, entityType=INSTITUTION]], results=[EntityKey [modelId=4, entityType=INSTITUTION]], errors=[]]",
                 report.toString());
 
         // get
@@ -292,9 +292,9 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(report);
-        assertEquals("EntityProcessingReport "
-                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
-                + "dependencies=[], "
+        assertEquals("EntityProcessingReport ["
+                + "source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
+                + "results=[EntityKey [modelId=4, entityType=INSTITUTION]], "
                 + "errors=[]]",
                 report.toString());
         // get
@@ -321,9 +321,9 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(report);
-        assertEquals("EntityProcessingReport "
-                + "[source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
-                + "dependencies=[], "
+        assertEquals("EntityProcessingReport ["
+                + "source=[EntityKey [modelId=4, entityType=INSTITUTION]], "
+                + "results=[EntityKey [modelId=4, entityType=INSTITUTION]], "
                 + "errors=[]]",
                 report.toString());
 
