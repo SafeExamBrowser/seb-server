@@ -316,9 +316,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
-    // ******************
-    // * DELETE (delete)
-    // ******************
+    // ************************
+    // * DELETE (hard-delete)
+    // ************************
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,

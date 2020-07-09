@@ -31,9 +31,9 @@ public class EntityProcessingReport {
     @JsonProperty(value = "source", required = true)
     public final Set<EntityKey> source;
     /** A set of entity-keys for all entities that has been detected as dependency to one or more of the source entities
-     *  during the process */
-    @JsonProperty(value = "dependencies", required = true)
-    public final Set<EntityKey> dependencies;
+     * during the process */
+    @JsonProperty(value = "results", required = true)
+    public final Set<EntityKey> results;
     /** A set of error entries that defines an error if happened. */
     @JsonProperty(value = "errors", required = true)
     public final Set<ErrorEntry> errors;
@@ -41,11 +41,11 @@ public class EntityProcessingReport {
     @JsonCreator
     public EntityProcessingReport(
             @JsonProperty(value = "source", required = true) final Collection<EntityKey> source,
-            @JsonProperty(value = "dependencies", required = true) final Collection<EntityKey> dependencies,
+            @JsonProperty(value = "results", required = true) final Collection<EntityKey> results,
             @JsonProperty(value = "errors", required = true) final Collection<ErrorEntry> errors) {
 
         this.source = Utils.immutableSetOf(source);
-        this.dependencies = Utils.immutableSetOf(dependencies);
+        this.results = Utils.immutableSetOf(results);
         this.errors = Utils.immutableSetOf(errors);
     }
 
@@ -62,22 +62,25 @@ public class EntityProcessingReport {
         return this.source;
     }
 
-    public Set<EntityKey> getDependencies() {
-        return this.dependencies;
+    public Set<EntityKey> getResults() {
+        return this.results;
     }
 
     public Set<ErrorEntry> getErrors() {
         return this.errors;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class ErrorEntry {
 
+        @JsonProperty(value = "entity_key", required = false)
         public final EntityKey entityKey;
+        @JsonProperty(value = "error_message", required = true)
         public final APIMessage errorMessage;
 
         @JsonCreator
         public ErrorEntry(
-                @JsonProperty(value = "entity_key", required = true) final EntityKey entityKey,
+                @JsonProperty(value = "entity_key", required = false) final EntityKey entityKey,
                 @JsonProperty(value = "error_message", required = true) final APIMessage errorMessage) {
 
             this.entityKey = entityKey;
@@ -98,8 +101,8 @@ public class EntityProcessingReport {
         final StringBuilder builder = new StringBuilder();
         builder.append("EntityProcessingReport [source=");
         builder.append(this.source);
-        builder.append(", dependencies=");
-        builder.append(this.dependencies);
+        builder.append(", results=");
+        builder.append(this.results);
         builder.append(", errors=");
         builder.append(this.errors);
         builder.append("]");

@@ -19,18 +19,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEntityException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -38,6 +43,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 @Service
 @WebServiceProfile
 public class BulkActionServiceImpl implements BulkActionService {
+
+    private static final Logger log = LoggerFactory.getLogger(BulkActionServiceImpl.class);
 
     private final EnumMap<EntityType, EnumSet<EntityType>> directDependancyMap =
             new EnumMap<>(EntityType.class);
@@ -134,13 +141,40 @@ public class BulkActionServiceImpl implements BulkActionService {
 
     private Result<EntityProcessingReport> createFullReport(final BulkAction action) {
         return Result.tryCatch(() -> {
-
-            // TODO
             return new EntityProcessingReport(
                     action.sources,
-                    Collections.emptyList(),
-                    Collections.emptyList());
+                    action.result.stream()
+                            .map(result -> result.getOr(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList()),
+                    action.result.stream()
+                            .filter(Result::hasError)
+                            .map(this::createErrorEntry)
+                            .collect(Collectors.toList()));
         });
+    }
+
+    private ErrorEntry createErrorEntry(final Result<EntityKey> bulkActionSingleResult) {
+        if (!bulkActionSingleResult.hasError()) {
+            return null;
+        }
+
+        final Exception error = bulkActionSingleResult.getError();
+
+        log.error(
+                "Unexpected error on bulk action processing. This error is reported to the caller: {}",
+                error.getMessage());
+
+        if (error instanceof BulkActionEntityException) {
+            return new ErrorEntry(
+                    ((BulkActionEntityException) error).key,
+                    APIMessage.ErrorMessage.UNEXPECTED.of(error, error.getMessage()));
+
+        } else {
+            return new ErrorEntry(
+                    null,
+                    APIMessage.ErrorMessage.UNEXPECTED.of(error, error.getMessage()));
+        }
     }
 
     private void processUserActivityLog(final BulkAction action) {

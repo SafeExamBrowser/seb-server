@@ -334,6 +334,13 @@ public class UserDAOImpl implements UserDAO {
 
             final List<Long> ids = extractListOfPKs(all);
 
+            // first delete assigned user roles
+            this.roleRecordMapper.deleteByExample()
+                    .where(RoleRecordDynamicSqlSupport.userId, isIn(ids))
+                    .build()
+                    .execute();
+
+            // then delete the user account
             this.userRecordMapper.deleteByExample()
                     .where(UserRecordDynamicSqlSupport.id, isIn(ids))
                     .build()

@@ -40,7 +40,8 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * and the type of this BulkActionSupportDAO.
      *
      * @param bulkAction the BulkAction to get keys of dependencies for the concrete type of this BulkActionSupportDAO
-     * @return Collection of Result. Each Result refers to the EntityKey of processed entity or to an error if happened */
+     * @return Collection of Result. Each Result refers to the EntityKey of processed entity or to an error if
+     *         happened */
     Set<EntityKey> getDependencies(BulkAction bulkAction);
 
     /** This processed a given BulkAction for all entities of the concrete type of this BulkActionSupportDAO
@@ -97,7 +98,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * @return List of Result refer to a given error for all given EntityKey instances */
     static List<Result<EntityKey>> handleBulkActionError(final Exception error, final Set<EntityKey> all) {
         return all.stream()
-                .map(key -> Result.<EntityKey> ofError(new BulkActionEntityException(key)))
+                .map(key -> Result.<EntityKey> ofError(new BulkActionEntityException(key, error)))
                 .collect(Collectors.toList());
     }
 

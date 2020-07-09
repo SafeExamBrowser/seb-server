@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
@@ -96,6 +98,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamCon
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
@@ -166,6 +169,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunnin
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependency;
@@ -2325,7 +2329,166 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "EntityKey [modelId=1, entityType=INDICATOR], "
                         + "EntityKey [modelId=2, entityType=INDICATOR]]",
                 dependencies.toString());
+    }
 
+    @Test
+    @Order(19)
+    // *************************************
+    // Use Case 19: Login as examAdmin2 and delete the user examAdmin2 and all its relational data
+    // - First login as examAdmin2 and check that it is not possible to delete the own account
+    public void testUsecase19_DeleteUserDependencies() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetUserAccountNames(),
+                new DeleteUserAccount(),
+                new GetUserAccount(),
+                new GetExam(),
+                new GetExamConfigMapping(),
+                new GetExamConfigNode());
+
+        final EntityName user = restService.getBuilder(GetUserAccountNames.class)
+                .call()
+                .getOrThrow()
+                .stream()
+                .filter(name -> name.name.startsWith("examAdmin2"))
+                .findFirst()
+                .get();
+
+        // try to delete the own user account should result in error message
+        try {
+            restService.getBuilder(DeleteUserAccount.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                    .call()
+                    .getOrThrow();
+            fail("Forbidden error message expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1001", apiMessage.messageCode);
+            assertEquals("FORBIDDEN", apiMessage.systemMessage);
+        }
+
+        // Now login as institutional admin and delete the user account with all dependencies (exam configs and exams)
+        final RestServiceImpl restServiceAdmin = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new GetUserAccountNames(),
+                new DeleteUserAccount(),
+                new GetUserAccount(),
+                new GetExam(),
+                new GetExamConfigMapping(),
+                new GetExamConfigNode());
+
+        final EntityProcessingReport report = restServiceAdmin.getBuilder(DeleteUserAccount.class)
+                .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(report);
+        final List<EntityKey> dependencies = report.getResults()
+                .stream()
+                .sorted()
+                .collect(Collectors.toList());
+        assertEquals(
+                "[EntityKey [modelId=1, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=3, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=4, entityType=CLIENT_CONNECTION], "
+                        + "EntityKey [modelId=2, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=3, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=4, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=5, entityType=CONFIGURATION_NODE], "
+                        + "EntityKey [modelId=1, entityType=EXAM], "
+                        + "EntityKey [modelId=3, entityType=EXAM_CONFIGURATION_MAP], "
+                        + "EntityKey [modelId=1, entityType=INDICATOR], "
+                        + "EntityKey [modelId=2, entityType=INDICATOR], "
+                        + "EntityKey [modelId=9, entityType=USER]]",
+                dependencies.toString());
+
+        final Set<ErrorEntry> errors = report.getErrors();
+        assertNotNull(errors);
+        assertTrue(errors.isEmpty());
+
+        // test deletion
+        try {
+            restServiceAdmin.getBuilder(GetUserAccount.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExam.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "1")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExamConfigMapping.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "3")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "2")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "3")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "4")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
+        try {
+            restServiceAdmin.getBuilder(GetExamConfigNode.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, "5")
+                    .call()
+                    .getOrThrow();
+            fail("no resource found exception expected here");
+        } catch (final RestCallError e) {
+            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            assertEquals("1002", apiMessage.getMessageCode());
+            assertEquals("resource not found", apiMessage.getSystemMessage());
+        }
     }
 
 }
