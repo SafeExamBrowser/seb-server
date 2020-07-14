@@ -34,6 +34,7 @@ public class RestCallPageSupplier<T> implements PageSupplier<T> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public Builder<T> newBuilder() {
+        // NOTE: This has raw-type because of Java 8 compilation (doesn't work with types for some wired reason)
         return new RestCallBuilderAdapter(this.restCall.newBuilder());
     }
 
