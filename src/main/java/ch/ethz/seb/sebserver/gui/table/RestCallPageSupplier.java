@@ -34,8 +34,7 @@ public class RestCallPageSupplier<T> implements PageSupplier<T> {
     @Override
     public Builder<T> newBuilder() {
         final RestCall<Page<T>>.RestCallBuilder restCallBuilder = this.restCall.newBuilder();
-        return new Builder<>() {
-
+        final Builder<T> builer = new Builder<>() {
             @Override
             public Builder<T> withPaging(final int pageNumber, final int pageSize) {
                 restCallBuilder.withPaging(pageNumber, pageSize);
@@ -75,8 +74,9 @@ public class RestCallPageSupplier<T> implements PageSupplier<T> {
             public Result<Page<T>> getPage() {
                 return restCallBuilder.call();
             }
-
         };
+
+        return builer;
     }
 
 }
