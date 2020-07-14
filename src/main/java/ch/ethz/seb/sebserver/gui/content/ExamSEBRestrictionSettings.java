@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -28,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.form.Form;
@@ -47,6 +50,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseCha
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
 
+@Lazy
+@Component
+@GuiProfile
 public class ExamSEBRestrictionSettings {
 
     private final static LocTextKey SEB_RESTRICTION_ERROR =
@@ -73,7 +79,7 @@ public class ExamSEBRestrictionSettings {
 
     static final String PAGE_CONTEXT_ATTR_LMS_TYPE = "ATTR_LMS_TYPE";
 
-    static Function<PageAction, PageAction> settingsFunction(final PageService pageService) {
+    Function<PageAction, PageAction> settingsFunction(final PageService pageService) {
 
         return action -> {
 
@@ -104,7 +110,7 @@ public class ExamSEBRestrictionSettings {
         };
     }
 
-    private static boolean doCreate(
+    private boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<?> formHandle) {
@@ -160,7 +166,7 @@ public class ExamSEBRestrictionSettings {
                 .hasError();
     }
 
-    private static final class SEBRestrictionPropertiesForm
+    private final class SEBRestrictionPropertiesForm
             implements ModalInputDialogComposer<FormHandle<?>> {
 
         private final PageService pageService;
@@ -290,7 +296,7 @@ public class ExamSEBRestrictionSettings {
 
     }
 
-    private static LmsType getLmsType(final PageContext pageContext) {
+    private LmsType getLmsType(final PageContext pageContext) {
         try {
             return LmsType.valueOf(pageContext.getAttribute(PAGE_CONTEXT_ATTR_LMS_TYPE));
         } catch (final Exception e) {
@@ -298,7 +304,7 @@ public class ExamSEBRestrictionSettings {
         }
     }
 
-    public static PageAction setSEBRestriction(
+    public PageAction setSEBRestriction(
             final PageAction action,
             final boolean activateRestriction,
             final RestService restService) {
@@ -310,7 +316,7 @@ public class ExamSEBRestrictionSettings {
                 error -> action.pageContext().notifyError(SEB_RESTRICTION_ERROR, error));
     }
 
-    public static PageAction setSEBRestriction(
+    public PageAction setSEBRestriction(
             final PageAction action,
             final boolean activateRestriction,
             final RestService restService,

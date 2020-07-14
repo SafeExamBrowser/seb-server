@@ -86,15 +86,17 @@ public class UserAccountForm implements TemplateComposer {
 
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final UserAccountDeletePopup userAccountDeletePopup;
     private final boolean multilingual;
 
     protected UserAccountForm(
             final PageService pageService,
-            final ResourceService resourceService,
+            final UserAccountDeletePopup userAccountDeletePopup,
             @Value("${sebserver.gui.multilingual:false}") final Boolean multilingual) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
+        this.userAccountDeletePopup = userAccountDeletePopup;
         this.multilingual = BooleanUtils.toBoolean(multilingual);
     }
 
@@ -266,6 +268,11 @@ public class UserAccountForm implements TemplateComposer {
                 .withSimpleRestCall(restService, ActivateUserAccount.class)
                 .publishIf(() -> writeGrant && readonly && institutionActive && !userAccount.isActive())
 
+                .newAction(ActionDefinition.USER_ACCOUNT_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.userAccountDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> (writeGrant || ownAccount) && readonly && institutionActive)
+
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(action -> formHandle.handleFormPost(formHandle.doAPIPost()
@@ -289,4 +296,5 @@ public class UserAccountForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly);
     }
+
 }

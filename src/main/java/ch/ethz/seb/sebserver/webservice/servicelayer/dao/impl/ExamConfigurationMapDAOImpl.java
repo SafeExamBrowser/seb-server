@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -280,7 +281,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only deletion here
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
             return Collections.emptySet();
@@ -291,7 +292,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
@@ -361,6 +362,14 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         });
     }
 
+    private Result<Collection<ExamConfigurationMap>> toDomainModel(
+            final Collection<ExamConfigurationMapRecord> records) {
+        return Result.tryCatch(() -> records
+                .stream()
+                .map(model -> this.toDomainModel(model).getOrThrow())
+                .collect(Collectors.toList()));
+    }
+
     private Result<ExamConfigurationMap> toDomainModel(final ExamConfigurationMapRecord record) {
         return Result.tryCatch(() -> {
 
@@ -420,81 +429,93 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         });
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
-                .where(
-                        ExamConfigurationMapRecordDynamicSqlSupport.institutionId,
-                        isEqualTo(Long.valueOf(institutionKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examConfigurationMapRecordMapper.selectByExample()
+                        .where(
+                                ExamConfigurationMapRecordDynamicSqlSupport.institutionId,
+                                isEqualTo(Long.valueOf(institutionKey.modelId)))
+                        .build()
+                        .execute(),
+                institutionKey));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
+    private Result<Collection<EntityDependency>> allIdsOfUser(final EntityKey userKey) {
         return Result.tryCatch(() -> {
-            final List<Long> examsIds = this.examRecordMapper.selectByExample()
+            final List<Long> examsIds = this.examRecordMapper.selectIdsByExample()
                     .where(
                             ExamRecordDynamicSqlSupport.owner,
                             isEqualTo(userKey.modelId))
                     .build()
-                    .execute()
-                    .stream()
-                    .map(r -> r.getId())
-                    .collect(Collectors.toList());
+                    .execute();
 
-            return this.examConfigurationMapRecordMapper.selectIdsByExample()
-                    .where(
-                            ExamConfigurationMapRecordDynamicSqlSupport.examId,
-                            isIn(examsIds))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                    .collect(Collectors.toList());
+            return toDependencies(
+                    this.examConfigurationMapRecordMapper.selectByExample()
+                            .where(
+                                    ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                                    isIn(examsIds))
+                            .build()
+                            .execute(),
+                    userKey);
         });
     }
 
-    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
-                .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
-                .on(
-                        ExamRecordDynamicSqlSupport.id,
-                        equalTo(ExamConfigurationMapRecordDynamicSqlSupport.examId))
+    private Result<Collection<EntityDependency>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examConfigurationMapRecordMapper.selectByExample()
+                        .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                        .on(
+                                ExamRecordDynamicSqlSupport.id,
+                                equalTo(ExamConfigurationMapRecordDynamicSqlSupport.examId))
 
-                .where(
-                        ExamRecordDynamicSqlSupport.lmsSetupId,
-                        isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                .collect(Collectors.toList()));
+                        .where(
+                                ExamRecordDynamicSqlSupport.lmsSetupId,
+                                isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
+                        .build()
+                        .execute(),
+                lmsSetupKey));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
-                .where(
-                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
-                        isEqualTo(Long.valueOf(examKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfExam(final EntityKey examKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examConfigurationMapRecordMapper.selectByExample()
+                        .where(
+                                ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                                isEqualTo(Long.valueOf(examKey.modelId)))
+                        .build()
+                        .execute(),
+                examKey));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfConfig(final EntityKey configKey) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectIdsByExample()
-                .where(
-                        ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
-                        isEqualTo(Long.valueOf(configKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfConfig(final EntityKey configKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examConfigurationMapRecordMapper.selectByExample()
+                        .where(
+                                ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
+                                isEqualTo(Long.valueOf(configKey.modelId)))
+                        .build()
+                        .execute(),
+                configKey));
+    }
+
+    private Collection<EntityDependency> toDependencies(
+            final List<ExamConfigurationMapRecord> records,
+            final EntityKey parent) {
+
+        return this.toDomainModel(records)
+                .map(models -> models
+                        .stream()
+                        .map(model -> getDependency(model, parent))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
+    }
+
+    private EntityDependency getDependency(final ExamConfigurationMap model, final EntityKey parent) {
+        return new EntityDependency(
+                parent,
+                new EntityKey(model.getId(), EntityType.EXAM_CONFIGURATION_MAP),
+                model.getExamName() + " / " + model.getConfigName(),
+                model.getExamDescription() + " / " + model.getConfigDescription());
     }
 
     private String getEncryptionPassword(final ExamConfigurationMap examConfigurationMap) {

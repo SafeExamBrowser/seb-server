@@ -85,13 +85,12 @@ public class MonitoringRunningExam implements TemplateComposer {
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
-            final ResourceService resourceService,
             final InstructionProcessor instructionProcessor,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.instructionProcessor = instructionProcessor;
         this.pollInterval = pollInterval;
     }

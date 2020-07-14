@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -404,21 +406,23 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
     @Test
     public void testDependency() throws Exception {
-        final Collection<EntityKey> dependencies = new RestAPITestHelper()
+        final Collection<EntityDependency> dependencies = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.INSTITUTION_ENDPOINT)
                 .withPath("1")
                 .withPath(API.DEPENDENCY_PATH_SEGMENT)
                 .withAttribute(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
                 .withExpectedStatus(HttpStatus.OK)
-                .getAsObject(new TypeReference<Collection<EntityKey>>() {
+                .getAsObject(new TypeReference<Collection<EntityDependency>>() {
                 });
+
+        final List<EntityKey> depKeys = dependencies.stream().map(dep -> dep.self).collect(Collectors.toList());
 
         assertNotNull(dependencies);
         assertTrue(dependencies.size() == 3);
-        assertTrue(dependencies.contains(new EntityKey("user1", EntityType.USER)));
-        assertTrue(dependencies.contains(new EntityKey("user2", EntityType.USER)));
-        assertTrue(dependencies.contains(new EntityKey("user5", EntityType.USER)));
+        assertTrue(depKeys.contains(new EntityKey("user1", EntityType.USER)));
+        assertTrue(depKeys.contains(new EntityKey("user2", EntityType.USER)));
+        assertTrue(depKeys.contains(new EntityKey("user5", EntityType.USER)));
     }
 
     static void assertContainsInstitution(final String name, final Collection<Institution> institutions) {

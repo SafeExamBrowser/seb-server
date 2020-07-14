@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -134,14 +135,14 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only if included
         if (!bulkAction.includesDependencyType(EntityType.CONFIGURATION_NODE)) {
             return Collections.emptySet();
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction =
+        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction =
                 key -> Result.of(Collections.emptyList());
 
         if (bulkAction.sourceType == EntityType.INSTITUTION) {
@@ -254,27 +255,35 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         });
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectByExample()
                 .where(
                         ConfigurationNodeRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.valueOf(institutionKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.CONFIGURATION_NODE),
+                        rec.getName(),
+                        rec.getDescription()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
-        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectByExample()
                 .where(
                         ConfigurationNodeRecordDynamicSqlSupport.owner,
                         isEqualTo(userKey.modelId))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
+                .map(rec -> new EntityDependency(
+                        userKey,
+                        new EntityKey(rec.getId(), EntityType.CONFIGURATION_NODE),
+                        rec.getName(),
+                        rec.getDescription()))
                 .collect(Collectors.toList()));
     }
 

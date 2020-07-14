@@ -162,6 +162,8 @@ public class ExamForm implements TemplateComposer {
 
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
+    private final ExamToConfigBindingForm examToConfigBindingForm;
     private final DownloadService downloadService;
     private final String downloadFileName;
     private final WidgetFactory widgetFactory;
@@ -169,12 +171,15 @@ public class ExamForm implements TemplateComposer {
 
     protected ExamForm(
             final PageService pageService,
-            final ResourceService resourceService,
+            final ExamSEBRestrictionSettings examSEBRestrictionSettings,
+            final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
+        this.examSEBRestrictionSettings = examSEBRestrictionSettings;
+        this.examToConfigBindingForm = examToConfigBindingForm;
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
@@ -393,7 +398,7 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
-                .withExec(ExamSEBRestrictionSettings.settingsFunction(this.pageService))
+                .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
                 .withAttribute(
                         ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_TYPE,
                         this.restService.getBuilder(GetLmsSetup.class)
@@ -406,13 +411,13 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
-                .withExec(action -> ExamSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
+                .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
-                .withExec(action -> ExamSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
+                .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted));
 
@@ -471,7 +476,7 @@ public class ExamForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.EXAM_CONFIGURATION_NEW)
                     .withParentEntityKey(entityKey)
-                    .withExec(ExamToConfigBindingForm.bindFunction(this.pageService))
+                    .withExec(this.examToConfigBindingForm.bindFunction())
                     .noEventPropagation()
                     .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
 
@@ -590,7 +595,7 @@ public class ExamForm implements TemplateComposer {
 
         // when okay and the exam sebRestriction is true
         if (applySEBRestriction) {
-            ExamSEBRestrictionSettings.setSEBRestriction(
+            this.examSEBRestrictionSettings.setSEBRestriction(
                     processFormSave,
                     true,
                     this.restService,

@@ -66,13 +66,11 @@ public class InstitutionList implements TemplateComposer {
 
     protected InstitutionList(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.pageSize = pageSize;
 
         this.activityFilter = new TableFilterAttribute(
@@ -87,8 +85,8 @@ public class InstitutionList implements TemplateComposer {
         final Composite content = this.pageService
                 .getWidgetFactory()
                 .defaultPageLayout(
-                    pageContext.getParent(),
-                    TITLE_TEXT_KEY);
+                        pageContext.getParent(),
+                        TITLE_TEXT_KEY);
 
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());

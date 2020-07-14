@@ -130,6 +130,11 @@ public enum ActionDefinition {
             ImageIcon.SWITCH,
             PageStateDefinitionImpl.USER_ACCOUNT_LIST,
             ActionCategory.USER_ACCOUNT_LIST),
+    USER_ACCOUNT_DELETE(
+            new LocTextKey("sebserver.useraccount.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.USER_ACCOUNT_LIST,
+            ActionCategory.USER_ACCOUNT_LIST),
 
     USER_ACCOUNT_CHANGE_PASSWORD(
             new LocTextKey("sebserver.useraccount.action.change.password"),

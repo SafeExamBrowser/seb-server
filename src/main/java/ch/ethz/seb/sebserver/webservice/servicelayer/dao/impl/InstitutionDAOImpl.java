@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -231,7 +232,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // NOTE since Institution is the top most Entity, there are no other Entity for that an Institution depends on.
         return Collections.emptySet();
     }

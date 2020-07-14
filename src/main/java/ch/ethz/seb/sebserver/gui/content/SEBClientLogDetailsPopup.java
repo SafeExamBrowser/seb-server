@@ -8,6 +8,12 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -28,11 +34,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 @Lazy
 @Component
@@ -86,12 +87,10 @@ public class SEBClientLogDetailsPopup {
     private final I18nSupport i18nSupport;
     private final WidgetFactory widgetFactory;
 
-    public SEBClientLogDetailsPopup(
-            final PageService pageService,
-            final WidgetFactory widgetFactory) {
+    public SEBClientLogDetailsPopup(final PageService pageService) {
 
         this.pageService = pageService;
-        this.widgetFactory = widgetFactory;
+        this.widgetFactory = pageService.getWidgetFactory();
         this.resourceService = pageService.getResourceService();
         this.restService = pageService.getRestService();
         this.i18nSupport = pageService.getI18nSupport();
@@ -124,7 +123,7 @@ public class SEBClientLogDetailsPopup {
                 WidgetFactory.CustomVariant.TEXT_H3,
                 DETAILS_EVENT_TILE_TEXT_KEY);
 
-        PageContext formContext = pc.copyOf(content);
+        final PageContext formContext = pc.copyOf(content);
 
         this.pageService.formBuilder(formContext)
                 .withDefaultSpanInput(6)

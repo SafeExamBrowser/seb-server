@@ -95,11 +95,10 @@ public class ExamList implements TemplateComposer {
 
     protected ExamList(
             final PageService pageService,
-            final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(

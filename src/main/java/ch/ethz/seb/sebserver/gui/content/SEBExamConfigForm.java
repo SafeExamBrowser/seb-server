@@ -103,19 +103,24 @@ public class SEBExamConfigForm implements TemplateComposer {
 
     private final PageService pageService;
     private final RestService restService;
+    private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
+    private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final CurrentUser currentUser;
     private final DownloadService downloadService;
     private final String downloadFileName;
 
     protected SEBExamConfigForm(
             final PageService pageService,
-            final CurrentUser currentUser,
+            final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
+            final SEBExamConfigImportPopup sebExamConfigImportPopup,
             final DownloadService downloadService,
             @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
-        this.currentUser = currentUser;
+        this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
+        this.sebExamConfigImportPopup = sebExamConfigImportPopup;
+        this.currentUser = pageService.getCurrentUser();
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
     }
@@ -228,8 +233,7 @@ public class SEBExamConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SEBExamConfigCreationPopup.configCreationFunction(
-                        this.pageService,
+                .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
                         actionContext
                                 .withEntityKey(entityKey)
                                 .withAttribute(
@@ -243,8 +247,7 @@ public class SEBExamConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
                 .withEntityKey(entityKey)
-                .withExec(SEBExamConfigCreationPopup.configCreationFunction(
-                        this.pageService,
+                .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
                         pageContext.withAttribute(
                                 PageContext.AttributeKeys.COPY_AS_TEMPLATE,
                                 Constants.TRUE_STRING)))
@@ -272,7 +275,7 @@ public class SEBExamConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SEBExamConfigImportPopup.importFunction(this.pageService, false))
+                .withExec(this.sebExamConfigImportPopup.importFunction(false))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 

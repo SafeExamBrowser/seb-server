@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -40,7 +41,7 @@ public final class BulkAction {
      * Null means all dependencies are included (ignore) and empty means no dependencies are included */
     public final EnumSet<EntityType> includeDependencies;
     /** A Set of EntityKey containing collected depending entities during dependency collection and processing phase */
-    final Set<EntityKey> dependencies;
+    final Set<EntityDependency> dependencies;
     /** A Set of EntityKey containing collected bulk action processing results during processing phase */
     final Set<Result<EntityKey>> result;
     /** Indicates if this BulkAction has already been processed and is not valid anymore */
@@ -81,7 +82,7 @@ public final class BulkAction {
         return this.includeDependencies == null || this.includeDependencies.contains(type);
     }
 
-    public Set<EntityKey> getDependencies() {
+    public Set<EntityDependency> getDependencies() {
         return Collections.unmodifiableSet(this.dependencies);
     }
 
@@ -93,7 +94,8 @@ public final class BulkAction {
         if (!this.dependencies.isEmpty()) {
             return Collections.unmodifiableSet(new HashSet<>(this.dependencies
                     .stream()
-                    .filter(key -> key.entityType == type)
+                    .filter(dependency -> dependency.self.entityType == type)
+                    .map(dependency -> dependency.self)
                     .collect(Collectors.toList())));
         }
 

@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
@@ -220,7 +221,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only for deletion
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
             return Collections.emptySet();
@@ -231,7 +232,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
@@ -252,8 +253,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
         return getDependencies(bulkAction, selectionFunction);
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                 .on(
                         ExamRecordDynamicSqlSupport.id,
@@ -264,12 +265,16 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.INDICATOR))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.INDICATOR),
+                        rec.getName(),
+                        rec.getType()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                 .on(
                         ExamRecordDynamicSqlSupport.id,
@@ -280,12 +285,16 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.INDICATOR))
+                .map(rec -> new EntityDependency(
+                        lmsSetupKey,
+                        new EntityKey(rec.getId(), EntityType.INDICATOR),
+                        rec.getName(),
+                        rec.getType()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
-        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                 .on(
                         ExamRecordDynamicSqlSupport.id,
@@ -296,19 +305,27 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.INDICATOR))
+                .map(rec -> new EntityDependency(
+                        userKey,
+                        new EntityKey(rec.getId(), EntityType.INDICATOR),
+                        rec.getName(),
+                        rec.getType()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
-        return Result.tryCatch(() -> this.indicatorRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfExam(final EntityKey examKey) {
+        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
                 .where(
                         IndicatorRecordDynamicSqlSupport.examId,
                         isEqualTo(Long.parseLong(examKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.INDICATOR))
+                .map(rec -> new EntityDependency(
+                        examKey,
+                        new EntityKey(rec.getId(), EntityType.INDICATOR),
+                        rec.getName(),
+                        rec.getType()))
                 .collect(Collectors.toList()));
     }
 

@@ -96,12 +96,11 @@ public class UserAccountList implements TemplateComposer {
 
     protected UserAccountList(
             final PageService pageService,
-            final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize,
             @Value("${sebserver.gui.multilingual:false}") final Boolean ml) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
         this.multilingual = BooleanUtils.isTrue(ml);
 

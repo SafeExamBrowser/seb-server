@@ -19,6 +19,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -27,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -49,34 +52,39 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Im
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
-final class SEBExamConfigImportPopup {
+@Lazy
+@Component
+@GuiProfile
+public class SEBExamConfigImportPopup {
 
     private static final Logger log = LoggerFactory.getLogger(SEBExamConfigImportPopup.class);
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
 
-    static Function<PageAction, PageAction> importFunction(
-            final PageService pageService,
-            final boolean newConfig) {
+    private final PageService pageService;
 
+    protected SEBExamConfigImportPopup(final PageService pageService) {
+        this.pageService = pageService;
+    }
+
+    public Function<PageAction, PageAction> importFunction(final boolean newConfig) {
         return action -> {
 
             final ModalInputDialog<FormHandle<ConfigurationNode>> dialog =
                     new ModalInputDialog<FormHandle<ConfigurationNode>>(
                             action.pageContext().getParent().getShell(),
-                            pageService.getWidgetFactory())
+                            this.pageService.getWidgetFactory())
                                     .setLargeDialogWidth();
 
             final ImportFormContext importFormContext = new ImportFormContext(
-                    pageService,
+                    this.pageService,
                     action.pageContext(),
                     newConfig);
 
             dialog.open(
                     SEBExamConfigForm.FORM_IMPORT_TEXT_KEY,
                     (Predicate<FormHandle<ConfigurationNode>>) formHandle -> doImport(
-                            pageService,
                             formHandle,
                             newConfig),
                     importFormContext::cancelUpload,
@@ -86,8 +94,7 @@ final class SEBExamConfigImportPopup {
         };
     }
 
-    private static boolean doImport(
-            final PageService pageService,
+    private boolean doImport(
             final FormHandle<ConfigurationNode> formHandle,
             final boolean newConfig) {
 
@@ -104,14 +111,14 @@ final class SEBExamConfigImportPopup {
                 if (StringUtils.isBlank(fieldValue)) {
                     form.setFieldError(
                             Domain.CONFIGURATION_NODE.ATTR_NAME,
-                            pageService
+                            this.pageService
                                     .getI18nSupport()
                                     .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
                     return false;
                 } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
                     form.setFieldError(
                             Domain.CONFIGURATION_NODE.ATTR_NAME,
-                            pageService
+                            this.pageService
                                     .getI18nSupport()
                                     .getText(new LocTextKey("sebserver.form.validation.fieldError.size",
                                             null,
@@ -123,7 +130,7 @@ final class SEBExamConfigImportPopup {
                 } else {
                     // check if name already exists
                     try {
-                        if (pageService.getRestService()
+                        if (this.pageService.getRestService()
                                 .getBuilder(GetExamConfigNodeNames.class)
                                 .call()
                                 .getOrThrow()
@@ -134,7 +141,7 @@ final class SEBExamConfigImportPopup {
 
                             form.setFieldError(
                                     Domain.CONFIGURATION_NODE.ATTR_NAME,
-                                    pageService
+                                    this.pageService
                                             .getI18nSupport()
                                             .getText(new LocTextKey(
                                                     "sebserver.form.validation.fieldError.name.notunique")));
@@ -151,9 +158,9 @@ final class SEBExamConfigImportPopup {
                 final InputStream inputStream = fileUpload.getInputStream();
                 if (inputStream != null) {
                     final RestCall<Configuration>.RestCallBuilder restCall = (newConfig)
-                            ? pageService.getRestService()
+                            ? this.pageService.getRestService()
                                     .getBuilder(ImportNewExamConfig.class)
-                            : pageService.getRestService()
+                            : this.pageService.getRestService()
                                     .getBuilder(ImportExamConfigOnExistingConfig.class);
 
                     restCall
@@ -184,11 +191,11 @@ final class SEBExamConfigImportPopup {
                         context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
                         if (newConfig) {
 
-                            final PageAction action = pageService.pageActionBuilder(context)
+                            final PageAction action = this.pageService.pageActionBuilder(context)
                                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                                     .create();
 
-                            pageService.firePageEvent(
+                            this.pageService.firePageEvent(
                                     new ActionEvent(action),
                                     action.pageContext());
                         }
@@ -233,7 +240,7 @@ final class SEBExamConfigImportPopup {
         }
     }
 
-    private static final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
+    private final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
 
         private final PageService pageService;
         private final PageContext pageContext;

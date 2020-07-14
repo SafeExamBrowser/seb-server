@@ -38,11 +38,11 @@ public class ModalInputDialog<T> extends Dialog {
     public static final int LARGE_DIALOG_WIDTH = 600;
     public static final int VERY_LARGE_DIALOG_WIDTH = 800;
 
-    private static final LocTextKey CANCEL_TEXT_KEY =
+    public static final LocTextKey CANCEL_TEXT_KEY =
             new LocTextKey("sebserver.overall.action.cancel");
-    private static final LocTextKey OK_TEXT_KEY =
+    public static final LocTextKey OK_TEXT_KEY =
             new LocTextKey("sebserver.overall.action.ok");
-    private static final LocTextKey CLOSE_TEXT_KEY =
+    public static final LocTextKey CLOSE_TEXT_KEY =
             new LocTextKey("sebserver.overall.action.close");
 
     private final WidgetFactory widgetFactory;

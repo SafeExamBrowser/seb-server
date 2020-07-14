@@ -31,10 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
@@ -300,7 +301,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // all of institution
         if (bulkAction.sourceType == EntityType.INSTITUTION) {
             return getDependencies(bulkAction, this::allIdsOfInstitution);
@@ -326,14 +327,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 .map(SebClientConfigRecord::getEncryptSecret);
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.sebClientConfigRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.sebClientConfigRecordMapper.selectByExample()
                 .where(SebClientConfigRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.valueOf(institutionKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.SEB_CLIENT_CONFIGURATION),
+                        rec.getName(),
+                        StringUtils.EMPTY))
                 .collect(Collectors.toList()));
     }
 

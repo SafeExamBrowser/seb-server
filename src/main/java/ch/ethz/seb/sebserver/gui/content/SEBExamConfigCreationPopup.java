@@ -14,6 +14,8 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -21,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -35,7 +38,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
 
-final class SEBExamConfigCreationPopup {
+@Lazy
+@Component
+@GuiProfile
+public class SEBExamConfigCreationPopup {
 
     static final LocTextKey FORM_COPY_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.copy.dialog");
@@ -44,10 +50,13 @@ final class SEBExamConfigCreationPopup {
     static final LocTextKey FORM_CREATE_FROM_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.action.create-config.dialog");
 
-    static Function<PageAction, PageAction> configCreationFunction(
-            final PageService pageService,
-            final PageContext pageContext) {
+    private final PageService pageService;
 
+    protected SEBExamConfigCreationPopup(final PageService pageService) {
+        this.pageService = pageService;
+    }
+
+    Function<PageAction, PageAction> configCreationFunction(final PageContext pageContext) {
         final boolean copyAsTemplate = BooleanUtils.toBoolean(
                 pageContext.getAttribute(PageContext.AttributeKeys.COPY_AS_TEMPLATE));
         final boolean createFromTemplate = BooleanUtils.toBoolean(
@@ -58,17 +67,17 @@ final class SEBExamConfigCreationPopup {
             final ModalInputDialog<FormHandle<ConfigCreationInfo>> dialog =
                     new ModalInputDialog<FormHandle<ConfigCreationInfo>>(
                             action.pageContext().getParent().getShell(),
-                            pageService.getWidgetFactory())
+                            this.pageService.getWidgetFactory())
                                     .setLargeDialogWidth();
 
             final CreationFormContext formContext = new CreationFormContext(
-                    pageService,
+                    this.pageService,
                     pageContext,
                     copyAsTemplate,
                     createFromTemplate);
 
             final Predicate<FormHandle<ConfigCreationInfo>> doCopy = formHandle -> doCreate(
-                    pageService,
+                    this.pageService,
                     pageContext,
                     copyAsTemplate,
                     createFromTemplate,
@@ -90,7 +99,7 @@ final class SEBExamConfigCreationPopup {
         };
     }
 
-    private static boolean doCreate(
+    private boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final boolean copyAsTemplate,
@@ -130,7 +139,7 @@ final class SEBExamConfigCreationPopup {
         return true;
     }
 
-    private static final class CreationFormContext implements ModalInputDialogComposer<FormHandle<ConfigCreationInfo>> {
+    private final class CreationFormContext implements ModalInputDialogComposer<FormHandle<ConfigCreationInfo>> {
 
         private final PageService pageService;
         private final PageContext pageContext;
@@ -188,7 +197,5 @@ final class SEBExamConfigCreationPopup {
 
             return () -> formHandle;
         }
-
     }
-
 }

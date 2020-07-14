@@ -285,6 +285,15 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
+    default <T extends Entity> TableBuilder<T> entityTableBuilder(final Class<? extends RestCall<Page<T>>> apiCall) {
+        return entityTableBuilder(this.getRestService().getRestCall(apiCall));
+    }
+
+    /** Get an new TableBuilder for specified page based RestCall.
+     *
+     * @param apiCall the SEB Server API RestCall that feeds the table with data
+     * @param <T> the type of the Entity of the table
+     * @return TableBuilder of specified type */
     default <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
         return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }

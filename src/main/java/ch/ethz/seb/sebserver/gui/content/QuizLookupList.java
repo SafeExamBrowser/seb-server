@@ -117,12 +117,11 @@ public class QuizLookupList implements TemplateComposer {
 
     protected QuizLookupList(
             final PageService pageService,
-            final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(

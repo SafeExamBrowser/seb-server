@@ -42,7 +42,7 @@ public class TableBuilder<ROW extends Entity> {
     private int pageSize = -1;
     private int type = SWT.NONE;
     private boolean hideNavigation = false;
-    private Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
+    private Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
     private Consumer<Set<ROW>> selectionListener;
     private boolean markupEnabled = false;
@@ -94,7 +94,7 @@ public class TableBuilder<ROW extends Entity> {
     }
 
     public TableBuilder<ROW> withRestCallAdapter(
-            final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> adapter) {
+            final Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> adapter) {
 
         this.restCallAdapter = adapter;
         return this;

@@ -26,11 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -137,7 +138,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            LmsSetupRecord savedRecord = recordById(lmsSetup.id)
+            final LmsSetupRecord savedRecord = recordById(lmsSetup.id)
                     .getOrThrow();
 
             final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
@@ -250,7 +251,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // all of institution
         if (bulkAction.sourceType == EntityType.INSTITUTION) {
             return getDependencies(bulkAction, this::allIdsOfInstitution);
@@ -306,14 +307,18 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         });
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectByExample()
                 .where(LmsSetupRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.valueOf(institutionKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.LMS_SETUP),
+                        rec.getName(),
+                        rec.getLmsUrl()))
                 .collect(Collectors.toList()));
     }
 

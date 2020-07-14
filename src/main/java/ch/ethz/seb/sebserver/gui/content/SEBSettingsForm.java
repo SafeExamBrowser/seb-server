@@ -46,8 +46,8 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -73,18 +73,19 @@ public class SEBSettingsForm implements TemplateComposer {
 
     private final PageService pageService;
     private final RestService restService;
+    private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
     private final CurrentUser currentUser;
     private final ExamConfigurationService examConfigurationService;
 
     protected SEBSettingsForm(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
+            final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
             final ExamConfigurationService examConfigurationService) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
+        this.currentUser = pageService.getCurrentUser();
         this.examConfigurationService = examConfigurationService;
     }
 
@@ -192,8 +193,7 @@ public class SEBSettingsForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
                     .withEntityKey(entityKey)
-                    .withExec(SEBExamConfigCreationPopup.configCreationFunction(
-                            this.pageService,
+                    .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
                             pageContext
                                     .withAttribute(
                                             PageContext.AttributeKeys.COPY_AS_TEMPLATE,

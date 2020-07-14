@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -24,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
@@ -45,7 +48,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 
-final class ExamToConfigBindingForm {
+@Lazy
+@Component
+@GuiProfile
+public class ExamToConfigBindingForm {
 
     private static final Logger log = LoggerFactory.getLogger(ExamToConfigBindingForm.class);
 
@@ -66,8 +72,13 @@ final class ExamToConfigBindingForm {
     private final static LocTextKey CONFIG_ACTION_NO_CONFIG_MESSAGE =
             new LocTextKey("sebserver.exam.configuration.action.noconfig.message");
 
-    static Function<PageAction, PageAction> bindFunction(final PageService pageService) {
+    private final PageService pageService;
 
+    protected ExamToConfigBindingForm(final PageService pageService) {
+        this.pageService = pageService;
+    }
+
+    Function<PageAction, PageAction> bindFunction() {
         return action -> {
 
             final PageContext pageContext = action.pageContext();
@@ -75,7 +86,7 @@ final class ExamToConfigBindingForm {
             final boolean isNew = entityKey == null;
 
             if (isNew) {
-                final boolean noConfigsAvailable = pageService.getResourceService()
+                final boolean noConfigsAvailable = this.pageService.getResourceService()
                         .examConfigurationSelectionResources()
                         .isEmpty();
 
@@ -87,15 +98,15 @@ final class ExamToConfigBindingForm {
             final ModalInputDialog<FormHandle<ExamConfigurationMap>> dialog =
                     new ModalInputDialog<FormHandle<ExamConfigurationMap>>(
                             action.pageContext().getParent().getShell(),
-                            pageService.getWidgetFactory())
+                            this.pageService.getWidgetFactory())
                                     .setLargeDialogWidth();
 
             final BindFormContext bindFormContext = new BindFormContext(
-                    pageService,
+                    this.pageService,
                     action.pageContext());
 
             final Predicate<FormHandle<ExamConfigurationMap>> doBind = formHandle -> doCreate(
-                    pageService,
+                    this.pageService,
                     pageContext,
                     formHandle);
 
@@ -114,7 +125,7 @@ final class ExamToConfigBindingForm {
         };
     }
 
-    private static boolean doCreate(
+    private boolean doCreate(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<ExamConfigurationMap> formHandle) {
@@ -143,7 +154,7 @@ final class ExamToConfigBindingForm {
                 .hasError();
     }
 
-    private static final class BindFormContext implements ModalInputDialogComposer<FormHandle<ExamConfigurationMap>> {
+    private final class BindFormContext implements ModalInputDialogComposer<FormHandle<ExamConfigurationMap>> {
 
         private final PageService pageService;
         private final PageContext pageContext;
@@ -244,7 +255,7 @@ final class ExamToConfigBindingForm {
         }
     }
 
-    private static void updateFormValuesFromConfigSelection(final Form form, final ResourceService resourceService) {
+    private void updateFormValuesFromConfigSelection(final Form form, final ResourceService resourceService) {
         final String configId = form.getFieldValue(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID);
         if (StringUtils.isBlank(configId)) {
             form.setFieldValue(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION, null);

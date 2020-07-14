@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -363,7 +364,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // all of institution
         if (bulkAction.sourceType == EntityType.INSTITUTION &&
                 (bulkAction.type == BulkActionType.DEACTIVATE || bulkAction.type == BulkActionType.HARD_DELETE)) {
@@ -409,14 +410,18 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
                 .where(UserRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.valueOf(institutionKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(rec -> new EntityKey(rec.getUuid(), EntityType.USER))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getUuid(), EntityType.USER),
+                        rec.getName(),
+                        rec.getSurname()))
                 .collect(Collectors.toList()));
     }
 

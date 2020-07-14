@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
@@ -587,14 +588,14 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only if included
         if (!bulkAction.includesDependencyType(EntityType.EXAM)) {
             return Collections.emptySet();
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
@@ -636,37 +637,34 @@ public class ExamDAOImpl implements ExamDAO {
                 .execute());
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
-                .where(ExamRecordDynamicSqlSupport.institutionId,
-                        isEqualTo(Long.valueOf(institutionKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examRecordMapper.selectByExample()
+                        .where(ExamRecordDynamicSqlSupport.institutionId,
+                                isEqualTo(Long.valueOf(institutionKey.modelId)))
+                        .build()
+                        .execute(),
+                institutionKey));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
-                .where(ExamRecordDynamicSqlSupport.lmsSetupId,
-                        isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examRecordMapper.selectByExample()
+                        .where(ExamRecordDynamicSqlSupport.lmsSetupId,
+                                isEqualTo(Long.valueOf(lmsSetupKey.modelId)))
+                        .build()
+                        .execute(),
+                lmsSetupKey));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
-                .where(ExamRecordDynamicSqlSupport.owner,
-                        isEqualTo(userKey.modelId))
-                .build()
-                .execute()
-                .stream()
-                .map(id -> new EntityKey(id, EntityType.EXAM))
-                .collect(Collectors.toList()));
+    private Result<Collection<EntityDependency>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> toDependencies(
+                this.examRecordMapper.selectByExample()
+                        .where(ExamRecordDynamicSqlSupport.owner,
+                                isEqualTo(userKey.modelId))
+                        .build()
+                        .execute(),
+                userKey));
     }
 
     private Result<ExamRecord> recordById(final Long id) {
@@ -679,6 +677,26 @@ public class ExamDAOImpl implements ExamDAO {
             }
             return record;
         });
+    }
+
+    private Collection<EntityDependency> toDependencies(
+            final List<ExamRecord> records,
+            final EntityKey parent) {
+
+        return this.toDomainModel(records)
+                .map(models -> models
+                        .stream()
+                        .map(model -> getDependency(model, parent))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
+    }
+
+    private EntityDependency getDependency(final Exam exam, final EntityKey parent) {
+        return new EntityDependency(
+                parent,
+                new EntityKey(exam.getId(), EntityType.EXAM),
+                exam.getName(),
+                exam.getDescription());
     }
 
     private Result<Exam> toDomainModelCached(final ExamRecord record) {

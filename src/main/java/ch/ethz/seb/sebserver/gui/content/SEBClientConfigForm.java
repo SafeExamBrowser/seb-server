@@ -115,14 +115,12 @@ public class SEBClientConfigForm implements TemplateComposer {
 
     protected SEBClientConfigForm(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
             final DownloadService downloadService,
             @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
     }

@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
@@ -181,7 +182,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
-    public Set<EntityKey> getDependencies(final BulkAction bulkAction) {
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only for deletion
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
             return Collections.emptySet();
@@ -192,7 +193,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction;
+        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
@@ -317,20 +318,24 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         });
     }
 
-    private Result<Collection<EntityKey>> allIdsOfInstitution(final EntityKey institutionKey) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.institutionId,
                         isEqualTo(Long.parseLong(institutionKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
+                        rec.getExamUserSessionId(),
+                        rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfLmsSetup(final EntityKey lmsSetupKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                 .on(
                         ExamRecordDynamicSqlSupport.id,
@@ -341,12 +346,16 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
+                .map(rec -> new EntityDependency(
+                        lmsSetupKey,
+                        new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
+                        rec.getExamUserSessionId(),
+                        rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfUser(final EntityKey userKey) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfUser(final EntityKey userKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
                 .on(
                         ExamRecordDynamicSqlSupport.id,
@@ -357,19 +366,27 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
+                .map(rec -> new EntityDependency(
+                        userKey,
+                        new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
+                        rec.getExamUserSessionId(),
+                        rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
 
-    private Result<Collection<EntityKey>> allIdsOfExam(final EntityKey examKey) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectIdsByExample()
+    private Result<Collection<EntityDependency>> allIdsOfExam(final EntityKey examKey) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         isEqualTo(Long.parseLong(examKey.modelId)))
                 .build()
                 .execute()
                 .stream()
-                .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
+                .map(rec -> new EntityDependency(
+                        examKey,
+                        new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
+                        rec.getExamUserSessionId(),
+                        rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
 

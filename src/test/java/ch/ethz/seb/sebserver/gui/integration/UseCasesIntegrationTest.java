@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -2216,7 +2217,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .findFirst()
                 .get();
 
-        List<EntityKey> dependencies = restService.getBuilder(GetUserDependency.class)
+        List<EntityDependency> dependencies = restService.getBuilder(GetUserDependency.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
                 .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                 .call()
@@ -2238,27 +2239,27 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "EXAM_CONFIGURATION_MAP, "
                         + "INDICATOR, "
                         + "INDICATOR]",
-                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
+                dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // check that the user is owner of all depending exams and configurations
         dependencies.stream()
-                .filter(key -> key.entityType == EntityType.EXAM)
+                .filter(key -> key.self.entityType == EntityType.EXAM)
                 .forEach(key -> {
                     assertEquals(
                             user.modelId,
                             restService.getBuilder(GetExam.class)
-                                    .withURIVariable(API.PARAM_MODEL_ID, key.getModelId())
+                                    .withURIVariable(API.PARAM_MODEL_ID, key.self.getModelId())
                                     .call()
                                     .getOrThrow().owner);
                 });
 
         dependencies.stream()
-                .filter(key -> key.entityType == EntityType.CONFIGURATION_NODE)
+                .filter(key -> key.self.entityType == EntityType.CONFIGURATION_NODE)
                 .forEach(key -> {
                     assertEquals(
                             user.modelId,
                             restService.getBuilder(GetExamConfigNode.class)
-                                    .withURIVariable(API.PARAM_MODEL_ID, key.getModelId())
+                                    .withURIVariable(API.PARAM_MODEL_ID, key.self.getModelId())
                                     .call()
                                     .getOrThrow().owner);
                 });
@@ -2283,7 +2284,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "EXAM_CONFIGURATION_MAP, "
                         + "INDICATOR, "
                         + "INDICATOR]",
-                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
+                dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with configuration dependencies
         dependencies = restService.getBuilder(GetUserDependency.class)
@@ -2301,7 +2302,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE]",
-                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
+                dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
         dependencies = restService.getBuilder(GetUserDependency.class)
@@ -2328,7 +2329,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "EXAM_CONFIGURATION_MAP, "
                         + "INDICATOR, "
                         + "INDICATOR]",
-                dependencies.stream().map(EntityKey::getEntityType).collect(Collectors.toList()).toString());
+                dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
     }
 
     @Test

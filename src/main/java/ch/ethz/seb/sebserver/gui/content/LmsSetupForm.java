@@ -104,12 +104,10 @@ public class LmsSetupForm implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
 
-    protected LmsSetupForm(
-            final PageService pageService,
-            final ResourceService resourceService) {
+    protected LmsSetupForm(final PageService pageService) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
     }
 
     @Override

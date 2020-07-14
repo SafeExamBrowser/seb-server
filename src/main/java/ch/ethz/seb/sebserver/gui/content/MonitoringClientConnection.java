@@ -95,7 +95,6 @@ public class MonitoringClientConnection implements TemplateComposer {
     protected MonitoringClientConnection(
             final ServerPushService serverPushService,
             final PageService pageService,
-            final ResourceService resourceService,
             final InstructionProcessor instructionProcessor,
             final SEBClientLogDetailsPopup sebClientLogDetailsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
@@ -103,8 +102,8 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
-        this.resourceService = resourceService;
-        this.i18nSupport = resourceService.getI18nSupport();
+        this.resourceService = pageService.getResourceService();
+        this.i18nSupport = this.resourceService.getI18nSupport();
         this.instructionProcessor = instructionProcessor;
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;

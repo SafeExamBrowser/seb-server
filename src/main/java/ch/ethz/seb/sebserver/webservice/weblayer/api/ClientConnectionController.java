@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -53,7 +53,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     }
 
     @Override
-    public Collection<EntityKey> getDependencies(
+    public Collection<EntityDependency> getDependencies(
             final String modelId,
             final BulkActionType bulkActionType,
             final List<String> includes) {

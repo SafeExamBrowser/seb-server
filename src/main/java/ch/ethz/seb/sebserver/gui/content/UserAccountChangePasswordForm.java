@@ -44,8 +44,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
  * If the current user is the owner of the User-Account the password is required and must
  * match the users current password.
  * If the current user is an administrator that has to reset another users password the
- * password that is also required must match the administrators current password.
- **/
+ * password that is also required must match the administrators current password. **/
 public class UserAccountChangePasswordForm implements TemplateComposer {
 
     private static final String FORM_TITLE_KEY = "sebserver.useraccount.form.pwchange.title";
@@ -61,14 +60,11 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
     private final CurrentUser currentUser;
     private final I18nSupport i18nSupport;
 
-    protected UserAccountChangePasswordForm(
-            final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser) {
+    protected UserAccountChangePasswordForm(final PageService pageService) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.i18nSupport = pageService.getI18nSupport();
     }
 

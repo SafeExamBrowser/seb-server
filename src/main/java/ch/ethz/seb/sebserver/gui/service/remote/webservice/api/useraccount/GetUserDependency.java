@@ -19,20 +19,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetUserDependency extends RestCall<Set<EntityKey>> {
+public class GetUserDependency extends RestCall<Set<EntityDependency>> {
 
     public GetUserDependency() {
         super(new TypeKey<>(
                 CallType.GET_DEPENDENCIES,
                 EntityType.USER,
-                new TypeReference<Set<EntityKey>>() {
+                new TypeReference<Set<EntityDependency>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,

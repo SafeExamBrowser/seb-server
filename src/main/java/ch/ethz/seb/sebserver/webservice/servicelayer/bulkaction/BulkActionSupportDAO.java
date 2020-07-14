@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
@@ -42,7 +43,7 @@ public interface BulkActionSupportDAO<T extends Entity> {
      * @param bulkAction the BulkAction to get keys of dependencies for the concrete type of this BulkActionSupportDAO
      * @return Collection of Result. Each Result refers to the EntityKey of processed entity or to an error if
      *         happened */
-    Set<EntityKey> getDependencies(BulkAction bulkAction);
+    Set<EntityDependency> getDependencies(BulkAction bulkAction);
 
     /** This processed a given BulkAction for all entities of the concrete type of this BulkActionSupportDAO
      * that are defined by this given BulkAction.
@@ -104,16 +105,16 @@ public interface BulkActionSupportDAO<T extends Entity> {
 
     /** Get dependency keys of all source entities of a given BulkAction
      * This method simply goes through all source EntityKeys of the given BulkAction
-     * and applies the selection functions for each, collecting the resulting dependency EntityKeys
+     * and applies the selection functions for each, collecting the resulting dependency EntityDependency
      * into one Set of all dependency keys for all source keys
      *
      *
      * @param bulkAction The BulkAction that defines the source keys
      * @param selectionFunction a selection functions that gives all dependency keys for a given source key
-     * @return Set of EntityKey instances that define all entities that depends on the given bulk action */
-    default Set<EntityKey> getDependencies(
+     * @return Set of EntityDependency instances that define all entities that depends on the given bulk action */
+    default Set<EntityDependency> getDependencies(
             final BulkAction bulkAction,
-            final Function<EntityKey, Result<Collection<EntityKey>>> selectionFunction) {
+            final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction) {
 
         return bulkAction.sources
                 .stream()

@@ -57,14 +57,11 @@ public class InstitutionForm implements TemplateComposer {
     private final RestService restService;
     private final CurrentUser currentUser;
 
-    protected InstitutionForm(
-            final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser) {
+    protected InstitutionForm(final PageService pageService) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
     }
 
     @Override

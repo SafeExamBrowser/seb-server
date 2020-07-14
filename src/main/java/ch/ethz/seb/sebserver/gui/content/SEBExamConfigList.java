@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -68,20 +67,19 @@ public class SEBExamConfigList implements TemplateComposer {
     private final TableFilterAttribute statusFilter;
 
     private final PageService pageService;
-    private final RestService restService;
+    private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
 
     protected SEBExamConfigList(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
+            final SEBExamConfigImportPopup sebExamConfigImportPopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.sebExamConfigImportPopup = sebExamConfigImportPopup;
+        this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 
@@ -109,7 +107,7 @@ public class SEBExamConfigList implements TemplateComposer {
 
         // exam configuration table
         final EntityTable<ConfigurationNode> configTable =
-                this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigNodePage.class))
+                this.pageService.entityTableBuilder(GetExamConfigNodePage.class)
                         .withStaticFilter(
                                 Domain.CONFIGURATION_NODE.ATTR_TYPE,
                                 ConfigurationType.EXAM_CONFIG.name())
@@ -172,7 +170,7 @@ public class SEBExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
-                        SEBExamConfigImportPopup.importFunction(this.pageService, true),
+                        this.sebExamConfigImportPopup.importFunction(true),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(examConfigGrant::im);

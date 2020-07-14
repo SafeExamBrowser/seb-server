@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -111,7 +111,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     }
 
     @Override
-    public Collection<EntityKey> getDependencies(
+    public Collection<EntityDependency> getDependencies(
             final String modelId,
             final BulkActionType bulkActionType,
             final List<String> includes) {

@@ -71,12 +71,10 @@ public class IndicatorForm implements TemplateComposer {
     private final ResourceService resourceService;
     private final I18nSupport i18nSupport;
 
-    protected IndicatorForm(
-            final PageService pageService,
-            final ResourceService resourceService) {
+    protected IndicatorForm(final PageService pageService) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.i18nSupport = pageService.getI18nSupport();
     }
 

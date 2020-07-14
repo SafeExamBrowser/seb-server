@@ -78,13 +78,11 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
 
     protected ConfigTemplateAttributeForm(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
             final ExamConfigurationService examConfigurationService) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.examConfigurationService = examConfigurationService;
 

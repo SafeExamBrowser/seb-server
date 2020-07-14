@@ -80,6 +80,7 @@ public class ConfigTemplateForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final SEBExamConfigCreationPopup sebxamConfigCreationPopup;
     private final I18nSupport i18nSupport;
     private final ResourceService resourceService;
     private final ExamConfigurationService examConfigurationService;
@@ -91,16 +92,16 @@ public class ConfigTemplateForm implements TemplateComposer {
 
     protected ConfigTemplateForm(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
+            final SEBExamConfigCreationPopup sebxamConfigCreationPopup,
             final ExamConfigurationService examConfigurationService) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.i18nSupport = pageService.getI18nSupport();
         this.resourceService = pageService.getResourceService();
         this.examConfigurationService = examConfigurationService;
+        this.sebxamConfigCreationPopup = sebxamConfigCreationPopup;
 
     }
 
@@ -292,8 +293,7 @@ public class ConfigTemplateForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG)
                 .withEntityKey(entityKey)
-                .withExec(SEBExamConfigCreationPopup.configCreationFunction(
-                        this.pageService,
+                .withExec(this.sebxamConfigCreationPopup.configCreationFunction(
                         pageContext
                                 .withAttribute(
                                         PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,

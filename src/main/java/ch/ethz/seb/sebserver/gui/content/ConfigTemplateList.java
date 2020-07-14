@@ -72,13 +72,11 @@ public class ConfigTemplateList implements TemplateComposer {
 
     protected ConfigTemplateList(
             final PageService pageService,
-            final RestService restService,
-            final CurrentUser currentUser,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.restService = restService;
-        this.currentUser = currentUser;
+        this.restService = pageService.getRestService();
+        this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 

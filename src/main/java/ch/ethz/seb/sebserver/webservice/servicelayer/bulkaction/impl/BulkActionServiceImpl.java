@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
@@ -184,13 +185,13 @@ public class BulkActionServiceImpl implements BulkActionService {
             return;
         }
 
-        for (final EntityKey key : action.dependencies) {
+        for (final EntityDependency dependency : action.dependencies) {
 
             this.userActivityLogDAO.log(
                     activityType,
-                    key.entityType,
-                    key.modelId,
-                    "Bulk Action - Dependency : " + toLogMessage(key));
+                    dependency.self.entityType,
+                    dependency.self.modelId,
+                    "Bulk Action - Dependency : " + toLogMessage(dependency));
         }
 
         for (final EntityKey key : action.sources) {
@@ -210,6 +211,18 @@ public class BulkActionServiceImpl implements BulkActionService {
                     .writeValueAsString(key);
         } catch (final JsonProcessingException e) {
             entityAsString = key.toString();
+        }
+        return entityAsString;
+    }
+
+    private String toLogMessage(final EntityDependency dependency) {
+        String entityAsString;
+        try {
+            entityAsString = this.jsonMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(dependency);
+        } catch (final JsonProcessingException e) {
+            entityAsString = dependency.toString();
         }
         return entityAsString;
     }

@@ -62,11 +62,10 @@ public class MonitoringRunningExamList implements TemplateComposer {
 
     protected MonitoringRunningExamList(
             final PageService pageService,
-            final ResourceService resourceService,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
-        this.resourceService = resourceService;
+        this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 
         this.typeFilter = new TableFilterAttribute(

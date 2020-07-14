@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -115,7 +115,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     }
 
     @Override
-    public Collection<EntityKey> getDependencies(
+    public Collection<EntityDependency> getDependencies(
             final String modelId,
             final BulkActionType bulkActionType,
             final List<String> includes) {

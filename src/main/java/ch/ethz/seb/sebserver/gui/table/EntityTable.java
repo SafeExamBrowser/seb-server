@@ -80,8 +80,8 @@ public class EntityTable<ROW extends Entity> {
 
     final PageService pageService;
     final WidgetFactory widgetFactory;
-    final RestCall<Page<ROW>> restCall;
-    final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter;
+    final PageSupplier<ROW> pageSupplier;
+    final Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> pageSupplierAdapter;
     final I18nSupport i18nSupport;
     final PageContext pageContext;
 
@@ -109,7 +109,7 @@ public class EntityTable<ROW extends Entity> {
             final int type,
             final PageContext pageContext,
             final RestCall<Page<ROW>> restCall,
-            final Function<RestCall<Page<ROW>>.RestCallBuilder, RestCall<Page<ROW>>.RestCallBuilder> restCallAdapter,
+            final Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> pageSupplierAdapter,
             final PageService pageService,
             final List<ColumnDefinition<ROW>> columns,
             final int pageSize,
@@ -132,8 +132,8 @@ public class EntityTable<ROW extends Entity> {
         this.i18nSupport = pageService.getI18nSupport();
         this.pageContext = pageContext;
         this.widgetFactory = pageService.getWidgetFactory();
-        this.restCall = restCall;
-        this.restCallAdapter = (restCallAdapter != null) ? restCallAdapter : Function.identity();
+        this.pageSupplier = new RestCallPageSupplier<>(restCall);
+        this.pageSupplierAdapter = (pageSupplierAdapter != null) ? pageSupplierAdapter : Function.identity();
         this.columns = Utils.immutableListOf(columns);
         this.emptyMessage = emptyMessage;
         this.hideNavigation = hideNavigation;
@@ -233,8 +233,8 @@ public class EntityTable<ROW extends Entity> {
     }
 
     public EntityType getEntityType() {
-        if (this.restCall != null) {
-            return this.restCall.getEntityType();
+        if (this.pageSupplier != null) {
+            return this.pageSupplier.getEntityType();
         }
 
         return null;
@@ -471,13 +471,13 @@ public class EntityTable<ROW extends Entity> {
         this.table.removeAll();
 
         // get page data and create rows
-        this.restCall.newBuilder()
+        this.pageSupplier.newBuilder()
                 .withPaging(pageNumber, pageSize)
                 .withSorting(sortColumn, sortOrder)
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
                 .withQueryParams(this.staticQueryParams)
-                .apply(this.restCallAdapter)
-                .call()
+                .apply(this.pageSupplierAdapter)
+                .getPage()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
                 .onError(this.pageContext::notifyUnexpectedError);
