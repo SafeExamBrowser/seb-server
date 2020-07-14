@@ -33,50 +33,56 @@ public class RestCallPageSupplier<T> implements PageSupplier<T> {
 
     @Override
     public Builder<T> newBuilder() {
-        final RestCall<Page<T>>.RestCallBuilder restCallBuilder = this.restCall.newBuilder();
-        final Builder<T> builer = new Builder<>() {
-            @Override
-            public Builder<T> withPaging(final int pageNumber, final int pageSize) {
-                restCallBuilder.withPaging(pageNumber, pageSize);
-                return this;
-            }
+        return new RestCallBuilderAdapter<>(this.restCall.newBuilder());
+    }
 
-            @Override
-            public Builder<T> withSorting(final String column, final PageSortOrder order) {
-                restCallBuilder.withSorting(column, order);
-                return this;
-            }
+    public static final class RestCallBuilderAdapter<T> implements Builder<T> {
 
-            @Override
-            public Builder<T> withQueryParams(final MultiValueMap<String, String> params) {
-                restCallBuilder.withQueryParams(params);
-                return this;
-            }
+        final RestCall<Page<T>>.RestCallBuilder restCallBuilder;
 
-            @Override
-            public Builder<T> withQueryParam(final String name, final String value) {
-                restCallBuilder.withQueryParam(name, value);
-                return this;
-            }
+        private RestCallBuilderAdapter(final RestCall<Page<T>>.RestCallBuilder restCallBuilder) {
+            this.restCallBuilder = restCallBuilder;
+        }
 
-            @Override
-            public Builder<T> withURIVariable(final String name, final String id) {
-                restCallBuilder.withURIVariable(name, id);
-                return this;
-            }
+        @Override
+        public Builder<T> withPaging(final int pageNumber, final int pageSize) {
+            this.restCallBuilder.withPaging(pageNumber, pageSize);
+            return this;
+        }
 
-            @Override
-            public Builder<T> apply(final Function<Builder<T>, Builder<T>> f) {
-                return f.apply(this);
-            }
+        @Override
+        public Builder<T> withSorting(final String column, final PageSortOrder order) {
+            this.restCallBuilder.withSorting(column, order);
+            return this;
+        }
 
-            @Override
-            public Result<Page<T>> getPage() {
-                return restCallBuilder.call();
-            }
-        };
+        @Override
+        public Builder<T> withQueryParams(final MultiValueMap<String, String> params) {
+            this.restCallBuilder.withQueryParams(params);
+            return this;
+        }
 
-        return builer;
+        @Override
+        public Builder<T> withQueryParam(final String name, final String value) {
+            this.restCallBuilder.withQueryParam(name, value);
+            return this;
+        }
+
+        @Override
+        public Builder<T> withURIVariable(final String name, final String id) {
+            this.restCallBuilder.withURIVariable(name, id);
+            return this;
+        }
+
+        @Override
+        public Builder<T> apply(final Function<Builder<T>, Builder<T>> f) {
+            return f.apply(this);
+        }
+
+        @Override
+        public Result<Page<T>> getPage() {
+            return this.restCallBuilder.call();
+        }
     }
 
 }
