@@ -139,7 +139,7 @@ public class ModelInputWizard<T> extends Dialog {
                         .filter(page -> page.isStart)
                         .findFirst();
 
-        if (newPage.isEmpty()) {
+        if (!newPage.isPresent()) {
             return;
         }
 

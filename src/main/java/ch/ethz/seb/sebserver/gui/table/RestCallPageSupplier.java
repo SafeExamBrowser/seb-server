@@ -31,9 +31,10 @@ public class RestCallPageSupplier<T> implements PageSupplier<T> {
         return this.restCall.getEntityType();
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public Builder<T> newBuilder() {
-        return new RestCallBuilderAdapter<>(this.restCall.newBuilder());
+        return new RestCallBuilderAdapter(this.restCall.newBuilder());
     }
 
     public static final class RestCallBuilderAdapter<T> implements Builder<T> {
