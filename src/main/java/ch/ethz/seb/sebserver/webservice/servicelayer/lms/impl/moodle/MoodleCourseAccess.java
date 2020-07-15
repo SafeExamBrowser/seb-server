@@ -44,7 +44,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
-    private static final String MOODLE_QUIZ_START_URL_PATH = "/mod/quiz/view.php?id=";
+    private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
     private static final String MOODLE_COURSE_API_COURSE_IDS = "courseids";
@@ -187,7 +187,7 @@ public class MoodleCourseAccess extends CourseAccess {
         return courseData.quizzes
                 .stream()
                 .map(courseQuizData -> {
-                    final String startURI = uriPrefix + courseData.id;
+                    final String startURI = uriPrefix + courseQuizData.id;
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
                             courseQuizData.id,

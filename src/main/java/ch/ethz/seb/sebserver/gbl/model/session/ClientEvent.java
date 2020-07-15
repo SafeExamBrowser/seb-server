@@ -103,7 +103,7 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
         this.clientTime = (clientTime != null) ? clientTime : 0;
         this.serverTime = (serverTime != null) ? serverTime : Utils.getMillisecondsNow();
         this.numValue = numValue;
-        this.text = text;
+        this.text = Utils.truncateText(text, 512);
     }
 
     @Override
