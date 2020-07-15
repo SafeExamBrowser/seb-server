@@ -520,6 +520,7 @@ public class SEBClientBot {
         private final String eventBodyTemplate =
                 "{ \"type\": \"%s\", \"timestamp\": %s, \"text\": \"some error " + UUID.randomUUID() + " \" }";
 
+        private boolean first = true;
         private long timestamp = 0;
         private final String eventType;
 
@@ -534,7 +535,23 @@ public class SEBClientBot {
 
         @Override
         public String getBody() {
-            return String.format(this.eventBodyTemplate, this.eventType, this.timestamp);
+            if (this.first) {
+                this.first = false;
+                final String longText =
+                        "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT"
+                                + "DEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHTDEDSFGREZHT";
+                final String template =
+                        "{ \"type\": \"%s\", \"timestamp\": %s, \"text\": \"some error " + longText + " \" }";
+                return String.format(template, this.eventType, this.timestamp);
+            } else {
+                return String.format(this.eventBodyTemplate, this.eventType, this.timestamp);
+            }
         }
 
         @Override
