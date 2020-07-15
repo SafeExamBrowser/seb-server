@@ -24,14 +24,16 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityKey> {
 
     private static final long serialVersionUID = -2368065921846821061L;
+    public static final String ATTR_MODEL_ID = "modelId";
+    public static final String ATTR_ENTITY_TYPE = "entityType";
 
     /** The model identifier of the entity */
-    @JsonProperty(value = "modelId", required = true)
+    @JsonProperty(value = ATTR_MODEL_ID, required = true)
     @NotNull
     public final String modelId;
 
     /** The type of the entity */
-    @JsonProperty(value = "entityType", required = true)
+    @JsonProperty(value = ATTR_ENTITY_TYPE, required = true)
     @NotNull
     public final EntityType entityType;
 
@@ -40,8 +42,8 @@ public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityK
 
     @JsonCreator
     public EntityKey(
-            @JsonProperty(value = "modelId", required = true) final String modelId,
-            @JsonProperty(value = "entityType", required = true) final EntityType entityType) {
+            @JsonProperty(value = ATTR_MODEL_ID, required = true) final String modelId,
+            @JsonProperty(value = ATTR_ENTITY_TYPE, required = true) final EntityType entityType) {
 
         if (modelId == null) {
             throw new IllegalArgumentException("modelId has null reference");

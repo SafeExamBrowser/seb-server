@@ -20,18 +20,22 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ClientConnectionData {
 
-    @JsonProperty("clientConnection")
+    public static final String ATTR_CLIENT_CONNECTION = "clientConnection";
+    public static final String ATTR_INDICATOR_VALUE = "indicatorValues";
+    public static final String ATTR_MISSING_PING = "missingPing";
+
+    @JsonProperty(ATTR_CLIENT_CONNECTION)
     public final ClientConnection clientConnection;
-    @JsonProperty("indicatorValues")
+    @JsonProperty(ATTR_INDICATOR_VALUE)
     public final List<? extends IndicatorValue> indicatorValues;
 
     public final Boolean missingPing;
 
     @JsonCreator
     public ClientConnectionData(
-            @JsonProperty("missingPing") final Boolean missingPing,
-            @JsonProperty("clientConnection") final ClientConnection clientConnection,
-            @JsonProperty("indicatorValues") final Collection<? extends SimpleIndicatorValue> indicatorValues) {
+            @JsonProperty(ATTR_MISSING_PING) final Boolean missingPing,
+            @JsonProperty(ATTR_CLIENT_CONNECTION) final ClientConnection clientConnection,
+            @JsonProperty(ATTR_INDICATOR_VALUE) final Collection<? extends SimpleIndicatorValue> indicatorValues) {
 
         this.missingPing = missingPing;
         this.clientConnection = clientConnection;
@@ -47,7 +51,7 @@ public class ClientConnectionData {
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
 
-    @JsonProperty("missingPing")
+    @JsonProperty(ATTR_MISSING_PING)
     public Boolean getMissingPing() {
         return this.missingPing;
     }

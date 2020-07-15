@@ -16,21 +16,26 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 
 public final class RunningExamInfo {
 
-    @JsonProperty("examId")
+    public static final String ATTR_EXAM_ID = "examId";
+    public static final String ATTR_NAME = "name";
+    public static final String ATTR_URL = "url";
+    public static final String ATTR_LMS_TYPE = "lmsType";
+
+    @JsonProperty(ATTR_EXAM_ID)
     public final String examId;
-    @JsonProperty("name")
+    @JsonProperty(ATTR_NAME)
     public final String name;
-    @JsonProperty("url")
+    @JsonProperty(ATTR_URL)
     public final String url;
-    @JsonProperty("lmsType")
+    @JsonProperty(ATTR_LMS_TYPE)
     public final String lmsType;
 
     @JsonCreator
     public RunningExamInfo(
-            @JsonProperty("examId") final String examId,
-            @JsonProperty("name") final String name,
-            @JsonProperty("url") final String url,
-            @JsonProperty("lmsType") final String lmsType) {
+            @JsonProperty(ATTR_EXAM_ID) final String examId,
+            @JsonProperty(ATTR_NAME) final String name,
+            @JsonProperty(ATTR_URL) final String url,
+            @JsonProperty(ATTR_LMS_TYPE) final String lmsType) {
 
         this.examId = examId;
         this.name = name;

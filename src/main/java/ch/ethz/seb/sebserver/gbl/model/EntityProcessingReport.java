@@ -26,23 +26,27 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityProcessingReport {
 
+    public static final String ATTR_SOURCE = "source";
+    public static final String ATTR_RESULTS = "results";
+    public static final String ATTR_ERRORS = "errors";
+
     /** A set of entity-keys that are or were processed by a bulk action- or other process with a EntityProcessingReport
      * result. */
-    @JsonProperty(value = "source", required = true)
+    @JsonProperty(value = ATTR_SOURCE, required = true)
     public final Set<EntityKey> source;
     /** A set of entity-keys for all entities that has been detected as dependency to one or more of the source entities
      * during the process */
-    @JsonProperty(value = "results", required = true)
+    @JsonProperty(value = ATTR_RESULTS, required = true)
     public final Set<EntityKey> results;
     /** A set of error entries that defines an error if happened. */
-    @JsonProperty(value = "errors", required = true)
+    @JsonProperty(value = ATTR_ERRORS, required = true)
     public final Set<ErrorEntry> errors;
 
     @JsonCreator
     public EntityProcessingReport(
-            @JsonProperty(value = "source", required = true) final Collection<EntityKey> source,
-            @JsonProperty(value = "results", required = true) final Collection<EntityKey> results,
-            @JsonProperty(value = "errors", required = true) final Collection<ErrorEntry> errors) {
+            @JsonProperty(value = ATTR_SOURCE, required = true) final Collection<EntityKey> source,
+            @JsonProperty(value = ATTR_RESULTS, required = true) final Collection<EntityKey> results,
+            @JsonProperty(value = ATTR_ERRORS, required = true) final Collection<ErrorEntry> errors) {
 
         this.source = Utils.immutableSetOf(source);
         this.results = Utils.immutableSetOf(results);

@@ -21,14 +21,16 @@ public class EntityName extends EntityKey {
 
     private static final long serialVersionUID = 9577137222563155L;
 
-    @JsonProperty(value = "name", required = true)
+    public static final String ATTR_NAME = "name";
+
+    @JsonProperty(value = ATTR_NAME, required = true)
     public final String name;
 
     @JsonCreator
     public EntityName(
             @JsonProperty(value = API.PARAM_MODEL_ID, required = true) final String id,
             @JsonProperty(value = API.PARAM_ENTITY_TYPE, required = true) final EntityType entityType,
-            @JsonProperty(value = "name", required = true) final String name) {
+            @JsonProperty(value = ATTR_NAME, required = true) final String name) {
 
         super(id, entityType);
         this.name = name;

@@ -14,20 +14,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityDependency implements Comparable<EntityDependency> {
 
-    @JsonProperty(value = "parent", required = true)
+    public static final String ATTR_PARENT = "parent";
+    public static final String ATTR_SELF = "self";
+    public static final String ATTR_NAME = "name";
+    public static final String ATTR_DESCRIPTION = "description";
+
+    @JsonProperty(value = ATTR_PARENT, required = true)
     public final EntityKey parent;
-    @JsonProperty(value = "self", required = true)
+    @JsonProperty(value = ATTR_SELF, required = true)
     public final EntityKey self;
-    @JsonProperty(value = "name", required = true)
+    @JsonProperty(value = ATTR_NAME, required = true)
     public final String name;
-    @JsonProperty(value = "description", required = false)
+    @JsonProperty(ATTR_DESCRIPTION)
     public final String description;
 
     public EntityDependency(
-            @JsonProperty(value = "parent", required = true) final EntityKey parent,
-            @JsonProperty(value = "self", required = true) final EntityKey self,
-            @JsonProperty(value = "name", required = true) final String name,
-            @JsonProperty(value = "description", required = false) final String description) {
+            @JsonProperty(value = ATTR_PARENT, required = true) final EntityKey parent,
+            @JsonProperty(value = ATTR_SELF, required = true) final EntityKey self,
+            @JsonProperty(value = ATTR_NAME, required = true) final String name,
+            @JsonProperty(ATTR_DESCRIPTION) final String description) {
 
         this.parent = parent;
         this.self = self;

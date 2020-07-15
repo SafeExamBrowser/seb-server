@@ -105,8 +105,7 @@ public interface LmsAPITemplate {
 
     Result<QuizData> getQuizFromCache(String id);
 
-    // TODO this can be used in a future release to resolve examinee's account detail information by an
-    //      examinee identifier received by on SEB-Client connection.
+    // TODO
     //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
 
     /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
