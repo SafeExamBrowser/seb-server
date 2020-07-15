@@ -298,7 +298,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("ACTIVE", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionId());
+        assertEquals("-- (userSessionId)", clientConnectionRecord.getExamUserSessionId());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache after update
