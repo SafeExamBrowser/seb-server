@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -72,6 +73,16 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
         return Result.tryCatch(() -> this.moodleCourseAccess
                 .getCourseChaptersSupplier(courseId)
                 .get());
+    }
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return this.moodleCourseAccess.getExamineeAccountDetails(examineeSessionId);
+    }
+
+    @Override
+    public String getExamineeName(final String examineeSessionId) {
+        return this.moodleCourseAccess.getExamineeName(examineeSessionId);
     }
 
     @Override

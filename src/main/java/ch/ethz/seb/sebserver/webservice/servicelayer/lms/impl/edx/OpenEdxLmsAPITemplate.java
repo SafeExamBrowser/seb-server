@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -84,6 +85,16 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
         return Result.tryCatch(() -> this.openEdxCourseAccess
                 .getCourseChaptersSupplier(courseId)
                 .get());
+    }
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return this.openEdxCourseAccess.getExamineeAccountDetails(examineeSessionId);
+    }
+
+    @Override
+    public String getExamineeName(final String examineeSessionId) {
+        return this.openEdxCourseAccess.getExamineeName(examineeSessionId);
     }
 
     @Override

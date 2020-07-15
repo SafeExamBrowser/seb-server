@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -31,6 +33,7 @@ public abstract class CourseAccess {
 
     protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
     protected final CircuitBreaker<Chapters> chaptersRequest;
+    protected final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
     protected CourseAccess(final AsyncService asyncService) {
         this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
@@ -45,6 +48,11 @@ public abstract class CourseAccess {
                 3,
                 Constants.MINUTE_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS);
+
+        this.accountDetailRequest = asyncService.createCircuitBreaker(
+                1,
+                Constants.SECOND_IN_MILLIS * 10,
+                Constants.SECOND_IN_MILLIS * 10);
     }
 
     public Result<QuizData> getQuizFromCache(final String id) {
@@ -88,8 +96,32 @@ public abstract class CourseAccess {
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
     }
 
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return this.accountDetailRequest.protectedRun(accountDetailsSupplier(examineeSessionId));
+    }
+
+    public String getExamineeName(final String examineeSessionId) {
+        return getExamineeAccountDetails(examineeSessionId)
+                .map(ExamineeAccountDetails::getDisplayName)
+                .getOr(examineeSessionId);
+    }
+
     protected Result<Chapters> getCourseChapters(final String courseId) {
         return this.chaptersRequest.protectedRun(getCourseChaptersSupplier(courseId));
+    }
+
+    /** NOTE: this returns a ExamineeAccountDetails with given examineeSessionId for default.
+     * Override this if requesting account details is supported for specified LMS access.
+     *
+     * @param examineeSessionId
+     * @return this returns a ExamineeAccountDetails with given examineeSessionId for default */
+    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
+        return () -> new ExamineeAccountDetails(
+                examineeSessionId,
+                examineeSessionId,
+                examineeSessionId,
+                examineeSessionId,
+                Collections.emptyMap());
     }
 
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier();

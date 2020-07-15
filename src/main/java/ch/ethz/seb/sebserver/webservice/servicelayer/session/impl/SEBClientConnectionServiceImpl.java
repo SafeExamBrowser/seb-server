@@ -265,7 +265,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
-            clientConnection = updateUserSessionId(userSessionId, clientConnection);
+            clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
@@ -292,7 +292,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     (examId != null) ? examId : clientConnection.examId,
                     ConnectionStatus.ACTIVE,
                     null,
-                    userSessionId,
+                    clientConnection.userSessionId,
                     null,
                     virtualClientAddress,
                     null);
@@ -564,7 +564,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         checkExamRunning(examId);
     }
 
-    private ClientConnection updateUserSessionId(final String userSessionId, ClientConnection clientConnection) {
+    private ClientConnection updateUserSessionId(
+            final String userSessionId,
+            ClientConnection clientConnection,
+            final Long examId) {
+
         if (StringUtils.isNoneBlank(userSessionId)) {
             if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
                 log.error(
@@ -574,6 +578,20 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         "ClientConnection integrity violation: clientConnection has already a userSessionId");
             }
 
+            // try to get user account display name
+            String accountId = userSessionId;
+            try {
+                accountId = this.examSessionService
+                        .getRunningExam((clientConnection.examId != null)
+                                ? clientConnection.examId
+                                : examId)
+                        .flatMap(exam -> this.examSessionService.getLmsAPIService().getLmsAPITemplate(exam.lmsSetupId))
+                        .map(template -> template.getExamineeName(userSessionId))
+                        .getOr(userSessionId);
+            } catch (final Exception e) {
+                log.warn("Unexpected error while trying to get user account display name: {}", e.getMessage());
+            }
+
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
                     clientConnection.id,
@@ -581,7 +599,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     ConnectionStatus.AUTHENTICATED,
                     null,
-                    userSessionId,
+                    accountId,
                     null,
                     null,
                     null);

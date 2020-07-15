@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 /** A Service to handle running exam sessions */
@@ -48,6 +49,11 @@ public interface ExamSessionService {
      *
      * @return the underling CacheManager */
     CacheManager getCacheManager();
+
+    /** Get the underling LmsAPIService
+     *
+     * @return the underling LmsAPIService */
+    LmsAPIService getLmsAPIService();
 
     /** Use this to check the consistency of a running Exam.
      * Current consistency checks are:

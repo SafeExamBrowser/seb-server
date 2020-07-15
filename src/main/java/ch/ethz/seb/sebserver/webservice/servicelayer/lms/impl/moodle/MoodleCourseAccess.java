@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
@@ -46,6 +48,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
+    private static final String MOODLE_USER_PROFILE_API_FUNCTION_NAME = "core_user_get_users_by_field";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
     private static final String MOODLE_COURSE_API_COURSE_IDS = "courseids";
 
@@ -54,6 +57,53 @@ public class MoodleCourseAccess extends CourseAccess {
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
 
     private MoodleAPIRestTemplate restTemplate;
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return Result.tryCatch(() -> {
+            final MoodleAPIRestTemplate template = getRestTemplate()
+                    .getOrThrow();
+
+            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
+            queryAttributes.add("field", "id");
+            queryAttributes.add("values[0]", examineeSessionId);
+
+            final String userDetailsJSON = template.callMoodleAPIFunction(
+                    MOODLE_USER_PROFILE_API_FUNCTION_NAME,
+                    queryAttributes);
+
+            final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
+                    userDetailsJSON,
+                    new TypeReference<MoodleUserDetails[]>() {
+                    });
+
+            if (userDetails == null || userDetails.length <= 0) {
+                throw new RuntimeException("No user details on Moodle API request");
+            }
+
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            additionalAttributes.put("firstname", userDetails[0].firstname);
+            additionalAttributes.put("lastname", userDetails[0].lastname);
+            additionalAttributes.put("department", userDetails[0].department);
+            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
+            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
+            additionalAttributes.put("auth", userDetails[0].auth);
+            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
+            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
+            additionalAttributes.put("lang", userDetails[0].lang);
+            additionalAttributes.put("theme", userDetails[0].theme);
+            additionalAttributes.put("timezone", userDetails[0].timezone);
+            additionalAttributes.put("description", userDetails[0].description);
+            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
+            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
+            return new ExamineeAccountDetails(
+                    userDetails[0].id,
+                    userDetails[0].fullname,
+                    userDetails[0].username,
+                    userDetails[0].email,
+                    additionalAttributes);
+        });
+    }
 
     protected MoodleCourseAccess(
             final JSONMapper jsonMapper,
@@ -261,7 +311,6 @@ public class MoodleCourseAccess extends CourseAccess {
         @JsonCreator
         protected CourseQuizData(
                 @JsonProperty(value = "quizzes") final Collection<CourseQuiz> quizzes) {
-
             this.quizzes = quizzes;
         }
     }
@@ -291,7 +340,69 @@ public class MoodleCourseAccess extends CourseAccess {
             this.intro = intro;
             this.time_limit = time_limit;
         }
+    }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class MoodleUserDetails {
+        final String id;
+        final String username;
+        final String firstname;
+        final String lastname;
+        final String fullname;
+        final String email;
+        final String department;
+        final Long firstaccess;
+        final Long lastaccess;
+        final String auth;
+        final Boolean suspended;
+        final Boolean confirmed;
+        final String lang;
+        final String theme;
+        final String timezone;
+        final String description;
+        final Integer mailformat;
+        final Integer descriptionformat;
+
+        @JsonCreator
+        protected MoodleUserDetails(
+                @JsonProperty(value = "id") final String id,
+                @JsonProperty(value = "username") final String username,
+                @JsonProperty(value = "firstname") final String firstname,
+                @JsonProperty(value = "lastname") final String lastname,
+                @JsonProperty(value = "fullname") final String fullname,
+                @JsonProperty(value = "email") final String email,
+                @JsonProperty(value = "department") final String department,
+                @JsonProperty(value = "firstaccess") final Long firstaccess,
+                @JsonProperty(value = "lastaccess") final Long lastaccess,
+                @JsonProperty(value = "auth") final String auth,
+                @JsonProperty(value = "suspended") final Boolean suspended,
+                @JsonProperty(value = "confirmed") final Boolean confirmed,
+                @JsonProperty(value = "lang") final String lang,
+                @JsonProperty(value = "theme") final String theme,
+                @JsonProperty(value = "timezone") final String timezone,
+                @JsonProperty(value = "description") final String description,
+                @JsonProperty(value = "mailformat") final Integer mailformat,
+                @JsonProperty(value = "descriptionformat") final Integer descriptionformat) {
+
+            this.id = id;
+            this.username = username;
+            this.firstname = firstname;
+            this.lastname = lastname;
+            this.fullname = fullname;
+            this.email = email;
+            this.department = department;
+            this.firstaccess = firstaccess;
+            this.lastaccess = lastaccess;
+            this.auth = auth;
+            this.suspended = suspended;
+            this.confirmed = confirmed;
+            this.lang = lang;
+            this.theme = theme;
+            this.timezone = timezone;
+            this.description = description;
+            this.mailformat = mailformat;
+            this.descriptionformat = descriptionformat;
+        }
     }
 
 }

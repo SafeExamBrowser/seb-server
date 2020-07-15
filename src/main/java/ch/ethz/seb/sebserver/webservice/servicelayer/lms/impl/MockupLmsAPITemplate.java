@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -181,6 +182,16 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<Chapters> getCourseChapters(final String courseId) {
         return Result.ofError(new UnsupportedOperationException());
+    }
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return Result.ofError(new UnsupportedOperationException());
+    }
+
+    @Override
+    public String getExamineeName(final String examineeSessionId) {
+        return "--" + " (" + examineeSessionId + ")";
     }
 
     @Override

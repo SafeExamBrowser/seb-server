@@ -101,6 +101,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public LmsAPIService getLmsAPIService() {
+        return this.lmsAPIService;
+    }
+
+    @Override
     public Result<Collection<APIMessage>> checkRunningExamConsistency(final Long examId) {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();

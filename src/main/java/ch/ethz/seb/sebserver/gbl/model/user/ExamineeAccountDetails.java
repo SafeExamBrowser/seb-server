@@ -8,8 +8,12 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ExamineeAccountDetails {
 
@@ -17,6 +21,7 @@ public class ExamineeAccountDetails {
     public static final String ATTR_NAME = "name";
     public static final String ATTR_USER_NAME = "username";
     public static final String ATTR_EMAIL = "email";
+    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 
     @JsonProperty(ATTR_ID)
     public final String id;
@@ -30,17 +35,22 @@ public class ExamineeAccountDetails {
     @JsonProperty(ATTR_EMAIL)
     public final String email;
 
+    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    public final Map<String, String> additionalAttributes;
+
     @JsonCreator
     public ExamineeAccountDetails(
             @JsonProperty(ATTR_ID) final String id,
             @JsonProperty(ATTR_NAME) final String name,
             @JsonProperty(ATTR_USER_NAME) final String username,
-            @JsonProperty(ATTR_EMAIL) final String email) {
+            @JsonProperty(ATTR_EMAIL) final String email,
+            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.name = name;
         this.username = username;
         this.email = email;
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
     }
 
     public String getId() {
@@ -59,6 +69,17 @@ public class ExamineeAccountDetails {
         return this.email;
     }
 
+    public Map<String, String> getAdditionalAttributes() {
+        return this.additionalAttributes;
+    }
+
+    public String getDisplayName() {
+        if (this.name == null) {
+            return this.id;
+        }
+        return (this.name.equals(this.id)) ? this.id : this.name + " (" + this.id + ")";
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -70,6 +91,8 @@ public class ExamineeAccountDetails {
         builder.append(this.username);
         builder.append(", email=");
         builder.append(this.email);
+        builder.append(", additionalAttributes=");
+        builder.append(this.additionalAttributes);
         builder.append("]");
         return builder.toString();
     }

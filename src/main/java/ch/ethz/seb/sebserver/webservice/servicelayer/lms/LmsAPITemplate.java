@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -105,8 +106,22 @@ public interface LmsAPITemplate {
 
     Result<QuizData> getQuizFromCache(String id);
 
-    // TODO
-    //Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
+    /** Convert a an anonymous or temporary user session identifier from SEB Client into a user
+     * account details.
+     *
+     * @param examineeSessionId the user session identifier from SEB Client
+     * @return a Result refer to the ExamineeAccountDetails instance or to an error when happened or not supported */
+    Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeSessionId);
+
+    /** Used to convert an anonymous or temporary user session identifier from SEB Client into a user
+     * account name for displaying on monitoring page.
+     *
+     * If the underling concrete template implementation does not support this user name conversion,
+     * the given examineeSessionId shall be returned.
+     *
+     * @param examineeSessionId the user session identifier from SEB Client
+     * @return a user account display name if supported or the given examineeSessionId if not. */
+    String getExamineeName(String examineeSessionId);
 
     /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
      * apply chapter-based SEB restriction for a specified course.
