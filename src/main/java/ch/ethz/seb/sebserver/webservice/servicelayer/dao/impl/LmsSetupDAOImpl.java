@@ -26,10 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -137,7 +137,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            LmsSetupRecord savedRecord = recordById(lmsSetup.id)
+            final LmsSetupRecord savedRecord = recordById(lmsSetup.id)
                     .getOrThrow();
 
             final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
@@ -149,8 +149,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
                     lmsCredentials.clientIdAsString(),
-                    lmsCredentials.secretAsString(),
-                    lmsCredentials.accessTokenAsString(),
+                    (lmsCredentials.hasSecret())
+                            ? lmsCredentials.secretAsString()
+                            : savedRecord.getLmsClientsecret(),
+                    (lmsCredentials.hasAccessToken())
+                            ? lmsCredentials.accessTokenAsString()
+                            : savedRecord.getLmsRestApiToken(),
                     lmsSetup.getProxyHost(),
                     lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),

@@ -258,7 +258,6 @@ public class PageContextImpl implements PageContext {
                 this.i18nSupport.getText(message),
                 SWT.NONE,
                 this.i18nSupport);
-
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);
     }
@@ -303,6 +302,7 @@ public class PageContextImpl implements PageContext {
                 Utils.formatHTMLLines(errorMessage + "<br/><br/> Cause: " + error.getMessage()),
                 SWT.ERROR,
                 this.i18nSupport);
+        messageBox.setMarkupEnabled(true);
         messageBox.open(null);
     }
 

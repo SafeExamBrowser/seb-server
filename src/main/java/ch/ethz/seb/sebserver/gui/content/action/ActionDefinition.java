@@ -165,10 +165,15 @@ public enum ActionDefinition {
             ImageIcon.EDIT,
             PageStateDefinitionImpl.LMS_SETUP_EDIT,
             ActionCategory.FORM),
-    LMS_SETUP_SAVE_AND_TEST(
-            new LocTextKey("sebserver.lmssetup.action.savetest"),
+    LMS_SETUP_TEST(
+            new LocTextKey("sebserver.lmssetup.action.test"),
             ImageIcon.TEST,
             PageStateDefinitionImpl.LMS_SETUP_VIEW,
+            ActionCategory.FORM),
+    LMS_SETUP_TEST_EDIT(
+            new LocTextKey("sebserver.lmssetup.action.test"),
+            ImageIcon.TEST,
+            PageStateDefinitionImpl.LMS_SETUP_EDIT,
             ActionCategory.FORM),
     LMS_SETUP_TEST_AND_SAVE(
             new LocTextKey("sebserver.lmssetup.action.testsave"),

@@ -340,6 +340,8 @@ public class PageServiceImpl implements PageService {
                 } catch (final Exception e) {
                     log.error("Failed to set current PageState: ", e);
                 }
+            } else {
+
             }
             callback.accept(result);
         });

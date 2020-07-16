@@ -68,7 +68,7 @@ public class APIMessageTest {
 
         final String html = APIMessage.toHTML("title message", messages);
         assertEquals(
-                "<b>Failure: </b><br/><br/>title message<br/><br/><b>Detail Messages:</b><br/><br/>&nbsp;&nbsp;code&nbsp;:&nbsp;0<br/>&nbsp;&nbsp;system message&nbsp;:&nbsp;Generic error message<br/>&nbsp;&nbsp;details&nbsp;:&nbsp;--<br/><br/>&nbsp;&nbsp;code&nbsp;:&nbsp;1010<br/>&nbsp;&nbsp;system message&nbsp;:&nbsp;Illegal API request argument<br/>&nbsp;&nbsp;details&nbsp;:&nbsp;--<br/><br/>",
+                "<b>Failure:</b><br/><br/>title message<br/><br/><b>Detail Messages:</b><br/><br/>&nbsp;&nbsp;code&nbsp;:&nbsp;0<br/>&nbsp;&nbsp;system message&nbsp;:&nbsp;Generic error message<br/>&nbsp;&nbsp;details&nbsp;:&nbsp;--<br/><br/>&nbsp;&nbsp;code&nbsp;:&nbsp;1010<br/>&nbsp;&nbsp;system message&nbsp;:&nbsp;Illegal API request argument<br/>&nbsp;&nbsp;details&nbsp;:&nbsp;--<br/><br/>",
                 html);
 
         final String html2 = APIMessage.toHTML(messages);
