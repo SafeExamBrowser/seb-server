@@ -330,6 +330,12 @@ public final class Utils {
                 : null;
     }
 
+    public static String formatHTMLLinesForceEscaped(final String message) {
+        return (message != null)
+                ? message.replace("\n", "<br/>").replace("\\n", "<br/>")
+                : null;
+    }
+
     public static String formatLineBreaks(final String text) {
         if (text == null) {
             return null;

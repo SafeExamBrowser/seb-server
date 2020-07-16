@@ -200,7 +200,7 @@ public class APIMessage implements Serializable {
 
     public static String toHTML(final String errorMessage, final List<APIMessage> messages) {
         final StringBuilder builder = new StringBuilder();
-        builder.append("<b>Failure: </b>").append("<br/><br/>").append(errorMessage).append("<br/><br/>");
+        builder.append("<b>Failure:</b>").append("<br/><br/>").append(errorMessage).append("<br/><br/>");
         builder.append("<b>Detail Messages:</b><br/><br/>");
         return buildHTML(messages, builder);
     }

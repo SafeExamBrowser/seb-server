@@ -37,7 +37,6 @@ public final class Message extends MessageBox {
         super(parent, type);
         super.setText(title);
         super.setMessage(message);
-        super.setMarkupEnabled(true);
         this.i18nSupport = i18nSupport;
     }
 

@@ -86,6 +86,19 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
     }
+//
+//    @ExceptionHandler(RuntimeException.class)
+//    public ResponseEntity<Object> handleRuntimeException(
+//            final RuntimeException ex,
+//            final WebRequest request) {
+//
+//        log.error("Unexpected generic error catched at the API endpoint: ", ex);
+//        final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
+//        return new ResponseEntity<>(
+//                errors,
+//                Utils.createJsonContentHeader(),
+//                HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     @ExceptionHandler(OnlyMessageLogExceptionWrapper.class)
     public ResponseEntity<Object> onlyMessageLogExceptionWrapper(

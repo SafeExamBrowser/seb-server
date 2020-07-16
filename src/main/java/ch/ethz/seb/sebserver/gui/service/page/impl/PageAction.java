@@ -198,6 +198,13 @@ public final class PageAction {
                     PageAction.this.getName(),
                     e.getMessage(),
                     Utils.getErrorCauseMessage(e));
+            if (e.getCause() instanceof RestCallError) {
+                final RestCallError cause = (RestCallError) e.getCause();
+                PageAction.this.pageContext.notifyError(
+                        PageContext.UNEXPECTED_ERROR_KEY,
+                        cause);
+                return Result.ofError(cause);
+            }
             return Result.ofError(e);
         } catch (final Exception e) {
             log.error("Failed to execute action: {} | error: {} | cause: {}",

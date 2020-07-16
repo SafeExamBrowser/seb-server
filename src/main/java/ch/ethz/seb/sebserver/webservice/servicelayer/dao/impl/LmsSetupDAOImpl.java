@@ -150,8 +150,12 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
                     lmsCredentials.clientIdAsString(),
-                    lmsCredentials.secretAsString(),
-                    lmsCredentials.accessTokenAsString(),
+                    (lmsCredentials.hasSecret())
+                            ? lmsCredentials.secretAsString()
+                            : savedRecord.getLmsClientsecret(),
+                    (lmsCredentials.hasAccessToken())
+                            ? lmsCredentials.accessTokenAsString()
+                            : savedRecord.getLmsRestApiToken(),
                     lmsSetup.getProxyHost(),
                     lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),

@@ -308,7 +308,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public T savePut(@Valid @RequestBody final T modifyData) {
-
         return this.checkModifyAccess(modifyData)
                 .flatMap(this::validForSave)
                 .flatMap(this.entityDAO::save)

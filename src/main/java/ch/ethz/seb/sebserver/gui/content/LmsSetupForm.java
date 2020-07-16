@@ -303,6 +303,11 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
 
+                .newAction(ActionDefinition.LMS_SETUP_TEST)
+                .withEntityKey(entityKey)
+                .withExec(action -> LmsSetupForm.testLmsSetup(action, formHandle, restService))
+                .publishIf(() -> readonly)
+
                 .newAction(ActionDefinition.LMS_SETUP_DEACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, DeactivateLmsSetup.class)
@@ -319,6 +324,12 @@ public class LmsSetupForm implements TemplateComposer {
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.LMS_SETUP_TEST_EDIT)
+                .withEntityKey(entityKey)
+                .withExec(action -> this.testAdHoc(action, formHandle))
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> !readonly && !isNew.getAsBoolean())
 
                 .newAction(ActionDefinition.LMS_SETUP_SAVE_AND_ACTIVATE)
                 .withEntityKey(entityKey)
@@ -438,12 +449,12 @@ public class LmsSetupForm implements TemplateComposer {
                         case TOKEN_REQUEST: {
                             throw new PageMessageException(new LocTextKey(
                                     "sebserver.lmssetup.action.test.tokenRequestError",
-                                    error.message));
+                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                         }
                         case QUIZ_ACCESS_API_REQUEST: {
                             throw new PageMessageException(new LocTextKey(
                                     "sebserver.lmssetup.action.test.quizRequestError",
-                                    error.message));
+                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                         }
                         case QUIZ_RESTRICTION_API_REQUEST: {
                             // NOTE: quiz restriction is not mandatory for functional LmsSetup
@@ -453,7 +464,7 @@ public class LmsSetupForm implements TemplateComposer {
                         default: {
                             throw new PageMessageException(new LocTextKey(
                                     "sebserver.lmssetup.action.test.unknownError",
-                                    error.message));
+                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                         }
                     }
                 });
