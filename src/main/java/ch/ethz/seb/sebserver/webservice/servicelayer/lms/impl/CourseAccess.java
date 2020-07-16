@@ -18,6 +18,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
@@ -30,6 +33,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 public abstract class CourseAccess {
+
+    private static final Logger log = LoggerFactory.getLogger(CourseAccess.class);
 
     protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
     protected final CircuitBreaker<Chapters> chaptersRequest;
@@ -103,6 +108,7 @@ public abstract class CourseAccess {
     public String getExamineeName(final String examineeSessionId) {
         return getExamineeAccountDetails(examineeSessionId)
                 .map(ExamineeAccountDetails::getDisplayName)
+                .onError(error -> log.warn("Failed to request Moodle user-name for ID: {}", error.getMessage(), error))
                 .getOr(examineeSessionId);
     }
 

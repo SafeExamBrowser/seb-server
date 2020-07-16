@@ -618,7 +618,7 @@ public final class Utils {
     }
 
     public static String toAppFormUrlEncodedBody(final String name, final Collection<String> array) {
-        final String _name = name.contains(String.valueOf(Constants.SQUARE_BRACE_OPEN))
+        final String _name = name.contains(String.valueOf(Constants.SQUARE_BRACE_OPEN)) || array.size() <= 1
                 ? name
                 : name + Constants.SQUARE_BRACE_OPEN + Constants.SQUARE_BRACE_CLOSE;
 
